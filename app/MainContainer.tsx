@@ -64,6 +64,7 @@ import Search from 'material-ui/svg-icons/action/search';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
+import { TodoCreationForm } from './TodoCreationForm';
 let uniqid = require("uniqid");
 
   
@@ -83,9 +84,9 @@ export class MainContainer extends Component<any,any>{
               width: "74%",
               position:"relative",
               display: "flex",
-              justifyContent: "center"  
+              flexDirection: "column" 
           }}
-        >   
+        >    
 
         <div className="no-drag"
               style={{
@@ -157,8 +158,17 @@ export class MainContainer extends Component<any,any>{
             </div>
 
 
-        </div>  
-
+        </div>   
+       
+        <div style={{
+            width: "100%",
+            height: "30%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+        }}>  
+          <TodoCreationForm />
+        </div>    
         
 
         <div style={{ 
@@ -167,17 +177,19 @@ export class MainContainer extends Component<any,any>{
               position: "fixed",
               display: "flex",
               justifyContent: "center",
+              backgroundColor: "white",
               bottom: "0px",
               borderTop: "1px solid rgba(100, 100, 100, 0.2)" 
-        }}> 
+        }}>   
         <div style={{  
             display: "flex",
             alignItems: "center",
             justifyContent: "space-around",
             position: "absolute",
             bottom: 0,
+            backgroundColor: "white",
             width: "70%",
-            height: "60px"  
+            height: "60px"      
         }}>
 
             <IconButton 

@@ -32,9 +32,9 @@ let onReady = () => {
     loadApp(mainWindow)  
     .then(() => { 
       mainWindow.webContents.send("loaded");
-      //mainWindow.webContents.openDevTools();   
+      mainWindow.webContents.openDevTools();   
     });    
-}   
+}    
   
  
 process.on("unchaughtException" as any,(error) => console.log(error)); 
