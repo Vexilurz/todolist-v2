@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {   
+      "name": "Debug Main Process",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceRoot}/app/main/main.ts",
+      "stopOnEntry": false,
+      "args": ["."],  
+      "cwd": "${workspaceRoot}",
+      "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd",
+      "outFiles": [  
+        "${workspaceRoot}/dist/main.js" 
+      ],
+      "protocol":"inspector",
+      "env": { }, 
+      "sourceMaps": true 
+    }   
+  ]
+} 
+  
+

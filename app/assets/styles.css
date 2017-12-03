@@ -1,0 +1,134 @@
+html{
+  height:860px;
+}
+
+
+body{  
+    background-size: cover;
+    height:100%;
+    overflow: hidden;
+    margin : 0;
+}
+
+
+.unselectable::selection {
+  text-shadow: none;
+  background: rgba(0,0,0,0);
+}
+
+
+.box {
+  display: inline-block;
+  background: #ccc;
+  border: 1px solid black;
+  text-align: center;
+  padding: 10px;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  overflow: hidden;
+  position: relative;
+  margin: 20px;
+}
+.box .text {
+  text-align: center;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  height: 36px;
+}
+.box .react-resizable-handle {
+  display: none;
+}
+.box:hover .react-resizable-handle {
+  display: block;
+}
+.box3 .react-resizable-handle {
+  display: none;
+}
+.box3:hover .react-resizable-handle {
+  display: block;
+}
+
+#application{
+  height:100%;
+}
+
+
+#cover{
+   width:600px;
+   height:400px;  
+}
+
+
+
+ 
+.defaultCursor{
+  cursor: default; 
+}
+
+ 
+.line{
+  height: 20px;
+  position: relative;
+  margin: 40px;
+  color: darkslategray;
+  box-shadow: inset 7px 15px 0px -7px, inset -7px -16px 0px -7px;
+}
+
+  
+.grid{
+    position:relative; 
+}
+
+
+
+ul {
+    list-style-type: none;
+}
+
+
+li {
+    display: inline-block;
+    margin:10px;
+    vertical-align: top;
+}
+
+
+.popOver{
+    height: 15%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-right: 3%;
+}
+
+
+.flex-column{
+    display:flex;
+    flex-direction:column;
+}
+
+
+.drag{
+  -webkit-app-region: drag;
+   width: 98%;
+   height: 45px;
+   position: absolute;
+   top: 5px;
+   left: 5px;
+} 
+  
+
+.no-drag{
+  -webkit-app-region: no-drag;
+}
+
+
+
+@font-face {
+    font-family: 'Roboto', cursive;
+    src: url('fonts/Roboto-Regular.ttf');
+}  
