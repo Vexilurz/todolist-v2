@@ -70,128 +70,243 @@ import { MenuList, MenuItem } from 'material-ui-next/Menu';
 
 
 
+/*
+
+<IconButton   
+    key={uniqid()}   
+    onClick = {() => ipcRenderer.send("close")}
+    tooltip = {"close"} 
+    iconStyle={{
+        width:"20px",
+        height:"20px"
+    }}  
+> 
+    <Circle 
+        style={{
+            color: this.state.closeHover ? "red" : "rgba(159,159,159,0.5)",
+            borderRadius:"30px",
+            backgroundColor:"rgba(159,159,159,0)" 
+        }}
+        onMouseEnter = {() => this.setState({closeHover:true})}
+        onMouseLeave = {() => this.setState({closeHover:false})}
+    />     
+</IconButton> 
+<IconButton  
+    key={uniqid()}   
+    onClick = {() => ipcRenderer.send("hide")}
+    tooltip = {"hide"} 
+    onMouseOver = {() => this.setState({hideHover:true},() => console.log("hide"))}
+    onMouseOut = {() => this.setState({hideHover:false},() => console.log("show"))}
+    iconStyle={{
+        color: this.state.hideHover ? "orange" : "rgba(159,159,159,0.5)", 
+        width:"20px",
+        height:"20px" 
+    }}
+>
+    <Circle /> 
+</IconButton>      
+<IconButton   
+    key={uniqid()}   
+    onClick = {() => ipcRenderer.send("reload")}
+    tooltip = {"reload"}  
+    onMouseOver = {() => this.setState({reloadHover:true})}
+    onMouseOut = {() => this.setState({reloadHover:false})}
+    iconStyle={{
+        color:this.state.reloadHover ? "green" : "rgba(159,159,159,0.5)", 
+        width:"20px",
+        height:"20px"
+    }}
+>
+    <Circle /> 
+</IconButton>
+
+*/
+
+
+
+
+
  
 export class LeftPanel extends Component<any,any>{
      
         constructor(props){ 
             super(props); 
         };
-      
+
         render(){ 
             return <div style={{
                 display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
+                flexDirection: "column", 
                 width: "26%",
                 height: "100%",
                 backgroundColor: "rgba(189, 189, 189, 0.2)" 
-            }}>   
+            }}>      
         
-            <div className="no-drag">
-                { 
-                    [
-                     "close",
-                     "reload",
-                     "hide"
-                    ].map(
-                            (type) => <IconButton  
-                                key={uniqid()}   
-                                onClick = {() => ipcRenderer.send(type)}
-                                tooltip = {type} 
-                                iconStyle={{
-                                    color:"rgba(159,159,159,0.5)", 
-                                    width:"20px",
-                                    height:"20px"
-                                }}
-                            >
-                                <Circle /> 
-                            </IconButton>
-                        )
-                }
+            <div 
+            className="no-drag"
+            style={{ 
+                display: "flex",
+                padding: "10px"
+            }}>   
+ 
+            <div className="close"
+                onClick = {() => ipcRenderer.send("close")}
+                style={{ 
+                    width: "15px",
+                    height: "15px",
+                    borderRadius: "30px",
+                    border: "1px solid grey",
+                    cursor:"pointer",
+                    marginRight: "10px"
+                }}
+            > 
+            </div>   
+
+            <div className="reload"
+                onClick = {() => ipcRenderer.send("reload")}
+                style={{
+                    width: "15px",
+                    height: "15px",
+                    borderRadius: "30px",
+                    border: "1px solid grey",
+                    cursor:"pointer",
+                    marginRight: "10px"  
+                }}  
+            >  
             </div>  
+  
+            <div className="hide"
+                onClick = {() => ipcRenderer.send("hide")} 
+                style={{     
+                    width: "15px", 
+                    height: "15px",
+                    borderRadius: "30px",
+                    border: "1px solid grey",
+                    cursor:"pointer",
+                    marginRight: "10px"  
+                }} 
+            >
+            </div> 
+
+                
+            </div>   
  
             <div style={{width:"100%"}}>
-                
+                 
         <MenuList>
-            <MenuItem style={{
+            <MenuItem 
+            onClick={() => this.props.dispatch({
+                type:"selectedCategory",
+                load:"inbox"
+            })}
+            style={{
                 paddingTop:"5px",
                 paddingBottom:"5px", 
                 paddingLeft:"5px", 
                 paddingRight:"5px" 
             }}> 
                 <ListItemIcon > 
-                <Inbox />
-                </ListItemIcon>
+                <Inbox style={{ color:"dodgerblue" }} />
+                </ListItemIcon> 
                 <ListItemText inset primary="Inbox" />
             </MenuItem>
             <div style={{width:"100%",height:"30px"}}></div>
-            <MenuItem style={{
+            <MenuItem 
+            onClick={() => this.props.dispatch({
+                type:"selectedCategory",
+                load:"today"
+            })} 
+            style={{
                 paddingTop:"5px",
-                paddingBottom:"5px", 
+                paddingBottom:"5px",  
                 paddingLeft:"5px", 
                 paddingRight:"5px" 
             }}>
-                <ListItemIcon >  
-                <Star />  
+                <ListItemIcon >   
+                <Star style={{color:"darkgoldenrod"}}/>   
                 </ListItemIcon>
                 <ListItemText  inset primary="Today" />
                 <div>1</div>
-            </MenuItem> 
-            <MenuItem style={{
+            </MenuItem>  
+
+            <MenuItem 
+            onClick={() => this.props.dispatch({
+                type:"selectedCategory",
+                load:"upcoming" 
+            })}
+            style={{
                 paddingTop:"5px",
                 paddingBottom:"5px", 
                 paddingLeft:"5px", 
                 paddingRight:"5px" 
             }}> 
-                <ListItemIcon > 
-                <Calendar />
+                <ListItemIcon>   
+                    <Calendar style={{color:"crimson"}}/>
                 </ListItemIcon>
                 <ListItemText  inset primary="Upcoming" />
             </MenuItem>
-            <MenuItem style={{
+            <MenuItem 
+            onClick={() => this.props.dispatch({
+                type:"selectedCategory",
+                load:"anytime"
+            })}  
+            style={{
                 paddingTop:"5px",
                 paddingBottom:"5px", 
                 paddingLeft:"5px", 
                 paddingRight:"5px" 
             }}> 
                 <ListItemIcon > 
-                <Layers />
-                </ListItemIcon>
+                <Layers style={{color:"darkgreen"}}/>
+                </ListItemIcon> 
                 <ListItemText  inset primary="Anytime" />
             </MenuItem> 
-            <MenuItem style={{
+            <MenuItem 
+            onClick={() => this.props.dispatch({
+                type:"selectedCategory",
+                load:"someday" 
+            })} 
+            style={{
                 paddingTop:"5px",
                 paddingBottom:"5px", 
                 paddingLeft:"5px", 
                 paddingRight:"5px" 
             }}> 
-                <ListItemIcon > 
-                <BusinessCase /> 
+                <ListItemIcon >      
+                <BusinessCase  style={{color:"burlywood"}}/> 
                 </ListItemIcon>
                 <ListItemText  inset primary="Someday" />
                 <div>5</div>
             </MenuItem> 
             <div style={{width:"100%",height:"30px"}}></div>
-            <MenuItem style={{
+            <MenuItem 
+            onClick={() => this.props.dispatch({
+                type:"selectedCategory",load:"logbook"
+            })} 
+            style={{ 
                 paddingTop:"5px",
                 paddingBottom:"5px", 
                 paddingLeft:"5px", 
                 paddingRight:"5px" 
             }}>  
-                <ListItemIcon > 
-                <Logbook /> 
+                <ListItemIcon> 
+                <Logbook style={{color:"limegreen"}}/> 
                 </ListItemIcon>
                 <ListItemText  inset primary="Logbook" />
                 <div>3</div>
-            </MenuItem>
-            <MenuItem style={{
+            </MenuItem> 
+            <MenuItem 
+            onClick={() => this.props.dispatch({
+                type:"selectedCategory",load:"trash"
+            })} 
+            style={{
                 paddingTop:"5px",
                 paddingBottom:"5px", 
                 paddingLeft:"5px", 
                 paddingRight:"5px" 
             }}> 
-                <ListItemIcon >  
-                <Trash />
+                <ListItemIcon>    
+                <Trash style={{color:"darkgray"}}/>
                 </ListItemIcon>
                 <ListItemText  inset primary="Trash" />
             </MenuItem>
@@ -199,11 +314,12 @@ export class LeftPanel extends Component<any,any>{
 
          </MenuList> 
         </div>   
- 
+            <div id="projects">  
             {
                 compose(
                     map(
                         (n) => <div 
+                        className="hoverBorder"
                         key={uniqid()} 
                         style={{
                             height:"20px",
@@ -218,7 +334,7 @@ export class LeftPanel extends Component<any,any>{
                                     width:"18px",
                                     height:"18px"
                                 }}  
-                            > 
+                            >  
                                 <Circle /> 
                             </IconButton> 
                            <div style={{
@@ -234,20 +350,26 @@ export class LeftPanel extends Component<any,any>{
                         </div>
                     ),
                     range(0)
-                )(5) 
-            }
+                )(15)  
+            } 
+            </div>
             
-             
-            <div style={{  
+            <div style={{
+                height: "40%",
                 display: "flex",
-                alignItems: "center",
-                position: "sticky",
-                bottom:0, 
+                justifyContent: "center",
+                alignItems: "flex-end" 
+            }}> 
+            <div style={{   
+                display: "flex",
+                alignItems: "center",  
+                position: "absolute",
+                bottom: "0px",
                 height: "60px",
                 backgroundColor: "rgba(235, 235, 235, 1)",
                 borderTop: "1px solid rgba(100, 100, 100, 0.2)"
             }}>   
-                <div style={{     
+                <div style={{      
                     display: "flex",  
                     alignItems: "center",
                     width: "270px" 
@@ -288,8 +410,9 @@ export class LeftPanel extends Component<any,any>{
                     }}>        
                         <Adjustments /> 
                     </IconButton>  
-                </div>   
+                </div>      
 
+            </div> 
             </div> 
 
        </div>

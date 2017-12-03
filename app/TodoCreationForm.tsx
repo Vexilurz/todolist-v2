@@ -66,170 +66,126 @@ import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import Clear from 'material-ui/svg-icons/content/clear';
 import PouchDB from 'pouchdb-browser';  
-
-
+import List from 'material-ui/svg-icons/action/list'; 
 import { db } from './app';
+import { getTodos, queryToTodos, Todo, updateTodo, generateID, addTodo } from './databaseCalls';
 let uniqid = require("uniqid");
 
- 
-export let generateID = () => new Date().toJSON(); 
   
 
-export interface Project{
-    _id : string, 
-    attachedTodos : string[],
-    name : string,
-    description : string 
-}
 
-
-export interface Tag{
-    _id : string,
-    name : string,
-    attachedTodos : string[]
-} 
+interface TodoCreationFormProps{ 
+    dispatch:Function
+}  
  
-
-export interface Todo{ 
-    _id : string,
-    category : string, 
-    title : string,
-    priority : number,
+interface TodoCreationFormState{
     notes : string[],
-    attachedProdjects : string[],
-    attachedTags : string[],
-    status : string,
-    deadline : Date,
-    created : Date,
-    deleted : Date,
-    fulfilled : Date, 
-    history : {
-        action : string,
-        date : Date
-    }[],
-    attachemnts : string[]
-}
-  
-
-export interface Event{
-    _id : string,
-    title : string,
-    notes : string[],
-    attachedProdjects : string[],
-    attachedTags : string[],
-    date:Date,
-    location:string,  
-    history : {
-        action : string,
-        date : Date
-    },
-    attachemnts : string[]
+    currentTodo : string, 
+    currentNote : string
 }
  
-
-
-interface Query<T>{
-    total_rows: 2, 
-    offset: 0, 
-    rows: QueryResult<T>[]
-}
  
-interface QueryResult<T>{
-    doc:T,
-    id:string,
-    key:string,
-    value:Object 
-}
-
-
  
-
-export let addTodo = (onError:Function, todo : Todo) : Promise<void> => 
-           db.put(todo).catch(onError);
-
-export let getTodoById = (onError:Function, _id : string) : Promise<Todo> => 
-           db.get(_id).catch(onError); 
- 
-export let updateTodo = (_id : string, replacement : Todo, onError:Function) : Promise<Todo> => 
-    db.get(_id)
-    .then((doc) => db.put(merge(doc,replacement))) 
-    .catch(onError); 
- 
-
-export let getTodosRange = (onError:Function) =>
-  (descending,limit,start,end) : Promise<Todo[]>=> 
-    db.allDocs({
-        include_docs:true,
-        conflicts: true, 
-        descending,
-        limit, 
-        startkey:start,
-        endkey:end 
-    })
-    .then((result) => {
-        console.log("getTodosRange", result);
-        return result; 
-    })
-    .catch(onError);  
-  
-
-export let getTodos = (onError:Function) =>  
-  (descending,limit) : Promise<Query<Todo>> => 
-    db.allDocs({ 
-        include_docs:true, 
-        conflicts: true,
-        descending,
-        limit 
-    })
-    .catch(onError); 
-
-   
-
-let queryToTodos = (query:Query<Todo>) => ifElse(
-        isNil, 
-        () => [],
-        compose( 
-            map(prop("doc")),
-            prop("rows") 
-        ) 
-    )(query)
-   
-
-
-export class TodoCreationForm extends Component<any,any>{
+export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreationFormState>{
 
     constructor(props){
         super(props);
-        this.state = {
+        this.state={
             notes : [],
-            todos : [],  
             currentTodo : '', 
-            currentNote : ''
-        } 
+            currentNote : ''  
+        }
     }
+    
+    onError = (e) => console.log(e);
 
-    componentDidMount(){
-        let onError = (e) => console.log(e);
-        let getTodosCatch = getTodos(onError);
+    removeNote = (note:string) => {}; 
 
-        getTodosCatch(true,100)
-        .then(queryToTodos)
-        .then(
-            (todos:Todo[]) => Promise.all(
-                map((todo:Todo) => updateTodo(
-                        todo._id,
-                        merge(todo,{_deleted: true}),
-                        onError
-                ))(todos)
-            )
-        )  
-    }  
  
-    removeNote = (note:string) => {}
+    getNoteElem = (value:string) => <div style={{ 
+        display:"flex", 
+        alignItems:"center", 
+        borderBottom:"1px solid rgba(100,100,100,0.2)"
+    }} key={uniqid()}>     
+        <Circle style={{color:"darkcyan"}}/>  
+        <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%"  
+        }}>    
+            <div style={{
+                marginLeft:"10px",
+                fontFamily: "sans-serif", 
+                fontSize: "medium", 
+                color: "rgba(100,100,100,1)",
+                fontWeight: 500
+            }}>
+                {value} 
+            </div>  
+            { 
+            // im not sure should note be deletable or not    
+            true ? null :  
+            <IconButton 
+                onClick = {() => this.removeNote(value)}
+                iconStyle={{  
+                    color:"rgb(179, 179, 179)",
+                    width:"25px", 
+                    height:"25px" 
+                }}  
+            >      
+                <Clear />
+            </IconButton>
+            } 
+        </div>   
+    </div>;
+
+    
+    createSortableItem = (transform) => SortableElement(({value}) => transform(value)); 
+    
+      
+    getNotesList = (items:string[]) =>  
+        <ul style={{
+                zIndex:10,
+                padding:0,
+                margin:0  
+            }}  
+        > 
+        {    
+            items.map(    
+                (note:string, index) => {
+                    let SortableItem = this.createSortableItem(this.getNoteElem); 
+                    return <SortableItem  key={`item-${index}`} index={index} value={note} />
+                }
+            ) 
+        }  
+        </ul>;    
+ 
+
+
+    createSortableNotesList = (list : string[]) => { 
+        let SortableList = SortableContainer(({items}) => this.getNotesList(items),{withRef:true}); 
+     
+        return <SortableList 
+            //getContainer={(e) => document.getElementById("todos")} 
+            lockToContainerEdges={true} 
+            distance={1}  
+            items={list}   
+            axis='y'   
+            lockAxis={'y'}
+            onSortEnd={({oldIndex, newIndex}) => this.setState({
+                notes: arrayMove(this.state.notes, oldIndex, newIndex),
+            })}
+            //shouldCancelStart={() => true}
+            onSortStart={() => {}}
+            //shouldCancelStart={() => true}
+            //onSortMove={this.onSortMove}  
+        />
+    }
+  
  
     addTodoFromInput = () => {
-        let onError = (e) => console.log(e);
-        let getTodosCatch = getTodos(onError); 
+        let getTodosCatch = getTodos(this.onError); 
         let todo : Todo = {
             _id : generateID(),
             category : "",   
@@ -247,23 +203,28 @@ export class TodoCreationForm extends Component<any,any>{
             attachemnts : []
         };  
   
-        return addTodo(onError,todo)
-                .then(() => getTodosCatch(true,100))
-                .then(queryToTodos);     
-    }
+        return addTodo(this.onError,todo)
+               .then(() => getTodosCatch(true,Infinity))
+               .then(queryToTodos) 
+               .then((todos:Todo[]) => this.props.dispatch({
+                    type:"todos",   
+                    load:todos
+               })) 
+    } 
+   
   
- 
     render(){
-        return <div style={{ 
-            width:"80%",height:"80%" 
-        }}>
+        return <div style={{    
+            width:"80%",height:"80%"
+        }}> 
             <Paper style={{
                     width:"100%", height:"100%",   
                     position:"relative", overflowY:"overlay"
                }} 
                zDepth={2}  
-            >
-                <div style={{
+               className={"scroll"}
+            > 
+                <div style={{ 
                     padding:"20px",
                     caretColor: "cornflowerblue",
                     display:"flex"
@@ -295,22 +256,21 @@ export class TodoCreationForm extends Component<any,any>{
                         onChange={(event,newValue:string) => this.setState(
                             {currentTodo:newValue}
                         )} 
-                        onKeyPress = { (event) =>   
+                        onKeyPress = { 
+                        (event) =>   
                             event.key==="Enter" ? 
                             this 
                             .addTodoFromInput()  
-                            .then((todos:Todo[]) => 
-                                this.setState({ 
-                                    todos, 
+                            .then(() => this.setState({ 
                                     currentNote:'',
                                     currentTodo:'', 
                                     notes:[]
-                            })) : null   
+                            })) : null     
                         }   
                         underlineStyle={{ 
                             borderColor: "rgba(0,0,0,0)" 
                         }} 
-                    /> 
+                    />  
                     <TextField 
                         hintText="Notes"
                         underlineFocusStyle={{
@@ -334,50 +294,9 @@ export class TodoCreationForm extends Component<any,any>{
                         }} 
                         onChange = {(event,value) => this.setState({ currentNote:value })}
                     />   
-                    { 
-                        map((note:string) => 
-                            <div style={{
-                                display:"flex", 
-                                alignItems:"center", 
-                                borderBottom:"1px solid rgba(100,100,100,0.2)"
-                            }} key={uniqid()}>   
-                                <Circle style={{color:"darkcyan"}}/>  
-                                <div style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "space-between",
-                                    width: "100%"  
-                                }}>    
-                                    <div style={{
-                                        marginLeft:"10px",
-                                        fontFamily: "sans-serif", 
-                                        fontSize: "medium", 
-                                        color: "rgba(100,100,100,1)",
-                                        fontWeight: 500
-                                    }}>
-                                        {note}
-                                    </div>  
+  
+                    { this.createSortableNotesList(this.state.notes) } 
 
-                                     
-                                    { 
-                                    // im not sure should note be deletable or not    
-                                    true ? null :  
-                                    <IconButton 
-                                        onClick = {() => this.removeNote(note)}
-                                        iconStyle={{  
-                                            color:"rgb(179, 179, 179)",
-                                            width:"25px", 
-                                            height:"25px" 
-                                        }}  
-                                    >      
-                                        <Clear />
-                                    </IconButton>
-                                    }
-
-                                </div>   
-                            </div> 
-                        )(this.state.notes)
-                    } 
                     </div>  
                 </div> 
 
@@ -387,74 +306,48 @@ export class TodoCreationForm extends Component<any,any>{
                     justifyContent: "flex-end",
                     position: "sticky",
                     bottom: 0,
+                    zIndex:5, 
                     padding: "15px",
                     right: 0  
                 }}> 
-                    <IconButton 
-                      onClick = {() => {}}
-                      iconStyle={{  
-                          color:"rgb(179, 179, 179)",
-                          width:"25px", 
-                          height:"25px" 
-                      }}>     
-                          <Calendar />
-                      </IconButton> 
-                      <IconButton 
-                      onClick = {() => {}}
-                      iconStyle={{ 
-                          color:"rgb(179, 179, 179)",
-                          width:"25px", 
-                          height:"25px" 
-                      }}>     
-                          <TriangleLabel />
-                      </IconButton> 
-                      <IconButton 
-                      onClick = {() => {}}
-                      iconStyle={{ 
-                          color:"rgb(179, 179, 179)",
-                          width:"25px", 
-                          height:"25px" 
-                      }}>     
-                          <Adjustments />
-                      </IconButton> 
-                      <IconButton 
-                      onClick = {() => {}}
-                      iconStyle={{  
-                          color:"rgb(179, 179, 179)",
-                          width:"25px", 
-                          height:"25px" 
-                      }}>     
-                          <Flag />
-                      </IconButton> 
-        
+                        <IconButton 
+                        onClick = {() => {}}
+                        iconStyle={{  
+                            color:"rgb(179, 179, 179)",
+                            width:"25px", 
+                            height:"25px" 
+                        }}>     
+                            <Calendar />
+                        </IconButton> 
+                        <IconButton 
+                        onClick = {() => {}}
+                        iconStyle={{ 
+                            color:"rgb(179, 179, 179)",
+                            width:"25px", 
+                            height:"25px" 
+                        }}>     
+                            <TriangleLabel />
+                        </IconButton> 
+                        <IconButton 
+                        onClick = {() => {}}
+                        iconStyle={{ 
+                            color:"rgb(179, 179, 179)",
+                            width:"25px", 
+                            height:"25px" 
+                        }}>     
+                            <List />
+                        </IconButton> 
+                        <IconButton 
+                        onClick = {() => {}}
+                        iconStyle={{  
+                            color:"rgb(179, 179, 179)",
+                            width:"25px", 
+                            height:"25px" 
+                        }}>     
+                            <Flag />
+                        </IconButton> 
                 </div>  
-            </Paper> 
-            <div style={{
-                display: "flex",
-                flexDirection: "column",
-                marginTop: "20px" 
-            }}>
-                { 
-                    map(
-                        (todo:Todo) => <div  style={{
-                            display: "flex",
-                            marginTop: "5px" 
-                        }} key={uniqid()}>
-                            <CheckBoxEmpty style={{ 
-                                color:"rgba(159,159,159,0.5)",
-                                width:"20px",
-                                height:"20px"  
-                            }}/>  
-                            <div style={{
-                                marginLeft: "5px",
-                                fontFamily: "sans-serif" 
-                            }}>
-                                 {todo.title}
-                            </div>
-                        </div>
-                    )(this.state.todos)
-                }    
-            </div>  
+            </Paper>  
         </div>
     }
 

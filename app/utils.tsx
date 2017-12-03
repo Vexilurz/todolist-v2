@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { map, range, merge, isEmpty, curry, cond, compose, contains, and, or,
-    find, defaultTo, split, filter, clone, take, drop, splitAt, last, isNil } from 'ramda';
+    find, defaultTo, split, filter, clone, take, drop, splitAt, last, isNil, toUpper } from 'ramda';
 import RaisedButton from 'material-ui/RaisedButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import * as injectTapEventPlugin from 'react-tap-event-plugin';
@@ -79,7 +79,8 @@ export let stringToLength = (s : string, length : number) : string => {
 }; 
    
 
-
+export let uppercase = (str:string) => toUpper(str.substring(0,1)) + str.substring(1,str.length);
+ 
 
 
 export let wrapMuiThemeDark = (component : JSX.Element) : JSX.Element =>  

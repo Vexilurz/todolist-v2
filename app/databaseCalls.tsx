@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, 
     compose, append, contains, and, find, defaultTo, addIndex, split, filter, 
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, groupBy, concat 
+    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, groupBy, concat, flatten, ifElse 
 } from 'ramda';
 import RaisedButton from 'material-ui/RaisedButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
@@ -43,7 +43,8 @@ import { wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps} from "./uti
 import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc';
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
-
+//import Chip from 'material-ui-next/Chip';
+import Chip from 'material-ui/Chip';
 import { reducer } from "./reducer"; 
 //icons
 import Star from 'material-ui/svg-icons/toggle/star';
@@ -63,105 +64,133 @@ import Search from 'material-ui/svg-icons/action/search';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
-import { LeftPanel } from './LeftPanel';
-import { MainContainer } from './MainContainer';
+import Clear from 'material-ui/svg-icons/content/clear';
 import PouchDB from 'pouchdb-browser';  
-export let db = new PouchDB('todos');
+
+
+import { db } from './app';
+let uniqid = require("uniqid");
+
+
+export let generateID = () => new Date().toJSON(); 
+
+
+export interface Project{
+  _id : string, 
+  attachedTodos : string[],
+  name : string,
+  description : string 
+}
+
+
+export interface Tag{
+  _id : string,
+  name : string,
+  attachedTodos : string[]
+} 
+
+
+export interface Todo{ 
+  _id : string,
+  category : string, 
+  title : string,
+  priority : number,
+  notes : string[],
+  attachedProdjects : string[],
+  attachedTags : string[],
+  status : string,
+  deadline : Date,
+  created : Date,
+  deleted : Date,
+  fulfilled : Date, 
+  history : {
+      action : string,
+      date : Date
+  }[],
+  attachemnts : string[]
+}
+
+
+export interface Event{
+  _id : string,
+  title : string,
+  notes : string[],
+  attachedProdjects : string[],
+  attachedTags : string[],
+  date:Date,
+  location:string,  
+  history : {
+      action : string,
+      date : Date
+  },
+  attachemnts : string[]
+}
+
+
+
+interface Query<T>{
+  total_rows: 2, 
+  offset: 0, 
+  rows: QueryResult<T>[]
+}
+
+interface QueryResult<T>{
+  doc:T,
+  id:string,
+  key:string,
+  value:Object 
+}
+
+
+
+
+export let addTodo = (onError:Function, todo : Todo) : Promise<void> => 
+         db.put(todo).catch(onError);
+
+export let getTodoById = (onError:Function, _id : string) : Promise<Todo> => 
+         db.get(_id).catch(onError); 
+
+export let updateTodo = (_id : string, replacement : Todo, onError:Function) : Promise<Todo> => 
+  db.get(_id)
+  .then((doc) => db.put(merge(doc,replacement))) 
+  .catch(onError); 
+
+
+export let getTodosRange = (onError:Function) =>
+(descending,limit,start,end) : Promise<Todo[]>=> 
+  db.allDocs({
+      include_docs:true,
+      conflicts: true, 
+      descending,
+      limit, 
+      startkey:start,
+      endkey:end 
+  })
+  .then((result) => {
+      console.log("getTodosRange", result);
+      return result; 
+  })
+  .catch(onError);  
+
+
+export let getTodos = (onError:Function) =>  
+(descending,limit) : Promise<Query<Todo>> => 
+  db.allDocs({ 
+      include_docs:true, 
+      conflicts: true,
+      descending,
+      limit 
+  })
+  .catch(onError); 
 
  
 
-let uniqid = require('uniqid');
-let path = require("path");
-
-injectTapEventPlugin(); 
-    
-
-(() => {     
-    let app=document.createElement('div'); 
-    app.id='application';    
-    document.body.appendChild(app);  
-})();  
-
-  
-@connect(
-    (store,props) => merge(props,clone(store)), 
-    attachDispatchToProps
-)
-export class App extends Component<any,any>{
-
-    constructor(props){  
-        super(props);  
-    }
+export let queryToTodos = (query:Query<Todo>) => ifElse(
+      isNil, 
+      () => [],
+      compose( 
+          map(prop("doc")),
+          prop("rows") 
+      ) 
+  )(query)
  
-    componentDidMount(){} 
-
-    render(){    
-
-        return wrapMuiThemeLight(
-            <div style={{
-                backgroundColor:"white",
-                width:"100%",
-                height:"100%",
-                borderRadius:"1%", 
-                scroll:"none"
-            }}>      
-
-              <div style={{
-                  display:"flex", 
-                  width:"inherit",  
-                  height:"inherit"
-              }}>   
-
-               <div className="drag"
-                    style={{
-                        pointerEvents:"none",   
-                        position : "absolute", 
-                        top:0,
-                        left:0,   
-                        width:"100%",
-                        height:"10%" 
-                    }}  
-               >   
-               </div>  
-  
-               <LeftPanel
-                 dispatch={this.props.dispatch} 
-               />    
-      
-               <MainContainer  
-                 selectedCategory={this.props.selectedCategory}
-                 todos={this.props.todos} 
-                 dispatch={this.props.dispatch}
-               />
-                
-              </div> 
-            </div>      
-        );   
-
-    }            
-            
-};          
- 
- 
-   
-              
-export let defaultStoreItems = {
-    selectedCategory : "inbox",
-    todos:[] 
-};   
-    
-  
-export let store = createStore(reducer, defaultStoreItems); 
-  
-
-ipcRenderer.on( 
-    'loaded',    
-    (event) => ReactDOM.render(
-        <Provider store={store}>  
-            <App />    
-        </Provider>,
-        document.getElementById('application')
-    )  
-);    
-
-   

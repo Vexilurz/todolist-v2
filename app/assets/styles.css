@@ -10,11 +10,51 @@ body{
     margin : 0;
 }
 
+li{  
+  margin-left:5px;
+  margin-right:5px;
+  margin-top:0px;
+  margin-bottom:0px 
+}
+
+.scroll { 
+  background: white; 
+  overflow-y: scroll;
+} 
+.scroll::-webkit-scrollbar {
+   width: 8px;
+} 
+
+.scroll::-webkit-scrollbar-track {
+   border-radius: 5px;
+} 
+
+.scroll::-webkit-scrollbar-thumb {
+   border-radius: 5px;
+}
+  
+.hoverBorder:hover{
+  border-radius: 5px; 
+  border: 2px solid rgb(33, 129, 173);
+}
+
+.close:hover{
+  background-color:#FF0000;
+}
+  
+.reload:hover{
+  background-color:orange;
+}
+
+.hide:hover{
+  background-color:green;
+}
 
 .unselectable::selection {
   text-shadow: none;
   background: rgba(0,0,0,0);
 }
+
 
 
 .box {
