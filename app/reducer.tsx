@@ -63,11 +63,11 @@ export let reducer = (state, action) => {
           
     return cond([   
             [       
-                equals(""),   
-                () => assocPath([""], action.load, newState) 
+                equals("selectedCategory"),   
+                () => assocPath(["selectedCategory"], action.load, newState) 
             ],
             [ () => true, () => newState]
     ])(action.type);  
  
-};    
+};     
   

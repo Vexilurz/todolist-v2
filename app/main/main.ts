@@ -35,14 +35,14 @@ let onReady = () => {
       //mainWindow.webContents.openDevTools();   
     });    
 }    
-  
+   
  
 process.on("unchaughtException" as any,(error) => console.log(error)); 
- 
+  
 
 app.on('ready', onReady); 
 
-
+ 
 let clearDir = (directory) => new Promise( resolve => {
     
        fs.readdir( 

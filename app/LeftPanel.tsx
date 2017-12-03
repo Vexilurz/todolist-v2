@@ -89,13 +89,17 @@ export class LeftPanel extends Component<any,any>{
         
             <div className="no-drag">
                 { 
-                    ["close","reload","hide"].map(
+                    [
+                     "close",
+                     "reload",
+                     "hide"
+                    ].map(
                             (type) => <IconButton  
                                 key={uniqid()}   
                                 onClick = {() => ipcRenderer.send(type)}
                                 tooltip = {type} 
                                 iconStyle={{
-                                    color:"rgba(159,159,159,0.5)",
+                                    color:"rgba(159,159,159,0.5)", 
                                     width:"20px",
                                     height:"20px"
                                 }}

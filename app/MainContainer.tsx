@@ -67,7 +67,7 @@ import Logbook from 'material-ui/svg-icons/av/library-books';
 import { TodoCreationForm } from './TodoCreationForm';
 let uniqid = require("uniqid");
 
-  
+   
 
 export class MainContainer extends Component<any,any>{
    
@@ -121,9 +121,10 @@ export class MainContainer extends Component<any,any>{
            }}> 
              <Star style={{
                  width:"50px",
-                 height:"50px"
+                 height:"50px",
+                 color:"gold" 
              }}/> 
-             <div
+             <div  
                style={{
                     fontFamily: "sans-serif",
                     fontSize: "xx-large",

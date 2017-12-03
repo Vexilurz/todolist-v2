@@ -65,8 +65,10 @@ import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import { LeftPanel } from './LeftPanel';
 import { MainContainer } from './MainContainer';
-  
-  
+import PouchDB from 'pouchdb-browser';  
+export let db = new PouchDB('todos');
+
+ 
 
 let uniqid = require('uniqid');
 let path = require("path");
@@ -136,7 +138,9 @@ export class App extends Component<any,any>{
  
  
              
-export let defaultStoreItems = {};   
+export let defaultStoreItems = {
+    selectedCategory : "inbox"
+};   
    
   
 export let store = createStore(reducer, defaultStoreItems); 
