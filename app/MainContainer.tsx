@@ -181,7 +181,7 @@ export class MainContainer extends Component<any,any>{
               bottom: "0px",
               borderTop: "1px solid rgba(100, 100, 100, 0.2)" 
         }}>   
-        <div style={{  
+        <div style={{   
             display: "flex",
             alignItems: "center",
             justifyContent: "space-around",
