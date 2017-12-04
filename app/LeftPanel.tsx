@@ -314,9 +314,15 @@ export class LeftPanel extends Component<any,any>{
 
          </MenuList> 
         </div>   
-            <div id="projects">  
+            <div style={{
+                    display: "flex",
+                    flexGrow: 1,
+                    flexDirection: "column" 
+                }}
+                id="projects"
+            >  
             {
-                compose(
+                compose( 
                     map(
                         (n) => <div 
                         className="hoverBorder"
@@ -354,12 +360,7 @@ export class LeftPanel extends Component<any,any>{
             } 
             </div>
             
-            <div style={{
-                height: "40%",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "flex-end" 
-            }}> 
+           
             <div style={{   
                 display: "flex",
                 alignItems: "center",  
@@ -410,16 +411,13 @@ export class LeftPanel extends Component<any,any>{
                     }}>        
                         <Adjustments /> 
                     </IconButton>  
-                </div>      
-
+                </div>    
             </div> 
-            </div> 
-
        </div>
     };   
     
 };  
-
+ 
 
 
 

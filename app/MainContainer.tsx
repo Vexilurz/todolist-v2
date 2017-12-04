@@ -1,5 +1,6 @@
 import './assets/styles.css';  
-import * as React from 'react';
+import './assets/calendarStyle.css';  
+import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, 
     compose, append, contains, and, find, defaultTo, addIndex, split, filter, 
@@ -63,14 +64,153 @@ import Trash from 'material-ui/svg-icons/action/delete';
 import Search from 'material-ui/svg-icons/action/search'; 
 import List from 'material-ui/svg-icons/action/list'; 
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import Calendar from 'material-ui/svg-icons/action/date-range';
+import CalendarIco from 'material-ui/svg-icons/action/date-range';
+import Moon from 'material-ui/svg-icons/image/brightness-3';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import { TodoCreationForm } from './TodoCreationForm'; 
 import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc'; 
 import { queryToTodos, getTodos, updateTodo, Todo } from './databaseCalls';
 let uniqid = require("uniqid");
+import DayPicker from 'react-day-picker';
+import Popover from 'material-ui-next/Popover';
+import Button from 'material-ui-next/Button';
  
+interface ThingsCalendarProps{ 
+  close : Function,
+  open : boolean,
+  anchorEl : HTMLElement
+} 
+
+class ThingsCalendar extends Component<ThingsCalendarProps,any>{
+
+    constructor(props){
+        super(props);
+    }  
+
+    render(){ 
+        return <Popover 
+            open={this.props.open}
+            anchorEl={this.props.anchorEl}
+            //anchorReference={anchorReference}
+            //anchorPosition={{ top: positionTop, left: positionLeft }}
+            onRequestClose={() => this.props.close()}
+            anchorOrigin={{ 
+                vertical: "top",
+                horizontal: "center",
+            }} 
+            transformOrigin={{ 
+                vertical: "top",
+                horizontal: "center",
+            }}
+        >
+            <div style={{  
+                display:"flex",
+                flexDirection:"column",
+                backgroundColor:"rgb(39,43,53)",
+                borderRadius: "20px"
+            }}>   
+                <div style={{
+                    color: "dimgray",
+                    textAlign: "center",
+                    padding: "5px",
+                    cursor: "default"
+                }}>When</div>
+
+                <div className="hoverDateType"
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        color: "white",
+                        marginLeft: "20px",
+                        marginRight: "20px",
+                        cursor: "default",
+                        WebkitUserSelect:"none" 
+                    }}  
+                >
+                    <Star style={{
+                        color:"gold", 
+                        width:"15px",
+                        height:"15px",
+                        cursor:"default" 
+                    }}/> 
+                    <div style={{marginLeft:"15px"}}>Today</div>
+                </div>
+
+                <div className="hoverDateType"
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    color: "white",
+                    cursor: "default",
+                    marginLeft: "20px",
+                    marginRight: "20px",
+                    WebkitUserSelect:"none"  
+                }}>
+                    <Moon style={{ 
+                        transform:"rotate(145deg)", 
+                        color:"rgb(192,192,192)", 
+                        width:"15px",
+                        height:"15px",
+                        cursor:"default" 
+                    }}/>
+                    <div style={{marginLeft:"15px"}}>This Evening</div>
+                </div>
+
+
+                <div style={{
+                    zoom: "0.8",
+                    display: "flex",
+                    justifyContent: "center" 
+                }}>
+                    <DayPicker />
+                </div> 
  
+                <div style={{display:"flex",alignItems:"center"}}>  
+                    <IconButton   
+                      onClick = {() => console.log("Add new list")} 
+                      iconStyle={{    
+                        color:"rgb(79, 79, 79)",
+                        width:"25px",
+                        height:"25px"    
+                      }} 
+                    >        
+                        <Plus /> 
+                    </IconButton>
+                    <div style={{
+                        fontFamily: "sans-serif",
+                        fontWeight: 600, 
+                        color: "rgba(100,100,100,0.7)",
+                        fontSize:"15px",  
+                        cursor: "default",
+                        WebkitUserSelect: "none" 
+                    }}> 
+                        Add reminder 
+                    </div>    
+                </div> 
+
+                <Button raised dense style={{
+                    margin:"15px", 
+                    color:"white", 
+                    backgroundColor:"rgb(49,53,63)"
+                }}>
+                    Clear
+                </Button>
+            </div>  
+        </Popover> 
+    } 
+
+}
+
+
+
+
+
+
+
+
+
+
+
 type Category = "inbox" | "today" | "upcoming" | "anytime" | "someday" | "logbook" | "trash";
  
 
@@ -81,16 +221,19 @@ interface MainContainerProps{
 }
  
 interface MainContainerState{
-   fullsize:boolean
+   fullsize:boolean,
+   showCalendar:boolean
 }    
  
  
 export class MainContainer extends Component<MainContainerProps,MainContainerState>{
-   
+    calendarOrigin:HTMLElement 
+
     constructor(props){
         super(props);
         this.state={  
-            fullsize:true
+            fullsize:true,
+            showCalendar:false
         }
     } 
    
@@ -308,7 +451,13 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 this.createSortableTodosList(this.props.todos)
             }
         </div>    
-        
+
+
+        <ThingsCalendar
+            close = {() => this.setState({showCalendar:false})}
+            open = {this.state.showCalendar}
+            anchorEl = {this.calendarOrigin}
+        />  
 
         <div style={{ 
               height: "60px",
@@ -340,15 +489,21 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
               }}>     
                   <Plus />
               </IconButton> 
-              <IconButton 
-              onClick = {() => {}}
-              iconStyle={{ 
-                  color:"rgb(79, 79, 79)",
-                  width:"25px", 
-                  height:"25px" 
-              }}>     
-                  <Calendar />
-              </IconButton> 
+
+              <div ref={(e) => {this.calendarOrigin=e}}>
+                <IconButton 
+                onClick = {() => this.setState({showCalendar:true})}
+                iconStyle={{ 
+                    color:"rgb(79, 79, 79)",
+                    width:"25px", 
+                    height:"25px" 
+                }}>     
+                    <CalendarIco />
+                </IconButton> 
+              </div>
+
+
+
               <IconButton 
               onClick = {() => {}}
               iconStyle={{ 
@@ -393,7 +548,7 @@ let chooseIcon = (selectedCategory:Category) => {
                 height:"50px" 
             }}/>
         case "upcoming":
-            return <Calendar style={{
+            return <CalendarIco style={{
                 color:"crimson", 
                 width:"50px",
                 height:"50px"
