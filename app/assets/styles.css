@@ -11,12 +11,10 @@ body{
 }
 
 
-.calendar{
-  border : none;
-   
-}
-
-
+.todohighlight:hover{
+  background-color:aliceblue;
+} 
+ 
 li{  
   margin-left:5px;
   margin-right:5px;
@@ -49,6 +47,12 @@ li{
   border-radius: 5px; 
   border: 2px solid rgb(33, 129, 173);
 }
+
+.chip:hover{
+  color:dimgray;
+  border:1px solid dimgray;
+  background-color:white; 
+} 
 
 .close:hover{
   background-color:#FF0000;

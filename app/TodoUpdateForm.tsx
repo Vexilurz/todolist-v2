@@ -40,7 +40,7 @@ import Paper from 'material-ui/Paper';
 import { DraggableCore, DraggableEventHandler, DraggableData } from 'react-draggable';
 import * as Draggable from 'react-draggable'; 
 import { wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps} from "./utils"; 
-import { SortableContainer, SortableElement, SortableHandle, arrayMove } from 'react-sortable-hoc';
+import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc';
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
 //import Chip from 'material-ui-next/Chip';
@@ -72,87 +72,77 @@ import { getTodos, queryToTodos, Todo, updateTodo, generateID, addTodo } from '.
 let uniqid = require("uniqid");
 
 
-
-
-
-
-interface TodoCreationFormProps{ 
+interface TodoUpdateFormProps{ 
     dispatch:Function,
-    keepTodo:Function,
-    selectedTodoFromId:string 
+    todo : Todo, 
+    selectedTodoFromId:string,
+    changeTodo:Function   
 }  
-  
-interface TodoCreationFormState{
-    formId:string, 
+
+ 
+interface TodoUpdateFormState{
+    formId : string, 
     notes : string[],
     currentTodo : string, 
-    currentNote : string,
+    currentNote : string
 } 
-  
- 
-
-export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreationFormState>{
+      
+   
+export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateFormState>{
 
     constructor(props){
-        super(props); 
-        this.state={
-            formId:uniqid(),
-            notes : [],
-            currentTodo : '', 
-            currentNote : '',
+        super(props);
+        this.state={ 
+            formId : this.props.todo._id, 
+            notes : this.props.todo.notes,
+            currentTodo : this.props.todo.title, 
+            currentNote : '' 
         }
     }
+
     
     onError = (e) => console.log(e);
-    
+
     removeNote = (note:string) => {}; 
 
-    getNoteElem = (value:string) => { 
-       // const DragHandle = SortableHandle(() => <div style={{position:"absolute",width:"100%",height:"100%"}}></div>); 
-            
-        return <div style={{  
-            display:"flex",  
-            alignItems:"center", 
-            borderBottom:"1px solid rgba(100,100,100,0.2)"
-        }} key={uniqid()}>      
-            <Circle style={{color:"darkcyan"}}/>  
-            <div style={{ 
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                width: "100%",
-                position:"relative"  
-            }}>      
-               
-                <div style={{ 
-                    marginLeft:"10px",
-                    fontFamily: "sans-serif", 
-                    fontSize: "medium", 
-                    color: "rgba(100,100,100,1)",
-                    fontWeight: 500
-                }}>     
-                    <input 
-                        type={"text"} 
-                        value={value} 
-                    />     
-                </div>  
-                { 
-                // im not sure should note be deletable or not    
-                true ? null :  
-                <IconButton 
-                    onClick = {() => this.removeNote(value)}
-                    iconStyle={{  
-                        color:"rgb(179, 179, 179)",
-                        width:"25px", 
-                        height:"25px" 
-                    }}  
-                >      
-                    <Clear />
-                </IconButton>
-                } 
-            </div>    
-            </div>
-    };
+ 
+    getNoteElem = (value:string) => <div style={{ 
+        display:"flex", 
+        alignItems:"center", 
+        borderBottom:"1px solid rgba(100,100,100,0.2)"
+    }} key={uniqid()}>     
+        <Circle style={{color:"darkcyan"}}/>  
+        <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%"  
+        }}>    
+            <div style={{
+                marginLeft:"10px",
+                fontFamily: "sans-serif", 
+                fontSize: "medium", 
+                color: "rgba(100,100,100,1)",
+                fontWeight: 500
+            }}>
+                {value} 
+            </div>  
+            { 
+            // im not sure should note be deletable or not    
+            true ? null :  
+            <IconButton 
+                onClick = {() => this.removeNote(value)}
+                iconStyle={{  
+                    color:"rgb(179, 179, 179)",
+                    width:"25px", 
+                    height:"25px" 
+                }}  
+            >      
+                <Clear />
+            </IconButton>
+            } 
+        </div>   
+    </div>;
 
     
     createSortableItem = (transform) => SortableElement(({value}) => transform(value)); 
@@ -174,7 +164,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             ) 
         }  
         </ul>;    
-   
+ 
 
 
     createSortableNotesList = (list : string[]) => { 
@@ -182,7 +172,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
      
         return <SortableList 
             //getContainer={(e) => document.getElementById("todos")} 
-            shouldCancelStart={() => false}
             lockToContainerEdges={true} 
             distance={1}  
             items={list}   
@@ -197,16 +186,21 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             //onSortMove={this.onSortMove}  
         />
     } 
+  
 
- 
-    addTodoFromInput = () => {
+    updateTodoFromInput = () => {
+          
+        if(isNil(this.props.todo))
+           return;
+       
         if(isEmpty(this.state.currentTodo))
-           return;     
+          return;  
 
-        let getTodosCatch = getTodos(this.onError); 
+          
+        let getTodosCatch = getTodos(this.onError);  
         let todo : Todo = {
-            _id : generateID(),
-            category : "",   
+            _id : this.props.todo._id, 
+            category : "",    
             title : this.state.currentTodo,
             priority : Math.random() * 100,
             notes : this.state.notes,
@@ -218,30 +212,28 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             deleted : new Date(),
             fulfilled : new Date(), 
             history : [],
-            attachemnts : []
-        };    
-
-        this.setState({currentNote:'', currentTodo:'', notes:[]});
-        addTodo(this.onError,todo);
-
-        this.props.keepTodo(todo);
+            attachemnts : [] 
+        };   
+ 
+        updateTodo(this.props.todo._id, todo, this.onError); 
+        this.props.changeTodo(todo);
     } 
-   
-   
+    
+    
     render(){ 
         let selected = this.props.selectedTodoFromId === this.state.formId;
- 
+
 
         return <div  
             className = {selected ? "" : "todohighlight"}
             onClick = {(e) => { 
-                e.stopPropagation();  
+                e.stopPropagation();   
                 if(this.state.formId!==this.props.selectedTodoFromId)
                    this.props.dispatch({type:"selectedTodoFromId",load:this.state.formId}) 
-            }}  
-            style={{           
-                width:"100%",height:"auto",  
-                backgroundColor:"white",
+            }}   
+            style={{               
+                backgroundColor:"white", 
+                width:"100%",height:"auto", 
                 boxShadow: selected ? "1px 1px 14px rgb(156, 156, 156)" : "none",
                 borderRadius: "5px",
                 marginBottom: "10px" 
@@ -257,16 +249,15 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                         display:"flex" 
                     }}
                 >    
-                    <div 
-                    style={{
+                    <div style={{
                         width: "5%",
                         paddingTop: "14px"  
-                    }}>
-                        <CheckBoxEmpty style={{ 
-                            color:"rgba(159,159,159,0.5)",
-                            width:"20px",
-                            height:"20px"  
-                        }}/>  
+                    }}> 
+                            <CheckBoxEmpty style={{ 
+                                color:"rgba(159,159,159,0.5)",
+                                width:"20px",
+                                height:"20px"  
+                            }}/>  
                     </div> 
                     <div style={{
                         display:"flex",
@@ -274,24 +265,28 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                         width:"90%"
                     }}>       
                         <TextField
-                            hintText="New To-Do"
-                            fullWidth={true}  
-                            underlineFocusStyle={{
+                            hintText="New To-Do" 
+                            fullWidth={true}   
+                            textareaStyle={{zIndex:1}}
+                            style={{zIndex:1}}  
+                            underlineFocusStyle={{ 
+                                zIndex:1,
                                 borderColor: "rgba(0,0,0,0)"
                             }}
                             value={this.state.currentTodo}
                             onChange={
-                              (event,newValue:string) => this.setState({currentTodo:newValue})
+                             (event,newValue:string) => this.setState({currentTodo:newValue})
                             } 
                             onKeyPress = {   
-                              (event) => event.key==="Enter" ? this.addTodoFromInput() : null  
-                            }      
-                            underlineStyle={{   
-                               borderColor: "rgba(0,0,0,0)" 
-                            }}  
-                        />  
+                             (event) => event.key==="Enter" ? this.updateTodoFromInput() : null  
+                            }   
+                            underlineStyle={{ 
+                                zIndex:10,
+                                borderColor: "rgba(0,0,0,0)" 
+                            }} 
+                        />   
                         {
-                             !selected ? null :
+                             !selected? null :
                             <TextField 
                                 hintText="Notes"
                                 underlineFocusStyle={{
@@ -317,7 +312,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                             />  
                         } 
     
-                        { !selected ? null : this.createSortableNotesList(this.state.notes)  } 
+                        { !selected? null : this.createSortableNotesList(this.state.notes)  } 
                     </div>
                         
                       

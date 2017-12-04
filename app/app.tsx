@@ -74,7 +74,7 @@ let uniqid = require('uniqid');
 let path = require("path");
 
 injectTapEventPlugin(); 
-    
+     
 
 (() => {     
     let app=document.createElement('div'); 
@@ -103,15 +103,16 @@ export class App extends Component<any,any>{
                 width:"100%",
                 height:"100%",
                 borderRadius:"1%", 
-                scroll:"none"
+                scroll:"none",
+                zIndex:2001,  
             }}>      
 
               <div style={{
                   display:"flex", 
                   width:"inherit",  
-                  height:"inherit"
-              }}>   
-
+                  height:"inherit" 
+              }}>    
+  
                <div className="drag"
                     style={{
                         pointerEvents:"none",   
@@ -122,7 +123,7 @@ export class App extends Component<any,any>{
                         height:"10%" 
                     }}  
                >   
-               </div>  
+               </div> 
   
                <LeftPanel
                  dispatch={this.props.dispatch} 
@@ -131,8 +132,9 @@ export class App extends Component<any,any>{
                <MainContainer  
                  selectedCategory={this.props.selectedCategory}
                  todos={this.props.todos} 
-                 dispatch={this.props.dispatch}
-               />
+                 dispatch={this.props.dispatch} 
+                 selectedTodoFromId={this.props.selectedTodoFromId}
+               />  
                 
               </div> 
             </div>      
@@ -147,7 +149,8 @@ export class App extends Component<any,any>{
               
 export let defaultStoreItems = {
     selectedCategory : "inbox",
-    todos:[] 
+    todos:[],
+    selectedTodoFromId : null   
 };   
     
   

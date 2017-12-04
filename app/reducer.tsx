@@ -58,20 +58,18 @@ import ContentAdd from 'material-ui/svg-icons/content/add';
     
  
 export let reducer = (state, action) => {
-
-    let newState = clone(state); 
-          
-    return cond([   
-            [       
-                equals("selectedCategory"),   
-                () => assocPath(["selectedCategory"], action.load, newState) 
-            ],
-            [        
-                equals("todos"),       
-                () => assocPath(["todos"], action.load, newState) 
-            ],
-            [ () => true, () => newState]
-    ])(action.type);  
- 
+    
+    let newState = {...state}; 
+     
+    switch(action.type){
+        case "selectedCategory":
+         newState["selectedCategory"] = action.load;
+         break;
+        case "selectedTodoFromId":
+         newState["selectedTodoFromId"] = action.load;
+         break; 
+    } 
+  
+    return newState;  
 };     
   

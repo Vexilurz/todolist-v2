@@ -125,7 +125,7 @@ import { MenuList, MenuItem } from 'material-ui-next/Menu';
 
 
 
-
+ 
  
 export class LeftPanel extends Component<any,any>{
      
@@ -135,7 +135,7 @@ export class LeftPanel extends Component<any,any>{
 
         render(){ 
             return <div style={{
-                display: "flex",
+                display: "flex", 
                 flexDirection: "column", 
                 width: "26%",
                 height: "100%",
@@ -358,13 +358,15 @@ export class LeftPanel extends Component<any,any>{
                     range(0)
                 )(15)  
             } 
-            </div>
+            </div>  
             
            
             <div style={{   
                 display: "flex",
                 alignItems: "center",  
-                position: "absolute",
+                position: "sticky",
+                width: "100%",
+                justifyContent: "space-around",  
                 bottom: "0px",
                 height: "60px",
                 backgroundColor: "rgba(235, 235, 235, 1)",
@@ -372,8 +374,7 @@ export class LeftPanel extends Component<any,any>{
             }}>   
                 <div style={{      
                     display: "flex",  
-                    alignItems: "center",
-                    width: "270px" 
+                    alignItems: "center"    
                 }}>  
                     <IconButton   
                     onClick = {() => console.log("Add new list")} 
@@ -396,18 +397,13 @@ export class LeftPanel extends Component<any,any>{
                     </div>    
                 </div>  
 
-                <div style={{ 
-                    position: "absolute",
-                    right: "10px",
-                    top: "0px" 
-                }}>   
+                <div style={{ }}>   
                     <IconButton   
                     onClick = {() => console.log("")} 
                     iconStyle={{  
-                        padding: "5px",
                         color:"rgb(79, 79, 79)",
                         width:"25px", 
-                        height:"25px"  
+                        height:"25px"   
                     }}>        
                         <Adjustments /> 
                     </IconButton>  

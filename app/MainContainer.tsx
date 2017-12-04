@@ -74,6 +74,7 @@ let uniqid = require("uniqid");
 import DayPicker from 'react-day-picker';
 import Popover from 'material-ui-next/Popover';
 import Button from 'material-ui-next/Button';
+import { TodoUpdateForm } from './TodoUpdateForm';
  
 interface ThingsCalendarProps{ 
   close : Function,
@@ -211,10 +212,12 @@ class ThingsCalendar extends Component<ThingsCalendarProps,any>{
 
 
 
+
 type Category = "inbox" | "today" | "upcoming" | "anytime" | "someday" | "logbook" | "trash";
- 
+  
 
 interface MainContainerProps{
+   selectedTodoFromId:string, 
    selectedCategory:Category,
    dispatch:Function,
    todos:Todo[] 
@@ -222,8 +225,9 @@ interface MainContainerProps{
  
 interface MainContainerState{
    fullsize:boolean,
-   showCalendar:boolean
-}    
+   showCalendar:boolean,
+   todos:Todo[]
+}     
  
  
 export class MainContainer extends Component<MainContainerProps,MainContainerState>{
@@ -233,15 +237,15 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         super(props);
         this.state={  
             fullsize:true,
-            showCalendar:false
+            showCalendar:false,
+            todos:[]
         }
     } 
-   
- 
-    componentDidMount(){
+     
+    clearTodos = () => {
         let onError = (e) => console.log(e);
         let getTodosCatch = getTodos(onError);
-
+ 
         getTodosCatch(true,Infinity)
         .then(queryToTodos)
         .then(
@@ -252,34 +256,48 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                         onError
                 ))(todos)
             )
+        )   
+    }
+ 
+    componentDidMount(){
+        let onError = (e) => console.log(e);
+        let getTodosCatch = getTodos(onError);
+
+        getTodosCatch(true,Infinity)
+        .then(queryToTodos)
+        .then( 
+            (todos:Todo[]) => this.setState({todos})
         )    
     }  
-
+     
  
-    getTodoElem = (value:Todo) => <div style={{
-        display: "flex",
-        marginTop: "5px"   
-    }} key={uniqid()}>
-        <CheckBoxEmpty style={{ 
-            color:"rgba(159,159,159,0.5)",
-            width:"20px",
-            height:"20px"  
-        }}/>  
+    getTodoElem = (value:Todo) => 
         <div style={{
-            marginLeft: "5px",
-            fontFamily: "sans-serif" 
-        }}> 
-            {value.title}
-        </div> 
-    </div> 
+            width: "100%", 
+            display: "flex",
+            alignItems: "center", 
+            justifyContent: "center"
+        }}>    
+            <TodoUpdateForm 
+                dispatch={this.props.dispatch}
+                todo={value}  
+                selectedTodoFromId={this.props.selectedTodoFromId}
+                changeTodo = {(todo:Todo) => {
+                      
+                }}
+            />  
+        </div>     
+     
     
 
     createSortableItem = (transform) => SortableElement(({value}) => transform(value)); 
  
  
-    getTodosList = (items:Todo[]) =>  
-        <ul> {    
-            items.map( 
+    getTodosList = (items:Todo[]) => !items ? null :
+        <ul style={{padding:0,margin:0}}> {     
+            items
+            .filter(v => !!v)
+            .map(   
                 (todo:Todo, index) => {
                     let SortableItem = this.createSortableItem(this.getTodoElem); 
                     return <SortableItem  key={`item-${index}`} index={index} value={todo} />
@@ -335,45 +353,57 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         return <SortableList 
             //getContainer={(e) => document.getElementById("todos")} 
             //lockToContainerEdges={true} 
-            distance={1}   
-            items={list}  
-            axis='y'  
-            onSortEnd={({oldIndex, newIndex}) => this.props.dispatch({
-                type:"todos", 
-                load: arrayMove(this.props.todos, oldIndex, newIndex),
-            })}   
+            style={{zIndex: 100000}} 
+            distance={1}     
+            items={list}     
+            axis='xy'   
+            onSortEnd={({oldIndex, newIndex}) => this.setState({
+               todos:arrayMove(this.state.todos, oldIndex, newIndex),
+            })}    
             onSortMove={(e) => {
                let target = document.getElementById("projects"); 
                let ref = document.body.children[document.body.children.length-1];
-   
+    
                if(insideTargetArea(target)(e.clientX,e.clientY))
-                this.applyDropStyle(ref);
+                  this.applyDropStyle(ref);
             }}   
-            //shouldCancelStart={() => true}
-            onSortStart={({node, index, collection}, event) => {
-            }}    
+            //shouldCancelStart={() => true} 
+            onSortStart={({node, index, collection}, event) => {}}    
             useWindowAsScrollContainer={true}
-        />  
+        />   
     }   
  
         
-    render(){
-     return <div style={{ 
-              width: "74%",
-              position:"relative",
-              display: "flex",
-              flexDirection: "column" 
-          }}
-        >    
+    render(){ 
+     return <div 
+                className="scroll"  
+                onClick={(e) => { 
+                    e.stopPropagation();   
+                    if(this.props.selectedTodoFromId)
+                    this.props.dispatch({type:"selectedTodoFromId",load:null}) 
+                }} 
+                style={{ 
+                    width: "74%",
+                    position:"relative", 
+                    display: "flex",
+                    borderRadius:"1%", 
+                    backgroundColor: "rgba(209, 209, 209, 0.1)", 
+                    overflow: "scroll",  
+                    flexDirection: "column" 
+                }}
+            >      
+
+    <div style={{padding:"60px"}}>
+  
 
         <div className="no-drag"
               style={{
-                  position:"absolute", 
-                  top:0,
-                  right:0 
-              }}  
+                 position: "fixed",
+                 top: 0,
+                 right: 0
+              }}   
         > 
-              <IconButton  
+              <IconButton   
                 onClick = {() => this.setState({
                     fullsize:not(this.state.fullsize)
                 }, 
@@ -389,25 +419,25 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         </div>  
 
 
-        <div style={{
-            width: "100%",
-            padding: "80px"
-        }}> 
-           <div style={{
+ 
+
+
+
+        <div style={{ width: "100%"}}> 
+            <div style={{
                 display:"flex",
-                alignItems:"center"
-           }}>  
+                alignItems:"center",
+                marginBottom:"20px"
+            }}>    
                {chooseIcon(this.props.selectedCategory)}
-             <div  
-               style={{
+             <div style={{ 
                     fontFamily: "sans-serif",
                     fontSize: "xx-large",
                     fontWeight: 600,
                     paddingLeft: "10px",
                     WebkitUserSelect: "none",
                     cursor:"default" 
-               }}
-             >  
+             }}>   
                {uppercase(this.props.selectedCategory)}
              </div>
            </div>
@@ -416,43 +446,65 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 display: 'flex',
                 flexWrap: 'wrap'
             }}> 
-            { 
+            {   
                 compose(
                     map((n:number) =>  
-                        <div key={uniqid()} style={{padding:"10px"}}>
-                            <Chip
-                                onRequestDelete={() => {}}
-                            >  
-                            Placeholder {n}
-                            </Chip>
-                        </div>
+                      <div key={uniqid()} style={{padding:"10px"}}>
+                         <div className="chip"    
+                            style={{
+                                width: "auto",
+                                height: "30px",
+                                alignItems: "center",
+                                display: "flex",
+                                cursor: "pointer",
+                                borderRadius: "100px",
+                                fontWeight: 700,
+                                color: "dimgray",     
+                                fontFamily: "sans-serif"
+                            }}  
+                         >
+                            <div style={{
+                                padding:"10px"
+                            }}>
+                                Placeholder {n}
+                            </div>
+                         </div>
+                      </div>  
                     ),  
                     range(0)  
                 )(5) 
             }
             </div>
+        </div>     
+            
 
 
-        </div>   
-       
-        <div 
-        style={{
-            width: "100%",
-            height: "30%",
-            display: "flex",
-            alignItems: "center", 
-            justifyContent: "center"
-        }}>   
-          <TodoCreationForm dispatch={this.props.dispatch} /> 
+
+
+ 
+        <div>   
+            <TodoCreationForm  
+                dispatch={this.props.dispatch}  
+                keepTodo={(todo:Todo) => { 
+                    let todos = [...this.state.todos];
+                    todos.unshift(todo);
+                    this.setState({todos});  
+                }}
+                selectedTodoFromId={this.props.selectedTodoFromId}
+            />  
         </div>    
 
-        <div>
-            {  
-                this.createSortableTodosList(this.props.todos)
-            }
+
+
+         
+        <div style={{marginTop: "30px", marginBottom: "60px"}}>
+        {  this.createSortableTodosList(this.state.todos)  }
         </div>    
+    
+    
+    </div> 
 
-
+ 
         <ThingsCalendar
             close = {() => this.setState({showCalendar:false})}
             open = {this.state.showCalendar}
@@ -462,74 +514,85 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         <div style={{ 
               height: "60px",
               width: "74%", 
-              position: "fixed",
+              position: "fixed", 
+              zIndex:1500,
               display: "flex",
               justifyContent: "center",
               backgroundColor: "white",
               bottom: "0px",
               borderTop: "1px solid rgba(100, 100, 100, 0.2)" 
         }}>   
-        <div style={{   
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-around",
-            position: "absolute",
-            bottom: 0,
-            backgroundColor: "white",
-            width: "70%",
-            height: "60px"      
-        }}>
-
-            <IconButton 
-              onClick = {() => {}}
-              iconStyle={{ 
-                  color:"rgb(79, 79, 79)",
-                  width:"25px", 
-                  height:"25px" 
-              }}>     
-                  <Plus />
-              </IconButton> 
-
-              <div ref={(e) => {this.calendarOrigin=e}}>
+            <div style={{   
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-around",
+                position: "absolute",
+                bottom: 0,
+                backgroundColor: "white",
+                width: "70%",
+                height: "60px"      
+            }}>
+ 
                 <IconButton 
-                onClick = {() => this.setState({showCalendar:true})}
-                iconStyle={{ 
-                    color:"rgb(79, 79, 79)",
-                    width:"25px", 
-                    height:"25px" 
-                }}>     
-                    <CalendarIco />
+                    onClick = {() => {}}
+                    iconStyle={{ 
+                        color:"rgb(79, 79, 79)",
+                        width:"25px", 
+                        height:"25px" 
+                    }}
+                >     
+                    <Plus />
                 </IconButton> 
-              </div>
 
+                <div ref={(e) => {this.calendarOrigin=e}}>
+                    <IconButton 
+                        onClick = {() => this.setState({showCalendar:true})}
+                        iconStyle={{ 
+                            color:"rgb(79, 79, 79)",
+                            width:"25px", 
+                            height:"25px" 
+                        }} 
+                    >     
+                        <CalendarIco />
+                    </IconButton> 
+                </div>
 
+                <IconButton 
+                    onClick = {() => {}}
+                    iconStyle={{ 
+                        color:"rgb(79, 79, 79)",
+                        width:"25px", 
+                        height:"25px" 
+                    }}
+                >     
+                    <Arrow />
+                </IconButton> 
+                <IconButton 
+                    onClick = {() => {}}
+                    iconStyle={{  
+                        color:"rgb(79, 79, 79)",
+                        width:"25px", 
+                        height:"25px" 
+                    }}
+                >     
+                    <Search />
+                </IconButton> 
 
-              <IconButton 
-              onClick = {() => {}}
-              iconStyle={{ 
-                  color:"rgb(79, 79, 79)",
-                  width:"25px", 
-                  height:"25px" 
-              }}>     
-                  <Arrow />
-              </IconButton> 
-              <IconButton 
-              onClick = {() => {}}
-              iconStyle={{  
-                  color:"rgb(79, 79, 79)",
-                  width:"25px", 
-                  height:"25px" 
-              }}>     
-                  <Search />
-              </IconButton> 
-
+            </div>
         </div>
-        </div>
+ 
+
         </div> 
   }
 }
 
  
+
+
+
+
+
+
  
  
 
