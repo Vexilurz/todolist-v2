@@ -81,12 +81,12 @@ injectTapEventPlugin();
     app.id='application';    
     document.body.appendChild(app);  
 })();  
-
+ 
   
-@connect(
-    (store,props) => merge(props,clone(store)), 
+@connect( 
+    (store,props) => store, 
     attachDispatchToProps
-)
+) 
 export class App extends Component<any,any>{
 
     constructor(props){  
@@ -131,7 +131,6 @@ export class App extends Component<any,any>{
       
                <MainContainer  
                  selectedCategory={this.props.selectedCategory}
-                 todos={this.props.todos} 
                  dispatch={this.props.dispatch} 
                  selectedTodoFromId={this.props.selectedTodoFromId}
                />  

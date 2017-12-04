@@ -2,9 +2,10 @@ import './assets/styles.css';
 import './assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, 
+import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
     compose, append, contains, and, find, defaultTo, addIndex, split, filter, 
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, groupBy, concat, flatten, toPairs 
+    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, 
+    groupBy, concat, flatten, toPairs, adjust, prepend 
 } from 'ramda';
 import RaisedButton from 'material-ui/RaisedButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
@@ -72,17 +73,20 @@ import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc'
 import { queryToTodos, getTodos, updateTodo, Todo } from './databaseCalls';
 let uniqid = require("uniqid");
 import DayPicker from 'react-day-picker';
-import Popover from 'material-ui-next/Popover';
+//import Popover from 'material-ui-next/Popover';
+import Popover from 'material-ui/Popover';
 import Button from 'material-ui-next/Button';
 import { TodoUpdateForm } from './TodoUpdateForm';
- 
+  
 interface ThingsCalendarProps{ 
   close : Function,
   open : boolean,
-  anchorEl : HTMLElement
-} 
+  origin : any, 
+  anchorEl : HTMLElement,
+  point : any
+}  
 
-class ThingsCalendar extends Component<ThingsCalendarProps,any>{
+export class ThingsCalendar extends Component<ThingsCalendarProps,any>{
 
     constructor(props){
         super(props);
@@ -92,18 +96,18 @@ class ThingsCalendar extends Component<ThingsCalendarProps,any>{
         return <Popover 
             open={this.props.open}
             anchorEl={this.props.anchorEl}
+            style={{
+                backgroundColor:"rgba(0,0,0,0)",
+                background:"rgba(0,0,0,0)",
+                borderRadius:"20px"
+            }}  
             //anchorReference={anchorReference}
             //anchorPosition={{ top: positionTop, left: positionLeft }}
             onRequestClose={() => this.props.close()}
-            anchorOrigin={{ 
-                vertical: "top",
-                horizontal: "center",
-            }} 
-            transformOrigin={{ 
-                vertical: "top",
-                horizontal: "center",
-            }}
-        >
+            anchorOrigin={this.props.origin} 
+            //transformOrigin={this.props.point}
+            targetOrigin={this.props.point}
+        >   
             <div style={{  
                 display:"flex",
                 flexDirection:"column",
@@ -207,40 +211,43 @@ class ThingsCalendar extends Component<ThingsCalendarProps,any>{
 
 
 
-
-
-
-
-
-
 type Category = "inbox" | "today" | "upcoming" | "anytime" | "someday" | "logbook" | "trash";
   
 
 interface MainContainerProps{
    selectedTodoFromId:string, 
    selectedCategory:Category,
-   dispatch:Function,
-   todos:Todo[] 
+   dispatch:Function
 }
  
 interface MainContainerState{
    fullsize:boolean,
    showCalendar:boolean,
-   todos:Todo[]
+   todos:Todo[],
+   tags:string[], 
+   openTodoInput:boolean, 
+   selectedTag:string, 
+   showTodoInput:boolean 
 }     
- 
- 
+     
+
 export class MainContainer extends Component<MainContainerProps,MainContainerState>{
     calendarOrigin:HTMLElement 
-
+    rootRef 
     constructor(props){
         super(props);
-        this.state={  
+        this.state={   
+            openTodoInput:false,
             fullsize:true,
             showCalendar:false,
-            todos:[]
+            selectedTag:"All", 
+            todos:[],
+            tags:[],  
+            showTodoInput:false 
         }
     } 
+
+    onError = (e) => console.log(e);
      
     clearTodos = () => {
         let onError = (e) => console.log(e);
@@ -259,6 +266,16 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         )   
     }
  
+
+    getTagsFromTodos = (todos:Todo[]) : string[] => compose(
+        uniq,    
+        prepend("All"),
+        flatten, 
+        map(prop("attachedTags")),
+        filter((v)  => !!v)
+    )(todos) as any;
+          
+       
     componentDidMount(){
         let onError = (e) => console.log(e);
         let getTodosCatch = getTodos(onError);
@@ -266,29 +283,51 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         getTodosCatch(true,Infinity)
         .then(queryToTodos)
         .then( 
-            (todos:Todo[]) => this.setState({todos})
+            (todos:Todo[]) => this.setState({
+                todos,
+                tags:this.getTagsFromTodos(todos)
+            }) 
         )    
-    }  
+    }   
      
- 
+    
     getTodoElem = (value:Todo) => 
         <div style={{
             width: "100%", 
             display: "flex",
             alignItems: "center", 
             justifyContent: "center"
-        }}>    
-            <TodoUpdateForm 
+        }}>     
+            <TodoUpdateForm   
                 dispatch={this.props.dispatch}
                 todo={value}  
                 selectedTodoFromId={this.props.selectedTodoFromId}
                 changeTodo = {(todo:Todo) => {
-                      
-                }}
+                   let idx = findIndex((t:Todo) => todo._id===t._id)(this.state.todos);
+                   this.setState({todos:adjust<Todo>((old:Todo) => todo,idx,this.state.todos)});
+                }} 
             />  
         </div>     
-     
-    
+        
+ 
+    openTodoInput = () => this.setState({
+            showTodoInput:true,
+            openTodoInput:true
+        }, 
+        () => {  
+            if(this.rootRef)
+               this.rootRef.scrollTop = 0; 
+        } 
+    );   
+
+      
+    closeTodoInput = () => this.setState({
+        showTodoInput:false,
+        openTodoInput:false
+    });
+
+
+      
 
     createSortableItem = (transform) => SortableElement(({value}) => transform(value)); 
  
@@ -321,7 +360,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             height: "20px",
             background: "cadetblue"
         }
-
+ 
         let childStyle = {
             background: "brown",
             width: "20px",
@@ -344,15 +383,25 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
               
 
         elem.appendChild(numb);       
-    }      
+    }  
+    
+    byTags = (todo:Todo) : boolean => { 
+        if(isNil(todo))
+           return false;
+        if(this.state.selectedTag==="All")
+           return true;    
 
+        return contains(this.state.selectedTag,todo.attachedTags);
+    }
+ 
 
     createSortableTodosList = (list : Todo[]) => { 
         let SortableList = SortableContainer(({items}) => this.getTodosList(items),{withRef:true}); 
-    
+         
         return <SortableList 
             //getContainer={(e) => document.getElementById("todos")} 
             //lockToContainerEdges={true} 
+            shouldCancelStart={() => false}
             style={{zIndex: 100000}} 
             distance={1}     
             items={list}     
@@ -372,17 +421,12 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             useWindowAsScrollContainer={true}
         />   
     }   
- 
+  
         
     render(){ 
-     return <div 
+     return <div ref={(e) => { this.rootRef=e }}
                 className="scroll"  
-                onClick={(e) => { 
-                    e.stopPropagation();   
-                    if(this.props.selectedTodoFromId)
-                    this.props.dispatch({type:"selectedTodoFromId",load:null}) 
-                }} 
-                style={{ 
+                style={{    
                     width: "74%",
                     position:"relative", 
                     display: "flex",
@@ -393,7 +437,15 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 }}
             >      
 
-    <div style={{padding:"60px"}}>
+    <div   
+        onClick={(e) => {  
+            e.stopPropagation(); 
+            this.closeTodoInput();
+            if(this.props.selectedTodoFromId)
+            this.props.dispatch({type:"selectedTodoFromId",load:null});  
+        }} 
+        style={{padding:"60px"}}
+    >
   
 
         <div className="no-drag"
@@ -409,7 +461,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 }, 
                 () => ipcRenderer.send("size",this.state.fullsize)
               )}     
-              iconStyle={{ 
+              iconStyle={{  
                   color:"cadetblue",
                   width:"20px",
                   height:"20px"    
@@ -417,9 +469,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                   <OverlappingWindows />
               </IconButton> 
         </div>  
-
-
- 
 
 
 
@@ -447,10 +496,10 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 flexWrap: 'wrap'
             }}> 
             {   
-                compose(
-                    map((n:number) =>  
+                    map((tag:string) =>  
                       <div key={uniqid()} style={{padding:"10px"}}>
-                         <div className="chip"    
+                        <div className="chip"   
+                            onClick={() => this.setState({selectedTag:tag})} 
                             style={{
                                 width: "auto",
                                 height: "30px",
@@ -458,49 +507,45 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 display: "flex",
                                 cursor: "pointer",
                                 borderRadius: "100px",
+                                backgroundColor: this.state.selectedTag === tag ? "dimgray" : "white",
                                 fontWeight: 700,
-                                color: "dimgray",     
+                                color: this.state.selectedTag === tag ? "white" : "dimgray", 
                                 fontFamily: "sans-serif"
                             }}  
-                         >
-                            <div style={{
-                                padding:"10px"
-                            }}>
-                                Placeholder {n}
-                            </div>
-                         </div>
+                        >  
+                            <div style={{padding:"10px"}}> {tag} </div> 
+                         </div> 
                       </div>  
-                    ),  
-                    range(0)  
-                )(5) 
+                    )(this.state.tags)
             }
             </div>
         </div>     
-            
+             
 
-
-
-
+        {   !this.state.showTodoInput ? null :
+            <div>    
+                <TodoCreationForm  
+                    dispatch={this.props.dispatch}  
+                    tags={this.state.tags}
+                    keepTodo={(todo:Todo) => {  
+                        let todos = [...this.state.todos];
+                        todos.unshift(todo);
+                        let tags = this.getTagsFromTodos(todos)
+                        this.setState({todos,tags});  
+                    }} 
+                    triggerOpen={() => this.setState({openTodoInput:true})}
+                    open={this.state.openTodoInput}
+                />  
+            </div> 
+        }   
  
-        <div>   
-            <TodoCreationForm  
-                dispatch={this.props.dispatch}  
-                keepTodo={(todo:Todo) => { 
-                    let todos = [...this.state.todos];
-                    todos.unshift(todo);
-                    this.setState({todos});  
-                }}
-                selectedTodoFromId={this.props.selectedTodoFromId}
-            />  
-        </div>    
-
 
 
          
         <div style={{marginTop: "30px", marginBottom: "60px"}}>
-        {  this.createSortableTodosList(this.state.todos)  }
+        {  compose(this.createSortableTodosList,filter(this.byTags))(this.state.todos)  }
         </div>    
-    
+      
     
     </div> 
 
@@ -509,6 +554,14 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             close = {() => this.setState({showCalendar:false})}
             open = {this.state.showCalendar}
             anchorEl = {this.calendarOrigin}
+            origin = {{ 
+                vertical: "top",
+                horizontal: "center",
+            }} 
+            point = {{
+                vertical: "top",
+                horizontal: "center", 
+            }}
         />  
 
         <div style={{ 
@@ -522,7 +575,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
               bottom: "0px",
               borderTop: "1px solid rgba(100, 100, 100, 0.2)" 
         }}>   
-            <div style={{   
+            <div style={{    
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-around",
@@ -532,15 +585,17 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 width: "70%",
                 height: "60px"      
             }}>
- 
-                <IconButton 
-                    onClick = {() => {}}
+  
+                <IconButton  
+                    onClick = {() => this.openTodoInput()}
+                    tooltip="New To-Do"
+                    tooltipPosition="top-center"
                     iconStyle={{ 
-                        color:"rgb(79, 79, 79)",
+                        color:"rgb(79, 79, 79)", 
                         width:"25px", 
                         height:"25px" 
                     }}
-                >     
+                >      
                     <Plus />
                 </IconButton> 
 

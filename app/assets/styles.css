@@ -2,6 +2,9 @@ html{
   height:860px;
 }
 
+.toggle:hover{
+  color:cadetblue; 
+}
 
 body{  
     background-size: cover;
@@ -21,6 +24,37 @@ li{
   margin-top:0px;
   margin-bottom:0px 
 }
+
+.darkscroll{
+  overflow-y: scroll;
+}
+ 
+.tagItem:hover{
+  background-color:rgba(33, 129, 173,0.4);
+}
+
+.nocolor{
+  background:rgba(0,0,0,0);
+  background-color:rgba(0,0,0,0);
+}
+
+
+.darkscroll::-webkit-scrollbar {
+  border-radius: 10px;
+  width: 12px;
+  background-color:rgb(39, 43, 53)
+} 
+
+.darkscroll::-webkit-scrollbar-track {
+  border-radius: 10px;
+  background-color:rgb(39, 43, 53)
+} 
+
+.darkscroll::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background-color:rgb(19, 23, 23)
+}
+
 
 .scroll { 
   background: white; 

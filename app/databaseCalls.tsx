@@ -154,7 +154,7 @@ export let updateTodo = (_id : string, replacement : Todo, onError:Function) : P
   db.get(_id)
   .then((doc) => db.put(merge(doc,replacement))) 
   .catch(onError); 
-
+ 
 
 export let getTodosRange = (onError:Function) =>
 (descending,limit,start,end) : Promise<Todo[]>=> 

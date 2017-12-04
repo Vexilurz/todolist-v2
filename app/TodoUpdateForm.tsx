@@ -86,8 +86,9 @@ interface TodoUpdateFormState{
     currentTodo : string, 
     currentNote : string
 } 
-      
-   
+
+
+
 export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateFormState>{
 
     constructor(props){
@@ -172,6 +173,7 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
      
         return <SortableList 
             //getContainer={(e) => document.getElementById("todos")} 
+            shouldCancelStart={() => false}
             lockToContainerEdges={true} 
             distance={1}  
             items={list}   
@@ -205,7 +207,7 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
             priority : Math.random() * 100,
             notes : this.state.notes,
             attachedProdjects : [], 
-            attachedTags : [],
+            attachedTags : this.props.todo.attachedTags,
             status : "",
             deadline : new Date(),
             created : new Date(),
@@ -285,8 +287,8 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
                                 borderColor: "rgba(0,0,0,0)" 
                             }} 
                         />   
-                        {
-                             !selected? null :
+                        { 
+                            !selected? null :
                             <TextField 
                                 hintText="Notes"
                                 underlineFocusStyle={{
@@ -297,28 +299,83 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
                                 }}   
                                 value={this.state.currentNote}
                                 onKeyPress = {(event) => {
-                                    
-                                    if(event.key==="Enter"){
+                                    if(event.key==="Enter"){   
                                         let notes = this.state.notes;
                                         notes.push(this.state.currentNote);
-                                        this.setState({ 
-                                            currentNote:'',
-                                            notes
-                                        })
-                                    }
-
-                                }} 
+                                        this.setState({currentNote:'', notes});
+                                    }  
+                                }}  
                                 onChange = {(event,value) => this.setState({ currentNote:value })}
                             />  
                         } 
-    
+     
                         { !selected? null : this.createSortableNotesList(this.state.notes)  } 
+
+                        {
+                            <div style={{
+                                marginTop:"15px", 
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "flex-start" 
+                            }}> 
+                                { 
+                                    !this.props.todo ? null :
+                                    this.props.todo.attachedTags.map( (tag:string) => 
+                                        <div key={uniqid()}>   
+                                            <div //className="chip"    
+                                                style={{ 
+                                                    width: "auto",
+                                                    height: "30px",
+                                                    alignItems: "center",
+                                                    display: "flex",
+                                                    cursor: "pointer",
+                                                    backgroundColor: "rgba(0,122,0,0.2)",
+                                                    borderRadius: "100px",
+                                                    fontWeight: 700,
+                                                    color: "forestgreen",
+                                                    fontFamily: "sans-serif"
+                                                }}   
+                                            >  
+                                                <div style={{padding:"10px"}}>
+                                                    {tag}
+                                                </div>
+                                            </div>
+                                        </div>   
+                                    )
+                                }   
+                                {
+                                /*    
+                                <TextField 
+                                    hintText=""
+                                    underlineFocusStyle={{
+                                        borderColor: "rgba(0,0,0,0)"
+                                    }} 
+                                    underlineStyle={{
+                                        borderColor: "rgba(0,0,0,0)"
+                                    }}    
+                                    value={this.state.currentTag}
+                                    onKeyPress = {(event) => {  
+                                        if(event.key==="Enter"){
+                                            let tag = this.state.currentTag;  
+                                            let tags = this.state.attachedTags;
+                                            tags.push(tag);
+                                            this.setState({ 
+                                                currentTag:'',
+                                                attachedTags:uniq(tags)
+                                            });
+                                        }  
+                                    }}   
+                                    //onChange = {(event,value) => this.setState({ currentTag:value })}
+                                />*/ 
+                                } 
+                            </div>
+                        }
                     </div>
                         
                       
                 </div> 
-
-                { !selected ? null :
+ 
+                { true ? null :
                     <div style={{  
                         display: "flex",
                         alignItems: "center",

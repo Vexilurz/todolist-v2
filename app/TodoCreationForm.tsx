@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, 
     compose, append, contains, and, find, defaultTo, addIndex, split, filter, 
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, groupBy, concat, flatten, ifElse 
+    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, groupBy, concat, flatten, ifElse, uniq 
 } from 'ramda';
 import RaisedButton from 'material-ui/RaisedButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
@@ -69,7 +69,77 @@ import PouchDB from 'pouchdb-browser';
 import List from 'material-ui/svg-icons/action/list'; 
 import { db } from './app';
 import { getTodos, queryToTodos, Todo, updateTodo, generateID, addTodo } from './databaseCalls';
+import { ThingsCalendar } from './MainContainer';
 let uniqid = require("uniqid");
+//import Popover from 'material-ui-next/Popover'; 
+import Popover from 'material-ui/Popover';
+interface TagsPopoverProps{
+    tags:string[], 
+    close : Function,
+    open : boolean,
+    attachTag:Function,
+    origin : any, 
+    anchorEl : HTMLElement,
+    point : any
+}  
+
+export class TagsPopover extends Component<any,any>{
+     
+        constructor(props){
+            super(props); 
+        }  
+    
+        render(){ 
+            return <Popover 
+                className="nocolor"
+                style={{
+                    backgroundColor:"rgba(0,0,0,0)",
+                    background:"rgba(0,0,0,0)",
+                    borderRadius:"10px"
+                }}   
+                open={this.props.open}
+                anchorEl={this.props.anchorEl}
+                //anchorReference={anchorReference}
+                //anchorPosition={{ top: positionTop, left: positionLeft }}
+                onRequestClose={() => this.props.close()}
+                anchorOrigin={this.props.origin} 
+                targetOrigin={this.props.point} 
+                //transformOrigin={this.props.point}
+            >   
+                <div  
+                className={"darkscroll"}
+                style={{  
+                    backgroundColor: "rgb(39, 43, 53)",
+                    paddingRight: "10px",
+                    paddingLeft: "10px",
+                    borderRadius: "10px",
+                    paddingTop: "5px",
+                    paddingBottom: "5px",
+                    maxHeight:"150px",
+                    cursor:"pointer" 
+                }}>   
+                   { 
+                    map((tag:string) => 
+                        <div  
+                            onClick={() => this.props.attachTag(tag)} 
+                            className={"tagItem"} style={{display:"flex", height:"auto"}}
+                        >  
+                            <TriangleLabel style={{color:"skyblue"}}/> 
+                            <div style={{color:"skyblue", marginLeft:"5px", marginRight:"5px"}}>
+                                {tag}   
+                            </div>     
+                        </div>
+                    )(this.props.tags)
+                    } 
+                </div>  
+            </Popover> 
+        } 
+      
+    }
+
+
+
+
 
 
 
@@ -77,31 +147,42 @@ let uniqid = require("uniqid");
 
 
 interface TodoCreationFormProps{ 
+    tags:string[], 
     dispatch:Function,
     keepTodo:Function,
-    selectedTodoFromId:string 
+    triggerOpen:Function, 
+    open:boolean
 }  
   
 interface TodoCreationFormState{
     formId:string, 
     notes : string[],
-    currentTodo : string, 
+    showtagsPopoverOrigin:boolean, 
+    currentTodo : string,  
     currentNote : string,
+    showCalendar : boolean, 
+    currentTag : string,
+    attachedTags : string[]
 } 
+       
   
- 
-
 export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreationFormState>{
-
-    constructor(props){
+    calendarOrigin
+    tagsPopoverOrigin
+    
+    constructor(props){ 
         super(props); 
         this.state={
             formId:uniqid(),
             notes : [],
+            showCalendar:false,  
+            showtagsPopoverOrigin:false,
             currentTodo : '', 
             currentNote : '',
+            currentTag:'',
+            attachedTags:[]
         }
-    }
+    } 
     
     onError = (e) => console.log(e);
     
@@ -131,10 +212,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                     color: "rgba(100,100,100,1)",
                     fontWeight: 500
                 }}>     
-                    <input 
-                        type={"text"} 
-                        value={value} 
-                    />     
+                   {value}   
                 </div>  
                 { 
                 // im not sure should note be deletable or not    
@@ -187,10 +265,12 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             distance={1}  
             items={list}   
             axis='y'   
-            lockAxis={'y'}
-            onSortEnd={({oldIndex, newIndex}) => this.setState({
-                notes: arrayMove(this.state.notes, oldIndex, newIndex),
-            })}
+            lockAxis={'y'} 
+            onSortEnd={
+                ({oldIndex, newIndex}) => this.setState({
+                    notes: arrayMove(this.state.notes, oldIndex, newIndex),
+                })
+            }
             //shouldCancelStart={() => true}
             onSortStart={() => {}}
             //shouldCancelStart={() => true}
@@ -211,7 +291,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             priority : Math.random() * 100,
             notes : this.state.notes,
             attachedProdjects : [], 
-            attachedTags : [],
+            attachedTags : this.state.attachedTags,
             status : "",
             deadline : new Date(),
             created : new Date(),
@@ -221,23 +301,22 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             attachemnts : []
         };    
 
-        this.setState({currentNote:'', currentTodo:'', notes:[]});
+        this.setState({currentNote:'', currentTodo:'', notes:[], attachedTags:[]});
         addTodo(this.onError,todo);
-
+ 
         this.props.keepTodo(todo);
     } 
    
    
     render(){ 
-        let selected = this.props.selectedTodoFromId === this.state.formId;
+        let selected = this.props.open;
  
 
-        return <div  
-            className = {selected ? "" : "todohighlight"}
+        return <div   
+            className = {"todohighlight"}
             onClick = {(e) => { 
                 e.stopPropagation();  
-                if(this.state.formId!==this.props.selectedTodoFromId)
-                   this.props.dispatch({type:"selectedTodoFromId",load:this.state.formId}) 
+                this.props.triggerOpen(); 
             }}  
             style={{           
                 width:"100%",height:"auto",  
@@ -291,7 +370,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                             }}  
                         />  
                         {
-                             !selected ? null :
+                            !selected ? null :
                             <TextField 
                                 hintText="Notes"
                                 underlineFocusStyle={{
@@ -305,20 +384,72 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                                     
                                     if(event.key==="Enter"){
                                         let notes = this.state.notes;
-                                        notes.push(this.state.currentNote);
-                                        this.setState({ 
-                                            currentNote:'',
-                                            notes
-                                        })
-                                    }
-
+                                        notes.push(this.state.currentNote); 
+                                        this.setState({ currentNote:'',  notes});
+                                    }  
+ 
                                 }} 
                                 onChange = {(event,value) => this.setState({ currentNote:value })}
                             />  
                         } 
     
                         { !selected ? null : this.createSortableNotesList(this.state.notes)  } 
-                    </div>
+
+                        {
+                            <div style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "flex-start" 
+                            }}> 
+                                { 
+                                    this.state.attachedTags.map( (tag:string) => 
+                                        <div key={uniqid()}>  
+                                            <div //className="chip"    
+                                                style={{ 
+                                                    width: "auto",
+                                                    height: "30px",
+                                                    alignItems: "center",
+                                                    display: "flex",
+                                                    cursor: "pointer",
+                                                    backgroundColor: "rgba(0,122,0,0.2)",
+                                                    borderRadius: "100px",
+                                                    fontWeight: 700,
+                                                    color: "forestgreen",
+                                                    fontFamily: "sans-serif"
+                                                }}   
+                                            >  
+                                                <div style={{padding:"10px"}}>
+                                                    {tag}
+                                                </div>
+                                            </div>
+                                        </div>  
+                                    )
+                                }   
+                                <TextField  
+                                    hintText="Add tag"
+                                    underlineFocusStyle={{
+                                        borderColor: "rgba(0,0,0,0)"
+                                    }} 
+                                    underlineStyle={{
+                                        borderColor: "rgba(0,0,0,0)"
+                                    }}   
+                                    value={this.state.currentTag}
+                                    onKeyPress = {(event) => {  
+                                        if(event.key==="Enter"){
+                                            let tag = this.state.currentTag;  
+                                            let tags = this.state.attachedTags;
+                                            tags.push(tag);
+                                            this.setState({ 
+                                                currentTag:'',
+                                                attachedTags:uniq(tags)
+                                            });
+                                        }    
+                                    }}  
+                                    onChange = {(event,value) => this.setState({ currentTag:value })}
+                                />  
+                            </div>
+                        }
+                    </div> 
                         
                       
                 </div> 
@@ -333,36 +464,73 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                         zIndex:5, 
                         padding: "15px",
                         right: 0  
-                    }}> 
-                        <IconButton 
-                        onClick = {() => {}}
-                        iconStyle={{  
-                            color:"rgb(179, 179, 179)",
-                            width:"25px", 
-                            height:"25px" 
-                        }}>     
-                            <Calendar />
-                        </IconButton> 
-                        <IconButton 
-                        onClick = {() => {}}
+                    }}>  
+                    <ThingsCalendar
+                        close = {() => this.setState({showCalendar:false})}
+                        open = {this.state.showCalendar}
+                        anchorEl = {this.calendarOrigin}
+                        origin = {{  
+                            vertical: "bottom",
+                            horizontal: "left",
+                        }} 
+                        point = {{
+                            vertical: "center",
+                            horizontal: "right",
+                        }}
+                    />     
+                        <div ref={(e) => { this.calendarOrigin=e; }}>  
+                            <IconButton 
+                            onClick = {() => this.setState({showCalendar:true})}
+                            iconStyle={{  
+                                color: this.state.showCalendar ? "cadetblue" : "rgb(179, 179, 179)",
+                                width:"25px",  
+                                height:"25px"  
+                            }}>     
+                                <Calendar />
+                            </IconButton> 
+                        </div> 
+                    <TagsPopover  
+                      tags={this.props.tags}
+                      attachTag={(tag:string) => this.setState({ 
+                        attachedTags:compose(uniq,append(tag))(this.state.attachedTags) as any
+                      })}
+                      close = {() => this.setState({showtagsPopoverOrigin:false})}
+                      open = {this.state.showtagsPopoverOrigin}
+                      anchorEl = {this.tagsPopoverOrigin}
+                      origin = {{    
+                          vertical: "bottom",
+                          horizontal: "left",
+                      }} 
+                      point = {{
+                          vertical: "top",
+                          horizontal: "right"
+                      }} 
+                    />
+                        <div ref={(e) => { this.tagsPopoverOrigin=e; }}> 
+                            <IconButton 
+                            onClick = {() => this.setState({showtagsPopoverOrigin:true})}
+                            iconStyle={{ 
+                                color:"rgb(179, 179, 179)",
+                                width:"25px", 
+                                height:"25px" 
+                            }}>       
+                                <TriangleLabel />
+                            </IconButton>    
+                        </div>
+
+                        <IconButton    
+                        onClick = {() => this.addTodoFromInput()}
                         iconStyle={{ 
-                            color:"rgb(179, 179, 179)",
-                            width:"25px", 
-                            height:"25px" 
-                        }}>     
-                            <TriangleLabel />
-                        </IconButton> 
-                        <IconButton 
-                        onClick = {() => {}}
-                        iconStyle={{ 
-                            color:"rgb(179, 179, 179)",
+                            color: isEmpty(this.state.currentTodo) ? "rgb(179, 179, 179)" : "cadetblue",
                             width:"25px", 
                             height:"25px" 
                         }}>      
                             <List />
                         </IconButton> 
+
+                         
                         <IconButton 
-                        onClick = {() => {}}
+                        onClick = {() => {}} 
                         iconStyle={{  
                             color:"rgb(179, 179, 179)",
                             width:"25px", 
