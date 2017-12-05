@@ -121,7 +121,7 @@ export class TagsPopover extends Component<any,any>{
                    { 
                     map((tag:string) => 
                         <div  
-                            key={uniqid()}
+                            key={tag}
                             onClick={() => this.props.attachTag(tag)} 
                             className={"tagItem"} style={{display:"flex", height:"auto"}}
                         >  
@@ -196,7 +196,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             display:"flex",  
             alignItems:"center", 
             borderBottom:"1px solid rgba(100,100,100,0.2)"
-        }} key={uniqid()}>      
+        }} key={value}>      
             <Circle style={{color:"darkcyan"}}/>  
             <div style={{ 
                 display: "flex",
@@ -403,8 +403,8 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                                 justifyContent: "flex-start" 
                             }}> 
                                 { 
-                                    this.state.attachedTags.map( (tag:string) => 
-                                        <div key={uniqid()}>  
+                                    this.state.attachedTags.map( (tag:string,idx:number) => 
+                                        <div key={String(idx)}>  
                                             <div //className="chip"    
                                                 style={{ 
                                                     width: "auto",

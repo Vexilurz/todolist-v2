@@ -26,22 +26,22 @@ export let listeners;
 let onReady = () => {  
     preventAnnoyingErrorPopups();   
     mainWindow = initWindow(); 
-     
+      
     listeners = new Listeners(mainWindow);
    
     loadApp(mainWindow)  
     .then(() => { 
       mainWindow.webContents.send("loaded");
       mainWindow.webContents.openDevTools();   
-    });    
-}    
-   
- 
+    });     
+}         
+    
+  
 process.on("unchaughtException" as any,(error) => console.log(error)); 
   
-
+app.disableHardwareAcceleration(); 
 app.on('ready', onReady); 
-
+ 
  
 let clearDir = (directory) => new Promise( resolve => {
     
@@ -78,7 +78,7 @@ app.on(
    
  
          
-               
+                
 
   
   

@@ -70,60 +70,6 @@ import { MenuList, MenuItem } from 'material-ui-next/Menu';
 
 
 
-/*
-
-<IconButton   
-    key={uniqid()}   
-    onClick = {() => ipcRenderer.send("close")}
-    tooltip = {"close"} 
-    iconStyle={{
-        width:"20px",
-        height:"20px"
-    }}  
-> 
-    <Circle 
-        style={{
-            color: this.state.closeHover ? "red" : "rgba(159,159,159,0.5)",
-            borderRadius:"30px",
-            backgroundColor:"rgba(159,159,159,0)" 
-        }}
-        onMouseEnter = {() => this.setState({closeHover:true})}
-        onMouseLeave = {() => this.setState({closeHover:false})}
-    />     
-</IconButton> 
-<IconButton  
-    key={uniqid()}   
-    onClick = {() => ipcRenderer.send("hide")}
-    tooltip = {"hide"} 
-    onMouseOver = {() => this.setState({hideHover:true},() => console.log("hide"))}
-    onMouseOut = {() => this.setState({hideHover:false},() => console.log("show"))}
-    iconStyle={{
-        color: this.state.hideHover ? "orange" : "rgba(159,159,159,0.5)", 
-        width:"20px",
-        height:"20px" 
-    }}
->
-    <Circle /> 
-</IconButton>      
-<IconButton   
-    key={uniqid()}   
-    onClick = {() => ipcRenderer.send("reload")}
-    tooltip = {"reload"}  
-    onMouseOver = {() => this.setState({reloadHover:true})}
-    onMouseOut = {() => this.setState({reloadHover:false})}
-    iconStyle={{
-        color:this.state.reloadHover ? "green" : "rgba(159,159,159,0.5)", 
-        width:"20px",
-        height:"20px"
-    }}
->
-    <Circle /> 
-</IconButton>
-
-*/
-
-
-
 
  
  
@@ -131,8 +77,11 @@ export class LeftPanel extends Component<any,any>{
      
         constructor(props){ 
             super(props); 
+            this.state={
+                toggleProjectPopover:false 
+            }
         };
-
+ 
         render(){ 
             return <div style={{
                 display: "flex", 
@@ -191,8 +140,8 @@ export class LeftPanel extends Component<any,any>{
                 
             </div>   
  
-            <div style={{width:"100%"}}>
-                 
+            <div className="no-drag" style={{width:"100%"}}>
+                  
         <MenuList>
             <MenuItem 
             onClick={() => this.props.dispatch({
@@ -326,7 +275,7 @@ export class LeftPanel extends Component<any,any>{
                     map(
                         (n) => <div 
                         className="hoverBorder"
-                        key={uniqid()} 
+                        key={String(n)} 
                         style={{
                             height:"20px",
                             width:"100%",
@@ -334,7 +283,6 @@ export class LeftPanel extends Component<any,any>{
                             alignItems: "center" 
                         }}>  
                            <IconButton    
-                                key={uniqid()}   
                                 iconStyle={{
                                     color:"rgba(109,109,109,0.4)",
                                     width:"18px",
@@ -361,7 +309,7 @@ export class LeftPanel extends Component<any,any>{
             </div>  
             
            
-            <div style={{   
+            <div style={{    
                 display: "flex",
                 alignItems: "center",  
                 position: "sticky",
@@ -377,7 +325,9 @@ export class LeftPanel extends Component<any,any>{
                     alignItems: "center"    
                 }}>  
                     <IconButton   
-                    onClick = {() => console.log("Add new list")} 
+                    onClick = {() => this.setState({ 
+                        toggleProjectPopover:!this.state.toggleProjectPopover
+                    })}  
                     iconStyle={{    
                         color:"rgb(79, 79, 79)",
                         width:"25px",

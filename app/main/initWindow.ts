@@ -24,14 +24,14 @@ export let initWindow = ()  => {
         height,  
         transparent:true, 
         //'node-integration': true,
-        //opacity:0, 
+        opacity:0, 
         //backgroundColor:"#ffffff", 
-        title:'tasklist',     
+        title:'tasklist',      
         center:true,     
         frame:false 
-    });             
+    });              
             
-    handler.setMovable(true); 
+    handler.setMovable(true);   
 
     handler.on(
         'ready-to-show', 

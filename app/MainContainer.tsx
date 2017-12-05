@@ -184,9 +184,10 @@ class SortableTodosUpdateList extends Component<SortableTodosUpdateListProps, So
 
     getTodoElem = (value:Todo) => 
         <div 
-          className = 'listitem'  
+          //className = 'listitem'  
+              
             style={{
-                width: "100%", 
+                width: "100%",  
                 display: "flex",
                 alignItems: "center", 
                 justifyContent: "center"
@@ -219,7 +220,7 @@ class SortableTodosUpdateList extends Component<SortableTodosUpdateListProps, So
             return true;    
 
         return contains(this.props.selectedTag,todo.attachedTags);
-    }
+    } 
         
     
     createSortableTodosList = (elem:HTMLElement) => (list : Todo[]) => { 
@@ -229,7 +230,7 @@ class SortableTodosUpdateList extends Component<SortableTodosUpdateListProps, So
             getContainer={(e) => elem ? elem : document.body} 
             //lockToContainerEdges={true}    
             shouldCancelStart={() => false} 
-            //distance={1}     
+            distance={1}      
             //pressDelay={100}   
             items={list}      
             axis='xy'       
@@ -338,7 +339,9 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
     openTodoInput = () => this.setState(
         {showTodoInput:true,openTodoInput:true}, 
-        () => {  
+        () => {   
+            if(this.props.selectedTodoFromId)
+               this.props.dispatch({type:"selectedTodoFromId",load:null}); 
             if(this.rootRef) 
                this.rootRef.scrollTop = 0; 
         }  
@@ -423,7 +426,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             }}> 
             {   
                     map((tag:string) =>  
-                      <div key={uniqid()} style={{padding:"10px"}}>
+                      <div key={tag} style={{padding:"10px"}}>
                         <div className="chip"   
                             onClick={() => this.setState({selectedTag:tag})} 
                             style={{
@@ -450,14 +453,15 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
  
         {    
             !this.state.showTodoInput ? 
-            <div style={{backgroundColor:"yellow",width:"100%",height:"50px"}}>
-
-            </div>  
+            <div onClick={(e) => {
+                e.stopPropagation(); 
+                this.openTodoInput();
+            }} style={{width:"100%",height:"50px"}}></div>  
             :  
-            <div style={{paddingTop:"20px", paddingBottom:"10px"}}>    
+            <div style={{paddingTop:"20px", paddingBottom:"10px"}}>     
                 <TodoCreationForm  
                     dispatch={this.props.dispatch}  
-                    tags={this.state.tags}
+                    tags={this.state.tags} 
                     keepTodo={(todo:Todo) => {  
                         let todos = [...this.state.todos];
                         todos.unshift(todo);

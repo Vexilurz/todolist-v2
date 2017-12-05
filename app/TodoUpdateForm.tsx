@@ -18,6 +18,7 @@ import {fade} from 'material-ui/utils/colorManipulator';
 import FlatButton from 'material-ui/FlatButton';
 import spacing from 'material-ui/styles/spacing'; 
 import SelectField from 'material-ui/SelectField';
+import Menu from 'material-ui/Menu';
 import MenuItem from 'material-ui/MenuItem';
 import TextField from 'material-ui/TextField';
 import Checkbox from 'material-ui/Checkbox';
@@ -47,6 +48,7 @@ import { Provider, connect } from "react-redux";
 import Chip from 'material-ui/Chip'; 
 import { reducer } from "./reducer"; 
 //icons
+import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
 import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
@@ -54,6 +56,7 @@ import CheckBox from 'material-ui/svg-icons/toggle/check-box';
 import BusinessCase from 'material-ui/svg-icons/places/business-center';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
+import ClearArrow from 'material-ui/svg-icons/content/backspace';   
 import Layers from 'material-ui/svg-icons/maps/layers';
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -68,6 +71,7 @@ import Clear from 'material-ui/svg-icons/content/clear';
 import PouchDB from 'pouchdb-browser';  
 import List from 'material-ui/svg-icons/action/list'; 
 import { db } from './app';
+import Popover from 'material-ui/Popover';
 import { getTodos, queryToTodos, Todo, updateTodo, generateID, addTodo } from './databaseCalls';
 let uniqid = require("uniqid");
 
@@ -84,7 +88,8 @@ interface TodoUpdateFormState{
     formId : string, 
     notes : string[],
     currentTodo : string, 
-    currentNote : string
+    currentNote : string,
+    showMenu:boolean 
 } 
 
  
@@ -94,6 +99,7 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
     constructor(props){
         super(props);
         this.state={ 
+            showMenu:false,
             formId : this.props.todo._id, 
             notes : this.props.todo.notes,
             currentTodo : this.props.todo.title, 
@@ -105,13 +111,12 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
     onError = (e) => console.log(e);
 
     removeNote = (note:string) => {}; 
-
  
     getNoteElem = (value:string) => <div style={{ 
         display:"flex", 
         alignItems:"center", 
         borderBottom:"1px solid rgba(100,100,100,0.2)"
-    }} key={uniqid()}>     
+    }} key={value}>     
         <Circle style={{color:"darkcyan"}}/>  
         <div style={{
             display: "flex",
@@ -219,13 +224,15 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
         updateTodo(this.props.todo._id, todo, this.onError); 
         this.props.changeTodo(todo);
     } 
-    
+
+    openMenu = () => this.setState({showMenu:true});
+    closeMenu = () => this.setState({showMenu:false});
      
  
     render(){ 
-        let selected = true;//this.props.selectedTodoFromId === this.state.formId;
+        let selected = this.props.selectedTodoFromId === this.state.formId;
 
-
+ 
         return selected ? 
                 <Expanded 
                    updateTodoFromInput={this.updateTodoFromInput}
@@ -241,20 +248,27 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
                    notes={this.state.notes}
                    tags={this.props.todo ? this.props.todo.attachedTags : null}  
                    createSortableNotesList={this.createSortableNotesList}
-                /> : null 
-                /*<Collapsed 
+                /> : <Collapsed 
                     currentTodo={this.state.currentTodo}
+                    showMenu={this.state.showMenu} 
+                    close={(e) => this.closeMenu()}
+                    onContextMenu={(e) => {
+                        e.preventDefault();
+                        this.openMenu();
+                    }}
                     onClick={(e) => { 
-                        e.stopPropagation();   
                         if(this.state.formId!==this.props.selectedTodoFromId)
-                        this.props.dispatch({type:"selectedTodoFromId",load:this.state.formId}) 
+                           this.props.dispatch({type:"selectedTodoFromId",load:this.state.formId}) 
                     }}
                     tags={this.props.todo ? this.props.todo.attachedTags : null}
-                />*/
-    }
+                />
+    }   
  
 }   
- 
+  
+
+
+
 
 
 
@@ -280,7 +294,7 @@ class Expanded extends Component<ExpandedProps,ExpandedState>{
 
     render(){
         return <div     
-        className = 'listitem'
+        //className = 'listitem'
                 style={{                
                     backgroundColor: "white", 
                     width:"100%",height:"inherit", 
@@ -289,7 +303,7 @@ class Expanded extends Component<ExpandedProps,ExpandedState>{
                     marginBottom: "10px" 
                 }}
             >   
-                    <div   className = 'listitem'
+                    <div   //className = 'listitem'
                         style={{ 
                             paddingTop:"20px",
                             paddingBottom:"20px", 
@@ -325,10 +339,10 @@ class Expanded extends Component<ExpandedProps,ExpandedState>{
                                 }}
                                 value={this.props.currentTodo}
                                 onChange={
-                                (event,newValue:string) => this.setState({currentTodo:newValue})
+                                    (event,newValue:string) => this.setState({currentTodo:newValue})
                                 } 
                                 onKeyPress = {   
-                                (event) => event.key==="Enter" ? this.props.updateTodoFromInput() : null  
+                                    (event) => event.key==="Enter" ? this.props.updateTodoFromInput() : null  
                                 }   
                                 underlineStyle={{ 
                                     zIndex:10,
@@ -361,7 +375,7 @@ class Expanded extends Component<ExpandedProps,ExpandedState>{
                                 }}> 
                                     { 
                                         this.props.tags.map( (tag:string) => 
-                                            <div key={uniqid()}>   
+                                            <div key={tag}>   
                                                 <div //className="chip"    
                                                     style={{ 
                                                         width: "auto",
@@ -393,38 +407,100 @@ class Expanded extends Component<ExpandedProps,ExpandedState>{
     }
 }
 
-
+ 
 
  
 
 interface CollapsedState{
-
+ 
 }
 
 interface CollapsedProps{
     onClick:any,
+    onContextMenu:any, 
     currentTodo:string,
-    tags:string[] 
-} 
+    tags:string[],
+    showMenu : boolean,
+    close : Function
+}  
 
-
+ 
 class Collapsed extends Component<CollapsedProps,CollapsedState>{
+    refRoot; 
     constructor(props){
         super(props);
     }
-  
+   
     render(){
-        return <div   
-        className = {"todohighlight"}
-        onClick = {this.props.onClick}   
-        style={{                
-            backgroundColor: "", 
-            width:"100%",height:"auto", 
-            boxShadow: "none",
-            borderRadius: "5px",
-            marginBottom: "10px" 
-        }}
-    >   
+        return <div  
+            ref = {(e) => {this.refRoot=e;}}
+            onContextMenu = {this.props.onContextMenu} 
+            className = {"todohighlight"}
+            onClick = {this.props.onClick}   
+            style={{                
+                backgroundColor: "", 
+                width:"100%",height:"auto", 
+                boxShadow: "none",
+                borderRadius: "5px",
+                marginBottom: "10px" 
+            }}
+        >   
+
+
+
+    {
+        <Popover 
+            open={this.props.showMenu}
+            anchorEl={this.refRoot}
+            style={{
+                backgroundColor:"rgba(0,0,0,0)",
+                background:"rgba(0,0,0,0)",
+                borderRadius:"5px" 
+            }}  
+            //anchorReference={anchorReference}
+            //anchorPosition={{ top: positionTop, left: positionLeft }}
+            onRequestClose={() => this.props.close()}
+            anchorOrigin={{ 
+                vertical: "top",
+                horizontal: "middle",
+            }}   
+            //transformOrigin={this.props.point}
+            targetOrigin={{
+                vertical: "top",
+                horizontal: "middle", 
+            }}
+        >   
+            <div style={{  
+                display:"flex",
+                flexDirection:"column", 
+                backgroundColor:"rgba(225,225,220,1)",
+                borderRadius: "5px" 
+            }}>   
+        
+                <Menu desktop={true} width={256}>
+                    <MenuItem primaryText="When..." secondaryText="&#8984;S" />
+                    <MenuItem primaryText="Move..." secondaryText="&#8984;M" />
+                    <MenuItem primaryText="Complete"  rightIcon={<ArrowDropRight />} />
+                    <MenuItem primaryText="Shortcuts" rightIcon={<ArrowDropRight />} />
+                    <Divider />
+                    <MenuItem primaryText="Repeat..." secondaryText="&#8984;." />
+                    <MenuItem primaryText="Duplicate To-Do" secondaryText="&#8984;," />
+                    <MenuItem primaryText="Convert to Project" />  
+                    <MenuItem primaryText="Delete To-Do" rightIcon={<ClearArrow />}/>
+                    <Divider />
+                    <MenuItem primaryText="Remove From Project/Area" secondaryText="&#8984;." />
+                    <Divider />
+                    <MenuItem primaryText="Share"/>
+                </Menu>
+            
+            </div>   
+        </Popover> 
+        
+    }
+
+
+
+
             <div   
                 style={{ 
                     paddingTop: "0px",
@@ -471,10 +547,10 @@ class Collapsed extends Component<CollapsedProps,CollapsedState>{
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "flex-start" 
-                        }}> 
+                        }}>  
                             { 
                                 this.props.tags.map( (tag:string) => 
-                                    <div key={uniqid()}>   
+                                    <div key={tag}>    
                                         <div //className="chip"    
                                             style={{ 
                                                 width: "auto",
@@ -494,7 +570,7 @@ class Collapsed extends Component<CollapsedProps,CollapsedState>{
                                             </div>
                                         </div>
                                     </div>   
-                                )
+                                )  
                             }   
                         </div>
                     }
