@@ -69,10 +69,10 @@ import PouchDB from 'pouchdb-browser';
 import List from 'material-ui/svg-icons/action/list'; 
 import { db } from './app';
 import { getTodos, queryToTodos, Todo, updateTodo, generateID, addTodo } from './databaseCalls';
-import { ThingsCalendar } from './MainContainer';
 let uniqid = require("uniqid");
 //import Popover from 'material-ui-next/Popover'; 
 import Popover from 'material-ui/Popover';
+import { ThingsCalendarSmall } from './thingsCalendarSmall';
 interface TagsPopoverProps{
     tags:string[], 
     close : Function,
@@ -121,6 +121,7 @@ export class TagsPopover extends Component<any,any>{
                    { 
                     map((tag:string) => 
                         <div  
+                            key={uniqid()}
                             onClick={() => this.props.attachTag(tag)} 
                             className={"tagItem"} style={{display:"flex", height:"auto"}}
                         >  
@@ -452,7 +453,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                     </div> 
                         
                       
-                </div> 
+                </div>  
 
                 { !selected ? null :
                     <div style={{  
@@ -465,7 +466,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                         padding: "15px",
                         right: 0  
                     }}>  
-                    <ThingsCalendar
+                    <ThingsCalendarSmall
                         close = {() => this.setState({showCalendar:false})}
                         open = {this.state.showCalendar}
                         anchorEl = {this.calendarOrigin}

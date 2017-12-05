@@ -77,281 +77,45 @@ import DayPicker from 'react-day-picker';
 import Popover from 'material-ui/Popover';
 import Button from 'material-ui-next/Button';
 import { TodoUpdateForm } from './TodoUpdateForm';
-  
-interface ThingsCalendarProps{ 
-  close : Function,
-  open : boolean,
-  origin : any, 
-  anchorEl : HTMLElement,
-  point : any
-}  
-
-export class ThingsCalendar extends Component<ThingsCalendarProps,any>{
-
-    constructor(props){
-        super(props);
-    }  
-
-    render(){ 
-        return <Popover 
-            open={this.props.open}
-            anchorEl={this.props.anchorEl}
-            style={{
-                backgroundColor:"rgba(0,0,0,0)",
-                background:"rgba(0,0,0,0)",
-                borderRadius:"20px"
-            }}  
-            //anchorReference={anchorReference}
-            //anchorPosition={{ top: positionTop, left: positionLeft }}
-            onRequestClose={() => this.props.close()}
-            anchorOrigin={this.props.origin} 
-            //transformOrigin={this.props.point}
-            targetOrigin={this.props.point}
-        >   
-            <div style={{  
-                display:"flex",
-                flexDirection:"column",
-                backgroundColor:"rgb(39,43,53)",
-                borderRadius: "20px"
-            }}>   
-                <div style={{
-                    color: "dimgray",
-                    textAlign: "center",
-                    padding: "5px",
-                    cursor: "default"
-                }}>When</div>
-
-                <div className="hoverDateType"
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        color: "white",
-                        marginLeft: "20px",
-                        marginRight: "20px",
-                        cursor: "default",
-                        WebkitUserSelect:"none" 
-                    }}  
-                >
-                    <Star style={{
-                        color:"gold", 
-                        width:"15px",
-                        height:"15px",
-                        cursor:"default" 
-                    }}/> 
-                    <div style={{marginLeft:"15px"}}>Today</div>
-                </div>
-
-                <div className="hoverDateType"
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    color: "white",
-                    cursor: "default",
-                    marginLeft: "20px",
-                    marginRight: "20px",
-                    WebkitUserSelect:"none"  
-                }}>
-                    <Moon style={{ 
-                        transform:"rotate(145deg)", 
-                        color:"rgb(192,192,192)", 
-                        width:"15px",
-                        height:"15px",
-                        cursor:"default" 
-                    }}/>
-                    <div style={{marginLeft:"15px"}}>This Evening</div>
-                </div>
-
-
-                <div style={{
-                    zoom: "0.8",
-                    display: "flex",
-                    justifyContent: "center" 
-                }}>
-                    <DayPicker />
-                </div> 
- 
-                <div style={{display:"flex",alignItems:"center"}}>  
-                    <IconButton   
-                      onClick = {() => console.log("Add new list")} 
-                      iconStyle={{    
-                        color:"rgb(79, 79, 79)",
-                        width:"25px",
-                        height:"25px"    
-                      }} 
-                    >        
-                        <Plus /> 
-                    </IconButton>
-                    <div style={{
-                        fontFamily: "sans-serif",
-                        fontWeight: 600, 
-                        color: "rgba(100,100,100,0.7)",
-                        fontSize:"15px",  
-                        cursor: "default",
-                        WebkitUserSelect: "none" 
-                    }}> 
-                        Add reminder 
-                    </div>    
-                </div> 
-
-                <Button raised dense style={{
-                    margin:"15px", 
-                    color:"white", 
-                    backgroundColor:"rgb(49,53,63)"
-                }}>
-                    Clear
-                </Button>
-            </div>  
-        </Popover> 
-    } 
-
-}
-
-
-
-
-
-
-type Category = "inbox" | "today" | "upcoming" | "anytime" | "someday" | "logbook" | "trash";
+import { ThingsCalendarSmall } from './thingsCalendarSmall';
   
 
-interface MainContainerProps{
-   selectedTodoFromId:string, 
-   selectedCategory:Category,
-   dispatch:Function
-}
- 
-interface MainContainerState{
-   fullsize:boolean,
-   showCalendar:boolean,
-   todos:Todo[],
-   tags:string[], 
-   openTodoInput:boolean, 
-   selectedTag:string, 
-   showTodoInput:boolean 
-}     
-     
 
-export class MainContainer extends Component<MainContainerProps,MainContainerState>{
-    calendarOrigin:HTMLElement 
-    rootRef 
-    constructor(props){
-        super(props);
-        this.state={   
-            openTodoInput:false,
-            fullsize:true,
-            showCalendar:false,
-            selectedTag:"All", 
-            todos:[],
-            tags:[],  
-            showTodoInput:false 
-        }
-    } 
+let clearTodos = () => {
+    let onError = (e) => console.log(e);
+    let getTodosCatch = getTodos(onError);
 
-    onError = (e) => console.log(e);
-     
-    clearTodos = () => {
-        let onError = (e) => console.log(e);
-        let getTodosCatch = getTodos(onError);
- 
-        getTodosCatch(true,Infinity)
-        .then(queryToTodos)
-        .then(
-            (todos:Todo[]) => Promise.all(
-                map((todo:Todo) => updateTodo(
-                        todo._id,
-                        merge(todo,{_deleted: true}),
-                        onError
-                ))(todos)
-            )
-        )   
-    }
+    getTodosCatch(true,Infinity)
+    .then(queryToTodos)
+    .then(
+        (todos:Todo[]) => Promise.all(
+            map((todo:Todo) => updateTodo(
+                    todo._id,
+                    merge(todo,{_deleted: true}),
+                    onError
+            ))(todos)
+        )
+    )   
+}; 
  
 
-    getTagsFromTodos = (todos:Todo[]) : string[] => compose(
-        uniq,    
-        prepend("All"),
-        flatten, 
-        map(prop("attachedTags")),
-        filter((v)  => !!v)
-    )(todos) as any;
-          
-       
-    componentDidMount(){
-        let onError = (e) => console.log(e);
-        let getTodosCatch = getTodos(onError);
-
-        getTodosCatch(true,Infinity)
-        .then(queryToTodos)
-        .then( 
-            (todos:Todo[]) => this.setState({
-                todos,
-                tags:this.getTagsFromTodos(todos)
-            }) 
-        )    
-    }   
-     
-    
-    getTodoElem = (value:Todo) => 
-        <div style={{
-            width: "100%", 
-            display: "flex",
-            alignItems: "center", 
-            justifyContent: "center"
-        }}>     
-            <TodoUpdateForm   
-                dispatch={this.props.dispatch}
-                todo={value}  
-                selectedTodoFromId={this.props.selectedTodoFromId}
-                changeTodo = {(todo:Todo) => {
-                   let idx = findIndex((t:Todo) => todo._id===t._id)(this.state.todos);
-                   this.setState({todos:adjust<Todo>((old:Todo) => todo,idx,this.state.todos)});
-                }} 
-            />  
-        </div>     
-        
- 
-    openTodoInput = () => this.setState({
-            showTodoInput:true,
-            openTodoInput:true
-        }, 
-        () => {  
-            if(this.rootRef)
-               this.rootRef.scrollTop = 0; 
-        } 
-    );   
-
-      
-    closeTodoInput = () => this.setState({
-        showTodoInput:false,
-        openTodoInput:false
-    });
+let getTagsFromTodos = (todos:Todo[]) : string[] => compose(
+    uniq,    
+    prepend("All"),
+    flatten, 
+    map(prop("attachedTags")),
+    filter((v)  => !!v)
+)(todos) as any;
 
 
-      
 
-    createSortableItem = (transform) => SortableElement(({value}) => transform(value)); 
- 
- 
-    getTodosList = (items:Todo[]) => !items ? null :
-        <ul style={{padding:0,margin:0}}> {     
-            items
-            .filter(v => !!v)
-            .map(   
-                (todo:Todo, index) => {
-                    let SortableItem = this.createSortableItem(this.getTodoElem); 
-                    return <SortableItem  key={`item-${index}`} index={index} value={todo} />
-                }
-            ) 
-        } </ul>;    
-    
-
-    applyDropStyle = (elem:Element) => {
+let applyDropStyle = (elem:Element, {x,y}) => {
         let arr = [].slice.call(elem.children);
         arr.map( c => elem.removeChild(c));
 
         let numb = document.createElement("div");
         numb.innerText = "1";
- 
+
         let parentStyle = {
             alignItems: "center",
             display: "flex",
@@ -360,7 +124,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             height: "20px",
             background: "cadetblue"
         }
- 
+
         let childStyle = {
             background: "brown",
             width: "20px",
@@ -380,48 +144,210 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         map((pair) => {
             elem["style"][pair[0]]=pair[1];
         })(toPairs(parentStyle))
-              
+            
+        elem.appendChild(numb);  
+        elem["style"].transform = "none";
+        elem["style"].position = "absolute"; 
+        elem["style"].left = (x-60)+'px';
+        elem["style"].top = y+'px';
+}   
 
-        elem.appendChild(numb);       
+
+interface SortableTodosUpdateListProps{
+   dispatch:Function,
+   selectedTodoFromId:string,
+   changeTodo:Function,
+   selectedTag:string,
+   onSortEnd:Function,
+   rootRef:HTMLElement,
+   todos:Todo[]    
+}   
+
+interface SortableTodosUpdateListState{
+}
+ 
+
+class SortableTodosUpdateList extends Component<SortableTodosUpdateListProps, SortableTodosUpdateListState>{
+    constructor(props){ 
+        super(props);
+    }
+    
+    shouldComponentUpdate(nextProps:SortableTodosUpdateListProps){
+       return nextProps.selectedTag!==this.props.selectedTag || 
+              nextProps.selectedTodoFromId!==this.props.selectedTodoFromId || 
+              !equals(nextProps.todos,this.props.todos); 
+              //nextProps.todos.length!==this.props.todos.length 
     }  
+   
+    createSortableTodoItem = () => SortableElement(({value}) => this.getTodoElem(value)); 
+    
+
+    getTodoElem = (value:Todo) => 
+        <div 
+          className = 'listitem'  
+            style={{
+                width: "100%", 
+                display: "flex",
+                alignItems: "center", 
+                justifyContent: "center"
+            }}>      
+            <TodoUpdateForm   
+                dispatch={this.props.dispatch} 
+                todo={value}
+                selectedTodoFromId={this.props.selectedTodoFromId}
+                changeTodo = {this.props.changeTodo}
+            />  
+        </div>    
+    
+    getTodosList = (items:Todo[]) => !items ? null :
+        <ul style={{padding:0,margin:0}}> {     
+            items 
+            .filter(v => !!v)
+            .map(   
+                (todo:Todo, index) => {
+                    let SortableItem = this.createSortableTodoItem(); 
+                    return <SortableItem  key={`item-${index}`} index={index} value={todo} />
+                }
+            ) 
+        } </ul>;    
+       
     
     byTags = (todo:Todo) : boolean => { 
         if(isNil(todo))
-           return false;
-        if(this.state.selectedTag==="All")
-           return true;    
+            return false;
+        if(this.props.selectedTag==="All") 
+            return true;    
 
-        return contains(this.state.selectedTag,todo.attachedTags);
+        return contains(this.props.selectedTag,todo.attachedTags);
     }
+        
+    
+    createSortableTodosList = (elem:HTMLElement) => (list : Todo[]) => { 
+        let SortableList = SortableContainer(({items}) => this.getTodosList(items),{withRef:true}); 
+
+        return <SortableList    
+            getContainer={(e) => elem ? elem : document.body} 
+            //lockToContainerEdges={true}    
+            shouldCancelStart={() => false} 
+            //distance={1}     
+            //pressDelay={100}   
+            items={list}      
+            axis='xy'       
+            onSortEnd={this.props.onSortEnd}    
+            onSortMove={(e) => { 
+                let target = document.getElementById("projects"); 
+                let ref = document.body.children[document.body.children.length-1];
+                let x = e.clientX;
+                let y = e.clientY;  
+    
+                if(insideTargetArea(target)(x,y))
+                    applyDropStyle(ref,{x,y}); 
+            }}   
+            //shouldCancelStart={() => true}   
+            onSortStart={  
+                ({node, index, collection}, event) => {
+                    //this.props.dispatch({type:"selectedTodoFromId",load:null});
+                }   
+            }     
+            //useWindowAsScrollContainer={true}
+        />   
+    } 
+
+  
+    render(){
+        return <div>{  
+            compose(
+                this.createSortableTodosList(this.props.rootRef),
+                filter(this.byTags)
+           )(this.props.todos)   
+        }</div> 
+    } 
+}
+
+
+
+
+
+
+
+ 
+type Category = "inbox" | "today" | "upcoming" | "anytime" | "someday" | "logbook" | "trash";
+  
+
+interface MainContainerProps{
+   selectedTodoFromId:string, 
+   selectedCategory:Category,
+   dispatch:Function
+}
+ 
+interface MainContainerState{
+   fullsize:boolean,
+   hold:number,
+   showCalendar:boolean,
+   todos:Todo[],
+   tags:string[],  
+   openTodoInput:boolean, 
+   selectedTag:string, 
+   showTodoInput:boolean 
+}     
+     
+
+export class MainContainer extends Component<MainContainerProps,MainContainerState>{
+    calendarOrigin:HTMLElement; 
+    rootRef:HTMLElement; 
+
+    constructor(props){
+        super(props); 
+        this.state={   
+            openTodoInput:false,
+            hold:0, 
+            fullsize:true, 
+            showCalendar:false,
+            selectedTag:"All", 
+            todos:[],
+            tags:[],  
+            showTodoInput:false 
+        }
+    } 
+
+
+    onError = (e) => console.log(e);
+     
+    
+    componentDidMount(){
+        let onError = (e) => console.log(e);
+        let getTodosCatch = getTodos(onError);
+
+        getTodosCatch(true,Infinity)
+        .then(queryToTodos) 
+        .then( 
+            (todos:Todo[]) => this.setState({
+                todos,
+                tags:getTagsFromTodos(todos)
+            }) 
+        )    
+    }   
+
+
+    changeTodo = (todo:Todo) => {
+        let idx = findIndex((t:Todo) => todo._id===t._id)(this.state.todos);
+        this.setState({todos:adjust<Todo>((old:Todo) => todo,idx,this.state.todos)});
+    } 
+      
  
 
-    createSortableTodosList = (list : Todo[]) => { 
-        let SortableList = SortableContainer(({items}) => this.getTodosList(items),{withRef:true}); 
-         
-        return <SortableList 
-            //getContainer={(e) => document.getElementById("todos")} 
-            //lockToContainerEdges={true} 
-            shouldCancelStart={() => false}
-            style={{zIndex: 100000}} 
-            distance={1}     
-            items={list}     
-            axis='xy'   
-            onSortEnd={({oldIndex, newIndex}) => this.setState({
-               todos:arrayMove(this.state.todos, oldIndex, newIndex),
-            })}    
-            onSortMove={(e) => {
-               let target = document.getElementById("projects"); 
-               let ref = document.body.children[document.body.children.length-1];
-    
-               if(insideTargetArea(target)(e.clientX,e.clientY))
-                  this.applyDropStyle(ref);
-            }}   
-            //shouldCancelStart={() => true} 
-            onSortStart={({node, index, collection}, event) => {}}    
-            useWindowAsScrollContainer={true}
-        />   
-    }   
-  
+    openTodoInput = () => this.setState(
+        {showTodoInput:true,openTodoInput:true}, 
+        () => {  
+            if(this.rootRef) 
+               this.rootRef.scrollTop = 0; 
+        }  
+    );   
+
+
+    closeTodoInput = () => this.setState({showTodoInput:false, openTodoInput:false});
+
+ 
         
     render(){ 
      return <div ref={(e) => { this.rootRef=e }}
@@ -442,7 +368,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             e.stopPropagation(); 
             this.closeTodoInput();
             if(this.props.selectedTodoFromId)
-            this.props.dispatch({type:"selectedTodoFromId",load:null});  
+               this.props.dispatch({type:"selectedTodoFromId",load:null});  
         }} 
         style={{padding:"60px"}}
     >
@@ -471,7 +397,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         </div>  
 
 
-
+ 
         <div style={{ width: "100%"}}> 
             <div style={{
                 display:"flex",
@@ -521,46 +447,57 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             </div>
         </div>     
              
+ 
+        {    
+            !this.state.showTodoInput ? 
+            <div style={{backgroundColor:"yellow",width:"100%",height:"50px"}}>
 
-        {   !this.state.showTodoInput ? null :
-            <div>    
+            </div>  
+            :  
+            <div style={{paddingTop:"20px", paddingBottom:"10px"}}>    
                 <TodoCreationForm  
                     dispatch={this.props.dispatch}  
                     tags={this.state.tags}
                     keepTodo={(todo:Todo) => {  
                         let todos = [...this.state.todos];
                         todos.unshift(todo);
-                        let tags = this.getTagsFromTodos(todos)
+                        let tags = getTagsFromTodos(todos)
                         this.setState({todos,tags});  
                     }} 
                     triggerOpen={() => this.setState({openTodoInput:true})}
                     open={this.state.openTodoInput}
                 />  
             </div> 
-        }   
+
+        }     
  
-
-
-         
-        <div style={{marginTop: "30px", marginBottom: "60px"}}>
-        {  compose(this.createSortableTodosList,filter(this.byTags))(this.state.todos)  }
+        <div id="todos" style={{marginTop: "30px", marginBottom: "60px"}}>
+            <SortableTodosUpdateList
+                dispatch={this.props.dispatch}
+                selectedTodoFromId={this.props.selectedTodoFromId}
+                changeTodo={this.changeTodo}
+                selectedTag={this.state.selectedTag}
+                onSortEnd={({oldIndex, newIndex}) => this.setState({
+                    todos:arrayMove(this.state.todos, oldIndex, newIndex)
+                })}
+                rootRef={this.rootRef}
+                todos={this.state.todos} 
+            />
         </div>    
-      
-    
+         
     </div> 
-
  
-        <ThingsCalendar
+        <ThingsCalendarSmall
             close = {() => this.setState({showCalendar:false})}
             open = {this.state.showCalendar}
             anchorEl = {this.calendarOrigin}
             origin = {{ 
                 vertical: "top",
-                horizontal: "center",
+                horizontal: "middle",
             }} 
             point = {{
                 vertical: "top",
-                horizontal: "center", 
+                horizontal: "middle", 
             }}
         />  
 
@@ -581,7 +518,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 justifyContent: "space-around",
                 position: "absolute",
                 bottom: 0,
-                backgroundColor: "white",
+                backgroundColor: "white", 
                 width: "70%",
                 height: "60px"      
             }}>
@@ -634,9 +571,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 </IconButton> 
 
             </div>
-        </div>
- 
-
+        </div> 
         </div> 
   }
 }

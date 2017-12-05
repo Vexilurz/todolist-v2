@@ -13,9 +13,33 @@ body{
     margin : 0;
 }
 
+.listitem { 
+  height: 60px;
+  overflow: hidden; 
+  transition: height 0.25s ease-out;
+} 
+   
+.listitem:active {
+  height: 60px;
+  overflow: hidden; 
+  transition: height 0.25s ease-out;
+}
 
+
+.listitem:focus{
+  height: auto;
+  transition: height 0.25s ease-in;
+}
+ 
+.listitem:hover{
+  height: auto;
+  transition: height 0.25s ease-in;
+}
+
+
+ 
 .todohighlight:hover{
-  background-color:aliceblue;
+  background-color:rgb(205,221,250);
 } 
  
 li{  
@@ -26,7 +50,7 @@ li{
 }
 
 .darkscroll{
-  overflow-y: scroll;
+  overflow-y: auto;
 }
  
 .tagItem:hover{

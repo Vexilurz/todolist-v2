@@ -9,7 +9,7 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import CircularProgress from 'material-ui/CircularProgress'; 
 import * as injectTapEventPlugin from 'react-tap-event-plugin';
 import {
-  cyan500, cyan700,   
+  cyan500, cyan700,    
   pinkA200,
   grey100, grey300, grey400, grey500,
   white, darkBlack, fullBlack,
@@ -44,7 +44,7 @@ import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-ho
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
 //import Chip from 'material-ui-next/Chip';
-import Chip from 'material-ui/Chip';
+import Chip from 'material-ui/Chip'; 
 import { reducer } from "./reducer"; 
 //icons
 import Star from 'material-ui/svg-icons/toggle/star';
@@ -71,7 +71,7 @@ import { db } from './app';
 import { getTodos, queryToTodos, Todo, updateTodo, generateID, addTodo } from './databaseCalls';
 let uniqid = require("uniqid");
 
-
+ 
 interface TodoUpdateFormProps{ 
     dispatch:Function,
     todo : Todo, 
@@ -79,7 +79,7 @@ interface TodoUpdateFormProps{
     changeTodo:Function   
 }  
 
- 
+  
 interface TodoUpdateFormState{
     formId : string, 
     notes : string[],
@@ -87,7 +87,7 @@ interface TodoUpdateFormState{
     currentNote : string
 } 
 
-
+ 
 
 export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateFormState>{
 
@@ -189,7 +189,6 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
         />
     } 
   
-
     updateTodoFromInput = () => {
           
         if(isNil(this.props.todo))
@@ -221,210 +220,288 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
         this.props.changeTodo(todo);
     } 
     
-    
-    render(){ 
-        let selected = this.props.selectedTodoFromId === this.state.formId;
-
-
-        return <div  
-            className = {selected ? "" : "todohighlight"}
-            onClick = {(e) => { 
-                e.stopPropagation();   
-                if(this.state.formId!==this.props.selectedTodoFromId)
-                   this.props.dispatch({type:"selectedTodoFromId",load:this.state.formId}) 
-            }}   
-            style={{               
-                backgroundColor:"white", 
-                width:"100%",height:"auto", 
-                boxShadow: selected ? "1px 1px 14px rgb(156, 156, 156)" : "none",
-                borderRadius: "5px",
-                marginBottom: "10px" 
-            }}
-        >   
-                <div   
-                    style={{ 
-                        paddingTop: selected ? "20px" : "0px",
-                        paddingBottom: selected ? "20px" : "0px", 
-                        paddingLeft: "20px", 
-                        paddingRight: "20px", 
-                        caretColor: "cornflowerblue",
-                        display:"flex" 
-                    }}
-                >    
-                    <div style={{
-                        width: "5%",
-                        paddingTop: "14px"  
-                    }}> 
-                            <CheckBoxEmpty style={{ 
-                                color:"rgba(159,159,159,0.5)",
-                                width:"20px",
-                                height:"20px"  
-                            }}/>  
-                    </div> 
-                    <div style={{
-                        display:"flex",
-                        flexDirection:"column",
-                        width:"90%"
-                    }}>       
-                        <TextField
-                            hintText="New To-Do" 
-                            fullWidth={true}   
-                            textareaStyle={{zIndex:1}}
-                            style={{zIndex:1}}  
-                            underlineFocusStyle={{ 
-                                zIndex:1,
-                                borderColor: "rgba(0,0,0,0)"
-                            }}
-                            value={this.state.currentTodo}
-                            onChange={
-                             (event,newValue:string) => this.setState({currentTodo:newValue})
-                            } 
-                            onKeyPress = {   
-                             (event) => event.key==="Enter" ? this.updateTodoFromInput() : null  
-                            }   
-                            underlineStyle={{ 
-                                zIndex:10,
-                                borderColor: "rgba(0,0,0,0)" 
-                            }} 
-                        />   
-                        { 
-                            !selected? null :
-                            <TextField 
-                                hintText="Notes"
-                                underlineFocusStyle={{
-                                    borderColor: "rgba(0,0,0,0)"
-                                }} 
-                                underlineStyle={{
-                                    borderColor: "rgba(0,0,0,0)"
-                                }}   
-                                value={this.state.currentNote}
-                                onKeyPress = {(event) => {
-                                    if(event.key==="Enter"){   
-                                        let notes = this.state.notes;
-                                        notes.push(this.state.currentNote);
-                                        this.setState({currentNote:'', notes});
-                                    }  
-                                }}  
-                                onChange = {(event,value) => this.setState({ currentNote:value })}
-                            />  
-                        } 
      
-                        { !selected? null : this.createSortableNotesList(this.state.notes)  } 
+ 
+    render(){ 
+        let selected = true;//this.props.selectedTodoFromId === this.state.formId;
 
-                        {
-                            <div style={{
-                                marginTop:"15px", 
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "flex-start" 
-                            }}> 
-                                { 
-                                    !this.props.todo ? null :
-                                    this.props.todo.attachedTags.map( (tag:string) => 
-                                        <div key={uniqid()}>   
-                                            <div //className="chip"    
-                                                style={{ 
-                                                    width: "auto",
-                                                    height: "30px",
-                                                    alignItems: "center",
-                                                    display: "flex",
-                                                    cursor: "pointer",
-                                                    backgroundColor: "rgba(0,122,0,0.2)",
-                                                    borderRadius: "100px",
-                                                    fontWeight: 700,
-                                                    color: "forestgreen",
-                                                    fontFamily: "sans-serif"
-                                                }}   
-                                            >  
-                                                <div style={{padding:"10px"}}>
-                                                    {tag}
-                                                </div>
-                                            </div>
-                                        </div>   
-                                    )
+
+        return selected ? 
+                <Expanded 
+                   updateTodoFromInput={this.updateTodoFromInput}
+                   currentNote={this.state.currentNote}
+                   currentTodo={this.state.currentTodo}
+                   onNoteSubmit = {(event) => {
+                       if(event.key==="Enter"){   
+                           let notes = this.state.notes;
+                           notes.push(this.state.currentNote);
+                           this.setState({currentNote:'', notes});
+                       }   
+                   }}       
+                   notes={this.state.notes}
+                   tags={this.props.todo ? this.props.todo.attachedTags : null}  
+                   createSortableNotesList={this.createSortableNotesList}
+                /> : null 
+                /*<Collapsed 
+                    currentTodo={this.state.currentTodo}
+                    onClick={(e) => { 
+                        e.stopPropagation();   
+                        if(this.state.formId!==this.props.selectedTodoFromId)
+                        this.props.dispatch({type:"selectedTodoFromId",load:this.state.formId}) 
+                    }}
+                    tags={this.props.todo ? this.props.todo.attachedTags : null}
+                />*/
+    }
+ 
+}   
+ 
+
+
+
+interface ExpandedProps{
+    currentTodo:string,
+    updateTodoFromInput:Function,
+    onNoteSubmit:any,
+    currentNote:string,
+    createSortableNotesList:Function,
+    tags:string[],
+    notes:string[]  
+}
+
+interface ExpandedState{
+
+}
+ 
+
+class Expanded extends Component<ExpandedProps,ExpandedState>{
+    constructor(props){
+        super(props);
+    }
+
+    render(){
+        return <div     
+        className = 'listitem'
+                style={{                
+                    backgroundColor: "white", 
+                    width:"100%",height:"inherit", 
+                    boxShadow: "1px 1px 14px rgb(156, 156, 156)",
+                    borderRadius: "5px",
+                    marginBottom: "10px" 
+                }}
+            >   
+                    <div   className = 'listitem'
+                        style={{ 
+                            paddingTop:"20px",
+                            paddingBottom:"20px", 
+                            paddingLeft: "20px", 
+                            paddingRight: "20px", 
+                            caretColor: "cornflowerblue",
+                            display:"flex" 
+                        }}
+                    >    
+                        <div style={{
+                            width: "5%",
+                            paddingTop: "2px"  
+                        }}> 
+                                <CheckBoxEmpty style={{ 
+                                    color:"rgba(159,159,159,0.5)",
+                                    width:"20px",
+                                    height:"20px"  
+                                }}/>  
+                        </div> 
+                        <div style={{
+                            display:"flex",
+                            flexDirection:"column",
+                            width:"90%"
+                        }}>       
+                            <TextField
+                                hintText="New To-Do" 
+                                fullWidth={true}   
+                                textareaStyle={{zIndex:1, height:"auto", cursor:"default"}}
+                                style={{zIndex:1, height:"auto", cursor:"default"}}  
+                                underlineFocusStyle={{  
+                                    zIndex:1,
+                                    borderColor: "rgba(0,0,0,0)"
+                                }}
+                                value={this.props.currentTodo}
+                                onChange={
+                                (event,newValue:string) => this.setState({currentTodo:newValue})
+                                } 
+                                onKeyPress = {   
+                                (event) => event.key==="Enter" ? this.props.updateTodoFromInput() : null  
                                 }   
-                                {
-                                /*    
+                                underlineStyle={{ 
+                                    zIndex:10,
+                                    borderColor: "rgba(0,0,0,0)" 
+                                }} 
+                            />   
+                            { 
                                 <TextField 
-                                    hintText=""
+                                    hintText="Notes"
                                     underlineFocusStyle={{
                                         borderColor: "rgba(0,0,0,0)"
                                     }} 
                                     underlineStyle={{
                                         borderColor: "rgba(0,0,0,0)"
-                                    }}    
-                                    value={this.state.currentTag}
-                                    onKeyPress = {(event) => {  
-                                        if(event.key==="Enter"){
-                                            let tag = this.state.currentTag;  
-                                            let tags = this.state.attachedTags;
-                                            tags.push(tag);
-                                            this.setState({ 
-                                                currentTag:'',
-                                                attachedTags:uniq(tags)
-                                            });
-                                        }  
                                     }}   
-                                    //onChange = {(event,value) => this.setState({ currentTag:value })}
-                                />*/ 
-                                } 
-                            </div>
-                        }
-                    </div>
+                                    value={this.props.currentNote}
+                                    onKeyPress = {this.props.onNoteSubmit}  
+                                    onChange = {(event,value) => this.setState({ currentNote:value })}
+                                />  
+                            } 
+         
+                            { this.props.createSortableNotesList(this.props.notes)  } 
+
+                            {
+                                <div style={{
+                                    marginTop: "15px", 
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "flex-start" 
+                                }}> 
+                                    { 
+                                        this.props.tags.map( (tag:string) => 
+                                            <div key={uniqid()}>   
+                                                <div //className="chip"    
+                                                    style={{ 
+                                                        width: "auto",
+                                                        height: "30px",
+                                                        alignItems: "center",
+                                                        display: "flex",
+                                                        cursor: "pointer",
+                                                        backgroundColor: "rgba(0,122,0,0.2)",
+                                                        borderRadius: "100px",
+                                                        fontWeight: 700,
+                                                        color: "forestgreen",
+                                                        fontFamily: "sans-serif"
+                                                    }}   
+                                                >  
+                                                    <div style={{padding:"10px"}}>
+                                                        {tag}
+                                                    </div>
+                                                </div>
+                                            </div>   
+                                        )
+                                    }  
+                                </div>
+                            }
+                        </div>
+                            
                         
-                      
-                </div> 
- 
-                { true ? null :
-                    <div style={{  
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "flex-end",
-                        position: "sticky",
-                        bottom: 0,
-                        zIndex:5, 
-                        padding: "15px",
-                        right: 0  
-                    }}> 
-                        <IconButton 
-                        onClick = {() => {}}
-                        iconStyle={{  
-                            color:"rgb(179, 179, 179)",
-                            width:"25px", 
-                            height:"25px" 
-                        }}>     
-                            <Calendar />
-                        </IconButton> 
-                        <IconButton 
-                        onClick = {() => {}}
-                        iconStyle={{ 
-                            color:"rgb(179, 179, 179)",
-                            width:"25px", 
-                            height:"25px" 
-                        }}>     
-                            <TriangleLabel />
-                        </IconButton> 
-                        <IconButton 
-                        onClick = {() => {}}
-                        iconStyle={{ 
-                            color:"rgb(179, 179, 179)",
-                            width:"25px", 
-                            height:"25px" 
-                        }}>      
-                            <List />
-                        </IconButton> 
-                        <IconButton 
-                        onClick = {() => {}}
-                        iconStyle={{  
-                            color:"rgb(179, 179, 179)",
-                            width:"25px", 
-                            height:"25px" 
-                        }}>     
-                            <Flag />
-                        </IconButton> 
-                    </div>
-                }  
-        </div>
+                    </div> 
+            </div>
     }
+}
+
+
+
  
-}  
+
+interface CollapsedState{
+
+}
+
+interface CollapsedProps{
+    onClick:any,
+    currentTodo:string,
+    tags:string[] 
+} 
+
+
+class Collapsed extends Component<CollapsedProps,CollapsedState>{
+    constructor(props){
+        super(props);
+    }
+  
+    render(){
+        return <div   
+        className = {"todohighlight"}
+        onClick = {this.props.onClick}   
+        style={{                
+            backgroundColor: "", 
+            width:"100%",height:"auto", 
+            boxShadow: "none",
+            borderRadius: "5px",
+            marginBottom: "10px" 
+        }}
+    >   
+            <div   
+                style={{ 
+                    paddingTop: "0px",
+                    paddingBottom: "0px", 
+                    paddingLeft: "20px", 
+                    paddingRight: "20px", 
+                    caretColor: "cornflowerblue",
+                    display:"flex" 
+                }}
+            >    
+                <div style={{
+                    width: "5%",
+                    paddingTop: "2px"  
+                }}> 
+                        <CheckBoxEmpty style={{ 
+                            color:"rgba(159,159,159,0.5)",
+                            width:"20px",
+                            height:"20px"  
+                        }}/>  
+                </div> 
+                <div style={{
+                    display:"flex",
+                    flexDirection:"column",
+                    width:"90%"
+                }}>       
+                    <TextField
+                        hintText="New To-Do" 
+                        fullWidth={true}   
+                        textareaStyle={{zIndex:1, height:"auto", cursor:"default"}}
+                        style={{zIndex:1, height:"auto", cursor:"default"}}  
+                        underlineFocusStyle={{  
+                            zIndex:1,
+                            borderColor: "rgba(0,0,0,0)"
+                        }}
+                        value={this.props.currentTodo}
+                        underlineStyle={{ 
+                            zIndex:10,
+                            borderColor: "rgba(0,0,0,0)" 
+                        }} 
+                    />  
+                    {
+                        <div style={{
+                            marginTop: "0px", 
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "flex-start" 
+                        }}> 
+                            { 
+                                this.props.tags.map( (tag:string) => 
+                                    <div key={uniqid()}>   
+                                        <div //className="chip"    
+                                            style={{ 
+                                                width: "auto",
+                                                height: "30px",
+                                                alignItems: "center",
+                                                display: "flex",
+                                                cursor: "pointer",
+                                                backgroundColor: "rgba(0,122,0,0.2)",
+                                                borderRadius: "100px",
+                                                fontWeight: 700,
+                                                color: "forestgreen",
+                                                fontFamily: "sans-serif"
+                                            }}   
+                                        >  
+                                            <div style={{padding:"10px"}}>
+                                                {tag}
+                                            </div>
+                                        </div>
+                                    </div>   
+                                )
+                            }   
+                        </div>
+                    }
+                </div>
+                    
+                  
+            </div> 
+    </div>
+    }
+}
