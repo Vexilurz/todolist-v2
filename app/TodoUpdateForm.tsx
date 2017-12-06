@@ -80,7 +80,9 @@ interface TodoUpdateFormProps{
     dispatch:Function,
     todo : Todo, 
     selectedTodoFromId:string,
-    changeTodo:Function   
+    changeTodo:Function,
+    openMenu:(e:any,formId:string) => void,
+    closeMenu:Function    
 }  
 
   
@@ -88,8 +90,7 @@ interface TodoUpdateFormState{
     formId : string, 
     notes : string[],
     currentTodo : string, 
-    currentNote : string,
-    showMenu:boolean 
+    currentNote : string
 } 
 
  
@@ -99,14 +100,13 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
     constructor(props){
         super(props);
         this.state={ 
-            showMenu:false,
             formId : this.props.todo._id, 
             notes : this.props.todo.notes,
             currentTodo : this.props.todo.title, 
-            currentNote : '' 
+            currentNote : ''
         }
     }
-
+ 
     
     onError = (e) => console.log(e);
 
@@ -225,9 +225,7 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
         this.props.changeTodo(todo);
     } 
 
-    openMenu = () => this.setState({showMenu:true});
-    closeMenu = () => this.setState({showMenu:false});
-     
+      
  
     render(){ 
         let selected = this.props.selectedTodoFromId === this.state.formId;
@@ -250,13 +248,13 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
                    createSortableNotesList={this.createSortableNotesList}
                 /> : <Collapsed 
                     currentTodo={this.state.currentTodo}
-                    showMenu={this.state.showMenu} 
-                    close={(e) => this.closeMenu()}
                     onContextMenu={(e) => {
+                        e.persist();
                         e.preventDefault();
-                        this.openMenu();
-                    }}
+                        this.props.openMenu(e,this.state.formId);
+                    }} 
                     onClick={(e) => { 
+                        //this.props.closeMenu(); 
                         if(this.state.formId!==this.props.selectedTodoFromId)
                            this.props.dispatch({type:"selectedTodoFromId",load:this.state.formId}) 
                     }}
@@ -279,7 +277,7 @@ interface ExpandedProps{
     currentNote:string,
     createSortableNotesList:Function,
     tags:string[],
-    notes:string[]  
+    notes:string[]
 }
 
 interface ExpandedState{
@@ -419,11 +417,9 @@ interface CollapsedProps{
     onClick:any,
     onContextMenu:any, 
     currentTodo:string,
-    tags:string[],
-    showMenu : boolean,
-    close : Function
-}  
-
+    tags:string[]
+}   
+  
  
 class Collapsed extends Component<CollapsedProps,CollapsedState>{
     refRoot; 
@@ -445,61 +441,6 @@ class Collapsed extends Component<CollapsedProps,CollapsedState>{
                 marginBottom: "10px" 
             }}
         >   
-
-
-
-    {
-        <Popover 
-            open={this.props.showMenu}
-            anchorEl={this.refRoot}
-            style={{
-                backgroundColor:"rgba(0,0,0,0)",
-                background:"rgba(0,0,0,0)",
-                borderRadius:"5px" 
-            }}  
-            //anchorReference={anchorReference}
-            //anchorPosition={{ top: positionTop, left: positionLeft }}
-            onRequestClose={() => this.props.close()}
-            anchorOrigin={{ 
-                vertical: "top",
-                horizontal: "middle",
-            }}   
-            //transformOrigin={this.props.point}
-            targetOrigin={{
-                vertical: "top",
-                horizontal: "middle", 
-            }}
-        >   
-            <div style={{  
-                display:"flex",
-                flexDirection:"column", 
-                backgroundColor:"rgba(225,225,220,1)",
-                borderRadius: "5px" 
-            }}>   
-        
-                <Menu desktop={true} width={256}>
-                    <MenuItem primaryText="When..." secondaryText="&#8984;S" />
-                    <MenuItem primaryText="Move..." secondaryText="&#8984;M" />
-                    <MenuItem primaryText="Complete"  rightIcon={<ArrowDropRight />} />
-                    <MenuItem primaryText="Shortcuts" rightIcon={<ArrowDropRight />} />
-                    <Divider />
-                    <MenuItem primaryText="Repeat..." secondaryText="&#8984;." />
-                    <MenuItem primaryText="Duplicate To-Do" secondaryText="&#8984;," />
-                    <MenuItem primaryText="Convert to Project" />  
-                    <MenuItem primaryText="Delete To-Do" rightIcon={<ClearArrow />}/>
-                    <Divider />
-                    <MenuItem primaryText="Remove From Project/Area" secondaryText="&#8984;." />
-                    <Divider />
-                    <MenuItem primaryText="Share"/>
-                </Menu>
-            
-            </div>   
-        </Popover> 
-        
-    }
-
-
-
 
             <div   
                 style={{ 

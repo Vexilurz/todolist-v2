@@ -67,20 +67,24 @@ let uniqid = require("uniqid");
 //import MenuItem from 'material-ui/MenuItem';
 import { ListItemIcon, ListItemText } from 'material-ui-next/List';
 import { MenuList, MenuItem } from 'material-ui-next/Menu';
+import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
+import NewAreaIcon from 'material-ui/svg-icons/action/tab';
+import Popover from 'material-ui/Popover';
 
 
-
-
- 
- 
-export class LeftPanel extends Component<any,any>{
-     
+interface LeftPanelState{
+    openPopover:boolean
+} 
+  
+export class LeftPanel extends Component<any,LeftPanelState>{
+        newProjectAnchor;
+        
         constructor(props){ 
             super(props); 
             this.state={
-                toggleProjectPopover:false 
-            }
-        };
+                openPopover:false 
+            } 
+        }; 
  
         render(){ 
             return <div style={{
@@ -306,9 +310,107 @@ export class LeftPanel extends Component<any,any>{
                     range(0)
                 )(15)  
             } 
-            </div>  
-            
-           
+            </div>
+
+            <Popover  
+                style={{
+                    backgroundColor:"rgba(0,0,0,0)",
+                    background:"rgba(0,0,0,0)",
+                    borderRadius:"10px"
+                }}    
+                open={this.state.openPopover}
+                anchorEl={this.newProjectAnchor}
+                onRequestClose={() => this.setState({openPopover:false})}
+                anchorOrigin={{  
+                    vertical: "top",
+                    horizontal: "left"
+                }}  
+                targetOrigin={{      
+                    vertical: "bottom",
+                    horizontal: "left"
+                }} 
+            >   
+                <div style={{  
+                    backgroundColor: "rgb(39, 43, 53)",
+                    padding: "5px 10px",
+                    borderRadius: "10px",
+                    maxHeight: "250px",
+                    width: "370px",
+                    cursor: "pointer" 
+                }}>    
+ 
+                <div className="newprojectitem" style={{display:"flex", alignItems: "flex-start", padding:"7px"}}> 
+                    <NewProjectIcon style={{color:"lightblue"}}/>
+                    <div style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        paddingLeft: "5px",
+                        paddingTop: "3px" 
+                    }}>    
+                        <div style={{  
+                            color: "aliceblue",
+                            fontFamily: "sans-serif",
+                            fontSize: "15px"
+                        }}>
+                            New Project
+                        </div>
+                        <p style={{
+                            margin: "0px",
+                            paddingTop: "10px",
+                            color: "rgba(190,190,190,0.5)",
+                            fontFamily: "sans-serif" 
+                        }}>
+                            Define a goal, 
+                            then work towards it 
+                            one to-do at a time.  
+                        </p> 
+                    </div> 
+                </div>
+  
+
+                <div style={{
+                        border:"1px solid rgba(200,200,200,0.1)",
+                        marginTop: "5px",
+                        marginBottom: "5px"
+                }}>
+                </div> 
+
+                <div className="newprojectitem" style={{display:"flex", alignItems: "flex-start", padding:"7px"}}> 
+                    <NewAreaIcon style={{color:"lightblue", width:"34px"}}/>
+                    <div style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        paddingLeft: "5px",
+                        paddingTop: "3px" 
+                    }}>    
+                        <div style={{  
+                            color: "aliceblue",
+                            fontFamily: "sans-serif", 
+                            fontSize: "15px"
+                        }}>
+                            New Area
+                        </div>
+                        <p style={{
+                            margin: "0px",
+                            paddingTop: "10px",
+                            color: "rgba(190,190,190,0.5)",
+                            fontFamily: "sans-serif",
+                            width:"85%"  
+                        }}>
+                            Group your projects and to-dos
+                            based on different responsibilities,
+                            such as Family or Work. 
+                        </p> 
+                    </div> 
+                </div>
+                 
+                </div>   
+            </Popover> 
+                
+        
+ 
             <div style={{    
                 display: "flex",
                 alignItems: "center",  
@@ -320,20 +422,21 @@ export class LeftPanel extends Component<any,any>{
                 backgroundColor: "rgba(235, 235, 235, 1)",
                 borderTop: "1px solid rgba(100, 100, 100, 0.2)"
             }}>   
-                <div style={{      
+
+                <div 
+                ref = {(e) => {this.newProjectAnchor=e}}
+                style={{       
                     display: "flex",  
                     alignItems: "center"    
                 }}>  
                     <IconButton   
-                    onClick = {() => this.setState({ 
-                        toggleProjectPopover:!this.state.toggleProjectPopover
-                    })}  
-                    iconStyle={{    
+                    onClick = {() => this.setState({openPopover:true})}  
+                    iconStyle={{     
                         color:"rgb(79, 79, 79)",
                         width:"25px",
                         height:"25px"    
                     }}>       
-                        <Plus /> 
+                        <Plus />  
                     </IconButton>
                     <div style={{
                         fontFamily: "sans-serif",
@@ -346,6 +449,7 @@ export class LeftPanel extends Component<any,any>{
                         New List 
                     </div>    
                 </div>  
+
 
                 <div style={{ }}>   
                     <IconButton   

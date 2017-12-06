@@ -28,8 +28,8 @@ export let initWindow = ()  => {
         //backgroundColor:"#ffffff", 
         title:'tasklist',      
         center:true,     
-        frame:false 
-    });              
+        frame:false   
+    } as any);              
             
     handler.setMovable(true);   
 

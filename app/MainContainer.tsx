@@ -37,7 +37,7 @@ import IconMenu from 'material-ui/IconMenu';
 import IconButton from 'material-ui/IconButton'; 
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
-import { Component } from "react"; 
+import { Component, SyntheticEvent } from "react"; 
 import Paper from 'material-ui/Paper';
 import { DraggableCore, DraggableEventHandler, DraggableData } from 'react-draggable';
 import * as Draggable from 'react-draggable'; 
@@ -48,6 +48,9 @@ import { Provider, connect } from "react-redux";
 import Chip from 'material-ui/Chip';
 import { reducer } from "./reducer"; 
 //icons 
+import ClearArrow from 'material-ui/svg-icons/content/backspace';   
+import Menu from 'material-ui/Menu';
+import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
@@ -59,7 +62,11 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import Layers from 'material-ui/svg-icons/maps/layers';
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import Flag from 'material-ui/svg-icons/image/assistant-photo';
+import Flag from 'material-ui/svg-icons/image/assistant-photo'; 
+ 
+import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
+import NewAreaIcon from 'material-ui/svg-icons/action/tab';
+
 import Plus from 'material-ui/svg-icons/content/add';
 import Trash from 'material-ui/svg-icons/action/delete';
 import Search from 'material-ui/svg-icons/action/search'; 
@@ -164,18 +171,27 @@ interface SortableTodosUpdateListProps{
 }   
 
 interface SortableTodosUpdateListState{
+    showMenu:boolean, 
+    menuX:number,
+    menuY:number 
 }
- 
+  
 
 class SortableTodosUpdateList extends Component<SortableTodosUpdateListProps, SortableTodosUpdateListState>{
     constructor(props){ 
         super(props);
+        this.state={
+            showMenu:false, 
+            menuX:0,
+            menuY:0 
+        }
     }
-    
-    shouldComponentUpdate(nextProps:SortableTodosUpdateListProps){
+     
+    shouldComponentUpdate(nextProps:SortableTodosUpdateListProps,nextState){
        return nextProps.selectedTag!==this.props.selectedTag || 
               nextProps.selectedTodoFromId!==this.props.selectedTodoFromId || 
-              !equals(nextProps.todos,this.props.todos); 
+              !equals(nextProps.todos,this.props.todos) ||
+              !equals(this.state,nextState)
               //nextProps.todos.length!==this.props.todos.length 
     }  
    
@@ -185,7 +201,7 @@ class SortableTodosUpdateList extends Component<SortableTodosUpdateListProps, So
     getTodoElem = (value:Todo) => 
         <div 
           //className = 'listitem'  
-              
+               
             style={{
                 width: "100%",  
                 display: "flex",
@@ -193,11 +209,19 @@ class SortableTodosUpdateList extends Component<SortableTodosUpdateListProps, So
                 justifyContent: "center"
             }}>      
             <TodoUpdateForm   
+                openMenu={(e,formId:string) => {
+                    let scrollTop = this.props.rootRef.scrollTop ? this.props.rootRef.scrollTop : 0; 
+                    let rect = e.currentTarget.getBoundingClientRect();
+                    let menuX = e.pageX-240;    
+                    let menuY = e.pageY+scrollTop;  
+                    this.setState({showMenu:true,menuX,menuY})
+                }}   
+                closeMenu={() => this.setState({showMenu:false})} 
                 dispatch={this.props.dispatch} 
                 todo={value}
-                selectedTodoFromId={this.props.selectedTodoFromId}
+                selectedTodoFromId={this.props.selectedTodoFromId} 
                 changeTodo = {this.props.changeTodo}
-            />  
+            />    
         </div>    
     
     getTodosList = (items:Todo[]) => !items ? null :
@@ -239,7 +263,7 @@ class SortableTodosUpdateList extends Component<SortableTodosUpdateListProps, So
                 let target = document.getElementById("projects"); 
                 let ref = document.body.children[document.body.children.length-1];
                 let x = e.clientX;
-                let y = e.clientY;  
+                let y = e.clientY;   
     
                 if(insideTargetArea(target)(x,y))
                     applyDropStyle(ref,{x,y}); 
@@ -252,21 +276,302 @@ class SortableTodosUpdateList extends Component<SortableTodosUpdateListProps, So
             }     
             //useWindowAsScrollContainer={true}
         />   
-    } 
-
+    }  
+ 
   
     render(){
-        return <div>{  
-            compose(
-                this.createSortableTodosList(this.props.rootRef),
-                filter(this.byTags)
-           )(this.props.todos)   
-        }</div> 
+        return <div style={{overflowX:"hidden"}}>
+            {   
+                compose(
+                    this.createSortableTodosList(this.props.rootRef),
+                    filter(this.byTags)
+                )(this.props.todos)  
+            } 
+            { 
+            !this.state.showMenu ? null:
+                <div onClick = {(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        console.log("click menu")
+                     }} 
+                     style={{
+                        paddingLeft: "20px",
+                        paddingRight: "5px",
+                        paddingTop: "5px",
+                        paddingBottom: "5px",
+                        boxShadow: "0 0 10px rgba(0,0,0,0.6)",
+                        borderRadius:"5px",
+                        zIndex:30000, 
+                        width:"250px",
+                        height:"240px", 
+                        position:"absolute",
+                        backgroundColor:"rgba(238,237,239,1)",
+                        left:this.state.menuX+"px",
+                        top:this.state.menuY+"px"  
+                     }}     
+                >      
+                        <div style={{
+                            display: "flex",
+                            flexDirection: "column"
+                        }}> 
+                             <div className="rightclickmenuitem"
+                             style={{
+                                 display: "flex",
+                                 justifyContent: "space-between",
+                                 alignItems: "center",
+                                 fontFamily: "sans-serif",
+                                 paddingLeft: "5px",
+                                 paddingRight: "5px",
+                                 fontSize: "14px",
+                                 cursor: "pointer",
+                                 paddingTop: "2px",
+                                 paddingBottom: "2px" 
+                             }}>
+                                <div>
+                                    When...
+                                </div>
+                                <p style={{    
+                                    margin: "0px",
+                                    fontWeight: 600,
+                                    color: "rgba(70,70,70,1)"
+                                }}> 
+                                    &#8984; S
+                                </p>
+                            </div>   
+
+                            <div className="rightclickmenuitem"
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                fontFamily: "sans-serif",
+                                paddingLeft: "5px",
+                                paddingRight: "5px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                paddingTop: "2px",
+                                paddingBottom: "2px" 
+                            }}>
+                                <div>
+                                    Move...
+                                </div>
+                                <p style={{    
+                                    margin: "0px",
+                                    fontWeight: 600,
+                                    color: "rgba(70,70,70,1)"
+                                }}>
+                                &#8679;&#8984; M
+                                </p>   
+                            </div>
+
+                            <div className="rightclickmenuitem"
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                fontFamily: "sans-serif",
+                                paddingLeft: "5px",
+                                paddingRight: "5px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                paddingTop: "2px",
+                                paddingBottom: "2px" 
+                            }}>
+                                <div>
+                                    Complete
+                                </div>
+                                <div style={{
+                                    height: "14px",
+                                    display: "flex",
+                                    alignItems: "center" 
+                                }}>
+                                    <ArrowDropRight style={{
+                                        padding: 0,
+                                        margin: 0,
+                                        color: "rgba(0, 0, 0, 0.6)"
+                                    }}/>
+                                </div>
+                            </div>
+
+                            <div className="rightclickmenuitem"
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                fontFamily: "sans-serif",
+                                paddingLeft: "5px",
+                                paddingRight: "5px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                paddingTop: "2px",
+                                paddingBottom: "2px" 
+                            }}>
+                                <div>
+                                    Shortcuts
+                                </div>
+                                <div style={{
+                                    height: "14px",
+                                    display: "flex",
+                                    alignItems: "center" 
+                                }}>
+                                    <ArrowDropRight style={{
+                                        padding: 0,
+                                        margin: 0, 
+                                        color: "rgba(0, 0, 0, 0.6)"
+                                    }}/>
+                                </div>
+                            </div> 
+                            
+                            <div style={{
+                                 border:"1px solid rgba(200,200,200,0.5)",
+                                 marginTop: "5px",
+                                 marginBottom: "5px"
+                            }}>
+                            </div>
+
+                            <div className="rightclickmenuitem"
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                fontFamily: "sans-serif",
+                                paddingLeft: "5px",
+                                paddingRight: "5px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                paddingTop: "2px",
+                                paddingBottom: "2px" 
+                            }}>
+                                <div>
+                                    Repeat...
+                                </div>
+                                <p style={{    
+                                    margin: "0px",
+                                    fontWeight: 600,
+                                    color: "rgba(70,70,70,1)"
+                                }}>&#8679;&#8984;R</p>
+                            </div>
+
+                            <div className="rightclickmenuitem"
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                fontFamily: "sans-serif",
+                                paddingLeft: "5px",
+                                paddingRight: "5px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                paddingTop: "2px",
+                                paddingBottom: "2px" 
+                            }}>
+                                <div>
+                                    Duplicate To-Do
+                                </div>
+                                <p style={{    
+                                    margin: "0px",
+                                    fontWeight: 600,
+                                    color: "rgba(70,70,70,1)"
+                                }}>&#8984;D</p>
+                            </div>
+                            
+                            <div className="rightclickmenuitem"
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                fontFamily: "sans-serif",
+                                paddingLeft: "5px",
+                                paddingRight: "5px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                paddingTop: "2px",
+                                paddingBottom: "2px" 
+                            }}>
+                                <div>
+                                    Convert to Project
+                                </div>
+                            </div>
+
+                            <div className="rightclickmenuitem"
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                fontFamily: "sans-serif",
+                                paddingLeft: "5px",
+                                paddingRight: "5px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                paddingTop: "2px",
+                                paddingBottom: "2px" 
+                            }}> 
+                                <div>
+                                    Delete To-Do
+                                </div>
+                                <ClearArrow  style={{
+                                    padding: 0,
+                                    margin: 0,
+                                    color: "rgba(0, 0, 0, 0.6)",
+                                    height: "14px"
+                                }}/>
+                            </div>
+                            
+                            <div style={{
+                                 border:"1px solid rgba(200,200,200,0.5)",
+                                 marginTop: "5px",
+                                 marginBottom: "5px"
+                            }}>
+                            </div>
+
+                            <div className="rightclickmenuitem"
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                fontFamily: "sans-serif",
+                                paddingLeft: "5px",
+                                paddingRight: "5px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                paddingTop: "2px",
+                                paddingBottom: "2px"  
+                            }}>
+                                <div>Remove From Project/Area</div>
+                            </div>
+
+                            <div style={{
+                                border:"1px solid rgba(200,200,200,0.5)",
+                                marginTop: "5px",
+                                marginBottom: "5px"
+                            }}>
+                            </div>
+
+                            <div className="rightclickmenuitem"
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                fontFamily: "sans-serif",
+                                paddingLeft: "5px",
+                                paddingRight: "5px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                paddingTop: "2px",
+                                paddingBottom: "2px" 
+                            }}> 
+                                <div>Share</div>
+                            </div>
+
+                        </div> 
+                </div>
+            } 
+        </div> 
     } 
 }
 
 
-
+ 
 
 
 

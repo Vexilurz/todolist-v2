@@ -6,11 +6,22 @@ html{
   color:cadetblue; 
 }
 
+.newprojectitem:hover{
+  border-radius: 5px; 
+  color:aliceblue;
+  background-color:rgb(68,139,245);  
+}
+
 body{  
     background-size: cover;
     height:100%;
     overflow: hidden;
     margin : 0;
+}
+
+.rightclickmenuitem:hover{
+  color:white;
+  background-color:rgb(68,139,245)
 }
 
 .listitem { 
