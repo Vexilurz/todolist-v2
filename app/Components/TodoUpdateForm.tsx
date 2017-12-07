@@ -1,8 +1,10 @@
+import '../assets/styles.css';  
+import '../assets/calendarStyle.css';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, 
     compose, append, contains, and, find, defaultTo, addIndex, split, filter, 
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, groupBy, concat, flatten, ifElse 
+    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, groupBy, concat, flatten, ifElse, adjust 
 } from 'ramda';
 import RaisedButton from 'material-ui/RaisedButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
@@ -24,8 +26,7 @@ import TextField from 'material-ui/TextField';
 import Checkbox from 'material-ui/Checkbox';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import AutoComplete from 'material-ui/AutoComplete';
-import './assets/styles.css';  
-import { ipcRenderer } from 'electron';
+import { ipcRenderer } from 'electron'; 
 import Dialog from 'material-ui/Dialog';
 import FloatingActionButton from 'material-ui/FloatingActionButton';
 import Divider from 'material-ui/Divider';
@@ -40,13 +41,12 @@ import { Component } from "react";
 import Paper from 'material-ui/Paper';
 import { DraggableCore, DraggableEventHandler, DraggableData } from 'react-draggable';
 import * as Draggable from 'react-draggable'; 
-import { wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps} from "./utils"; 
+import { wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps} from "../utils"; 
 import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc';
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
 //import Chip from 'material-ui-next/Chip';
 import Chip from 'material-ui/Chip'; 
-import { reducer } from "./reducer"; 
 //icons
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
 import Star from 'material-ui/svg-icons/toggle/star';
@@ -70,31 +70,30 @@ import Logbook from 'material-ui/svg-icons/av/library-books';
 import Clear from 'material-ui/svg-icons/content/clear';
 import PouchDB from 'pouchdb-browser';  
 import List from 'material-ui/svg-icons/action/list'; 
-import { db } from './app';
 import Popover from 'material-ui/Popover';
-import { getTodos, queryToTodos, Todo, updateTodo, generateID, addTodo } from './databaseCalls';
+import { getTodos, queryToTodos, Todo, updateTodo, generateID, addTodo } from '../databaseCalls';
 let uniqid = require("uniqid");
+
 
  
 interface TodoUpdateFormProps{ 
     dispatch:Function,
     todo : Todo, 
-    selectedTodoFromId:string,
-    changeTodo:Function,
-    openMenu:(e:any,formId:string) => void,
-    closeMenu:Function    
+    todos : Todo[], 
+    selectedTodoId:string,
+    rootRef:HTMLElement 
 }  
-
+ 
   
 interface TodoUpdateFormState{
     formId : string, 
     notes : string[],
-    currentTodo : string, 
-    currentNote : string
+    currentTodo : string,  
+    checked:boolean,
+    currentNote : string 
 } 
 
  
-
 export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateFormState>{
 
     constructor(props){
@@ -103,14 +102,12 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
             formId : this.props.todo._id, 
             notes : this.props.todo.notes,
             currentTodo : this.props.todo.title, 
-            currentNote : ''
+            currentNote : '',
+            checked : this.props.todo.checked 
         }
-    }
- 
-    
+    } 
+  
     onError = (e) => console.log(e);
-
-    removeNote = (note:string) => {}; 
  
     getNoteElem = (value:string) => <div style={{ 
         display:"flex", 
@@ -124,7 +121,7 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
             justifyContent: "space-between",
             width: "100%"  
         }}>    
-            <div style={{
+            <div style={{ 
                 marginLeft:"10px",
                 fontFamily: "sans-serif", 
                 fontSize: "medium", 
@@ -133,24 +130,9 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
             }}>
                 {value} 
             </div>  
-            { 
-            // im not sure should note be deletable or not    
-            true ? null :  
-            <IconButton 
-                onClick = {() => this.removeNote(value)}
-                iconStyle={{  
-                    color:"rgb(179, 179, 179)",
-                    width:"25px", 
-                    height:"25px" 
-                }}  
-            >      
-                <Clear />
-            </IconButton>
-            } 
         </div>   
-    </div>;
+    </div>
 
-    
     createSortableItem = (transform) => SortableElement(({value}) => transform(value)); 
     
       
@@ -172,7 +154,7 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
         </ul>;    
  
 
-
+ 
     createSortableNotesList = (list : string[]) => { 
         let SortableList = SortableContainer(({items}) => this.getNotesList(items),{withRef:true}); 
      
@@ -180,7 +162,7 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
             //getContainer={(e) => document.getElementById("todos")} 
             shouldCancelStart={() => false}
             lockToContainerEdges={true} 
-            distance={1}  
+            distance={1}     
             items={list}   
             axis='y'   
             lockAxis={'y'}
@@ -192,24 +174,32 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
             //shouldCancelStart={() => true}
             //onSortMove={this.onSortMove}  
         />
+    }  
+
+    changeTodo = (todo:Todo) => {
+        let idx = findIndex((t:Todo) => todo._id===t._id)(this.props.todos);
+         
+        if(idx!==-1)
+            this.props.dispatch({
+                type:"todos",
+                load:adjust<Todo>((old:Todo) => todo,idx,this.props.todos)
+            });
     } 
-  
+   
+
     updateTodoFromInput = () => {
-          
         if(isNil(this.props.todo))
            return;
        
         if(isEmpty(this.state.currentTodo))
           return;  
-
-          
-        let getTodosCatch = getTodos(this.onError);  
+ 
         let todo : Todo = {
             _id : this.props.todo._id, 
-            category : "",    
+            category : "",  
             title : this.state.currentTodo,
             priority : Math.random() * 100,
-            notes : this.state.notes,
+            notes : this.state.notes, 
             attachedProdjects : [], 
             attachedTags : this.props.todo.attachedTags,
             status : "",
@@ -217,52 +207,84 @@ export class TodoUpdateForm extends Component<TodoUpdateFormProps,TodoUpdateForm
             created : new Date(),
             deleted : new Date(),
             fulfilled : new Date(), 
-            history : [],
-            attachemnts : [] 
+            history : [], 
+            attachemnts : [],
+            checked:this.state.checked 
         };   
  
         updateTodo(this.props.todo._id, todo, this.onError); 
-        this.props.changeTodo(todo);
+        this.changeTodo(todo);
     } 
 
+
+    openMenu = (e,rightClickedTodoId:string) => {
+        let scrollTop = this.props.rootRef.scrollTop ? this.props.rootRef.scrollTop : 0; 
+        let rect = e.currentTarget.getBoundingClientRect();
+        let menuX = e.pageX-rect.left;    
+        let menuY = e.pageY+scrollTop;
+          
+        this.props.dispatch({
+            type:"openRightClickMenu",
+            load:{
+                showRightClickMenu : true,  
+                rightClickedTodoId,
+                rightClickMenuX : menuX, 
+                rightClickMenuY : menuY  
+            }   
+        });  
+    } 
+    
       
- 
+    select = (e) => {   
+        if(this.state.formId!==this.props.selectedTodoId){
+           this.props.dispatch({type:"selectedTodoId",load:this.state.formId});  
+           this.props.dispatch({type:"showRightClickMenu",load:false});
+        }
+    }
+
+    
     render(){ 
-        let selected = this.props.selectedTodoFromId === this.state.formId;
+        let selected = this.props.selectedTodoId === this.state.formId;
 
  
-        return selected ? 
+        return  selected ? 
                 <Expanded 
                    updateTodoFromInput={this.updateTodoFromInput}
                    currentNote={this.state.currentNote}
                    currentTodo={this.state.currentTodo}
+                   updateCurrentTodo={(currentTodo) => this.setState({currentTodo})}
+                   updateCurrentNote={(currentNote) => this.setState({currentNote})}
                    onNoteSubmit = {(event) => {
-                       if(event.key==="Enter"){   
+                       if(event.key==="Enter"){    
                            let notes = this.state.notes;
                            notes.push(this.state.currentNote);
                            this.setState({currentNote:'', notes});
                        }   
-                   }}       
+                   }} 
+                   checked={this.state.checked} 
                    notes={this.state.notes}
                    tags={this.props.todo ? this.props.todo.attachedTags : null}  
                    createSortableNotesList={this.createSortableNotesList}
-                /> : <Collapsed 
+                /> 
+                :  
+                <Collapsed 
                     currentTodo={this.state.currentTodo}
                     onContextMenu={(e) => {
-                        e.persist();
-                        e.preventDefault();
-                        this.props.openMenu(e,this.state.formId);
-                    }} 
-                    onClick={(e) => { 
-                        //this.props.closeMenu(); 
-                        if(this.state.formId!==this.props.selectedTodoFromId)
-                           this.props.dispatch({type:"selectedTodoFromId",load:this.state.formId}) 
-                    }}
+                        e.persist(); 
+                        this.openMenu(e,this.state.formId);
+                    }}  
+                    onClick={this.select}
+                    checked={this.state.checked}  
+                    toggle={(e,checked:boolean) => this.setState(
+                        {checked:!this.state.checked}, 
+                        () => this.updateTodoFromInput()
+                    )}   
+                    //onMouseDown={this.select}
                     tags={this.props.todo ? this.props.todo.attachedTags : null}
                 />
-    }   
+    }     
  
-}   
+}    
   
 
 
@@ -277,7 +299,10 @@ interface ExpandedProps{
     currentNote:string,
     createSortableNotesList:Function,
     tags:string[],
-    notes:string[]
+    notes:string[],
+    checked:boolean, 
+    updateCurrentTodo:Function
+    updateCurrentNote:Function
 }
 
 interface ExpandedState{
@@ -286,12 +311,25 @@ interface ExpandedState{
  
 
 class Expanded extends Component<ExpandedProps,ExpandedState>{
+    rootRef;
+    centerRef;
+
     constructor(props){
         super(props);
     }
 
+    componentDidMount(){
+        if(this.rootRef){
+           this.rootRef.disableDrag = true; 
+        } 
+
+        if(this.centerRef){
+            this.centerRef.disableDrag = true; 
+        }  
+    }
+
     render(){
-        return <div     
+        return <div  ref={(e) => {this.rootRef=e;}}   
         //className = 'listitem'
                 style={{                
                     backgroundColor: "white", 
@@ -300,8 +338,8 @@ class Expanded extends Component<ExpandedProps,ExpandedState>{
                     borderRadius: "5px",
                     marginBottom: "10px" 
                 }}
-            >   
-                    <div   //className = 'listitem'
+            >    
+                    <div ref={(e) => {this.centerRef=e;}}
                         style={{ 
                             paddingTop:"20px",
                             paddingBottom:"20px", 
@@ -312,14 +350,23 @@ class Expanded extends Component<ExpandedProps,ExpandedState>{
                         }}
                     >    
                         <div style={{
-                            width: "5%",
-                            paddingTop: "2px"  
-                        }}> 
-                                <CheckBoxEmpty style={{ 
+                                width: "5%",
+                                paddingTop: "2px"
+                            }}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();   
+                            }}   
+                        > 
+                            <Checkbox
+                                checked={this.props.checked}
+                                disabled={true}
+                                iconStyle={{
                                     color:"rgba(159,159,159,0.5)",
                                     width:"20px",
                                     height:"20px"  
-                                }}/>  
+                                }}
+                            />   
                         </div> 
                         <div style={{
                             display:"flex",
@@ -329,26 +376,26 @@ class Expanded extends Component<ExpandedProps,ExpandedState>{
                             <TextField
                                 hintText="New To-Do" 
                                 fullWidth={true}   
-                                textareaStyle={{zIndex:1, height:"auto", cursor:"default"}}
-                                style={{zIndex:1, height:"auto", cursor:"default"}}  
-                                underlineFocusStyle={{  
+                                textareaStyle={{zIndex:1, height:"auto"}}
+                                style={{zIndex:1, height:"auto"}}  
+                                underlineFocusStyle={{   
                                     zIndex:1,
                                     borderColor: "rgba(0,0,0,0)"
                                 }}
                                 value={this.props.currentTodo}
                                 onChange={
-                                    (event,newValue:string) => this.setState({currentTodo:newValue})
+                                    (event,newValue:string) => this.props.updateCurrentTodo(newValue)
                                 } 
                                 onKeyPress = {   
                                     (event) => event.key==="Enter" ? this.props.updateTodoFromInput() : null  
                                 }   
-                                underlineStyle={{ 
-                                    zIndex:10,
+                                underlineStyle={{   
+                                    zIndex:10, 
                                     borderColor: "rgba(0,0,0,0)" 
                                 }} 
                             />   
                             { 
-                                <TextField 
+                                <TextField  
                                     hintText="Notes"
                                     underlineFocusStyle={{
                                         borderColor: "rgba(0,0,0,0)"
@@ -357,8 +404,8 @@ class Expanded extends Component<ExpandedProps,ExpandedState>{
                                         borderColor: "rgba(0,0,0,0)"
                                     }}   
                                     value={this.props.currentNote}
-                                    onKeyPress = {this.props.onNoteSubmit}  
-                                    onChange = {(event,value) => this.setState({ currentNote:value })}
+                                    onKeyPress = {this.props.onNoteSubmit} 
+                                    onChange = {(event,value) => this.props.updateCurrentNote(value)}
                                 />  
                             } 
          
@@ -417,8 +464,10 @@ interface CollapsedProps{
     onClick:any,
     onContextMenu:any, 
     currentTodo:string,
-    tags:string[]
-}   
+    tags:string[],
+    checked:boolean,
+    toggle:Function 
+}      
   
  
 class Collapsed extends Component<CollapsedProps,CollapsedState>{
@@ -431,9 +480,9 @@ class Collapsed extends Component<CollapsedProps,CollapsedState>{
         return <div  
             ref = {(e) => {this.refRoot=e;}}
             onContextMenu = {this.props.onContextMenu} 
-            className = {"todohighlight"}
-            onClick = {this.props.onClick}   
-            style={{                
+            className = {"todohighlight unselectable"}
+            onClick={this.props.onClick}   
+            style={{                  
                 backgroundColor: "", 
                 width:"100%",height:"auto", 
                 boxShadow: "none",
@@ -452,16 +501,26 @@ class Collapsed extends Component<CollapsedProps,CollapsedState>{
                     display:"flex" 
                 }}
             >    
-                <div style={{
-                    width: "5%",
-                    paddingTop: "2px"  
-                }}> 
-                        <CheckBoxEmpty style={{ 
+                <div 
+                    onClick={(e) => { 
+                        e.stopPropagation(); 
+                        e.preventDefault() 
+                    }}  
+                    style={{
+                        width: "5%",
+                        paddingTop: "2px"
+                    }}
+                > 
+                    <Checkbox
+                        checked={this.props.checked}
+                        iconStyle={{
                             color:"rgba(159,159,159,0.5)",
                             width:"20px",
                             height:"20px"  
-                        }}/>  
-                </div> 
+                        }}
+                        onCheck={this.props.toggle}
+                    />   
+                </div>  
                 <div style={{
                     display:"flex",
                     flexDirection:"column",
@@ -469,7 +528,8 @@ class Collapsed extends Component<CollapsedProps,CollapsedState>{
                 }}>       
                     <TextField
                         hintText="New To-Do" 
-                        fullWidth={true}   
+                        fullWidth={true}  
+                        className="unselectable" 
                         textareaStyle={{zIndex:1, height:"auto", cursor:"default"}}
                         style={{zIndex:1, height:"auto", cursor:"default"}}  
                         underlineFocusStyle={{  

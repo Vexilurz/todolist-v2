@@ -1,5 +1,5 @@
-import './assets/styles.css';  
-import './assets/calendarStyle.css';  
+import '../assets/styles.css';  
+import '../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
@@ -41,13 +41,13 @@ import { Component } from "react";
 import Paper from 'material-ui/Paper';
 import { DraggableCore, DraggableEventHandler, DraggableData } from 'react-draggable';
 import * as Draggable from 'react-draggable'; 
-import { wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, uppercase, insideTargetArea} from "./utils"; 
+import { 
+    wrapMuiThemeLight, wrapMuiThemeDark, 
+    attachDispatchToProps, uppercase, insideTargetArea
+} from "../utils"; 
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
-//import Chip from 'material-ui-next/Chip';
 import Chip from 'material-ui/Chip';
-import { reducer } from "./reducer"; 
-//icons 
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
@@ -70,23 +70,22 @@ import Moon from 'material-ui/svg-icons/image/brightness-3';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import { TodoCreationForm } from './TodoCreationForm'; 
 import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc'; 
-import { queryToTodos, getTodos, updateTodo, Todo } from './databaseCalls';
+import { queryToTodos, getTodos, updateTodo, Todo } from '../databaseCalls';
 let uniqid = require("uniqid");
-import DayPicker from 'react-day-picker';
-//import Popover from 'material-ui-next/Popover';
+import DayPicker from 'react-day-picker';  
 import Popover from 'material-ui/Popover';
 import Button from 'material-ui-next/Button';
 import { TodoUpdateForm } from './TodoUpdateForm';
   
-interface ThingsCalendarBigProps{ 
-  close : Function, 
+interface ThingsCalendarSmallProps{ 
+  close : Function,
   open : boolean,
   origin : any, 
   anchorEl : HTMLElement,
   point : any
 }  
 
-export class ThingsCalendarBig extends Component<ThingsCalendarBigProps,any>{
+export class ThingsCalendarSmall extends Component<ThingsCalendarSmallProps,any>{
 
     constructor(props){
         super(props);

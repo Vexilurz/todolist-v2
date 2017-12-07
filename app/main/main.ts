@@ -30,7 +30,7 @@ let onReady = () => {
     listeners = new Listeners(mainWindow);
    
     loadApp(mainWindow)  
-    .then(() => { 
+    .then(() => {  
       mainWindow.webContents.send("loaded");
       mainWindow.webContents.openDevTools();   
     });     
@@ -40,8 +40,7 @@ let onReady = () => {
 process.on("unchaughtException" as any,(error) => console.log(error)); 
   
 app.disableHardwareAcceleration(); 
-app.on('ready', onReady); 
- 
+app.on('ready', onReady);  
  
 let clearDir = (directory) => new Promise( resolve => {
     

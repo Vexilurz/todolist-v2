@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "tasklist",
   "main": "dist/main.js",
-  "scripts": {
+  "scripts": {   
     "start": "electron .",
     "pack": "build --win",
     "build:tests": "webpack -w --config webpack.config.tests.js",

@@ -8,14 +8,8 @@ import RaisedButton from 'material-ui/RaisedButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import CircularProgress from 'material-ui/CircularProgress'; 
 import * as injectTapEventPlugin from 'react-tap-event-plugin';
-import {
-  cyan500, cyan700,   
-  pinkA200,
-  grey100, grey300, grey400, grey500,
-  white, darkBlack, fullBlack,
-} from 'material-ui/styles/colors'; 
 import {fade} from 'material-ui/utils/colorManipulator';
-import FlatButton from 'material-ui/FlatButton';
+import FlatButton from 'material-ui/FlatButton'; 
 import spacing from 'material-ui/styles/spacing'; 
 import SelectField from 'material-ui/SelectField';
 import TextField from 'material-ui/TextField';
@@ -43,8 +37,6 @@ import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-ho
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
 import Menu from 'material-ui/Menu';
-import { reducer } from "./reducer"; 
-//icons
 import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
@@ -63,29 +55,38 @@ import Search from 'material-ui/svg-icons/action/search';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
-let uniqid = require("uniqid"); 
-//import MenuItem from 'material-ui/MenuItem';
 import { ListItemIcon, ListItemText } from 'material-ui-next/List';
 import { MenuList, MenuItem } from 'material-ui-next/Menu';
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import Popover from 'material-ui/Popover';
+import { NewProjectAreaPopover } from './Components/NewProjectAreaPopover';
+let uniqid = require("uniqid"); 
 
+ 
 
-interface LeftPanelState{
-    openPopover:boolean
-} 
-  
-export class LeftPanel extends Component<any,LeftPanelState>{
+@connect((store,props) => store, attachDispatchToProps)   
+export class LeftPanel extends Component<any,{}>{
         newProjectAnchor;
         
         constructor(props){ 
-            super(props); 
+            super(props);  
             this.state={
                 openPopover:false 
             } 
         }; 
  
+
+        onNewProjectClick = (e:any) => {
+            
+        }
+
+  
+        onNewAreaClick = (e:any) => {
+            
+        }
+
+
         render(){ 
             return <div style={{
                 display: "flex", 
@@ -96,13 +97,13 @@ export class LeftPanel extends Component<any,LeftPanelState>{
             }}>      
         
             <div 
-            className="no-drag"
+            
             style={{ 
                 display: "flex",
                 padding: "10px"
             }}>   
  
-            <div className="close"
+            <div className="no-drag close"
                 onClick = {() => ipcRenderer.send("close")}
                 style={{ 
                     width: "15px",
@@ -115,7 +116,7 @@ export class LeftPanel extends Component<any,LeftPanelState>{
             > 
             </div>   
 
-            <div className="reload"
+            <div className="no-drag reload"
                 onClick = {() => ipcRenderer.send("reload")}
                 style={{
                     width: "15px",
@@ -128,7 +129,7 @@ export class LeftPanel extends Component<any,LeftPanelState>{
             >  
             </div>  
   
-            <div className="hide"
+            <div className="no-drag hide"
                 onClick = {() => ipcRenderer.send("hide")} 
                 style={{     
                     width: "15px", 
@@ -139,15 +140,16 @@ export class LeftPanel extends Component<any,LeftPanelState>{
                     marginRight: "10px"  
                 }} 
             >
-            </div> 
+            </div>  
 
                 
             </div>   
  
-            <div className="no-drag" style={{width:"100%"}}>
+            <div  style={{width:"100%"}}>
                   
         <MenuList>
             <MenuItem 
+            className="no-drag" 
             onClick={() => this.props.dispatch({
                 type:"selectedCategory",
                 load:"inbox"
@@ -252,7 +254,7 @@ export class LeftPanel extends Component<any,LeftPanelState>{
             onClick={() => this.props.dispatch({
                 type:"selectedCategory",load:"trash"
             })} 
-            style={{
+            style={{ 
                 paddingTop:"5px",
                 paddingBottom:"5px", 
                 paddingLeft:"5px", 
@@ -267,6 +269,11 @@ export class LeftPanel extends Component<any,LeftPanelState>{
 
          </MenuList> 
         </div>   
+
+
+
+
+
             <div style={{
                     display: "flex",
                     flexGrow: 1,
@@ -274,141 +281,54 @@ export class LeftPanel extends Component<any,LeftPanelState>{
                 }}
                 id="projects"
             >  
-            {
-                compose( 
-                    map(
-                        (n) => <div 
-                        className="hoverBorder"
-                        key={String(n)} 
-                        style={{
-                            height:"20px",
-                            width:"100%",
-                            display:"flex",
-                            alignItems: "center" 
-                        }}>  
-                           <IconButton    
-                                iconStyle={{
-                                    color:"rgba(109,109,109,0.4)",
-                                    width:"18px",
-                                    height:"18px"
-                                }}  
-                            >  
-                                <Circle /> 
-                            </IconButton> 
-                           <div style={{
-                                fontFamily: "sans-serif",
-                                fontWeight: 600, 
-                                color: "rgba(100,100,100,0.7)",
-                                fontSize:"15px",  
-                                cursor: "default",
-                                WebkitUserSelect: "none" 
-                           }}>  
-                              Placeholder #{n}
-                           </div>  
-                        </div>
-                    ),
-                    range(0)
-                )(15)  
-            } 
+            
+             <div 
+                className="hoverBorder"
+                key={uniqid()} 
+                style={{
+                    height:"20px",
+                    width:"100%",
+                    display:"flex",
+                    alignItems: "center" 
+                }}>  
+                    <IconButton    
+                        iconStyle={{
+                            color:"rgba(109,109,109,0.4)",
+                            width:"18px",
+                            height:"18px"
+                        }}  
+                    >  
+                        <Circle />  
+                    </IconButton> 
+                    <div style={{
+                        fontFamily: "sans-serif",
+                        fontWeight: 600, 
+                        color: "rgba(100,100,100,0.7)",
+                        fontSize:"15px",  
+                        cursor: "default",
+                        WebkitUserSelect: "none" 
+                    }}>  
+                        New project 
+                    </div>  
+             </div>
+                   
             </div>
 
-            <Popover  
-                style={{
-                    backgroundColor:"rgba(0,0,0,0)",
-                    background:"rgba(0,0,0,0)",
-                    borderRadius:"10px"
-                }}    
-                open={this.state.openPopover}
-                anchorEl={this.newProjectAnchor}
-                onRequestClose={() => this.setState({openPopover:false})}
-                anchorOrigin={{  
-                    vertical: "top",
-                    horizontal: "left"
-                }}  
-                targetOrigin={{      
-                    vertical: "bottom",
-                    horizontal: "left"
-                }} 
-            >   
-                <div style={{  
-                    backgroundColor: "rgb(39, 43, 53)",
-                    padding: "5px 10px",
-                    borderRadius: "10px",
-                    maxHeight: "250px",
-                    width: "370px",
-                    cursor: "pointer" 
-                }}>    
+      
+
+            <NewProjectAreaPopover 
+                anchor={this.newProjectAnchor}
+                open={this.props.openNewProjectAreaPopover}
+                close={ 
+                    () => this.props.dispatch({
+                        type:"openNewProjectAreaPopover",
+                        load:false 
+                    })
+                }
+                onNewProjectClick={this.onNewProjectClick}
+                onNewAreaClick={this.onNewAreaClick}
+            />
  
-                <div className="newprojectitem" style={{display:"flex", alignItems: "flex-start", padding:"7px"}}> 
-                    <NewProjectIcon style={{color:"lightblue"}}/>
-                    <div style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "flex-start",
-                        paddingLeft: "5px",
-                        paddingTop: "3px" 
-                    }}>    
-                        <div style={{  
-                            color: "aliceblue",
-                            fontFamily: "sans-serif",
-                            fontSize: "15px"
-                        }}>
-                            New Project
-                        </div>
-                        <p style={{
-                            margin: "0px",
-                            paddingTop: "10px",
-                            color: "rgba(190,190,190,0.5)",
-                            fontFamily: "sans-serif" 
-                        }}>
-                            Define a goal, 
-                            then work towards it 
-                            one to-do at a time.  
-                        </p> 
-                    </div> 
-                </div>
-  
-
-                <div style={{
-                        border:"1px solid rgba(200,200,200,0.1)",
-                        marginTop: "5px",
-                        marginBottom: "5px"
-                }}>
-                </div> 
-
-                <div className="newprojectitem" style={{display:"flex", alignItems: "flex-start", padding:"7px"}}> 
-                    <NewAreaIcon style={{color:"lightblue", width:"34px"}}/>
-                    <div style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "flex-start",
-                        paddingLeft: "5px",
-                        paddingTop: "3px" 
-                    }}>    
-                        <div style={{  
-                            color: "aliceblue",
-                            fontFamily: "sans-serif", 
-                            fontSize: "15px"
-                        }}>
-                            New Area
-                        </div>
-                        <p style={{
-                            margin: "0px",
-                            paddingTop: "10px",
-                            color: "rgba(190,190,190,0.5)",
-                            fontFamily: "sans-serif",
-                            width:"85%"  
-                        }}>
-                            Group your projects and to-dos
-                            based on different responsibilities,
-                            such as Family or Work. 
-                        </p> 
-                    </div> 
-                </div>
-                 
-                </div>   
-            </Popover> 
-                
         
  
             <div style={{    
@@ -430,7 +350,10 @@ export class LeftPanel extends Component<any,LeftPanelState>{
                     alignItems: "center"    
                 }}>  
                     <IconButton   
-                    onClick = {() => this.setState({openPopover:true})}  
+                    onClick = {() => this.props.dispatch({
+                        type:"openNewProjectAreaPopover",
+                        load:true 
+                    })}    
                     iconStyle={{     
                         color:"rgb(79, 79, 79)",
                         width:"25px",
@@ -463,39 +386,11 @@ export class LeftPanel extends Component<any,LeftPanelState>{
                     </IconButton>  
                 </div>    
             </div> 
-       </div>
+       </div> 
     };   
     
 };  
  
-
-
-
-/*<Menu   
-    menuItemStyle={{
-        width:"100%"
-    }}
-    listStyle={{
-        width:"100%"
-    }}
-    style={{
-        width:"100%"
-    }}  
-    //desktop={true}   
-    >
-    <MenuItem style={{
-        width:"100%"
-    }}   primaryText="Inbox" leftIcon={<Inbox />} />
-    <div style={{width:"100%",height:"30px"}}></div>
-    <MenuItem primaryText="Today" leftIcon={<Star />} />
-    <MenuItem primaryText="Upcoming" leftIcon={<Calendar />} />
-
-    <MenuItem primaryText="Anytime" leftIcon={<Layers />} />
-    <MenuItem primaryText="Someday" leftIcon={<BusinessCase />} />
-    <div style={{width:"100%",height:"30px"}}></div>
-    <MenuItem primaryText="Logbook" leftIcon={<Logbook />} />
-    <MenuItem primaryText="Trash" leftIcon={<Trash />} />
-    <div style={{width:"100%",height:"30px"}}></div>
-</Menu>*/
+ 
 
 

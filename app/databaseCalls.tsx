@@ -43,10 +43,8 @@ import { wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps} from "./uti
 import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc';
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
-//import Chip from 'material-ui-next/Chip';
+//import Chip from 'material-ui-next/Chip'; 
 import Chip from 'material-ui/Chip';
-import { reducer } from "./reducer"; 
-//icons
 import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
@@ -68,7 +66,7 @@ import Clear from 'material-ui/svg-icons/content/clear';
 import PouchDB from 'pouchdb-browser';  
 
 
-import { db } from './app';
+import { todos_db } from './app';
 let uniqid = require("uniqid");
 
 
@@ -81,13 +79,15 @@ export interface Project{
   name : string,
   description : string 
 }
-
-
-export interface Tag{
-  _id : string,
-  name : string,
-  attachedTodos : string[]
-} 
+ 
+ 
+export interface Area{
+  _id : string, 
+  attachedTodos : string[],
+  attachedProjects : string[],
+  name : string,  
+  description : string 
+}
 
 
 export interface Todo{ 
@@ -107,9 +107,10 @@ export interface Todo{
       action : string,
       date : Date
   }[],
-  attachemnts : string[]
+  attachemnts : string[],
+  checked?:boolean
 }
-
+ 
 
 export interface Event{
   _id : string,
@@ -144,53 +145,207 @@ interface QueryResult<T>{
 
 
 
-export let addTodo = (onError:Function, todo : Todo) : Promise<void> => 
-         db.put(todo).catch(onError);
 
-export let getTodoById = (onError:Function, _id : string) : Promise<Todo> => 
-         db.get(_id).catch(onError); 
 
-export let updateTodo = (_id : string, replacement : Todo, onError:Function) : Promise<Todo> => 
-  db.get(_id)
-  .then((doc) => db.put(merge(doc,replacement))) 
-  .catch(onError); 
+function queryToObjects<T>(query:Query<T>){
+    return ifElse(
+        isNil, 
+        () => [],
+        compose( 
+            map(prop("doc")),
+            prop("rows") 
+        ) 
+    )(query)
+}
+
+
+
+function setItemToDatabase<T>(
+  middleware:Function,
+  onError:Function, 
+  db:any
+){
+  return function(item:T) : Promise<void>{
+
+      middleware(item,db);     
+
+      return db.put(item).catch(onError);
+
+  }  
+}  
+
+
+
+
+export function removeObject<T>(
+  middleware:Function,
+  onError:Function, 
+  db:any
+){
+  return function(_id) : Promise<void>{
  
+    return updateItemInDatabase<any>(
+      middleware,
+      onError, 
+      db 
+    )(_id, {_deleted: true})
+
+  }  
+}  
+
+
+function getItemFromDatabase<T>(
+  onError:Function, 
+  db:any
+){
+  return function(_id:string) : Promise<T>{
+        
+    return db.get(_id).catch(onError);  
+ 
+  }
+}
+
+
+
+function getItems<T>(
+  onError:Function, 
+  db:any
+){
+  return function(descending,limit) : Promise<Query<T>>{
+ 
+      return db.allDocs({ 
+          include_docs:true,  
+          conflicts: true,
+          descending,
+          limit 
+      }) 
+      .catch(onError); 
+       
+  }
+}
+
+
+
+function getItemsRange<T>(
+  onError:Function, 
+  db:any
+){ 
+  return function(
+    descending,
+    limit,
+    start,
+    end 
+  ) : Promise<Query<T>>{
+ 
+      return db.allDocs({ 
+        include_docs:true,
+        conflicts: true, 
+        descending,
+        limit, 
+        startkey:start,
+        endkey:end 
+      }) 
+      .catch(onError); 
+       
+  }
+}
+
+  
+function updateItemInDatabase<T>(
+  middleware:Function,
+  onError:Function, 
+  db:any
+){
+  return function(_id:string, changed:T) : Promise<T>{
+    
+    return db.get(_id)
+           .then(
+              (doc) => {
+                let updated = merge(doc,changed);
+                middleware(updated,db);
+                return db.put(updated);
+              } 
+            ).catch(onError); 
+   
+  } 
+}
+
+ 
+
+ 
+
+export let addTodo = (onError:Function, todo : Todo) : Promise<void> => 
+           setItemToDatabase<Todo>(
+              () => {},
+              (e) => console.log(e), 
+              todos_db
+           )(todo);
+ 
+
+
+            
+export let removeTodo = (item_id:string) : Promise<void> =>
+          removeObject<string>(
+            () => {},
+            (e) => console.log(e), 
+            todos_db
+          )(item_id); 
+  
+   
+ 
+export let getTodoById = (onError:Function, _id : string) : Promise<Todo> => 
+          getItemFromDatabase<Todo>(
+            (e) => console.log(e), 
+            todos_db
+          )(_id); 
+
+ 
+  
+export let updateTodo = (_id : string, replacement : Todo, onError:Function) : Promise<Todo> => 
+          updateItemInDatabase<Todo>(
+            () => {},
+            (e) => console.log(e), 
+            todos_db
+          )(_id, replacement); 
+ 
+
+
 
 export let getTodosRange = (onError:Function) =>
-(descending,limit,start,end) : Promise<Todo[]>=> 
-  db.allDocs({
-      include_docs:true,
-      conflicts: true, 
-      descending,
-      limit, 
-      startkey:start,
-      endkey:end 
-  })
-  .then((result) => {
-      console.log("getTodosRange", result);
-      return result; 
-  })
-  .catch(onError);  
+  (
+    descending, 
+    limit,
+    start,
+    end
+  ) : Promise<Todo[]>=> 
+  
+      getItemsRange<Todo>(
+        onError, 
+        todos_db
+      )(
+        descending,
+        limit,
+        start,
+        end 
+      ).then(
+        queryToTodos
+      )
+                
+  
 
 
-export let getTodos = (onError:Function) =>  
-(descending,limit) : Promise<Query<Todo>> => 
-  db.allDocs({ 
-      include_docs:true, 
-      conflicts: true,
+ 
+export let getTodos = (onError:Function) => (descending,limit) : Promise<Query<Todo>> => 
+    getItems<Todo>(
+      onError, 
+      todos_db
+    )(
       descending,
-      limit 
-  })
-  .catch(onError); 
+      limit
+    )
+         
 
  
 
-export let queryToTodos = (query:Query<Todo>) => ifElse(
-      isNil, 
-      () => [],
-      compose( 
-          map(prop("doc")),
-          prop("rows") 
-      ) 
-  )(query)
+export let queryToTodos = (query:Query<Todo>) => queryToObjects<Todo>(query); 
  

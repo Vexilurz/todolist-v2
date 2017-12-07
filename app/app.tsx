@@ -39,13 +39,10 @@ import { Component } from "react";
 import Paper from 'material-ui/Paper';
 import { DraggableCore, DraggableEventHandler, DraggableData } from 'react-draggable';
 import * as Draggable from 'react-draggable'; 
-import { wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps} from "./utils"; 
+import { wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, getTagsFromTodos} from "./utils"; 
 import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc';
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
-
-import { reducer } from "./reducer"; 
-//icons
 import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
@@ -66,16 +63,19 @@ import Logbook from 'material-ui/svg-icons/av/library-books';
 import { LeftPanel } from './LeftPanel';
 import { MainContainer } from './MainContainer';
 import PouchDB from 'pouchdb-browser';  
-export let db = new PouchDB('todos');
 
+
+
+export let todos_db = new PouchDB('todos');
  
-
+ 
+ 
 let uniqid = require('uniqid');
 let path = require("path");
 
 injectTapEventPlugin(); 
      
-
+ 
 (() => {     
     let app=document.createElement('div'); 
     app.id='application';    
@@ -83,10 +83,8 @@ injectTapEventPlugin();
 })();  
  
   
-@connect( 
-    (store,props) => store, 
-    attachDispatchToProps
-) 
+
+
 export class App extends Component<any,any>{
 
     constructor(props){  
@@ -105,56 +103,38 @@ export class App extends Component<any,any>{
                 borderRadius:"1%", 
                 scroll:"none",
                 zIndex:2001,  
-            }}>      
+            }}>  
+                <div style={{
+                    display:"flex", 
+                    width:"inherit",   
+                    height:"inherit" 
+                }}>    
+    
+                    <div className="drag"
+                            style={{
+                                pointerEvents:"none",   
+                                position : "absolute", 
+                                top:0,
+                                left:0,   
+                                width:"100%",
+                                height:"10%" 
+                            }}  
+                    >   
+                    </div> 
+ 
+                    <LeftPanel /> 
 
-              <div style={{
-                  display:"flex", 
-                  width:"inherit",  
-                  height:"inherit" 
-              }}>    
-  
-               <div className="drag"
-                    style={{
-                        pointerEvents:"none",   
-                        position : "absolute", 
-                        top:0,
-                        left:0,   
-                        width:"100%",
-                        height:"10%" 
-                    }}  
-               >   
-               </div> 
-  
-               <LeftPanel
-                 dispatch={this.props.dispatch} 
-               />    
-      
-               <MainContainer  
-                 selectedCategory={this.props.selectedCategory}
-                 dispatch={this.props.dispatch} 
-                 selectedTodoFromId={this.props.selectedTodoFromId}
-               />  
-                
-              </div> 
+                    <MainContainer />  
+
+                </div> 
             </div>      
         );   
 
     }            
             
-};          
+};           
  
  
-   
-              
-export let defaultStoreItems = {
-    selectedCategory : "inbox",
-    todos:[],
-    selectedTodoFromId : null   
-};   
-    
-  
-export let store = createStore(reducer, defaultStoreItems); 
-  
 
 ipcRenderer.on( 
     'loaded',    
@@ -165,5 +145,94 @@ ipcRenderer.on(
         document.getElementById('application')
     )  
 );    
+
+
+          
+export let defaultStoreItems = {
+    selectedCategory : "inbox",
+    selectedTodoId : null,
+    selectedTag : "All",
+    
+    openNewProjectAreaPopover : false,
+    openTodoInput : false,
+    showRightClickMenu : false,
+
+    rightClickedTodoId : null,
+    rightClickMenuX : 0,
+    rightClickMenuY : 0,
+ 
+    todos:[],
+    tags:[] 
+};   
+  
+ 
+
+let reducer = (state, action) => { 
+    
+    let newState = clone(state); 
+    //{...state}; 
+     
+    switch(action.type){
+        case "selectedCategory":
+            newState["selectedCategory"] = action.load;
+            break;
+             
+        case "selectedTag":  
+            newState["selectedTag"] = action.load; 
+            break; 
+        
+        case "openNewProjectAreaPopover":
+            newState["openNewProjectAreaPopover"] = action.load;
+            break;     
+
+        case "openRightClickMenu":
+            newState["showRightClickMenu"] = action.load.showRightClickMenu;
+            newState["rightClickedTodoId"] = action.load.rightClickedTodoId;
+            newState["rightClickMenuX"] = action.load.rightClickMenuX;
+            newState["rightClickMenuY"] = action.load.rightClickMenuY;
+            break;
+
+        case "openTodoInput":
+            newState["openTodoInput"] = action.load;
+            if(action.load){ 
+               newState["selectedTodoId"] = false; 
+               newState["showRightClickMenu"] = false; 
+            }  
+            break;      
+ 
+        case "showRightClickMenu":
+            newState["showRightClickMenu"] = action.load;
+            break;
+     
+        case "rightClickedTodoId" :
+            newState["rightClickedTodoId"] = action.load;
+            break;
+ 
+        case "rightClickMenuX" :
+            newState["rightClickMenuX"] = action.load;
+            break;
+ 
+        case "rightClickMenuY" :
+            newState["rightClickMenuY"] = action.load;
+            break;
+          
+        case "selectedTodoId":
+            newState["selectedTodoId"] = action.load;
+            break;     
+        
+        case "todos":  
+            newState["todos"] = action.load;
+            newState["showRightClickMenu"] = false;  
+            newState["tags"] = getTagsFromTodos(action.load);    
+    }  
+  
+    return newState;  
+};      
+  
+  
+export let store = createStore(reducer, defaultStoreItems); 
+  
+
+
 
    
