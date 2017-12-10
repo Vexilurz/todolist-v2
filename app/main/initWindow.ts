@@ -13,18 +13,17 @@ import { compose, contains, toPairs, curry, replace, mergeAll, addIndex,
 
  
  
-export let initWindow = ()  => {
-    const {width,height} = electron.screen.getPrimaryDisplay().workAreaSize;
+export let initWindow = ({width,height,transparent})  => {
       
     Menu.setApplicationMenu(null);   
       
     let handler = new BrowserWindow({   
         icon:path.join(__dirname,'icon.ico'),
         width,         
-        height,  
-        transparent:true, 
+        height,   
+        transparent, 
         //'node-integration': true,
-        opacity:0, 
+        opacity:transparent ? 0 : 1, 
         //backgroundColor:"#ffffff", 
         title:'tasklist',      
         center:true,     
@@ -37,7 +36,7 @@ export let initWindow = ()  => {
         'ready-to-show', 
         () => handler.show()
     );
- 
+  
     handler.on( 
         'closed', 
         () => {

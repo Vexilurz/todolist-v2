@@ -200,9 +200,9 @@
 
 .DayPicker:not(.DayPicker--interactionDisabled)
   .DayPicker-Day:not(.DayPicker-Day--disabled):not(.DayPicker-Day--selected):not(.DayPicker-Day--outside):hover {
-  background-color: #f0f8ff;
+  border: 1px solid #51a0fa;
   border-radius: 50%;
-}
+} 
 
 /* DayPickerInput */
 

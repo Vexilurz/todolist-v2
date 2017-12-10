@@ -1,5 +1,4 @@
 import '../assets/styles.css';  
-import '../assets/calendarStyle.css';   
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
@@ -7,140 +6,103 @@ import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq
     clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, 
     groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs 
 } from 'ramda';
-import RaisedButton from 'material-ui/RaisedButton';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import CircularProgress from 'material-ui/CircularProgress'; 
-import * as injectTapEventPlugin from 'react-tap-event-plugin';
-import {
-  cyan500, cyan700,    
-  pinkA200,
-  grey100, grey300, grey400, grey500, 
-  white, darkBlack, fullBlack,
-} from 'material-ui/styles/colors'; 
-import {fade} from 'material-ui/utils/colorManipulator';
-import FlatButton from 'material-ui/FlatButton';
-import spacing from 'material-ui/styles/spacing'; 
-import SelectField from 'material-ui/SelectField';
-import MenuItem from 'material-ui/MenuItem';
-import TextField from 'material-ui/TextField';
-import Checkbox from 'material-ui/Checkbox';
-import getMuiTheme from 'material-ui/styles/getMuiTheme';
-import AutoComplete from 'material-ui/AutoComplete';
 import { ipcRenderer } from 'electron';
-import Dialog from 'material-ui/Dialog';
-import FloatingActionButton from 'material-ui/FloatingActionButton';
-import Divider from 'material-ui/Divider';
-import AppBar from 'material-ui/AppBar'; 
-import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from 'material-ui/Toolbar';
-import DropDownMenu from 'material-ui/DropDownMenu'; 
-import IconMenu from 'material-ui/IconMenu';
-import IconButton from 'material-ui/IconButton'; 
-import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
-import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
-import { Component, SyntheticEvent } from "react"; 
-import Paper from 'material-ui/Paper';
-import { DraggableCore, DraggableEventHandler, DraggableData } from 'react-draggable';
-import * as Draggable from 'react-draggable'; 
-import { 
-    wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, 
-    uppercase, insideTargetArea, selectCategoryBlock
-} from "../utils"; 
-import { createStore, combineReducers } from "redux"; 
+import { Component } from "react"; 
 import { Provider, connect } from "react-redux";
-//import Chip from 'material-ui-next/Chip';
-import Chip from 'material-ui/Chip';
-//icons 
 import ClearArrow from 'material-ui/svg-icons/content/backspace';   
-import Menu from 'material-ui/Menu';
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
-import Inbox from 'material-ui/svg-icons/content/inbox';
-import Star from 'material-ui/svg-icons/toggle/star';
-import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
-import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
-import CheckBox from 'material-ui/svg-icons/toggle/check-box'; 
-import BusinessCase from 'material-ui/svg-icons/places/business-center';
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
-import Layers from 'material-ui/svg-icons/maps/layers';
-import Adjustments from 'material-ui/svg-icons/image/tune';
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import Flag from 'material-ui/svg-icons/image/assistant-photo'; 
- 
-import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
+ import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
-
-import Plus from 'material-ui/svg-icons/content/add';
-import Trash from 'material-ui/svg-icons/action/delete';
-import Search from 'material-ui/svg-icons/action/search'; 
-import List from 'material-ui/svg-icons/action/list'; 
-import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import CalendarIco from 'material-ui/svg-icons/action/date-range';
-import Moon from 'material-ui/svg-icons/image/brightness-3';
-import Logbook from 'material-ui/svg-icons/av/library-books';
-import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc'; 
-import { queryToTodos, getTodos, updateTodo, Todo, removeTodo } from '../databaseCalls';
-let uniqid = require("uniqid");
-import DayPicker from 'react-day-picker';
-//import Popover from 'material-ui-next/Popover';
 import Popover from 'material-ui/Popover';
 import Button from 'material-ui-next/Button';
-import { InboxBlock } from '../MainBlocks/InboxBlock';
-import { UpcomingBlock } from '../MainBlocks/UpcomingBlock';
-import { TodayBlock } from '../MainBlocks/TodayBlock';
-import { AnytimeBlock } from '../MainBlocks/AnytimeBlock';
-import { SomedayBlock } from '../MainBlocks/SomedayBlock';
-import { LogbookBlock } from '../MainBlocks/LogbookBlock';
-import { TrashBlock } from '../MainBlocks/TrashBlock';
-import { ProjectBlock } from '../MainBlocks/ProjectBlock';
-import { AreaBlock } from '../MainBlocks/AreaBlock';
-
-
-
-
-
+import { attachDispatchToProps } from '../utils';
+import { Todo, removeTodo, addTodo } from '../databaseCalls';
+let uniqid = require("uniqid");   
+ 
  
 interface RightClickMenuState{} 
-
-//showRightClickMenu 
-//rightClickedTodoId 
-//rightClickMenuX 
-//rightClickMenuY  
-//dispatch  
+ 
 @connect((store,props) => store, attachDispatchToProps) 
 export class RightClickMenu extends Component<any,RightClickMenuState>{
 
    constructor(props){
        super(props);
    }
+ 
 
-
-   changeTodo = (todo:Todo) => {
-       let idx = findIndex((t:Todo) => todo._id===t._id)(this.props.todos);
+   updateTodo = (changedTodo:Todo) => {
+       let idx = findIndex((t:Todo) => changedTodo._id===t._id)(this.props.todos);
         
        if(idx!==-1)
            this.props.dispatch({
                type:"todos",
-               load:adjust<Todo>((old:Todo) => todo,idx,this.props.todos)
+               load: [
+                    ...this.props.todos.slice(0,idx),
+                    changedTodo,
+                    ...this.props.todos.slice(idx+1),
+                ]
            });
-   } 
-
-   removeTodo = (_id:string) => {
+   }  
+   
+   
+   removeTodoLocal = (_id:string) => {
        let idx = findIndex((item:Todo) => item._id===_id)(this.props.todos);
 
        if(idx!==-1)
            this.props.dispatch({
                type:"todos",
-               load:remove(idx, 1, this.props.todos)
+               load: [
+                   ...this.props.todos.slice(0,idx),
+                   ...this.props.todos.slice(idx+1),
+               ]
            });
+   }  
+   
+
+   duplicateTodo = (_id:string) => {
+    let idx = findIndex((item:Todo) => item._id===_id)(this.props.todos);
+      
+    if(idx!==-1){
+
+        let duplicatedTodo = this.props.todos[idx];
+
+        if(isNil(duplicatedTodo))
+            return; 
+        
+        
+        duplicatedTodo = merge(duplicatedTodo,{_id:uniqid()});
+        delete duplicatedTodo._rev;
+
+
+        addTodo((e) => console.log(e), duplicatedTodo);
+            
+        this.props.dispatch({
+            type:"todos",
+            load: [  
+                ...this.props.todos.slice(0,idx),
+                duplicatedTodo,
+                ...this.props.todos.slice(idx), 
+            ]
+        });
+
+    }
+             
+   }  
+
+   onDuplicate = (e) => {
+       this.duplicateTodo(this.props.rightClickedTodoId); 
    } 
+
+   onDeleteToDo = (e) => {
+        this.removeTodoLocal(this.props.rightClickedTodoId);
+        removeTodo(this.props.rightClickedTodoId);
+    } 
 
 
    onWhen = (e) => {
-       this.props.dispatch({type:"showRightClickMenu",load:false});
    } 
 
    onMove = (e) => {
-       this.props.dispatch({type:"showRightClickMenu",load:false});  
    }
 
    onComplete = (e) => {}
@@ -148,32 +110,21 @@ export class RightClickMenu extends Component<any,RightClickMenuState>{
    onShortcuts = (e) => {}
 
    onRepeat = (e) => {
-       this.props.dispatch({type:"showRightClickMenu",load:false}); 
    }
 
-   onDuplicate = (e) => {
-       this.props.dispatch({type:"showRightClickMenu",load:false});
-   }
+  
 
    onConvertToProject = (e) => {
-       this.props.dispatch({type:"showRightClickMenu",load:false});
    }
 
-
-   onDeleteToDo = (e) => {
-       removeTodo(this.props.rightClickedTodoId)
-       .then(
-           () => removeTodo(this.props.rightClickedTodoId)
-       );
-   } 
+ 
+   
   
 
    onRemoveFromProject = (e) => {
-       this.props.dispatch({type:"showRightClickMenu",load:false});
    }
 
    onShare = (e) => {
-       this.props.dispatch({type:"showRightClickMenu",load:false});
    }
 
 
@@ -188,15 +139,16 @@ export class RightClickMenu extends Component<any,RightClickMenuState>{
                        paddingRight: "5px",
                        paddingTop: "5px",
                        paddingBottom: "5px",
-                       boxShadow: "0 0 10px rgba(0,0,0,0.6)",
-                       borderRadius:"5px",
-                       zIndex:30000, 
-                       width:"250px",
-                       height:"240px", 
-                       position:"absolute",
-                       backgroundColor:"rgba(238,237,239,1)",
-                       left:this.props.rightClickMenuX+"px",
-                       top:this.props.rightClickMenuY+"px"  
+                       boxShadow: "0 0 18px rgba(0,0,0,0.2)", 
+                       margin: "5px",
+                       borderRadius: "5px",
+                       zIndex: 30000, 
+                       width: "250px", 
+                       height: "240px", 
+                       position: "absolute",
+                       backgroundColor: "rgba(238,237,239,1)",
+                       left: this.props.rightClickMenuX+"px",
+                       top: this.props.rightClickMenuY+"px"  
                     }}        
                >       
                        <div 

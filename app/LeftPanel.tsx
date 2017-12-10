@@ -1,41 +1,19 @@
+import './assets/styles.css'; 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
-import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, 
-    compose, append, contains, and, find, defaultTo, addIndex, split, filter, 
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, groupBy, concat 
-} from 'ramda';
-import RaisedButton from 'material-ui/RaisedButton';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import CircularProgress from 'material-ui/CircularProgress'; 
-import * as injectTapEventPlugin from 'react-tap-event-plugin';
-import {fade} from 'material-ui/utils/colorManipulator';
-import FlatButton from 'material-ui/FlatButton'; 
-import spacing from 'material-ui/styles/spacing'; 
-import SelectField from 'material-ui/SelectField';
-import TextField from 'material-ui/TextField';
-import Checkbox from 'material-ui/Checkbox';
-import getMuiTheme from 'material-ui/styles/getMuiTheme';
-import AutoComplete from 'material-ui/AutoComplete';
-import './assets/styles.css';  
+import { 
+  findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, 
+  compose, append, contains, and, find, defaultTo, addIndex, split, filter, 
+  clone, take, drop, reject, isNil, not, equals, assocPath, 
+  sum, prop, all, groupBy, concat  
+} from 'ramda';  
 import { ipcRenderer } from 'electron';
-import Dialog from 'material-ui/Dialog';
-import FloatingActionButton from 'material-ui/FloatingActionButton';
-import Divider from 'material-ui/Divider';
-import AppBar from 'material-ui/AppBar'; 
-import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from 'material-ui/Toolbar';
-import DropDownMenu from 'material-ui/DropDownMenu'; 
 import IconMenu from 'material-ui/IconMenu';
 import IconButton from 'material-ui/IconButton'; 
-import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
-import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import { Component } from "react"; 
-import Paper from 'material-ui/Paper';
-import { DraggableCore, DraggableEventHandler, DraggableData } from 'react-draggable';
-import * as Draggable from 'react-draggable'; 
-import { wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps} from "./utils"; 
-import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc';
-import { createStore, combineReducers } from "redux"; 
+import { attachDispatchToProps } from "./utils"; 
 import { Provider, connect } from "react-redux";
+
 import Menu from 'material-ui/Menu';
 import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
@@ -61,304 +39,445 @@ import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import Popover from 'material-ui/Popover';
 import { NewProjectAreaPopover } from './Components/NewProjectAreaPopover';
-let uniqid = require("uniqid"); 
+import { ResizableHandle, Data } from './Components/ResizableHandle';
+import { Store } from './App';
+import { generateID, addProject, Project, Area, addArea } from './databaseCalls';
+
+
+
+let generateEmptyProject = () => ({
+        _id : generateID(), 
+        attachedTodos:[],
+        headings:[],   
+        name : "New project",
+        description : ""
+    });
+
+
+let generateEmptyArea = () => ({
+        _id : generateID(),  
+        attachedTodos : [], 
+        attachedProjects : [],
+        name : "New area",  
+        description : ""
+    });
+
+  
 
  
 
-@connect((store,props) => store, attachDispatchToProps)   
-export class LeftPanel extends Component<any,{}>{
-        newProjectAnchor;
-        
+@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
+export class LeftPanel extends Component<Store,{}>{
+        newProjectAnchor:HTMLElement;
+            
         constructor(props){ 
             super(props);  
             this.state={
-                openPopover:false 
+                width:window.innerWidth/4
             } 
-        }; 
+        };  
+          
+
  
-
         onNewProjectClick = (e:any) => {
+            let newProject : Project = generateEmptyProject();
+            addProject((e) => console.log(e), newProject);
+             
+            this.props.dispatch({type:"newProject", load:newProject});
+        };
             
-        }
+              
+         
+        onNewAreaClick = (e:any) => { 
+            let newArea : Area = generateEmptyArea();
+            addArea((e) => console.log(e), newArea); 
+              
+            this.props.dispatch({type:"newArea", load:newArea});
+        };
 
-  
-        onNewAreaClick = (e:any) => {
+
+        selectArea = (a:any) => (e) => {
+            this.props.dispatch({
+                type:"selectedArea",
+                load:a
+            }) 
             
-        }
+        };
+          
 
+        selectProject = (p:any) => (e) => {
+            this.props.dispatch({
+                type:"selectedProject",
+                load:p 
+            })
+        };
+        
 
-        render(){ 
+        render(){   
+            let someday = this.props.todos.filter( v => v.category === "someday").length;
+            let upcoming = this.props.todos.filter( v => v.category === "upcoming").length;
+            let today = this.props.todos.filter( v => v.category === "today").length;
+            let inbox = this.props.todos.filter( v => v.category === "inbox").length;
+
+            let anytime = this.props.todos.length;
+ 
             return <div style={{
                 display: "flex", 
                 flexDirection: "column", 
-                width: "26%",
+                width: this.props.leftPanelWidth, 
                 height: "100%",
+                position:"relative", 
                 backgroundColor: "rgba(189, 189, 189, 0.2)" 
-            }}>      
-        
-            <div 
+            }}>       
             
-            style={{ 
-                display: "flex",
-                padding: "10px"
-            }}>   
+                <ResizableHandle  
+                    onDrag={(e,d:Data) => this.props.dispatch({
+                        type:"leftPanelWidth",
+                        load:this.props.leftPanelWidth+d.deltaX
+                    })}   
+                />   
+
+            <div style={{display: "flex", padding: "10px"}}>    
  
-            <div className="no-drag close"
-                onClick = {() => ipcRenderer.send("close")}
-                style={{ 
-                    width: "15px",
-                    height: "15px",
-                    borderRadius: "30px",
-                    border: "1px solid grey",
-                    cursor:"pointer",
-                    marginRight: "10px"
-                }}
-            > 
-            </div>   
+                <div className="no-drag close"
+                    onClick = {() => ipcRenderer.send("close", this.props.windowId)}
+                    style={{  
+                        width: "15px",
+                        height: "15px",
+                        borderRadius: "30px",
+                        border: "1px solid grey",
+                        cursor:"pointer",
+                        marginRight: "10px"
+                    }}
+                > 
+                </div>    
 
-            <div className="no-drag reload"
-                onClick = {() => ipcRenderer.send("reload")}
-                style={{
-                    width: "15px",
-                    height: "15px",
-                    borderRadius: "30px",
-                    border: "1px solid grey",
-                    cursor:"pointer",
-                    marginRight: "10px"  
-                }}  
-            >  
-            </div>  
-  
-            <div className="no-drag hide"
-                onClick = {() => ipcRenderer.send("hide")} 
-                style={{     
-                    width: "15px", 
-                    height: "15px",
-                    borderRadius: "30px",
-                    border: "1px solid grey",
-                    cursor:"pointer",
-                    marginRight: "10px"  
-                }} 
-            >
-            </div>  
-
-                
+                <div className="no-drag reload"
+                    onClick = {() => ipcRenderer.send("reload", this.props.windowId)}
+                    style={{
+                        width: "15px",
+                        height: "15px",
+                        borderRadius: "30px",
+                        border: "1px solid grey",
+                        cursor:"pointer",
+                        marginRight: "10px"  
+                    }}  
+                >  
+                </div>  
+    
+                <div className="no-drag hide"
+                    onClick = {() => ipcRenderer.send("hide", this.props.windowId)} 
+                    style={{     
+                        width: "15px", 
+                        height: "15px",
+                        borderRadius: "30px",
+                        border: "1px solid grey",
+                        cursor:"pointer",
+                        marginRight: "10px"  
+                    }} 
+                >
+                </div>  
+ 
             </div>   
  
-            <div  style={{width:"100%"}}>
-                  
-        <MenuList>
-            <MenuItem 
-            className="no-drag" 
-            onClick={() => this.props.dispatch({
-                type:"selectedCategory",
-                load:"inbox"
-            })}
-            style={{
-                paddingTop:"5px",
-                paddingBottom:"5px", 
-                paddingLeft:"5px", 
-                paddingRight:"5px" 
-            }}> 
-                <ListItemIcon > 
-                <Inbox style={{ color:"dodgerblue" }} />
-                </ListItemIcon> 
-                <ListItemText inset primary="Inbox" />
-            </MenuItem>
-            <div style={{width:"100%",height:"30px"}}></div>
-            <MenuItem 
-            onClick={() => this.props.dispatch({
-                type:"selectedCategory",
-                load:"today"
-            })} 
-            style={{
-                paddingTop:"5px",
-                paddingBottom:"5px",  
-                paddingLeft:"5px", 
-                paddingRight:"5px" 
-            }}>
-                <ListItemIcon >   
-                <Star style={{color:"darkgoldenrod"}}/>   
-                </ListItemIcon>
-                <ListItemText  inset primary="Today" />
-                <div>1</div>
-            </MenuItem>  
+            <div style={{width:"100%"}}>
+                <MenuList> 
+                    <MenuItem 
+                        className="no-drag" 
 
-            <MenuItem 
-            onClick={() => this.props.dispatch({
-                type:"selectedCategory",
-                load:"upcoming" 
-            })}
-            style={{
-                paddingTop:"5px",
-                paddingBottom:"5px", 
-                paddingLeft:"5px", 
-                paddingRight:"5px" 
-            }}> 
-                <ListItemIcon>   
-                    <Calendar style={{color:"crimson"}}/>
-                </ListItemIcon>
-                <ListItemText  inset primary="Upcoming" />
-            </MenuItem>
-            <MenuItem 
-            onClick={() => this.props.dispatch({
-                type:"selectedCategory",
-                load:"anytime"
-            })}  
-            style={{
-                paddingTop:"5px",
-                paddingBottom:"5px", 
-                paddingLeft:"5px", 
-                paddingRight:"5px" 
-            }}> 
-                <ListItemIcon > 
-                <Layers style={{color:"darkgreen"}}/>
-                </ListItemIcon> 
-                <ListItemText  inset primary="Anytime" />
-            </MenuItem> 
-            <MenuItem 
-            onClick={() => this.props.dispatch({
-                type:"selectedCategory",
-                load:"someday" 
-            })} 
-            style={{
-                paddingTop:"5px",
-                paddingBottom:"5px", 
-                paddingLeft:"5px", 
-                paddingRight:"5px" 
-            }}> 
-                <ListItemIcon >      
-                <BusinessCase  style={{color:"burlywood"}}/> 
-                </ListItemIcon>
-                <ListItemText  inset primary="Someday" />
-                <div>5</div>
-            </MenuItem> 
-            <div style={{width:"100%",height:"30px"}}></div>
-            <MenuItem 
-            onClick={() => this.props.dispatch({
-                type:"selectedCategory",load:"logbook"
-            })} 
-            style={{ 
-                paddingTop:"5px",
-                paddingBottom:"5px", 
-                paddingLeft:"5px", 
-                paddingRight:"5px" 
-            }}>  
-                <ListItemIcon> 
-                <Logbook style={{color:"limegreen"}}/> 
-                </ListItemIcon>
-                <ListItemText  inset primary="Logbook" />
-                <div>3</div>
-            </MenuItem> 
-            <MenuItem 
-            onClick={() => this.props.dispatch({
-                type:"selectedCategory",load:"trash"
-            })} 
-            style={{ 
-                paddingTop:"5px",
-                paddingBottom:"5px", 
-                paddingLeft:"5px", 
-                paddingRight:"5px" 
-            }}> 
-                <ListItemIcon>    
-                <Trash style={{color:"darkgray"}}/>
-                </ListItemIcon>
-                <ListItemText  inset primary="Trash" />
-            </MenuItem>
-            <div style={{width:"100%",height:"30px"}}></div>
+                        onClick={() => this.props.dispatch({type:"selectedCategory",load:"inbox"})}
 
-         </MenuList> 
-        </div>   
+                        style={{
+                            paddingTop:"5px",
+                            paddingBottom:"5px", 
+                            paddingLeft:"5px", 
+                            paddingRight:"5px" 
+                        }}
+                    > 
+                        <ListItemIcon >  
+                        <Inbox style={{ color:"dodgerblue" }} />
+                        </ListItemIcon> 
+                        <ListItemText inset primary="Inbox" />
+                        {inbox===0 ? null :
+                        <div style={{
+                            fontFamily: "serif",
+                            fontWeight: 700,
+                            color: "rgba(100,100,100,0.6)"
+                        }}>  
+                           {inbox}
+                        </div>} 
+                    </MenuItem>
+                    <div style={{width:"100%",height:"30px"}}></div>
+                    <MenuItem 
 
+                    onClick={() => this.props.dispatch({type:"selectedCategory",load:"today"})} 
 
+                    style={{
+                        paddingTop:"5px",
+                        paddingBottom:"5px",  
+                        paddingLeft:"5px", 
+                        paddingRight:"5px" 
+                    }}>
+                        <ListItemIcon >   
+                        <Star style={{color:"darkgoldenrod"}}/>   
+                        </ListItemIcon>
+                        <ListItemText  inset primary="Today" />
+                        {today===0 ? null : 
+                        <div style={{
+                            fontFamily: "serif",
+                            fontWeight: 700,
+                            color: "rgba(100,100,100,0.6)"
+                        }}> 
+                            {today}
+                        </div>}
+                    </MenuItem>  
 
+                    <MenuItem 
 
+                    onClick={() => this.props.dispatch({type:"selectedCategory",load:"upcoming"})}
 
-            <div style={{
-                    display: "flex",
-                    flexGrow: 1,
-                    flexDirection: "column" 
-                }}
-                id="projects"
-            >  
-            
-             <div 
-                className="hoverBorder"
-                key={uniqid()} 
-                style={{
-                    height:"20px",
-                    width:"100%",
-                    display:"flex",
-                    alignItems: "center" 
-                }}>  
-                    <IconButton    
-                        iconStyle={{
-                            color:"rgba(109,109,109,0.4)",
-                            width:"18px",
-                            height:"18px"
-                        }}  
-                    >  
-                        <Circle />  
-                    </IconButton> 
-                    <div style={{
-                        fontFamily: "sans-serif",
-                        fontWeight: 600, 
-                        color: "rgba(100,100,100,0.7)",
-                        fontSize:"15px",  
-                        cursor: "default",
-                        WebkitUserSelect: "none" 
+                    style={{
+                        paddingTop:"5px",
+                        paddingBottom:"5px", 
+                        paddingLeft:"5px", 
+                        paddingRight:"5px" 
+                    }}> 
+                        <ListItemIcon>   
+                            <Calendar style={{color:"crimson"}}/>
+                        </ListItemIcon>
+                        <ListItemText  inset primary="Upcoming" />
+                        {upcoming===0 ? null :
+                        <div style={{
+                            fontFamily: "serif",
+                            fontWeight: 700,
+                            color: "rgba(100,100,100,0.6)"
+                        }}>
+                            {upcoming}
+                        </div>}
+                    </MenuItem>
+                    <MenuItem 
+
+                    onClick={() => this.props.dispatch({type:"selectedCategory", load:"anytime"})} 
+
+                    style={{
+                        paddingTop:"5px",
+                        paddingBottom:"5px", 
+                        paddingLeft:"5px", 
+                        paddingRight:"5px" 
+                    }}> 
+                        <ListItemIcon > 
+                        <Layers style={{color:"darkgreen"}}/>
+                        </ListItemIcon> 
+                        <ListItemText  inset primary="Anytime" />
+                        {
+                            anytime===0 ? null :
+                            <div style={{
+                                fontFamily: "serif",
+                                fontWeight: 700,
+                                color: "rgba(100,100,100,0.6)"
+                            }}>
+                                {anytime}
+                            </div>
+                        }
+                    </MenuItem> 
+                    <MenuItem 
+
+                    onClick={() => this.props.dispatch({type:"selectedCategory", load:"someday"})} 
+
+                    style={{
+                        paddingTop:"5px",
+                        paddingBottom:"5px", 
+                        paddingLeft:"5px", 
+                        paddingRight:"5px" 
+                    }}> 
+                        <ListItemIcon >      
+                        <BusinessCase  style={{color:"burlywood"}}/> 
+                        </ListItemIcon>
+                        <ListItemText  inset primary="Someday" />
+                        {
+                            someday===0 ? null :  
+                            <div style={{
+                                fontFamily: "serif",
+                                fontWeight: 700,
+                                color: "rgba(100,100,100,0.6)"
+                            }}>
+                                {someday}
+                            </div>
+                        } 
+                    </MenuItem> 
+                    <div style={{width:"100%",height:"30px"}}></div>
+                    <MenuItem 
+
+                    onClick={() => this.props.dispatch({type:"selectedCategory",load:"logbook"})} 
+
+                    style={{ 
+                        paddingTop:"5px",
+                        paddingBottom:"5px", 
+                        paddingLeft:"5px", 
+                        paddingRight:"5px" 
                     }}>  
-                        New project 
-                    </div>  
-             </div>
-                   
+                        <ListItemIcon> 
+                        <Logbook style={{color:"limegreen"}}/> 
+                        </ListItemIcon>
+                        <ListItemText  inset primary="Logbook" /> 
+                    </MenuItem> 
+                    <MenuItem 
+
+                    onClick={() => this.props.dispatch({type:"selectedCategory",load:"trash"})} 
+
+                    style={{ 
+                        paddingTop:"5px",
+                        paddingBottom:"5px", 
+                        paddingLeft:"5px", 
+                        paddingRight:"5px" 
+                    }}> 
+                        <ListItemIcon>    
+                        <Trash style={{color:"darkgray"}}/>
+                        </ListItemIcon>
+                        <ListItemText  inset primary="Trash" />
+                    </MenuItem>
+                    <div style={{width:"100%",height:"30px"}}></div>
+                </MenuList> 
+            </div>   
+
+
+
+
+
+
+
+            <div 
+                style={{display: "flex", flexGrow: 1,  flexDirection: "column" }}
+                id="projects"   
+            >  
+               
+             {
+                 this.props.projects.map((p) => 
+                    <div 
+                        onClick = {this.selectProject(p)}
+                        className="hoverBorder" 
+                        style={{  
+                            marginLeft:"4px",
+                            marginRight:"4px", 
+                            height:"20px",
+                            width:"95%",
+                            display:"flex",
+                            alignItems: "center" 
+                        }}
+                    >    
+                            <IconButton    
+                                iconStyle={{
+                                    color:"rgba(109,109,109,0.4)",
+                                    width:"18px",
+                                    height:"18px"
+                                }}  
+                            >  
+                                <Circle />  
+                            </IconButton> 
+                            <div style={{
+                                fontFamily: "sans-serif",
+                                fontWeight: 600, 
+                                color: "rgba(100,100,100,0.7)",
+                                fontSize:"15px",  
+                                cursor: "default",
+                                WebkitUserSelect: "none" 
+                            }}>   
+                                {p.name}
+                            </div>  
+                    </div>
+                 )
+             }
+
+            </div>
+ 
+
+
+
+
+
+            <div 
+                style={{display: "flex", flexGrow: 1,  flexDirection: "column" }}
+                id="areas"   
+            >  
+               
+             {
+                 this.props.areas.map((a) => 
+                    <div 
+                        onClick = {this.selectArea(a)}
+                        className="hoverBorder" 
+                        style={{  
+                            marginLeft:"4px",
+                            marginRight:"4px", 
+                            height:"20px",
+                            width:"95%",
+                            display:"flex",
+                            alignItems: "center"  
+                        }}
+                    >    
+                            <IconButton    
+                                iconStyle={{
+                                    color:"rgba(109,109,109,0.4)",
+                                    width:"18px",
+                                    height:"18px"
+                                }}  
+                            >   
+                                <NewAreaIcon />
+                            </IconButton> 
+                            <div style={{
+                                fontFamily: "sans-serif",
+                                fontWeight: 600, 
+                                color: "rgba(100,100,100,0.7)",
+                                fontSize:"15px",  
+                                cursor: "default",
+                                WebkitUserSelect: "none" 
+                            }}>   
+                                {a.name}
+                            </div>  
+                    </div>
+                 )
+             }
+
             </div>
 
-      
+
+
+
+
+
 
             <NewProjectAreaPopover 
                 anchor={this.newProjectAnchor}
                 open={this.props.openNewProjectAreaPopover}
-                close={ 
-                    () => this.props.dispatch({
-                        type:"openNewProjectAreaPopover",
-                        load:false 
-                    })
-                }
+                close={() => this.props.dispatch({type:"openNewProjectAreaPopover",load:false})} 
                 onNewProjectClick={this.onNewProjectClick}
                 onNewAreaClick={this.onNewAreaClick}
             />
  
-        
- 
+         
             <div style={{    
                 display: "flex",
                 alignItems: "center",  
                 position: "sticky",
                 width: "100%",
                 justifyContent: "space-around",  
-                bottom: "0px",
+                bottom: "0px", 
                 height: "60px",
                 backgroundColor: "rgba(235, 235, 235, 1)",
                 borderTop: "1px solid rgba(100, 100, 100, 0.2)"
             }}>   
 
-                <div 
-                ref = {(e) => {this.newProjectAnchor=e}}
-                style={{       
-                    display: "flex",  
-                    alignItems: "center"    
-                }}>  
-                    <IconButton   
-                    onClick = {() => this.props.dispatch({
-                        type:"openNewProjectAreaPopover",
-                        load:true 
-                    })}    
-                    iconStyle={{     
-                        color:"rgb(79, 79, 79)",
-                        width:"25px",
-                        height:"25px"    
-                    }}>       
+                <div  
+                    ref = {(e) => {this.newProjectAnchor=e}}
+                    style={{display: "flex", alignItems: "center"}}
+                >    
+                    <IconButton     
+                        onClick = {() => this.props.dispatch({type:"openNewProjectAreaPopover",load:true})}    
+                        iconStyle={{     
+                            color:"rgb(79, 79, 79)",
+                            width:"25px",
+                            height:"25px"    
+                        }}
+                    >       
                         <Plus />  
                     </IconButton>
                     <div style={{
@@ -386,11 +505,11 @@ export class LeftPanel extends Component<any,{}>{
                     </IconButton>  
                 </div>    
             </div> 
-       </div> 
+       </div>   
     };   
-    
 };  
  
+   
+  
+
  
-
-

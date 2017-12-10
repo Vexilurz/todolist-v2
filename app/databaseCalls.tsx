@@ -1,90 +1,115 @@
-import * as React from 'react';
+import './assets/styles.css'; 
+import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, 
     compose, append, contains, and, find, defaultTo, addIndex, split, filter, 
     clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, groupBy, concat, flatten, ifElse 
-} from 'ramda';
-import RaisedButton from 'material-ui/RaisedButton';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import CircularProgress from 'material-ui/CircularProgress'; 
-import * as injectTapEventPlugin from 'react-tap-event-plugin';
-import {
-  cyan500, cyan700,   
-  pinkA200,
-  grey100, grey300, grey400, grey500,
-  white, darkBlack, fullBlack,
-} from 'material-ui/styles/colors'; 
-import {fade} from 'material-ui/utils/colorManipulator';
-import FlatButton from 'material-ui/FlatButton';
-import spacing from 'material-ui/styles/spacing'; 
-import SelectField from 'material-ui/SelectField';
-import MenuItem from 'material-ui/MenuItem';
-import TextField from 'material-ui/TextField';
-import Checkbox from 'material-ui/Checkbox';
-import getMuiTheme from 'material-ui/styles/getMuiTheme';
-import AutoComplete from 'material-ui/AutoComplete';
-import './assets/styles.css';  
+} from 'ramda';  
 import { ipcRenderer } from 'electron';
-import Dialog from 'material-ui/Dialog';
-import FloatingActionButton from 'material-ui/FloatingActionButton';
-import Divider from 'material-ui/Divider';
-import AppBar from 'material-ui/AppBar'; 
-import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from 'material-ui/Toolbar';
-import DropDownMenu from 'material-ui/DropDownMenu'; 
-import IconMenu from 'material-ui/IconMenu';
-import IconButton from 'material-ui/IconButton'; 
-import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
-import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
-import { Component } from "react"; 
-import Paper from 'material-ui/Paper';
-import { DraggableCore, DraggableEventHandler, DraggableData } from 'react-draggable';
-import * as Draggable from 'react-draggable'; 
-import { wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps} from "./utils"; 
-import { SortableContainer, SortableElement, arrayMove } from 'react-sortable-hoc';
-import { createStore, combineReducers } from "redux"; 
-import { Provider, connect } from "react-redux";
-//import Chip from 'material-ui-next/Chip'; 
-import Chip from 'material-ui/Chip';
-import Star from 'material-ui/svg-icons/toggle/star';
-import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
-import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
-import CheckBox from 'material-ui/svg-icons/toggle/check-box'; 
-import BusinessCase from 'material-ui/svg-icons/places/business-center';
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
-import Layers from 'material-ui/svg-icons/maps/layers';
-import Adjustments from 'material-ui/svg-icons/image/tune';
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import Flag from 'material-ui/svg-icons/image/assistant-photo';
-import Plus from 'material-ui/svg-icons/content/add';
-import Trash from 'material-ui/svg-icons/action/delete';
-import Search from 'material-ui/svg-icons/action/search'; 
-import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import Calendar from 'material-ui/svg-icons/action/date-range';
-import Logbook from 'material-ui/svg-icons/av/library-books';
-import Clear from 'material-ui/svg-icons/content/clear';
 import PouchDB from 'pouchdb-browser';  
+import { ChecklistItem } from './Components/TodoInput';
 
 
-import { todos_db } from './app';
-let uniqid = require("uniqid");
+
+let todos_db = new PouchDB('todos');
+let projects_db = new PouchDB('projects');
+let areas_db = new PouchDB('areas');
+let events_db = new PouchDB('events');  // ?
+
+ 
+
+let getItemFromStorage = (key:string) : Promise<any> => new Promise(
+  resolve => {
+      ipcRenderer.removeAllListeners("getItemFromStorage"); 
+      
+      ipcRenderer.send("getItemFromStorage", key); 
+
+      ipcRenderer.once("getItemFromStorage", (item) => { 
+          resolve(item); 
+      });   
+  }  
+);
+
+
+
+let addItemToStorage = (key:string, item:any) : Promise<void> => new Promise(
+  resolve => {
+      ipcRenderer.removeAllListeners("addItemToStorage"); 
+      
+      ipcRenderer.send("addItemToStorage", {key,item}); 
+
+      ipcRenderer.once("addItemToStorage", () => { 
+          resolve(); 
+      });   
+  }  
+);  
+
+
+let removeItemFromStorage = (key:string) : Promise<void> => new Promise(
+  resolve => {
+    ipcRenderer.removeAllListeners("removeItemFromStorage"); 
+    
+    ipcRenderer.send("removeItemFromStorage", key); 
+
+    ipcRenderer.once("removeItemFromStorage", () => { 
+        resolve(); 
+    });   
+  }
+)
+
+
+
+let clearStorage = () : Promise<void> => new Promise(
+  resolve => {
+    ipcRenderer.removeAllListeners("clearStorage"); 
+    
+    ipcRenderer.send("clearStorage"); 
+ 
+    ipcRenderer.once("clearStorage", () => { 
+        resolve(); 
+    });    
+  }
+)
+
+
+
+let getEverythingFromStorage = () : Promise<any> => new Promise(
+  resolve => {
+    ipcRenderer.removeAllListeners("getEverythingFromStorage"); 
+    
+    ipcRenderer.send("getEverythingFromStorage"); 
+ 
+    ipcRenderer.once("getEverythingFromStorage", (everything) => { 
+        resolve(everything); 
+    });    
+  } 
+)
+
+
+
 
 
 export let generateID = () => new Date().toJSON(); 
 
+ 
+interface Heading{
+  title : string, 
+  attachedTodos : string[],
+}
 
 export interface Project{
   _id : string, 
-  attachedTodos : string[],
+  attachedTodos : Todo[],
   name : string,
+  headings : Heading[],
   description : string 
 }
  
  
 export interface Area{
   _id : string, 
-  attachedTodos : string[],
-  attachedProjects : string[],
+  attachedTodos : Todo[], 
+  attachedProjects : Project[],
   name : string,  
   description : string 
 }
@@ -95,13 +120,16 @@ export interface Todo{
   category : string, 
   title : string,
   priority : number,
-  notes : string[],
-  attachedProdjects : string[],
+  note : string,  
+  checklist : ChecklistItem[],
+  reminder : any, 
+  attachedProjects : string[],
   attachedTags : string[],
   status : string,
   deadline : Date,
   created : Date,
   deleted : Date,
+  attachedDate : Date, 
   fulfilled : Date, 
   history : {
       action : string,
@@ -116,7 +144,7 @@ export interface Event{
   _id : string,
   title : string,
   notes : string[],
-  attachedProdjects : string[],
+  attachedProjects : string[],
   attachedTags : string[],
   date:Date,
   location:string,  
@@ -137,14 +165,23 @@ interface Query<T>{
 
 interface QueryResult<T>{
   doc:T,
-  id:string,
+  id:string, 
   key:string,
   value:Object 
 }
 
 
+let duplicateToStorage = (item:any,db:any) : Promise<void> => {
+    let key = item._id;
+    let load = {db:db.name,doc:item};
+    return addItemToStorage(key, load).then(
+      () => getEverythingFromStorage()
+    ).then(
+      (storage) => console.log("updated storage", storage) 
+    );
+} 
 
-
+   
 
 
 function queryToObjects<T>(query:Query<T>){
@@ -159,22 +196,21 @@ function queryToObjects<T>(query:Query<T>){
 }
 
 
-
+ 
 function setItemToDatabase<T>(
-  middleware:Function,
   onError:Function, 
   db:any
-){
+){ 
   return function(item:T) : Promise<void>{
 
-      middleware(item,db);     
+      //duplicateToStorage(item,db);     
 
       return db.put(item).catch(onError);
 
   }  
 }  
-
-
+ 
+ 
 
 
 export function removeObject<T>(
@@ -227,8 +263,7 @@ function getItems<T>(
 
 
 function getItemsRange<T>(
-  onError:Function, 
-  db:any
+  onError:Function, db:any
 ){ 
   return function(
     descending,
@@ -272,11 +307,151 @@ function updateItemInDatabase<T>(
 
  
 
+
+
+
+
+
+
+
+
+
+
+
+
+export let addArea = (onError:Function, area : Area) : Promise<void> => 
+      setItemToDatabase<Area>(
+        (e) => console.log(e), 
+        areas_db
+      )(area);
+
+
+
+
+
+export let removeArea = (item_id:string) : Promise<void> =>
+      removeObject<string>(
+        () => {},
+        (e) => console.log(e), 
+        areas_db
+      )(item_id); 
+
+
+
+
+
+
+export let getAreaById = (onError:Function, _id : string) : Promise<Area> => 
+      getItemFromDatabase<Area>(
+        (e) => console.log(e), 
+        areas_db
+      )(_id); 
+
+
+
+
+
+export let updateArea = (_id : string, replacement : Area, onError:Function) : Promise<Area> => 
+      updateItemInDatabase<Area>(
+        () => {},
+        (e) => console.log(e), 
+        areas_db
+      )(_id, replacement); 
+
  
+
+ 
+
+export let getAreasRange = (onError:Function) =>
+      (
+        descending, 
+        limit,
+        start,
+        end
+      ) : Promise<Area[]>=> 
+        getItemsRange<Area>(
+            onError, 
+            areas_db
+        )( 
+            descending,
+            limit,
+            start,
+            end  
+        ).then(
+            queryToAreas
+        )
+             
+
+
+
+
+export let addProject= (onError:Function, project : Project) : Promise<void> => 
+      setItemToDatabase<Project>(
+        (e) => console.log(e), 
+        projects_db
+      )(project);
+
+ 
+
+export let removeProject = (item_id:string) : Promise<void> =>
+      removeObject<string>(
+        () => {},
+        (e) => console.log(e), 
+        projects_db
+      )(item_id); 
+
+
+
+export let getProjectById = (onError:Function, _id : string) : Promise<Project> => 
+      getItemFromDatabase<Project>(
+        (e) => console.log(e), 
+        projects_db
+      )(_id); 
+
+
+
+export let updateProject = (_id : string, replacement : Project, onError:Function) : Promise<Project> => 
+      updateItemInDatabase<Project>(
+        () => {},
+        (e) => console.log(e), 
+        todos_db
+      )(_id, replacement); 
+
+
+
+
+export let getProjectRange = (onError:Function) =>
+      (
+        descending, 
+        limit,
+        start,
+        end
+      ) : Promise<Project[]>=> 
+        getItemsRange<Project>(
+            onError, 
+            todos_db
+        )( 
+            descending,
+            limit,
+            start,
+            end  
+        ).then(
+            queryToProjects
+        )
+                  
+
+
+
+
+export let getProject = (onError:Function) => (descending,limit) : Promise<Query<Project>> => 
+           getItems<Project>(onError,  projects_db)(descending,limit);
+     
+
+
+
 
 export let addTodo = (onError:Function, todo : Todo) : Promise<void> => 
            setItemToDatabase<Todo>(
-              () => {},
               (e) => console.log(e), 
               todos_db
            )(todo);
@@ -344,8 +519,11 @@ export let getTodos = (onError:Function) => (descending,limit) : Promise<Query<T
       limit
     )
          
-
+ 
  
 
 export let queryToTodos = (query:Query<Todo>) => queryToObjects<Todo>(query); 
  
+export let queryToProjects = (query:Query<Project>) => queryToObjects<Project>(query); 
+
+export let queryToAreas = (query:Query<Area>) => queryToObjects<Area>(query); 

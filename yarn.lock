@@ -293,7 +293,7 @@ async@^1.3.0:
   version "1.5.2"
   resolved "https://registry.yarnpkg.com/async/-/async-1.5.2.tgz#ec6a61ae56480c0c3cb241c95618e20892f9672a"
 
-async@^2.1.2, async@^2.5.0:
+async@^2.0.0, async@^2.1.2, async@^2.5.0:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/async/-/async-2.5.0.tgz#843190fd6b7357a0b9e1c956edddd5ec8462b54d"
   dependencies:
@@ -1314,7 +1314,7 @@ class-utils@^0.3.5:
     lazy-cache "^2.0.2"
     static-extend "^0.1.1"
 
-classnames@^2.2.3, classnames@^2.2.5:
+classnames@^2.2.5:
   version "2.2.5"
   resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.5.tgz#fb3801d453467649ef3603c7d61a02bd129bde6d"
 
@@ -2031,6 +2031,16 @@ electron-download@^3.0.1:
     semver "^5.3.0"
     sumchecker "^1.2.0"
 
+electron-json-storage@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/electron-json-storage/-/electron-json-storage-4.0.2.tgz#c0d662ccd01bc6567d6078f17a6842ac74328ce4"
+  dependencies:
+    async "^2.0.0"
+    lodash "^4.0.1"
+    mkdirp "^0.5.1"
+    rimraf "^2.5.1"
+    rwlock "^5.0.0"
+
 electron-osx-sign@0.4.7:
   version "0.4.7"
   resolved "https://registry.yarnpkg.com/electron-osx-sign/-/electron-osx-sign-0.4.7.tgz#1d75647a82748eacd48bea70616ec83ffade3ee5"
@@ -2068,15 +2078,7 @@ electron-winstaller@^2.6.3:
     lodash.template "^4.2.2"
     temp "^0.8.3"
 
-electron@*:
-  version "1.7.9"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-1.7.9.tgz#add54e9f8f83ed02f6519ec10135f698b19336cf"
-  dependencies:
-    "@types/node" "^7.0.18"
-    electron-download "^3.0.1"
-    extract-zip "^1.0.3"
-
-electron@1.7.8:
+electron@*, electron@1.7.8:
   version "1.7.8"
   resolved "https://registry.yarnpkg.com/electron/-/electron-1.7.8.tgz#27b791a6895171a7d52991b99442cdbd10a3539d"
   dependencies:
@@ -3470,10 +3472,6 @@ loader-utils@^1.0.2, loader-utils@^1.1.0:
     emojis-list "^2.0.0"
     json5 "^0.5.0"
 
-loaders.css@^0.1.2:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/loaders.css/-/loaders.css-0.1.2.tgz#3a9fb43726c73334a38142af9d0629019b658743"
-
 locate-path@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/locate-path/-/locate-path-2.0.0.tgz#2b568b265eec944c6d9c0de9c3dbbbca0354cd8e"
@@ -3575,10 +3573,6 @@ lodash.memoize@^4.1.2:
 lodash.merge@^4.4.0, lodash.merge@^4.6.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.0.tgz#69884ba144ac33fe699737a6086deffadd0f89c5"
-
-lodash.once@^4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/lodash.once/-/lodash.once-4.1.1.tgz#0dd3971213c7c56df880977d504c88fb471a97ac"
 
 lodash.pick@^4.2.1:
   version "4.4.0"
@@ -3780,10 +3774,6 @@ meow@^3.1.0:
     read-pkg-up "^1.0.1"
     redent "^1.0.0"
     trim-newlines "^1.0.0"
-
-merge-class-names@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/merge-class-names/-/merge-class-names-1.1.1.tgz#3bd2f38eb5418c464a0fef615484fdf6c8932256"
 
 microbuffer@^1.0.0:
   version "1.0.0"
@@ -4814,7 +4804,7 @@ promise@^7.1.1:
   dependencies:
     asap "~2.0.3"
 
-prop-types@>=15.5, prop-types@^15.5.10, prop-types@^15.5.6, prop-types@^15.5.7, prop-types@^15.5.8, prop-types@^15.6.0:
+prop-types@15.x, prop-types@^15.5.10, prop-types@^15.5.6, prop-types@^15.5.7, prop-types@^15.5.8, prop-types@^15.6.0:
   version "15.6.0"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.6.0.tgz#ceaf083022fc46b4a35f69e13ef75aed0d639856"
   dependencies:
@@ -4936,16 +4926,6 @@ react-addons-test-utils@^15.6.0:
   version "15.6.2"
   resolved "https://registry.yarnpkg.com/react-addons-test-utils/-/react-addons-test-utils-15.6.2.tgz#c12b6efdc2247c10da7b8770d185080a7b047156"
 
-react-calendar@^2.6.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/react-calendar/-/react-calendar-2.6.0.tgz#d0e5ffad05121481eb22f3d8b898d44913d4f85a"
-  dependencies:
-    lodash.once "^4.1.1"
-    merge-class-names "^1.1.1"
-    prop-types ">=15.5"
-    react ">=15.5"
-    react-dom ">=15.5"
-
 react-color@^2.13.8:
   version "2.13.8"
   resolved "https://registry.yarnpkg.com/react-color/-/react-color-2.13.8.tgz#bcc58f79a722b9bfc37c402e68cd18f26970aee4"
@@ -4963,7 +4943,7 @@ react-day-picker@^7.0.4:
     object-assign "^4.1.1"
     prop-types "^15.6.0"
 
-react-dom@>=15.5, react-dom@^15.6.1:
+react-dom@^15.6.1:
   version "15.6.2"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-15.6.2.tgz#41cfadf693b757faf2708443a1d1fd5a02bef730"
   dependencies:
@@ -4972,11 +4952,12 @@ react-dom@>=15.5, react-dom@^15.6.1:
     object-assign "^4.1.0"
     prop-types "^15.5.10"
 
-react-draggable@^2.2.6:
-  version "2.2.6"
-  resolved "https://registry.yarnpkg.com/react-draggable/-/react-draggable-2.2.6.tgz#3a806e10f2da6babfea4136be6510e89b0d76901"
+"react-draggable@^2.2.6 || ^3.0.3", react-draggable@^3.0.4:
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/react-draggable/-/react-draggable-3.0.4.tgz#71cff58441e0fa2be9e1cd88f66718a8495210f7"
   dependencies:
     classnames "^2.2.5"
+    prop-types "^15.6.0"
 
 react-event-listener@^0.5.0, react-event-listener@^0.5.1:
   version "0.5.1"
@@ -5019,6 +5000,13 @@ react-redux@^5.0.6:
     loose-envify "^1.1.0"
     prop-types "^15.5.10"
 
+react-resizable@^1.7.5:
+  version "1.7.5"
+  resolved "https://registry.yarnpkg.com/react-resizable/-/react-resizable-1.7.5.tgz#83eb75bb3684da6989bbbf4f826e1470f0af902e"
+  dependencies:
+    prop-types "15.x"
+    react-draggable "^2.2.6 || ^3.0.3"
+
 react-scrollbar-size@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/react-scrollbar-size/-/react-scrollbar-size-2.0.2.tgz#237dd091fa39dec8e3a6f720807787703c5ebf9e"
@@ -5039,15 +5027,6 @@ react-sortable-hoc@0.6.7:
     invariant "^2.2.1"
     lodash "^4.12.0"
     prop-types "^15.5.7"
-
-react-spinkit@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/react-spinkit/-/react-spinkit-3.0.0.tgz#31fdaf4e18177766c57d1b1f3330290f8492a85a"
-  dependencies:
-    classnames "^2.2.3"
-    loaders.css "^0.1.2"
-    object-assign "^4.1.0"
-    prop-types "^15.5.8"
 
 react-tap-event-plugin@^2.0.1:
   version "2.0.1"
@@ -5091,15 +5070,7 @@ react-transition-group@^2.2.1:
     prop-types "^15.5.8"
     warning "^3.0.0"
 
-react-weui@^1.1.3:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/react-weui/-/react-weui-1.1.3.tgz#d40601c80c44d9cb7852c301f2b0ef24dd8488b4"
-  dependencies:
-    babel-runtime "^6.18.0"
-    prop-types "^15.5.10"
-    weui "^1.1.0"
-
-react@>=15.5, react@^15.6.1:
+react@^15.6.1:
   version "15.6.2"
   resolved "https://registry.yarnpkg.com/react/-/react-15.6.2.tgz#dba0434ab439cfe82f108f0f511663908179aa72"
   dependencies:
@@ -5431,11 +5402,9 @@ roboto-fontface@^0.7.1:
   version "0.7.1"
   resolved "https://registry.yarnpkg.com/roboto-fontface/-/roboto-fontface-0.7.1.tgz#94f97b7ee999b11dd0711092a26425826cb282f7"
 
-rxjs@^5.4.2:
-  version "5.5.2"
-  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.5.2.tgz#28d403f0071121967f18ad665563255d54236ac3"
-  dependencies:
-    symbol-observable "^1.0.1"
+rwlock@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/rwlock/-/rwlock-5.0.0.tgz#888d6a77a3351cc1a209204ef2ee1722093836cf"
 
 safe-buffer@^5.0.1, safe-buffer@^5.1.0, safe-buffer@^5.1.1, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   version "5.1.1"
@@ -5865,7 +5834,7 @@ symbol-observable@^0.2.2:
   version "0.2.4"
   resolved "https://registry.yarnpkg.com/symbol-observable/-/symbol-observable-0.2.4.tgz#95a83db26186d6af7e7a18dbd9760a2f86d08f40"
 
-symbol-observable@^1.0.1, symbol-observable@^1.0.3, symbol-observable@^1.0.4:
+symbol-observable@^1.0.3, symbol-observable@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/symbol-observable/-/symbol-observable-1.0.4.tgz#29bf615d4aa7121bdd898b22d4b3f9bc4e2aa03d"
 
@@ -6379,10 +6348,6 @@ webpack@^2.7.0:
     watchpack "^1.3.1"
     webpack-sources "^1.0.1"
     yargs "^6.0.0"
-
-weui@^1.1.0:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/weui/-/weui-1.1.2.tgz#e33f771e2248edfe0fd07a2c6eadb3e7931a00cc"
 
 whatwg-fetch@>=0.10.0:
   version "2.0.3"

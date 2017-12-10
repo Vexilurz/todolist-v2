@@ -1,10 +1,9 @@
+import './assets/styles.css';     
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { map, range, merge, isEmpty, curry, cond, compose, contains, and, or,
     find, defaultTo, split, filter, clone, take, drop, splitAt, last, isNil, toUpper, prepend, uniq, flatten, prop, toPairs } from 'ramda';
-import RaisedButton from 'material-ui/RaisedButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import * as injectTapEventPlugin from 'react-tap-event-plugin';
 import {
   cyan500, cyan700,   
   pinkA200,
@@ -12,38 +11,11 @@ import {
   white, darkBlack, fullBlack, 
 } from 'material-ui/styles/colors'; 
 import {fade} from 'material-ui/utils/colorManipulator';
-import FlatButton from 'material-ui/FlatButton';
 import spacing from 'material-ui/styles/spacing'; 
-import SelectField from 'material-ui/SelectField';
-import MenuItem from 'material-ui/MenuItem';
-import TextField from 'material-ui/TextField';
-import Checkbox from 'material-ui/Checkbox';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
-import ActionFavorite from 'material-ui/svg-icons/action/favorite';
-import ActionFavoriteBorder from 'material-ui/svg-icons/action/favorite-border';
-import AutoComplete from 'material-ui/AutoComplete';
-import './assets/styles.css';     
-import { ipcRenderer } from 'electron';
-import Dialog from 'material-ui/Dialog';
-import FloatingActionButton from 'material-ui/FloatingActionButton';
-import ContentClear from 'material-ui/svg-icons/content/clear';
-import MenuIcon from 'material-ui/svg-icons/navigation/menu';
-import Divider from 'material-ui/Divider';
-import AppBar from 'material-ui/AppBar'; 
-import { Toolbar, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from 'material-ui/Toolbar';
-import DropDownMenu from 'material-ui/DropDownMenu'; 
-import IconMenu from 'material-ui/IconMenu';
-import IconButton from 'material-ui/IconButton'; 
-import Play from 'material-ui/svg-icons/av/play-circle-outline';
-import Pause from 'material-ui/svg-icons/av/pause-circle-outline';
-import Clear from 'material-ui/svg-icons/content/clear';
-import Remove from 'material-ui/svg-icons/content/remove'; 
-import Face from 'material-ui/svg-icons/social/sentiment-very-satisfied';   
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
-import ClearArrow from 'material-ui/svg-icons/content/backspace';   
-import Menu from 'material-ui/Menu';
-import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
+
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
@@ -64,32 +36,12 @@ import Search from 'material-ui/svg-icons/action/search';
 import List from 'material-ui/svg-icons/action/list'; 
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
-import Moon from 'material-ui/svg-icons/image/brightness-3';
 import Logbook from 'material-ui/svg-icons/av/library-books';
-import { Component } from "react"; 
-import { DraggableCore, DraggableEventHandler, DraggableData } from 'react-draggable';
-import FullScreen from 'material-ui/svg-icons/image/crop-square';
-import SmallScreen from 'material-ui/svg-icons/image/filter-none';
-import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
-import { Observable } from 'rxjs/Rx';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
 import { getTodos, queryToTodos, Todo, updateTodo } from './databaseCalls';
-import { InboxBlock } from './MainBlocks/InboxBlock';
-import { TodayBlock } from './MainBlocks/TodayBlock';
-import { UpcomingBlock } from './MainBlocks/UpcomingBlock';
-import { AnytimeBlock } from './MainBlocks/AnytimeBlock';
-import { SomedayBlock } from './MainBlocks/SomedayBlock';
-import { LogbookBlock } from './MainBlocks/LogbookBlock';
-import { TrashBlock } from './MainBlocks/TrashBlock';
-import { ProjectBlock } from './MainBlocks/ProjectBlock';
-import { AreaBlock } from './MainBlocks/AreaBlock';
 import { Category } from './MainContainer';
-let path = require("path");
-var uniqid = require('uniqid');    
-
 
  
-
 
 export let chooseIcon = (selectedCategory:Category) => {
     switch(selectedCategory){
@@ -98,43 +50,71 @@ export let chooseIcon = (selectedCategory:Category) => {
                 color:"dodgerblue", 
                 width:"50px",
                 height:"50px" 
-            }} />;
+            }} /> 
+
         case "today":
             return <Star style={{
                 color:"gold", 
                 width:"50px",
                 height:"50px" 
             }}/>
+
         case "upcoming":
             return <CalendarIco style={{
                 color:"crimson", 
                 width:"50px",
                 height:"50px"
             }}/>
+
         case "anytime":
             return <Layers style={{
                 color:"darkgreen", 
                 width:"50px",
                 height:"50px"
             }}/>
+
         case "someday":
             return <BusinessCase  style={{
                 color:"burlywood", 
                 width:"50px",
                 height:"50px"
             }}/> 
+
         case "logbook":
             return <Logbook style={{
                 color:"limegreen", 
                 width:"50px",
                 height:"50px"
             }}/>  
+
         case "trash":
             return <Trash style={{
                 color:"darkgray", 
                 width:"50px",
                 height:"50px" 
             }}/>
+
+        case "project":  
+            return <div style={{ 
+                width:"40px",    
+                height:"40px", 
+                borderRadius:"100px",
+                border:"5px solid rgba(108, 135, 222, 0.8)",
+                boxSizing:"border-box",
+                marginRight:"5px",
+                marginLeft:"5px" 
+            }}> 
+            </div>
+
+        case "area":
+            return <NewAreaIcon 
+                style={{
+                    color:"lightblue", 
+                    width:"50px",
+                    height:"50px"
+                }}
+            />    
+             
         default:
             return <Inbox style={{ 
                 color:"dodgerblue", 
@@ -199,9 +179,12 @@ export let applyDropStyle = (elem:Element, {x,y}) => {
 
 export let getTagsFromTodos = (todos:Todo[]) : string[] => compose(
     uniq,    
-    prepend("All"),
     flatten, 
-    map(prop("attachedTags")),
+    prepend([
+      "All", "Work", "Home",
+      "Priority", "High", "Medium","Low"
+    ]),
+    map(prop("attachedTags")), 
     filter((v)  => !!v)
 )(todos) as any;
   
@@ -209,34 +192,6 @@ export let getTagsFromTodos = (todos:Todo[]) : string[] => compose(
  
 
 
-
-export let selectCategoryBlock = (
-    selectedCategory:Category,
-    rootRef:HTMLElement 
-) : JSX.Element => { 
-    switch(selectedCategory){
-        case "inbox":
-            return <InboxBlock rootRef={rootRef}/>; 
-        case "today": 
-            return <TodayBlock rootRef={rootRef}/>;
-        case "upcoming":
-            return <UpcomingBlock rootRef={rootRef}/>; 
-        case "anytime": 
-            return <AnytimeBlock rootRef={rootRef}/>; 
-        case "someday": 
-            return <SomedayBlock rootRef={rootRef}/>; 
-        case "logbook":
-            return <LogbookBlock rootRef={rootRef}/>;  
-        case "trash": 
-            return <TrashBlock rootRef={rootRef}/>; 
-        case "project": 
-            return <ProjectBlock rootRef={rootRef}/>; 
-        case "area": 
-            return <AreaBlock rootRef={rootRef}/>; 
-        default:
-            return <InboxBlock rootRef={rootRef}/>;   
-    }
-}    
 
 
 
@@ -249,16 +204,16 @@ export let attachDispatchToProps = (dispatch,props) => merge({dispatch},props);
 
 
 
-export let debounce = (fun, mil=1000) => {
+export let debounce = (fun, mil=50) => {
     let timer; 
-    return function(load){
+    return function(...load){
         clearTimeout(timer); 
         timer = setTimeout(function(){
-            fun(load); 
+            fun(...load); 
         }, mil); 
-    }; 
+    };  
 }; 
-
+ 
 
 
 
@@ -279,7 +234,9 @@ export let stringToLength = (s : string, length : number) : string => {
 
 
 
-export let uppercase = (str:string) => toUpper(str.substring(0,1)) + str.substring(1,str.length);
+export let uppercase = (str:string) => {
+   return toUpper(str.substring(0,1)) + str.substring(1,str.length);
+};
  
 
 
@@ -307,7 +264,7 @@ export let wrapCustomMuiTheme = (component : JSX.Element) : JSX.Element =>
     </MuiThemeProvider>;  
 
 
-
+ 
 
 export const muiTheme = getMuiTheme({ 
   spacing: spacing,  
