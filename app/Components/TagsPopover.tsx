@@ -30,48 +30,46 @@ export class TagsPopover extends Component<any,any>{
 
     
         render(){ 
-            return <Popover 
-                className="nocolor"
-                style={{
-                    backgroundColor:"rgba(0,0,0,0)",
-                    background:"rgba(0,0,0,0)",
-                    borderRadius:"10px"
-                }}   
+            return <Popover  
                 open={this.props.open}
+                style={{background:"rgba(39, 43, 53, 0)", backgroundColor:"rgb(39, 43, 53, 0)"}}
                 anchorEl={this.props.anchorEl}
-                //anchorReference={anchorReference}
-                //anchorPosition={{ top: positionTop, left: positionLeft }}
                 onRequestClose={() => this.props.close()}
                 anchorOrigin={this.props.origin} 
                 targetOrigin={this.props.point} 
-                //transformOrigin={this.props.point}
-            >   
-                <div  
-                className={"darkscroll"}
-                style={{  
-                    backgroundColor: "rgb(39, 43, 53)",
-                    paddingRight: "10px",
-                    paddingLeft: "10px",
-                    borderRadius: "10px",
-                    paddingTop: "5px",
-                    paddingBottom: "5px",
-                    maxHeight:"150px",
-                    cursor:"pointer" 
-                }}>   
-                   { 
-                    map((tag:string) => 
-                        <div  
-                            key={tag}
-                            onClick={() => this.props.attachTag(tag)} 
-                            className={"tagItem"} style={{display:"flex", height:"auto"}}
-                        >  
-                            <TriangleLabel style={{color:"gainsboro"}}/> 
-                            <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                                {tag}   
-                            </div>     
-                        </div>
-                    )(this.props.tags)
-                    } 
+                zDepth={0}
+            >     
+                <div className={"darkscroll"}
+                        style={{  
+                            borderRadius:"10px"
+                        }}> 
+                    <div    
+                        className={"darkscroll"}
+                        style={{  
+                            backgroundColor: "rgb(39, 43, 53)",
+                            paddingRight: "10px",
+                            paddingLeft: "10px",
+                            paddingTop: "5px",
+                            paddingBottom: "5px",
+                            maxHeight:"150px",
+                            cursor:"pointer" 
+                        }}
+                    >    
+                        { 
+                            map((tag:string) => 
+                                <div  
+                                    key={tag}
+                                    onClick={() => this.props.attachTag(tag)} 
+                                    className={"tagItem"} style={{display:"flex", height:"auto"}}
+                                >  
+                                    <TriangleLabel style={{color:"gainsboro"}}/> 
+                                    <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                                        {tag}   
+                                    </div>     
+                                </div>
+                            )(this.props.tags)
+                        } 
+                    </div>  
                 </div>  
             </Popover> 
         } 

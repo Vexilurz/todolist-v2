@@ -49,24 +49,39 @@ export class ListType extends Component<ListTypeProps,ListTypeState>{
         super(props); 
         this.state={show:false}
     }
- 
 
-    openTodoInput = (e) => { 
-        e.stopPropagation();
-        if(this.props.rootRef) 
-            this.props.rootRef.scrollTop = 0;  
- 
-    };    
- 
-     
-    closeTodoInput = () => {
-        if(this.props.rootRef) 
-            this.props.rootRef.scrollTop = 0; 
-    };    
+    byTags = (todo:Todo) : boolean => { 
+        if(this.props.selectedCategory==="inbox" || this.props.selectedCategory==="someday")
+           return true;  
+
+        if(isNil(todo))
+            return false;
+        if(this.props.selectedTag==="All") 
+            return true;    
+
+        return contains(this.props.selectedTag,todo.attachedTags);
+    } 
+
+
+    byCategory = (todo:Todo) : boolean => { 
+       if(isNil(todo))
+           return false; 
+
+       if(this.props.selectedCategory==="anytime")
+          return true;
+              
+       return todo.category===this.props.selectedCategory;
+    } 
+
      
  
     render(){ 
-        return <div>
+        let todos = compose(  
+            filter(this.byTags),
+            filter(this.byCategory)
+        )(this.props.todos)
+ 
+        return <div> 
           {
             <div className="unselectable" id="todos" style={{
                 marginBottom: "100px", marginTop:"50px"
@@ -77,7 +92,7 @@ export class ListType extends Component<ListTypeProps,ListTypeState>{
                     selectedTodoId={this.props.selectedTodoId}
                     selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}
-                    todos={this.props.todos} 
+                    todos={todos} 
                     tags={this.props.tags} 
                 /> 
             </div> 

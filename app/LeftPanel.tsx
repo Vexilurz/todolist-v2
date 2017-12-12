@@ -198,16 +198,26 @@ export class LeftPanel extends Component<Store,{}>{
                         <Inbox style={{ color:"dodgerblue" }} />
                         </ListItemIcon> 
                         <ListItemText inset primary="Inbox" />
-                        {inbox===0 ? null :
-                        <div style={{
-                            fontFamily: "serif",
-                            fontWeight: 700,
-                            color: "rgba(100,100,100,0.6)"
-                        }}>  
-                           {inbox}
-                        </div>} 
+                        {
+
+                            inbox===0 ? null :
+
+                            <div style={{
+                                fontFamily: "serif",
+                                fontWeight: 700,
+                                color: "rgba(100,100,100,0.6)"
+                            }}>  
+                                {inbox}
+                            </div>
+                    
+                        } 
                     </MenuItem>
-                    <div style={{width:"100%",height:"30px"}}></div>
+                    <div style={{
+                        outline: "none",
+                        width:"100%",
+                        height:"30px"
+                    }}>
+                    </div> 
                     <MenuItem 
 
                     onClick={() => this.props.dispatch({type:"selectedCategory",load:"today"})} 
@@ -246,14 +256,19 @@ export class LeftPanel extends Component<Store,{}>{
                             <Calendar style={{color:"crimson"}}/>
                         </ListItemIcon>
                         <ListItemText  inset primary="Upcoming" />
-                        {upcoming===0 ? null :
-                        <div style={{
-                            fontFamily: "serif",
-                            fontWeight: 700,
-                            color: "rgba(100,100,100,0.6)"
-                        }}>
-                            {upcoming}
-                        </div>}
+                        {
+
+                            upcoming===0 ? null :
+
+                            <div style={{
+                                fontFamily: "serif",
+                                fontWeight: 700,
+                                color: "rgba(100,100,100,0.6)"
+                            }}>
+                                {upcoming}
+                            </div>
+                    
+                        }
                     </MenuItem>
                     <MenuItem 
 
@@ -271,6 +286,7 @@ export class LeftPanel extends Component<Store,{}>{
                         <ListItemText  inset primary="Anytime" />
                         {
                             anytime===0 ? null :
+
                             <div style={{
                                 fontFamily: "serif",
                                 fontWeight: 700,
@@ -278,6 +294,7 @@ export class LeftPanel extends Component<Store,{}>{
                             }}>
                                 {anytime}
                             </div>
+
                         }
                     </MenuItem> 
                     <MenuItem 
@@ -303,9 +320,9 @@ export class LeftPanel extends Component<Store,{}>{
                             }}>
                                 {someday}
                             </div>
-                        } 
+                        }  
                     </MenuItem> 
-                    <div style={{width:"100%",height:"30px"}}></div>
+                    <div style={{outline: "none", width:"100%",height:"30px"}}></div>
                     <MenuItem 
 
                     onClick={() => this.props.dispatch({type:"selectedCategory",load:"logbook"})} 
@@ -336,7 +353,7 @@ export class LeftPanel extends Component<Store,{}>{
                         </ListItemIcon>
                         <ListItemText  inset primary="Trash" />
                     </MenuItem>
-                    <div style={{width:"100%",height:"30px"}}></div>
+                    <div style={{outline: "none",width:"100%",height:"30px"}}></div>
                 </MenuList> 
             </div>   
 

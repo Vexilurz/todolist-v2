@@ -40,8 +40,15 @@ import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
 import { getTodos, queryToTodos, Todo, updateTodo } from './databaseCalls';
 import { Category } from './MainContainer';
+let moment = require("moment");
 
- 
+
+export let daysRemaining = (date) => {
+    var eventdate = moment(date);
+    var todaysdate = moment();
+    return eventdate.diff(todaysdate, 'days');
+}
+
 
 export let chooseIcon = (selectedCategory:Category) => {
     switch(selectedCategory){
@@ -96,13 +103,12 @@ export let chooseIcon = (selectedCategory:Category) => {
 
         case "project":  
             return <div style={{ 
-                width:"40px",    
-                height:"40px", 
+                width:"30px",    
+                height:"30px", 
                 borderRadius:"100px",
                 border:"5px solid rgba(108, 135, 222, 0.8)",
                 boxSizing:"border-box",
-                marginRight:"5px",
-                marginLeft:"5px" 
+                marginRight:"10px" 
             }}> 
             </div>
 

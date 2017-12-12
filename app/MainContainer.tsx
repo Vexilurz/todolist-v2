@@ -29,14 +29,15 @@ import Repeat from 'material-ui/svg-icons/av/repeat';
 import { Store } from './App';
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Duplicate from 'material-ui/svg-icons/content/content-copy';
+import ShareIcon from 'material-ui/svg-icons/social/share';
 import { Project } from './MainContainerCategories/Project';
 import { Area } from './MainContainerCategories/Area';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
+import AutosizeInput from 'react-input-autosize';
 let arrayContainsItem = (array) => (item) : boolean => array.includes(item); 
-
 
 
 export type Category = "inbox" | "today" | "upcoming" | "anytime" | "someday" | 
@@ -92,7 +93,8 @@ let showTags = (selectedCategory:Category) : boolean =>
 
 interface MainContainerState{ 
     fullWindowSize:boolean,
-    showProjectMenuPopover:boolean 
+    showProjectMenuPopover:boolean,
+    projectName:string 
 }
      
 
@@ -105,10 +107,11 @@ export class MainContainer extends Component<Store,MainContainerState>{
         super(props);  
         this.state = { 
             fullWindowSize:true,  
-            showProjectMenuPopover:false 
+            showProjectMenuPopover:false,
+            projectName:'New Project' 
         }
     }     
-
+ 
     onError = (e) => console.log(e);
 
     updateWidth = () => this.props.dispatch({type:"leftPanelWidth", load:window.innerWidth/3.7});
@@ -154,14 +157,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
         ipcRenderer.send("cloneWindow",this.props)
     }
 
-    //toggleWindowSize = () => this.setState(
-    //    {fullWindowSize:!this.state.fullWindowSize}, 
-    //    () => ipcRenderer.send("size",this.state.fullWindowSize)
-    //)
-
-    //onBodyClick = (e) => {   
-    //    this.props.dispatch({type:"closeAllItems"});   
-    //}; 
  
  
     openTodoInput = (e) => { 
@@ -227,21 +222,36 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     </div>  
 
                     <div style={{ width: "100%"}}> 
-                        <div style={{display:"flex",alignItems:"center",marginBottom:"20px"}}>  
+                        <div style={{
+                            display:"flex", 
+                            position:"relative",
+                            alignItems:"center",
+                            marginBottom:"20px"
+                        }}>  
 
                             <div>{chooseIcon(this.props.selectedCategory)}</div>
 
                             {
                                 this.props.selectedCategory==="project" ? 
-                                <TextField  
-                                    hintText = "New Project"   
-                                    defaultValue = {''}  
-                                    onChange={(e, value) => {}}  
-                                    inputStyle = {{fontWeight:70, color:"rgba(0,0,0,1)", fontSize:"xx-large"}}  
-                                    hintStyle = {{fontSize:"35px"}}   
-                                    //style = {{height:"28px"}}      
-                                    underlineFocusStyle = {{borderColor: "rgba(0,0,0,0)"}}    
-                                    underlineStyle = {{borderColor: "rgba(0,0,0,0)"}}  
+                                <AutosizeInput
+                                    type="text"
+                                    name="form-field-name" 
+                                    minWidth={"170px"}
+                                    inputStyle={{  
+                                        boxSizing: "content-box", 
+                                        height: "42px",
+                                        fontWeight: "bold", 
+                                        maxWidth:"450px",
+                                        fontFamily: "sans-serif",
+                                        border: "none",
+                                        fontSize: "26px",
+                                        outline: "none" 
+                                    }}
+                                    value={this.state.projectName}
+                                    placeholder="New Project"
+                                    onChange={(event) => {
+                                       this.setState({projectName:event.target.value}); 
+                                    }} 
                                 /> 
                                 :
                                 <div style={{  
@@ -257,30 +267,42 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             }
 
                             {  
+
                                 this.props.selectedCategory!=="project" ? null :
-                                  <div ref={ (e) => { this.moreAnchor=e; } }>
-                                    <IconButton  
-                                        onClick = {() => this.setState({
-                                           showProjectMenuPopover:true
-                                        })}  
-                                        iconStyle={{  
-                                            color:"rgb(79, 79, 79)",
-                                            width:"40px", 
-                                            height:"40px" 
-                                        }}
-                                    >     
-                                        <ThreeDots />
-                                    </IconButton>   
-                                   </div> 
+
+                                <div  
+                                    onClick = {() => this.setState({
+                                        showProjectMenuPopover:true
+                                    })}  
+
+                                    style={{
+                                        marginLeft: "5px",
+                                        marginRight: "5px",
+                                        width: "32px",
+                                        height: "32px",
+                                        cursor: "pointer"
+                                    }}
+                                    ref={ (e) => { this.moreAnchor=e; } }
+                                >
+
+                                        <ThreeDots style={{  
+                                            color:"rgb(179, 179, 179)",
+                                            width:"32px", 
+                                            height:"32px",
+                                            cursor: "pointer" 
+                                        }} />
+
+                                </div> 
+
                             }
 
                         </div>
-
+ 
  
                         { 
                             this.props.selectedCategory!=="project" ? null : 
                              <TextField  
-                                hintText = "Project description"   
+                                hintText = "Notes"   
                                 defaultValue = {''}    
                                 multiLine={true} 
                                 fullWidth = {true}   
@@ -440,7 +462,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             open={this.state.showProjectMenuPopover}
                             origin={{vertical: "center", horizontal: "middle"}}  
                             anchorEl={this.moreAnchor}
-                            point={{vertical: "top", horizontal: "right"}} 
+                            point={{vertical: "top", horizontal: "middle"}} 
                             dispatch={this.props.dispatch}
                         />    
                     }  
@@ -536,6 +558,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
         return <Popover 
             className="nocolor"
             style={{
+                marginTop:"20px", 
                 backgroundColor:"rgba(0,0,0,0)",
                 background:"rgba(0,0,0,0)",
                 borderRadius:"10px"
@@ -556,7 +579,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
                         paddingBottom: "5px",
                         cursor:"pointer" 
                     }} 
-            >   
+            >    
 
                     <div  
                         onClick={this.onComplete} 
@@ -564,6 +587,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
                             display:"flex", 
                             height:"auto",
                             alignItems:"center",
+                            padding:"5px"
                         }}
                     >  
                         <CheckCircle style={{color:"rgb(69, 95, 145)"}}/> 
@@ -572,7 +596,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
                         </div>     
                     </div>
                 
-
+ 
  
                     <div  
                         onClick={this.onWhen} 
@@ -580,6 +604,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
                             display:"flex", 
                             height:"auto",
                             alignItems:"center",
+                            padding:"5px"
                         }}
                     >  
                         <CalendarIco style={{color:"rgb(69, 95, 145)"}}/> 
@@ -595,6 +620,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
                             display:"flex", 
                             height:"auto",
                             alignItems:"center",
+                            padding:"5px"
                         }}
                     >  
                         <TriangleLabel style={{color:"rgb(69, 95, 145)"}}/> 
@@ -613,6 +639,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
                             display:"flex", 
                             height:"auto",
                             alignItems:"center",
+                            padding:"5px"
                         }}
                     >  
                         <Flag style={{color:"rgb(69, 95, 145)"}}/> 
@@ -626,7 +653,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
 
 
                     <div style={{
-                        border:"1px solid rgba(200,200,200,0.5)",
+                        border:"1px solid rgba(200,200,200,0.1)",
                         marginTop: "5px",
                         marginBottom: "5px"
                     }}>
@@ -643,6 +670,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
                             display:"flex", 
                             height:"auto",
                             alignItems:"center",
+                            padding:"5px"
                         }}
                     >   
                         <Arrow style={{color:"rgb(69, 95, 145)"}}/> 
@@ -659,6 +687,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
                             display:"flex", 
                             height:"auto",
                             alignItems:"center",
+                            padding:"5px"
                         }}
                     >  
                         <Repeat style={{color:"rgb(69, 95, 145)"}}/> 
@@ -673,6 +702,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
                             display:"flex", 
                             height:"auto",
                             alignItems:"center",
+                            padding:"5px"
                         }}
                     >  
                         <Duplicate style={{color:"rgb(69, 95, 145)"}}/> 
@@ -688,6 +718,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
                             display:"flex", 
                             height:"auto",
                             alignItems:"center",
+                            padding:"5px"
                         }}
                     >  
                         <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
@@ -702,8 +733,10 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
                             display:"flex",  
                             height:"auto",
                             alignItems:"center",
+                            padding:"5px"
                         }}
-                    >  
+                    >      
+                        <ShareIcon style={{color:"rgb(69, 95, 145)"}}/> 
                         <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
                           Share
                         </div>     
@@ -717,7 +750,3 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
 
 }
 
-
-
-    
-        
