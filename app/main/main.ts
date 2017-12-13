@@ -14,16 +14,10 @@ import { compose, contains, toPairs, curry, replace, mergeAll, addIndex, ifElse,
 import * as R from 'ramda';  
 import { Listeners } from "./listeners";
 import { initWindow } from "./initWindow";
-const os = require('os');
-const storage = require('electron-json-storage');
- 
-let tempFolder = os.tmpdir();
-
-storage.setDataPath(tempFolder);
  
 
 export let mainWindow;   
-export let listeners;
+export let listeners; 
 
 
  
@@ -34,111 +28,36 @@ let onReady = () => {
     mainWindow = initWindow(
         merge(
             electron.screen.getPrimaryDisplay().workAreaSize
-        )({transparent:true})
-    );       
+        )({transparent:false})
+    );        
        
     listeners = new Listeners(mainWindow);
    
-    loadApp(mainWindow)  
+    loadApp(mainWindow)   
     .then(() => {  
-      mainWindow.webContents.send("loaded");
-      mainWindow.webContents.openDevTools();   
+
+        mainWindow.webContents.send(
+            "loaded", 
+            {
+                type:"open",
+                load:mainWindow.id
+            }
+        ); 
+ 
+        mainWindow.webContents.openDevTools();   
+
     });     
 }            
  
-
-export let getEverythingFromStorage = (onError:Function) => 
-    new Promise(
-        resolve => storage.getAll((error, data) => { 
-            if(error) onError(error); resolve(data); 
-        })
-    ); 
-
-
-  
-export let setItemToStorage = (
-    onError:Function, key:string, item:any
-) : Promise<void> => new Promise(
-  resolve => {
-    storage.set(key, item, (error) => { if(error) onError(error); resolve() } )
-  }
-)
-
-
-export let removeFromStorage = (onError:Function, key:string) : Promise<void> => 
-    new Promise( 
-        resolve => storage.remove(
-            key, 
-            (e) => { if(e) onError(e); resolve(); }
-        )  
-    );
-  
-
-
-export let storageHasKey = (
-    onError:Function, 
-    key:string
-) => new Promise(resolve => 
-    storage.has(
-        key, 
-        (error, has:boolean) => { if(error) onError(error); resolve(has); }
-    )
-) 
-  
-
-
-export let clearStorage = (onError:Function) : Promise<void> => 
-    new Promise(
-        resolve => {
-            storage.clear(function(error) {
-                if (error) onError(error);
-                resolve();
-            });
-        }
-    )
- 
-
-
-export let getItemFromStorage = (onError:Function,key:string) => 
-    new Promise(resolve => {
-        storage.get(
-            key,
-            (error, item) => { if(error) onError(error); resolve(item); }
-        )
-    });
-
-
 
 
   
 process.on("unchaughtException" as any,(error) => console.log(error)); 
   
-app.disableHardwareAcceleration(); 
+//app.disableHardwareAcceleration(); 
+
 app.on('ready', onReady);  
  
-let clearDir = (directory) => new Promise( resolve => {
-    
-       fs.readdir( 
-           directory, 
-          (err, files)  => compose(
-                               (done : Promise<any>) => done.then( 
-                                  () => fs.rmdir(directory, () => resolve())
-                               ),
-                               (promises) => Promise.all(promises),
-                               map((file:string) =>  
-                                   ifElse(
-                                     (pathToFile) => fs.lstatSync(pathToFile).isDirectory(),
-   
-                                     (pathToFile) => clearDir(pathToFile),
-   
-                                     (pathToFile) => new Promise(resolve => fs.unlink(pathToFile, () => resolve()))
-                                   )(path.join(directory, file))
-                               )  
-                           )(files)  
-       ); 
-     
-   });
-
 
 app.on(     
   'window-all-closed', 

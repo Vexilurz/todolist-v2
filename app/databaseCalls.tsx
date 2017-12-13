@@ -11,92 +11,25 @@ import { ChecklistItem } from './Components/TodoInput';
 
 
 
-let todos_db = new PouchDB('todos');
-let projects_db = new PouchDB('projects');
-let areas_db = new PouchDB('areas');
-let events_db = new PouchDB('events');  // ?
+let todos_db = new PouchDB('todos', {adapter: 'websql'}); 
+let projects_db = new PouchDB('projects', {adapter: 'websql'});
+let areas_db = new PouchDB('areas', {adapter: 'websql'});
+let events_db = new PouchDB('events', {adapter: 'websql'});  
 
  
-
-let getItemFromStorage = (key:string) : Promise<any> => new Promise(
-  resolve => {
-      ipcRenderer.removeAllListeners("getItemFromStorage"); 
-      
-      ipcRenderer.send("getItemFromStorage", key); 
-
-      ipcRenderer.once("getItemFromStorage", (item) => { 
-          resolve(item); 
-      });   
-  }  
-);
-
-
-
-let addItemToStorage = (key:string, item:any) : Promise<void> => new Promise(
-  resolve => {
-      ipcRenderer.removeAllListeners("addItemToStorage"); 
-      
-      ipcRenderer.send("addItemToStorage", {key,item}); 
-
-      ipcRenderer.once("addItemToStorage", () => { 
-          resolve(); 
-      });   
-  }  
-);  
-
-
-let removeItemFromStorage = (key:string) : Promise<void> => new Promise(
-  resolve => {
-    ipcRenderer.removeAllListeners("removeItemFromStorage"); 
-    
-    ipcRenderer.send("removeItemFromStorage", key); 
-
-    ipcRenderer.once("removeItemFromStorage", () => { 
-        resolve(); 
-    });   
-  }
-)
-
-
-
-let clearStorage = () : Promise<void> => new Promise(
-  resolve => {
-    ipcRenderer.removeAllListeners("clearStorage"); 
-    
-    ipcRenderer.send("clearStorage"); 
- 
-    ipcRenderer.once("clearStorage", () => { 
-        resolve(); 
-    });    
-  }
-)
-
-
-
-let getEverythingFromStorage = () : Promise<any> => new Promise(
-  resolve => {
-    ipcRenderer.removeAllListeners("getEverythingFromStorage"); 
-    
-    ipcRenderer.send("getEverythingFromStorage"); 
- 
-    ipcRenderer.once("getEverythingFromStorage", (everything) => { 
-        resolve(everything); 
-    });    
-  } 
-)
-
-
-
-
-
 export let generateID = () => new Date().toJSON(); 
 
+
+
  
-interface Heading{
+ 
+export interface Heading{
   title : string, 
   attachedTodos : string[],
 }
 
+
+ 
 export interface Project{
   _id : string, 
   attachedTodos : Todo[],
@@ -157,13 +90,13 @@ export interface Event{
 
 
 
-interface Query<T>{
+export interface Query<T>{
   total_rows: 2, 
   offset: 0, 
   rows: QueryResult<T>[]
 }
 
-interface QueryResult<T>{
+export interface QueryResult<T>{
   doc:T,
   id:string, 
   key:string,
@@ -171,17 +104,7 @@ interface QueryResult<T>{
 }
 
 
-let duplicateToStorage = (item:any,db:any) : Promise<void> => {
-    let key = item._id;
-    let load = {db:db.name,doc:item};
-    return addItemToStorage(key, load).then(
-      () => getEverythingFromStorage()
-    ).then(
-      (storage) => console.log("updated storage", storage) 
-    );
-} 
 
-   
 
 
 function queryToObjects<T>(query:Query<T>){
@@ -203,14 +126,13 @@ function setItemToDatabase<T>(
 ){ 
   return function(item:T) : Promise<void>{
 
-      //duplicateToStorage(item,db);     
-
       return db.put(item).catch(onError);
 
   }  
 }  
  
  
+
 
 
 export function removeObject<T>(
@@ -230,6 +152,9 @@ export function removeObject<T>(
 }  
 
 
+
+
+
 function getItemFromDatabase<T>(
   onError:Function, 
   db:any
@@ -240,6 +165,7 @@ function getItemFromDatabase<T>(
  
   }
 }
+
 
 
 
@@ -261,29 +187,6 @@ function getItems<T>(
 }
 
 
-
-function getItemsRange<T>(
-  onError:Function, db:any
-){ 
-  return function(
-    descending,
-    limit,
-    start,
-    end 
-  ) : Promise<Query<T>>{
- 
-      return db.allDocs({ 
-        include_docs:true,
-        conflicts: true, 
-        descending,
-        limit, 
-        startkey:start,
-        endkey:end 
-      }) 
-      .catch(onError); 
-       
-  }
-}
 
   
 function updateItemInDatabase<T>(
@@ -319,13 +222,15 @@ function updateItemInDatabase<T>(
 
 
 
+
+
+
+
 export let addArea = (onError:Function, area : Area) : Promise<void> => 
       setItemToDatabase<Area>(
         (e) => console.log(e), 
         areas_db
       )(area);
-
-
 
 
 
@@ -338,16 +243,11 @@ export let removeArea = (item_id:string) : Promise<void> =>
 
 
 
-
-
-
 export let getAreaById = (onError:Function, _id : string) : Promise<Area> => 
       getItemFromDatabase<Area>(
         (e) => console.log(e), 
         areas_db
       )(_id); 
-
-
 
 
 
@@ -358,34 +258,40 @@ export let updateArea = (_id : string, replacement : Area, onError:Function) : P
         areas_db
       )(_id, replacement); 
 
- 
 
- 
 
-export let getAreasRange = (onError:Function) =>
-      (
-        descending, 
-        limit,
-        start,
-        end
-      ) : Promise<Area[]>=> 
-        getItemsRange<Area>(
-            onError, 
-            areas_db
-        )( 
-            descending,
-            limit,
-            start,
-            end  
-        ).then(
-            queryToAreas
-        )
+export let getAreas = (onError:Function) => (descending,limit) : Promise<Area[]> => 
+      getItems<Area>(
+        onError,  
+        areas_db
+      )(
+        descending,
+        limit
+      ).then(queryToAreas)
              
+ 
+ 
 
 
 
 
-export let addProject= (onError:Function, project : Project) : Promise<void> => 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export let addProject = (onError:Function, project : Project) : Promise<void> => 
       setItemToDatabase<Project>(
         (e) => console.log(e), 
         projects_db
@@ -410,42 +316,61 @@ export let getProjectById = (onError:Function, _id : string) : Promise<Project> 
 
 
 
+
+
 export let updateProject = (_id : string, replacement : Project, onError:Function) : Promise<Project> => 
       updateItemInDatabase<Project>(
         () => {},
         (e) => console.log(e), 
-        todos_db
+        projects_db
       )(_id, replacement); 
 
 
 
 
-export let getProjectRange = (onError:Function) =>
-      (
-        descending, 
-        limit,
-        start,
-        end
-      ) : Promise<Project[]>=> 
-        getItemsRange<Project>(
-            onError, 
-            todos_db
-        )( 
-            descending,
-            limit,
-            start,
-            end  
-        ).then(
-            queryToProjects
-        )
-                  
 
-
-
-
-export let getProject = (onError:Function) => (descending,limit) : Promise<Query<Project>> => 
-           getItems<Project>(onError,  projects_db)(descending,limit);
+export let getProjects = (onError:Function) => (descending,limit) : Promise<Project[]> => 
+           getItems<Project>(
+             onError,  
+             projects_db 
+           )(
+             descending,
+             limit
+           ).then(queryToProjects);
      
+
+
+ 
+
+export let getEvents = (onError:Function) => (descending,limit) : Promise<Event[]> => 
+            getItems<Event>(
+             onError,  
+             events_db
+            )(
+              descending,
+              limit
+            ).then(queryToEvents);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -485,45 +410,42 @@ export let updateTodo = (_id : string, replacement : Todo, onError:Function) : P
  
 
 
-
-export let getTodosRange = (onError:Function) =>
-  (
-    descending, 
-    limit,
-    start,
-    end
-  ) : Promise<Todo[]>=> 
-  
-      getItemsRange<Todo>(
-        onError, 
-        todos_db
-      )(
-        descending,
-        limit,
-        start,
-        end 
-      ).then(
-        queryToTodos
-      )
-                
-  
-
-
  
-export let getTodos = (onError:Function) => (descending,limit) : Promise<Query<Todo>> => 
+export let getTodos = (onError:Function) => (descending,limit) : Promise<Todo[]> => 
     getItems<Todo>(
       onError, 
       todos_db
     )(
       descending,
       limit
-    )
+    ).then(queryToTodos)
          
- 
+  
  
 
-export let queryToTodos = (query:Query<Todo>) => queryToObjects<Todo>(query); 
- 
-export let queryToProjects = (query:Query<Project>) => queryToObjects<Project>(query); 
 
-export let queryToAreas = (query:Query<Area>) => queryToObjects<Area>(query); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+export let queryToTodos = (query:Query<Todo>) : Todo[] => queryToObjects<Todo>(query); 
+
+export let queryToEvents = (query:Query<Event>) : Event[] => queryToObjects<Event>(query); 
+
+export let queryToProjects = (query:Query<Project>) : Project[] => queryToObjects<Project>(query); 
+
+export let queryToAreas = (query:Query<Area>) : Area[] => queryToObjects<Area>(query); 

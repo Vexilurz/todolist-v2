@@ -9,9 +9,9 @@ import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq
 } from 'ramda';
 import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
-
+import NewAreaIcon from 'material-ui/svg-icons/action/tab';
   
-export class Area extends Component<any,any>{
+export class AreaComponent extends Component<any,any>{
 
     constructor(props){
         super(props); 
@@ -23,3 +23,36 @@ export class Area extends Component<any,any>{
     }
 
 } 
+
+
+
+
+interface AreaHeaderProps{
+}
+
+  
+interface AreaHeaderState{
+}
+  
+export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
+ 
+
+    constructor(props){
+        super(props);
+        this.state = {}
+    }
+ 
+
+    render(){
+        return <div>
+            <NewAreaIcon 
+                style={{
+                    color:"lightblue", 
+                    width:"50px",
+                    height:"50px"
+                }}
+            />  
+        </div> 
+    }
+
+}

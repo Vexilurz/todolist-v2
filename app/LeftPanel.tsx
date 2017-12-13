@@ -38,14 +38,17 @@ import { MenuList, MenuItem } from 'material-ui-next/Menu';
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import Popover from 'material-ui/Popover';
-import { NewProjectAreaPopover } from './Components/NewProjectAreaPopover';
 import { ResizableHandle, Data } from './Components/ResizableHandle';
 import { Store } from './App';
 import { generateID, addProject, Project, Area, addArea } from './databaseCalls';
+import Clear from 'material-ui/svg-icons/content/clear';
+import Remove from 'material-ui/svg-icons/content/remove'; 
+import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
+import FullScreen from 'material-ui/svg-icons/image/crop-square';
 
+ 
 
-
-let generateEmptyProject = () => ({
+let generateEmptyProject = () => ({ 
         _id : generateID(), 
         attachedTodos:[],
         headings:[],   
@@ -62,18 +65,23 @@ let generateEmptyArea = () => ({
         description : ""
     });
 
-  
 
+  
+interface LeftPanelState{
+    width:number,
+    fullWindowSize:boolean 
+}
  
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
-export class LeftPanel extends Component<Store,{}>{
+export class LeftPanel extends Component<Store,LeftPanelState>{
         newProjectAnchor:HTMLElement;
             
         constructor(props){ 
             super(props);  
             this.state={
-                width:window.innerWidth/4
+                width:window.innerWidth/4,
+                fullWindowSize:true 
             } 
         };  
           
@@ -111,9 +119,13 @@ export class LeftPanel extends Component<Store,{}>{
                 load:p 
             })
         };
-        
+
 
         render(){   
+
+
+
+
             let someday = this.props.todos.filter( v => v.category === "someday").length;
             let upcoming = this.props.todos.filter( v => v.category === "upcoming").length;
             let today = this.props.todos.filter( v => v.category === "today").length;
@@ -121,69 +133,113 @@ export class LeftPanel extends Component<Store,{}>{
 
             let anytime = this.props.todos.length;
  
-            return <div style={{
-                display: "flex", 
-                flexDirection: "column", 
-                width: this.props.leftPanelWidth, 
-                height: "100%",
-                position:"relative", 
-                backgroundColor: "rgba(189, 189, 189, 0.2)" 
-            }}>       
-            
-                <ResizableHandle  
-                    onDrag={(e,d:Data) => this.props.dispatch({
-                        type:"leftPanelWidth",
-                        load:this.props.leftPanelWidth+d.deltaX
-                    })}   
-                />   
 
-            <div style={{display: "flex", padding: "10px"}}>    
- 
-                <div className="no-drag close"
-                    onClick = {() => ipcRenderer.send("close", this.props.windowId)}
-                    style={{  
-                        width: "15px",
-                        height: "15px",
-                        borderRadius: "30px",
-                        border: "1px solid grey",
-                        cursor:"pointer",
-                        marginRight: "10px"
-                    }}
-                > 
-                </div>    
 
-                <div className="no-drag reload"
-                    onClick = {() => ipcRenderer.send("reload", this.props.windowId)}
-                    style={{
-                        width: "15px",
-                        height: "15px",
-                        borderRadius: "30px",
-                        border: "1px solid grey",
-                        cursor:"pointer",
-                        marginRight: "10px"  
-                    }}  
-                >  
-                </div>  
-    
-                <div className="no-drag hide"
-                    onClick = {() => ipcRenderer.send("hide", this.props.windowId)} 
-                    style={{     
-                        width: "15px", 
-                        height: "15px",
-                        borderRadius: "30px",
-                        border: "1px solid grey",
-                        cursor:"pointer",
-                        marginRight: "10px"  
-                    }} 
-                >
-                </div>  
- 
-            </div>   
- 
-            <div style={{width:"100%"}}>
+
+
+
+
+
+
+
+
+
+            return <div 
+                        className="leftPanelScroll"
+                        style={{
+                            display: "flex", 
+                            flexDirection: "column", 
+                            width: this.props.leftPanelWidth, 
+                            height: "100%",
+                            position:"relative", 
+                            backgroundColor: "rgba(189, 189, 189, 0.2)" 
+                        }}
+                    >       
+
+
+
+
+
+
+                    <ResizableHandle  
+                        onDrag={(e,d:Data) => this.props.dispatch({
+                            type:"leftPanelWidth",
+                            load:this.props.leftPanelWidth+d.deltaX
+                        })}   
+                    />   
+
+
+
+
+
+
+                                <div className="no-drag" style={{
+                                    position:"fixed", 
+                                    top: "0px",
+                                    left: "0px", 
+                                    display: "flex",
+                                    flexDirection: "row-reverse"
+                                }}>  
+
+                                    <IconButton 
+                                        iconStyle={{color:"cadetblue",width:"20px",height:"20px"}}
+                                        className="no-drag" 
+                                        onTouchTap={() => ipcRenderer.send("hide",this.props.windowId)}
+                                    >
+                                        <Remove /> 
+                                    </IconButton> 
+
+
+                                    <IconButton 
+                                        iconStyle={{color:"cadetblue",width:"20px",height:"20px"}}
+                                        className="no-drag" 
+                                        onTouchTap={() => {
+                                            this.setState(
+                                                {fullWindowSize:!this.state.fullWindowSize}, 
+                                                () => {
+                                                    ipcRenderer.send(
+                                                        "size",
+                                                        this.props.windowId,
+                                                        this.state.fullWindowSize
+                                                    );    
+                                                }
+                                            ) 
+                                        }}  
+                                    >     
+                                        <FullScreen />
+                                    </IconButton>   
+
+
+                                    <IconButton 
+                                        iconStyle={{color:"cadetblue",width:"20px",height:"20px"}}
+                                        className="no-drag" 
+                                        onTouchTap={() => ipcRenderer.send("close", this.props.windowId)}
+                                    >
+                                        <Clear  /> 
+                                    </IconButton>
+
+                                </div>   
+
+
+                    
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div style={{marginTop: "25px", width:"100%"}}>
                 <MenuList> 
+                    <div style={{outline: "none", width:"100%",height:"30px"}}></div>
                     <MenuItem 
-                        className="no-drag" 
+                        className="no-drag"  
 
                         onClick={() => this.props.dispatch({type:"selectedCategory",load:"inbox"})}
 
@@ -363,6 +419,22 @@ export class LeftPanel extends Component<Store,{}>{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             <div 
                 style={{display: "flex", flexGrow: 1,  flexDirection: "column" }}
                 id="projects"   
@@ -407,6 +479,15 @@ export class LeftPanel extends Component<Store,{}>{
 
             </div>
  
+
+
+
+
+
+
+
+
+
 
 
 
@@ -462,6 +543,19 @@ export class LeftPanel extends Component<Store,{}>{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
             <NewProjectAreaPopover 
                 anchor={this.newProjectAnchor}
                 open={this.props.openNewProjectAreaPopover}
@@ -474,8 +568,8 @@ export class LeftPanel extends Component<Store,{}>{
             <div style={{    
                 display: "flex",
                 alignItems: "center",  
-                position: "sticky",
-                width: "100%",
+                position: "fixed",
+                width: this.props.leftPanelWidth,  
                 justifyContent: "space-around",  
                 bottom: "0px", 
                 height: "60px",
@@ -530,3 +624,140 @@ export class LeftPanel extends Component<Store,{}>{
   
 
  
+
+
+
+
+
+
+
+
+interface NewProjectAreaPopoverProps{
+    anchor:HTMLElement,
+    open:boolean,
+    close:Function,
+    onNewProjectClick: (e:any) => void,
+    onNewAreaClick: (e:any) => void
+ }
+  
+ 
+ export class NewProjectAreaPopover extends Component<NewProjectAreaPopoverProps,{}>{
+ 
+     constructor(props){ 
+         super(props);
+     }
+ 
+     render(){
+         return <Popover  
+         style={{
+             backgroundColor:"rgba(0,0,0,0)",
+             background:"rgba(0,0,0,0)",
+             borderRadius:"10px"
+         }}     
+         open={this.props.open}
+         anchorEl={this.props.anchor}
+         onRequestClose={() => this.props.close()}
+         anchorOrigin={{   
+             vertical: "top",
+             horizontal: "left"
+         }}  
+         targetOrigin={{      
+             vertical: "bottom",
+             horizontal: "left"
+         }}  
+     >   
+         <div style={{  
+             backgroundColor: "rgb(39, 43, 53)",
+             padding: "5px 10px",
+             borderRadius: "10px",
+             maxHeight: "250px",
+             width: "370px",
+             cursor: "pointer" 
+         }}>    
+ 
+         <div 
+         onClick = {this.props.onNewProjectClick}
+         className="newprojectitem" 
+         style={{
+             display:"flex", 
+             alignItems: "flex-start", 
+             padding:"7px"
+         }}> 
+             <NewProjectIcon style={{color:"lightblue"}}/> 
+             <div style={{
+                 display: "flex",
+                 flexDirection: "column",
+                 alignItems: "flex-start",
+                 paddingLeft: "5px",
+                 paddingTop: "3px" 
+             }}>    
+                 <div style={{  
+                     color: "aliceblue",
+                     fontFamily: "sans-serif",
+                     fontSize: "15px"
+                 }}>
+                     New Project
+                 </div>
+                 <p style={{
+                     margin: "0px",
+                     paddingTop: "10px",
+                     color: "rgba(190,190,190,0.5)",
+                     fontFamily: "sans-serif" 
+                 }}>
+                     Define a goal, 
+                     then work towards it 
+                     one to-do at a time.  
+                 </p> 
+             </div> 
+         </div>
+ 
+ 
+         <div style={{
+                 border:"1px solid rgba(200,200,200,0.1)",
+                 marginTop: "5px",
+                 marginBottom: "5px"
+         }}>
+         </div> 
+ 
+         <div   
+         onClick = {this.props.onNewAreaClick}
+         className="newprojectitem" 
+         style={{
+             display:"flex", 
+             alignItems: "flex-start", 
+             padding:"7px"
+         }}> 
+             <NewAreaIcon style={{color:"lightblue", width:"34px"}}/>
+             <div style={{
+                 display: "flex",
+                 flexDirection: "column",
+                 alignItems: "flex-start",
+                 paddingLeft: "5px",
+                 paddingTop: "3px" 
+             }}>    
+                 <div style={{  
+                     color: "aliceblue",
+                     fontFamily: "sans-serif", 
+                     fontSize: "15px"
+                 }}>
+                     New Area
+                 </div>
+                 <p style={{
+                     margin: "0px",
+                     paddingTop: "10px",
+                     color: "rgba(190,190,190,0.5)",
+                     fontFamily: "sans-serif",
+                     width:"85%"  
+                 }}>
+                     Group your projects and to-dos
+                     based on different responsibilities,
+                     such as Family or Work. 
+                 </p> 
+             </div> 
+         </div>
+          
+         </div>   
+     </Popover> 
+     }
+ 
+ }

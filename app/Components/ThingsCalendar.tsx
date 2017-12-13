@@ -26,12 +26,12 @@ interface ThingsCalendarProps{
     anchorEl : HTMLElement,
     point : any,
     simple : boolean,   
-    onDayClick : (day: Date, modifiers: Object, e : any) => void,
-    onSomedayClick : (e:any) => void, 
-    onTodayClick : (e:any) => void, 
-    onThisEveningClick : (e:any) => void, 
-    onAddReminderClick : (e:any) => void,
-    onClear : (e:any) => void  
+    onDayClick? : (day: Date, modifiers: Object, e : any) => void,
+    onSomedayClick? : (e:any) => void, 
+    onTodayClick? : (e:any) => void, 
+    onThisEveningClick? : (e:any) => void, 
+    onAddReminderClick? : (e:any) => void,
+    onClear : (e:any) => void
 }   
      
 
@@ -44,15 +44,15 @@ export class ThingsCalendar extends Component<ThingsCalendarProps,{}>{
         super(props);
     }  
 
-    render(){ 
+    render(){  
         return <Popover 
             open={this.props.open}
             anchorEl={this.props.anchorEl}
             style={{
                 backgroundColor:"rgba(0,0,0,0)",
-                background:"rgba(0,0,0,0)", 
-                borderRadius:"20px", 
-                transform:"scale(0.8,0.8)"
+                background:"rgba(0,0,0,0)",  
+                borderRadius:"20px",  
+                transform:`scale(0.8,0.8)`
             }}   
             onRequestClose={() => this.props.close()}
             anchorOrigin={this.props.origin} 
@@ -62,7 +62,7 @@ export class ThingsCalendar extends Component<ThingsCalendarProps,{}>{
                 display:"flex",
                 flexDirection:"column", 
                 backgroundColor:"rgb(39,43,53)", 
-                borderRadius: this.props.simple ? "0px" : "20px"
+                borderRadius: "20px"
             }}>    
                 
                 {      

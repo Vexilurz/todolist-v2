@@ -74,6 +74,45 @@ body{
 
 
 
+.leftPanelScroll { 
+  background: white; 
+  overflow-y: scroll;
+} 
+ 
+
+
+
+
+
+.leftPanelScroll::-webkit-scrollbar {
+   width: 1px;
+} 
+
+
+
+
+
+
+.leftPanelScroll::-webkit-scrollbar-track {
+   border-radius: 5px;
+} 
+
+
+
+
+
+
+.leftPanelScroll::-webkit-scrollbar-thumb {
+   border-radius: 5px;
+   background-color:white
+}
+
+
+
+
+
+
+
 .scroll { 
   background: white; 
   overflow-y: scroll;

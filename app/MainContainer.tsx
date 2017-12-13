@@ -11,33 +11,80 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon } from "./utils"; 
+import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, showTags } from "./utils"; 
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, generateID, addTodo } from './databaseCalls';
+import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, generateID, addTodo, getProjects, getEvents, getAreas, queryToProjects, queryToAreas, Project, Area, removeArea, removeProject } from './databaseCalls';
 import Popover from 'material-ui/Popover';
 import Button from 'material-ui-next/Button';
 import { Tags } from './Components/Tags';
-import { ListType } from './MainContainerCategories/ListType';
 import { Footer } from './Components/Footer';
-import { Logbook } from './MainContainerCategories/Logbook';
-import { Trash } from './MainContainerCategories/Trash';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Repeat from 'material-ui/svg-icons/av/repeat';
 import { Store } from './App';
-import Inbox from 'material-ui/svg-icons/content/inbox';
 import Duplicate from 'material-ui/svg-icons/content/content-copy';
 import ShareIcon from 'material-ui/svg-icons/social/share';
-import { Project } from './MainContainerCategories/Project';
-import { Area } from './MainContainerCategories/Area';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
-let arrayContainsItem = (array) => (item) : boolean => array.includes(item); 
+import { FadeBackgroundIcon } from './Components/FadeBackgroundIcon';
+import Clear from 'material-ui/svg-icons/content/clear';
+import Remove from 'material-ui/svg-icons/content/remove'; 
+import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
+import FullScreen from 'material-ui/svg-icons/image/crop-square';
+import { AreaComponent } from './Components/Area';
+import { ProjectComponent } from './Components/Project';
+import { Trash } from './Components/Trash';
+import { Logbook } from './Components/Logbook';
+import { Someday } from './Components/Someday';
+import { Anytime } from './Components/Anytime';
+import { Upcoming } from './Components/Upcoming';
+import { Today } from './Components/Today';
+import { Inbox } from './Components/Inbox';
+
+
+
+let byTags = (todo:Todo) : boolean => { 
+    
+    if(this.props.selectedTag==="All") 
+        return true;    
+
+    if(this.props.selectedCategory==="inbox" || this.props.selectedCategory==="someday")
+        return true;  
+    
+    if(isNil(todo))
+        return false;
+
+
+    if(this.props.selectedTag==="") 
+        return true;    
+
+    return contains(this.props.selectedTag,todo.attachedTags);
+
+} 
+    
+    
+    
+let byCategory = (todo:Todo) : boolean => { 
+
+    if(isNil(todo))
+        return false; 
+
+    if(todo.category==="evening" && this.props.selectedCategory==="today")
+        return true;
+
+    if(this.props.selectedCategory==="anytime")
+        return true;
+            
+    return todo.category===this.props.selectedCategory;
+
+} 
+    
+
 
 
 export type Category = "inbox" | "today" | "upcoming" | "anytime" | "someday" | 
@@ -45,120 +92,117 @@ export type Category = "inbox" | "today" | "upcoming" | "anytime" | "someday" |
 
 
 
-let byCategory = (selectedCategory) => (todo:Todo) : boolean => { 
-    if(isNil(todo))
-        return false;  
-
-    return todo.category===selectedCategory;
-} 
-
-
-let selectTitle = (props:Store) => {
-
-    if(props.selectedCategory==="project"){
-
-        let p  = props.selectedProject;
-
-        if(isNil(p))
-           return uppercase(props.selectedCategory);
-
-        return uppercase(p.name);  
-
-    }else if(props.selectedCategory==="area"){
-
-        let a  = props.selectedArea;
-        
-        if(isNil(a))
-           return uppercase(props.selectedCategory);
-
- 
-        return uppercase(a.name);
-          
-    }else    
-       return uppercase(props.selectedCategory);
-
-}
- 
-
-let isListTypeCategory = arrayContainsItem(["inbox" , "today" , "upcoming" , "anytime" , "someday"]);
-
- 
-
-let showTags = (selectedCategory:Category) : boolean => 
-    selectedCategory!=="inbox" && 
-    selectedCategory!=="someday" &&
-    selectedCategory!=="area" &&
-    selectedCategory!=="project";
 
 
 interface MainContainerState{ 
-    fullWindowSize:boolean,
-    showProjectMenuPopover:boolean,
-    projectName:string 
+    fullWindowSize:boolean
 }
      
 
-@connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)   
+
+
+@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
 export class MainContainer extends Component<Store,MainContainerState>{
+
     rootRef:HTMLElement; 
-    moreAnchor:HTMLElement; 
+
+
+    limit:number;
+
 
     constructor(props){
+
         super(props);  
-        this.state = { 
-            fullWindowSize:true,  
-            showProjectMenuPopover:false,
-            projectName:'New Project' 
+
+        this.limit = 10000;
+
+        this.state = {   
+            fullWindowSize:true 
         }
-    }     
- 
+
+    }      
+
+
+
     onError = (e) => console.log(e);
 
-    updateWidth = () => this.props.dispatch({type:"leftPanelWidth", load:window.innerWidth/3.7});
-    
-    closeRightClickMenu = () => {
-        if(this.props.showRightClickMenu)
-           this.props.dispatch({type:"showRightClickMenu",load:false});  
-    }
-  
-    componentDidMount(){
-        let onError = (e) => console.log(e);
-        let getTodosCatch = getTodos(onError);
 
+
+    updateWidth = () => this.props.dispatch({type:"leftPanelWidth", load:window.innerWidth/3.7});
+
+    
+
+    closeRightClickMenu = () => {
+
+        if(this.props.showRightClickMenu)
+           this.props.dispatch({type:"showRightClickMenu", load:false});  
+
+    }
+
+
+
+    fetchData = () => { 
+
+        Promise.all([ 
+            getTodos(this.onError)(true,this.limit),
+            getProjects(this.onError)(true,this.limit), 
+            getAreas(this.onError)(true,this.limit),
+            getEvents(this.onError)(true,this.limit) 
+        ]).then( 
+            ([todos, projects, areas, events]) => {  
+ 
+                this.props.dispatch({
+                    type:"setAllTypes", 
+                    load:{
+                        todos,
+                        projects,
+                        areas,
+                        events
+                    }
+                })  
+                  
+            }
+        )
+
+    }
+
+
+
+    componentDidMount(){
+
+        this.fetchData();
+
+        ipcRenderer.removeAllListeners("action"); 
+
+        ipcRenderer.on("action", (event, action) => this.props.dispatch(action));
+        
         window.addEventListener("resize", this.updateWidth);
 
         window.addEventListener("click", this.closeRightClickMenu);
-   
-        getTodosCatch(true,Infinity) 
-        .then(queryToTodos) 
-        .then(  
-            (todos:Todo[]) => this.props.dispatch({type:"todos", load:todos})
-        )   
-        
-        //get projects 
-        //get areas  
+    
     }     
     
 
+
     componentWillUnmount(){
+
         window.removeEventListener("resize", this.updateWidth);
         window.removeEventListener("click", this.closeRightClickMenu);
-    }
-         
+
+    } 
+     
     
+
     componentWillReceiveProps(nextProps){
+
         if(this.props.selectedCategory!==nextProps.selectedCategory)
-          if(this.rootRef)   
-             this.rootRef.scrollTop=0; 
+           if(this.rootRef)   
+              this.rootRef.scrollTop=0; 
+
     }
   
-
-    openNewWindow = () => {
-        ipcRenderer.send("cloneWindow",this.props)
-    }
-
  
- 
+
     openTodoInput = (e) => { 
  
         e.stopPropagation(); 
@@ -178,7 +222,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
             status : "",
             reminder : null, 
             deadline : null,  
-            created : null,  
+            created : new Date(),  
             deleted : null,  
             fulfilled : null,   
             history : [],
@@ -191,219 +235,191 @@ export class MainContainer extends Component<Store,MainContainerState>{
  
         if(this.rootRef) 
            this.rootRef.scrollTop = 0; 
-    }; 
+
+    } 
     
+
+
+    openNewWindow = () => {
+        
+        let clonedStore = {...this.props};
+
+        clonedStore.windowId = undefined;
+
+        ipcRenderer.send("cloneWindow", clonedStore);
+    
+    }
+
+
+
+    selectFooterButtons = () => {
+
+        return [
+            "NewTodo" , 
+            "Calendar" , 
+            "Arrow" , 
+            "Search",  
+            "Heading" 
+        ]
+
+    }
+
+
     render(){ 
 
-        return <div ref={(e) => { this.rootRef=e }}
-            className="scroll"  
-            id="maincontainer"
-            style={{    
-                width: window.innerWidth-this.props.leftPanelWidth,
-                position:"relative", 
-                display: "flex", 
-                borderRadius:"1%", 
-                backgroundColor: "rgba(209, 209, 209, 0.1)", 
-                overflow: "scroll",  
-                flexDirection: "column" 
-            }}
-        >      
-            <div onClick={() => {}
-                //this.onBodyClick
-                }  style={{padding:"60px"}}>
+        let todos = compose(  
+            filter(byTags),
+            filter(byCategory)
+        )(this.props.todos);
+
+ 
+        return  <div ref={(e) => { this.rootRef=e }}
+                     className="scroll"  
+                     id="maincontainer"
+                     style={{    
+                        width : window.innerWidth-this.props.leftPanelWidth,
+                        position :"relative", 
+                        display : "flex", 
+                        borderRadius :"1%", 
+                        backgroundColor : "rgba(209, 209, 209, 0.1)", 
+                        overflow : "scroll",  
+                        flexDirection: "column" 
+                     }} 
+                >    
+
+
+ 
+                <FadeBackgroundIcon 
+                    container={this.rootRef}
+                    objects={todos}
+                    selectedCategory={this.props.selectedCategory} 
+                />  
+
+
+
+                <div style={{display: "flex", padding: "10px"}}>   
+
                     <div className="no-drag" style={{position: "fixed", top: 0, right: 0}}>  
-                        <IconButton   
-                            //onClick = {this.toggleWindowSize} 
-                            onClick={this.openNewWindow}     
-                            iconStyle={{color:"cadetblue",width:"20px",height:"20px"}}
-                        >     
-                            <OverlappingWindows />
-                        </IconButton> 
-                    </div>  
 
-                    <div style={{ width: "100%"}}> 
-                        <div style={{
-                            display:"flex", 
-                            position:"relative",
-                            alignItems:"center",
-                            marginBottom:"20px"
-                        }}>  
+                            <IconButton 
+                                iconStyle={{color:"cadetblue",opacity:0,width:"20px",height:"20px"}}
+                                className="no-drag" 
+                                onTouchTap={() => ipcRenderer.send("reload", this.props.windowId)}
+                            >
+                                <Refresh /> 
+                            </IconButton>  
 
-                            <div>{chooseIcon(this.props.selectedCategory)}</div>
+                            <IconButton    
+                                onClick={this.openNewWindow}   
+                                className="no-drag"  
+                                iconStyle={{color:"cadetblue",width:"20px",height:"20px"}}
+                            >     
+                                <OverlappingWindows />
+                            </IconButton>  
 
-                            {
-                                this.props.selectedCategory==="project" ? 
-                                <AutosizeInput
-                                    type="text"
-                                    name="form-field-name" 
-                                    minWidth={"170px"}
-                                    inputStyle={{  
-                                        boxSizing: "content-box", 
-                                        height: "42px",
-                                        fontWeight: "bold", 
-                                        maxWidth:"450px",
-                                        fontFamily: "sans-serif",
-                                        border: "none",
-                                        fontSize: "26px",
-                                        outline: "none" 
-                                    }}
-                                    value={this.state.projectName}
-                                    placeholder="New Project"
-                                    onChange={(event) => {
-                                       this.setState({projectName:event.target.value}); 
-                                    }} 
-                                /> 
-                                :
-                                <div style={{  
-                                    fontFamily: "sans-serif",  
-                                    fontSize: "xx-large",
-                                    fontWeight: 600,
-                                    paddingLeft: "10px",
-                                    WebkitUserSelect: "none",
-                                    cursor:"default" 
-                                }}>   
-                                    {selectTitle(this.props)}
-                                </div> 
-                            }
+                    </div>   
 
-                            {  
+                </div>    
 
-                                this.props.selectedCategory!=="project" ? null :
 
-                                <div  
-                                    onClick = {() => this.setState({
-                                        showProjectMenuPopover:true
-                                    })}  
 
-                                    style={{
-                                        marginLeft: "5px",
-                                        marginRight: "5px",
-                                        width: "32px",
-                                        height: "32px",
-                                        cursor: "pointer"
-                                    }}
-                                    ref={ (e) => { this.moreAnchor=e; } }
-                                >
+                <div style={{padding:"60px"}}>
 
-                                        <ThreeDots style={{  
-                                            color:"rgb(179, 179, 179)",
-                                            width:"32px", 
-                                            height:"32px",
-                                            cursor: "pointer" 
-                                        }} />
-
-                                </div> 
-
-                            }
-
-                        </div>
- 
- 
-                        { 
-                            this.props.selectedCategory!=="project" ? null : 
-                             <TextField  
-                                hintText = "Notes"   
-                                defaultValue = {''}    
-                                multiLine={true} 
-                                fullWidth = {true}   
-                                onChange={(e, value) => {}}
-                                inputStyle = {{fontWeight:600, color:"rgba(100,100,100,1)", fontSize:"15px"}}  
-                                //hintStyle = {{top:"3px", left:0, width:"100%", height:"100%"}}   
-                                //style = {{height:"28px"}}      
-                                underlineFocusStyle = {{borderColor: "rgba(0,0,0,0)"}}    
-                                underlineStyle = {{borderColor: "rgba(0,0,0,0)"}}  
-                            /> 
-                        }
-
- 
-                        { 
-                            this.props.selectedCategory==="today" ?
-                            <div style={{   
-                                borderRadius:"10px", 
-                                backgroundColor:"rgba(100,100,100,0.1)",
-                                width:window.innerWidth/3,
-                                height:"140px"
-                            }}> 
-                            </div>
-                            :
-                            null
-                        } 
- 
-                        <Tags  
-                         selectTag={(tag) => this.props.dispatch({type:"selectedTag",load:tag})}
-                         tags={this.props.tags}
-                         selectedTag={this.props.selectedTag}
-                         show={showTags(this.props.selectedCategory)} 
-                        /> 
-                    </div>  
 
                     {
-                        this.props.selectedCategory === "inbox" && 
-                        compose(isEmpty,filter(byCategory(this.props.selectedCategory)))(this.props.todos)
-                        ?  
-                        <Inbox style={{ 
-                            position: "absolute",
-                            color: "rgba(100,100,100,0.1)",
-                            top: "40%",
-                            left: "40%",
-                            fill: "currentcolor",
-                            height: "170px",
-                            width: "170px",
-                            userSelect: "none"
-                        }} />
-                        :
-                        null   
-                    }   
+                         {
 
-     
-                    <div>  
-                        {
-                            isListTypeCategory(this.props.selectedCategory) ?  
-                            <ListType 
-                                dispatch={this.props.dispatch} 
-                                selectedCategory={this.props.selectedCategory}
-                                showRightClickMenu={this.props.showRightClickMenu}
-                                selectedTag={this.props.selectedTag}
+                            inbox:<Inbox 
+                                dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
-                                rootRef={this.rootRef} 
+                                selectedTag={this.props.selectedTag}
+                                rootRef={this.rootRef}
+                                todos={todos}
+                                tags={this.props.tags}
+                            />, 
+
+                            today: <Today 
+                                dispatch={this.props.dispatch}
+                                selectedTodoId={this.props.selectedTodoId}
+                                selectedTag={this.props.selectedTag}
+                                rootRef={this.rootRef}
+                                todos={todos}
+                                tags={this.props.tags}
+                            />,
+
+                            anytime: <Anytime 
+                            
+                             
+                            
+
+                            />,
+
+                            someday: <Someday 
+                            
+                            
+
+                            
+                            />, 
+
+                            upcoming: <Upcoming 
                                 todos={this.props.todos}
                                 projects={this.props.projects}
-                                areas={this.props.areas}
-                                tags={this.props.tags}
                                 events={this.props.events}
-                            /> 
-                            :
-                            {
-                                logbook : 
-                                    <Logbook
+                                areas={this.props.areas}
+                            />, 
+
+                            logbook: <Logbook 
+                            
+                            
+                            
+
+                            />,
 
 
-                                    />,
-                                trash : 
-                                    <Trash 
-                                    
-                                    
-                                    />, 
-                                project : 
-                                    <Project 
-                                        todos={this.props.todos}
-                                        projects={this.props.projects}
-                                        areas={this.props.areas}
-                                        selectedProject={this.props.selectedProject}
-                                        dispatch={this.props.dispatch}
-                                    />, 
-                                area :  
-                                    <Area
-                                        todos={this.props.todos}
-                                        projects={this.props.projects}
-                                        areas={this.props.areas} 
-                                        selectedArea={this.props.selectedArea}
-                                        dispatch={this.props.dispatch}
-                                    />
-                            }[  this.props.selectedCategory ]
-                        } 
-                    </div>
-                      
+                            trash: <Trash 
+                            
+                            
+
+                            
+                            />,
+
+
+                            project : <ProjectComponent 
+
+                                todos={this.props.todos}
+
+                                projects={this.props.projects}
+
+                                areas={this.props.areas}
+
+                                selectedProject={this.props.selectedProject}
+
+                                dispatch={this.props.dispatch}
+
+                            />, 
+  
+
+                            area : <AreaComponent 
+
+                                todos={this.props.todos}
+
+                                projects={this.props.projects}
+
+                                areas={this.props.areas} 
+
+                                selectedArea={this.props.selectedArea}
+
+                                dispatch={this.props.dispatch}
+
+                            />
+
+                         }[this.props.selectedCategory]
+                    }
+
+
+                    
+    
+
                     <div style={{ 
                         height:"60px", 
                         width:window.innerWidth-this.props.leftPanelWidth, 
@@ -417,55 +433,53 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         borderTop:"1px solid rgba(100, 100, 100, 0.2)" 
                     }}>     
                         <Footer   
-                            buttonsNamesToDispaly={
-                            [
-                                "NewTodo" , 
-                                "Calendar" , 
-                                "Arrow" , 
-                                "Search",  
-                                this.props.selectedCategory==="project" ? "Heading" : null
-                            ].filter(v => !!v) as any
-                            }
+
+                            buttonsNamesToDispaly={this.selectFooterButtons() as any}
+
 
                             onNewTodoClick={this.openTodoInput}
 
+
+
                             onCalendarClick={(e) => {
  
+
+
                             }} 
 
                             onArrowClick={(e) => {
+
+
 
                             }}  
 
                             onSearchClick={(e) => {
 
+
+
                             }} 
 
                             onMoreClick={(e) => {
+
+
 
                             }} 
 
                             onTrashClick={(e) => {
 
+
+
                             }}  
 
                             onHeadingClick={(e) => {
                                  
+
+
                             }}   
                         />  
 
                     </div>  
-                    {   
-                        this.props.selectedCategory!=="project" ? null :
-                        <ProjectMenuPopover
-                            close={(e) => this.setState({showProjectMenuPopover:false})}
-                            open={this.state.showProjectMenuPopover}
-                            origin={{vertical: "center", horizontal: "middle"}}  
-                            anchorEl={this.moreAnchor}
-                            point={{vertical: "top", horizontal: "middle"}} 
-                            dispatch={this.props.dispatch}
-                        />    
-                    }  
+
              </div>  
         </div> 
   }
@@ -492,261 +506,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
 
 
-interface ProjectMenuPopoverProps{
-    close : Function,
-    open : boolean,
-    origin : any,  
-    anchorEl : HTMLElement,
-    point : any,
-    dispatch : Function
-}  
-
-
-export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
-
-    constructor(props){
-        super(props); 
-    }  
-
-
-    onComplete = (e) => {
-        
-    }
-
-
-    onWhen = (e) => {
-        
-    }
-
-
-    onAddTags = (e) => {
-        
-    }
-
-
-    onAddDeadline = (e) => {
-
-    }
-
-
-    onMove = (e) => {
-        
-    }
-
-
-    onRepeat = (e) => {
-
-    }
-
-
-    onDuplicate = (e) => {
-
-    }
-
-
-    onDelete = (e) => {
-
-    }
-
-
-    onShare = (e) => {
-
-    }
-
-
-    render(){ 
-        return <Popover 
-            className="nocolor"
-            style={{
-                marginTop:"20px", 
-                backgroundColor:"rgba(0,0,0,0)",
-                background:"rgba(0,0,0,0)",
-                borderRadius:"10px"
-            }}   
-            open={this.props.open}
-            anchorEl={this.props.anchorEl}
-            onRequestClose={() => this.props.close()}
-            anchorOrigin={this.props.origin} 
-            targetOrigin={this.props.point} 
-        >   
-            <div  className={"darkscroll"}
-                    style={{  
-                        backgroundColor: "rgb(39, 43, 53)",
-                        paddingRight: "10px",
-                        paddingLeft: "10px",
-                        borderRadius: "10px",
-                        paddingTop: "5px",
-                        paddingBottom: "5px",
-                        cursor:"pointer" 
-                    }} 
-            >    
-
-                    <div  
-                        onClick={this.onComplete} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
-                    >  
-                        <CheckCircle style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                            Complete project   
-                        </div>     
-                    </div>
-                
- 
- 
-                    <div  
-                        onClick={this.onWhen} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
-                    >  
-                        <CalendarIco style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                            When   
-                        </div>     
-                    </div>
-
-
-                    <div   
-                        onClick={this.onAddTags} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
-                    >  
-                        <TriangleLabel style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                            Add tags  
-                        </div>     
-                    </div>
 
 
 
 
- 
-                    <div  
-                        onClick={this.onAddDeadline} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
-                    >  
-                        <Flag style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                            Add deadline 
-                        </div>     
-                    </div>
- 
-
-
-
-
-                    <div style={{
-                        border:"1px solid rgba(200,200,200,0.1)",
-                        marginTop: "5px",
-                        marginBottom: "5px"
-                    }}>
-                    </div>
-
-
-
-
-
-
-                    <div  
-                        onClick={this.onMove} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
-                    >   
-                        <Arrow style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                            Move 
-                        </div>     
-                    </div>
-
- 
-
-                    <div  
-                        onClick={this.onRepeat} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
-                    >  
-                        <Repeat style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                            Repeat...  
-                        </div>     
-                    </div>
-
-                    <div  
-                        onClick={this.onDuplicate} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
-                    >  
-                        <Duplicate style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                             Duplicate project 
-                        </div>     
-                    </div>
-                 
-
-                    <div   
-                        onClick={this.onDelete} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
-                    >  
-                        <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                            Delete project  
-                        </div>     
-                    </div>
-
-                    <div  
-                        onClick={this.onShare} 
-                        className={"tagItem"} style={{
-                            display:"flex",  
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
-                    >      
-                        <ShareIcon style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                          Share
-                        </div>     
-                    </div>
- 
-            </div> 
-        </Popover> 
-
-
-    }
-
-}
 

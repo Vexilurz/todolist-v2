@@ -6,7 +6,7 @@ import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond,
 } from 'ramda';
 import '../assets/styles.css';  
 import { Component } from "react"; 
-import { DraggableCore, DraggableEventHandler, DraggableData } from 'react-draggable';
+import { DraggableCore } from 'react-draggable';
  
 
  

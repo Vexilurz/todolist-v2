@@ -76,17 +76,30 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
 
      shouldComponentUpdate(nextProps:TodosListProps){
+
          if(this.props.todos.length !== nextProps.todos.length)
             return true; 
 
-         for(let i=0; i<this.props.todos.length; i++)
-             if(nextProps.todos[i]._id!==this.props.todos[i]._id){
+         for(let i=0; i<this.props.todos.length; i++){
+
+            if(nextProps.todos[i]._id!==this.props.todos[i]._id){
+
                 return true;
-             }else if(nextProps.todos[i].checked!==this.props.todos[i].checked){
+
+            }else if(nextProps.todos[i].checked!==this.props.todos[i].checked){
+
                 return true; 
-             }    
+
+            }else if(nextProps.todos[i].title!==this.props.todos[i].title){
+
+                return true; 
+
+            }   
+
+         }
          
          return false;
+         
      }
  
   

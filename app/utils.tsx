@@ -42,7 +42,7 @@ import { getTodos, queryToTodos, Todo, updateTodo } from './databaseCalls';
 import { Category } from './MainContainer';
 let moment = require("moment");
 
-
+ 
 export let daysRemaining = (date) => {
     var eventdate = moment(date);
     var todaysdate = moment();
@@ -50,8 +50,11 @@ export let daysRemaining = (date) => {
 }
 
 
+
+
+
 export let chooseIcon = (selectedCategory:Category) => {
-    switch(selectedCategory){
+    switch(selectedCategory){  
         case "inbox":
             return <Inbox style={{ 
                 color:"dodgerblue", 
@@ -101,26 +104,6 @@ export let chooseIcon = (selectedCategory:Category) => {
                 height:"50px" 
             }}/>
 
-        case "project":  
-            return <div style={{ 
-                width:"30px",    
-                height:"30px", 
-                borderRadius:"100px",
-                border:"5px solid rgba(108, 135, 222, 0.8)",
-                boxSizing:"border-box",
-                marginRight:"10px" 
-            }}> 
-            </div>
-
-        case "area":
-            return <NewAreaIcon 
-                style={{
-                    color:"lightblue", 
-                    width:"50px",
-                    height:"50px"
-                }}
-            />    
-             
         default:
             return <Inbox style={{ 
                 color:"dodgerblue", 
@@ -187,7 +170,7 @@ export let getTagsFromTodos = (todos:Todo[]) : string[] => compose(
     uniq,    
     flatten, 
     prepend([
-      "All", "Work", "Home",
+      "Work", "Home",
       "Priority", "High", "Medium","Low"
     ]),
     map(prop("attachedTags")), 
@@ -299,7 +282,16 @@ export let getMousePositionX = (container : HTMLElement, event:any) => event.pag
 
 
 
+export let arrayContainsItem = (array) => (item) : boolean => array.includes(item); 
 
+
+
+ 
+export let showTags = (selectedCategory:Category) : boolean => 
+    selectedCategory!=="inbox" && 
+    selectedCategory!=="someday" &&
+    selectedCategory!=="area" &&
+    selectedCategory!=="project";
 
 
 

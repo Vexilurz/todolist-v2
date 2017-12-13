@@ -28,26 +28,41 @@ injectTapEventPlugin();
     document.body.appendChild(app);  
 })();  
  
+
+
 @connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
 export class App extends Component<any,any>{
-    browserWindowID : string;
 
     constructor(props){  
+ 
         super(props);   
+
+
     }
+
+
  
     componentDidMount(){
-        if(!isNil(this.props.clonedStore)){
-            this.props.dispatch({
-                type:"newStore",
-                load:this.props.clonedStore
-            })
+
+        let {type,load} = this.props.initialLoad;
+
+        switch(type){
+
+            case "clone":
+               this.props.dispatch({type:"newStore", load});
+               break;
+            case "reload":
+               this.props.dispatch({type:"windowId", load});
+               break;
+            case "open":
+               this.props.dispatch({type:"windowId", load});
+               break;
+
         }
-  
-        if(!isNil(this.props.id)){
-            this.browserWindowID = this.props.id; 
-        }
-    }  
+
+    }   
+ 
+
 
     render(){     
 
@@ -55,8 +70,7 @@ export class App extends Component<any,any>{
             <div style={{
                 backgroundColor:"white",
                 width:"100%",
-                height:"100%",
-                borderRadius:"1%", 
+                height:"100%", 
                 scroll:"none",
                 zIndex:2001,  
             }}>  
@@ -69,14 +83,14 @@ export class App extends Component<any,any>{
                                 top:0,
                                 left:0,     
                                 width:"100%", 
-                                height:"8%" 
+                                height:"6%" 
                             }}  
                     >   
                     </div> 
  
-                    <LeftPanel {...{windowId:this.browserWindowID} as any}  /> 
+                    <LeftPanel {...{} as any}  /> 
 
-                    <MainContainer {...{windowId:this.browserWindowID} as any} />  
+                    <MainContainer {...{} as any} />  
  
                 </div> 
             </div>         
@@ -90,9 +104,12 @@ export class App extends Component<any,any>{
 
 ipcRenderer.on( 
     'loaded',     
-    (event, clonedStore:Store, id:string) => { 
-        ReactDOM.render( 
-            <Provider store={store}><App clonedStore={clonedStore} id={id}/></Provider>,
+    (event, {type, load} : {type:string,load:any}) => { 
+
+        ReactDOM.render(  
+            <Provider store={store}> 
+                <App initialLoad={{type,load}}/>
+            </Provider>,
             document.getElementById('application')
         )  
     }
@@ -116,6 +133,7 @@ export interface Store{
     rightClickMenuX : number,
     rightClickMenuY : number,
 
+    windowId:number,
     
     projects:any[],
     areas:any[],
@@ -125,15 +143,15 @@ export interface Store{
     tags:string[],
     
     dispatch?:Function,
-    windowId?:string 
 } 
 
 
 
 export let defaultStoreItems : Store = {
+    windowId:null, 
     selectedCategory : "inbox",
     selectedTodoId : null,
-    selectedTag : "All",
+    selectedTag : "",
     leftPanelWidth : window.innerWidth/3.7,
     selectedProject : null,
     selectedArea : null,  
@@ -151,202 +169,295 @@ export let defaultStoreItems : Store = {
 
     todos:[], 
     tags:[
-        "All", "Work", "Home",
+        "Work", "Home",
         "Priority", "High", "Medium",
         "Low"
     ]
 };    
+    
+ 
+
+let reducer = (reducers) => (state:Store, action) => {
+
+    let newState = undefined;
+
+
+    if(action.type==="newStore"){
+
+       return {...action.load}  
+
+    }
+
+
+    for(let i=0; i<reducers.length; i++){
+
+        newState = reducers[i](state, action);
+
+        if(newState)
+           return newState; 
+
+    }
+ 
+
+    return state; 
+};
    
  
-   
-let reducer = (state:Store, action) => { 
-    
+
+let applicationStateReducer = (state:Store, action) => {
+
+    let newState = undefined;
+
+ 
     switch(action.type){
 
-        case "newStore":
-            return {...action.load}; 
+        case "windowId":
+            newState = {
+                ...state,
+                windowId:action.load
+            }; 
+            break;
 
         case "selectedCategory":
-            return {
+            newState = {
                 ...state,
-                selectedTag:"All", 
+                selectedTag:"", 
                 selectedCategory:action.load,
                 openNewProjectAreaPopover:false 
-            };
+            }; 
+            break;
 
- 
         case "leftPanelWidth":
-            return {
+            newState = {
                 ...state,
                 leftPanelWidth:action.load
             };
+            break;
 
-             
         case "selectedTag":  
-            return {
+            newState = {
                 ...state,
                 selectedTag:action.load
             };
-
+            break;
 
         case "openNewProjectAreaPopover":
-            return {
+            newState = {
                 ...state,
                 openNewProjectAreaPopover:action.load
             }; 
-
+            break;
 
         case "openRightClickMenu":
-            return {
+            newState = {
                 ...state,
                 showRightClickMenu : action.load.showRightClickMenu,
                 rightClickedTodoId : action.load.rightClickedTodoId,
                 rightClickMenuX : action.load.rightClickMenuX,
                 rightClickMenuY : action.load.rightClickMenuY
             };  
- 
+            break;
 
         case "showRightClickMenu":
-            return {
+            newState = {
                 ...state,
                 showRightClickMenu : action.load
             };
-
+            break;
 
         case "selectedTodoId":
-            return {
+            newState = {
                 ...state,
                 selectedTodoId : action.load
             }; 
-
+            break;
 
         case "closeAllItems":
-            return {
+            newState = {
                 ...state,
                 openNewProjectAreaPopover : false,
                 showRightClickMenu : false,
                 selectedTodoId : null
             };  
- 
+            break;
 
         case "rightClickedTodoId" :
-            return {
+            newState = {
                 ...state,
                 rightClickedTodoId : action.load
             }; 
+            break;
 
-  
         case "rightClickMenuX" :
-            return {
+            newState = {
                 ...state,
                 rightClickMenuX : action.load
             }; 
-            
-  
+            break;
+
         case "rightClickMenuY" :
-            return {
+            newState = {
                 ...state,
                 rightClickMenuY : action.load
             }; 
+            break;
+
+        case "selectedProject":
+            newState = {
+                ...state, 
+                selectedCategory:"project", 
+                selectedProject:action.load
+            };    
+            break;
+
+        case "selectedArea":    
+            newState = {
+                ...state, 
+                selectedCategory:"area", 
+                selectedArea:action.load
+            }; 
+            break;
+
+    }
+
+
+    return  newState;
+ 
+
+}
 
  
-        case "todos": 
-            return { 
-                ...state, 
-                todos:[...action.load],
-                showRightClickMenu:false, 
-                tags:getTagsFromTodos(action.load)
-            };  
+
+
+
+let applicationObjectsReducer = (state:Store, action) => { 
+    
+
+    let newState = undefined;
+
+
+    switch(action.type){
+
+
+        case "setAllTypes":
+            newState = {
+                ...state,
+                todos:[...action.load.todos],
+                projects:[...action.load.projects],
+                areas:[...action.load.areas],
+                events:[...action.load.events]
+            }
+            break;
+ 
  
         case "newTodo":  
-            return {
+            newState = {
                 ...state, 
                 selectedTodoId:action.load._id,
                 todos:[action.load,...state.todos],
                 showRightClickMenu:false
-            };  
+            }; 
+            break; 
              
 
 
-
-             
         case "newArea":  
-            return {
+            newState = {
                 ...state, 
                 selectedCategory:"area", 
                 openNewProjectAreaPopover:false,
                 selectedArea:action.load,
                 areas:[action.load,...state.areas]
-            };    
+            };  
+            break;  
             
 
+
         case "newProject":   
-            return {
+            newState = {
                 ...state, 
                 selectedCategory:"project", 
                 openNewProjectAreaPopover:false, 
                 selectedProject:action.load,
                 projects:[action.load,...state.projects],
             };   
+            break;
         
 
 
-
-
-
         case "newEvent":  
-            return {
+            newState = {
                 ...state, 
                 events:[action.load,...state.events]
-            };               
+            }; 
+            break;              
 
-
-        case "selectedProject":
-            return {
-                ...state, 
-                selectedProject:action.load
-            };    
-
-        case "selectedArea":    
-            return {
-                ...state, 
-                selectedArea:action.load
-            };    
 
 
         case "projects": 
-            return {
+            newState = {
                 ...state, 
                 projects:[...action.load],
                 showRightClickMenu:false
             }; 
+            break; 
  
+
+        case "todos": 
+            newState = { 
+                ...state, 
+                todos:[...action.load],
+                showRightClickMenu:false, 
+                tags:getTagsFromTodos(action.load)
+            }; 
+            break;    
+
               
         case "areas": 
-            return {
+            newState = {
                 ...state, 
                 areas:[...action.load],
                 showRightClickMenu:false
             };     
+            break;
           
 
+
         case "events":  
-            return {
+            newState = {
                 ...state, 
                 events:[...action.load],
                 showRightClickMenu:false
             };       
-            
+            break;
+
+
     } 
+
+
+    if(newState){ 
+
+       ipcRenderer.send("action", action, state.windowId); 
     
-    return state; 
+    }
+
+ 
+
+    return newState; 
    
-};      
-  
+}     
+
+
+
+let applicationReducer = reducer([
+    applicationStateReducer,
+    applicationObjectsReducer
+]); 
    
-export let store = createStore(reducer, defaultStoreItems); 
+ 
+export let store = createStore(applicationReducer, defaultStoreItems); 
   
 
 
-
+ 
    

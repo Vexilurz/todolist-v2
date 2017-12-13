@@ -43,8 +43,9 @@ export class Footer extends Component<FooterProps,{}>{
     }    
   
     shouldComponentUpdate(nextProps){
-      //may fail 
+
       return this.props.buttonsNamesToDispaly.length!==nextProps.buttonsNamesToDispaly.length; 
+      
     } 
     
     render(){

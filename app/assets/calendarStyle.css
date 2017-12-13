@@ -6,6 +6,7 @@
 
 .DayPicker-wrapper {
   position: relative;
+  border-radius: 20px;
   background-color: rgb(39,43,53);
   color: white; 
   -webkit-user-select: none;
@@ -13,7 +14,7 @@
       -ms-user-select: none;
           user-select: none;
   -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
+  -webkit-box-direction: normal; 
       -ms-flex-direction: row;
           flex-direction: row;
 }

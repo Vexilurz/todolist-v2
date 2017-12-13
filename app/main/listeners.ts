@@ -1,25 +1,15 @@
-import { mainWindow, setItemToStorage, getEverythingFromStorage, clearStorage, removeFromStorage, getItemFromStorage } from './main';
+import { mainWindow } from './main';
 import { loadApp } from './loadApp'; 
-import fs = require('fs');   
-import request = require('request'); 
-import path = require("path");
-import url = require('url'); 
-import child_process = require('child_process');
-let randomstring = require("randomstring");  
 import * as electron from 'electron'; 
 import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';
 import { compose, contains, toPairs, curry, replace, mergeAll, addIndex, toUpper, equals,
          takeLast, map, fromPairs, isEmpty, flatten, defaultTo, range, all, splitEvery, ifElse,
          prepend, cond, isNil, intersection, insert, add, findIndex, filter, reject, find, split 
 } from 'ramda'; 
-import { ChildProcess } from 'child_process';
 import { initWindow } from './initWindow';
-import { Store } from '../App';
 let uniqid = require("uniqid");
-let os = require('os');  
-let FileReader = require('filereader');
 const {shell} = require('electron'); 
-
+ 
 
 interface RegisteredListener{ 
      name : string, 
@@ -29,136 +19,191 @@ interface RegisteredListener{
 
  
 export class Listeners {
-     
+      
     registeredListeners : RegisteredListener[]; 
-    spawnedWindows : any;
-    mainWindowID : string;
+
+
+    spawnedWindows : any[];
+ 
  
     constructor(window){
   
-      this.mainWindowID = uniqid();  
 
-      this.spawnedWindows = fromPairs([this.mainWindowID, mainWindow]);  
+
+
+      this.spawnedWindows = [mainWindow];  
  
+
+
+
       this.registeredListeners = [  
-            {
-                name : "cloneWindow",
-                callback : (event, store:Store, id:string) => {
-                let newWindow = initWindow({width:840,height:680, transparent:false}); 
-                let newWindowId = uniqid(); 
-                this.spawnedWindows[newWindowId] = newWindow;
-                    
-                    loadApp(newWindow)     
-                    .then(() => {        
-                        newWindow.webContents.send("loaded", store, newWindowId);
-                        //mainWindow.webContents.openDevTools();   
-                    });       
-                } 
-            },    
 
-            {  
-              name : "reload", 
-              callback : (event, id:string) => { 
-
-                let wnd = this.spawnedWindows[id];  
-
-                if(isNil(wnd)){
-                    window.reload();   
-                    loadApp(window).then(() => window.webContents.send("loaded", null, this.mainWindowID));  
-                }else{
-                    wnd.reload();  
-                    loadApp(wnd).then(() => wnd.webContents.send("loaded", null, id));  
-                } 
-              }     
-            },
 
             { 
-                name : "close", 
-                callback : (event, id:string) => {
-                    let wnd = this.spawnedWindows[id];  
+                name : "cloneWindow",
+                callback : (event, store) => {
+
+                    let newWindow = initWindow({width:840,  height:680, transparent:false}); 
+
+                    this.spawnedWindows.push(newWindow);
+
+                    this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed());
                     
-                    if(isNil(wnd)){
-                        window.close();  
-                    }else{
-                        wnd.close();  
-                    } 
+                    let storeWithId = {...store, ...{ windowId:newWindow.id }};
+ 
+                    loadApp(newWindow)     
+                    .then(() => {        
+                        newWindow.webContents.send("loaded", {
+                            type:"clone", 
+                            load:storeWithId
+                        });
+                        newWindow.webContents.openDevTools();   
+                    });      
+
+                } 
+            }, 
+            
+            
+            {  
+                name : "reload", 
+                callback : (event, id:number) => { 
+                    
+  
+                       this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed());
+  
+                       let browserWindow = this.spawnedWindows.find( browserWindow => browserWindow.id===id );  
+  
+                       if(isNil(browserWindow))
+                         return;
+
+  
+                       browserWindow.reload();  
+
+                        loadApp(browserWindow)
+                        .then(
+                          () => browserWindow.webContents.send(
+                                    "loaded", 
+                                    {
+                                        type:"reload", 
+                                        load:browserWindow.id
+                                    }
+                                )
+                        );  
+
+                       
+  
+  
+                }     
+            }, 
+
+
+            {
+                name : "action",
+                callback : (event, action : any, id : number) => {
+
+                    if(isNil(id))
+                       return;  
+
+                    let windows = this.spawnedWindows.filter( w => !w.isDestroyed());
+
+                    for(let i=0; i<windows.length; i++){
+
+                        if(windows[i].id===id)
+                           continue;    
+                        
+                        windows[i].webContents.send("action", action);
+
+                    }
+
                 }
             }, 
 
+
             { 
-                name : "hide", 
-                callback : (event, id:string) => {
-                    let wnd = this.spawnedWindows[id];  
+                name : "close", 
+                callback : (event, id:number) => {
+
+                    this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed());
+
+                    let browserWindow = this.spawnedWindows.find( browserWindow => browserWindow.id===id );  
                     
-                    if(isNil(wnd)){
-                        window.minimize();  
-                    }else{  
-                        wnd.minimize();  
-                    }  
+
+                    if(isNil(browserWindow))
+                       return; 
+
+                    browserWindow.close(); 
+
+                }
+            }, 
+
+
+            { 
+
+                name : "hide", 
+                callback : (event, id:number) => {
+
+                    this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed());
+
+                    let browserWindow = this.spawnedWindows.find( browserWindow => browserWindow.id===id );  
+                    
+
+                    if(isNil(browserWindow))
+                       return; 
+                   
+
+                    browserWindow.minimize(); 
+
                 } 
+    
             },  
  
-            /*{    
+
+            { 
+                
               name : "size", 
-              callback : (event, fullscreen:boolean) => {  
-                 const {width,height} = electron.screen.getPrimaryDisplay().workAreaSize;
-                 if(fullscreen)
-                    window.setSize(width,height);
-                 else 
-                    window.setSize(960,720);   
-                 window.center(); 
+              callback : (event, id:number, fullscreen:boolean) => { 
+
+                    this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed());
+
+                    const {width,height} = electron.screen.getPrimaryDisplay().workAreaSize;
+
+                    let browserWindow = this.spawnedWindows.find( browserWindow => browserWindow.id===id );  
+                     
+
+                    if(isNil(browserWindow))
+                       return; 
+                    
+                    if(fullscreen)
+                        browserWindow.setSize(width,height);
+                    else 
+                        browserWindow.setSize(960,720);  
+                        
+                        
+                    browserWindow.center(); 
+ 
               }
-            },*/ 
  
-            { 
-                name : "getItemFromStorage", callback : (event, key:string) => {
-                getItemFromStorage((e) => event.sender.send("error", e), key)
-                .then( 
-                    (item) => event.sender.send("getItemFromStorage",item) 
-                )  
-            }}, 
-
-            { 
-                name : "addItemToStorage", callback : (event, { key, item }) => {
-                setItemToStorage((e) => event.sender.send("error", e), key, item)
-                .then(
-                    () => event.sender.send("addItemToStorage")
-                )
-            }},
-  
-            { name : "removeItemFromStorage", callback : (event, key:string) => {
-                removeFromStorage((e) => event.sender.send("error", e), key)
-                .then(() => { 
-                    () => event.sender.send("removeItemFromStorage")
-                })
-            }}, 
- 
-            { 
-                name : "clearStorage", callback : (event) => {
-                clearStorage((e) => event.sender.send("error",e))
-                .then(
-                    () => event.sender.send("clearStorage")
-                )
-            }},
-
-            { 
-                name : "getEverythingFromStorage", callback : (event) => {
-                getEverythingFromStorage(
-                    (e) => event.sender.send("error",e)
-                ).then(
-                    (data:any) => event.sender.send("getEverythingFromStorage",data)
-                )
-            }},  
+            }
       ];    
       
+
       this.startToListenOnAllChannels(); 
+
+
     }; 
  
+
+
+
+
     registerListener(listener : RegisteredListener) : void{
 
         this.registeredListeners.push(listener);
 
     };  
+
+
+
 
     unregisterListener(name : string) : void{
 
@@ -173,6 +218,9 @@ export class Listeners {
 
     }; 
   
+
+
+
     startToListenOnAllChannels = () => 
         map(
             ({name,callback}) => 
@@ -184,6 +232,8 @@ export class Listeners {
         );  
     
   
+
+
     stopToListenOnAllChannels = () => 
         map( 
             ({name,callback}) => ipcMain.removeAllListeners(name),
