@@ -18,10 +18,6 @@ import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, generateID, addTo
 import Popover from 'material-ui/Popover'; 
 import Button from 'material-ui-next/Button';
 import { Tags } from '../Components/Tags';
-import { ListType } from '../MainContainerCategories/ListType';
-import { Footer } from '../Components/Footer';
-import { Logbook } from '../MainContainerCategories/Logbook';
-import { Trash } from '../MainContainerCategories/Trash';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
@@ -39,6 +35,12 @@ import { Category } from '../MainContainer';
 import Star from 'material-ui/svg-icons/toggle/star';
 import BusinessCase from 'material-ui/svg-icons/places/business-center';
 import Layers from 'material-ui/svg-icons/maps/layers';
+import Trash from 'material-ui/svg-icons/action/delete';
+import Logbook from 'material-ui/svg-icons/av/library-books';
+
+
+
+
 
 export let chooseFadeIcon = (container:HTMLElement, selectedCategory:Category) => {
     
@@ -87,11 +89,15 @@ export let chooseFadeIcon = (container:HTMLElement, selectedCategory:Category) =
 } 
 
 
+
+
 interface FadeBackgroundIconProps{
     container:HTMLElement,
     objects:any[],
     selectedCategory:Category  
 } 
+
+
 
  
 export class FadeBackgroundIcon extends Component<FadeBackgroundIconProps,any>{

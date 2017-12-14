@@ -52,6 +52,7 @@ let generateEmptyProject = () => ({
         _id : generateID(), 
         attachedTodos:[],
         headings:[],   
+        attachedTags:[],
         name : "New project",
         description : ""
     });
@@ -59,13 +60,14 @@ let generateEmptyProject = () => ({
 
 let generateEmptyArea = () => ({
         _id : generateID(),  
+        attachedTags:[],
         attachedTodos : [], 
         attachedProjects : [],
         name : "New area",  
         description : ""
     });
 
-
+ 
   
 interface LeftPanelState{
     width:number,

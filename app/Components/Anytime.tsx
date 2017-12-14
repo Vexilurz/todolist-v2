@@ -39,9 +39,16 @@ import { FadeBackgroundIcon } from '../Components/FadeBackgroundIcon';
 
 
 
-interface AnytimeProps{}
+interface AnytimeProps{
+    dispatch:Function,
+    selectedTodoId:string,
+    selectedTag:string,
+    rootRef:HTMLElement,
+    todos:Todo[],
+    tags:string[]
+}
 interface AnytimeState{}
-
+ 
 
 
 export class Anytime extends Component<AnytimeProps, AnytimeState>{

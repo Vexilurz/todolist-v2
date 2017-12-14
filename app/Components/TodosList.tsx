@@ -9,7 +9,7 @@ import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq
 } from 'ramda';
 import { Todo } from '../databaseCalls';
 import { Component } from 'react';
-import { insideTargetArea, applyDropStyle } from '../utils';
+import { insideTargetArea } from '../utils'; 
 import { RightClickMenu } from './RightClickMenu';
 import { TodoInput } from './TodoInput';
 import { Data } from './ResizableHandle';
@@ -17,14 +17,13 @@ import SortableContainer from '../sortable-hoc/sortableContainer';
 import SortableElement from '../sortable-hoc/sortableElement';
 import SortableHandle from '../sortable-hoc/sortableHandle';
 import {arrayMove} from '../sortable-hoc/utils';
-import { Store } from '../App';  
 
 
 let getElem = (value, index) => {
 
     return <div></div>
-
-}
+ 
+} 
 
 
 let createSortableItem = (index) => SortableElement(({value}) => getElem(value,index)); 
@@ -76,30 +75,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
 
      shouldComponentUpdate(nextProps:TodosListProps){
-
-         if(this.props.todos.length !== nextProps.todos.length)
-            return true; 
-
-         for(let i=0; i<this.props.todos.length; i++){
-
-            if(nextProps.todos[i]._id!==this.props.todos[i]._id){
-
-                return true;
-
-            }else if(nextProps.todos[i].checked!==this.props.todos[i].checked){
-
-                return true; 
-
-            }else if(nextProps.todos[i].title!==this.props.todos[i].title){
-
-                return true; 
-
-            }   
-
-         }
+         let should = this.props.todos!==nextProps.todos   
          
-         return false;
-         
+         return should;
      }
  
   
@@ -134,33 +112,59 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         return false; 
 
      }
+
+
+
+     applyDropStyle = (elem:HTMLElement, x:number, y:number) => {
         
-
-
-     applyCustomStyle = (node:HTMLElement) => {
-        let target = node.getElementsByClassName("tasklist")[0];
-        target["style"].background = "rgb(205,221,253)";
-
-        let children = [].slice.call(target.children);
+        let children = [].slice.call(elem.children);
 
         for(let i=0; i<children.length; i++){
             children[i].style.visibility = 'hidden';
             children[i].style.opacity = 0;
         }
-     }
+    
+        let numb = document.createElement("div");
 
-
-     removeCustomStyle = (node:HTMLElement) => {
-        let target = node.getElementsByClassName("tasklist")[0];
-        target["style"].background = '';
-
-        let children = [].slice.call(target.children);
- 
-        for(let i=0; i<children.length; i++){
-            children[i].style.visibility = '';
-            children[i].style.opacity = '';
+        numb.innerText = "1";
+    
+        let parentStyle = {
+            alignItems: "center",
+            display: "flex",
+            justifyContent: "center",
+            width: "60px",
+            height: "20px",
+            background: "cadetblue"
         }
-     }
+    
+        let childStyle = {
+            background: "brown",
+            width: "20px",
+            height: "20px",
+            alignItems: "center",
+            textAlign: "center",
+            color: "aliceblue",
+            borderRadius: "30px",
+            marginBottom: "-20px" 
+        }
+        
+        map((pair) => {
+            numb["style"][pair[0]]=pair[1];
+        })(toPairs(childStyle))
+    
+        map((pair) => {
+            elem["style"][pair[0]]=pair[1];
+        })(toPairs(parentStyle))
+            
+        elem.appendChild(numb);  
+        elem["style"].transform = "none";
+        elem["style"].position = "absolute"; 
+        elem["style"].left = (x-60)+'px';
+        elem["style"].top = y+'px';
+
+     }   
+     
+
 
 
      shouldCancelAnimation = (e) => {
@@ -176,7 +180,8 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
      } 
 
- 
+      
+  
       
      render(){ 
 

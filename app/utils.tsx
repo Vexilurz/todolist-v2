@@ -42,6 +42,8 @@ import { getTodos, queryToTodos, Todo, updateTodo } from './databaseCalls';
 import { Category } from './MainContainer';
 let moment = require("moment");
 
+
+
  
 export let daysRemaining = (date) => {
     var eventdate = moment(date);
@@ -112,54 +114,6 @@ export let chooseIcon = (selectedCategory:Category) => {
             }}/>; 
     }
 }
-
-
-
-
-
-
-export let applyDropStyle = (elem:Element, {x,y}) => {
-    let arr = [].slice.call(elem.children);
-    arr.map( c => elem.removeChild(c));
-
-    let numb = document.createElement("div");
-    numb.innerText = "1";
-
-    let parentStyle = {
-        alignItems: "center",
-        display: "flex",
-        justifyContent: "center",
-        width: "60px",
-        height: "20px",
-        background: "cadetblue"
-    }
-
-    let childStyle = {
-        background: "brown",
-        width: "20px",
-        height: "20px",
-        alignItems: "center",
-        textAlign: "center",
-        color: "aliceblue",
-        borderRadius: "30px",
-        marginBottom: "-20px" 
-    }
-    
-    map((pair) => {
-        numb["style"][pair[0]]=pair[1];
-    })(toPairs(childStyle))
-
-    map((pair) => {
-        elem["style"][pair[0]]=pair[1];
-    })(toPairs(parentStyle))
-        
-    elem.appendChild(numb);  
-    elem["style"].transform = "none";
-    elem["style"].position = "absolute"; 
-    elem["style"].left = (x-60)+'px';
-    elem["style"].top = y+'px';
-}   
-
 
 
 

@@ -18,8 +18,9 @@ import { TodosList } from '../Components/TodosList';
 import { Todo,Event, Project, Area } from '../databaseCalls';
 import { FadeBackgroundIcon } from '../Components/FadeBackgroundIcon';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
-
+let moment = require("moment");
 import * as Waypoint from 'react-waypoint';
+import { ContainerHeader } from './ContainerHeader';
 
 
 
@@ -31,40 +32,41 @@ let getDayName = (d:Date) => {
 
 
 let addDays = (date:Date, days:number) => {
+
     let next = new Date();
 
     next.setDate(date.getDate() + days);
 
-    return next;  
+    return next; 
+
 }
  
 
-let getDatesRange = (startDate, stopDate) => {
+let getDatesRange = (range:number) => (start:Date) => {
 
-    let dateArray = new Array();
+    let dateArray = [];
 
-    let currentDate = startDate; 
-
-    while (currentDate <= stopDate) {
-        dateArray.push(new Date (currentDate));
-        currentDate = addDays(currentDate, 1);
-    } 
-
+    for(let i=0; i<range; i++)
+        dateArray.push(addDays(start,i))
+    
     return dateArray;
 
 }
 
  
 
-
-
 interface UpcomingProps{
+    dispatch:Function,
+    tags:string[],
+    selectedTag:string, 
     todos:Todo[],
     projects:Project[],
     events:Event[],
-    areas:Area[]
+    areas:Area[],
+    selectedTodoId:string, 
+    rootRef:HTMLElement
 }
-
+ 
 
 interface UpcomingState{
     range:Date[]
@@ -73,44 +75,148 @@ interface UpcomingState{
 
 export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
+
     step:number;
+
 
     constructor(props){
         super(props);
-        this.step = 10;  
+        this.step = 20;   
         this.state = {
             range:[new Date()], 
         } 
     } 
-
  
+
+    
+ 
+    shouldComponentUpdate(nextProps:UpcomingProps, nextState:UpcomingState){
+
+
+        if(this.state.range.length!==nextState.range.length){
+           return true; 
+        }
+        
+
+        if(this.props.todos!==nextProps.todos){
+            return true;
+        }
+
+
+        if(this.props.events!==nextProps.events){
+            return true;
+        }
+
+
+        if(this.props.tags!==nextProps.tags){
+            return true;
+        }
+
+
+        if(this.props.projects!==nextProps.projects){
+            return true;
+        }
+
+
+        if(this.props.areas!==nextProps.areas){
+            return true;
+        }
+
+
+        if(this.props.selectedTag!==nextProps.selectedTag){
+            return true;
+        }
+
+
+        if(this.props.selectedTodoId!==nextProps.selectedTodoId){
+            return true;
+        }
+
+
+        return false;
+ 
+    }
+
+  
+    
     onError = (e) => console.log(e); 
+ 
 
 
     selectCurrentRange = () => {
 
-        let start : Date = last(this.state.range);
-        let end : Date = addDays(start, this.step);
+        this.setState({
+  
+            range : compose(
+              concat(this.state.range),  
+              getDatesRange(this.step), 
+              last as any,   
+            )(this.state.range)
+            
+
+        }); 
  
-        this.setState({range:getDatesRange(start,end)}); 
+    }  
+
+
+   
+    componentDidMount(){
+        
+        this.selectCurrentRange();
 
     }
-  
+
+ 
+
+
+    byTags = (item:any) : boolean => { 
+        
+        if(this.props.selectedTag==="All") 
+            return true;    
+    
+
+        if(this.props.selectedTag==="") 
+            return true; 
+
+    
+        if(isNil(item))
+            return false;
+
+        
+        if(isNil(item.attachedTags))    
+            return false;
+            
+            
+        return contains(this.props.selectedTag,item.attachedTags);
+            
+    } 
+        
+
+
 
     itemToComponent = (date:Date) => {
 
-        let todosByDate = (date:Date) => (t:Todo) => { 
-            
-            return t.attachedDate.toDateString() === date.toDateString()
+
+        let todosByDate = (date:Date) => (t:Todo) : boolean => { 
+
+            if(isNil(t.attachedDate))
+               return false; 
+
+            return moment(t.attachedDate).isSame(date, 'day');
         
         }
 
 
-        let eventsByDate = (date:Date) => (e:Event) => { 
+
+        let eventsByDate = (date:Date) => (e:Event) => {  
+
+            if(isNil(e.date)) 
+               return false; 
             
-            return e.date.toDateString() === date.toDateString()
+            return moment(e.date).isSame(date, 'day'); 
         
         }
+ 
 
 
         let projectsByDate = (date:Date) => (p:Project) => {
@@ -120,12 +226,14 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         }
 
 
+
         let areasByDate = (date:Date) => (a:Area) =>  {
             
             return any( projectsByDate(date) )(a.attachedProjects)
 
         }
-
+ 
+        
   
         return <div key={date.getTime()}>
             <CalendarDay 
@@ -134,29 +242,102 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
  
                 dayName={getDayName(date)}
 
-                todos={this.props.todos.filter(todosByDate(date))}
+                todos={
+                    
+                    
+                    this.props.todos
+                    .filter(this.byTags)
+                    .filter(todosByDate(date))
+                
+                
+                }
 
-                projects={this.props.projects.filter(projectsByDate(date))}  
+                projects={
+                    
+                     
+                    this.props.projects
+                    .filter(this.byTags)
+                    .filter(projectsByDate(date))
+                
+                
+                }  
 
-                events={this.props.events.filter(eventsByDate(date))}
+                events={
+                    
 
-                areas={this.props.areas.filter(areasByDate(date))}
+                    this.props.events
+                    .filter(this.byTags)
+                    .filter(eventsByDate(date))
+                
+
+                }
+
+                areas={
+                    
+
+                    this.props.areas
+                    .filter(this.byTags)
+                    .filter(areasByDate(date))
+                
+
+                }
+
+                dispatch={this.props.dispatch}
+
+                selectedTodoId={this.props.selectedTodoId}
+
+                selectedTag={this.props.selectedTag}
+
+                rootRef={this.props.rootRef}
+
+                tags={this.props.tags}
  
-            />
+            /> 
         </div>
  
+   
 
+
+ 
     }
   
 
     render(){
-        return <div style={{height:"100%"}}> 
+        return <div> 
+             
+                <ContainerHeader 
+                    selectedCategory={"upcoming"} 
+                    dispatch={this.props.dispatch} 
+                    tags={this.props.tags}
+                    selectedTag={this.props.selectedTag}
+                />
+  
 
-                {this.state.range.map(this.itemToComponent)}
+                <div>{ 
+                    
+                    this.state.range.map(this.itemToComponent)
+                    
+                }</div>
 
+    
+                <div style={{width:"100%", height:"1px"}}> 
+                    <Waypoint 
+                        onEnter={({ previousPosition, currentPosition, event }) => {
+                            
+                            this.selectCurrentRange()
+                              
+                        }}
+                        onLeave={({ previousPosition, currentPosition, event }) => {
+                            
+
+
+                        }}
+                    />
+                </div>
+ 
         </div> 
     }
-
+ 
 
  
 }
@@ -164,13 +345,18 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
 
 
-interface CalendarDayProps{
+interface CalendarDayProps{ 
     day:number, 
     dayName:string,
     events:Event[],
     projects:Project[],
     todos:Todo[],
-    areas:Area[] 
+    areas:Area[],
+    dispatch:Function, 
+    selectedTodoId:string,
+    selectedTag:string,
+    rootRef:HTMLElement,
+    tags:string[]
 }
  
 
@@ -178,7 +364,7 @@ interface CalendarDayState{
 
 }
 
- 
+  
 export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
     constructor(props){
@@ -187,7 +373,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
  
     }
 
- 
+
 
     render(){
 
@@ -198,22 +384,17 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
             paddingBottom:"50px",
         }}> 
 
-
-
-
-
-
-
  
                 <div style={{ 
                     width: "100%",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "space-around"
-                }}>
+                    paddingTop : "10px",
+                    paddingBottom : "10px"
+                }}>     
 
-                    <div style={{
-                        width: "10%",
+                    <div style={{ 
+                        width: "80px",
                         fontWeight: 900,
                         fontSize: "45px",
                         fontFamily: "sans-serif"
@@ -239,14 +420,21 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                 </div>  
                  
 
+      
 
 
 
 
-
-               <div style={{display:"flex", flexDirection:"column", width:"100%"}}> 
+               <div style={{
+                   display:"flex", 
+                   flexDirection:"column", 
+                   width:"100%",
+                   paddingTop : "10px",
+                   paddingBottom : "10px"
+                }}> 
                {
-                  this.props.events.map((e:Event) => 
+                  this.props.events
+                  .map((e:Event) => 
 
                     <div style={{
                         borderLeft:"5px solid black", 
@@ -264,12 +452,16 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
 
 
-
-
-
-               <div> 
+               <div style={{
+                   display:"flex", 
+                   flexDirection:"column", 
+                   width:"100%",
+                   paddingTop : "10px",
+                   paddingBottom : "10px"
+                }}> 
                 {
-                    this.props.areas.map((a:Area) => 
+                    this.props.areas
+                    .map((a:Area) => 
 
                         <div style={{display:"flex"}}>
                             <div>
@@ -300,88 +492,79 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
 
 
+ 
 
-
-
-
-               <div>  
                 {
-                    this.props.projects.map((p:Project) => 
 
-                        <div style={{display:"flex"}}>
-                            <div>
-                                <div style={{ 
-                                    width:"18px",     
-                                    height:"18px", 
-                                    borderRadius:"30px",
-                                    border:"5px solid rgba(108, 135, 222, 0.8)",
-                                    boxSizing:"border-box",
-                                    marginRight:"5px" 
-                                }}> 
-                                </div>  
-                           </div>
+                    isEmpty(this.props.projects) ? null :
  
-                           <div 
-                                style={{
-                                    fontSize:"17px", 
-                                    color:"rgba(10,10,10,1)"
-                                }}
-                           >  
-                                {p.name} 
-                           </div>
- 
-                        </div> 
- 
-                    )
-                }     
-               </div>
+                    <div style={{
+                            display:"flex", 
+                            flexDirection:"column", 
+                            width:"100%",
+                            paddingTop : "10px",
+                            paddingBottom : "10px"
+                    }}>    
+                        {
+                            this.props.projects
+                            .map((p:Project) => 
 
-
-
-
-
-
-
-               <div> 
-                {
-                    this.props.todos.map((t:Todo) =>  
-
-                        <div style={{display:"flex"}}>
-
-
-                            <div>
+                                <div style={{display:"flex"}}>
+                                    <div>
+                                        <div style={{ 
+                                            width:"18px",     
+                                            height:"18px", 
+                                            borderRadius:"30px",
+                                            border:"5px solid rgba(108, 135, 222, 0.8)",
+                                            boxSizing:"border-box",
+                                            marginRight:"5px" 
+                                        }}> 
+                                        </div>  
+                                </div>
+        
                                 <div 
-                                    style={{  
-                                        width: "14px",
-                                        border: "2px solid rgba(200,200,200,0.7)",
-                                        borderRadius: "3px",
-                                        backgroundColor:'', 
-                                        height: "14px",    
-                                        boxSizing: "border-box",   
-                                        display: "flex", 
-                                        alignItems: "center"
-                                    }}>   
-                                </div>   
-                           </div>
- 
-                           <div 
-                                style={{
-                                    fontSize:"17px", 
-                                    color:"rgba(10,10,10,1)"
-                                }}
-                           >  
-                                {t.title} 
-                           </div>
- 
-                        </div>
- 
-                    )
-                }      
-               </div>
+                                        style={{
+                                            fontSize:"17px", 
+                                            color:"rgba(10,10,10,1)"
+                                        }}
+                                >  
+                                        {p.name} 
+                                </div>
+        
+                                </div> 
+        
+                            )
+                        }     
+                    </div>
+
+                }
 
 
 
-               
+                {
+
+                    isEmpty(this.props.todos) ? null :
+
+                    <div style={{
+                        display:"flex", 
+                        flexDirection:"column", 
+                        width:"100%",
+                        paddingTop : "10px",
+                        paddingBottom : "10px"
+                    }}>   
+                        <TodosList 
+                            dispatch={this.props.dispatch}   
+                            selectedCategory={"upcoming"}
+                            selectedTodoId={this.props.selectedTodoId}
+                            selectedTag={this.props.selectedTag}  
+                            rootRef={this.props.rootRef} 
+                            todos={this.props.todos} 
+                            tags={this.props.tags} 
+                        /> 
+                </div>
+
+                }
+                            
 
 
       </div>      

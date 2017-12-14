@@ -149,6 +149,8 @@ export class Footer extends Component<FooterProps,{}>{
             {
                 !contains("Search")(this.props.buttonsNamesToDispaly as any) ? null :
                         <IconButton 
+                            tooltip="Search"
+                            tooltipPosition="top-center" 
                             onClick = {this.props.onSearchClick}
                             iconStyle={{  
                                 color:"rgb(79, 79, 79)",

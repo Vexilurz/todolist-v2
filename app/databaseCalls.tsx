@@ -33,6 +33,7 @@ export interface Heading{
 export interface Project{
   _id : string, 
   attachedTodos : Todo[],
+  attachedTags : string[],
   name : string,
   headings : Heading[],
   description : string 
@@ -42,6 +43,7 @@ export interface Project{
 export interface Area{
   _id : string, 
   attachedTodos : Todo[], 
+  attachedTags : string[],
   attachedProjects : Project[],
   name : string,  
   description : string 
@@ -71,8 +73,8 @@ export interface Todo{
   attachemnts : string[],
   checked?:boolean
 }
+  
  
-
 export interface Event{
   _id : string,
   title : string,
@@ -87,7 +89,7 @@ export interface Event{
   },
   attachemnts : string[]
 }
-
+ 
 
 
 export interface Query<T>{

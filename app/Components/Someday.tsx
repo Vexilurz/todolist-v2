@@ -40,7 +40,14 @@ import { FadeBackgroundIcon } from '../Components/FadeBackgroundIcon';
 
 
  
-interface SomedayProps{}
+interface SomedayProps{
+    dispatch:Function,
+    selectedTodoId:string,
+    selectedTag:string,
+    rootRef:HTMLElement,
+    todos:Todo[],
+    tags:string[]
+} 
 interface SomedayState{}
 
 
