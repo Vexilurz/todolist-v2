@@ -16,7 +16,9 @@ let projects_db = new PouchDB('projects', {adapter: 'websql'});
 let areas_db = new PouchDB('areas', {adapter: 'websql'});
 let events_db = new PouchDB('events', {adapter: 'websql'});  
 
- 
+
+
+  
 export let generateID = () => new Date().toJSON(); 
 
 
@@ -24,30 +26,40 @@ export let generateID = () => new Date().toJSON();
  
  
 export interface Heading{
+
   title : string, 
-  attachedTodos : string[],
+
+  attachedTodosIds : string[],
+
 }
-
-
+  
  
 export interface Project{
-  _id : string, 
-  attachedTodos : Todo[],
-  attachedTags : string[],
-  name : string,
+
+  _id : string,  
+  name : string, 
+  description : string, 
   headings : Heading[],
-  description : string 
+
+  attachedTodosIds : string[], 
+  attachedAreasIds : string[], 
+  attachedTags : string[],
+  
 }
  
  
 export interface Area{
+
   _id : string, 
-  attachedTodos : Todo[], 
-  attachedTags : string[],
-  attachedProjects : Project[],
   name : string,  
-  description : string 
-}
+  description : string,
+  attachedTags : string[], 
+
+  attachedTodosIds : string[], 
+  attachedProjectsIds : string[],
+  attachedEventsIds : string[], 
+  
+} 
 
 
 export interface Todo{ 
@@ -76,10 +88,10 @@ export interface Todo{
   
  
 export interface Event{
-  _id : string,
+  _id : string, 
   title : string,
   notes : string[],
-  attachedProjects : string[],
+  attachedProjectsIds : string[],
   attachedTags : string[],
   date:Date,
   location:string,  

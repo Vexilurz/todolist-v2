@@ -121,6 +121,27 @@ export class MainContainer extends Component<Store,MainContainerState>{
     }
 
 
+    removeTodoLocal = (_id:string) => {
+        let idx = findIndex((item:Todo) => item._id===_id)(this.props.todos);
+
+        if(idx!==-1)
+            this.props.dispatch({
+                type:"todos",
+                load: [
+                    ...this.props.todos.slice(0,idx),
+                    ...this.props.todos.slice(idx+1),
+                ]
+            });
+    }  
+
+
+
+    onDeleteToDo = (e) => {
+        this.removeTodoLocal(this.props.selectedTodoId);
+        removeTodo(this.props.selectedTodoId);
+    } 
+
+
 
     componentDidMount(){
 
@@ -204,9 +225,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
             "Calendar" , 
             "Arrow" , 
             "Search",  
-            "Heading" 
+            "Heading",
+            "Trash" 
         ]
-
+ 
     }
 
 
@@ -230,7 +252,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     } 
         
-        
+    
         
     byCategory = (todo:Todo) : boolean => { 
 
@@ -251,11 +273,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     render(){  
 
-        let todos = compose(  
-            filter(this.byTags),
-            filter(this.byCategory)
-        )(this.props.todos);
-
+        let todos = this.props.todos.filter( (t:Todo) => this.byTags(t) && this.byCategory(t) );
+         
  
         return  <div ref={(e) => { this.rootRef=e }}
                      className="scroll"  
@@ -271,15 +290,13 @@ export class MainContainer extends Component<Store,MainContainerState>{
                      }} 
                 >    
 
-
  
                 <FadeBackgroundIcon 
                     container={this.rootRef}
-                    objects={todos}
+                    objects={todos.filter( t => !t.checked )}
                     selectedCategory={this.props.selectedCategory} 
                 />  
-
-
+ 
 
                 <div style={{display: "flex", padding: "10px"}}>   
 
@@ -290,7 +307,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 className="no-drag" 
                                 onTouchTap={() => ipcRenderer.send("reload", this.props.windowId)}
                             >
-                                <Refresh /> 
+                                <Refresh />  
                             </IconButton>  
 
                             <IconButton    
@@ -316,7 +333,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
-                                todos={todos}
+                                todos={todos.filter( t => !t.checked )}
                                 tags={this.props.tags}
                             />, 
  
@@ -325,7 +342,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
-                                todos={todos}
+                                todos={todos.filter( t => !t.checked )}
                                 tags={this.props.tags}
                             />,
 
@@ -334,7 +351,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
-                                todos={todos}
+                                todos={todos.filter( t => !t.checked )}
                                 tags={this.props.tags}
                             />, 
 
@@ -343,7 +360,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
-                                todos={this.props.todos} 
+                                todos={this.props.todos.filter( t => !t.checked )} 
                                 tags={this.props.tags}
                             />,
   
@@ -359,17 +376,16 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 rootRef={this.rootRef}
                             />,  
 
-                            logbook: <Logbook 
-                            
-                            
-                            
-
+                            logbook: <Logbook   
+                                todos={this.props.todos.filter( t => t.checked )}
+                                
+                                 
                             />,
 
 
                             trash: <Trash 
                             
-                            
+                              
 
                             
                             />,
@@ -409,7 +425,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
 
                     
-    
+     
 
                     <div style={{ 
                         height:"60px", 
@@ -430,6 +446,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
                             onNewTodoClick={this.openTodoInput}
 
+
+                            onTrashClick={this.onDeleteToDo}  
 
 
                             onCalendarClick={(e) => {
@@ -456,11 +474,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
                             }} 
 
-                            onTrashClick={(e) => {
-
-
-
-                            }}  
 
                             onHeadingClick={(e) => {
                                  

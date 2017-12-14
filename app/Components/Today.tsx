@@ -11,7 +11,7 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon } from "../utils"; 
+import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, showTags } from "../utils"; 
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, generateID, addTodo } from '../databaseCalls';
@@ -34,10 +34,8 @@ import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { FadeBackgroundIcon } from '../Components/FadeBackgroundIcon';
 import { ContainerHeader } from './ContainerHeader';
-
-
-
-
+import { TodosList } from './TodosList';
+import Moon from 'material-ui/svg-icons/image/brightness-3';
 
  
 interface TodayProps{
@@ -48,6 +46,8 @@ interface TodayProps{
     todos:Todo[],
     tags:string[]
 } 
+
+ 
 interface TodayState{}
 
 
@@ -56,26 +56,129 @@ export class Today extends Component<TodayProps,TodayState>{
     constructor(props){
         super(props);
     }
+ 
+    render(){ 
 
-    render(){
-
-        return <div>  
-            <ContainerHeader 
-              selectedCategory={"today"} 
-              dispatch={this.props.dispatch} 
-              tags={this.props.tags}
-              selectedTag={this.props.selectedTag}
-            />
+        let today = this.props.todos.filter( t => t.category === "today" );
+        let evening = this.props.todos.filter( t => t.category === "evening" );
 
 
-        </div>
+        return <div style={{disaply:"flex", flexDirection:"column"}}> 
+            <div style={{width: "100%"}}> 
 
-    }
+                    <div style={{
+                        display:"flex", 
+                        position:"relative",
+                        alignItems:"center",
+                        marginBottom:"20px"
+                    }}>  
 
+                        <div>{chooseIcon("today")}</div>
+
+                        <div style={{  
+                            fontFamily: "sans-serif",  
+                            fontSize: "xx-large",
+                            fontWeight: 600,
+                            paddingLeft: "10px",
+                            WebkitUserSelect: "none",
+                            cursor:"default" 
+                        }}>   
+                            {uppercase("today")}
+                        </div> 
+                    
+                    </div> 
+
+                    <TodaySchedule show={true}/> 
+
+                    <Tags  
+                        selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
+                        tags={this.props.tags}
+                        selectedTag={this.props.selectedTag}
+                        show={showTags("today")} 
+                    /> 
+
+                    {   
+                        isEmpty(today) ? null :
+                        <div   
+                            className="unselectable" 
+                            id="todos" 
+                            style={{
+                                marginBottom: "50px", 
+                                marginTop:"20px"
+                            }} 
+                        >
+                            <TodosList  
+                                dispatch={this.props.dispatch}   
+                                selectedCategory={"inbox"}
+                                selectedTodoId={this.props.selectedTodoId}
+                                selectedTag={this.props.selectedTag}  
+                                rootRef={this.props.rootRef}
+                                todos={today} 
+                                tags={this.props.tags} 
+                            /> 
+                        </div>  
+                    }
+
+                    {
+                        
+                        isEmpty(evening) ? null :
+
+                        <div>
+
+
+                            <div style={{
+                                display: "flex",
+                                color: "rgba(0,0,0,0.8)",
+                                fontWeight: "bold",
+                                fontFamily: "sans-serif", 
+                                fontSize:"16px", 
+                                cursor: "default",  
+                                userSelect: "none",
+                                width:"100%",
+                                alignItems: "center", 
+                                borderBottom:"1px solid rgba(0,0,0,0.1)"  
+                            }}>
+                                <Moon style={{  
+                                    transform:"rotate(145deg)", 
+                                    color:"cornflowerblue", 
+                                    height: "25px",
+                                    width: "25px",
+                                    cursor:"default" 
+                                }}/>   
+                                <div style={{marginLeft: "10px"}}>This Evening</div>
+                            </div>
+
+
+
+                        <div   
+                            className="unselectable" 
+                            id="todos" 
+                            style={{
+                                marginBottom: "50px", 
+                                marginTop:"20px"
+                            }}  
+                        > 
+                            <TodosList 
+                                dispatch={this.props.dispatch}   
+                                selectedCategory={"inbox"}
+                                selectedTodoId={this.props.selectedTodoId}
+                                selectedTag={this.props.selectedTag}  
+                                rootRef={this.props.rootRef}
+                                todos={evening}  
+                                tags={this.props.tags} 
+                            /> 
+                        </div> 
+                        </div>    
+                           
+                    }
+
+            </div>
+    </div>
+  } 
 }
 
 
-
+ 
  
 
 
@@ -94,13 +197,63 @@ export class TodaySchedule extends Component<TodayScheduleProps,any>{
     render(){
 
         return !this.props.show ? null :
-        
-        <div style={{   
+           
+        <div style={{    
+            paddingTop: "10px", 
+            paddingBottom: "10px", 
+            marginBottom: "20px", 
+            display:"flex",
+            flexDirection:"column",
             borderRadius:"10px", 
             backgroundColor:"rgba(100,100,100,0.1)",
             width:"100%",
+            fontFamily: "sans-serif", 
             height:"auto"
         }}> 
+
+            <div style={{padding:"10px"}}>
+
+                <div style={{
+                    borderLeft:"4px solid dimgray", 
+                    fontSize:"14px", 
+                    color:"rgba(100,100,100,0.6)"
+                }}> 
+                    {"Paul Martin's Birthday"}
+                </div>
+
+                <div style={{  
+                    fontSize:"14px", 
+                    color:"rgba(100,100,100,0.5)"
+                }}>
+                    {"08:30 Blinkist // Quora"}
+                </div>
+
+
+                <div style={{
+                    fontSize:"14px", 
+                    color:"rgba(100,100,100,0.5)"
+                }}>
+                    {"11:00 Newton // Marketing"}
+                </div>
+
+
+                <div style={{
+                    fontSize:"14px", 
+                    color:"rgba(100,100,100,0.5)"
+                }}>
+                    {"12:00 FlashSticks // Marketing"}
+                </div>
+ 
+
+                <div style={{
+                    fontSize:"14px", 
+                    color:"rgba(100,100,100,0.5)"
+                }}>
+                    {"18:00 Scott Woods"}
+                </div> 
+
+            </div> 
+                
         </div>
 
     }

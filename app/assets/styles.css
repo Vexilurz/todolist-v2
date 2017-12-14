@@ -164,13 +164,6 @@ body{
 
 
 
-
-
-
-
-
-
-
 .toggle:hover{
   color:cadetblue; 
 }
@@ -180,7 +173,6 @@ body{
 
 .tasklist {
   transition: background-color 0.5s ease;
-  background-color: white;
 }
 
 

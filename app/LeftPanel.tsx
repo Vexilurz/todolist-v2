@@ -45,26 +45,31 @@ import Clear from 'material-ui/svg-icons/content/clear';
 import Remove from 'material-ui/svg-icons/content/remove'; 
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import FullScreen from 'material-ui/svg-icons/image/crop-square';
+import { ProjectsList } from './Components/ProjectsList';
+import { AreasList } from './Components/AreasList';
 
  
 
 let generateEmptyProject = () => ({ 
         _id : generateID(), 
-        attachedTodos:[],
-        headings:[],   
-        attachedTags:[],
-        name : "New project",
-        description : ""
-    });
+        name : "New project", 
+        description : "Project description...",
+        headings : [],
+        attachedTodosIds : [], 
+        attachedAreasIds : [], 
+        attachedTags : []
+    }); 
 
 
 let generateEmptyArea = () => ({
-        _id : generateID(),  
-        attachedTags:[],
-        attachedTodos : [], 
-        attachedProjects : [],
+        _id : generateID(),
         name : "New area",  
-        description : ""
+        description : "Area description",
+        attachedTags : [], 
+    
+        attachedTodosIds : [], 
+        attachedProjectsIds : [],
+        attachedEventsIds : []
     });
 
  
@@ -106,45 +111,31 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         };
 
 
-        selectArea = (a:any) => (e) => {
-            this.props.dispatch({
-                type:"selectedArea",
-                load:a
-            }) 
-            
-        };
-          
-
-        selectProject = (p:any) => (e) => {
-            this.props.dispatch({
-                type:"selectedProject",
-                load:p 
-            })
-        };
-
 
         render(){   
 
 
-
-
             let someday = this.props.todos.filter( v => v.category === "someday").length;
+
+
             let upcoming = this.props.todos.filter( v => v.category === "upcoming").length;
-            let today = this.props.todos.filter( v => v.category === "today").length;
+
+
+            let today = this.props.todos.filter(v => 
+                v.category === "today" || 
+                v.category === "evening" 
+            ).length; 
+
+
             let inbox = this.props.todos.filter( v => v.category === "inbox").length;
+
 
             let anytime = this.props.todos.length;
  
-
-
-
-
-
-
-
-
-
-
+             
+            let detachedProjects = this.props.projects.filter(
+                (p:Project) => isEmpty(p.attachedAreasIds)
+            );
 
             return <div 
                         className="leftPanelScroll"
@@ -160,20 +151,12 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
 
 
-
-
-
                     <ResizableHandle  
                         onDrag={(e,d:Data) => this.props.dispatch({
                             type:"leftPanelWidth",
                             load:this.props.leftPanelWidth+d.deltaX
                         })}   
                     />   
-
-
-
-
-
 
                                 <div className="no-drag" style={{
                                     position:"fixed", 
@@ -223,21 +206,9 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                                 </div>   
 
 
-                    
 
 
-
-
-
-
-
-
-
-
-
-
-
-            <div style={{marginTop: "25px", width:"100%"}}>
+            <div style={{marginTop: "25px", width:"95%", padding:"10px"}}>
                 <MenuList> 
                     <div style={{outline: "none", width:"100%",height:"30px"}}></div>
                     <MenuItem 
@@ -414,149 +385,26 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                     <div style={{outline: "none",width:"100%",height:"30px"}}></div>
                 </MenuList> 
             </div>   
+  
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            <div 
-                style={{display: "flex", flexGrow: 1,  flexDirection: "column" }}
-                id="projects"   
-            >  
-               
-             {
-                 this.props.projects.map((p) => 
-                    <div 
-                        onClick = {this.selectProject(p)}
-                        className="hoverBorder" 
-                        style={{  
-                            marginLeft:"4px",
-                            marginRight:"4px", 
-                            height:"20px",
-                            width:"95%",
-                            display:"flex",
-                            alignItems: "center" 
-                        }}
-                    >    
-                            <IconButton    
-                                iconStyle={{
-                                    color:"rgba(109,109,109,0.4)",
-                                    width:"18px",
-                                    height:"18px"
-                                }}  
-                            >  
-                                <Circle />  
-                            </IconButton> 
-                            <div style={{
-                                fontFamily: "sans-serif",
-                                fontWeight: 600, 
-                                color: "rgba(100,100,100,0.7)",
-                                fontSize:"15px",  
-                                cursor: "default",
-                                WebkitUserSelect: "none" 
-                            }}>   
-                                {p.name}
-                            </div>  
-                    </div>
-                 )
-             }
-
-            </div>
+            {
+                isEmpty(this.props.areas) ? null:
+                <AreasList 
+                    dispatch={this.props.dispatch}
+                    areas={this.props.areas}
+                    projects={this.props.projects} 
+                />
+            }         
+    
  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            <div 
-                style={{display: "flex", flexGrow: 1,  flexDirection: "column" }}
-                id="areas"   
-            >  
-               
-             {
-                 this.props.areas.map((a) => 
-                    <div 
-                        onClick = {this.selectArea(a)}
-                        className="hoverBorder" 
-                        style={{  
-                            marginLeft:"4px",
-                            marginRight:"4px", 
-                            height:"20px",
-                            width:"95%",
-                            display:"flex",
-                            alignItems: "center"  
-                        }}
-                    >    
-                            <IconButton    
-                                iconStyle={{
-                                    color:"rgba(109,109,109,0.4)",
-                                    width:"18px",
-                                    height:"18px"
-                                }}  
-                            >   
-                                <NewAreaIcon />
-                            </IconButton> 
-                            <div style={{
-                                fontFamily: "sans-serif",
-                                fontWeight: 600, 
-                                color: "rgba(100,100,100,0.7)",
-                                fontSize:"15px",  
-                                cursor: "default",
-                                WebkitUserSelect: "none" 
-                            }}>   
-                                {a.name}
-                            </div>  
-                    </div>
-                 )
-             }
-
-            </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            { 
+                isEmpty(detachedProjects) ? null :
+                <ProjectsList 
+                    dispatch={this.props.dispatch}
+                    projects={detachedProjects}
+                />   
+            }             
+  
 
             <NewProjectAreaPopover 
                 anchor={this.newProjectAnchor}

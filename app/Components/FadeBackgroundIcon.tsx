@@ -84,12 +84,12 @@ export let chooseFadeIcon = (container:HTMLElement, selectedCategory:Category) =
             return <Trash style={style}/>
 
         default:
-            return <Inbox style={style}/>
+            return null 
     }
 } 
 
 
-
+ 
 
 interface FadeBackgroundIconProps{
     container:HTMLElement,
@@ -112,7 +112,7 @@ export class FadeBackgroundIcon extends Component<FadeBackgroundIconProps,any>{
            return chooseFadeIcon(this.props.container,this.props.selectedCategory);
  
 
-        return null; 
+        return null;  
 
     }
 

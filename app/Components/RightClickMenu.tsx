@@ -19,6 +19,9 @@ import { attachDispatchToProps } from '../utils';
 import { Todo, removeTodo, addTodo } from '../databaseCalls';
 let uniqid = require("uniqid");   
  
+
+
+
  
 interface RightClickMenuState{} 
  
@@ -45,18 +48,19 @@ export class RightClickMenu extends Component<any,RightClickMenuState>{
    }  
    
    
-   removeTodoLocal = (_id:string) => {
-       let idx = findIndex((item:Todo) => item._id===_id)(this.props.todos);
+    
+    removeTodoLocal = (_id:string) => {
+        let idx = findIndex((item:Todo) => item._id===_id)(this.props.todos);
 
-       if(idx!==-1)
-           this.props.dispatch({
-               type:"todos",
-               load: [
-                   ...this.props.todos.slice(0,idx),
-                   ...this.props.todos.slice(idx+1),
-               ]
-           });
-   }  
+        if(idx!==-1)
+            this.props.dispatch({
+                type:"todos",
+                load: [
+                    ...this.props.todos.slice(0,idx),
+                    ...this.props.todos.slice(idx+1),
+                ]
+            });
+    }  
    
 
    duplicateTodo = (_id:string) => {
@@ -89,11 +93,11 @@ export class RightClickMenu extends Component<any,RightClickMenuState>{
              
    }  
 
-   onDuplicate = (e) => {
+    onDuplicate = (e) => {
        this.duplicateTodo(this.props.rightClickedTodoId); 
-   } 
+    } 
 
-   onDeleteToDo = (e) => {
+    onDeleteToDo = (e) => {
         this.removeTodoLocal(this.props.rightClickedTodoId);
         removeTodo(this.props.rightClickedTodoId);
     } 

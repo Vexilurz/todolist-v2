@@ -181,7 +181,7 @@ let generateTagElement = (tag:string,idx:number) =>
 
 
 
-let daysLeftMark = (open:boolean, attachedDate) => {
+let daysLeftMark = (open:boolean, attachedDate, showFlag:boolean) => {
 
     if(open)
        return null;
@@ -191,14 +191,15 @@ let daysLeftMark = (open:boolean, attachedDate) => {
 
     let daysLeft = daysRemaining(attachedDate);      
 
-    let flagColor = (daysLeft === 1 || daysLeft === 0) ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.3)";
+    let flagColor = (daysLeft === 1 || daysLeft === 0) ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
        
-    let style : any = {
+    let style : any = { 
         display: "flex",
         alignItems: "center",
         justifyContent:"flex-end", 
         color:flagColor,
-        fontSize:"15px", 
+        fontSize:"13px", 
+        fontWeight:"900", 
         textAlign: "center",
         width: "240px",  
         fontFamily: "sans-serif"
@@ -229,7 +230,7 @@ let daysLeftMark = (open:boolean, attachedDate) => {
     }
 
     return <p style={style}>
-                <Flag style={iconStyle}/>   
+               { showFlag ? <Flag style={iconStyle}/> : null }  
                { Math.abs(daysLeft) }{ attachedText }
            </p>  
 
@@ -1160,7 +1161,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                 underlineStyle = {{borderColor: "rgba(0,0,0,0)"}}  
                             /> 
  
-                            { /*daysLeftMark(this.state.open,this.state.attachedDate)*/ }
+                            { daysLeftMark(this.state.open, this.state.attachedDate, false) }
 
                         </div>  
 
@@ -1295,9 +1296,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         ["evening","today","someday"]
                     ) ? null :
 
-                    !this.state.open ? null :
-
-                    <div>            
+                    <div style={{
+                        transition: "opacity 0.5s ease-in-out",
+                        opacity:this.state.open ? 1 : 0
+                    }}>            
                         <SelectedCategoryLabel
                           onRemove={this.onRemoveSelectedCategoryLabel}
                           selectedCategory={this.state.newSelectedCategory}
@@ -1307,19 +1309,20 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 }  
  
  
-                {
+                { 
 
                     !this.state.deadline ? null :
 
-                    !this.state.open ? null :
-
-                    <div>
+                    <div style={{
+                        transition: "opacity 0.5s ease-in-out",
+                        opacity:this.state.open ? 1 : 0
+                    }}>
                         <DeadlineLabel
                             onRemoveDeadline={() => this.setState({deadline:null})}
                             deadline={this.state.deadline} 
                         /> 
                     </div> 
-
+  
                 }
  
   
