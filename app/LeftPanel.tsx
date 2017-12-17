@@ -139,16 +139,16 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
             let detachedProjects = this.props.projects.filter(
                 (p:Project) => isEmpty(p.attachedAreasIds)
             );
- 
-            return <div 
+  
+            return   <div 
                         className="leftPanelScroll"
                         style={{
-                            display: "flex", 
+                            display: "flex",  
                             flexDirection: "column", 
                             width: this.props.clone ? "0px" : this.props.leftPanelWidth, 
                             height: "100%",
                             position:"relative", 
-                            backgroundColor: "rgba(189, 189, 189, 0.2)" 
+                            backgroundColor: "rgba(189, 189, 189, 0.2)"  
                         }}
                     >        
 

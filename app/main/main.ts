@@ -26,9 +26,9 @@ let preventAnnoyingErrorPopups = () => dialog.showErrorBox = (title, content) =>
 let onReady = () => {  
     preventAnnoyingErrorPopups();   
     mainWindow = initWindow(
-        merge(
-            //{width:900,height:750} 
-            electron.screen.getPrimaryDisplay().workAreaSize
+        merge( 
+            {width:900,height:750} 
+            //electron.screen.getPrimaryDisplay().workAreaSize
         )({transparent:false})
     );        
         
@@ -38,14 +38,14 @@ let onReady = () => {
     .then(() => {  
 
         mainWindow.webContents.send(
-            "loaded", 
+            "loaded",  
             {
                 type:"open",
                 load:mainWindow.id
             }
         ); 
  
-        mainWindow.webContents.openDevTools();   
+        //mainWindow.webContents.openDevTools();   
 
     });     
 }            

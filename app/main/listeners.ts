@@ -43,11 +43,11 @@ export class Listeners {
                 name : "cloneWindow",
                 callback : (event, store) => {
 
-                    let newWindow = initWindow({width:840,  height:450, transparent:false}); 
+                    let newWindow = initWindow({width:540,  height:840, transparent:false}); 
  
                     this.spawnedWindows.push(newWindow);
 
-                    this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed());
+                    this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed() );
                     
                     let storeWithId = {...store, ...{ windowId:newWindow.id }};
  
@@ -55,9 +55,9 @@ export class Listeners {
                     .then(() => {        
                         newWindow.webContents.send("loaded", {
                             type:"clone", 
-                            load:storeWithId
+                            load:storeWithId  
                         });
-                        newWindow.webContents.openDevTools();   
+                        //newWindow.webContents.openDevTools();    
                     });      
 
                 } 

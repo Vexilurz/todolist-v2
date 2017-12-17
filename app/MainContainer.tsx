@@ -298,12 +298,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
  
         return  <div ref={(e) => { this.rootRef=e }}
                      className="scroll"  
-                     id="maincontainer"
+                     id="maincontainer"  
                      style={{    
-                        width : window.innerWidth-this.props.leftPanelWidth,
+                        width : this.props.clone ? "100%" : (window.innerWidth-this.props.leftPanelWidth),
                         position :"relative", 
                         display : "flex", 
-                        borderRadius :"1%", 
+                        borderRadius :"1%",  
                         backgroundColor : "rgba(209, 209, 209, 0.1)", 
                         overflow : "scroll",  
                         flexDirection: "column" 
