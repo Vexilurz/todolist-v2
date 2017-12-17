@@ -118,7 +118,7 @@ export class Today extends Component<TodayProps,TodayState>{
                                 marginTop:"20px"
                             }} 
                         > 
-                            <TodosList    
+                            <TodosList     
                                 filters={filters("today")}
                                 dispatch={this.props.dispatch}   
                                 selectedCategory={"today"}
@@ -129,7 +129,7 @@ export class Today extends Component<TodayProps,TodayState>{
                             /> 
                         </div>  
                     }
-
+ 
                     {
                         isEmpty(evening) ? null :    
                         <div>
@@ -165,15 +165,15 @@ export class Today extends Component<TodayProps,TodayState>{
                                 style={{
                                     marginBottom: "50px", 
                                     marginTop:"20px"
-                                }}  
-                            > 
-                                <TodosList  
-                                    filters={[]}
+                                }}   
+                            >  
+                                <TodosList   
+                                    filters={filters("evening")}
                                     dispatch={this.props.dispatch}    
                                     selectedCategory={"evening"} 
                                     selectedTag={this.props.selectedTag}  
                                     rootRef={this.props.rootRef}
-                                    todos={evening}  
+                                    todos={this.props.todos}  
                                     tags={this.props.tags} 
                                 /> 
                             </div> 

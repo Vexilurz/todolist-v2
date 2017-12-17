@@ -109,9 +109,9 @@ export class Listeners {
                     for(let i=0; i<windows.length; i++){
 
                         if(windows[i].id===id)
-                           continue;    
+                           continue;     
                         
-                        windows[i].webContents.send("action", action);
+                        windows[i].webContents.send("action", {...action,...{kind:"external"}});
 
                     }
 

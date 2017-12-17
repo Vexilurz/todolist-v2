@@ -350,6 +350,7 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
         this.helper.style.height = `${this.height}px`;
         this.helper.style.boxSizing = 'border-box';
         this.helper.style.pointerEvents = 'none';
+        this.helper.style.zIndex = '200000';
 
         if(applyCustomStyle){
           applyCustomStyle(node); 
@@ -409,7 +410,7 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
           sortingIndex: index,
         });
 
-        if (onSortStart) onSortStart({node, index, collection}, e);
+        if (onSortStart) onSortStart({node, index, collection}, e, this.helper);
       }
     };
 

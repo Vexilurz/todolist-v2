@@ -302,6 +302,9 @@ export let showTags = (selectedCategory:Category) : boolean =>
 
 
 export let insideTargetArea = (target) => (x,y) : boolean => {
+    if(target===null || target===undefined)
+       return false;  
+
     let react = target.getBoundingClientRect();
      
     if(x>react.left && x<react.right)
@@ -361,6 +364,73 @@ export let uniq = (array:string[]) : string[] => {
 }
 
 
+
+export let hideChildrens = (elem) => {
+    
+        let children = [].slice.call(elem.children);
+        
+        for(let i=0; i<children.length; i++){ 
+            children[i].style.visibility = 'hidden';
+            children[i].style.opacity = 0; 
+        }
+        
+    }
+    
+
+export let makeChildrensVisible = (elem) => {
+
+    let children = [].slice.call(elem.children);
+    
+    for(let i=0; i<children.length; i++){
+        children[i].style.visibility = '';
+        children[i].style.opacity = 1;
+    }
+
+}
+     
+    
+export let generateDropStyle = (id): HTMLElement => {
+    let rectangle = document.createElement("div");
+    let container = document.createElement("div");
+    let counter = document.createElement("div");
+    
+    rectangle.id = id;
+    rectangle.style.zIndex = "1000000";   
+    
+    rectangle.style.width="60px";
+    rectangle.style.height="30px";
+    rectangle.style.backgroundColor="cadetblue";
+    rectangle.style.position="absolute";
+    rectangle.style.top=0+"px";   
+    rectangle.style.left=0+"px";
+    
+    container.style.width="60px";
+    container.style.height="30px";
+    container.style.backgroundColor="cadetblue";
+    container.style.position="relative";
+    container.style.display="flex";
+    container.style.justifyContent="center";
+    container.style.textAlign="center";
+    container.style.zIndex = "1000000"; 
+
+    counter.style.borderRadius="50px";
+    counter.style.width="25px";
+    counter.style.height="25px";
+    counter.style.marginTop="15px";
+    counter.style.zIndex="1000000";
+    counter.style.backgroundColor="brown";
+    counter.style.color="white";
+    counter.style.alignItems="center";
+    counter.style.textAlign="center";
+    counter.style.display="flex";   
+    counter.style.justifyContent="center";
+    counter.innerHTML="1";  
+
+    container.appendChild(counter);
+    rectangle.appendChild(container);
+
+    return rectangle; 
+}
 
 
 

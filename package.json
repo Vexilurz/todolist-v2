@@ -2,7 +2,7 @@
   "name": "tasklist",
   "version": "1.0.0",
   "description": "tasklist",
-  "main": "dist/main.js",
+  "main": "production/main.js",
   "scripts": {
     "start": "electron .",
     "pack": "build --win",
@@ -76,7 +76,7 @@
     "redux": "^3.7.2",
     "remote": "^0.2.6",
     "rimraf": "^2.6.1",
-    "roboto-fontface": "^0.7.1",
+    "typeface-roboto": "^0.0.45",
     "uniqid": "^4.1.1",
     "url": "^0.11.0",
     "webpack-target-electron-renderer": "^0.4.0"

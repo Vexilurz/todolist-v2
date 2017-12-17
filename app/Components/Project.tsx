@@ -46,11 +46,13 @@ interface ProjectComponentProps{
 }
   
 
-interface ProjectComponentState{}  
+interface ProjectComponentState{
+    selectedItems:any[]  
+}  
  
 
 
-let getElem = (value, index) => {
+let getElem = (value, index) => { 
     
     return null
     
@@ -67,9 +69,9 @@ let getSortableList = (items) =>  {
             items.map(      
                 (item, index) => {   
                     let SortableItem = createSortableItem(index); 
-                    return <SortableItem  key={`item-${item._id}`} index={index} value={item} />
+                    return <SortableItem  key={`item-${index}`} index={index} value={item} />
                 }
-            )  
+            )    
         }   
     </ul> 
 
@@ -92,29 +94,51 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
         getElem = this.getElem;
 
+        this.state={
+            selectedItems:[]  
+        }
+
+    }  
+
+
+    componentDidMount(){ 
+
+        this.setState({selectedItems:this.selectItems(this.props)}); 
+
+    }
+
+    componentWillReceiveProps(nextProps){
+
+        if(nextProps.project.layout!=this.props.project.layout){ 
+
+           this.setState({selectedItems:this.selectItems(nextProps)});
+
+        }  
+
     }
 
 
     shouldComponentUpdate(nextProps){
-
+        
         return true; 
+        //this.props.project.layout!==nextProps.project.layout; 
 
     }
-
  
-    updateProject = (selectedProject:Project, updatedProps) : void => {
+ 
+    updateProject = (selectedProject:Project, updatedProps) : void => { 
 
         let type = "updateProject";
- 
+  
         let load = {...selectedProject,...updatedProps};
 
         this.props.dispatch({type,load});
 
     }
+  
 
 
-
-    getElem = (value:Heading | Todo, index:number) : JSX.Element => {
+    getElem = (value:Heading | Todo, index:number) : JSX.Element => { 
 
         switch(value.type){
 
@@ -132,15 +156,19 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
             case "heading":  
             
-                 return <div style={{position:"relative"}}>
-                            <ProjectHeading 
-                                heading={value as Heading}
-                                onChange = {() => {}}
-                                onArchive = {() => {}}
-                                onMove = {() => {}}
-                                onRemove = {() => {}}
-                            />
-                        </div>
+                 return <div style={{
+                     position:"relative", 
+                     paddingTop: "10px",
+                     paddingBottom: "10px"
+                 }}>
+                    <ProjectHeading 
+                        heading={value as Heading}
+                        onChange = {() => {}}
+                        onArchive = {() => {}}
+                        onMove = {() => {}} 
+                        onRemove = {() => {}}
+                    />
+                 </div> 
 
             default:
 
@@ -152,11 +180,11 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
 
 
-    selectItems = () : any[] => { 
+    selectItems = (props) : any[] => { 
 
-        let items =  this.props.project.layout.map((i : LayoutItem) => { 
+        let items = props.project.layout.map((i : LayoutItem) => { 
             if(typeof i === "string"){
-                return this.props.todos.find( (t:Todo) => t._id===i )
+                return props.todos.find( (t:Todo) => t._id===i )
             }
 
             return i;
@@ -167,6 +195,36 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     }
 
 
+
+    shouldCancelStart = (e) => {
+
+        let nodes = [].slice.call(e.path);
+
+        for(let i=0; i<nodes.length; i++){
+            if(nodes[i].preventDrag)
+                return true;
+        }
+
+        return false; 
+
+    }
+        
+        
+            
+         
+        
+    shouldCancelAnimation = (e) => {
+
+        if(!this.props.rootRef)
+            return true;
+
+        let rect = this.props.rootRef.getBoundingClientRect();    
+ 
+        let x = e.pageX;
+
+        return x < rect.left;   
+
+    } 
 
     render(){
 
@@ -182,17 +240,27 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 /> 
             </div> 
 
-            <div>
+            <div> 
                 <SortableList  
-                    shouldCancelStart={() => false}  
-                    shouldCancelAnimation={() => false}
+                    shouldCancelStart={this.shouldCancelStart}  
+                    shouldCancelAnimation={this.shouldCancelAnimation} 
                     distance={2}         
-                    items={this.selectItems()}  
+                    items={this.state.selectedItems}  
                     axis='y'     
                     onSortEnd={({oldIndex, newIndex}) => { 
- 
-                    
-                    
+
+                        this.setState({
+                            selectedItems:arrayMove([...this.state.selectedItems],oldIndex,newIndex)
+                        }, 
+                        () => {
+                            this.updateProject(
+                                this.props.project, 
+                                {
+                                    layout:this.state.selectedItems.map( i => i.type==="todo" ? i._id : i)
+                                }
+                            )
+                        })
+                      
                     }}  
                     onSortStart={() => {}}
                 /> 
@@ -230,25 +298,25 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         super(props);
         this.state = {
             showProjectMenuPopover:false
-        }
+        } 
     } 
  
-
-    setProjectName = (name : string) => {
-        this.props.updateProject(this.props.project, {name});
+ 
+    setProjectName = (event) => { 
+        this.props.updateProject(this.props.project, {name:event.target.value});
     }
+  
 
-
-    setProjectDescription = (e, description:string) => {
-        this.props.updateProject(this.props.project, {description});
-    }
-
+    setProjectDescription = debounce((event, newValue:string) => {
+        this.props.updateProject(this.props.project, {description:newValue});
+    },100)
+   
  
     render(){
      return <div> 
-                <div style={{display:"flex"}}>
-                        <div>
-                            <div style={{ 
+                <div style={{display:"flex", alignItems: "center"}}>
+                        <div>   
+                            <div style={{   
                                 width:"30px",    
                                 height:"30px", 
                                 borderRadius:"100px",
@@ -275,8 +343,8 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                                 }}
                                 value={uppercase(this.props.project.name)}
                                 placeholder="New Project"
-                                onChange={debounce(this.setProjectName,500)} 
-                            /> 
+                                onChange={this.setProjectName} 
+                            />  
                         </div> 
 
                         <div  
@@ -301,16 +369,18 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         </div> 
                 </div>
 
-
+ 
                 <TextField   
+                    id={this.props.project._id}
                     hintText = "Notes"   
                     defaultValue = {this.props.project.description}    
                     multiLine={true} 
                     fullWidth = {true}   
-                    onChange={debounce(this.setProjectDescription,500)}
-                    inputStyle = {{fontWeight:600, color:"rgba(100,100,100,1)", fontSize:"15px"}}   
+                    onChange={this.setProjectDescription} 
+                    rows={4}   
+                    inputStyle = {{color:"rgba(100,100,100,0.7)", fontSize:"15px"}}   
                     underlineFocusStyle = {{borderColor: "rgba(0,0,0,0)"}}    
-                    underlineStyle = {{borderColor: "rgba(0,0,0,0)"}}  
+                    underlineStyle = {{borderColor: "rgba(0,0,0,0)"}}   
                 /> 
             
                 <ProjectMenuPopover
@@ -322,11 +392,11 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     dispatch={this.props.dispatch}
                 />  
 
-            </div>
+            </div> 
     }
 
 }
-
+ 
 
 
 
@@ -373,7 +443,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
         
     }
 
-
+ 
     onRepeat = (e) => {
 
     }
@@ -629,17 +699,23 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
     render(){
         return <div>
 
-        <div style={{display:"flex"}}>
- 
-            <div> 
-                <div style={{display:"flex"}}> 
-                    <TextField   
+        <div  
+        className="projectHeading"
+        style={{ 
+            display:"flex",  
+            alignItems:"center",
+            justifyContent: "space-between"
+        }}>  
+  
+            <div style={{width:"100%"}}> 
+                <div style={{display:"flex"}}>  
+                    <TextField    
                         hintText = "Project heading"    
-                        id={this.props.heading.key}
-                        defaultValue = {this.props.heading.title} 
-                        fullWidth = {true}   
-                        onChange={this.props.onChange}
-                        inputStyle = {{fontWeight:600, color:"rgba(100,100,100,1)", fontSize:"16px"}}  
+                        id = {this.props.heading.key} 
+                        defaultValue = {uppercase(this.props.heading.title)} 
+                        fullWidth = {true}     
+                        onChange = {this.props.onChange}
+                        inputStyle = {{fontWeight:600, color:"rgba(10,110,205,1)", fontSize:"16px"}}  
                         hintStyle = {{top:"3px", left:0, width:"100%", height:"100%"}}   
                         style = {{height:"28px"}}      
                         underlineFocusStyle = {{borderColor: "rgba(0,0,0,0)"}}    
@@ -660,7 +736,7 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                 ref={ (e) => { this.moreAnchor=e; } }
             > 
                 <ThreeDots style={{  
-                    color:"rgb(179, 179, 179)",
+                    color:"dodgerblue",
                     width:"32px", 
                     height:"32px",
                     cursor: "pointer" 
@@ -727,7 +803,7 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                         <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
                             Move 
                         </div>     
-                    </div>
+                    </div> 
 
                     <div   
                         onClick={this.props.onRemove as any} 
@@ -740,7 +816,7 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                     >  
                         <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
                         <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                            Remove
+                            Remove 
                         </div>     
                     </div>
                 </div> 

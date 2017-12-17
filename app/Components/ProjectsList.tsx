@@ -47,11 +47,19 @@ export class ProjectsList extends Component<ProjectsListProps,ProjectsListState>
 
 
     getProjectLink = (value, index:number) => { 
-        
-        return <li style={{width:"100%"}}>  
+
+        if(typeof value.name !== "string"){
+             
+           console.log(value, index) 
+           throw new Error("Project name is not a string. getProjectLink.");  
+ 
+        }
+         
+        return <li style={{width:"100%"}}>   
 
             <div 
-                onClick = {this.selectProject(value)}
+                onClick = {this.selectProject(value)} 
+                id = {value._id}   
                 className="toggleFocus" 
                 style={{  
                     marginLeft:"4px",
@@ -81,7 +89,9 @@ export class ProjectsList extends Component<ProjectsListProps,ProjectsListState>
                         <Circle />  
                     </IconButton> 
 
-                    <div style={{  
+                    <div 
+                    id = {value._id}   
+                    style={{  
                         paddingLeft:"5px",
                         fontFamily: "sans-serif",
                         fontWeight: 600, 
@@ -151,7 +161,6 @@ export class ProjectsList extends Component<ProjectsListProps,ProjectsListState>
     render(){
 
         return <div   
-            id="projects"   
             style={{
                 display: "flex",  
                 padding: "10px",  

@@ -28,11 +28,11 @@ module.exports = {
             exclude: path.resolve(__dirname,'node_modules'), 
             loader:"awesome-typescript-loader"
           },      
-          {   
-            test   : /\.(ttf|eot|svg|woff(2)?)(\?[a-z0-9=&.]+)?$/,
-            loader: 'file-loader' 
-          },    
-          {    
+          {
+            test: /\.(woff|woff2|eot|ttf|svg)$/,
+            loader: 'file-loader?name=fonts/[name].[ext]'
+          },  
+          {      
             enforce:"pre",  
             test:/\.js$/,       
             exclude: path.resolve(__dirname,'node_modules'), 

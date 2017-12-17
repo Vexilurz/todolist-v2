@@ -23,7 +23,7 @@ export let initDB = () => {
     areas_db = new PouchDB('areas');
     events_db = new PouchDB('events');  
 } 
-  
+   
 initDB(); 
 
 const randomWord = require('random-word');
@@ -75,13 +75,13 @@ Date.prototype["addDays"] = function(days) {
   return dat; 
 };
 
+ 
 
 
 
-
-  
-export let generateID = () => uniqid();  
-//() => new Date().toJSON(); 
+   
+export let generateID = () => uniqid() + new Date().toJSON();  
+//() => new Date().toJSON();   
 
  
 let fakeTags = (n) => compose(map((i) => randomWord()), range(0), add(5))(randomInteger(n));
@@ -106,7 +106,7 @@ let fakeCheckListItem = (idx) => ({
     text : compose(join(' '), map((n) => randomWord()), range(0), add(2))(randomInteger(5)), 
     checked : Math.random() > 0.5 ? true : false,
     idx : idx,
-    key : uniqid()  
+    key : generateID()  
 }) 
 
  
@@ -146,8 +146,8 @@ let fakeTodo = (tags:string[], attachedProjectsIds) : Todo => {
 let fakeHeading = () : Heading => ({
     type : "heading",
     title : compose(join(' '), map((n) => randomWord()), range(0), add(4))(randomInteger(2)), 
-    _id : uniqid(), 
-    key : uniqid()
+    _id : generateID(), 
+    key : generateID()
 }) 
   
  

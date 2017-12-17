@@ -9,7 +9,7 @@ import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq
 } from 'ramda';
 import { Todo } from '../databaseCalls';
 import { Component } from 'react';
-import { insideTargetArea } from '../utils';  
+import { insideTargetArea, hideChildrens, makeChildrensVisible, generateDropStyle } from '../utils';  
 import { RightClickMenu } from './RightClickMenu';
 import { TodoInput } from './TodoInput';
 import { Data } from './ResizableHandle';
@@ -21,94 +21,7 @@ import {  byTags, byCategory } from '../utils';
 
 
 
-
-
-let undoDropStyle = (elem:HTMLElement) : void => {
-
-    if(!elem["applyDropStyle"])
-       return;
-       
-    let children = [].slice.call(elem.children);
-
-    for(let i=0; i<children.length; i++){
-        children[i].style.visibility = '';
-        children[i].style.opacity = 1;
-    }
-          
-    let nested = document.getElementById("nested");
-
-    elem.removeChild(nested);
-
-    map((pair) => {
-        elem["style"][pair[0]]=pair[1];
-    })(toPairs( elem["initialStyle"] ))
-
-    elem["applyDropStyle"] = false;
-
-}
-
-
-
-let applyDropStyle = (elem:HTMLElement, x:number, y:number) : void => {
-    
-    let initialStyle = {...elem.style};
-
-    elem["applyDropStyle"] = true;
-    elem["initialStyle"] = initialStyle;
-
-    let children = [].slice.call(elem.children);
-
-    for(let i=0; i<children.length; i++){
-        children[i].style.visibility = 'hidden';
-        children[i].style.opacity = 0;
-    }
-
-    let numb = document.createElement("div");
-
-    numb.id = "nested";
-
-    numb.innerText = "1";
-
-    let parentStyle = {
-        alignItems: "center",
-        display: "flex",
-        justifyContent: "center",
-        width: "60px",
-        height: "20px",
-        background: "cadetblue"
-    }
-
-    let childStyle = {
-        background: "brown",
-        width: "20px",
-        height: "20px",
-        alignItems: "center",
-        textAlign: "center",
-        color: "aliceblue",
-        borderRadius: "30px",
-        marginBottom: "-20px" 
-    }
-    
-    map((pair) => {
-        numb["style"][pair[0]]=pair[1];
-    })(toPairs(childStyle))
-
-    map((pair) => {
-        elem["style"][pair[0]]=pair[1];
-    })(toPairs(parentStyle))
-        
-    elem.appendChild(numb);  
-
-    elem["style"].transform = "none";
-    elem["style"].position = "absolute"; 
-    elem["style"].left = (x-60)+'px';
-    elem["style"].top = y+'px';
-        
- }   
  
-
-
-
  
 
 let getElem = (value, index) => {
@@ -153,7 +66,7 @@ interface TodosListProps{
 
   
 interface TodosListState{
-    elements:any
+    items:any[]
 }
 
       
@@ -162,6 +75,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
      constructor(props){
         super(props);
+
+        this.state={items:[]};
+ 
         getElem = this.getTodoElem;
      } 
  
@@ -169,29 +85,64 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
      shouldComponentUpdate(nextProps:TodosListProps){
          
-         if(this.props.todos!==nextProps.todos)
-            return true; 
+         //if(this.props.todos!==nextProps.todos)
+            //return true; 
 
-         if(this.props.selectedTag !== nextProps.selectedTag)
-            return true;   
-          
-         return false;
-          
+            
+         //if(this.props.selectedTag !== nextProps.selectedTag)
+           // return true;   
+ 
+
+         //if(this.props.selectedCategory !== nextProps.selectedCategory)
+           // return true;
+             
+        // return false; 
+
+        return true;  
+           
      } 
  
+
+     componentDidMount(){
+
+        let items = [...this.props.todos]; 
+        let selectedItems = items.filter(allPass(this.props.filters as any[]));
+          
+        this.setState({ items:selectedItems }, () => console.log(`selectedItems ${this.state.items} in ${this.props.selectedCategory}`));   
+
+     }  
+       
+     
+     componentWillReceiveProps(nextProps){
+
+        if( 
+            this.props.todos!==nextProps.todos  ||  
+            this.props.selectedTag!==nextProps.selectedTag ||
+            this.props.selectedCategory!==nextProps.selectedCategory  
+        ){  
+ 
+            let items = [...nextProps.todos]; 
+             
+            let selectedItems = nextProps.todos.filter(allPass(nextProps.filters as any[]));
+                 
+            this.setState({ items:selectedItems }, () => console.log(`selectedItems ${this.state.items} in ${this.props.selectedCategory}`));  
+ 
+        }     
+  
+     }  
 
   
      getTodoElem = (value:Todo, index:number) => {
      
         return <div style={{position:"relative"}}> 
-                <TodoInput   
-                    id={value._id}
-                    key = {value._id} 
-                    dispatch={this.props.dispatch}   
-                    tags={this.props.tags} 
-                    rootRef={this.props.rootRef} 
-                    todo={value}
-                />    
+                    <TodoInput   
+                        id={value._id}
+                        key = {value._id} 
+                        dispatch={this.props.dispatch}   
+                        tags={this.props.tags} 
+                        rootRef={this.props.rootRef} 
+                        todo={value}
+                    />     
                 </div> 
 
      }
@@ -202,18 +153,16 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
         let nodes = [].slice.call(e.path);
 
-        for(let i=0; i<nodes.length; i++){
+        for(let i=0; i<nodes.length; i++){ 
             if(nodes[i].preventDrag)
                return true;
         }
 
         return false; 
 
-     }
-
-
-    
-
+     } 
+     
+     
 
      shouldCancelAnimation = (e) => {
 
@@ -228,32 +177,48 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
      }  
  
+ 
+
+     onSortEnd = ({oldIndex, newIndex, collection}, e) => { 
+         
+        let x = e.clientX;
+        let y = e.clientY+this.props.rootRef.scrollTop;  
+        let draggedTodo = this.state.items[oldIndex];
+ 
+         
+        let areas = document.getElementById("areas");
+        let projects = document.getElementById("projects");
 
 
-     onSortEnd = ({oldIndex, newIndex}) => {   
-        
-        //let item = items[oldIndex];
+        if(insideTargetArea(areas)(x,y) || insideTargetArea(projects)(x,y)){
 
-        //let inArrayIndex = findIndex((t:Todo) =>  t._id===item._id, this.props.todos);
+            let el = document.elementFromPoint(e.clientX, e.clientY);
+            
+            let id = el.id || el.parentElement.id;
+             
+            this.props.dispatch({type:"attachTodoToProject", load : {projectId:id,todoId:draggedTodo._id} });
 
-        //if(inArrayIndex!==-1){ 
+        }else{  
+ 
+            let items = this.state.items; /// this.props.todos; 
+            
+            let fromId = items[oldIndex]._id;
+    
+            let toId = items[newIndex]._id; 
+    
+            this.props.dispatch({type:"swapTodos", load:{fromId,toId}});
 
-            //let load = arrayMove(this.props.todos,inArrayIndex,newIndex);
+        }
 
-            //this.props.dispatch({type:"todos",load});
-
-        //} 
-     
      }
-
-  
+ 
+   
+ 
+ 
+       
        
      render(){  
 
-         let items = this.props.todos; 
-           
-         if(!isEmpty(this.props.filters))
-             items = this.props.todos.filter(allPass(this.props.filters as any[]));   
          
          return <div style={{WebkitUserSelect: "none"}}> 
  
@@ -261,19 +226,52 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 shouldCancelStart={this.shouldCancelStart}  
                 shouldCancelAnimation={this.shouldCancelAnimation}
                 distance={1}        
-                items={items}  
+                items={this.state.items}  
                 axis='y'     
                 onSortEnd={this.onSortEnd}  
                 onSortMove={(e, helper : HTMLElement) => {
 
-                    let x = e.pageX;
-                    let y = e.pageY; 
+                    let x = e.clientX;
+                    let y = e.clientY+this.props.rootRef.scrollTop;  
 
-                    //undoDropStyle(helper);
-                    //applyDropStyle(helper,x,y);  
+                     
+                    let areas = document.getElementById("areas");
+                    let projects = document.getElementById("projects");
+                    let nested = document.getElementById("nested");
 
-                }}
-                onSortStart={() => {}}
+                    if(insideTargetArea(areas)(x,y) || insideTargetArea(projects)(x,y)){
+
+                        hideChildrens(helper);
+
+                        nested.style.visibility="";
+                        nested.style.opacity='1';    
+                        //nested.style.left=e.clientX+"px"; 
+                        //nested.style.top=(e.clientY+this.props.rootRef.scrollTop)+"px";
+                         
+                    }else{ 
+
+                        makeChildrensVisible(helper); 
+                        nested.style.visibility="hidden";
+                        nested.style.opacity='0';  
+                    } 
+ 
+  
+                }} 
+                onSortStart={({node, index, collection}, e, helper) => { 
+
+                    let helperRect = helper.getBoundingClientRect();
+                    let offset = e.clientX - helperRect.left;
+
+
+   
+                    let el = generateDropStyle("nested"); 
+                    el.style.left=`${offset}px`;  
+                    el.style.visibility="hidden";
+                    el.style.opacity='0'; 
+                    
+                    helper.appendChild(el);  
+                
+                }} 
             /> 
  
             <RightClickMenu /> 

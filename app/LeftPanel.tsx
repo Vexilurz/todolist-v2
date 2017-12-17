@@ -135,22 +135,22 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
             let anytime = this.props.todos.filter( v => !v.checked ).length;
  
-                
+                 
             let detachedProjects = this.props.projects.filter(
                 (p:Project) => isEmpty(p.attachedAreasIds)
             );
-
+ 
             return <div 
                         className="leftPanelScroll"
                         style={{
                             display: "flex", 
                             flexDirection: "column", 
-                            width: this.props.leftPanelWidth, 
+                            width: this.props.clone ? "0px" : this.props.leftPanelWidth, 
                             height: "100%",
                             position:"relative", 
                             backgroundColor: "rgba(189, 189, 189, 0.2)" 
                         }}
-                    >       
+                    >        
 
 
 
@@ -333,7 +333,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
                         }
                     </MenuItem> 
-                    <MenuItem 
+                    <MenuItem  
 
                     onClick={() => this.props.dispatch({type:"selectedCategory", load:"someday"})} 
 
@@ -388,15 +388,15 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                         <Trash style={{color:"darkgray"}}/>
                         </ListItemIcon>
                         <ListItemText  inset primary="Trash" />
-                    </MenuItem>
-                    <div style={{outline: "none",width:"100%",height:"30px"}}></div>
+                    </MenuItem> 
+                    <div style={{outline:"none", width:"100%", height:"30px"}}></div>
                 </MenuList> 
             </div>   
   
 
             {
                 isEmpty(this.props.areas) ? null:
-                <div style={{position:"relative", padding:"10px"}}>
+                <div id="areas" style={{position:"relative", padding:"10px"}}>
                     <AreasList 
                         dispatch={this.props.dispatch}
                         areas={this.props.areas}
@@ -405,10 +405,10 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                 </div>
             }         
      
-    
+     
             {  
                 isEmpty(detachedProjects) ? null : 
-                <div style={{position: "relative", padding: "10px", paddingBottom: "80px"}}>
+                <div id="projects" style={{position: "relative", padding: "10px", paddingBottom: "80px"}}>
                     <ProjectsList 
                         dispatch={this.props.dispatch}
                         projects={detachedProjects}
@@ -427,10 +427,10 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
  
          
             <div style={{    
-                display: "flex",
+                display: "flex", 
                 alignItems: "center",  
                 position: "fixed",
-                width: this.props.leftPanelWidth,  
+                width : this.props.leftPanelWidth,  
                 justifyContent: "space-around",  
                 bottom: "0px", 
                 height: "60px",

@@ -33,9 +33,9 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { FadeBackgroundIcon } from '../Components/FadeBackgroundIcon';
-
-
-
+import { ContainerHeader } from './ContainerHeader';
+import { byTags, byCategory } from '../utils';
+import { TodosList } from './TodosList';
 
 
 
@@ -60,8 +60,38 @@ export class Someday extends Component<SomedayProps, SomedayState>{
 
     render(){
 
-        return <div></div>
+        return <div>
+             <ContainerHeader 
+              selectedCategory={"someday"} 
+              dispatch={this.props.dispatch} 
+              tags={this.props.tags}
+              selectedTag={this.props.selectedTag}
+            /> 
+   
+            <div   
+                className="unselectable" 
+                id="todos" 
+                style={{
+                    marginBottom: "100px", 
+                    marginTop:"50px" 
+                }} 
+            >   
+                <TodosList 
+                    dispatch={this.props.dispatch}    
+                    filters={[
+                        byTags(this.props.selectedTag),
+                        byCategory("someday"),
+                        (t:Todo) => !t.checked
+                    ]}
+                    selectedCategory={"someday"} 
+                    selectedTag={this.props.selectedTag}  
+                    rootRef={this.props.rootRef}
+                    todos={this.props.todos}  
+                    tags={this.props.tags} 
+                /> 
+            </div>
 
+        </div>
     }
 
 }

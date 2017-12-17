@@ -56,7 +56,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
  
         return  <div  
             style={{display: "flex", flexDirection: "column", padding:"10px", position:"relative"}}
-            id="areas"    
         >  
         
             {

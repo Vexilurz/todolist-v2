@@ -6,7 +6,7 @@ import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq
     compose, append, contains, and, find, defaultTo, addIndex, split, filter, any,
     clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, 
     groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs 
-} from 'ramda';
+} from 'ramda'; 
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
@@ -254,6 +254,18 @@ export class MainContainer extends Component<Store,MainContainerState>{
  
         addTodo(this.onError,todo);
 
+        if(this.props.selectedCategory==="project"){ 
+
+            //this.props.dispatch({ 
+            //     type:"attachTodoToProject", 
+            //    load:{
+            //        projectId:this.props.selectedProjectId,
+            //        todoId:todo._id
+            //    }
+            //});
+                
+        } 
+
         this.props.dispatch({type:"newTodo", load:todo}); 
  
         if(this.rootRef) 
@@ -265,14 +277,14 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     selectFooterButtons = () => {
 
-        return [
+        return [  
             "NewTodo" , 
             "Calendar" , 
             "Arrow" , 
             "Search",  
-            "Heading",
-            "Trash" 
-        ]
+            this.props.selectedCategory==="project" ? "Heading" : undefined,
+            this.props.selectedTodoId!==null ? "Trash" : undefined 
+        ].filter( v => !!v)
  
     }
 
@@ -446,14 +458,14 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
                          }[this.props.selectedCategory]
                     }
-
+ 
 
 
                     <div style={{ 
                         height:"60px", 
-                        width:window.innerWidth-this.props.leftPanelWidth, 
+                        width:this.props.clone ? "100%" : window.innerWidth-this.props.leftPanelWidth, 
                         position:"fixed", 
-                        right:"0px", 
+                        right:"0px",   
                         zIndex:1500,
                         display:"flex",
                         justifyContent:"center",

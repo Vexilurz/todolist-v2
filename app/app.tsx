@@ -1,6 +1,6 @@
 import './assets/styles.css';  
 import * as React from 'react';
-import * as ReactDOM from 'react-dom'; 
+import * as ReactDOM from 'react-dom';  
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import * as injectTapEventPlugin from 'react-tap-event-plugin';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
@@ -9,18 +9,21 @@ import IconButton from 'material-ui/IconButton';
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import { Component } from "react"; 
-import { wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, getTagsFromTodos, replace, remove} from "./utils"; 
+import {  
+    wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, 
+    getTagsFromTodos, replace, remove
+} from "./utils"; 
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
 import { LeftPanel } from './LeftPanel';
 import { MainContainer, Category } from './MainContainer';
 import { Todo, Project, Area, Event } from './databaseCalls';
- 
+import './assets/fonts/index.css';
 injectTapEventPlugin(); 
       
 (() => {     
     let app=document.createElement('div'); 
-    app.id='application';    
+    app.id='application';     
     document.body.appendChild(app);  
 })();  
  
@@ -46,7 +49,8 @@ export class App extends Component<any,any>{
 
             case "clone":
                this.props.dispatch({type:"newStore", load});
-               break;
+               this.props.dispatch({type:"clone", load:true});
+               break; 
             case "reload":
                this.props.dispatch({type:"windowId", load});
                break;
@@ -82,7 +86,7 @@ export class App extends Component<any,any>{
                                 height:"6%" 
                             }}  
                     >   
-                    </div> 
+                    </div>  
  
                     <LeftPanel {...{} as any}  /> 
 
@@ -138,8 +142,9 @@ export interface Store{
 
     todos:Todo[],
     tags:string[],
-    
-    dispatch?:Function,
+
+    clone?:boolean,
+    dispatch?:Function
 } 
 
 
@@ -167,7 +172,7 @@ export let defaultStoreItems : Store = {
     projects:[],
     areas:[],
     events:[], 
-
+    clone : false,
     todos:[], 
     tags:[
         "Work", "Home",
@@ -181,7 +186,7 @@ export let defaultStoreItems : Store = {
 let reducer = (reducers) => (state:Store, action) => {
 
     let newState = undefined;
-
+ 
 
     if(action.type==="newStore"){
 
@@ -219,6 +224,12 @@ let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}
             }; 
             break;
 
+        case "clone":
+            newState = {
+                ...state, 
+                clone:action.load
+            }; 
+            break;    
 
         case "selectedCategory":
             newState = {
@@ -352,9 +363,28 @@ let applicationObjectsReducer = (state:Store, action) => {
 
     let newState = undefined;
     let idx = -1; 
-
+    let replacement = [];
+  
 
     switch(action.type){
+
+        //load : {projectId,todoId}    
+        case "attachTodoToProject":
+            idx = state.projects.findIndex( (p:Project) => p._id===action.load.projectId );
+ 
+            if(idx===-1)
+               return;  
+               //throw new Error(`Project does not exist ${action.load.projectId}. attachTodoToProject.`);
+
+            let project = {...state.projects[idx]};
+
+            project.layout = [action.load.todoId, ...project.layout];
+ 
+            newState = {
+                ...state,
+                projects:replace(state.projects,project,idx) 
+            }
+            break;
 
 
         case "setAllTypes":
@@ -363,9 +393,10 @@ let applicationObjectsReducer = (state:Store, action) => {
                 todos:[...action.load.todos],
                 projects:[...action.load.projects],
                 areas:[...action.load.areas],
-                events:[...action.load.events]
+                events:[...action.load.events],
+                tags:getTagsFromTodos(action.load.todos),
             }
-            break;
+            break; 
  
  
  
@@ -378,6 +409,23 @@ let applicationObjectsReducer = (state:Store, action) => {
                 showRightClickMenu:false
             }; 
             break; 
+        
+            
+        case "swapTodos":
+            let todos = [...state.todos];
+            let temp = null;
+            let from : number = todos.findIndex( (t:Todo) => t._id===action.load.fromId );
+            let to : number = todos.findIndex( (t:Todo) => t._id===action.load.toId );
+
+            if(from===-1 || to===-1)
+                throw new Error("Attempt to swap non existing objects. swapTodos");
+
+            temp = todos[from];   
+            todos[from] = todos[to];
+            todos[to] = temp; 
+
+            break;
+        
         
 
 
@@ -394,7 +442,7 @@ let applicationObjectsReducer = (state:Store, action) => {
                 projects:replace(state.projects,action.load,idx)
             }; 
             break;   
-
+ 
 
 
         case "updateTodo":
@@ -404,11 +452,14 @@ let applicationObjectsReducer = (state:Store, action) => {
             if(idx===-1){
                 throw new Error("Attempt to update non existing object. updateTodo.")
             }
- 
+
+            replacement = replace(state.todos,action.load,idx);
+
             newState = {
                 ...state, 
                 selectedTodoId:action.load._id,
                 selectedTag:"All",
+                tags:getTagsFromTodos(replacement),
                 todos:replace(state.todos,action.load,idx),
                 showRightClickMenu:false
             }; 
@@ -426,12 +477,15 @@ let applicationObjectsReducer = (state:Store, action) => {
                 throw new Error("Attempt to remove non existing object. updateTodo.")
 
             }
+
+            replacement = remove(state.todos,idx);
     
             newState = {
                 ...state, 
                 selectedTodoId:action.load._id,
-                selectedTag:"All",
+                selectedTag:"All", 
                 todos:remove(state.todos,idx),
+                tags:getTagsFromTodos(replacement),
                 showRightClickMenu:false
             }; 
             break; 
@@ -482,6 +536,7 @@ let applicationObjectsReducer = (state:Store, action) => {
                 showRightClickMenu:false
             }; 
             break; 
+           
             
 
 
@@ -520,10 +575,14 @@ let applicationObjectsReducer = (state:Store, action) => {
 
     if(newState){ 
 
-       ipcRenderer.send("action", action, state.windowId); 
+       if(action.kind!=="external"){ 
+
+          ipcRenderer.send("action", action, state.windowId); 
+           
+       }
     
     }
-
+ 
  
 
     return newState; 

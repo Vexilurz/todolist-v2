@@ -36,7 +36,7 @@ export class RightClickMenu extends Component<any,RightClickMenuState>{
                type:"todos",
                load: replace(this.props.todos,changedTodo,idx)
            });
-   }  
+   }   
    
    
     

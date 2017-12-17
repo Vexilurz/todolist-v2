@@ -147,7 +147,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             attachedDate : this.props.todo.attachedDate,
 
             currentTodo : this.props.todo.title, 
- 
+  
             currentNote : this.props.todo.note, 
 
             deadline : this.props.todo.deadline, 
@@ -208,7 +208,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         status : this.props.todo.status,
         created : this.props.todo.created,  
         deleted : this.props.todo.deleted,
-        completed : this.props.todo.completed, 
+        completed : this.state.completed, 
         history : this.props.todo.history,    
         attachments : this.props.todo.attachments,
         type:"todo", 
@@ -1086,7 +1086,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         open = {this.state.showCalendar}
                         anchorEl = {this.calendarOrigin} 
                         origin = {{vertical: "center", horizontal: "right"}} 
-                        point = {{vertical: "top", horizontal: "right"}} 
+                        point = {{vertical: "center", horizontal: "right"}} 
                         simple = {false}   
                         onDayClick = {this.onCalendarDayClick}  
                         onSomedayClick = {this.onCalendarSomedayClick}   
@@ -1102,7 +1102,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         open = {this.state.showSimpleCalendar}    
                         anchorEl = {this.calendarSimpleOrigin} 
                         origin = {{vertical: "center", horizontal: "right"}} 
-                        point = {{vertical: "top", horizontal: "right"}} 
+                        point = {{vertical: "center", horizontal: "right"}} 
                         simple = {true}     
                         onDayClick = {(day:Date,modifiers:Object,e:any) => {
 
@@ -1130,7 +1130,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         open = {this.state.showtagsPopover}   
                         anchorEl = {this.tagsPopoverOrigin} 
                         origin = {{vertical: "center", horizontal: "right"}} 
-                        point = {{vertical: "top", horizontal: "right"}} 
+                        point = {{vertical: "center", horizontal: "right"}} 
                     />
                     {     
                         buttonsNamesToDisplay.indexOf("Calendar")===-1 ? null : 

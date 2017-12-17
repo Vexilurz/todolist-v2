@@ -1,8 +1,7 @@
 html{
   height:860px;
-  font-family: 'Roboto', sans-serif !important;
-}
- 
+  font-family:'Roboto' !important;
+} 
 
  
 body{  
@@ -10,16 +9,9 @@ body{
   height:100%;
   overflow: hidden;
   margin : 0; 
-  font-family: 'Roboto', sans-serif !important;
 } 
 
-
-@font-face { 
-  font-family: 'Roboto';
-  src: url('/fonts/Roboto-Regular.ttf') format("ttf"); 
-}
-
-
+ 
 li{   
   margin:0 !important; 
   margin-left:0 !important;
@@ -170,6 +162,28 @@ ul {
   color:cadetblue; 
 }
  
+
+
+.projectHeading{
+  transition : background-color 0.5s ease;
+  border-bottom : 1px solid rgba(100, 100, 100, 0.2);
+} 
+
+
+
+.projectHeading:hover{ 
+  background-color: rgb(205,221,253);
+  border-radius: 5px; 
+  border-bottom : none;
+} 
+
+
+
+.projectHeading:active{  
+  background-color: rgb(205,221,253);
+  border-radius: 5px; 
+  border-bottom : none;
+}
 
 
 

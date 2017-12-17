@@ -27,8 +27,8 @@ let onReady = () => {
     preventAnnoyingErrorPopups();   
     mainWindow = initWindow(
         merge(
-            {width:900,height:750} 
-            //electron.screen.getPrimaryDisplay().workAreaSize
+            //{width:900,height:750} 
+            electron.screen.getPrimaryDisplay().workAreaSize
         )({transparent:false})
     );        
         
