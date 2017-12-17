@@ -2,13 +2,13 @@ import './assets/styles.css';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { map, range, merge, isEmpty, curry, cond, compose, contains, and, or,
-    find, defaultTo, split, filter, clone, take, drop, splitAt, last, isNil, toUpper, prepend, uniq, flatten, prop, toPairs } from 'ramda';
+    find, defaultTo, split, filter, clone, take, drop, splitAt, last, isNil, toUpper, prepend, flatten, prop, toPairs } from 'ramda';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import {
   cyan500, cyan700,   
   pinkA200,
   grey100, grey300, grey400, grey500,
-  white, darkBlack, fullBlack, 
+  white, darkBlack, fullBlack,  
 } from 'material-ui/styles/colors'; 
 import {fade} from 'material-ui/utils/colorManipulator';
 import spacing from 'material-ui/styles/spacing'; 
@@ -40,15 +40,20 @@ import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
 import { getTodos, queryToTodos, Todo, updateTodo } from './databaseCalls';
 import { Category } from './MainContainer';
+import { ChecklistItem } from './Components/TodoInput';
 let moment = require("moment");
 
 
 
  
-export let daysRemaining = (date) => {
+export let daysRemaining = (date) : number => {
+
     var eventdate = moment(date);
+
     var todaysdate = moment();
+
     return eventdate.diff(todaysdate, 'days');
+
 }
 
 
@@ -132,10 +137,6 @@ export let getTagsFromTodos = (todos:Todo[]) : string[] => compose(
 )(todos) as any;
   
 
- 
-
-
-
 
 
 
@@ -177,34 +178,53 @@ export let stringToLength = (s : string, length : number) : string => {
 
 
 
-export let uppercase = (str:string) => {
+
+export let uppercase = (str:string) : string => {
+
    return toUpper(str.substring(0,1)) + str.substring(1,str.length);
+   
 };
  
 
 
 
 
-export let wrapMuiThemeDark = (component : JSX.Element) : JSX.Element =>  
-    <MuiThemeProvider muiTheme={getMuiTheme(darkBaseTheme)}>
+
+export let wrapMuiThemeDark = (component : JSX.Element) : JSX.Element => { 
+ 
+    return <MuiThemeProvider muiTheme={getMuiTheme(darkBaseTheme)}>
+        
         {component}  
-    </MuiThemeProvider>;  
+    
+    </MuiThemeProvider>
+
+}
   
  
 
 
-export let wrapMuiThemeLight = (component : JSX.Element) : JSX.Element =>  
-    <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
+export let wrapMuiThemeLight = (component : JSX.Element) : JSX.Element =>  {
+
+    return <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
+        
         {component} 
-    </MuiThemeProvider>;   
+    
+    </MuiThemeProvider>
+
+}   
 
 
 
 
-export let wrapCustomMuiTheme = (component : JSX.Element) : JSX.Element =>  
-    <MuiThemeProvider muiTheme={muiTheme}>  
+export let wrapCustomMuiTheme = (component : JSX.Element) : JSX.Element =>  {
+    
+    return <MuiThemeProvider muiTheme={muiTheme}>  
+    
         {component} 
-    </MuiThemeProvider>;  
+    
+    </MuiThemeProvider> 
+
+}
 
 
  
@@ -239,7 +259,39 @@ export let getMousePositionX = (container : HTMLElement, event:any) => event.pag
 export let arrayContainsItem = (array) => (item) : boolean => array.includes(item); 
 
 
+ 
+export let byTags = (selectedTag:string) => (todo:Todo) : boolean => { 
+    
+    if(selectedTag==="All" || selectedTag==="") 
+        return true;    
 
+    if(isNil(todo))
+        return false;
+ 
+    return contains(selectedTag,todo.attachedTags);
+
+} 
+    
+
+    
+export let byCategory = (selectedCategory:string) => (todo:Todo) : boolean => { 
+
+    if(isNil(todo))
+        return false; 
+
+    if(todo.category==="evening" && selectedCategory==="today")
+        return true;
+
+    if(selectedCategory==="anytime")
+        return true;  
+            
+    return todo.category===selectedCategory;
+
+} 
+
+
+
+ 
  
 export let showTags = (selectedCategory:Category) : boolean => 
     selectedCategory!=="inbox" && 
@@ -249,7 +301,7 @@ export let showTags = (selectedCategory:Category) : boolean =>
 
 
 
-export let insideTargetArea = (target) => (x,y) => {
+export let insideTargetArea = (target) => (x,y) : boolean => {
     let react = target.getBoundingClientRect();
      
     if(x>react.left && x<react.right)
@@ -262,4 +314,442 @@ export let insideTargetArea = (target) => (x,y) => {
 
 
 
+export let insert = (array:any[], item:any, idx:number) : any[] => {
+    
+        return [
+            ...array.slice(0,idx),
+            item,
+            ...array.slice(idx),
+        ] 
+ 
+}  
+
+
+
+export let replace = (array:any[], item:any, idx:number) : any[] => {
+    
+        return [
+            ...array.slice(0,idx),
+            item,
+            ...array.slice(idx+1),
+        ]
+ 
+}  
+
+
+
+export let remove = (array:any[], idx:number) : any[] => {
+    
+        return [
+            ...array.slice(0,idx),
+            ...array.slice(idx+1),
+        ]
   
+}  
+
+
+export let uniq = (array:string[]) : string[] => {
+ 
+    let values = [];
+
+    for(var i=0; i<array.length; i++)
+        if(values.indexOf(array[i]) === -1)
+           values.push(array[i]);
+
+    return values;
+
+}
+
+
+
+
+
+export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
+    
+    if(oldTodo.checklist.length!==newTodo.checklist.length)
+        return true;
+        
+    if(oldTodo.attachedProjectsIds.length!==newTodo.attachedProjectsIds.length)   
+        return true;
+ 
+    if(oldTodo.attachedTags.length!==newTodo.attachedTags.length)
+        return true;
+
+
+    if(oldTodo.category!==newTodo.category)
+        return true;
+
+    if(oldTodo.title!==newTodo.title)
+        return true;
+
+    if(oldTodo.checked!==newTodo.checked)
+        return true;   
+
+    if(oldTodo.note!==newTodo.note)
+        return true;   
+
+
+    if(oldTodo.deadline instanceof Date  &&  newTodo.deadline instanceof Date){
+
+        if(oldTodo.deadline.getTime()!==newTodo.deadline.getTime())
+            return true;  
+
+    }else{
+
+        if(oldTodo.deadline!==newTodo.deadline)
+            return true;  
+
+    }  
+    
+
+    if(oldTodo.attachedDate instanceof Date  &&  newTodo.attachedDate instanceof Date){
+        
+        if(oldTodo.attachedDate.getTime()!==newTodo.attachedDate.getTime())
+            return true;  
+
+    }else{
+
+        if(oldTodo.attachedDate!==newTodo.attachedDate)
+            return true;  
+
+    }   
+
+
+    for(let i=0; i<oldTodo.checklist.length; i++){
+
+        let oldItem : ChecklistItem = oldTodo.checklist[i];
+        let newItem : ChecklistItem = newTodo.checklist[i];
+ 
+        if(oldItem.checked!==newItem.checked)
+           return true; 
+
+        if(oldItem.idx!==newItem.idx)
+           return true;  
+        
+        if(oldItem.text!==newItem.text)
+           return true; 
+        
+        if(oldItem.key!==newItem.key)
+           return true; 
+
+    }
+
+
+    for(let i=0; i<oldTodo.attachedProjectsIds.length; i++)
+        if(oldTodo.attachedProjectsIds[i]!==newTodo.attachedProjectsIds[i])
+           return true; 
+    
+
+
+    for(let i=0; i<newTodo.attachedTags.length; i++)
+        if(oldTodo.attachedTags[i]!==newTodo.attachedTags[i])
+           return true; 
+    
+}
+ 
+
+export let renderSuggestion = (tag:string) : JSX.Element => {
+    return <div  
+        key={tag}  
+        className={"tagItem"} style={{
+            display:"flex", 
+            height:"auto",  
+            width:"140px", 
+            paddingLeft:"5px", 
+            paddingRight:"10px"  
+        }}
+    >  
+        <div style={{width:"24px",height:"24px"}}>
+            <TriangleLabel style={{color:"gainsboro"}}/>
+        </div> 
+        <div style={{
+            color:"gainsboro", 
+            marginLeft:"5px", 
+            marginRight:"5px",
+            overflowX:"hidden",
+            whiteSpace: "nowrap" 
+        }}> 
+            {tag}   
+        </div>     
+    </div>
+}
+
+
+     
+ 
+export let generateTagElement = (tag:string,idx:number) : JSX.Element => {
+
+    return <div key={String(idx)}>  
+        <div style={{ 
+                transition:"opacity 0.4s ease-in-out", 
+                opacity:1,
+                width:"auto",  
+                height:"24px", 
+                alignItems:"center",
+                display:"flex",
+                color:"rgba(74,136,114,0.9)",
+                cursor:"pointer",
+                marginRight:"5px",
+                marginTop:"5px", 
+                backgroundColor:"rgb(171,212,199)",
+                borderRadius:"100px",
+                fontWeight:700,
+                fontFamily:"sans-serif" 
+            }}
+        >      
+            <div style={{padding:"10px"}}>  
+            {tag.substring(0, 25) + (tag.length > 25 ? "..." : '')}  
+            </div>
+        </div>
+    </div>
+
+}
+
+
+
+export let getMonthName = (d:Date) : string => {
+
+  let monthNames = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  
+  return monthNames[d.getMonth()];
+
+}
+
+
+ 
+export let getDayName = (d:Date) => { 
+    
+    let days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    let dayName = days[d.getDay()];
+
+    return dayName;
+
+}
+
+
+
+     
+    
+export let addDays = (date:Date, days:number) => {
+    
+    let next = new Date();
+        
+    next.setDate(date.getDate() + days);
+
+    return next; 
+
+}
+ 
+
+
+
+
+export let daysLeftMark = (open:boolean, deadline, showFlag:boolean) : JSX.Element => {
+ 
+    if(open)
+       return null;
+    
+    if(deadline === null || deadline===undefined)
+       return null;   
+
+    let daysLeft = daysRemaining(deadline);      
+
+    let flagColor = (daysLeft === 1 || daysLeft === 0) ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
+       
+    let style : any = { 
+        display: "flex",
+        alignItems: "center",
+        justifyContent:"flex-end", 
+        color:flagColor,
+        fontSize:"13px", 
+        fontWeight:"900",  
+        textAlign: "center",
+        width: "240px",  
+        fontFamily: "sans-serif"
+    };   
+
+    let iconStyle = {
+        width:"18px",  
+        height:"18px",
+        marginLeft:"3px",
+        color: flagColor, 
+        marginRight:"5px" 
+    };
+       
+    let attachedText = "";
+ 
+    if(daysLeft < 0){
+
+       attachedText = " days ago";
+
+    }else if(daysLeft === 1){
+
+       attachedText = " day left"; 
+
+    }else{ 
+
+       attachedText = " days left";
+
+    }
+
+    return <p style={style}>
+               { showFlag ? <Flag style={iconStyle}/> : null }  
+               { Math.abs(daysLeft) }{ attachedText }
+           </p>  
+
+}   
+
+
+
+
+export let isToday = (date : Date) => {
+    let clone = new Date(date.getTime());
+    let today = new Date();
+    today.setHours(0,0,0,0);
+    clone.setHours(0,0,0,0);
+    return today.getTime() == clone.getTime();
+}    
+
+
+export let getDateFromObject = (i) => {
+    
+    if(i.type==="todo"){
+            
+        if(typeof i.attachedDate === "string")
+            return new Date(i.attachedDate)
+        else 
+            return i.attachedDate;
+
+    }else if(i.type==="project"){ 
+
+        if(typeof i.deadline === "string")
+            return new Date(i.deadline)
+        else 
+            return i.deadline;
+
+    }
+
+    return false;  
+
+}
+
+
+
+export let compareByDate = (getDateFromObject:Function) => (i, j) => {
+
+    let iDate = getDateFromObject(i); 
+    let jDate = getDateFromObject(j);
+
+    if(iDate===null || iDate===undefined || iDate===false)
+        return -1;
+        
+    if(jDate===null || jDate===undefined || jDate===false)
+        return -1;  
+            
+
+    if(iDate.getTime() > jDate.getTime())
+        return 1;
+    else 
+        return -1;   
+
+}
+
+
+
+
+
+export let dateDiffInDays = (a : Date, b : Date) : number  => {
+    
+    let _MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+    let utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+
+    let utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+
+    return Math.floor((utc2 - utc1) / _MS_PER_DAY);
+
+}
+    
+
+
+    
+export let getDatesRange = (start : Date, days : number, includeStart : boolean, includeEnd : boolean) : Date[] => {
+    
+    Date.prototype["addDays"] = function(days) {
+        var date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;
+    }
+
+    let dates = [];
+    
+    let from = 1; 
+    let to = days-1;
+
+
+    if(includeStart){
+        from -= 1;
+    }
+
+    if(includeEnd){
+        to += 1;
+    }
+        
+        
+    for(let i=from; i<=to; i++)
+        dates.push( new Date(start.getTime())["addDays"]( i ) );
+    
+    return dates; 
+     
+}
+
+
+
+
+export let keyFromDate = (date:Date) : string => date.toISOString().split('T')[0];
+
+
+
+
+
+export let objectsToHashTableByDate = (props) => {
+    
+    let todos = props.todos;
+
+    let projects = props.projects;
+
+    let objects = [...todos, ...projects].filter((i) => !!getDateFromObject(i));
+
+    let objectsByDate = {};
+
+    if(objects.length===0)
+        return [];
+
+
+    for(let i=0; i<objects.length; i++){
+
+
+        let date : Date = getDateFromObject(objects[i]);
+
+        let key : string = keyFromDate(date);
+
+        if(objectsByDate[key]===undefined){
+
+            objectsByDate[key] = [objects[i]];
+
+        }else{
+
+            objectsByDate[key].push(objects[i]);
+
+        }
+
+
+    }   
+
+    return objectsByDate;
+
+}   
+     

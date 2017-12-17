@@ -36,12 +36,12 @@ export class ProjectsList extends Component<ProjectsListProps,ProjectsListState>
         
         super(props);
 
-    } 
+    }  
 
 
     selectProject = (p:Project) => (e) => {
 
-        this.props.dispatch({ type:"selectedProject", load:p });
+        this.props.dispatch({ type:"selectedProjectId", load:p._id });
 
     }
 
@@ -87,12 +87,17 @@ export class ProjectsList extends Component<ProjectsListProps,ProjectsListState>
                         fontWeight: 600, 
                         color: "rgba(100,100,100,0.7)",
                         fontSize:"15px",  
+                        whiteSpace: "nowrap",
                         cursor: "default",
                         WebkitUserSelect: "none" 
                     }}>   
-                        {stringToLength(value.name,18)}
-                    </div>  
-
+                        { 
+                            !isEmpty(value.name) ? 
+                             stringToLength(value.name,15) :
+                             "New Project" 
+                        }
+                    </div>    
+ 
             </div> 
 
         </li>    
@@ -150,6 +155,7 @@ export class ProjectsList extends Component<ProjectsListProps,ProjectsListState>
             style={{
                 display: "flex",  
                 padding: "10px",  
+                position:"relative", 
                 flexDirection: "column" 
             }}  
         >  

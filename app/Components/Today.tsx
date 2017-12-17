@@ -5,7 +5,7 @@ import * as ReactDOM from 'react-dom';
 import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
     compose, append, contains, and, find, defaultTo, addIndex, split, filter, any,
     clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, 
-    groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs 
+    groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs, allPass 
 } from 'ramda';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { ipcRenderer } from 'electron';
@@ -36,14 +36,14 @@ import { FadeBackgroundIcon } from '../Components/FadeBackgroundIcon';
 import { ContainerHeader } from './ContainerHeader';
 import { TodosList } from './TodosList';
 import Moon from 'material-ui/svg-icons/image/brightness-3';
-
+import { byTags, byCategory } from '../utils';
  
-interface TodayProps{
+interface TodayProps{ 
     dispatch:Function,
     selectedTodoId:string,
     selectedTag:string,
     rootRef:HTMLElement,
-    todos:Todo[],
+    todos:Todo[], 
     tags:string[]
 } 
 
@@ -59,9 +59,21 @@ export class Today extends Component<TodayProps,TodayState>{
  
     render(){ 
 
-        let today = this.props.todos.filter( t => t.category === "today" );
-        let evening = this.props.todos.filter( t => t.category === "evening" );
 
+        let filters = (type) : any [] => [
+            
+            (t) => t.category === type, 
+
+            byTags(this.props.selectedTag), 
+
+            (t:Todo) => !t.checked
+
+        ];
+
+ 
+        
+        let evening = this.props.todos.filter(allPass( filters("evening") )); 
+        
 
         return <div style={{disaply:"flex", flexDirection:"column"}}> 
             <div style={{width: "100%"}}> 
@@ -85,7 +97,7 @@ export class Today extends Component<TodayProps,TodayState>{
                         }}>   
                             {uppercase("today")}
                         </div> 
-                    
+                     
                     </div> 
 
                     <TodaySchedule show={true}/> 
@@ -98,7 +110,6 @@ export class Today extends Component<TodayProps,TodayState>{
                     /> 
 
                     {   
-                        isEmpty(today) ? null :
                         <div   
                             className="unselectable" 
                             id="todos" 
@@ -106,23 +117,21 @@ export class Today extends Component<TodayProps,TodayState>{
                                 marginBottom: "50px", 
                                 marginTop:"20px"
                             }} 
-                        >
-                            <TodosList  
+                        > 
+                            <TodosList    
+                                filters={filters("today")}
                                 dispatch={this.props.dispatch}   
-                                selectedCategory={"inbox"}
-                                selectedTodoId={this.props.selectedTodoId}
+                                selectedCategory={"today"}
                                 selectedTag={this.props.selectedTag}  
                                 rootRef={this.props.rootRef}
-                                todos={today} 
+                                todos={this.props.todos} 
                                 tags={this.props.tags} 
                             /> 
                         </div>  
                     }
 
                     {
-                        
-                        isEmpty(evening) ? null :
-
+                        isEmpty(evening) ? null :    
                         <div>
 
 
@@ -148,26 +157,28 @@ export class Today extends Component<TodayProps,TodayState>{
                                 <div style={{marginLeft: "10px"}}>This Evening</div>
                             </div>
 
+ 
 
+                            <div   
+                                className="unselectable" 
+                                id="todos" 
+                                style={{
+                                    marginBottom: "50px", 
+                                    marginTop:"20px"
+                                }}  
+                            > 
+                                <TodosList  
+                                    filters={[]}
+                                    dispatch={this.props.dispatch}    
+                                    selectedCategory={"evening"} 
+                                    selectedTag={this.props.selectedTag}  
+                                    rootRef={this.props.rootRef}
+                                    todos={evening}  
+                                    tags={this.props.tags} 
+                                /> 
+                            </div> 
 
-                        <div   
-                            className="unselectable" 
-                            id="todos" 
-                            style={{
-                                marginBottom: "50px", 
-                                marginTop:"20px"
-                            }}  
-                        > 
-                            <TodosList 
-                                dispatch={this.props.dispatch}   
-                                selectedCategory={"inbox"}
-                                selectedTodoId={this.props.selectedTodoId}
-                                selectedTag={this.props.selectedTag}  
-                                rootRef={this.props.rootRef}
-                                todos={evening}  
-                                tags={this.props.tags} 
-                            /> 
-                        </div> 
+ 
                         </div>    
                            
                     }
@@ -218,12 +229,14 @@ export class TodaySchedule extends Component<TodayScheduleProps,any>{
                     fontSize:"14px", 
                     color:"rgba(100,100,100,0.6)"
                 }}> 
-                    {"Paul Martin's Birthday"}
+                    {" Paul Martin's Birthday"}
                 </div>
 
                 <div style={{  
                     fontSize:"14px", 
-                    color:"rgba(100,100,100,0.5)"
+                    color:"rgba(100, 100, 100, 0.9)",
+                    paddingTop:"5px",
+                    
                 }}>
                     {"08:30 Blinkist // Quora"}
                 </div>
@@ -231,7 +244,8 @@ export class TodaySchedule extends Component<TodayScheduleProps,any>{
 
                 <div style={{
                     fontSize:"14px", 
-                    color:"rgba(100,100,100,0.5)"
+                    color:"rgba(100, 100, 100, 0.9)",
+                    paddingTop:"5px",
                 }}>
                     {"11:00 Newton // Marketing"}
                 </div>
@@ -239,7 +253,8 @@ export class TodaySchedule extends Component<TodayScheduleProps,any>{
 
                 <div style={{
                     fontSize:"14px", 
-                    color:"rgba(100,100,100,0.5)"
+                    color:"rgba(100, 100, 100, 0.9)",
+                    paddingTop:"5px",
                 }}>
                     {"12:00 FlashSticks // Marketing"}
                 </div>
@@ -247,7 +262,8 @@ export class TodaySchedule extends Component<TodayScheduleProps,any>{
 
                 <div style={{
                     fontSize:"14px", 
-                    color:"rgba(100,100,100,0.5)"
+                    color:"rgba(100, 100, 100, 0.9)",
+                    paddingTop:"5px",
                 }}>
                     {"18:00 Scott Woods"}
                 </div> 

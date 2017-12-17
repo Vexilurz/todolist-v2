@@ -29,7 +29,7 @@ interface AreasListProps{
 
 
 interface AreasListState{
-
+ 
 } 
 
 
@@ -44,8 +44,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     selectArea = (a:Area) => (e) => {
         this.props.dispatch({
-            type:"selectedArea",
-            load:a
+            type:"selectedAreaId",
+            load:a._id 
         }) 
     }
         
@@ -55,26 +55,24 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     render(){
  
         return  <div  
-            style={{display: "flex", flexDirection: "column", padding:"10px"}}
+            style={{display: "flex", flexDirection: "column", padding:"10px", position:"relative"}}
             id="areas"    
         >  
         
             {
-                this.props.areas.map((a) => 
+                this.props.areas.map((a) => {
                  
-                    <div   
+                    return  <div   
                         key={a._id}
-                        style={{display:"flex", flexDirection:"column"}}
+                        style={{display:"flex", flexDirection:"column",  position:"relative"}}
                     >
-  
-
+   
                         <div 
                             onClick = {this.selectArea(a)}
                             className="toggleFocus" 
                             style={{  
                                 marginLeft:"4px",
-                                marginRight:"4px", 
-                                height:"20px",
+                                marginRight:"4px",   
                                 width:"95%",
                                 display:"flex",
                                 alignItems: "center"  
@@ -108,25 +106,34 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                                     fontWeight: "bolder", 
                                     color: "rgba(100, 100, 100, 1)"
                                 }}>   
-                                    {stringToLength(a.name,18)} 
+                                    {
+                                        !isEmpty(a.name) ?
+                                        stringToLength(a.name,18) :
+                                        "New Area"
+                                    }   
                                 </div>  
-
+ 
                         </div>
 
 
-                        <div>            
+                        <div style ={{position:"relative"}}>   
+
                             <ProjectsList 
                                 dispatch={this.props.dispatch}
                                 projects={
                                   this.props.projects.filter( (p:Project) => contains(p._id, a.attachedProjectsIds) ) 
                                 } 
-                            />           
+                            /> 
+
                         </div>
 
 
                     </div>
 
-                )
+                }
+
+              ) 
+
             }
 
          </div>

@@ -1,11 +1,6 @@
 import '../assets/styles.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
-    compose, append, contains, and, find, defaultTo, addIndex, split, filter, any,
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, 
-    groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs 
-} from 'ramda';
 import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
 import { Provider, connect } from "react-redux";
@@ -15,12 +10,12 @@ import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import Popover from 'material-ui/Popover';
 import Button from 'material-ui-next/Button';
-import { attachDispatchToProps } from '../utils';
+import { attachDispatchToProps, replace, remove, insert } from '../utils';
 import { Todo, removeTodo, addTodo } from '../databaseCalls';
 let uniqid = require("uniqid");   
  
 
-
+ 
 
  
 interface RightClickMenuState{} 
@@ -34,62 +29,53 @@ export class RightClickMenu extends Component<any,RightClickMenuState>{
  
 
    updateTodo = (changedTodo:Todo) => {
-       let idx = findIndex((t:Todo) => changedTodo._id===t._id)(this.props.todos);
+       let idx = this.props.todos.findIndex((t:Todo) => changedTodo._id===t._id);
         
        if(idx!==-1)
            this.props.dispatch({
                type:"todos",
-               load: [
-                    ...this.props.todos.slice(0,idx),
-                    changedTodo,
-                    ...this.props.todos.slice(idx+1),
-                ]
+               load: replace(this.props.todos,changedTodo,idx)
            });
    }  
    
    
     
     removeTodoLocal = (_id:string) => {
-        let idx = findIndex((item:Todo) => item._id===_id)(this.props.todos);
-
+        let idx = this.props.todos.findIndex((item:Todo) => item._id===_id);
+ 
         if(idx!==-1)
             this.props.dispatch({
                 type:"todos",
-                load: [
-                    ...this.props.todos.slice(0,idx),
-                    ...this.props.todos.slice(idx+1),
-                ]
-            });
+                load: remove(this.props.todos,idx)
+            }); 
     }  
    
 
    duplicateTodo = (_id:string) => {
-    let idx = findIndex((item:Todo) => item._id===_id)(this.props.todos);
-      
-    if(idx!==-1){
 
-        let duplicatedTodo = this.props.todos[idx];
+        let idx = this.props.todos.findIndex((item:Todo) => item._id===_id);
+        
+        if(idx!==-1){
 
-        if(isNil(duplicatedTodo))
+            let duplicatedTodo = this.props.todos[idx];
+
+            if(duplicatedTodo===null || duplicatedTodo===undefined)
             return; 
-        
-        
-        duplicatedTodo = merge(duplicatedTodo,{_id:uniqid()});
-        delete duplicatedTodo._rev;
-
-
-        addTodo((e) => console.log(e), duplicatedTodo);
             
-        this.props.dispatch({
-            type:"todos",
-            load: [  
-                ...this.props.todos.slice(0,idx),
-                duplicatedTodo,
-                ...this.props.todos.slice(idx), 
-            ]
-        });
+            
+            duplicatedTodo = {  ...duplicatedTodo, ...{_id:uniqid()}  };
 
-    }
+            delete duplicatedTodo._rev;
+
+
+            addTodo((e) => console.log(e), duplicatedTodo);
+                
+            this.props.dispatch({
+                type:"todos",
+                load:insert(this.props.todos, duplicatedTodo, idx)
+            });
+ 
+        }
              
    }  
 

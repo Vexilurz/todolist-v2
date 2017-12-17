@@ -436,7 +436,7 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
 
       this.autoscroll(e);
 
-      if (onSortMove) onSortMove(e);
+      if (onSortMove) onSortMove(e, this.helper);
     };
 
     handleSortEnd = e => {

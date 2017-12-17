@@ -1,12 +1,26 @@
 html{
   height:860px;
+  font-family: 'Roboto', sans-serif !important;
 }
  
 
+ 
+body{  
+  background-size: cover;
+  height:100%;
+  overflow: hidden;
+  margin : 0; 
+  font-family: 'Roboto', sans-serif !important;
+} 
 
 
+@font-face { 
+  font-family: 'Roboto';
+  src: url('/fonts/Roboto-Regular.ttf') format("ttf"); 
+}
 
-li{  
+
+li{   
   margin:0 !important; 
   margin-left:0 !important;
   margin-right:5px !important;
@@ -62,23 +76,11 @@ ul {
 
 
 
-
-body{  
-  background-size: cover;
-  height:100%;
-  overflow: hidden;
-  margin : 0;
-}
-
-
-
-
-
 .leftPanelScroll { 
   background: white; 
   overflow-y: scroll;
 } 
- 
+  
 
 
 
@@ -406,10 +408,6 @@ body{
 .no-drag{
   -webkit-app-region: no-drag;
 }
+ 
 
-
-
-@font-face {
-    font-family: 'Roboto', cursive;
-    src: url('fonts/Roboto-Regular.ttf');
-}  
+    

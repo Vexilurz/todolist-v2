@@ -50,34 +50,38 @@ import { AreasList } from './Components/AreasList';
 
  
 
-let generateEmptyProject = () => ({ 
-        _id : generateID(), 
-        name : "New project", 
-        description : "Project description...",
-        headings : [],
-        attachedTodosIds : [], 
-        attachedAreasIds : [], 
-        attachedTags : []
-    }); 
+let generateEmptyProject = () : Project => ({
+    _id : generateID(), 
+    type : "project", 
+    name : "New project",
+    description : "Project description...",
+    layout : [], 
+    deadline : null,
+    completed : null, 
+    attachedAreasIds : [], 
+    attachedTags : []
+});
+ 
 
-
-let generateEmptyArea = () => ({
-        _id : generateID(),
-        name : "New area",  
-        description : "Area description",
-        attachedTags : [], 
-    
-        attachedTodosIds : [], 
-        attachedProjectsIds : [],
-        attachedEventsIds : []
-    });
-
+ 
+let generateEmptyArea = () : Area => ({
+    _id : generateID(),
+    name : "New area",
+    type : "area",
+    description : "Area description",
+    attachedTags : [], 
+    attachedTodosIds : [], 
+    attachedProjectsIds : [],
+    attachedEventsIds : []
+});
+  
  
   
 interface LeftPanelState{
     width:number,
     fullWindowSize:boolean 
 }
+ 
  
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
@@ -115,24 +119,23 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         render(){   
 
 
-            let someday = this.props.todos.filter( v => v.category === "someday").length;
+            let someday = this.props.todos.filter( v => v.category === "someday" && !v.checked).length;
 
 
-            let upcoming = this.props.todos.filter( v => v.category === "upcoming").length;
+            let upcoming = this.props.todos.length;
 
 
-            let today = this.props.todos.filter(v => 
-                v.category === "today" || 
-                v.category === "evening" 
+            let today = this.props.todos.filter(
+                v => !v.checked && (v.category === "today" || v.category === "evening")
             ).length; 
-
-
-            let inbox = this.props.todos.filter( v => v.category === "inbox").length;
-
-
-            let anytime = this.props.todos.length;
  
-             
+ 
+            let inbox = this.props.todos.filter( v => v.category === "inbox"  && !v.checked ).length;
+  
+
+            let anytime = this.props.todos.filter( v => !v.checked ).length;
+ 
+                
             let detachedProjects = this.props.projects.filter(
                 (p:Project) => isEmpty(p.attachedAreasIds)
             );
@@ -157,14 +160,18 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             load:this.props.leftPanelWidth+d.deltaX
                         })}   
                     />   
-
-                                <div className="no-drag" style={{
-                                    position:"fixed", 
-                                    top: "0px",
-                                    left: "0px", 
-                                    display: "flex",
-                                    flexDirection: "row-reverse"
-                                }}>  
+  
+                                <div 
+                                    className="no-drag" 
+                                    style={{ 
+                                        zIndex: 2000,  
+                                        position:"fixed", 
+                                        top: "0px",
+                                        left: "0px", 
+                                        display: "flex",
+                                        flexDirection: "row-reverse"
+                                    }}
+                                >  
 
                                     <IconButton 
                                         iconStyle={{color:"cadetblue",width:"20px",height:"20px"}}
@@ -173,7 +180,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                                     >
                                         <Remove /> 
                                     </IconButton> 
-
+ 
 
                                     <IconButton 
                                         iconStyle={{color:"cadetblue",width:"20px",height:"20px"}}
@@ -285,7 +292,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             <Calendar style={{color:"crimson"}}/>
                         </ListItemIcon>
                         <ListItemText  inset primary="Upcoming" />
-                        {
+                        {/*
 
                             upcoming===0 ? null :
 
@@ -296,8 +303,8 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             }}>
                                 {upcoming}
                             </div>
-                    
-                        }
+                     
+                        */}
                     </MenuItem>
                     <MenuItem 
 
@@ -330,7 +337,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
                     onClick={() => this.props.dispatch({type:"selectedCategory", load:"someday"})} 
 
-                    style={{
+                    style={{ 
                         paddingTop:"5px",
                         paddingBottom:"5px", 
                         paddingLeft:"5px", 
@@ -389,20 +396,24 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
             {
                 isEmpty(this.props.areas) ? null:
-                <AreasList 
-                    dispatch={this.props.dispatch}
-                    areas={this.props.areas}
-                    projects={this.props.projects} 
-                />
+                <div style={{position:"relative", padding:"10px"}}>
+                    <AreasList 
+                        dispatch={this.props.dispatch}
+                        areas={this.props.areas}
+                        projects={this.props.projects} 
+                    />
+                </div>
             }         
+     
     
- 
-            { 
-                isEmpty(detachedProjects) ? null :
-                <ProjectsList 
-                    dispatch={this.props.dispatch}
-                    projects={detachedProjects}
-                />   
+            {  
+                isEmpty(detachedProjects) ? null : 
+                <div style={{position: "relative", padding: "10px", paddingBottom: "80px"}}>
+                    <ProjectsList 
+                        dispatch={this.props.dispatch}
+                        projects={detachedProjects}
+                    />   
+                </div >
             }             
   
 

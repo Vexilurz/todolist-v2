@@ -1,11 +1,6 @@
 import '../assets/styles.css';  
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
-import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
-    compose, append, contains, and, find, defaultTo, addIndex, split, filter, any,
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, 
-    groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs, last 
-} from 'ramda';
 import { ipcRenderer } from 'electron'; 
 import { Component } from "react"; 
 import { Provider, connect } from "react-redux";
@@ -21,50 +16,28 @@ import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 let moment = require("moment");
 import * as Waypoint from 'react-waypoint';
 import { ContainerHeader } from './ContainerHeader';
+import { byTags, getDateFromObject, getDayName, objectsToHashTableByDate, getDatesRange, keyFromDate } from '../utils';
 
 
 
-let getDayName = (d:Date) => { 
-    let days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    let dayName = days[d.getDay()];
-    return dayName;
-}
+  
 
-
-
-let addDays = (date:Date, days:number) => {
-    
-    let next = new Date();
-     
-    next.setDate(date.getDate() + days);
-
-    return next; 
-
-}
-
-
- 
 
 interface UpcomingProps{
     dispatch:Function,
-    tags:string[],
-    selectedTag:string, 
+    selectedTodoId:string,
     todos:Todo[],
     projects:Project[],
-    events:Event[],
-    areas:Area[],
-    selectedTodoId:string, 
-    rootRef:HTMLElement
+    selectedTag:string,
+    tags:string[],
+    rootRef:HTMLElement 
 }
-
-
-
-
  
 
 
+
 interface UpcomingState{
-    dates:Date[]
+    objects : { date : Date, todos:Todo[], projects:Project[] }[]
 }
 
 
@@ -74,35 +47,31 @@ interface UpcomingState{
 
 export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
-    step : number; 
 
     constructor(props){
         super(props);
 
-        this.step = 10;
 
         this.state = {
-            dates:[new Date()] 
+            objects:[] 
         } 
 
     }  
+
+
    
+    onError = (e) => console.log(e); 
+
 
   
     shouldComponentUpdate(nextProps:UpcomingProps, nextState:UpcomingState){
  
- 
-        if(this.state.dates!==nextState.dates){
+        if(this.state.objects!==nextState.objects){
            return true; 
         }
         
 
         if(this.props.todos!==nextProps.todos){
-            return true;
-        }
-
-
-        if(this.props.events!==nextProps.events){
             return true;
         }
 
@@ -117,17 +86,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         }
 
 
-        if(this.props.areas!==nextProps.areas){
-            return true;
-        }
-
-
         if(this.props.selectedTag!==nextProps.selectedTag){
-            return true;
-        }
-
-
-        if(this.props.selectedTodoId!==nextProps.selectedTodoId){
             return true;
         }
 
@@ -136,173 +95,96 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
  
     }
 
-  
-    
-    onError = (e) => console.log(e); 
- 
- 
 
-    selectCurrentRange = () => {
 
-        Date.prototype["addDays"] = function(days) {
-            var dat = new Date(this.valueOf());
-            dat.setDate(dat.getDate() + days);
-            return dat;
-        };
-
-        let dates = [...this.state.dates];
-
-        let start = new Date(dates[this.state.dates.length-1]);
-
-        for(let i=1; i<=this.step; i++){
-
-            let next = new Date(start)["addDays"](i);
-
-            dates.push(next);
-
-        }
-
-        this.setState({ dates });  
- 
-    }   
-
-       
- 
     componentDidMount(){
         
-        this.selectCurrentRange();
+        this.setState({objects:this.generateCalendarObjects(20)})
 
-    }
+    }  
 
+
+    generateCalendarObjects = (n) : { date : Date, todos:Todo[], projects:Project[] }[] => {
+        
+        let objects = [...this.state.objects];
+
+        let table = objectsToHashTableByDate(this.props);
+
+        let range : Date[] = [];
+
+
+        if(objects.length===0){
+
+            range = getDatesRange( new Date(), n, true, true ); 
+        
+        }else{  
+
+            range = getDatesRange( objects[ objects.length - 1 ].date, n, false, true );
+
+        }
  
 
-    byTags = (item:any) : boolean => { 
-        
-        if(this.props.selectedTag==="All") 
-            return true;    
-    
+        for(let i = 0; i<range.length; i++){
 
-        if(this.props.selectedTag==="") 
-            return true; 
+            let object = {
+                date : range[i], 
+                todos : [], 
+                projects : [] 
+            }
 
-    
-        if(isNil(item))
-            return false;
+            let key = keyFromDate(range[i]);
 
-        
-        if(isNil(item.attachedTags))    
-            return false; 
+            let entry : any[] = table[key];
+
+            if(entry===undefined){
+
+               objects.push(object);
+
+            }else{
+
+               object.todos = entry.filter( (el:Todo) => el.type==="todo" ); 
+               object.projects = entry.filter( (el:Project) => el.type==="project" ); 
+               objects.push(object);
+
+            }
+
             
-            
-        return contains(this.props.selectedTag,item.attachedTags);
-            
-    } 
-    
-    
-    todosByDate = (date:Date, t:Todo) : boolean => { 
-        
-        if(isNil(t.attachedDate)) 
-            return false; 
 
-        let attachedDate = new Date(t.attachedDate);   
+        }
         
-        date.setHours(0, 0, 0, 0); 
-        attachedDate.setHours(0, 0, 0, 0);  
 
-        return date.getTime() === attachedDate.getTime();
+        return objects;
+
 
     }
 
 
+    objectToComponent = (
 
-    eventsByDate = (date:Date, e:Event) => {  
+        object : { date : Date, todos:Todo[], projects:Project[] }, 
 
-        if(isNil(e.date)) 
-            return false;  
+        idx:number
 
-        let attachedDate = new Date(e.date);      
-
-        date.setHours(0, 0, 0, 0); 
-        attachedDate.setHours(0, 0, 0, 0);  
-
-        return date.getTime() === attachedDate.getTime();
-        
-    } 
+    ) : JSX.Element => {
 
 
-
-    itemToComponent = (date:Date, idx:number) : JSX.Element => {
-
-        let todos = this.props.todos.filter((i:Todo) => this.byTags(i) && this.todosByDate(date,i));
-
-        let events = this.props.events.filter((i:Event) => this.byTags(i) && this.eventsByDate(date,i));
-
-
-        let todosIds : any = map((t:Todo) => t._id)(todos);
-
-        let eventsIds : any = map((e:Event) => e._id)(events); 
-  
-
-        let projects = this.props.projects.filter((p:Project) => {
-
-                if(isNil(p.attachedTodosIds))
-                    return false;
-                
-                if(isEmpty(p.attachedTodosIds))
-                    return false;   
-
-                for(let i=0; i<p.attachedTodosIds.length; i++){
-
-                    if(contains(p.attachedTodosIds[i])(todosIds))
-
-                    return true; 
-                }
-
-                return false;
-
-        })  
-        
-
-        let projectIds : any = map((p : Project) => p._id)(projects); 
-
-
-        let areas = this.props.areas.filter((a:Area) => {
-            
-                if(isNil(a.attachedProjectsIds))
-                    return false;
-                
-                if(isEmpty(a.attachedProjectsIds))
-                    return false;   
-
-                for(let i=0; i<a.attachedProjectsIds.length; i++){
-
-                    if(contains(a.attachedProjectsIds[i])(projectIds))
-
-                        return true;
-                } 
-
-                return false;
-
-        })
-
-  
         return <div key={idx}>
             <CalendarDay 
  
                 idx={idx} 
    
-                day={date.getDate()}
+                day={object.date.getDate()}
  
-                dayName={getDayName(date)}
+                dayName={getDayName(object.date)}
  
-                todos={todos}
+                todos={object.todos}
 
-                projects={projects}  
+                projects={object.projects}  
 
-                events={events}
+                events={[]}
 
-                areas={areas}    
- 
+                areas={[]}   
+                
                 dispatch={this.props.dispatch}
 
                 selectedTodoId={this.props.selectedTodoId}
@@ -316,8 +198,16 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             /> 
         </div>
   
+
     }
   
+
+
+
+
+
+
+    
 
     render(){ 
         return <div> 
@@ -330,19 +220,15 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 />
   
 
-                <div>{ 
-                    
-                    this.state.dates.map(this.itemToComponent)
-                    
-                }</div>
+                <div>{ this.state.objects.map(this.objectToComponent) }</div>
 
     
                 <div style={{width:"100%", height:"1px"}}> 
                     <Waypoint 
                         onEnter={({ previousPosition, currentPosition, event }) => {
                             
-                            this.selectCurrentRange()
-                              
+                            this.setState({objects:this.generateCalendarObjects(20)})
+
                         }}
                         onLeave={({ previousPosition, currentPosition, event }) => {
                             
@@ -362,6 +248,12 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
 
 
+
+
+
+
+
+
 interface CalendarDayProps{ 
     idx:number,
     day:number, 
@@ -376,7 +268,8 @@ interface CalendarDayProps{
     rootRef:HTMLElement,
     tags:string[]
 }
- 
+
+  
 
 interface CalendarDayState{ 
 
@@ -395,14 +288,14 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
     render(){ 
 
-      return <div style={{
+        return <div style={{
             display:"flex",
             flexDirection:"column", 
             paddingTop:"50px", 
             paddingBottom:"50px",
             WebkitUserSelect: "none" 
         }}> 
-
+ 
  
                 <div style={{ 
                     width: "100%",
@@ -448,8 +341,10 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
                 {
 
-                    isEmpty(this.props.events) ? null :
-                    <div style={{
+                    this.props.events.length===0 ? null :
+
+                    <div 
+                    style={{
                         display:"flex", 
                         flexDirection:"column", 
                         width:"100%",
@@ -458,18 +353,18 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                     }}> 
                     {  
                         this.props.events
-                        .map((e:Event) => 
-
-                            <div style={{
+                        .map((e:Event) =>  
+                            <div 
+                            key={e._id}
+                            style={{
                                 borderLeft:"5px solid black", 
                                 fontSize:"14px", 
                                 color:"rgba(100,100,100,0.1)"
                             }}>
                                 {e.title}
                             </div>
-
                         )
-                    }
+                    } 
                     </div>
 
                 }
@@ -477,7 +372,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
                 {
 
-                    isEmpty(this.props.areas) ? null :
+                    this.props.areas.length===0 ? null :
 
                     <div style={{
                         display:"flex", 
@@ -490,8 +385,8 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         this.props.areas
                         .map((a:Area) => 
 
-                            <div style={{display:"flex"}}>
-                                <div>
+                            <div key={a._id} style={{display:"flex", padding: "18px"}}>
+                                <div style={{ marginRight:"5px" }}>
                                 <NewAreaIcon 
                                     style={{
                                         color:"lightblue", 
@@ -504,10 +399,14 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                 <div 
                                     style={{
                                         fontSize:"17px", 
-                                        color:"rgba(10,10,10,1)"
+                                        fontWeight: "bold",
+                                        WebkitUserSelect: "none",
+                                        cursor:"default", 
+                                        color: "rgb(100, 100, 100)",
+                                        fontFamily: "sans-serif"
                                     }}
-                                >   
-                                    {a.name} 
+                                >    
+                                    {a.name.length===0 ? "New Area" : a.name} 
                                 </div>
 
                             </div>
@@ -521,7 +420,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
                 {
 
-                    isEmpty(this.props.projects) ? null :
+                    this.props.projects.length===0 ? null :
  
                     <div style={{
                             display:"flex", 
@@ -534,7 +433,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             this.props.projects
                             .map((p:Project) => 
 
-                                <div style={{display:"flex"}}>
+                                <div key={p._id} style={{display:"flex", padding: "18px"}}>
                                     <div>
                                         <div style={{ 
                                             width:"18px",     
@@ -550,42 +449,48 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                 <div 
                                         style={{
                                             fontSize:"17px", 
-                                            color:"rgba(10,10,10,1)"
+                                            fontWeight: "bold",
+                                            color: "rgb(100, 100, 100)",
+                                            fontFamily: "sans-serif",
+                                            WebkitUserSelect: "none", 
+                                            cursor:"default" 
                                         }}
                                 >  
-                                        {p.name} 
+                                       {p.name.length===0 ? "New Project" : p.name} 
                                 </div>
         
-                                </div> 
+                                </div>   
         
                             )
                         }     
                     </div>
 
-                }
+                } 
 
 
                 { 
 
-                    isEmpty(this.props.todos) ? null :
-
+                    this.props.todos.length===0 ? null :
+ 
                     <div style={{
-                        display:"flex", 
+                        display:"flex",  
                         flexDirection:"column", 
                         width:"100%",
                         paddingTop : "10px",
-                        paddingBottom : "10px"
+                        paddingBottom : "10px" 
                     }}>   
+ 
                         <TodosList 
-                            dispatch={this.props.dispatch}   
+                            dispatch={this.props.dispatch}    
+                            filters={[byTags(this.props.selectedTag)]}
                             selectedCategory={"upcoming"}
-                            selectedTodoId={this.props.selectedTodoId}
                             selectedTag={this.props.selectedTag}  
-                            rootRef={this.props.rootRef} 
-                            todos={this.props.todos} 
+                            rootRef={this.props.rootRef}
+                            todos={this.props.todos}  
                             tags={this.props.tags} 
-                        /> 
-                    </div>
+                        />  
+                         
+                    </div> 
 
                 }
                    

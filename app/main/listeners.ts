@@ -43,8 +43,8 @@ export class Listeners {
                 name : "cloneWindow",
                 callback : (event, store) => {
 
-                    let newWindow = initWindow({width:840,  height:680, transparent:false}); 
-
+                    let newWindow = initWindow({width:840,  height:450, transparent:false}); 
+ 
                     this.spawnedWindows.push(newWindow);
 
                     this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed());

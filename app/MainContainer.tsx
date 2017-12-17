@@ -10,10 +10,12 @@ import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, showTags, debounce } from "./utils"; 
-import { connect } from "react-redux";
+import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, showTags, debounce, byTags, byCategory } from "./utils"; 
+import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { getTodos, updateTodo, Todo, removeTodo, generateID, addTodo, getProjects, getEvents, getAreas, queryToProjects, queryToAreas, Project, Area, removeArea, removeProject } from './databaseCalls';
+import { getTodos, updateTodo, Todo, Event, removeTodo, generateID, addTodo, getProjects, getEvents, 
+    getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, removeProject, generateRandomDatabase, 
+    destroyEverything, addArea, addProject, addEvent } from './databaseCalls';
 import { Footer } from './Components/Footer';
 import { Store } from './App';
 import { FadeBackgroundIcon } from './Components/FadeBackgroundIcon';
@@ -29,17 +31,22 @@ import { Today } from './Components/Today';
 import { Inbox } from './Components/Inbox';
 
 
+
+
+ 
 export type Category = "inbox" | "today" | "upcoming" | "anytime" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening"; 
 
-
-
-
+ 
+                       
 
 interface MainContainerState{ 
     fullWindowSize:boolean
 }
      
+
+ 
+
 
 
 
@@ -93,7 +100,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     }
 
-
+    
 
     fetchData = () => { 
 
@@ -123,7 +130,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     removeTodoLocal = (_id:string) => {
         let idx = findIndex((item:Todo) => item._id===_id)(this.props.todos);
-
+ 
         if(idx!==-1)
             this.props.dispatch({
                 type:"todos",
@@ -136,22 +143,59 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
 
 
-    onDeleteToDo = (e) => {
+    onDeleteToDo = (e) => { 
+
+        if(isNil(this.props.selectedTodoId))
+           return;  
+
         this.removeTodoLocal(this.props.selectedTodoId);
         removeTodo(this.props.selectedTodoId);
+          
     } 
 
 
 
     componentDidMount(){
 
-        this.fetchData();
+
+        destroyEverything().then(
+            () => { 
+                
+                initDB();
+
+                let fakeData = generateRandomDatabase({
+                    todos : 25,
+                    events : 3, 
+                    projects : 5,
+                    areas : 3 
+                });  
+
+                console.log("fakeData", fakeData); 
+                 
+                let todos = fakeData.todos;
+                let projects = fakeData.projects;
+                let events = fakeData.events;
+                let areas = fakeData.areas;
+                
+                Promise.all([
+                    Promise.all(map( (t:Todo) => addTodo(this.onError,t) )(todos)),
+                    Promise.all(map( (e:Event) => addEvent(this.onError,e) )(events)),
+                    Promise.all(map( (p:Project) => addProject(this.onError,p) )(projects)),
+                    Promise.all(map( (a:Area) => addArea(this.onError,a) )(areas))
+                ]).then(
+                    () => this.fetchData() 
+                )
+                 
+
+                
+            } 
+        ) 
 
         
 
         window.addEventListener("resize", this.updateWidth);
 
-        window.addEventListener("click", this.closeRightClickMenu);
+        window.addEventListener("click", this.closeRightClickMenu); 
 
         //update separate windows 
         ipcRenderer.removeAllListeners("action");  
@@ -167,7 +211,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         window.removeEventListener("click", this.closeRightClickMenu);
 
     } 
-     
+      
     
 
     componentWillReceiveProps(nextProps){
@@ -186,8 +230,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
         let id = generateID();
 
-        let todo : Todo = { 
+        let todo : Todo = {    
             _id : id,
+            type:"todo",
             category : this.props.selectedCategory,  
             title : '', 
             priority : Math.round(Math.random() * 1000), 
@@ -195,16 +240,16 @@ export class MainContainer extends Component<Store,MainContainerState>{
             checked : false,  
             note : '',
             checklist : [],  
-            attachedProjects : [],  
+            attachedProjectsIds : [],  
             attachedTags : [],
-            status : "",
+            status : "", 
             attachedDate : null,
             deadline : null,
             created : new Date(),  
-            deleted : null,
-            fulfilled : null, 
-            history : [],   
-            attachemnts : []
+            deleted : null, 
+            completed : null, 
+            history : [],    
+            attachments : []
         }  
  
         addTodo(this.onError,todo);
@@ -233,48 +278,11 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
 
     
-    byTags = (todo:Todo) : boolean => { 
-        
-        if(this.props.selectedTag==="All") 
-            return true;    
-
-        if(this.props.selectedCategory==="inbox" || this.props.selectedCategory==="someday")
-            return true;  
-        
-        if(isNil(todo))
-            return false;
-
-
-        if(this.props.selectedTag==="") 
-            return true;    
-
-        return contains(this.props.selectedTag,todo.attachedTags);
-
-    } 
-        
-    
-        
-    byCategory = (todo:Todo) : boolean => { 
-
-        if(isNil(todo))
-            return false; 
-
-        if(todo.category==="evening" && this.props.selectedCategory==="today")
-            return true;
-
-        if(this.props.selectedCategory==="anytime")
-            return true;
-                
-        return todo.category===this.props.selectedCategory;
-
-    } 
-
+   
 
 
     render(){  
 
-        let todos = this.props.todos.filter( (t:Todo) => this.byTags(t) && this.byCategory(t) );
-         
  
         return  <div ref={(e) => { this.rootRef=e }}
                      className="scroll"  
@@ -291,10 +299,16 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 >    
 
  
-                <FadeBackgroundIcon 
-                    container={this.rootRef}
-                    objects={todos.filter( t => !t.checked )}
+                <FadeBackgroundIcon   
+                    container={this.rootRef} 
+                    objects={this.props.todos}
+                    filters={[
+                        byTags(this.props.selectedTag),
+                        byCategory(this.props.selectedCategory),
+                        (t:Todo) => !t.checked
+                    ]}
                     selectedCategory={this.props.selectedCategory} 
+                    selectedTag={this.props.selectedTag}
                 />  
  
 
@@ -328,61 +342,92 @@ export class MainContainer extends Component<Store,MainContainerState>{
      
                     { 
                          {
+ 
+
                             inbox:<Inbox 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
-                                todos={todos.filter( t => !t.checked )}
+                                todos={this.props.todos}
                                 tags={this.props.tags}
                             />, 
  
+
                             today: <Today 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
-                                todos={todos.filter( t => !t.checked )}
+                                todos={this.props.todos}
                                 tags={this.props.tags}
                             />,
+
+
+                            upcoming: <Upcoming 
+                                dispatch={this.props.dispatch}
+                                selectedTodoId={this.props.selectedTodoId}
+                                todos={this.props.todos}
+                                projects={this.props.projects}
+                                selectedTag={this.props.selectedTag}
+                                tags={this.props.tags} 
+                                rootRef={this.rootRef}
+                            />,  
+ 
+ 
+                            logbook: <Logbook   
+                                dispatch={this.props.dispatch}
+                                selectedTodoId={this.props.selectedTodoId}
+                                todos={this.props.todos}
+                                projects={this.props.projects}
+                                selectedTag={this.props.selectedTag}
+                                tags={this.props.tags} 
+                                rootRef={this.rootRef}
+                            />, 
+
+
+
+                            project : <ProjectComponent 
+                                dispatch={this.props.dispatch}
+                                todos={this.props.todos}
+                                project={this.props.projects.find( 
+                                    (p:Project) => this.props.selectedProjectId===p._id
+                                )}  
+                                rootRef={this.rootRef}
+                                tags={this.props.tags}
+                            />,   
+
+
 
                             someday: <Someday 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
-                                todos={todos.filter( t => !t.checked )}
+                                todos={this.props.todos}
                                 tags={this.props.tags}
                             />, 
+
+                            
+
+
+
+ 
+
+
+
+
 
                             anytime: <Anytime 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
-                                todos={this.props.todos.filter( t => !t.checked )} 
+                                todos={this.props.todos} 
                                 tags={this.props.tags}
                             />,
   
-                            upcoming: <Upcoming 
-                                dispatch={this.props.dispatch}
-                                todos={this.props.todos}
-                                projects={this.props.projects}
-                                events={this.props.events} 
-                                areas={this.props.areas}
-                                selectedTag={this.props.selectedTag}
-                                tags={this.props.tags} 
-                                selectedTodoId={this.props.selectedTodoId}
-                                rootRef={this.rootRef}
-                            />,  
-
-                            logbook: <Logbook   
-                                todos={this.props.todos.filter( t => t.checked )}
-                                
-                                 
-                            />,
-
-
+                            
                             trash: <Trash 
                             
                               
@@ -391,41 +436,18 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             />,
 
 
-                            project : <ProjectComponent 
-
-                                todos={this.props.todos}
-
-                                projects={this.props.projects}
-
-                                areas={this.props.areas}
-
-                                selectedProject={this.props.selectedProject}
-
-                                dispatch={this.props.dispatch}
-
-                            />, 
-  
-
                             area : <AreaComponent 
-
                                 todos={this.props.todos}
-
                                 projects={this.props.projects}
-
-                                areas={this.props.areas} 
-
-                                selectedArea={this.props.selectedArea}
-
+                                areas={this.props.areas}   
+                                selectedAreaId={this.props.selectedAreaId}
                                 dispatch={this.props.dispatch}
-
                             />
 
                          }[this.props.selectedCategory]
                     }
 
 
-                    
-     
 
                     <div style={{ 
                         height:"60px", 
@@ -443,43 +465,19 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
                             buttonsNamesToDispaly={this.selectFooterButtons() as any}
 
-
                             onNewTodoClick={this.openTodoInput}
-
 
                             onTrashClick={this.onDeleteToDo}  
 
+                            onCalendarClick={(e) => {}} 
 
-                            onCalendarClick={(e) => {
- 
+                            onArrowClick={(e) => {}}  
 
+                            onSearchClick={(e) => {}} 
 
-                            }} 
+                            onMoreClick={(e) => {}} 
 
-                            onArrowClick={(e) => {
-
-
-
-                            }}  
-
-                            onSearchClick={(e) => {
-
-
-
-                            }} 
-
-                            onMoreClick={(e) => {
-
-
-
-                            }} 
-
-
-                            onHeadingClick={(e) => {
-                                 
-
-
-                            }}   
+                            onHeadingClick={(e) => {}}   
                         />  
 
                     </div>  

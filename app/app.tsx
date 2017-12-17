@@ -1,10 +1,6 @@
 import './assets/styles.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
-import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, 
-    compose, append, contains, and, find, defaultTo, addIndex, split, filter, 
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, groupBy, concat 
-} from 'ramda';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import * as injectTapEventPlugin from 'react-tap-event-plugin';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
@@ -13,15 +9,15 @@ import IconButton from 'material-ui/IconButton';
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import { Component } from "react"; 
-import { wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, getTagsFromTodos} from "./utils"; 
+import { wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, getTagsFromTodos, replace, remove} from "./utils"; 
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
 import { LeftPanel } from './LeftPanel';
 import { MainContainer, Category } from './MainContainer';
-import { Todo, Project, Area } from './databaseCalls';
-injectTapEventPlugin(); 
-     
+import { Todo, Project, Area, Event } from './databaseCalls';
  
+injectTapEventPlugin(); 
+      
 (() => {     
     let app=document.createElement('div'); 
     app.id='application';    
@@ -122,9 +118,10 @@ export interface Store{
     selectedTodoId : string,
     selectedTag : string,
     leftPanelWidth : number,
-     
-    selectedProject : Project,
-    selectedArea : Area,  
+    closeAllItems : any,
+    openRightClickMenu : any, 
+    selectedProjectId : string,
+    selectedAreaId : string,
 
     openNewProjectAreaPopover : boolean,
     showRightClickMenu : boolean,
@@ -135,9 +132,9 @@ export interface Store{
 
     windowId:number,
     
-    projects:any[],
-    areas:any[],
-    events:any[],  
+    projects:Project[],
+    areas:Area[],
+    events:Event[],   
 
     todos:Todo[],
     tags:string[],
@@ -153,8 +150,12 @@ export let defaultStoreItems : Store = {
     selectedTodoId : null,
     selectedTag : "",
     leftPanelWidth : window.innerWidth/3.7,
-    selectedProject : null,
-    selectedArea : null,  
+     
+    selectedProjectId : null,
+    selectedAreaId : null,
+
+    closeAllItems : undefined,
+    openRightClickMenu : undefined,
      
     openNewProjectAreaPopover : false,
     showRightClickMenu : false,
@@ -204,8 +205,8 @@ let reducer = (reducers) => (state:Store, action) => {
    
  
 
-let applicationStateReducer = (state:Store, action) => {
-
+let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}) => {
+ 
     let newState = undefined;
 
  
@@ -218,14 +219,16 @@ let applicationStateReducer = (state:Store, action) => {
             }; 
             break;
 
+
         case "selectedCategory":
             newState = {
                 ...state,
-                selectedTag:"", 
+                selectedTag:"All", 
                 selectedCategory:action.load,
                 openNewProjectAreaPopover:false 
             }; 
             break;
+
 
         case "leftPanelWidth":
             newState = {
@@ -234,6 +237,7 @@ let applicationStateReducer = (state:Store, action) => {
             };
             break;
 
+
         case "selectedTag":  
             newState = {
                 ...state,
@@ -241,12 +245,14 @@ let applicationStateReducer = (state:Store, action) => {
             };
             break;
 
+
         case "openNewProjectAreaPopover":
             newState = {
                 ...state,
                 openNewProjectAreaPopover:action.load
             }; 
             break;
+
 
         case "openRightClickMenu":
             newState = {
@@ -258,12 +264,14 @@ let applicationStateReducer = (state:Store, action) => {
             };  
             break;
 
-        case "showRightClickMenu":
+
+        case "showRightClickMenu": 
             newState = {
                 ...state,
                 showRightClickMenu : action.load
             };
             break;
+
 
         case "selectedTodoId":
             newState = {
@@ -271,6 +279,7 @@ let applicationStateReducer = (state:Store, action) => {
                 selectedTodoId : action.load
             }; 
             break;
+
 
         case "closeAllItems":
             newState = {
@@ -281,12 +290,14 @@ let applicationStateReducer = (state:Store, action) => {
             };  
             break;
 
+
         case "rightClickedTodoId" :
             newState = {
                 ...state,
                 rightClickedTodoId : action.load
             }; 
             break;
+
 
         case "rightClickMenuX" :
             newState = {
@@ -295,6 +306,7 @@ let applicationStateReducer = (state:Store, action) => {
             }; 
             break;
 
+
         case "rightClickMenuY" :
             newState = {
                 ...state,
@@ -302,21 +314,26 @@ let applicationStateReducer = (state:Store, action) => {
             }; 
             break;
 
-        case "selectedProject":
+
+        case "selectedProjectId":
             newState = {
                 ...state, 
                 selectedCategory:"project", 
-                selectedProject:action.load
+                selectedTag:"All",
+                selectedProjectId:action.load
+            };    
+            break;
+        
+
+        case "selectedAreaId": 
+            newState = { 
+                ...state, 
+                selectedCategory:"area", 
+                selectedTag:"All",
+                selectedAreaId:action.load
             };    
             break;
 
-        case "selectedArea":    
-            newState = {
-                ...state, 
-                selectedCategory:"area", 
-                selectedArea:action.load
-            }; 
-            break;
 
     }
 
@@ -334,6 +351,7 @@ let applicationObjectsReducer = (state:Store, action) => {
     
 
     let newState = undefined;
+    let idx = -1; 
 
 
     switch(action.type){
@@ -350,23 +368,85 @@ let applicationObjectsReducer = (state:Store, action) => {
             break;
  
  
+ 
         case "newTodo":  
             newState = {
                 ...state, 
                 selectedTodoId:action.load._id,
+                selectedTag:"All",
                 todos:[action.load,...state.todos],
                 showRightClickMenu:false
             }; 
             break; 
-             
+        
 
 
-        case "newArea":  
+        case "updateProject":  
+            idx = state.projects.findIndex((p:Project) => action.load._id===p._id);
+            
+            if(idx===-1){
+               throw new Error("Attempt to update non existing object. updateProject.")
+            }
+ 
+            newState = { 
+                ...state, 
+                selectedProjectId:action.load._id,
+                projects:replace(state.projects,action.load,idx)
+            }; 
+            break;   
+
+
+
+        case "updateTodo":
+
+            idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
+            
+            if(idx===-1){
+                throw new Error("Attempt to update non existing object. updateTodo.")
+            }
+ 
             newState = {
                 ...state, 
+                selectedTodoId:action.load._id,
+                selectedTag:"All",
+                todos:replace(state.todos,action.load,idx),
+                showRightClickMenu:false
+            }; 
+            break; 
+
+
+
+
+        case "removeTodo":
+        
+            idx = state.todos.findIndex((t:Todo) => action.load===t._id);
+            
+            if(idx===-1){
+
+                throw new Error("Attempt to remove non existing object. updateTodo.")
+
+            }
+    
+            newState = {
+                ...state, 
+                selectedTodoId:action.load._id,
+                selectedTag:"All",
+                todos:remove(state.todos,idx),
+                showRightClickMenu:false
+            }; 
+            break; 
+
+
+
+
+
+        case "newArea":   
+            newState = { 
+                ...state, 
                 selectedCategory:"area", 
+                selectedTag:"All",
                 openNewProjectAreaPopover:false,
-                selectedArea:action.load,
+                selectedAreaId:action.load._id, 
                 areas:[action.load,...state.areas]
             };  
             break;  
@@ -375,10 +455,11 @@ let applicationObjectsReducer = (state:Store, action) => {
 
         case "newProject":   
             newState = {
-                ...state, 
+                ...state,  
                 selectedCategory:"project", 
+                selectedTag:"All",
                 openNewProjectAreaPopover:false, 
-                selectedProject:action.load,
+                selectedProjectId:action.load._id,
                 projects:[action.load,...state.projects],
             };   
             break;
@@ -394,14 +475,15 @@ let applicationObjectsReducer = (state:Store, action) => {
 
 
 
-        case "projects": 
+        case "projects":  
             newState = {
                 ...state, 
                 projects:[...action.load],
                 showRightClickMenu:false
             }; 
             break; 
- 
+            
+
 
         case "todos": 
             newState = { 
@@ -411,6 +493,7 @@ let applicationObjectsReducer = (state:Store, action) => {
                 tags:getTagsFromTodos(action.load)
             }; 
             break;    
+
 
               
         case "areas": 
@@ -453,7 +536,8 @@ let applicationReducer = reducer([
     applicationStateReducer,
     applicationObjectsReducer
 ]); 
-   
+  
+
  
 export let store = createStore(applicationReducer, defaultStoreItems); 
   

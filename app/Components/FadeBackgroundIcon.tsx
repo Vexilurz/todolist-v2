@@ -5,13 +5,13 @@ import * as ReactDOM from 'react-dom';
 import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
     compose, append, contains, and, find, defaultTo, addIndex, split, filter, any,
     clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, 
-    groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs 
+    groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs, allPass 
 } from 'ramda';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon } from "../utils"; 
+import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byCategory, byTags } from "../utils"; 
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, generateID, addTodo } from '../databaseCalls';
@@ -54,7 +54,7 @@ export let chooseFadeIcon = (container:HTMLElement, selectedCategory:Category) =
         color: "rgba(100,100,100,0.1)",
         top: y,
         left: x,
-        fill: "currentcolor",
+        fill: "currentcolor", 
         height: "170px",
         width: "170px", 
         userSelect: "none"
@@ -93,8 +93,10 @@ export let chooseFadeIcon = (container:HTMLElement, selectedCategory:Category) =
 
 interface FadeBackgroundIconProps{
     container:HTMLElement,
-    objects:any[],
-    selectedCategory:Category  
+    objects:Todo[],
+    filters:Function[], 
+    selectedCategory:Category,
+    selectedTag:string    
 } 
 
 
@@ -102,13 +104,19 @@ interface FadeBackgroundIconProps{
  
 export class FadeBackgroundIcon extends Component<FadeBackgroundIconProps,any>{
 
+    show = () => { 
+        let objects = this.props.objects.filter(allPass(this.props.filters as any[]));   
+        
+        return isEmpty(objects); 
+    } 
+
     render(){
 
         if(isNil(this.props.container))
            return null;
          
 
-        if(isEmpty(this.props.objects))   
+        if(this.show()) 
            return chooseFadeIcon(this.props.container,this.props.selectedCategory);
  
 

@@ -15,7 +15,7 @@ import * as R from 'ramda';
 import { Listeners } from "./listeners";
 import { initWindow } from "./initWindow";
  
-
+ 
 export let mainWindow;   
 export let listeners; 
 
@@ -27,10 +27,11 @@ let onReady = () => {
     preventAnnoyingErrorPopups();   
     mainWindow = initWindow(
         merge(
-            electron.screen.getPrimaryDisplay().workAreaSize
+            {width:900,height:750} 
+            //electron.screen.getPrimaryDisplay().workAreaSize
         )({transparent:false})
     );        
-       
+        
     listeners = new Listeners(mainWindow);
    
     loadApp(mainWindow)   

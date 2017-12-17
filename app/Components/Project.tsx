@@ -1,11 +1,6 @@
 import '../assets/styles.css';  
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
-import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
-    compose, append, contains, and, find, defaultTo, addIndex, split, filter, any,
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, 
-    groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs 
-} from 'ramda';
 import { Provider } from "react-redux";
 import { Footer } from '../Components/Footer'; 
 import { Transition } from 'react-transition-group';
@@ -18,7 +13,7 @@ import { Component } from "react";
 import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, debounce } from "../utils"; 
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, generateID, addTodo,  Project } from '../databaseCalls';
+import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, generateID, addTodo,  Project, Area, Heading, LayoutItem } from '../databaseCalls';
 import Popover from 'material-ui/Popover';
 import Button from 'material-ui-next/Button';
 import { Tags } from '../Components/Tags';
@@ -35,20 +30,175 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
+import { TodoInput } from './TodoInput';
+import SortableContainer from '../sortable-hoc/sortableContainer';
+import SortableElement from '../sortable-hoc/sortableElement';
+import SortableHandle from '../sortable-hoc/sortableHandle';
+import {arrayMove} from '../sortable-hoc/utils';
+
+
+interface ProjectComponentProps{
+    project:Project,
+    todos:Todo[],
+    tags:string[],
+    rootRef:HTMLElement,
+    dispatch:Function
+}
+  
+
+interface ProjectComponentState{}  
  
 
-export class ProjectComponent extends Component<any,any>{
+
+let getElem = (value, index) => {
+    
+    return null
+    
+} 
+     
+    
+let createSortableItem = (index) => SortableElement(({value}) => getElem(value,index)); 
+
+
+let getSortableList = (items) =>  {
+
+    return <ul style={{ padding:0, margin:0 }}>    
+        {     
+            items.map(      
+                (item, index) => {   
+                    let SortableItem = createSortableItem(index); 
+                    return <SortableItem  key={`item-${item._id}`} index={index} value={item} />
+                }
+            )  
+        }   
+    </ul> 
+
+}    
+
+    
+const SortableList = SortableContainer(({items}) => getSortableList(items),{withRef:true});
+
+
+
+
+
+
+
+export class ProjectComponent extends Component<ProjectComponentProps,ProjectComponentState>{
 
     constructor(props){
+
         super(props);
+
+        getElem = this.getElem;
+
     }
 
 
+    shouldComponentUpdate(nextProps){
+
+        return true; 
+
+    }
+
+ 
+    updateProject = (selectedProject:Project, updatedProps) : void => {
+
+        let type = "updateProject";
+ 
+        let load = {...selectedProject,...updatedProps};
+
+        this.props.dispatch({type,load});
+
+    }
+
+
+
+    getElem = (value:Heading | Todo, index:number) : JSX.Element => {
+
+        switch(value.type){
+
+            case "todo":
+                 return <div style={{position:"relative"}}> 
+                            <TodoInput   
+                                id={value["_id"]} 
+                                key = {value["_id"]} 
+                                dispatch={this.props.dispatch}   
+                                tags={this.props.tags} 
+                                rootRef={this.props.rootRef} 
+                                todo={value as Todo}
+                            />    
+                        </div> 
+
+            case "heading":  
+            
+                 return <div style={{position:"relative"}}>
+                            <ProjectHeading 
+                                heading={value as Heading}
+                                onChange = {() => {}}
+                                onArchive = {() => {}}
+                                onMove = {() => {}}
+                                onRemove = {() => {}}
+                            />
+                        </div>
+
+            default:
+
+                return null
+
+        }
+
+    }
+
+
+
+    selectItems = () : any[] => { 
+
+        let items =  this.props.project.layout.map((i : LayoutItem) => { 
+            if(typeof i === "string"){
+                return this.props.todos.find( (t:Todo) => t._id===i )
+            }
+
+            return i;
+        })
+
+        return items; 
+ 
+    }
+
+
+
     render(){
+
+         
+
         return <div>
 
-            
-        </div>;
+            <div> 
+                <ProjectHeader
+                    project={this.props.project}
+                    updateProject={this.updateProject} 
+                    dispatch={this.props.dispatch}  
+                /> 
+            </div> 
+
+            <div>
+                <SortableList  
+                    shouldCancelStart={() => false}  
+                    shouldCancelAnimation={() => false}
+                    distance={2}         
+                    items={this.selectItems()}  
+                    axis='y'     
+                    onSortEnd={({oldIndex, newIndex}) => { 
+ 
+                    
+                    
+                    }}  
+                    onSortStart={() => {}}
+                /> 
+            </div>      
+
+        </div>
     }
 
 } 
@@ -56,17 +206,20 @@ export class ProjectComponent extends Component<any,any>{
 
 
 
-
 interface ProjectHeaderProps{
     project : Project,
-    dispatch : Function,  
+    updateProject : (selectedProject:Project, updatedProps) => void,
+    dispatch:Function 
 }
-
+ 
   
 interface ProjectHeaderState{
     showProjectMenuPopover:boolean 
 }
  
+
+
+
 
 
 export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderState>{
@@ -78,110 +231,101 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         this.state = {
             showProjectMenuPopover:false
         }
-    }
+    } 
  
 
     setProjectName = (name : string) => {
-        //update store
+        this.props.updateProject(this.props.project, {name});
     }
 
 
-    setProjectDescription = (e, value:string) => {
-        //update store 
+    setProjectDescription = (e, description:string) => {
+        this.props.updateProject(this.props.project, {description});
     }
 
-
-    render(){
-        return <div>
-            <div style={{display:"flex"}}>
-
-
-            <div>
-                <div style={{ 
-                    width:"30px",    
-                    height:"30px", 
-                    borderRadius:"100px",
-                    border:"5px solid rgba(108, 135, 222, 0.8)",
-                    boxSizing:"border-box",
-                    marginRight:"10px" 
-                }}> 
-                </div>  
-            </div>
  
+    render(){
+     return <div> 
+                <div style={{display:"flex"}}>
+                        <div>
+                            <div style={{ 
+                                width:"30px",    
+                                height:"30px", 
+                                borderRadius:"100px",
+                                border:"5px solid rgba(108, 135, 222, 0.8)",
+                                boxSizing:"border-box",
+                                marginRight:"10px" 
+                            }}> 
+                            </div>  
+                        </div>
+                        <div>
+                            <AutosizeInput
+                                type="text"
+                                name="form-field-name" 
+                                minWidth={"170px"}
+                                inputStyle={{  
+                                    boxSizing: "content-box", 
+                                    height: "42px",
+                                    fontWeight: "bold", 
+                                    maxWidth:"450px",
+                                    fontFamily: "sans-serif",
+                                    border: "none",
+                                    fontSize: "26px",
+                                    outline: "none"  
+                                }}
+                                value={uppercase(this.props.project.name)}
+                                placeholder="New Project"
+                                onChange={debounce(this.setProjectName,500)} 
+                            /> 
+                        </div> 
 
-            <div>
-                <AutosizeInput
-                    type="text"
-                    name="form-field-name" 
-                    minWidth={"170px"}
-                    inputStyle={{  
-                        boxSizing: "content-box", 
-                        height: "42px",
-                        fontWeight: "bold", 
-                        maxWidth:"450px",
-                        fontFamily: "sans-serif",
-                        border: "none",
-                        fontSize: "26px",
-                        outline: "none"  
-                    }}
-                    value={uppercase(this.props.project.name)}
-                    placeholder="New Project"
-                    onChange={debounce(this.setProjectName,500)} 
+                        <div  
+                            onClick = {() => this.setState({showProjectMenuPopover:true})}  
+                            style={{
+                                marginLeft: "5px",
+                                marginRight: "5px",
+                                width: "32px",
+                                height: "32px",
+                                cursor: "pointer"
+                            }}
+                            ref={ (e) => { this.moreAnchor=e; } }
+                        >
+
+                                <ThreeDots style={{  
+                                    color:"rgb(179, 179, 179)",
+                                    width:"32px", 
+                                    height:"32px",
+                                    cursor: "pointer" 
+                                }} />
+
+                        </div> 
+                </div>
+
+
+                <TextField   
+                    hintText = "Notes"   
+                    defaultValue = {this.props.project.description}    
+                    multiLine={true} 
+                    fullWidth = {true}   
+                    onChange={debounce(this.setProjectDescription,500)}
+                    inputStyle = {{fontWeight:600, color:"rgba(100,100,100,1)", fontSize:"15px"}}   
+                    underlineFocusStyle = {{borderColor: "rgba(0,0,0,0)"}}    
+                    underlineStyle = {{borderColor: "rgba(0,0,0,0)"}}  
                 /> 
-            </div> 
-
-
-            <div  
-                onClick = {() => this.setState({showProjectMenuPopover:true})}  
-                style={{
-                    marginLeft: "5px",
-                    marginRight: "5px",
-                    width: "32px",
-                    height: "32px",
-                    cursor: "pointer"
-                }}
-                ref={ (e) => { this.moreAnchor=e; } }
-            >
-
-                    <ThreeDots style={{  
-                        color:"rgb(179, 179, 179)",
-                        width:"32px", 
-                        height:"32px",
-                        cursor: "pointer" 
-                    }} />
-
-            </div> 
-
+            
+                <ProjectMenuPopover
+                    close={(e) => this.setState({showProjectMenuPopover:false})}
+                    open={this.state.showProjectMenuPopover}
+                    origin={{vertical: "center", horizontal: "middle"}}  
+                    anchorEl={this.moreAnchor}
+                    point={{vertical: "top", horizontal: "middle"}} 
+                    dispatch={this.props.dispatch}
+                />  
 
             </div>
-
-
-            <TextField   
-                hintText = "Notes"   
-                defaultValue = {this.props.project.description}    
-                multiLine={true} 
-                fullWidth = {true}   
-                onChange={debounce(this.setProjectDescription,500)}
-                inputStyle = {{fontWeight:600, color:"rgba(100,100,100,1)", fontSize:"15px"}}   
-                underlineFocusStyle = {{borderColor: "rgba(0,0,0,0)"}}    
-                underlineStyle = {{borderColor: "rgba(0,0,0,0)"}}  
-            /> 
-          
-            <ProjectMenuPopover
-                close={(e) => this.setState({showProjectMenuPopover:false})}
-                open={this.state.showProjectMenuPopover}
-                origin={{vertical: "center", horizontal: "middle"}}  
-                anchorEl={this.moreAnchor}
-                point={{vertical: "top", horizontal: "middle"}} 
-                dispatch={this.props.dispatch}
-            /> 
-
-        </div>
     }
 
 }
-
-
 
 
 
@@ -205,7 +349,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
     }  
 
 
-    onComplete = (e) => {
+    onComplete = (e) => { 
         
     }
 
@@ -454,28 +598,18 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,{}>{
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 interface ProjectHeadingProps{
-    dispatch : Function 
+    heading : Heading,
+    onChange : Function,
+    onArchive : Function,
+    onMove : Function, 
+    onRemove : Function
 }
 
-
+ 
   
 interface ProjectHeadingState{
-    showHeadingMenuPopover:boolean 
+    open:boolean 
 }
 
 
@@ -487,25 +621,24 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
     constructor(props){
         super(props);
         this.state = {
-            showHeadingMenuPopover:false
+            open:false
         }
     }
-  
 
  
     render(){
         return <div>
 
-            <div style={{display:"flex"}}>
-
+        <div style={{display:"flex"}}>
+ 
             <div> 
-                <div style={{display:"flex"}}>
+                <div style={{display:"flex"}}> 
                     <TextField   
-                        hintText = "Heading"    
-                        id={'id'}
-                        defaultValue = {"Heading"} 
+                        hintText = "Project heading"    
+                        id={this.props.heading.key}
+                        defaultValue = {this.props.heading.title} 
                         fullWidth = {true}   
-                        onChange={() => {}}
+                        onChange={this.props.onChange}
                         inputStyle = {{fontWeight:600, color:"rgba(100,100,100,1)", fontSize:"16px"}}  
                         hintStyle = {{top:"3px", left:0, width:"100%", height:"100%"}}   
                         style = {{height:"28px"}}      
@@ -514,7 +647,7 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                     /> 
                 </div>  
             </div>
- 
+
             <div   
                 onClick = {() => {}}  
                 style={{
@@ -534,8 +667,86 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                 }} />
             </div> 
 
+        </div>
 
-            </div>
+
+
+        <div>
+
+            <Popover 
+                className="nocolor"
+                style={{
+                    marginTop:"20px", 
+                    backgroundColor:"rgba(0,0,0,0)",
+                    background:"rgba(0,0,0,0)",
+                    borderRadius:"10px"
+                }}    
+                open={this.state.open}
+                onRequestClose={() => this.setState({open:false})}
+                origin={{vertical: "center", horizontal: "middle"}}  
+                anchorEl={this.moreAnchor}
+                point={{vertical: "top", horizontal: "middle"}} 
+            >   
+                <div    
+                    className={"darkscroll"}
+                    style={{  
+                        backgroundColor: "rgb(39, 43, 53)",
+                        paddingRight: "10px",
+                        paddingLeft: "10px",
+                        borderRadius: "10px",
+                        paddingTop: "5px",
+                        paddingBottom: "5px",
+                        cursor:"pointer" 
+                    }} 
+                >    
+                    <div  
+                        onClick={this.props.onArchive as any} 
+                        className={"tagItem"} style={{
+                            display:"flex", 
+                            height:"auto",
+                            alignItems:"center",
+                            padding:"5px"
+                        }}
+                    >  
+                        <Duplicate style={{color:"rgb(69, 95, 145)"}}/> 
+                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                            Archive
+                        </div>     
+                    </div>
+                    
+                    <div  
+                        onClick={this.props.onMove as any} 
+                        className={"tagItem"} style={{
+                            display:"flex", 
+                            height:"auto",
+                            alignItems:"center",
+                            padding:"5px"
+                        }}
+                    >   
+                        <Arrow style={{color:"rgb(69, 95, 145)"}}/> 
+                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                            Move 
+                        </div>     
+                    </div>
+
+                    <div   
+                        onClick={this.props.onRemove as any} 
+                        className={"tagItem"} style={{
+                            display:"flex", 
+                            height:"auto",
+                            alignItems:"center",
+                            padding:"5px"
+                        }}
+                    >  
+                        <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
+                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                            Remove
+                        </div>     
+                    </div>
+                </div> 
+            </Popover> 
+
+        </div>    
 
         </div>
     }
