@@ -1,18 +1,13 @@
-import '../assets/styles.css';  
-import '../assets/calendarStyle.css';  
+import '../../assets/styles.css';  
+import '../../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
-    compose, append, contains, and, find, defaultTo, addIndex, split, filter, any,
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, 
-    groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs, allPass 
-} from 'ramda';
 import { ipcRenderer } from 'electron';
-import { Component } from "react"; 
-import { Todo } from '../databaseCalls';
-import { TodosList } from './TodosList';
-import { ContainerHeader } from './ContainerHeader';
-import { byTags, byCategory } from '../utils';
+import { Component } from "react";  
+import { Todo } from '../../database';
+import { TodosList } from '.././TodosList';
+import { ContainerHeader } from '.././ContainerHeader';
+import { byTags, byCategory } from '../../utils';
 
  
  

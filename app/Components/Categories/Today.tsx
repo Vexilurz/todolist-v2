@@ -1,29 +1,27 @@
-import '../assets/styles.css';  
-import '../assets/calendarStyle.css';  
+import '../../assets/styles.css';  
+import '../../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
-    compose, append, contains, and, find, defaultTo, addIndex, split, filter, any,
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, 
-    groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs, allPass 
-} from 'ramda';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, showTags } from "../utils"; 
+import { 
+    attachDispatchToProps, uppercase, insideTargetArea, 
+    chooseIcon, showTags, allPass 
+} from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, generateID, addTodo } from '../databaseCalls';
+import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo } from '../../database';
 import Popover from 'material-ui/Popover';
 import Button from 'material-ui-next/Button';
-import { Tags } from '../Components/Tags';
-import { Footer } from '../Components/Footer';
+import { Tags } from '../../Components/Tags';
+import { Footer } from '../../Components/Footer';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Repeat from 'material-ui/svg-icons/av/repeat';
-import { Store } from '../App';
+import { Store } from '../../App';
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Duplicate from 'material-ui/svg-icons/content/content-copy';
 import ShareIcon from 'material-ui/svg-icons/social/share';
@@ -32,12 +30,13 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
-import { FadeBackgroundIcon } from '../Components/FadeBackgroundIcon';
-import { ContainerHeader } from './ContainerHeader';
-import { TodosList } from './TodosList';
+import { ContainerHeader } from '.././ContainerHeader';
+import { TodosList } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
-import { byTags, byCategory } from '../utils';
+import { byTags, byCategory } from '../../utils';
  
+ 
+
 interface TodayProps{ 
     dispatch:Function,
     selectedTodoId:string,
@@ -48,9 +47,11 @@ interface TodayProps{
 } 
 
  
+
 interface TodayState{}
 
 
+ 
 export class Today extends Component<TodayProps,TodayState>{
 
     constructor(props){
@@ -58,8 +59,7 @@ export class Today extends Component<TodayProps,TodayState>{
     }
  
     render(){ 
-
-
+ 
         let filters = (type) : any [] => [
             
             (t) => t.category === type, 
@@ -70,10 +70,9 @@ export class Today extends Component<TodayProps,TodayState>{
 
         ];
 
- 
         
-        let evening = this.props.todos.filter(allPass( filters("evening") )); 
-        
+        let evening = this.props.todos.filter((item) => allPass( filters("evening"), item )); 
+         
 
         return <div style={{disaply:"flex", flexDirection:"column"}}> 
             <div style={{width: "100%"}}> 
@@ -130,8 +129,8 @@ export class Today extends Component<TodayProps,TodayState>{
                         </div>  
                     }
  
-                    {
-                        isEmpty(evening) ? null :    
+                    {  
+                        evening.length===0 ? null :    
                         <div>
 
 
@@ -190,7 +189,7 @@ export class Today extends Component<TodayProps,TodayState>{
 
 
  
- 
+  
 
 
 
@@ -278,3 +277,4 @@ export class TodaySchedule extends Component<TodayScheduleProps,any>{
 
 
 
+ 

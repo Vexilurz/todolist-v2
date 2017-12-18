@@ -1,5 +1,5 @@
-import './assets/styles.css';  
-import './assets/calendarStyle.css';  
+import './../assets/styles.css';   
+import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
@@ -8,27 +8,29 @@ import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq
     groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs 
 } from 'ramda'; 
 import { ipcRenderer } from 'electron';
-import IconButton from 'material-ui/IconButton'; 
+import IconButton from 'material-ui/IconButton';  
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, showTags, debounce, byTags, byCategory } from "./utils"; 
+import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, 
+    showTags, debounce, byTags, byCategory 
+} from "../utils";  
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { getTodos, updateTodo, Todo, Event, removeTodo, generateID, addTodo, getProjects, getEvents, 
+import { getTodos, updateTodo, Todo, Event, removeTodo, addTodo, getProjects, getEvents, 
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, removeProject, generateRandomDatabase, 
-    destroyEverything, addArea, addProject, addEvent } from './databaseCalls';
-import { Footer } from './Components/Footer';
-import { Store } from './App';
-import { FadeBackgroundIcon } from './Components/FadeBackgroundIcon';
+    destroyEverything, addArea, addProject, addEvent, generateId } from '.././database';
+import { Footer } from '.././Components/Footer';
+import { Store } from '.././App';
+import { FadeBackgroundIcon } from '.././Components/misc/FadeBackgroundIcon';
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
-import { AreaComponent } from './Components/Area';
-import { ProjectComponent } from './Components/Project';
-import { Trash } from './Components/Trash';
-import { Logbook } from './Components/Logbook';
-import { Someday } from './Components/Someday';
-import { Anytime } from './Components/Anytime';
-import { Upcoming } from './Components/Upcoming';
-import { Today } from './Components/Today';
-import { Inbox } from './Components/Inbox';
+import { AreaComponent } from './Area/Area';
+import { ProjectComponent } from './Project/Project';
+import { Trash } from './Categories/Trash';
+import { Logbook } from './Categories/Logbook';
+import { Someday } from './Categories/Someday';
+import { Anytime } from './Categories/Anytime';
+import { Upcoming } from './Categories/Upcoming';
+import { Today } from './Categories/Today';
+import { Inbox } from './Categories/Inbox';
 
 
 
@@ -228,7 +230,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
  
         e.stopPropagation(); 
 
-        let id = generateID();
+        let id = generateId();
 
         let todo : Todo = {    
             _id : id,
@@ -263,7 +265,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
             //        todoId:todo._id
             //    }
             //});
-                
+                 
         } 
 
         this.props.dispatch({type:"newTodo", load:todo}); 
@@ -288,9 +290,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
  
     }
 
-
-    
-   
 
 
     render(){  
@@ -445,15 +444,11 @@ export class MainContainer extends Component<Store,MainContainerState>{
                               
 
                             
-                            />,
+                            />, 
 
 
                             area : <AreaComponent 
-                                todos={this.props.todos}
-                                projects={this.props.projects}
-                                areas={this.props.areas}   
-                                selectedAreaId={this.props.selectedAreaId}
-                                dispatch={this.props.dispatch}
+                            
                             />
 
                          }[this.props.selectedCategory]

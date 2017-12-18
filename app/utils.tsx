@@ -38,9 +38,9 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
-import { getTodos, queryToTodos, Todo, updateTodo } from './databaseCalls';
-import { Category } from './MainContainer';
-import { ChecklistItem } from './Components/TodoInput';
+import { getTodos, queryToTodos, Todo, updateTodo } from './database';
+import { Category } from './Components/MainContainer';
+import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 let moment = require("moment");
 
 
@@ -139,11 +139,7 @@ export let getTagsFromTodos = (todos:Todo[]) : string[] => compose(
 
 
 
-
-
 export let attachDispatchToProps = (dispatch,props) => merge({dispatch},props);  
-
-
 
 
 
@@ -161,9 +157,19 @@ export let debounce = (fun, mil=50) => {
 
 
 
+export let allPass = (funcs : Function[], item) : boolean => {
+
+    for(let i=0; i<funcs.length; i++)
+        if(!funcs[i](item))
+            return false; 
+
+    return true;
+}
+
 
 
 export let stringToLength = (s : string, length : number) : string => {
+
     if( typeof s !== "string" )
         throw new Error("Input is not a string.");
 
@@ -172,21 +178,31 @@ export let stringToLength = (s : string, length : number) : string => {
         return splitted[0] + "..."; 
     }else 
         return s;
+        
 }; 
    
 
+ 
+export let diffDays = (dateA : Date, dateB : Date) : number => {
+    var a = moment(dateA); 
+    var b = moment(dateB);
+    return b.diff(a, 'days');
+};
 
 
 
 
-export let uppercase = (str:string) : string => {
+export let uppercase = (str:string) : string => { 
 
-   return toUpper(str.substring(0,1)) + str.substring(1,str.length);
-   
+    if(str.length===0)
+       return str; 
+
+    return str.substring(0,1).toUpperCase() + str.substring(1,str.length);
+
 };
  
 
-
+   
 
 
 

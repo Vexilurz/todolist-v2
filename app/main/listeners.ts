@@ -54,10 +54,10 @@ export class Listeners {
                     loadApp(newWindow)     
                     .then(() => {        
                         newWindow.webContents.send("loaded", {
-                            type:"clone", 
+                            type:"clone",  
                             load:storeWithId  
                         });
-                        //newWindow.webContents.openDevTools();    
+                        newWindow.webContents.openDevTools();    
                     });      
 
                 } 

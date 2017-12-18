@@ -1,4 +1,5 @@
-import '../assets/styles.css';  
+import './../assets/styles.css';  
+import './../assets/calendarStyle.css';   
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { ipcRenderer } from 'electron';
@@ -11,17 +12,18 @@ import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import Popover from 'material-ui/Popover';
 import Button from 'material-ui-next/Button';
 import { attachDispatchToProps, replace, remove, insert } from '../utils';
-import { Todo, removeTodo, addTodo } from '../databaseCalls';
+import { Todo, removeTodo, addTodo, generateId } from '../database';
+import { Store } from '../App';
 let uniqid = require("uniqid");   
  
 
  
 
  
-interface RightClickMenuState{} 
+interface RightClickMenuState{}  
  
 @connect((store,props) => store, attachDispatchToProps) 
-export class RightClickMenu extends Component<any,RightClickMenuState>{
+export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
    constructor(props){
        super(props);
@@ -57,13 +59,13 @@ export class RightClickMenu extends Component<any,RightClickMenuState>{
         
         if(idx!==-1){
 
-            let duplicatedTodo = this.props.todos[idx];
+            let duplicatedTodo : any = this.props.todos[idx];
 
             if(duplicatedTodo===null || duplicatedTodo===undefined)
-            return; 
+               return; 
+             
             
-            
-            duplicatedTodo = {  ...duplicatedTodo, ...{_id:uniqid()}  };
+            duplicatedTodo  = {  ...duplicatedTodo, ...{_id:generateId()}  };
 
             delete duplicatedTodo._rev;
 

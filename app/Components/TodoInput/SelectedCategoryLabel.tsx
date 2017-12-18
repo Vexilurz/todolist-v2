@@ -1,4 +1,5 @@
-import '../assets/styles.css';  
+import '../../assets/styles.css';  
+import '../../assets/calendarStyle.css';  
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
 import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
@@ -11,12 +12,11 @@ import { Component } from "react";
 import { Provider, connect } from "react-redux";
 import Popover from 'material-ui/Popover';
 import Button from 'material-ui-next/Button'; 
-import { Footer } from '../Components/Footer';
-import { Tags } from '../Components/Tags';
+import { Footer } from '../../Components/Footer';
+import { Tags } from '../../Components/Tags';
 import { Transition } from 'react-transition-group';
 import { Category } from '../MainContainer';
-import { TodosList } from '../Components/TodosList';
-import { Todo } from '../databaseCalls';
+import { TodosList } from '../../Components/TodosList';
 import Star from 'material-ui/svg-icons/toggle/star';
 import Plus from 'material-ui/svg-icons/content/add';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
@@ -31,7 +31,7 @@ interface SelectedCategoryLabelProps{
     selectedCategory:string
 }
 
-interface SelectedCategoryLabelState{
+interface SelectedCategoryLabelState{ 
     
 }
 

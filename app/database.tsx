@@ -7,8 +7,8 @@ import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, mult
 } from 'ramda';  
 import { ipcRenderer } from 'electron';
 import PouchDB from 'pouchdb-browser';  
-import { ChecklistItem } from './Components/TodoInput';
-import { Category } from './MainContainer';
+import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
+import { Category } from './Components/MainContainer';
 
 
 let todos_db;
@@ -76,19 +76,20 @@ Date.prototype["addDays"] = function(days) {
 };
 
  
+export let generateId = () => new Date().toJSON(); 
 
-
-
-   
-export let generateID = () => uniqid() + new Date().toJSON();  
-//() => new Date().toJSON();   
 
  
+
+   
+let generateid = () => uniqid() + new Date().toJSON();  
+ 
+  
 let fakeTags = (n) => compose(map((i) => randomWord()), range(0), add(5))(randomInteger(n));
   
 
 let fakeEvent  = (attachedTags, attachedProjectsIds) : Event => ({
-    _id : generateID(), 
+    _id : generateid(), 
     type:"event",
     title : compose(join(' '), map((n) => randomWord()), range(0), add(3))(randomInteger(4)),
     note : compose(join(' '), map((n) => randomWord()), range(0), add(2))(randomInteger(10)),
@@ -106,7 +107,7 @@ let fakeCheckListItem = (idx) => ({
     text : compose(join(' '), map((n) => randomWord()), range(0), add(2))(randomInteger(5)), 
     checked : Math.random() > 0.5 ? true : false,
     idx : idx,
-    key : generateID()  
+    key : generateid()  
 }) 
 
  
@@ -118,7 +119,7 @@ let fakeTodo = (tags:string[], attachedProjectsIds) : Todo => {
      throw new Error("Tags undefined. fakeTodo"); 
 
   return ({ 
-      _id : generateID(),   
+      _id : generateid(),   
       type:"todo",
       category : randomCategory(), 
       title : compose(join(' '), map((n) => randomWord()), range(0), add(3))(randomInteger(4)),
@@ -146,26 +147,28 @@ let fakeTodo = (tags:string[], attachedProjectsIds) : Todo => {
 let fakeHeading = () : Heading => ({
     type : "heading",
     title : compose(join(' '), map((n) => randomWord()), range(0), add(4))(randomInteger(2)), 
-    _id : generateID(), 
-    key : generateID()
+    _id : generateid(), 
+    key : generateid()
 }) 
   
  
  
 let fakeProject = (attachedTags, layout, attachedAreasIds) : Project => {
-  let checked = Math.random() > 0.5 ? true : false ;
-
-  return ({ 
-    _id : generateID(),   
-    type : "project",
-    name : compose(join(' '), map((n) => randomWord()), range(0), add(3))(randomInteger(3)), 
-    description : compose(join(' '), map((n) => randomWord()), range(0), add(7))(randomInteger(20)),
-    deadline : randomDate(new Date(), new Date()["addDays"](50)),
-    completed : checked ? randomDate(new Date(), new Date()["addDays"](50)) : null,
-    layout,
-    attachedAreasIds,  
-    attachedTags  
-})
+    
+    let checked = Math.random() > 0.5 ? true : false;
+    
+    return ({ 
+      _id : generateid(),   
+      type : "project",
+      name : compose(join(' '), map((n) => randomWord()), range(0), add(3))(randomInteger(3)), 
+      description : compose(join(' '), map((n) => randomWord()), range(0), add(7))(randomInteger(20)),
+      created : new Date(),
+      deadline : randomDate(new Date(), new Date()["addDays"](50)),
+      completed : checked ? randomDate(new Date(), new Date()["addDays"](50)) : null,
+      layout, 
+      attachedAreasIds,  
+      attachedTags  
+    })
 
 }
 
@@ -177,7 +180,7 @@ let fakeArea = (
   attachedEventsIds, 
   attachedTags 
 ) : Area => ({ 
-    _id : generateID(),   
+    _id : generateid(),   
     type : "area", 
     name : compose(join(' '), map((n) => randomWord()), range(0), add(1))(randomInteger(3)), 
     description : compose(join(' '), map((n) => randomWord()), range(0), add(2))(randomInteger(20)),
@@ -315,11 +318,6 @@ export let generateRandomDatabase = (
 
 
 
-
-
-
-
-
 type ObjectType = "heading" | "project" | "todo" | "event" | "area"; 
 
 
@@ -330,7 +328,7 @@ export interface Heading{
   _id : string, 
   key : string 
 }
-  
+
 
 
 export type LayoutItem = string | Heading;
@@ -343,6 +341,7 @@ export interface Project{
   name : string,   
   description : string, 
   layout : LayoutItem[], 
+  created : Date, 
   deadline : Date,
   completed : Date, 
   attachedAreasIds : string[], 

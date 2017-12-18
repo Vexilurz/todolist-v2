@@ -1,4 +1,5 @@
-import '../assets/styles.css';  
+import './../assets/styles.css';  
+import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import {groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs} from 'ramda';
@@ -7,9 +8,9 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { attachDispatchToProps, uppercase, chooseIcon, showTags } from "../utils"; 
 import { Tags } from './Tags';
-import { Category } from '../MainContainer';
+import { Category } from './MainContainer';
 
-
+ 
 
 export interface ContainerHeaderProps{
     selectedCategory:Category, 

@@ -1,26 +1,26 @@
-import '../assets/styles.css';  
-import * as React from 'react';  
+import '../../assets/styles.css';  
+import '../../assets/calendarStyle.css';  
+import * as React from 'react';   
 import * as ReactDOM from 'react-dom'; 
 import { ipcRenderer } from 'electron'; 
 import { Component } from "react"; 
-import { Provider, connect } from "react-redux";
+import { Provider, connect } from "react-redux"; 
 import Popover from 'material-ui/Popover';
 import Button from 'material-ui-next/Button'; 
-import { Footer } from '../Components/Footer'; 
-import { Tags } from '../Components/Tags';
-import { Category } from '../MainContainer';
-import { TodosList } from '../Components/TodosList';
-import { Todo,Event, Project, Area } from '../databaseCalls';
-import { FadeBackgroundIcon } from '../Components/FadeBackgroundIcon';
+import { Footer } from '../../Components/Footer'; 
+import { Tags } from '../../Components/Tags';
+import { TodosList } from '../../Components/TodosList';
+import { Todo,Event, Project, Area } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 let moment = require("moment");
 import * as Waypoint from 'react-waypoint';
-import { ContainerHeader } from './ContainerHeader';
-import { byTags, getDateFromObject, getDayName, objectsToHashTableByDate, getDatesRange, keyFromDate } from '../utils';
-
-
-
-  
+import { ContainerHeader } from '.././ContainerHeader';
+import { 
+    byTags, getDateFromObject, getDayName, 
+    objectsToHashTableByDate, getDatesRange, 
+    keyFromDate 
+} from '../../utils';  
+ 
 
 
 interface UpcomingProps{
@@ -35,13 +35,9 @@ interface UpcomingProps{
  
 
 
-
 interface UpcomingState{
     objects : { date : Date, todos:Todo[], projects:Project[] }[]
 }
-
-
-
 
 
 

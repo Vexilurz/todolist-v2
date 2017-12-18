@@ -1,5 +1,5 @@
-import '../assets/styles.css';  
-import '../assets/calendarStyle.css';  
+import '../../assets/styles.css';  
+import '../../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
@@ -9,16 +9,16 @@ import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq
 } from 'ramda';
 import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
-import SortableContainer from '../sortable-hoc/sortableContainer';
-import SortableElement from '../sortable-hoc/sortableElement';
-import SortableHandle from '../sortable-hoc/sortableHandle';
-import {arrayMove} from '../sortable-hoc/utils';
+import SortableContainer from '../../sortable-hoc/sortableContainer';
+import SortableElement from '../../sortable-hoc/sortableElement';
+import SortableHandle from '../../sortable-hoc/sortableHandle';
+import {arrayMove} from '../../sortable-hoc/utils';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
-import { Project } from '../databaseCalls';
-import { stringToLength } from '../utils';
-
+import { Project } from '../../database';
+import { stringToLength } from '../../utils';
  
+  
 interface  ProjectsListProps{  
     dispatch:Function,
     projects:Project[]  

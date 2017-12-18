@@ -1,56 +1,21 @@
-import '../assets/styles.css';  
-import '../assets/calendarStyle.css';  
+import './../assets/styles.css';  
+import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
-    compose, append, contains, and, find, defaultTo, addIndex, split, filter, any,
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, 
-    groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs, path, allPass 
-} from 'ramda';
-import { Todo } from '../databaseCalls';
+import { Todo } from '../database';
 import { Component } from 'react';
-import { insideTargetArea, hideChildrens, makeChildrensVisible, generateDropStyle } from '../utils';  
+import { 
+    insideTargetArea, hideChildrens, makeChildrensVisible, 
+    generateDropStyle, allPass 
+} from '../utils';  
 import { RightClickMenu } from './RightClickMenu';
-import { TodoInput } from './TodoInput';
-import { Data } from './ResizableHandle';
 import SortableContainer from '../sortable-hoc/sortableContainer';
 import SortableElement from '../sortable-hoc/sortableElement';
 import SortableHandle from '../sortable-hoc/sortableHandle';
 import {arrayMove} from '../sortable-hoc/utils';
 import {  byTags, byCategory } from '../utils';
-
-
-
- 
- 
-
-let getElem = (value, index) => {
-
-    return null
- 
-} 
- 
-
-let createSortableItem = (index) => SortableElement(({value}) => getElem(value,index)); 
-
-
-let getSortableTodoList = (items:Todo[]) =>  {
-
-    return <ul style={{ padding:0, margin:0 }}>    
-        {     
-            items.map(      
-                (item:Todo, index) => {   
-                    let SortableItem = createSortableItem(index); 
-                    return <SortableItem  key={`item-${item._id}`} index={index} value={item} />
-                }
-            )  
-        }   
-    </ul> 
-
-}    
-
-
-const SortableList = SortableContainer(({items}) => getSortableTodoList(items),{withRef:true});
+import { SortableList } from './SortableList';
+import { TodoInput } from './TodoInput/TodoInput';
 
 
 
@@ -64,6 +29,7 @@ interface TodosListProps{
     tags:string[]     
 }    
 
+
   
 interface TodosListState{
     items:any[]
@@ -74,30 +40,17 @@ interface TodosListState{
 export class TodosList extends Component<TodosListProps, TodosListState>{
 
      constructor(props){
+
         super(props);
 
         this.state={items:[]};
- 
-        getElem = this.getTodoElem;
+        
      } 
  
 
 
      shouldComponentUpdate(nextProps:TodosListProps){
          
-         //if(this.props.todos!==nextProps.todos)
-            //return true; 
-
-            
-         //if(this.props.selectedTag !== nextProps.selectedTag)
-           // return true;   
- 
-
-         //if(this.props.selectedCategory !== nextProps.selectedCategory)
-           // return true;
-             
-        // return false; 
-
         return true;  
            
      } 
@@ -106,8 +59,8 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
      componentDidMount(){
 
         let items = [...this.props.todos]; 
-        let selectedItems = items.filter(allPass(this.props.filters as any[]));
-          
+        let selectedItems = items.filter((item) => allPass(this.props.filters, item));
+           
         this.setState({ items:selectedItems }, () => console.log(`selectedItems ${this.state.items} in ${this.props.selectedCategory}`));   
 
      }  
@@ -121,20 +74,20 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             this.props.selectedCategory!==nextProps.selectedCategory  
         ){  
  
-            let items = [...nextProps.todos]; 
+            let items = [...nextProps.todos];  
              
-            let selectedItems = nextProps.todos.filter(allPass(nextProps.filters as any[]));
+            let selectedItems = nextProps.todos.filter((item) => allPass(nextProps.filters, item));
                  
             this.setState({ items:selectedItems }, () => console.log(`selectedItems ${this.state.items} in ${this.props.selectedCategory}`));  
  
         }     
   
      }  
-
+ 
   
      getTodoElem = (value:Todo, index:number) => {
      
-        return <div style={{position:"relative"}}> 
+         return <div style={{position:"relative"}}> 
                     <TodoInput   
                         id={value._id}
                         key = {value._id} 
@@ -146,7 +99,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 </div> 
 
      }
-     
+      
 
  
      shouldCancelStart = (e) => {
@@ -176,6 +129,56 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         return x < rect.left;   
 
      }  
+
+
+
+     onSortStart = ({node, index, collection}, e, helper) => { 
+        
+        let helperRect = helper.getBoundingClientRect();
+        let offset = e.clientX - helperRect.left;
+
+
+
+        let el = generateDropStyle("nested"); 
+        el.style.left=`${offset}px`;  
+        el.style.visibility="hidden";
+        el.style.opacity='0'; 
+        
+        helper.appendChild(el);  
+
+     }
+
+     
+
+     onSortMove = (e, helper : HTMLElement) => {
+        
+        let x = e.clientX;
+        let y = e.clientY+this.props.rootRef.scrollTop;  
+
+            
+        let areas = document.getElementById("areas");
+        let projects = document.getElementById("projects");
+        let nested = document.getElementById("nested");
+
+        if(insideTargetArea(areas)(x,y) || insideTargetArea(projects)(x,y)){
+
+            hideChildrens(helper);
+
+            nested.style.visibility="";
+            nested.style.opacity='1';    
+            //nested.style.left=e.clientX+"px"; 
+            //nested.style.top=(e.clientY+this.props.rootRef.scrollTop)+"px";
+                
+        }else{ 
+
+            makeChildrensVisible(helper); 
+            nested.style.visibility="hidden";
+            nested.style.opacity='0';  
+
+        } 
+
+
+     }
  
  
 
@@ -223,58 +226,20 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
          return <div style={{WebkitUserSelect: "none"}}> 
  
             <SortableList  
+                getElement={this.getTodoElem}
+                items={this.state.items} 
                 shouldCancelStart={this.shouldCancelStart}  
                 shouldCancelAnimation={this.shouldCancelAnimation}
-                distance={1}        
-                items={this.state.items}  
-                axis='y'     
-                onSortEnd={this.onSortEnd}  
-                onSortMove={(e, helper : HTMLElement) => {
-
-                    let x = e.clientX;
-                    let y = e.clientY+this.props.rootRef.scrollTop;  
-
-                     
-                    let areas = document.getElementById("areas");
-                    let projects = document.getElementById("projects");
-                    let nested = document.getElementById("nested");
-
-                    if(insideTargetArea(areas)(x,y) || insideTargetArea(projects)(x,y)){
-
-                        hideChildrens(helper);
-
-                        nested.style.visibility="";
-                        nested.style.opacity='1';    
-                        //nested.style.left=e.clientX+"px"; 
-                        //nested.style.top=(e.clientY+this.props.rootRef.scrollTop)+"px";
-                         
-                    }else{ 
-
-                        makeChildrensVisible(helper); 
-                        nested.style.visibility="hidden";
-                        nested.style.opacity='0';  
-                    } 
- 
-  
-                }} 
-                onSortStart={({node, index, collection}, e, helper) => { 
-
-                    let helperRect = helper.getBoundingClientRect();
-                    let offset = e.clientX - helperRect.left;
-
-
-   
-                    let el = generateDropStyle("nested"); 
-                    el.style.left=`${offset}px`;  
-                    el.style.visibility="hidden";
-                    el.style.opacity='0'; 
-                    
-                    helper.appendChild(el);  
-                
-                }} 
+                onSortEnd={this.onSortEnd}    
+                onSortMove={this.onSortMove} 
+                onSortStart={this.onSortStart} 
+                lockToContainerEdges={false}
+                distance={3}
+                useDragHandle={false}
+                lock={true}
             /> 
- 
-            <RightClickMenu /> 
+              
+            <RightClickMenu {...{} as any}/> 
 
          </div> 
             

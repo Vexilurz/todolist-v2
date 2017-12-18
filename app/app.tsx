@@ -15,16 +15,16 @@ import {
 } from "./utils"; 
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
-import { LeftPanel } from './LeftPanel';
-import { MainContainer, Category } from './MainContainer';
-import { Todo, Project, Area, Event } from './databaseCalls';
 import './assets/fonts/index.css';
+import { LeftPanel } from './Components/LeftPanel';
+import { MainContainer, Category } from './Components/MainContainer';
+import { Project, Area, Todo } from './database';
 injectTapEventPlugin(); 
       
 (() => {     
     let app=document.createElement('div'); 
     app.id='application';     
-    document.body.appendChild(app);  
+    document.body.appendChild(app);   
 })();  
  
 
@@ -33,7 +33,7 @@ injectTapEventPlugin();
 export class App extends Component<any,any>{
 
     constructor(props){  
- 
+  
         super(props);   
 
 
@@ -126,23 +126,19 @@ export interface Store{
     openRightClickMenu : any, 
     selectedProjectId : string,
     selectedAreaId : string,
-
+    showProjectMenuPopover : boolean,
     openNewProjectAreaPopover : boolean,
     showRightClickMenu : boolean,
-
     rightClickedTodoId : string,
     rightClickMenuX : number,
     rightClickMenuY : number,
-
     windowId:number,
-    
     projects:Project[],
     areas:Area[],
     events:Event[],   
-
     todos:Todo[],
     tags:string[],
-
+    
     clone?:boolean,
     dispatch?:Function
 } 
@@ -150,35 +146,52 @@ export interface Store{
 
 
 export let defaultStoreItems : Store = {
+
     windowId:null, 
+     
     selectedCategory : "inbox",
+
     selectedTodoId : null,
+
     selectedTag : "",
+
     leftPanelWidth : window.innerWidth/3.7,
      
     selectedProjectId : null,
+
     selectedAreaId : null,
+ 
+    showProjectMenuPopover : false,
 
     closeAllItems : undefined,
+
     openRightClickMenu : undefined,
      
     openNewProjectAreaPopover : false,
+
     showRightClickMenu : false,
 
     rightClickedTodoId : null,
+
     rightClickMenuX : 0,
+
     rightClickMenuY : 0,
     
     projects:[],
+
     areas:[],
+
     events:[], 
+
     clone : false,
     todos:[], 
+
     tags:[
         "Work", "Home",
         "Priority", "High", "Medium",
         "Low"
     ]
+
 };    
     
  
@@ -215,7 +228,14 @@ let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}
     let newState = undefined;
 
  
-    switch(action.type){
+    switch(action.type){  
+
+        case "showProjectMenuPopover":
+            newState = {
+                ...state, 
+                showProjectMenuPopover:action.load
+            }; 
+            break;
 
         case "windowId":
             newState = {
@@ -372,7 +392,7 @@ let applicationObjectsReducer = (state:Store, action) => {
         case "attachTodoToProject":
             idx = state.projects.findIndex( (p:Project) => p._id===action.load.projectId );
  
-            if(idx===-1)
+            if(idx===-1) 
                return;  
                //throw new Error(`Project does not exist ${action.load.projectId}. attachTodoToProject.`);
 
@@ -439,6 +459,7 @@ let applicationObjectsReducer = (state:Store, action) => {
             newState = { 
                 ...state, 
                 selectedProjectId:action.load._id,
+                showProjectMenuPopover:false,
                 projects:replace(state.projects,action.load,idx)
             }; 
             break;   
@@ -492,8 +513,6 @@ let applicationObjectsReducer = (state:Store, action) => {
 
 
 
-
-
         case "newArea":   
             newState = { 
                 ...state, 
@@ -504,7 +523,7 @@ let applicationObjectsReducer = (state:Store, action) => {
                 areas:[action.load,...state.areas]
             };  
             break;  
-            
+
 
 
         case "newProject":   
@@ -531,8 +550,9 @@ let applicationObjectsReducer = (state:Store, action) => {
 
         case "projects":  
             newState = {
-                ...state, 
+                ...state,  
                 projects:[...action.load],
+                showProjectMenuPopover:false,
                 showRightClickMenu:false
             }; 
             break; 

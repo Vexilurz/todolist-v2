@@ -1,4 +1,5 @@
-import './assets/styles.css'; 
+import './../assets/styles.css';  
+import './../assets/calendarStyle.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { 
@@ -11,7 +12,7 @@ import { ipcRenderer } from 'electron';
 import IconMenu from 'material-ui/IconMenu';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps } from "./utils"; 
+import { attachDispatchToProps } from "../utils"; 
 import { Provider, connect } from "react-redux";
 
 import Menu from 'material-ui/Menu';
@@ -38,24 +39,24 @@ import { MenuList, MenuItem } from 'material-ui-next/Menu';
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import Popover from 'material-ui/Popover';
-import { ResizableHandle, Data } from './Components/ResizableHandle';
-import { Store } from './App';
-import { generateID, addProject, Project, Area, addArea } from './databaseCalls';
+import { generateId, addProject, Project, Area, addArea } from '../database';
 import Clear from 'material-ui/svg-icons/content/clear';
 import Remove from 'material-ui/svg-icons/content/remove'; 
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import FullScreen from 'material-ui/svg-icons/image/crop-square';
-import { ProjectsList } from './Components/ProjectsList';
-import { AreasList } from './Components/AreasList';
+import { Store } from '../App';
+import { ResizableHandle } from './misc/ResizableHandle';
+import { Data } from './SortableList';
 
  
 
 let generateEmptyProject = () : Project => ({
-    _id : generateID(), 
+    _id : generateId(), 
     type : "project", 
     name : "New project",
     description : "Project description...",
     layout : [], 
+    created : new Date(), 
     deadline : null,
     completed : null, 
     attachedAreasIds : [], 
@@ -65,7 +66,7 @@ let generateEmptyProject = () : Project => ({
 
  
 let generateEmptyArea = () : Area => ({
-    _id : generateID(),
+    _id : generateId(),
     name : "New area",
     type : "area",
     description : "Area description",
@@ -155,7 +156,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
 
                     <ResizableHandle  
-                        onDrag={(e,d:Data) => this.props.dispatch({
+                        onDrag={(e,d) => this.props.dispatch({
                             type:"leftPanelWidth",
                             load:this.props.leftPanelWidth+d.deltaX
                         })}   
@@ -394,7 +395,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
             </div>   
   
 
-            {
+            {/*
                 isEmpty(this.props.areas) ? null:
                 <div id="areas" style={{position:"relative", padding:"10px"}}>
                     <AreasList 
@@ -403,10 +404,10 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                         projects={this.props.projects} 
                     />
                 </div>
-            }         
+            */}         
      
      
-            {  
+            {/*  
                 isEmpty(detachedProjects) ? null : 
                 <div id="projects" style={{position: "relative", padding: "10px", paddingBottom: "80px"}}>
                     <ProjectsList 
@@ -414,8 +415,8 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                         projects={detachedProjects}
                     />   
                 </div >
-            }             
-  
+            */}             
+   
 
             <NewProjectAreaPopover 
                 anchor={this.newProjectAnchor}
@@ -484,7 +485,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
    
   
 
- 
+  
 
 
 

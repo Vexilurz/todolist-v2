@@ -1,5 +1,5 @@
-import '../assets/styles.css';  
-import '../assets/calendarStyle.css';  
+import './../assets/styles.css';  
+import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
