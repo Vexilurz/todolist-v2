@@ -388,6 +388,8 @@ let applicationObjectsReducer = (state:Store, action) => {
 
     switch(action.type){
 
+        
+
         //load : {projectId,todoId}    
         case "attachTodoToProject":
             idx = state.projects.findIndex( (p:Project) => p._id===action.load.projectId );

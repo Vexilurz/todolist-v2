@@ -113,8 +113,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
         heading.title=newValue;
  
-
-
         this.updateProject(this.props.project, {layout:replace(layout,heading,idx)});
  
     }

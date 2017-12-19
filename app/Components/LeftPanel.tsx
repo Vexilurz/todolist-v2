@@ -1,13 +1,7 @@
 import './../assets/styles.css';  
 import './../assets/calendarStyle.css';  
 import * as React from 'react';
-import * as ReactDOM from 'react-dom'; 
-import { 
-  findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, 
-  compose, append, contains, and, find, defaultTo, addIndex, split, filter, 
-  clone, take, drop, reject, isNil, not, equals, assocPath, 
-  sum, prop, all, groupBy, concat  
-} from 'ramda';  
+import * as ReactDOM from 'react-dom';  
 import { ipcRenderer } from 'electron';
 import IconMenu from 'material-ui/IconMenu';
 import IconButton from 'material-ui/IconButton'; 
@@ -47,6 +41,7 @@ import FullScreen from 'material-ui/svg-icons/image/crop-square';
 import { Store } from '../App';
 import { ResizableHandle } from './misc/ResizableHandle';
 import { Data } from './SortableList';
+import { AreasList } from './Area/AreasList';
 
  
 
@@ -117,7 +112,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
 
 
-        render(){   
+        render(){    
 
 
             let someday = this.props.todos.filter( v => v.category === "someday" && !v.checked).length;
@@ -138,7 +133,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
  
                  
             let detachedProjects = this.props.projects.filter(
-                (p:Project) => isEmpty(p.attachedAreasIds)
+                (p:Project) => p.attachedAreasIds.length===0 
             );
   
             return   <div 
@@ -395,28 +390,16 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
             </div>   
   
 
-            {/*
-                isEmpty(this.props.areas) ? null:
+            {
+                this.props.areas.length===0 ? null:
                 <div id="areas" style={{position:"relative", padding:"10px"}}>
-                    <AreasList 
+                    <AreasList  
                         dispatch={this.props.dispatch}
                         areas={this.props.areas}
                         projects={this.props.projects} 
                     />
                 </div>
-            */}         
-     
-     
-            {/*  
-                isEmpty(detachedProjects) ? null : 
-                <div id="projects" style={{position: "relative", padding: "10px", paddingBottom: "80px"}}>
-                    <ProjectsList 
-                        dispatch={this.props.dispatch}
-                        projects={detachedProjects}
-                    />   
-                </div >
-            */}             
-   
+            }
 
             <NewProjectAreaPopover 
                 anchor={this.newProjectAnchor}

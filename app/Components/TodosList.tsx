@@ -234,9 +234,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 onSortMove={this.onSortMove} 
                 onSortStart={this.onSortStart} 
                 lockToContainerEdges={false}
-                distance={3}
+                distance={3}  
                 useDragHandle={false}
-                lock={true}
+                lock={false}
             /> 
               
             <RightClickMenu {...{} as any}/> 

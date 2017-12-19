@@ -8,10 +8,6 @@ import child_process = require('child_process');
 let randomstring = require("randomstring");  
 import electron = require('electron');
 import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';
-import { compose, contains, toPairs, curry, replace, mergeAll, addIndex, ifElse,
-         takeLast, map, fromPairs, isEmpty, flatten, defaultTo, range, all,
-         prepend, cond, isNil, intersection, insert, add, findIndex, filter, reject, merge } from 'ramda'; 
-import * as R from 'ramda';  
 import { Listeners } from "./listeners";
 import { initWindow } from "./initWindow";
  
@@ -24,13 +20,15 @@ export let listeners;
 let preventAnnoyingErrorPopups = () => dialog.showErrorBox = (title, content) => {};
  
 let onReady = () => {  
-    preventAnnoyingErrorPopups();   
-    mainWindow = initWindow(
-        merge( 
-            //{width:900,height:750} 
-            electron.screen.getPrimaryDisplay().workAreaSize
-        )({transparent:false})
-    );         
+    let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
+    let width = workingArea.width;
+    //60*(workingArea.width/100);
+    let height = workingArea.height; 
+    //70*(workingArea.height/100); 
+
+    preventAnnoyingErrorPopups();     
+     
+    mainWindow = initWindow({width,height,transparent:false});          
         
     listeners = new Listeners(mainWindow);
    

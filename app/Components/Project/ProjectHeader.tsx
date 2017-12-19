@@ -24,7 +24,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize'; 
 import { Todo, Project, Heading } from '../../database';
-import { uppercase, debounce, diffDays } from '../../utils';
+import { uppercase, debounce, diffDays, daysRemaining } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
@@ -83,7 +83,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
  
      return <div>
 
-            <ProjectMenuPopover {...{
+            <ProjectMenuPopover {...{ 
                 anchorEl:this.projectMenuPopoverAnchor} as any
             } />   
   
@@ -91,37 +91,47 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             <div style={{display:"flex", alignItems: "center"}}>
 
 
-                <div>   
-
-                <PieChart
-                    animate={true}  
-                    radius={50} 
-                    totalValue={diffDays(this.props.created,this.props.deadline)}
-                    data={[ 
-                        { 
-                            value: diffDays(this.props.created,this.props.deadline), 
-                            key: 1, 
-                            color: 'rgba(108, 135, 222, 0.8)' 
-                        }
-                    ]}  
-                    //style={{}}
-                />    
-
-                {/*
-                    <div style={{   
-                        width:"30px",    
-                        height:"30px", 
-                        borderRadius:"100px",
-                        border:"5px solid rgba(108, 135, 222, 0.8)",
-                        boxSizing:"border-box",
-                        marginRight:"10px" 
-                    }}> 
+                <div style={{   
+                       width: "30px",
+                       height: "30px",
+                       position: "relative",
+                       borderRadius: "100px",
+                       display: "flex",
+                       justifyContent: "center",
+                       alignItems: "center",
+                       border: "2px solid rgba(108, 135, 222, 1)",
+                       boxSizing: "border-box",
+                       marginRight: "10px"
+                }}> 
+                    <div style={{
+                        width: "28px", 
+                        height: "28px",
+                        display: "flex", 
+                        alignItems: "center",
+                        justifyContent: "center",
+                        position: "relative"
+                    }}>   
+                        <PieChart
+                            animate={true}   
+                            //radius={50} 
+                            totalValue={diffDays(this.props.created,this.props.deadline)}
+                            data={[{ 
+                                value:daysRemaining(this.props.deadline), 
+                                key:1,  
+                                color:'rgba(108, 135, 222, 0.8)' 
+                            }]}   
+                            style={{ 
+                                width: "22px",
+                                height: "22px",
+                                position: "absolute",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center" 
+                            }}
+                        />     
                     </div>
-                */}  
-                     
-                </div>
-
-
+                </div> 
+                
 
 
                 <div>

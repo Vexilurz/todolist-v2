@@ -43,8 +43,13 @@ export class Listeners {
                 name : "cloneWindow",
                 callback : (event, store) => {
 
-                    let newWindow = initWindow({width:540,  height:840, transparent:false}); 
- 
+                    let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
+
+                    let width = 40*(workingArea.width/100);  
+                    let height = 80*(workingArea.height/100); 
+
+                    let newWindow = initWindow({width, height, transparent:false}); 
+                    
                     this.spawnedWindows.push(newWindow);
 
                     this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed() );
