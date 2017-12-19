@@ -11,14 +11,14 @@ import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import { Component } from "react"; 
 import {  
     wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, 
-    getTagsFromTodos, replace, remove
+    getTagsFromTodos, replace, remove, insert
 } from "./utils"; 
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
 import './assets/fonts/index.css';
 import { LeftPanel } from './Components/LeftPanel';
 import { MainContainer, Category } from './Components/MainContainer';
-import { Project, Area, Todo } from './database';
+import { Project, Area, Todo, removeProject, generateId, addProject, removeArea } from './database';
 injectTapEventPlugin(); 
       
 (() => {     
@@ -381,9 +381,10 @@ let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}
 let applicationObjectsReducer = (state:Store, action) => { 
     
 
-    let newState = undefined;
+    let newState : Store = undefined;
     let idx = -1; 
     let replacement = [];
+    let project : any = null;
   
 
     switch(action.type){
@@ -398,7 +399,7 @@ let applicationObjectsReducer = (state:Store, action) => {
                return;  
                //throw new Error(`Project does not exist ${action.load.projectId}. attachTodoToProject.`);
 
-            let project = {...state.projects[idx]};
+            project = {...state.projects[idx]};
 
             project.layout = [action.load.todoId, ...project.layout];
  
@@ -448,7 +449,7 @@ let applicationObjectsReducer = (state:Store, action) => {
 
             break;
         
-        
+         
 
 
         case "updateProject":  
@@ -466,6 +467,24 @@ let applicationObjectsReducer = (state:Store, action) => {
             }; 
             break;   
  
+
+ 
+        case "updateArea":  
+            idx = state.areas.findIndex((a:Area) => action.load._id===a._id);
+            
+            if(idx===-1){ 
+               throw new Error("Attempt to update non existing object. updateArea.")
+            }
+
+            newState = {  
+                ...state,  
+                selectedAreaId:action.load._id,
+                areas:replace(state.areas,action.load,idx)
+            };  
+            break;   
+
+
+
 
 
         case "updateTodo":
@@ -488,6 +507,73 @@ let applicationObjectsReducer = (state:Store, action) => {
             }; 
             break; 
 
+
+        case "removeProject":
+
+            idx = state.projects.findIndex( (p:Project) => p._id===action.load );
+ 
+            if(idx===-1)  
+               throw new Error(`Project does not exist. ${action.load} ${JSON.stringify(state.projects)}`);
+
+
+    
+            removeProject(action.load); 
+       
+            newState = {
+                ...state, 
+                selectedProjectId:null, 
+                showProjectMenuPopover:false,
+                projects:remove(state.projects, idx)
+            }; 
+            break; 
+ 
+
+            
+
+ 
+        case "duplicateProject":
+
+            idx = state.projects.findIndex( (p:Project) => p._id===action.load );
+    
+            if(idx===-1)  
+                throw new Error(`Project does not exist. ${action.load} ${JSON.stringify(state.projects)}`);
+
+            project = { ...state.projects[idx] }; 
+
+            let _id = generateId(); 
+                
+            project  = {  ...project,  ...{_id}  };
+                        
+            delete project._rev;
+                
+            addProject((e) => console.log(e), project);
+          
+            newState = {  
+                ...state, 
+                selectedProjectId:_id,
+                showProjectMenuPopover:false, 
+                projects:insert(state.projects, project, idx)
+            }; 
+            break; 
+               
+
+        case "removeArea":
+ 
+            idx = state.areas.findIndex( (a:Area) => a._id===action.load );
+
+            if(idx===-1)   
+                throw new Error(`Area does not exist. ${action.load} ${JSON.stringify(state.areas)}`);
+
+            removeArea(action.load); 
+        
+            newState = {  
+                ...state,  
+                selectedAreaId:null, 
+                areas:remove(state.areas, idx)
+            }; 
+            break; 
+             
+            
 
 
 

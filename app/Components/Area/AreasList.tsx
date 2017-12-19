@@ -12,7 +12,7 @@ import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
-import { stringToLength, remove, insert } from '../../utils';
+import { stringToLength, remove, insert, unique, replace } from '../../utils';
 import { SortableList } from '../SortableList';
  
 interface AreasListProps{  
@@ -50,34 +50,40 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
  
 
-    componentWillReceiveProps(nextProps){
+    componentWillReceiveProps(nextProps:AreasListProps,nextState:AreasListState){
 
-        if(nextProps.areas!==this.props.areas){
+        //if(nextProps.areas!==this.props.areas){
 
-            this.init();
+            //this.init(nextProps);
 
-        }else if(nextProps.projects!==this.props.projects){
+        //}else if(nextProps.projects!==this.props.projects){
 
-            this.init(); 
+            this.init(nextProps); 
 
-        }
+        //}else if(this.state.layout!==nextState.layout){
 
-    }
+        //}
+
+    } 
 
 
 
     componentDidMount(){
 
-        this.init();
+        this.init(this.props);
 
     }
 
 
 
-    init = () => {
-        let group = this.groupProjectsByArea();
-        let layout = this.generateLayout(group); 
+    init = (props:AreasListProps) => {
+
+        let group = this.groupProjectsByArea(props);
+
+        let layout = this.generateLayout(props,group); 
+
         this.setState({layout}); 
+
     }
 
 
@@ -98,10 +104,10 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
          
 
 
-    groupProjectsByArea = () => {
-
-        let projects = this.props.projects;
-        let areas = this.props.areas;
+    groupProjectsByArea = (props:AreasListProps) => {
+ 
+        let projects = props.projects;
+        let areas = props.areas;
         let table : { [key: string]: Project[]; } = {};
         let detached : Project[] = []; 
 
@@ -129,8 +135,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
             for(let j=0; j<areas.length; j++){
 
-                attachedProjectsIds = areas[j].attachedProjectsIds;
-
+                attachedProjectsIds = unique(areas[j].attachedProjectsIds);
+ 
                 if(attachedProjectsIds.indexOf(project_id) !== -1){
 
                     key = areas[j]._id;
@@ -154,10 +160,11 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     
 
     generateLayout = (  
+        props : AreasListProps, 
         { table, detached } : { table : { [key: string]: Project[]; }, detached:Project[] } 
     ) : LayoutItem[] => { 
 
-        let areas = this.props.areas;
+        let areas = props.areas;
 
         let layout : LayoutItem[] = [];
 
@@ -182,7 +189,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         return layout;
  
     }
-
+ 
 
 
     getAreaElement = (a : Area, index : number) : JSX.Element => {
@@ -215,9 +222,9 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                     color: "rgba(100, 100, 100, 1)"
                 }}>   
                     {
-                        a.name.length===0 ?
-                        stringToLength(a.name,18) :
-                        "New Area"
+                        a.name.length===0 ? 
+                        "New Area" : 
+                        stringToLength(a.name,18) 
                     }   
                 </div>  
             </div>
@@ -273,10 +280,10 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                         WebkitUserSelect: "none" 
                     }}>   
                         { 
-                            p.name.length>0 ? 
-                            stringToLength(p.name,15) :
-                            "New Project" 
-                        }
+                            p.name.length==0 ? 
+                            "New Project" :
+                            stringToLength(p.name,15) 
+                        } 
                     </div>    
 
             </div>
@@ -331,102 +338,133 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     shouldCancelAnimation = () => false
 
 
-
-    onSortEnd = ({oldIndex, newIndex, collection}, e) => {
+    isEmpty = () : boolean => {
 
         if(this.props.areas.length===0)
-           return; 
+           return true; 
+
         if(this.props.projects.length===0)
-           return;    
+           return true;   
 
-        let layout = this.state.layout;
- 
-        let item : Project = layout[oldIndex] as Project;
-  
-        if(item.type!=="project")
-           throw new Error(`Target is not a project. onSortEnd. ${item} ${JSON.stringify(layout)} `) 
-
-  
-        let fromAreaIndex = null;
-        let toAreaIndex = null;
-        let toAreaProjectsOffset = 0;
-        let offset = 0;
-
-
-        for(let i=oldIndex-1; i>=0; i--){ 
-            if(layout[i].type==="area"){
-                fromAreaIndex = i;
-                break; 
-            } 
-        } 
-
-
-        for(let i=newIndex-1; i>=0; i--){ 
-            
-            if(layout[i].type==="area"){
-                toAreaIndex  = i;
-                toAreaProjectsOffset = offset;
-                offset = 0;
-                break; 
-            }else{
-                offset+=1;
-            }
-            
-        } 
-
-
-        if(fromAreaIndex===null)
-            throw new Error(`Area does not exist. fromArea. onSortEnd. ${fromAreaIndex} ${JSON.stringify(layout)} `) 
- 
-        if(toAreaIndex===null)
-            throw new Error(`Area does not exist. toArea. onSortEnd. ${toAreaIndex} ${JSON.stringify(layout)} `) 
- 
-
-        let fromArea : Area = layout[fromAreaIndex] as Area;
-        let toArea : Area = layout[toAreaIndex] as Area;   
-  
- 
-        if(fromArea===undefined)
-            throw new Error(`Area does not exist. fromArea. onSortEnd. ${fromArea} ${JSON.stringify(layout)} `); 
-  
-        if(toArea===undefined)
-            throw new Error(`Area does not exist. toArea. onSortEnd. ${toArea} ${JSON.stringify(layout)} `); 
-
-
-        let fromAreaAttachedProjectsIds : string[] = fromArea.attachedProjectsIds;
-        let toAreaAttachedProjectsIds : string[] = toArea.attachedProjectsIds;
-        
-        
-
-        let removeIndex = fromArea.attachedProjectsIds.indexOf(item._id);
-        fromArea.attachedProjectsIds = remove(fromArea.attachedProjectsIds, removeIndex);
- 
-        let insertIndex = toAreaProjectsOffset; 
-        toArea.attachedProjectsIds = insert(toArea.attachedProjectsIds, item._id, insertIndex);          
-    
-
-
-        let updatedAreas = [];
-
-
-
-        for(let i=0; i<layout.length; i++)
-            if(layout[i].type==="area")
-               updatedAreas.push(layout[i]);
-
-
-            
-        this.props.dispatch({type:"areas",load:updatedAreas});
+        return false; 
 
     }
  
+
+    findClosestArea = (oldIndex, layout) => {
+        let steps = 0;
+
+        for(let i=oldIndex-1; i>=0; i--){ 
+            
+            if(layout[i].type==="area")
+               return {index:i, steps};
+            
+             
+            steps+=1;
+            
+        } 
+    }
+
+
+
+    isDetached = (index, layout) => {
+        for(let i=index-1; i>=0; i--) 
+            if(layout[i].type==="separator")
+               return true;
+
+        return false;
+    }
+    
+
+
+    onSortEnd = ({oldIndex, newIndex, collection}, e) : void => {
+
+        if(this.isEmpty())
+           return;  
+        
+        let item : Project = {...this.state.layout[oldIndex] as Project};
+
+        if(item.type!=="project")
+           return;  
+  
+        let before : {index:number, steps:number} = this.findClosestArea(oldIndex, this.state.layout);
+        let after : {index:number, steps:number} = this.findClosestArea(newIndex, this.state.layout);
+
+        let detached : boolean = this.isDetached(newIndex, this.state.layout);
+        let reorderInsideDetached = before.index===after.index && detached;
+        let reorderInsideArea = before.index===after.index && !detached; 
+        let attachToDifferentArea =  before.index!==after.index && !detached; 
+
+
+        let updatedLayout : any[] = [...this.state.layout]; 
+         
+
+        if(detached){   
+ 
+  
+            let fromArea = {...updatedLayout[before.index] as Area};
+            let attachedProjectsIds = [...fromArea.attachedProjectsIds];
+            let idx = attachedProjectsIds.indexOf(item._id);
+            attachedProjectsIds = remove(attachedProjectsIds, idx);
+            fromArea.attachedProjectsIds = attachedProjectsIds;
+
+            updatedLayout = replace(updatedLayout,fromArea,before.index);
+            let result = updatedLayout.filter( item => item.type==="area" );
+            this.props.dispatch({ type:"areas", load:result });
+
+
+        }else if(reorderInsideArea){
+
+
+            let fromArea = {...updatedLayout[before.index] as Area};
+            let attachedProjectsIds = [...fromArea.attachedProjectsIds];
+            let temp = attachedProjectsIds[before.steps]; 
+            attachedProjectsIds[before.steps] = attachedProjectsIds[after.steps];
+            attachedProjectsIds[after.steps] = temp;
+            fromArea.attachedProjectsIds = attachedProjectsIds;
+
+
+            updatedLayout = replace(updatedLayout,fromArea,before.index);
+            let result = updatedLayout.filter( item => item.type==="area" );
+            this.props.dispatch({ type:"areas", load:result });
+ 
+
+        }else if(attachToDifferentArea){ 
+            
+            let fromArea = {...updatedLayout[before.index] as Area};
+            let toArea = {...updatedLayout[after.index] as Area};
+ 
+            let idx = fromArea.attachedProjectsIds.indexOf(item._id);
+            let to = after.steps;
+
+            fromArea.attachedProjectsIds = remove(fromArea.attachedProjectsIds, idx);
+            toArea.attachedProjectsIds = insert(toArea.attachedProjectsIds, item._id, to); 
+
+            updatedLayout = replace(updatedLayout,fromArea,before.index);
+            updatedLayout = replace(updatedLayout,toArea,after.index);   
+            let result = updatedLayout.filter( item => item.type==="area" );
+            this.props.dispatch({ type:"areas", load:result });
+              
+
+        }else if(reorderInsideDetached){}
+
+        
+
+    }
+ 
+
+ 
+
+
+
+
 
 
     onSortMove = (e, helper : HTMLElement) => { 
 
 
     }
-
+ 
 
 
     onSortStart = ({node, index, collection}, e, helper) => { 
@@ -435,7 +473,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     }
 
 
-
+ 
      
     render(){
  
@@ -451,7 +489,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
                 shouldCancelStart={this.shouldCancelStart}
                 shouldCancelAnimation={this.shouldCancelAnimation}
-  
+   
                 onSortEnd={this.onSortEnd} 
                 onSortMove = {this.onSortMove}
                 onSortStart={this.onSortStart}

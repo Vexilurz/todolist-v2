@@ -36,9 +36,9 @@ let uniqid = require("uniqid");
 import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
 import { ThingsCalendar } from '.././ThingsCalendar';
-import { 
+import {  
     insideTargetArea, daysRemaining, replace, remove, todoChanged, 
-    uniq, daysLeftMark, generateTagElement, renderSuggestion 
+    unique, daysLeftMark, generateTagElement, renderSuggestion 
 } from '../../utils';
 import { Todo, removeTodo, updateTodo, generateId } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
@@ -333,9 +333,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         if(!Array.isArray(tags))
             tags = []; 
 
-        tags.push(tag);
+        tags.push(tag); 
 
-        this.setState({currentTag:'', attachedTags:uniq(tags), showtagsPopover:false, tagsInputDisplay:false});
+        this.setState({currentTag:'', attachedTags:unique(tags), showtagsPopover:false, tagsInputDisplay:false});
     }
 
 
@@ -487,19 +487,19 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     
 
 
-    onCalendarTodayClick = (e) => {
+    onCalendarTodayClick = (e) => { 
 
         this.setState({ 
             showCalendar:false, 
             newSelectedCategory:"today",
             attachedDate:new Date()
-        })
+        }) 
 
     } 
     
 
 
-    onCalendarThisEveningClick = (e) => {
+    onCalendarThisEveningClick = (e) => { 
 
         this.setState({
             showCalendar:false, 
@@ -511,7 +511,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
      
     
 
-    onCalendarAddReminderClick = (e) => {
+    onCalendarAddReminderClick = (e) => { 
 
         //this.setState({ 
         //    showCalendar:false, reminder:{} 
@@ -521,9 +521,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
      
-    onCalendarClear = (e) => {
+    onCalendarClear = (e) => { 
 
-        if(this.state.calendarType==="full"){
+        if(this.state.calendarType==="full"){ 
             
             this.setState({ 
                 showCalendar:false,
@@ -532,7 +532,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             })
     
 
-        }else if(this.state.calendarType==="simple"){
+        }else if(this.state.calendarType==="simple"){ 
     
             this.setState({ 
                 showCalendar:false, 

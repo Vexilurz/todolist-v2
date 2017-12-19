@@ -38,11 +38,11 @@ interface ProjectMenuPopoverProps extends Store{
 
 interface ProjectMenuPopoverState{}
 
-  
+   
 @connect((store,props) => ({...store,...props}), attachDispatchToProps) 
 export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,ProjectMenuPopoverState>{
 
-    constructor(props){
+    constructor(props){ 
         super(props); 
     }  
 
@@ -99,51 +99,22 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         this.updateProject(project, {completed:new Date()});
 
  
-    }
+    } 
    
 
 
-    onDuplicate = (e) => {   
-
-        let projectId : string = this.props.selectedProjectId;
+    onDuplicate = (e) => { 
         
-        let idx = this.props.projects.findIndex( (p:Project) => p._id===projectId );
-
-        if(idx===-1)
-           throw new Error(`Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`);
+        this.props.dispatch({ type:"duplicateProject", load:this.props.selectedProjectId }); 
  
-        let project : any = { ...this.props.projects[idx] };
-
-        project  = {  ...project,  ...{_id:generateId()}  };
-        
-        delete project._rev;
-
-        addProject((e) => console.log(e), project);
-        
-        let projects = insert(this.props.projects, project, idx);
-
-        this.props.dispatch({type:"projects", load:projects});
-
     }
 
 
 
     onDelete = (e) => {   
 
-        let projectId : string = this.props.selectedProjectId;
-        
-        let idx = this.props.projects.findIndex( (p:Project) => p._id===projectId );
+        this.props.dispatch({ type:"removeProject", load:this.props.selectedProjectId });
 
-        if(idx===-1)
-           throw new Error(`Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`);
-
-         
-        let projects = remove(this.props.projects, idx);
-  
-        removeProject(projectId); 
-
-        this.props.dispatch({type:"projects", load:projects});   
- 
     }
 
 

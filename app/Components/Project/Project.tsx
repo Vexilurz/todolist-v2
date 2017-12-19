@@ -32,7 +32,8 @@ import { ProjectBody } from './ProjectBody';
 
 
 interface ProjectComponentProps{
-    project:Project,
+    projects:Project[], 
+    selectedProjectId:string,
     todos:Todo[],
     tags:string[],
     rootRef:HTMLElement,
@@ -41,9 +42,11 @@ interface ProjectComponentProps{
   
 
 
-interface ProjectComponentState{}  
+interface ProjectComponentState{
+    project:Project 
+}  
  
-
+ 
  
 export class ProjectComponent extends Component<ProjectComponentProps,ProjectComponentState>{
 
@@ -52,21 +55,77 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
         super(props);
 
-        this.state={}
-
+        this.state={
+            project : undefined
+        }
+ 
     }  
+ 
 
 
-    shouldComponentUpdate(nextProps){
+    selectProject = (props) => {
+
+        let project = props.projects.find( 
+            (p:Project) => props.selectedProjectId===p._id
+        );
+
+        this.setState({project});
         
-        return true;  
+    }
+
+
+ 
+    componentDidMount(){
+
+        this.selectProject(this.props); 
 
     }
+
+
+
+    componentWillReceiveProps(nextProps:ProjectComponentProps){
  
+        let selectProject = false;
+
+        if(nextProps.projects!==this.props.projects)
+           selectProject = true;
+             
+
+        if(nextProps.selectedProjectId!==this.props.selectedProjectId)   
+           selectProject = true;
+         
+
+        if(selectProject)     
+           this.selectProject(nextProps);    
+        
+    }
+ 
+
+
+    shouldComponentUpdate(nextProps, nextState){
+
+        let shouldUpdate = false;
+        
+        
+        if(nextProps.projects!==this.props.projects)
+           shouldUpdate = true;
+                
+        if(nextProps.selectedProjectId!==this.props.selectedProjectId)   
+           shouldUpdate = true;
+        
+        if(nextState.project!==this.state.project)
+           shouldUpdate = true;  
+
+
+        return shouldUpdate; 
+ 
+    }
+  
+
  
     updateProject = (selectedProject:Project, updatedProps) : void => { 
 
-        let type = "updateProject";
+        let type = "updateProject"; 
   
         let load = { ...selectedProject, ...updatedProps };
 
@@ -75,16 +134,18 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     }
 
 
+
     updateProjectName = (value:string) : void => {
 
-        this.updateProject(this.props.project, {name:value});
+        this.updateProject(this.state.project, {name:value});
 
     }  
 
 
+
     updateProjectDescription = (value:string) : void => {
 
-        this.updateProject(this.props.project, {description:value});
+        this.updateProject(this.state.project, {description:value});
  
     }
     
@@ -92,7 +153,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
   
     updateLayout = (layout:LayoutItem[]) => {
 
-        this.updateProject(this.props.project, {layout});
+        this.updateProject(this.state.project, {layout});
 
     } 
 
@@ -100,7 +161,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     updateHeading = (heading_id:string, newValue:string) => {
 
-        let layout = this.props.project.layout;
+        let layout = this.state.project.layout;
         let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
 
         if(idx===-1){
@@ -113,15 +174,15 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
         heading.title=newValue;
  
-        this.updateProject(this.props.project, {layout:replace(layout,heading,idx)});
+        this.updateProject(this.state.project, {layout:replace(layout,heading,idx)});
  
     }
-
+ 
 
 
     archiveHeading = (heading_id:string) => {
 
-        let layout = this.props.project.layout;
+        let layout = this.state.project.layout;
         let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
 
         if(idx===-1){
@@ -138,7 +199,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     removeHeading = (heading_id:string) => {
 
-        let layout = this.props.project.layout;
+        let layout = this.state.project.layout;
         let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
 
         if(idx===-1){
@@ -147,29 +208,31 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
         }
  
-        this.updateProject(this.props.project, {layout:remove(layout,idx)});
+        this.updateProject(this.state.project, {layout:remove(layout,idx)});
 
     }
-
-
+ 
+ 
     render(){
-         return <div>
+
+         return this.state.project===undefined ? null :
+                <div>  
                     <div>    
                         <ProjectHeader
-                            name={this.props.project.name}
-                            description={this.props.project.description}
-                            created={new Date(this.props.project.created)} 
-                            deadline={new Date(this.props.project.deadline)}
-                            completed={new Date(this.props.project.completed)}
+                            name={this.state.project.name}
+                            description={this.state.project.description}
+                            created={new Date(this.state.project.created)} 
+                            deadline={new Date(this.state.project.deadline)}
+                            completed={new Date(this.state.project.completed)}
                             updateProjectName={this.updateProjectName}
                             updateProjectDescription={this.updateProjectDescription} 
                             dispatch={this.props.dispatch} 
                         />       
                     </div> 
-
+ 
                     <div>
                         <ProjectBody 
-                            layout={this.props.project.layout}
+                            layout={this.state.project.layout}
                             updateLayout={this.updateLayout}
                             updateHeading={this.updateHeading}
                             archiveHeading={this.archiveHeading}
@@ -182,6 +245,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         />
                     </div>   
                 </div>
+
     }
 
 } 

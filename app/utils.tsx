@@ -1,12 +1,12 @@
 import './assets/styles.css';     
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
-import { map, range, merge, isEmpty, curry, cond, compose, contains, and, or,
+import { map, range, merge, isEmpty, curry, cond, compose, contains, and, or,uniq,
     find, defaultTo, split, filter, clone, take, drop, splitAt, last, isNil, toUpper, prepend, flatten, prop, toPairs } from 'ramda';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import {
   cyan500, cyan700,   
-  pinkA200,
+  pinkA200, 
   grey100, grey300, grey400, grey500,
   white, darkBlack, fullBlack,  
 } from 'material-ui/styles/colors'; 
@@ -192,6 +192,8 @@ export let diffDays = (dateA : Date, dateB : Date) : number => {
 
 
 
+
+
 export let uppercase = (str:string) : string => { 
 
     if(str.length===0)
@@ -367,7 +369,7 @@ export let remove = (array:any[], idx:number) : any[] => {
 }  
 
 
-export let uniq = (array:string[]) : string[] => {
+export let unique = (array:string[]) : string[] => {
  
     let values = [];
 

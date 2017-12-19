@@ -28,7 +28,7 @@ import { uppercase, debounce, diffDays, daysRemaining } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
-
+import Checked from 'material-ui/svg-icons/navigation/check';
 
 interface ProjectHeaderProps{
     name:string, 
@@ -43,7 +43,9 @@ interface ProjectHeaderProps{
   
 
   
-interface ProjectHeaderState{}
+interface ProjectHeaderState{
+    projectMenuPopoverAnchor:HTMLElement 
+}
   
 
 
@@ -51,42 +53,57 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
 
     projectMenuPopoverAnchor:HTMLElement;  
   
+
     constructor(props){ 
          
         super(props);
+        this.state = {
+            projectMenuPopoverAnchor:null 
+        }
+ 
+    }  
 
-    } 
  
 
-    shouldComponentUpdate(nextProps:ProjectHeaderProps){
-  
-        let nameChanged = this.props.name!==nextProps.name;
+    componentDidMount(){
 
-        let descriptionChanged = this.props.description!==nextProps.description;
+        if(this.projectMenuPopoverAnchor){
  
-        if(nameChanged)
-           return true;
+            this.setState({
+                projectMenuPopoverAnchor:this.projectMenuPopoverAnchor
+            })
 
-        if(descriptionChanged)
-           return true; 
-        
-        return false;    
+        }
 
     }
  
+ 
+ 
+    shouldComponentUpdate(nextProps:ProjectHeaderProps){
+  
+        return true;    
+
+    }
+ 
+
 
     openMenu = (e) => this.props.dispatch({type:"showProjectMenuPopover", load:true})
    
 
     render(){
+     
+     let days = diffDays(this.props.created,this.props.deadline);    
 
- 
-     return <div>
+     let remaining = this.props.completed===undefined ||  this.props.completed===null ? 
+                     daysRemaining(this.props.deadline) : 
+                     days;      
+    
+     return <div>  
 
-            <ProjectMenuPopover {...{ 
-                anchorEl:this.projectMenuPopoverAnchor} as any
-            } />   
-  
+            <ProjectMenuPopover 
+                 {...{anchorEl:this.state.projectMenuPopoverAnchor} as any}
+            />     
+    
 
             <div style={{display:"flex", alignItems: "center"}}>
 
@@ -111,17 +128,30 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         justifyContent: "center",
                         position: "relative"
                     }}>   
+                        { 
+                            this.props.completed===undefined ? null : 
+                            <div style={{ width: "22px", height: "22px"}}> 
+                                <Checked style={{ 
+                                    color:"white", width: "22px",
+                                    height: "22px",
+                                    position: "absolute",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center" 
+                                }}/>
+                            </div>  
+                        }
                         <PieChart
                             animate={true}   
                             //radius={50} 
-                            totalValue={diffDays(this.props.created,this.props.deadline)}
+                            totalValue={days}
                             data={[{ 
-                                value:daysRemaining(this.props.deadline), 
+                                value:remaining,  
                                 key:1,  
                                 color:'rgba(108, 135, 222, 0.8)' 
                             }]}   
                             style={{ 
-                                width: "22px",
+                                width: "22px", 
                                 height: "22px",
                                 position: "absolute",
                                 display: "flex",

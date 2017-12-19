@@ -312,7 +312,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
  
                 <FadeBackgroundIcon   
                     container={this.rootRef} 
-                    objects={this.props.todos}
+                    objects={this.props.todos} 
                     filters={[
                         byTags(this.props.selectedTag),
                         byCategory(this.props.selectedCategory),
@@ -399,13 +399,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
 
                             project : <ProjectComponent 
-                                dispatch={this.props.dispatch}
+                                dispatch={this.props.dispatch} 
+                                selectedProjectId={this.props.selectedProjectId}
                                 todos={this.props.todos}
-                                project={this.props.projects.find( 
-                                    (p:Project) => this.props.selectedProjectId===p._id
-                                )}  
+                                projects={this.props.projects}  
                                 rootRef={this.rootRef}
-                                tags={this.props.tags}
+                                tags={this.props.tags} 
                             />,   
 
 
@@ -448,15 +447,21 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
 
                             area : <AreaComponent 
-                            
-                            />
-
+                                areas={this.props.areas}
+                                selectedAreaId={this.props.selectedAreaId}
+                                dispatch={this.props.dispatch}
+                                projects={this.props.projects}
+                                todos={this.props.todos}
+                                tags={this.props.tags}
+                                rootRef={this.rootRef}
+                            /> 
+ 
                          }[this.props.selectedCategory]
                     }
  
 
 
-                    <div style={{ 
+                    <div style={{  
                         height:"60px", 
                         width:this.props.clone ? "100%" : window.innerWidth-this.props.leftPanelWidth, 
                         position:"fixed", 

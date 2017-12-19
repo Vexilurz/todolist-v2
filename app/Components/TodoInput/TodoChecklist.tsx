@@ -38,7 +38,7 @@ import { TextField } from 'material-ui';
 import { ThingsCalendar } from '.././ThingsCalendar';
 import { 
     insideTargetArea, daysRemaining, replace, remove, todoChanged, 
-    uniq, daysLeftMark, generateTagElement, renderSuggestion 
+    daysLeftMark, generateTagElement, renderSuggestion 
 } from '../../utils';
 import { Category } from '.././MainContainer';
 import { Todo, removeTodo, updateTodo, generateId } from '../../database';
@@ -81,8 +81,8 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
     shouldComponentUpdate(nextProps){
 
-        return this.props.checklist!==nextProps.checklist;
- 
+        return true;
+    
     }
 
 
@@ -102,7 +102,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                 }
             ]; 
 
-        }
+        } 
 
         this.props.updateChecklist(this.checklist);  
      

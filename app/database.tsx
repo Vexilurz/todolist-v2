@@ -162,7 +162,7 @@ let fakeProject = (attachedTags, layout, attachedAreasIds) : Project => {
       type : "project",
       name : compose(join(' '), map((n) => randomWord()), range(0), add(3))(randomInteger(3)), 
       description : compose(join(' '), map((n) => randomWord()), range(0), add(7))(randomInteger(20)),
-      created : new Date(),
+      created : randomDate(new Date()["addDays"](-50), new Date()),
       deadline : randomDate(new Date(), new Date()["addDays"](50)),
       completed : checked ? randomDate(new Date(), new Date()["addDays"](50)) : null,
       layout, 
@@ -170,7 +170,7 @@ let fakeProject = (attachedTags, layout, attachedAreasIds) : Project => {
       attachedTags  
     })
 
-}
+} 
 
 
 

@@ -90,11 +90,12 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         
     
         
-    shouldComponentUpdate(nextProps:ProjectBodyProps){ 
-
+    shouldComponentUpdate(nextProps:ProjectBodyProps, nextState:ProjectBodyState){ 
+    
         let layoutChanged = nextProps.layout !== this.props.layout;
-        let todosChanged = nextProps.todos !== this.props.todos;
+        let todosChanged = nextProps.todos !== this.props.todos; 
         let tagsChanged = nextProps.tags !== this.props.tags;
+        let selectedItemsChanged = nextState.selectedItems !== this.state.selectedItems; 
          
         if(layoutChanged)
            return true; 
@@ -105,9 +106,12 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         if(tagsChanged)
            return true; 
 
+        if(selectedItemsChanged)
+           return true;    
+
         return false; 
     
-    } 
+    }   
 
 
 
