@@ -54,11 +54,11 @@ let generateEmptyProject = () : Project => ({
     created : new Date(), 
     deadline : null,
     completed : null, 
-    attachedAreasIds : [], 
+    attachedTodosIds : [], 
     attachedTags : []
 });
  
-
+ 
  
 let generateEmptyArea = () : Area => ({
     _id : generateId(),
@@ -68,7 +68,6 @@ let generateEmptyArea = () : Area => ({
     attachedTags : [], 
     attachedTodosIds : [], 
     attachedProjectsIds : [],
-    attachedEventsIds : []
 });
   
  
@@ -131,10 +130,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
             let anytime = this.props.todos.filter( v => !v.checked ).length;
  
-                 
-            let detachedProjects = this.props.projects.filter(
-                (p:Project) => p.attachedAreasIds.length===0 
-            );
+                
   
             return   <div 
                         className="leftPanelScroll"
@@ -146,16 +142,13 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             position:"relative", 
                             backgroundColor: "rgba(189, 189, 189, 0.2)"  
                         }}
-                    >        
-
-
-
-                    <ResizableHandle  
-                        onDrag={(e,d) => this.props.dispatch({
-                            type:"leftPanelWidth",
-                            load:this.props.leftPanelWidth+d.deltaX
-                        })}   
-                    />   
+                    >            
+                                <ResizableHandle  
+                                    onDrag={(e,d) => this.props.dispatch({
+                                        type:"leftPanelWidth",
+                                        load:this.props.leftPanelWidth+d.deltaX
+                                    })}   
+                                />   
   
                                 <div 
                                     className="no-drag" 
@@ -177,7 +170,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                                         <Remove /> 
                                     </IconButton> 
  
-
+ 
                                     <IconButton 
                                         iconStyle={{color:"cadetblue",width:"20px",height:"20px"}}
                                         className="no-drag" 
@@ -192,7 +185,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                                                     );    
                                                 }
                                             ) 
-                                        }}  
+                                        }}   
                                     >     
                                         <FullScreen />
                                     </IconButton>   
@@ -466,13 +459,6 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 };  
  
    
-  
-
-  
-
-
-
-
 
 
 

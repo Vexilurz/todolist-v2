@@ -185,8 +185,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     todoFromState = () : Todo => ({
         _id : this.props.todo._id,  
-        priority : this.props.todo.priority,
-        attachedProjectsIds : this.props.todo.attachedProjectsIds,  
+        priority : this.props.todo.priority, 
         status : this.props.todo.status,
         created : this.props.todo.created,  
         deleted : this.props.todo.deleted,
@@ -756,63 +755,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                     checklist={this.state.checklist}  
                                     updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})} 
                                 />
-
-
-                                {   
-                                    this.state.attachedTags.length===0 ? null : 
- 
-                                    <div  
-                                        style={{
-                                            display:"flex", 
-                                            alignItems:"center", 
-                                            justifyContent:"flex-start", 
-                                            flexWrap:"wrap"
-                                        }}  
-                                    >    
-                                        {this.state.attachedTags.map(generateTagElement)} 
-                                    { 
-
-                                    <Autosuggest
-                                        suggestions={this.state.selectedTags}
-                                        onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-                                        onSuggestionsClearRequested={this.onSuggestionsClearRequested}
-                                        getSuggestionValue={this.getSuggestionValue}
-                                        onSuggestionSelected={(event, {suggestion, suggestionValue}) => {
-                                            this.attachTag(suggestionValue);
-                                        }}  
-                                        renderSuggestion={renderSuggestion}  
-                                        shouldRenderSuggestions={(v) => true}
-                                        //alwaysRenderSuggestions={true}  
-                                        theme={{suggestionsList:"suggestionsList"}}
-                                        renderSuggestionsContainer={this.renderSuggestionsContainer}      
-                                        inputProps={{
-                                            style:{  
-                                                borderTop: "none",
-                                                borderLeft: "none", 
-                                                borderRight: "none",
-                                                borderBottom: "1px solid rgb(171, 212, 199)",
-                                                boxSizing: "content-box", 
-                                                color: "rgb(100, 100, 100)",
-                                                height: "25px",
-                                                fontWeight: "bold",   
-                                                width: "140px",
-                                                fontFamily: "sans-serif",
-                                                fontSize: "16px",
-                                                outline: "none"
-                                            },
-                                            onKeyPress: (event) => {
-                                                if (event.which == 13 || event.keyCode == 13) {
-                                                    this.attachTag(this.state.currentTag);
-                                                }  
-                                            },
-                                            placeholder: '', 
-                                            value:this.state.currentTag,
-                                            onChange:this.onAutoSuggestInputChange
-                                        }}
-                                    />
-                                    } 
-                                    </div>
-                                }    
+  
                             </div> 
 
                     </div>   

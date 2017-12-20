@@ -46,7 +46,12 @@ export class SortableList extends Component<SortableListProps, SortableListState
     
     getSortableList = (items:any[]) : JSX.Element =>  {
         
-        return <ul style={{ padding:0, margin:0 }}>     
+        return <ul style={{ 
+            padding:0,   
+            margin:0, 
+            display: "flex",
+            flexDirection: "column" 
+        }}>     
             {     
                 items.map(        
                     (item:any, index) => {   

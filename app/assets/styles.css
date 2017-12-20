@@ -197,15 +197,16 @@ ul {
   background-color: rgb(205,221,253);
   border-radius: 5px; 
 }
-
  
+  
 .toggleFocus{
-  background-color:rgba(245, 244, 246, 1);
+  border-radius: 5px; 
 }
-
+ 
 
 .toggleFocus:hover{
   background-color:rgba(205, 221, 253, 1);
+  border-radius: 5px; 
 }
 
 

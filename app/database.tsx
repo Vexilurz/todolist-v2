@@ -1,18 +1,15 @@
 import './assets/styles.css'; 
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, multiply, add,
-    compose, append, contains, and, find, defaultTo, addIndex, split, filter, aperture,
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, groupBy, concat, flatten, ifElse, join 
-} from 'ramda';  
 import { ipcRenderer } from 'electron';
 import PouchDB from 'pouchdb-browser';  
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 import { Category } from './Components/MainContainer';
+import { unique, splitEvery } from './utils';
 
 
 let todos_db;
-let projects_db;
+let projects_db; 
 let areas_db;
 let events_db;  
 
@@ -30,7 +27,11 @@ const randomWord = require('random-word');
 let uniqid = require("uniqid"); 
 
 
-let randomInteger = (n:number) : number => compose(Math.round, multiply(n), Math.random)(0);
+let randomInteger = (n:number) : number => {
+
+  return Math.round(Math.random() * n);
+
+}
 
 
 let randomDate = (start, end) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
@@ -55,6 +56,7 @@ let randomArrayMember = (array : any[]) => {
 } 
 
 
+
 let randomCategory = () => {
 
   let categories = [
@@ -68,66 +70,91 @@ let randomCategory = () => {
 }
 
 
-
+ 
 Date.prototype["addDays"] = function(days) {
   var dat = new Date(this.valueOf());
   dat.setDate(dat.getDate() + days);
   return dat; 
 };
 
- 
+
+
 export let generateId = () => new Date().toJSON(); 
 
-
- 
 
    
 let generateid = () => uniqid() + new Date().toJSON();  
  
   
-let fakeTags = (n) => compose(map((i) => randomWord()), range(0), add(5))(randomInteger(n));
+let fakeTags = (n) => {
+  let tags = [];
+  let i  = randomInteger(n) + 5;
+
+  
+  for(let j=0; j<i; j++)
+      tags.push(randomWord())
+
+  return tags;
+}
   
 
-let fakeEvent  = (attachedTags, attachedProjectsIds) : Event => ({
-    _id : generateid(), 
-    type:"event",
-    title : compose(join(' '), map((n) => randomWord()), range(0), add(3))(randomInteger(4)),
-    note : compose(join(' '), map((n) => randomWord()), range(0), add(2))(randomInteger(10)),
-    attachedProjectsIds,
-    attachedTags,
-    date:randomDate(new Date(2012, 0, 1), new Date()),
-    location:JSON.stringify({ latitude: Math.random()*100, longitude: Math.random()*100 }),  
-    history : null,
-    attachments : []
-}) 
 
 
 
-let fakeCheckListItem = (idx) => ({  
-    text : compose(join(' '), map((n) => randomWord()), range(0), add(2))(randomInteger(5)), 
-    checked : Math.random() > 0.5 ? true : false,
-    idx : idx,
-    key : generateid()  
-}) 
+let fakeCheckListItem = (idx) => {
+
+  let words : string[] = [];
+  let k = randomInteger(3) + 2;
+
+  for(let i=0; i<k; i++)
+      words.push(randomWord());  
+ 
+
+  return {  
+      text : words.join(), 
+      checked : Math.random() > 0.5 ? true : false,
+      idx : idx,
+      key : generateid()  
+  } 
+
+}
+
+
 
  
 
-let fakeTodo = (tags:string[], attachedProjectsIds) : Todo => {
+let fakeTodo = (tags:string[]) : Todo => {
+
   let checked = Math.random() > 0.5 ? true : false ;
   
-  if(tags===undefined) 
-     throw new Error("Tags undefined. fakeTodo"); 
+  let title : string[] = [];
+  let note : string[] = [];
+  let checklist = [];
+
+  let k = randomInteger(3) + 2;
+  let n = randomInteger(6) + 2;
+  let c = randomInteger(5) + 2;
+  
+
+  for(let i=0; i<k; i++)
+      title.push(randomWord());  
+
+  for(let i=0; i<n; i++) 
+      note.push(randomWord());  
+
+  for(let i=0; i<c; i++) 
+      checklist.push(fakeCheckListItem(i));  
+    
 
   return ({ 
       _id : generateid(),   
       type:"todo",
       category : randomCategory(), 
-      title : compose(join(' '), map((n) => randomWord()), range(0), add(3))(randomInteger(4)),
+      title : title.join(),
       priority : Math.random()*100,
-      note : compose(join(' '), map((n) => randomWord()), range(0), add(2))(randomInteger(10)),
-      checklist : compose(map(fakeCheckListItem), range(0))(7),
+      note : note.join(),
+      checklist : checklist,
       reminder : Math.random() > 0.5 ? {} : null, 
-      attachedProjectsIds, 
       attachedTags:tags,
       status : "",
       deadline : randomDate(new Date(), new Date()["addDays"](50)),
@@ -139,34 +166,67 @@ let fakeTodo = (tags:string[], attachedProjectsIds) : Todo => {
       attachments : [],
       checked 
   })
-
+  
 }
 
 
 
-let fakeHeading = () : Heading => ({
+let fakeHeading = () : Heading => {
+
+  let title : string[] = [];
+
+  let k = randomInteger(3) + 2;
+  
+  for(let i=0; i<k; i++)
+      title.push(randomWord());  
+
+  return {
     type : "heading",
-    title : compose(join(' '), map((n) => randomWord()), range(0), add(4))(randomInteger(2)), 
+    title : title.join(), 
     _id : generateid(), 
     key : generateid()
-}) 
+  } 
+
+} 
   
  
  
-let fakeProject = (attachedTags, layout, attachedAreasIds) : Project => {
+let fakeProject = (attachedTags, layout, attachedAreasIds, attachedTodosIds) : Project => {
     
     let checked = Math.random() > 0.5 ? true : false;
+
+
+
+    let name : string[] = [];
     
+    let k = randomInteger(3) + 2;
+    
+    for(let i=0; i<k; i++)
+        name.push(randomWord()); 
+        
+        
+
+
+    let description : string[] = [];
+          
+    let l = randomInteger(3) + 2;
+    
+    for(let i=0; i<l; i++)
+        description.push(randomWord());  
+    
+
+
+
     return ({ 
-      _id : generateid(),   
-      type : "project",
-      name : compose(join(' '), map((n) => randomWord()), range(0), add(3))(randomInteger(3)), 
-      description : compose(join(' '), map((n) => randomWord()), range(0), add(7))(randomInteger(20)),
+      _id : generateid(),    
+      type : "project", 
+      name : name.join(),  
+      description : description.join(),
       created : randomDate(new Date()["addDays"](-50), new Date()),
       deadline : randomDate(new Date(), new Date()["addDays"](50)),
       completed : checked ? randomDate(new Date(), new Date()["addDays"](50)) : null,
       layout, 
-      attachedAreasIds,  
+      attachedTodosIds, 
       attachedTags  
     })
 
@@ -179,29 +239,53 @@ let fakeArea = (
   attachedProjectsIds,
   attachedEventsIds, 
   attachedTags 
-) : Area => ({ 
-    _id : generateid(),   
-    type : "area", 
-    name : compose(join(' '), map((n) => randomWord()), range(0), add(1))(randomInteger(3)), 
-    description : compose(join(' '), map((n) => randomWord()), range(0), add(2))(randomInteger(20)),
-    attachedTags,
-    attachedTodosIds, 
-    attachedProjectsIds,
-    attachedEventsIds 
-})
+) : Area => {
 
+    let name : string[] = [];
+    
+    let k = randomInteger(3) + 2;
+    
+    for(let i=0; i<k; i++)
+        name.push(randomWord()); 
+        
+
+    let description : string[] = [];
+          
+    let l = randomInteger(3) + 2;
+    
+    for(let i=0; i<l; i++)
+        description.push(randomWord());  
+
+  
+    return { 
+      _id : generateid(),   
+      type : "area", 
+      name : name.join(),  
+      description : description.join(),  
+      attachedTags, 
+      attachedTodosIds:unique(attachedTodosIds), 
+      attachedProjectsIds:unique(attachedProjectsIds)
+    }  
+ 
+}
+
+
+
+ 
 
 let generateProjectLayout = (generateTodosIds,n) => { 
+    let layout = [];
 
-    if(generateTodosIds.length===0)
-       throw new Error("generateTodosIds empty. generateProjectLayout.")
+    for(let i=0; i<n; i++){
+        let r = Math.random();
+        if(r > 0.7){
+           layout.push(fakeHeading());
+        }else{
+           layout.push(randomArrayMember(generateTodosIds));
+        }
+    }  
 
-    return  compose(
-              map((v) => v > 0.7 ? fakeHeading() : randomArrayMember(generateTodosIds)),  
-              map((i) => Math.random()),
-              range(0)
-            )(n) 
-
+    return layout;
 }
 
 
@@ -219,106 +303,86 @@ export let generateRandomDatabase = (
 ) : { 
 
     todos : Todo[],
-    events : Event[],
+    events : Event[], 
     projects : Project[],
     areas : Area[] 
      
-} => { 
-  
-    let tags =  fakeTags(12);
-    let tagsChunks = aperture(3)(tags);
+} => {  
+    let tags = fakeTags(8);
+
+    let tagsChunks = splitEvery(3, tags); 
  
-    if(tagsChunks.length===0) 
-       throw new Error("tagsChunks empty.")
-
-    let todosItems : Todo[] = map(() => fakeTodo(randomArrayMember(tagsChunks),[]), range(0,todos));
-
-    let generateTodosIds = map( (t:Todo) => t._id )(todosItems);
-
-    let generateTodosIdsChunks = aperture(3)(generateTodosIds);
-
- 
-    let eventsItems : Event[] = map(() => fakeEvent(randomArrayMember(tagsChunks),[]), range(0,events));
-
-    let generateEventsIds = map( (e:Event) => e._id )(eventsItems);
- 
-    let generateEventsIdsChunks = aperture(3)(generateEventsIds);
-    
-
-    let projectItems = map((n) => fakeProject(
-        randomArrayMember(tagsChunks),
-        generateProjectLayout(generateTodosIds,12),
-        []  
-    ))(range(0,projects));
-        
-
-    let generateProjectsIds = map( (p:Project) => p._id )(projectItems);
-    
-
-    let projectsIdsChunks = aperture(3)(generateProjectsIds);
-    
-    if(projectsIdsChunks.length===0)
-       throw new Error("projectsIdsChunks empty.");
-
-    if(generateEventsIdsChunks.length===0)
-       throw new Error("generateEventsIdsChunks empty.");   
+    let todosItems : Todo[] = [];
 
 
-    let areasItems : Area[] = map(() => fakeArea(
-      randomArrayMember(generateTodosIdsChunks),
-      randomArrayMember(projectsIdsChunks),
-      randomArrayMember(generateEventsIdsChunks),
-      randomArrayMember(tagsChunks)
-    ), range(0,areas));
- 
+    for(let i=0; i<todos; i++)
+        todosItems.push(fakeTodo(randomArrayMember(tagsChunks)));
+
+    let generateTodosIds = todosItems.map( (t:Todo) => t._id );
+
+    let generateTodosIdsChunks = [];
 
 
-    for(let i=0; i<areasItems.length; i++){
-        let item = areasItems[i];
-        let attachedProjects : any = item.attachedProjectsIds;
-         
-        for(let j=0; j<projectItems.length; j++){
+    for(let i=0; i<todos+areas+projects; i++){   
 
-            if(contains(projectItems[j]._id)(attachedProjects)){
-               projectItems[j].attachedAreasIds.push(item._id)
-            }
- 
-        }
-    }
+        let interval = Math.round(Math.random() * todos);
+        let chunk = [];
 
-
-
-    for(let i=0; i<projectItems.length; i++){
-
-        let item = projectItems[i];
-        let attached : any = item.layout;
-        
-        for(let j=0; j<todosItems.length; j++){
-
-          if(contains(todosItems[j]._id)(attached)){
-
-             todosItems[j].attachedProjectsIds.push(item._id)
-
-          }
-
-        }
+        for(let j=0; j<interval; j++)
+            chunk.push(randomArrayMember(generateTodosIds))
+       
+        generateTodosIdsChunks.push(chunk);      
 
     }
  
+
+    let projectItems = [];
+    
+ 
+    for(let i=0; i<projects+areas; i++){
+        projectItems.push(fakeProject(
+          randomArrayMember(tagsChunks), 
+          generateProjectLayout(generateTodosIds,10),
+          [],
+          generateTodosIdsChunks[i],  
+      ))  
+    }
+    
+
+    let generateProjectsIds = projectItems.map( (p:Project) => p._id );
+    
+
+    let projectsIdsChunks = splitEvery(areas,generateProjectsIds);
+    
+    let areasItems = [];
+
+
+ 
+    for(let i=0; i<areas; i++){
+        let areaItem = fakeArea(
+          generateTodosIdsChunks[i],
+          projectsIdsChunks[i], 
+          [],
+          randomArrayMember(tagsChunks)
+        );
+ 
+        areasItems.push(areaItem)
+    }
+
+
 
     return {
       todos : todosItems,
-      events : eventsItems,
+      events : [],
       projects : projectItems,
       areas : areasItems 
     }
-
 
 }
 
 
 
-type ObjectType = "heading" | "project" | "todo" | "event" | "area"; 
+export type ObjectType = "heading" | "project" | "todo" | "event" | "area"; 
 
 
  
@@ -344,7 +408,7 @@ export interface Project{
   created : Date, 
   deadline : Date,
   completed : Date, 
-  attachedAreasIds : string[], 
+  attachedTodosIds : string[],  
   attachedTags : string[]
 }
   
@@ -358,7 +422,6 @@ export interface Area{
   attachedTags : string[], 
   attachedTodosIds : string[], 
   attachedProjectsIds : string[],
-  attachedEventsIds : string[]
 } 
 
 
@@ -371,8 +434,7 @@ export interface Todo{
   priority : number,
   note : string,  
   checklist : ChecklistItem[],
-  reminder : any, 
-  attachedProjectsIds : string[],
+  reminder : any,  
   attachedTags : string[], 
   status : string,
   deadline : Date,
@@ -428,14 +490,30 @@ export interface QueryResult<T>{
 
 
 function queryToObjects<T>(query:Query<T>){
-    return ifElse(
-        isNil, 
-        () => [],
-        compose( 
-            map(prop("doc")),
-            prop("rows") 
-        ) 
-    )(query)
+
+    if(query===undefined || query===null){
+
+       return []; 
+
+    }else{
+
+       let rows : any[] = query.rows;
+
+       if(query===undefined || query===null || rows.length===0)
+          return []; 
+        
+
+       let docs = [];
+
+       for(let i=0; i<rows.length; i++){
+           let doc = rows[i].doc;
+           docs.push(doc);
+       }
+
+       return docs;
+ 
+    }
+
 }
 
 
@@ -518,8 +596,8 @@ function updateItemInDatabase<T>(
     
     return db.get(_id)
            .then(
-              (doc) => {
-                let updated = merge(doc,changed);
+              (doc) => {  
+                let updated = {...doc,...changed as any};
                 middleware(updated,db);
                 return db.put(updated);
               } 

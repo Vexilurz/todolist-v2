@@ -56,7 +56,16 @@ export let daysRemaining = (date) : number => {
 
 }
 
+ 
+export let swap = (array:any[], fromIdx:number, toIdx:number) : any[] => {
+        let copy = [...array];
 
+        let temp = copy[fromIdx];
+        copy[fromIdx] = copy[toIdx]; 
+        copy[toIdx] = copy[fromIdx]; 
+  
+        return copy;
+}
 
 
 
@@ -335,6 +344,7 @@ export let insideTargetArea = (target) => (x,y) : boolean => {
 
 
 
+
 export let insert = (array:any[], item:any, idx:number) : any[] => {
     
         return [
@@ -457,8 +467,6 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
     if(oldTodo.checklist.length!==newTodo.checklist.length)
         return true;
         
-    if(oldTodo.attachedProjectsIds.length!==newTodo.attachedProjectsIds.length)   
-        return true;
  
     if(oldTodo.attachedTags.length!==newTodo.attachedTags.length)
         return true;
@@ -521,12 +529,6 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
            return true; 
 
     }
-
-
-    for(let i=0; i<oldTodo.attachedProjectsIds.length; i++)
-        if(oldTodo.attachedProjectsIds[i]!==newTodo.attachedProjectsIds[i])
-           return true; 
-    
 
 
     for(let i=0; i<newTodo.attachedTags.length; i++)
@@ -841,3 +843,33 @@ export let objectsToHashTableByDate = (props) => {
 
 }   
      
+
+
+export let splitEvery = (n, array)  => {
+
+    if(n===0 || array.length===0 || array.length<=n){
+        return [array];
+    }
+
+    let result = [];
+    let acc = [];
+    let counter = 0;
+
+    for(let i=0; i<array.length; i++){
+        
+        acc.push(array[i]);
+        counter++;
+
+        if(counter===n){
+            result.push(acc);
+            acc = []; 
+            counter=0; 
+        }
+ 
+    }
+ 
+    if(acc.length>0)
+       result.push(acc);
+
+    return result; 
+}

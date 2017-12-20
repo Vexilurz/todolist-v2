@@ -61,7 +61,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         let items = [...this.props.todos]; 
         let selectedItems = items.filter((item) => allPass(this.props.filters, item));
            
-        this.setState({ items:selectedItems }, () => console.log(`selectedItems ${this.state.items} in ${this.props.selectedCategory}`));   
+        this.setState({ items:selectedItems });   
 
      }  
        
@@ -78,7 +78,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
              
             let selectedItems = nextProps.todos.filter((item) => allPass(nextProps.filters, item));
                  
-            this.setState({ items:selectedItems }, () => console.log(`selectedItems ${this.state.items} in ${this.props.selectedCategory}`));  
+            this.setState({ items:selectedItems });  
  
         }     
   

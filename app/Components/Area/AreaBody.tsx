@@ -32,6 +32,7 @@ import { TodoInput } from '../TodoInput/TodoInput';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import PieChart from 'react-minimal-pie-chart';
+import { getProjectLink } from '../Project/ProjectLink';
 
 
  
@@ -99,13 +100,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
 
     } 
          
-    selectProject = (p:Project) => (e) => {
-        
-        this.props.dispatch({ type:"selectedProjectId", load:p._id });
-
-    }
-      
- 
+   
 
     selectTodos = (props:AreaBodyProps) : Todo[] => { 
  
@@ -141,83 +136,17 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
 
  
 
-    getProjectLink = (value:Project, index:number) : JSX.Element => { 
-
-        let days = diffDays(value.created,value.deadline);    
-        
-        let remaining = !value.completed ? 
-                        daysRemaining(value.deadline) : 
-                        days;      
-      
-
-        return  <div className="toggleFocus"  style={{position:"relative", padding:"10px"}}>  
-            <div    
-                onClick = {this.selectProject(value)} 
-                id = {value._id}       
-                style={{   
-                    marginLeft:"4px",
-                    marginRight:"4px", 
-                    position:"relative", 
-                    height:"20px",
-                    width:"95%",
-                    display:"flex",
-                    alignItems: "center" 
-                }}
-            >        
-                    <div>          
-                        <div     
-                            style={{
-                                width: "16px",
-                                height: "16px",
-                                display: "flex",
-                                borderRadius: "50px",
-                                border: "3px solid rgb(10, 100, 240)",
-                                justifyContent: "center",
-                                position: "relative" 
-                            }}
-                        >   
-                        </div>
-                    </div>
-                     
- 
-                    <div   
-                        id = {value._id}   
-                        style={{  
-                            paddingLeft:"5px",
-                            fontFamily: "sans-serif",
-                            fontWeight: 600, 
-                            color: "rgba(0, 0, 0, 1)",
-                            fontSize: "18px", 
-                            whiteSpace: "nowrap",
-                            cursor: "default",
-                            WebkitUserSelect: "none" 
-                        }}
-                    >    
-                        {  value.name  }  
-                    </div>       
-  
-                    <div style={{ 
-                        position: "absolute",
-                        right: "0px"
-                    }}>{ daysLeftMark(false, value.deadline, false) }</div>
-                      
-            </div> 
-        </div>   
-    }   
- 
- 
-
     getElement = (value:any, index:number) : JSX.Element => { 
           
-        switch(value.type){ 
+        switch(value.type){   
 
             case "todo":
 
-                return this.getTodoElement(value,index);
- 
+                return this.getTodoElement(value, index);
+          
             case "project":    
-             
-                return this.getProjectLink(value,index);
+                
+                return getProjectLink(value, index, this.props.dispatch);
 
             default: 
 
@@ -227,7 +156,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
 
     }
     
-
+ 
 
     shouldCancelStart = (e) => {
         
@@ -256,7 +185,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
 
         return x < rect.left;   
 
-    } 
+    }  
     
 
 

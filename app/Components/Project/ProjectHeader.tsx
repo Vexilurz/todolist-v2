@@ -94,10 +94,8 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
      
      let days = diffDays(this.props.created,this.props.deadline);    
 
-     let remaining = this.props.completed===undefined ||  this.props.completed===null ? 
-                     daysRemaining(this.props.deadline) : 
-                     days;      
-    
+     let remaining = daysRemaining(this.props.deadline);     
+     
      return <div>  
 
             <ProjectMenuPopover 

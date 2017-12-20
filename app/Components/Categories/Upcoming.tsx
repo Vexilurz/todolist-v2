@@ -18,8 +18,11 @@ import { ContainerHeader } from '.././ContainerHeader';
 import { 
     byTags, getDateFromObject, getDayName, 
     objectsToHashTableByDate, getDatesRange, 
-    keyFromDate 
+    keyFromDate, 
+    daysLeftMark,
+    stringToLength
 } from '../../utils';  
+import { getProjectLink } from '../Project/ProjectLink';
  
 
 
@@ -104,7 +107,13 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         
         let objects = [...this.state.objects];
 
+
+        var t0 = performance.now();
         let table = objectsToHashTableByDate(this.props);
+        var t1 = performance.now();
+        console.log("Call to objectsToHashTableByDate (Upcoming) took " + (t1 - t0) + " milliseconds.");
+         
+        
 
         let range : Date[] = [];
 
@@ -223,7 +232,13 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                     <Waypoint 
                         onEnter={({ previousPosition, currentPosition, event }) => {
                             
-                            this.setState({objects:this.generateCalendarObjects(20)})
+                            var t0 = performance.now();
+                            let objects = this.generateCalendarObjects(20);
+                            var t1 = performance.now();
+ 
+                            console.log("Call to generateCalendarObjects(20) (Upcoming) took " + (t1 - t0) + " milliseconds.");
+                             
+                            this.setState({objects});
 
                         }}
                         onLeave={({ previousPosition, currentPosition, event }) => {
@@ -279,6 +294,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
         super(props)
  
     }
+
 
 
 
@@ -427,39 +443,11 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                     }}>    
                         {
                             this.props.projects
-                            .map((p:Project) => 
-
-                                <div key={p._id} style={{display:"flex", padding: "18px"}}>
-                                    <div>
-                                        <div style={{ 
-                                            width:"18px",     
-                                            height:"18px", 
-                                            borderRadius:"30px",
-                                            border:"5px solid rgba(108, 135, 222, 0.8)",
-                                            boxSizing:"border-box",
-                                            marginRight:"5px" 
-                                        }}> 
-                                        </div>  
-                                </div>
-        
-                                <div 
-                                        style={{
-                                            fontSize:"17px", 
-                                            fontWeight: "bold",
-                                            color: "rgb(100, 100, 100)",
-                                            fontFamily: "sans-serif",
-                                            WebkitUserSelect: "none", 
-                                            cursor:"default" 
-                                        }}
-                                >  
-                                       {p.name.length===0 ? "New Project" : p.name} 
-                                </div>
-        
-                                </div>   
-        
-                            )
+                            .map((p:Project, index:number) : JSX.Element => 
+                                getProjectLink(p, index, this.props.dispatch)
+                            )  
                         }     
-                    </div>
+                    </div> 
 
                 } 
 
