@@ -51,6 +51,7 @@ let generateEmptyProject = () : Project => ({
     name : "New project",
     description : "Project description...",
     layout : [], 
+    deleted : undefined,
     created : new Date(), 
     deadline : null,
     completed : null, 
@@ -59,14 +60,15 @@ let generateEmptyProject = () : Project => ({
 });
  
  
- 
+  
 let generateEmptyArea = () : Area => ({
     _id : generateId(),
     name : "New area",
+    deleted : undefined, 
     type : "area",
     description : "Area description",
     attachedTags : [], 
-    attachedTodosIds : [], 
+    attachedTodosIds : [],  
     attachedProjectsIds : [],
 });
   

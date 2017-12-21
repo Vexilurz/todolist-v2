@@ -19,11 +19,9 @@ export interface ContainerHeaderProps{
     selectedTag:string
 }  
 
+ 
 
-
-export interface ContainerHeaderState{
-
-}
+export interface ContainerHeaderState{}
  
 
 
@@ -41,10 +39,12 @@ export class ContainerHeader extends Component<ContainerHeaderProps,ContainerHea
                 display:"flex", 
                 position:"relative",
                 alignItems:"center",
-                marginBottom:"20px"
+                marginBottom:"20px"  
             }}>  
 
-                <div>{chooseIcon(this.props.selectedCategory)}</div>
+                <div>  
+                    {chooseIcon({width:"50px", height:"50px"},this.props.selectedCategory)}
+                </div>
 
                 <div style={{  
                     fontFamily: "sans-serif",  

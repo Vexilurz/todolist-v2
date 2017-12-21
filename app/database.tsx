@@ -99,7 +99,7 @@ let fakeTags = (n) => {
   
 
 
-
+ 
 
 let fakeCheckListItem = (idx) => {
 
@@ -155,11 +155,11 @@ let fakeTodo = (tags:string[]) : Todo => {
       note : note.join(),
       checklist : checklist,
       reminder : Math.random() > 0.5 ? {} : null, 
-      attachedTags:tags,
+      attachedTags:tags,  
       status : "",
       deadline : randomDate(new Date(), new Date()["addDays"](50)),
       created : randomDate(new Date(), new Date()["addDays"](50)),
-      deleted : null, 
+      deleted : Math.random() < 0.5 ? new Date() : undefined,
       attachedDate : randomDate(new Date(), new Date()["addDays"](50)), 
       completed : checked ? randomDate(new Date(), new Date()["addDays"](50)) : null,
       history : null, 
@@ -173,7 +173,7 @@ let fakeTodo = (tags:string[]) : Todo => {
 
 let fakeHeading = () : Heading => {
 
-  let title : string[] = [];
+  let title : string[] = []; 
 
   let k = randomInteger(3) + 2;
   
@@ -181,14 +181,14 @@ let fakeHeading = () : Heading => {
       title.push(randomWord());  
 
   return {
-    type : "heading",
+    type : "heading", 
     title : title.join(), 
     _id : generateid(), 
     key : generateid()
   } 
 
 } 
-  
+   
  
  
 let fakeProject = (attachedTags, layout, attachedAreasIds, attachedTodosIds) : Project => {
@@ -217,15 +217,16 @@ let fakeProject = (attachedTags, layout, attachedAreasIds, attachedTodosIds) : P
 
 
 
-    return ({ 
+    return ({  
       _id : generateid(),    
       type : "project", 
       name : name.join(),  
+      deleted : Math.random() < 0.5 ? new Date() : undefined,
       description : description.join(),
       created : randomDate(new Date()["addDays"](-50), new Date()),
       deadline : randomDate(new Date(), new Date()["addDays"](50)),
       completed : checked ? randomDate(new Date(), new Date()["addDays"](50)) : null,
-      layout, 
+      layout,  
       attachedTodosIds, 
       attachedTags  
     })
@@ -260,6 +261,7 @@ let fakeArea = (
     return { 
       _id : generateid(),   
       type : "area", 
+      deleted : Math.random() < 0.5 ? new Date() : undefined,
       name : name.join(),  
       description : description.join(),  
       attachedTags, 
@@ -407,6 +409,7 @@ export interface Project{
   layout : LayoutItem[], 
   created : Date, 
   deadline : Date,
+  deleted : Date,
   completed : Date, 
   attachedTodosIds : string[],  
   attachedTags : string[]
@@ -418,13 +421,14 @@ export interface Area{
   _id : string, 
   name : string,  
   type : ObjectType,
+  deleted : Date, 
   description : string,
   attachedTags : string[], 
   attachedTodosIds : string[], 
   attachedProjectsIds : string[],
 } 
 
-
+ 
 
 export interface Todo{ 
   _id : string,

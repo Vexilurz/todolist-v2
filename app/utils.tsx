@@ -42,7 +42,8 @@ import { getTodos, queryToTodos, Todo, updateTodo } from './database';
 import { Category } from './Components/MainContainer';
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 let moment = require("moment");
-
+import Moon from 'material-ui/svg-icons/image/brightness-3';
+import { TodoInput } from './Components/TodoInput/TodoInput';
 
 
  
@@ -55,6 +56,7 @@ export let daysRemaining = (date) : number => {
     return eventdate.diff(todaysdate, 'days');
 
 }
+
 
  
 export let swap = (array:any[], fromIdx:number, toIdx:number) : any[] => {
@@ -69,63 +71,127 @@ export let swap = (array:any[], fromIdx:number, toIdx:number) : any[] => {
 
 
 
-export let chooseIcon = (selectedCategory:Category) => {
+export let chooseIcon = (
+    size : { width:string, height:string }, 
+    selectedCategory : Category
+) : JSX.Element => {
+
     switch(selectedCategory){  
+
         case "inbox":
-            return <Inbox style={{ 
-                color:"dodgerblue", 
-                width:"50px",
-                height:"50px" 
+            return <Inbox style={{
+                ...size,
+                ...{ 
+                    color:"dodgerblue", 
+                    cursor:"default" 
+                }
             }} /> 
+
 
         case "today":
             return <Star style={{
-                color:"gold", 
-                width:"50px",
-                height:"50px" 
+                ...size,
+                ...{
+                    color:"gold", 
+                    cursor:"default" 
+                }
             }}/>
+
 
         case "upcoming":
             return <CalendarIco style={{
-                color:"crimson", 
-                width:"50px",
-                height:"50px"
+                ...size,
+                ...{  
+                    color:"crimson", 
+                    cursor:"default"
+                }
             }}/>
+
 
         case "anytime":
             return <Layers style={{
-                color:"darkgreen", 
-                width:"50px",
-                height:"50px"
+                ...size,
+                ...{
+                    color:"darkgreen", 
+                    cursor:"default"
+                }
             }}/>
+
 
         case "someday":
             return <BusinessCase  style={{
-                color:"burlywood", 
-                width:"50px",
-                height:"50px"
-            }}/> 
+                ...size,
+                ...{
+                    color:"burlywood", 
+                    cursor:"default"
+                }
+            }}/>  
+ 
 
         case "logbook":
             return <Logbook style={{
-                color:"limegreen", 
-                width:"50px",
-                height:"50px"
+                ...size,    
+                ...{
+                    color:"limegreen", 
+                    cursor:"default"
+                }
             }}/>  
+
 
         case "trash":
             return <Trash style={{
-                color:"darkgray", 
-                width:"50px",
-                height:"50px" 
-            }}/>
+                ...size,
+                ...{
+                    color:"darkgray", 
+                    cursor:"default" 
+                }
+            }}/> 
+
+
+        case "evening":
+            return <Moon style={{
+                ...size,
+                ...{  
+                    transform:"rotate(145deg)", 
+                    color:"cornflowerblue", 
+                    cursor:"default" 
+                }
+            }}/>   
+
+
+        case "area":
+            return <NewAreaIcon style={{
+                ...size,
+                ...{
+                    color:"lightblue"
+                }
+            }}/>        
+ 
+
+        case "project":
+            return <div>          
+                <div style={{
+                    ...size,
+                    ...{ 
+                        display: "flex",
+                        borderRadius: "50px",
+                        border: "3px solid rgb(10, 100, 240)",
+                        justifyContent: "center",
+                        position: "relative" 
+                    }  
+                }}>   
+                </div>
+            </div>    
+ 
 
         default:
-            return <Inbox style={{ 
-                color:"dodgerblue", 
-                width:"50px",
-                height:"50px"
-            }}/>; 
+            return <Inbox style={{  
+                ...size,
+                ...{  
+                    color:"dodgerblue", 
+                    cursor:"default"
+                }   
+            }}/> 
     }
 }
 
@@ -873,3 +939,6 @@ export let splitEvery = (n, array)  => {
 
     return result; 
 }
+
+
+ 

@@ -146,7 +146,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
           
             case "project":    
                 
-                return getProjectLink(value, index, this.props.dispatch);
+                return getProjectLink({width:"15px",height:"15px"}, value, index, this.props.dispatch);
 
             default: 
 

@@ -25,7 +25,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
-import { uppercase, debounce, stringToLength, diffDays, daysRemaining, daysLeftMark } from '../../utils';
+import { uppercase, debounce, stringToLength, diffDays, daysRemaining, daysLeftMark, chooseIcon } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';
@@ -35,9 +35,12 @@ import PieChart from 'react-minimal-pie-chart';
 
   
 
-export let getProjectLink = (value:Project, index:number, dispatch:Function) : JSX.Element => { 
-      
-        return  <div key={`${value._id}-${index}`}  style={{position:"relative", padding:"5px"}}>  
+export let getProjectLink = (iconSize, value:Project, index:number, dispatch:Function) : JSX.Element => { 
+       
+        return  <div 
+            key={`${value._id}-${index}`}   
+            style={{position:"relative", padding:"5px"}}
+        >  
             <div   
                 className="toggleFocus"    
                 onClick = {() => dispatch({ type:"selectedProjectId", load:value._id })} 
@@ -52,24 +55,10 @@ export let getProjectLink = (value:Project, index:number, dispatch:Function) : J
                     display:"flex",
                     alignItems: "center" 
                 }}
-            >        
-                    <div>          
-                        <div      
-                            style={{
-                                width: "16px",
-                                height: "16px",
-                                display: "flex",
-                                borderRadius: "50px",
-                                border: "3px solid rgb(10, 100, 240)",
-                                justifyContent: "center",
-                                position: "relative" 
-                            }}
-                        >   
-                        </div>
-                    </div>
+            >             
+                        { chooseIcon(iconSize, "project") }
                         
-    
-                    <div   
+                    <div    
                         id = {value._id}   
                         style={{  
                             paddingLeft:"5px",
@@ -85,13 +74,15 @@ export let getProjectLink = (value:Project, index:number, dispatch:Function) : J
                     
                         { stringToLength(value.name, 25) }
 
-                    </div>        
+                    </div>          
     
-                    <div style={{position:"absolute", right:"5px",  WebkitUserSelect: "none" }}>
+                    {   true ? null :  
+                        <div style={{position:"absolute", right:"5px",  WebkitUserSelect: "none"}}>
+                            
+                            { daysLeftMark(false, value.deadline, false) }
                         
-                        { daysLeftMark(false, value.deadline, false) }
-                    
-                    </div>
+                        </div>
+                    }
                         
             </div> 
         </div>   

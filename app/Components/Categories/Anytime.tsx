@@ -193,15 +193,15 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
  
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
 
-                        {  
+                        {   
                             this.props.projects.map(
                                 (p:Project, index:number) : JSX.Element => {
 
-                                    return <div key={`project${index}`} style={{padding:"10px"}}>
+                                    return <div key={`project-${index}`} style={{padding:"10px"}}>
 
                                         <div style={{padding:"10px"}}>{
-
-                                            getProjectLink(p, index, this.props.dispatch)
+ 
+                                            getProjectLink({width: "15px", height: "15px"}, p, index, this.props.dispatch)
 
                                         }</div> 
 
@@ -230,10 +230,14 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
 
                                     return <div key={`area${index}`} style={{padding:"10px"}}>
   
-                                        <div style={{padding:"10px"}}>{  
-
-                                            getAreaLink(a, index, this.props.dispatch)
-
+                                        <div style={{padding:"10px"}}>
+                                        { 
+                                            getAreaLink( 
+                                                {width:"20px", height:"20px"}, 
+                                                a, 
+                                                index,  
+                                                this.props.dispatch
+                                            )
                                         }</div> 
 
                                         <ExpandableTodosList

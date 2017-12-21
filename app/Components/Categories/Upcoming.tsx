@@ -23,7 +23,7 @@ import {
     stringToLength
 } from '../../utils';  
 import { getProjectLink } from '../Project/ProjectLink';
- 
+  
 
 
 interface UpcomingProps{
@@ -444,8 +444,8 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         {
                             this.props.projects
                             .map((p:Project, index:number) : JSX.Element => 
-                                getProjectLink(p, index, this.props.dispatch)
-                            )  
+                                getProjectLink({width:"15px", height:"15px"},p, index, this.props.dispatch)
+                            )   
                         }     
                     </div> 
 

@@ -120,6 +120,7 @@ ipcRenderer.on(
 export interface Store{
     selectedCategory : Category,
     selectedTodoId : string,
+    openSearch : boolean, 
     selectedTag : string,
     leftPanelWidth : number,
     closeAllItems : any,
@@ -150,6 +151,8 @@ export let defaultStoreItems : Store = {
     windowId:null, 
      
     selectedCategory : "inbox",
+
+    openSearch : false, 
 
     selectedTodoId : null,
 
@@ -222,13 +225,22 @@ let reducer = (reducers) => (state:Store, action) => {
 };
    
  
-
+ 
 let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}) => {
  
     let newState = undefined;
 
  
     switch(action.type){  
+
+        case "openSearch": 
+            newState = {
+                ...state, 
+                showProjectMenuPopover:false, 
+                showRightClickMenu:false,
+                openSearch:action.load 
+            }; 
+            break;
 
         case "showProjectMenuPopover":
             newState = {
@@ -250,11 +262,12 @@ let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}
                 clone:action.load
             }; 
             break;    
-
+ 
         case "selectedCategory":
             newState = {
                 ...state,
                 selectedTag:"All", 
+                openSearch:false, 
                 selectedCategory:action.load,
                 openNewProjectAreaPopover:false 
             }; 
@@ -307,7 +320,8 @@ let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}
         case "selectedTodoId":
             newState = {
                 ...state,
-                selectedTodoId : action.load
+                selectedTodoId : action.load,
+                openSearch : false
             }; 
             break;
 
@@ -351,6 +365,7 @@ let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}
                 ...state, 
                 selectedCategory:"project", 
                 selectedTag:"All",
+                openSearch:false,
                 selectedProjectId:action.load
             };    
             break;
@@ -361,6 +376,7 @@ let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}
                 ...state, 
                 selectedCategory:"area", 
                 selectedTag:"All",
+                openSearch:false,
                 selectedAreaId:action.load
             };    
             break;

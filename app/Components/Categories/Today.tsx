@@ -84,17 +84,17 @@ export class Today extends Component<TodayProps,TodayState>{
                         marginBottom:"20px"
                     }}>  
 
-                        <div>{chooseIcon("today")}</div>
+                        <div>{chooseIcon({width:"50px",height:"50px"}, "today")}</div>
 
                         <div style={{  
                             fontFamily: "sans-serif",  
                             fontSize: "xx-large",
                             fontWeight: 600,
-                            paddingLeft: "10px",
-                            WebkitUserSelect: "none",
+                            paddingLeft: "10px", 
+                            WebkitUserSelect: "none", 
                             cursor:"default" 
                         }}>   
-                            {uppercase("today")}
+                            {uppercase("today")} 
                         </div> 
                      
                     </div> 

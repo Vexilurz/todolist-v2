@@ -19,7 +19,7 @@ import { getTodos, updateTodo, Todo, Event, removeTodo, addTodo, getProjects, ge
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, removeProject, generateRandomDatabase, 
     destroyEverything, addArea, addProject, addEvent, generateId } from '.././database';
 import { Footer } from '.././Components/Footer';
-import { Store } from '.././App';
+import { Store } from '.././App'; 
 import { FadeBackgroundIcon } from '.././Components/misc/FadeBackgroundIcon';
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import { AreaComponent } from './Area/Area';
@@ -46,10 +46,8 @@ export type Category = "inbox" | "today" | "upcoming" | "anytime" | "someday" |
 interface MainContainerState{ 
     fullWindowSize:boolean
 }
-     
-
+      
  
-
 
 
 
@@ -221,7 +219,24 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     }
   
-  
+ 
+
+    onSearchClick = (e) => { 
+
+        this.props.dispatch({type:"openSearch", load:true}); 
+
+    }
+   
+    createHeading = (e) => {
+
+        if(this.props.selectedCategory!=="project")
+           return;
+
+        let id = this.props.selectedProjectId;
+        
+        
+
+    }
 
     createNewTodo = (e) => { 
  
@@ -267,7 +282,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
             //    }
             //});
                  
-        }  
+        }   
 
         this.props.dispatch({type:"newTodo", load:todo}); 
  
@@ -309,14 +324,17 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         flexDirection: "column" 
                      }} 
                 >    
-
-
-                <QuickSearch 
-                    container={this.rootRef}
-                    todos={this.props.todos} 
-                    projects={this.props.projects}
-                    areas={this.props.areas} 
-                />
+ 
+                {
+                    !this.props.openSearch ? null :
+                    <QuickSearch  
+                        container={this.rootRef}
+                        todos={this.props.todos} 
+                        projects={this.props.projects} 
+                        areas={this.props.areas}  
+                        dispatch={this.props.dispatch} 
+                    />
+                }   
             
                  
                 <FadeBackgroundIcon    
@@ -438,10 +456,16 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 todos={this.props.todos}
                                 tags={this.props.tags}
                             />, 
-
+ 
                             trash: <Trash 
-                            
-                            />
+                                dispatch={this.props.dispatch}
+                                tags={this.props.tags}
+                                selectedTag={this.props.selectedTag}
+                                todos={this.props.todos}
+                                projects={this.props.projects}
+                                areas={this.props.areas}
+                                rootRef={this.rootRef}    
+                            /> 
 
                         }[this.props.selectedCategory]
                     }
@@ -460,23 +484,26 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         bottom:"0px",
                         borderTop:"1px solid rgba(100, 100, 100, 0.2)" 
                     }}>     
-                        <Footer    
-
+                        <Footer     
                             buttonsNamesToDispaly={this.selectFooterButtons() as any}
  
                             onNewTodoClick={this.createNewTodo}
 
                             onTrashClick={this.onDeleteToDo}  
 
+                            onSearchClick={this.onSearchClick} 
+
+                            onHeadingClick={this.createHeading}
+
+
+
                             onCalendarClick={(e) => {}} 
 
                             onArrowClick={(e) => {}}  
 
-                            onSearchClick={(e) => {}} 
-
                             onMoreClick={(e) => {}} 
 
-                            onHeadingClick={(e) => {}}   
+                              
                         />  
 
                     </div>  

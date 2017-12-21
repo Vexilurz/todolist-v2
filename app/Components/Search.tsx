@@ -33,14 +33,65 @@ import { TextField } from 'material-ui';
 import { ThingsCalendar } from './ThingsCalendar';
 import {  
     insideTargetArea, daysRemaining, replace, remove, todoChanged, 
-    unique, daysLeftMark, generateTagElement, renderSuggestion, attachDispatchToProps 
+    unique, daysLeftMark, generateTagElement, renderSuggestion, attachDispatchToProps, chooseIcon, stringToLength 
 } from '../utils';
 import { Todo, removeTodo, updateTodo, generateId, ObjectType, Area, Project, Heading } from '../database';
 import { Store } from '../App';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
+import { getAreaLink } from './Area/AreaLink';
+import { getProjectLink } from './Project/ProjectLink';
 
  
 interface keyworded{ object : any, keywords : string[] } 
+
+
+let getTodoLink = (todo : Todo, index : number, dispatch : Function) : JSX.Element => {
+    
+     return <div key={`${todo._id}-${index}`} style={{position:"relative", padding:"5px"}}>  
+                <div   
+                    className="toggleFocus"  
+                    onClick = {() => {
+                        dispatch({ type:"selectedCategory", load:todo.category });
+                        dispatch({ type:"selectedTodoId", load:todo._id });
+                    }}    
+                    id = {todo._id}       
+                    style={{     
+                        marginLeft:"4px",
+                        marginRight:"4px", 
+                        padding:"5px", 
+                        position:"relative", 
+                        height:"20px",
+                        width:"95%",
+                        display:"flex",
+                        alignItems: "center" 
+                    }}
+                >             
+                            {chooseIcon({width:"20px", height:"20px"}, todo.category)}
+                            
+                        <div    
+                            id = {todo._id}   
+                            style={{  
+                                paddingLeft:"5px",
+                                fontFamily: "sans-serif",
+                                fontWeight: 600, 
+                                color: "rgba(0, 0, 0, 1)",
+                                fontSize: "18px", 
+                                whiteSpace: "nowrap",
+                                cursor: "default",
+                                WebkitUserSelect: "none" 
+                            }}
+                        > 
+                        
+                            { stringToLength(todo.title, 25) }
+
+                        </div>          
+
+                            
+                </div> 
+            </div>  
+
+}
+
 
 
 
@@ -62,11 +113,13 @@ let combineSearchableObjects = (props:QuickSearchProps) : any[] => {
 
 let areaToKeywords = (a:Area) : string[] => {
     
-    let description : string[] = a.description.split(" ").filter( s => s.length>0 );
+    let description : string[] = a.description.split(",").filter( s => s.length>0 );
 
+    let name : string[] = a.name.split(",").filter( s => s.length>0 );
+    
     let tags : string[] = a.attachedTags; 
   
-    return [].concat.apply([], [ [a.name], tags, description ]);
+    return [].concat.apply([], [ name, tags, description ]);
      
 } 
 
@@ -83,11 +136,13 @@ let projectToKeywords = (p:Project) : string[] => {
                                  ); 
      
 
-    let description : string[] = p.description.split(" ").filter( s => s.length>0 );
+    let description : string[] = p.description.split(",").filter( s => s.length>0 );
+    let name : string[] = p.name.split(",").filter( s => s.length>0 );
+     
     let layout : string [] = [].concat.apply([], headings);
     let tags : string[] = p.attachedTags; 
 
-    return [].concat.apply([], [ [p.name],  description, layout, tags ]);
+    return [].concat.apply([], [ name, description, layout, tags ]);
  
 }
 
@@ -97,9 +152,9 @@ let projectToKeywords = (p:Project) : string[] => {
 let todoToKeywords = (t:Todo) : string[] => {
 
     let category = t.category;
-    let title : string [] = t.title.split(" ").filter( s => s.length>0 );
-    let note : string [] = t.note.split(" ").filter( s => s.length>0 );
-    let tags : string[] = t.attachedTags; 
+    let title : string [] = t.title.split(",").filter( s => s.length>0 );
+    let note : string [] = t.note.split(",").filter( s => s.length>0 );
+    let tags : string[] = t.attachedTags;  
     let checklist : string[] = t.checklist.map( c => c.text ).filter( s => s.length>0 );
 
     return [].concat.apply([], [ title, note, tags, checklist ]);
@@ -155,23 +210,26 @@ let attachKeywordsToObjects = (objects : any[]) => {
 
 
 interface QuickSearchProps{
-    container : HTMLElement,
+    container:HTMLElement,
     todos:Todo[],
     projects:Project[],
-    areas:Area[]  
-} 
+    areas:Area[],
+    dispatch:Function  
+}  
 
 interface QuickSearchState{
     objectsWithKeywords:keyworded[],
     value:string,
     x:number,
-    y:number,
     width:number,
     suggestions:keyworded[]
 } 
  
  
 export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
+
+    ref:HTMLElement; 
+    timeout:any; 
 
     constructor(props){
 
@@ -181,13 +239,54 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
             objectsWithKeywords : [],
             value:'',
             x:0,
-            y:0,
             width:300,
             suggestions:[] 
         };
   
     } 
 
+
+
+    componentDidMount(){ 
+
+        this.init(this.props);
+
+        this.updatePosition(this.props); 
+         
+        this.timeout = setTimeout(() => window.addEventListener("click", this.onOutsideClick), 300);  
+
+    }      
+         
+          
+            
+    componentWillUnmount(){
+
+        clearTimeout(this.timeout as any);
+
+        window.removeEventListener("click", this.onOutsideClick);
+
+    }
+     
+
+    
+    onOutsideClick = (e) => {
+            
+        if(this.ref===null || this.ref===undefined)
+            return; 
+ 
+        let rect = this.ref.getBoundingClientRect();
+
+        let x = e.pageX;
+        
+        let y = e.pageY;
+        
+        let inside : boolean = insideTargetArea(this.ref)(x, y);
+
+        if(!inside)
+           this.props.dispatch({type:"openSearch", load:false})   
+       
+    }  
+    
 
     init = (props) => {
 
@@ -205,20 +304,13 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
             return; 
  
         let rect = props.container.getBoundingClientRect();
-        let x = rect.width/2 - this.state.width/2; 
-        let y = rect.height/2 - 100;   
+        let x = rect.width/2 - this.state.width/2;  
 
-        this.setState({x,y}); 
-
-    }
-
-
-    componentDidMount(){
-
-        this.init(this.props);
-        this.updatePosition(this.props); 
+        this.setState({x}); 
 
     }
+ 
+
 
     componentWillReceiveProps(nextProps:QuickSearchProps){
 
@@ -240,41 +332,80 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
         if(this.props.container!==nextProps.container)
            this.updatePosition(nextProps); 
           
-    } 
+    }  
+
+    
 
     onChange = (e) => {
-        console.log(this.state.objectsWithKeywords)
+        console.log(this.state.objectsWithKeywords);
+
+
+        var t0 = performance.now();
+        let suggestions = this.state.objectsWithKeywords.filter( 
+            k => {
+
+                for(let i=0; i<k.keywords.length; i++){
+                    
+                    let value = e.target.value.toLowerCase();
+                    let word = k.keywords[i].toLowerCase().slice(0, value.length);
+
+                    if(value===word)
+                       return true;
+
+                }
+
+            }
+        );   
+        var t1 = performance.now();
+        console.log("Call to this.state.objectsWithKeywords.filter (Search) took " + (t1 - t0) + " milliseconds.");
+         
+        
         this.setState({
             value:e.target.value, 
-            suggestions:this.state.objectsWithKeywords.filter( 
-                k => k.keywords.indexOf(e.target.value)!==-1 
-            ) 
+            suggestions
         });
     }
-
-    render(){
-
-     
-     
  
-        return <div onClick = {(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                     }} 
-                     style={{  
-                        padding: "10px", 
-                        boxShadow: "0 0 18px rgba(0,0,0,0.2)", 
-                        margin: "5px",
-                        borderRadius: "5px",
-                        zIndex: 30000, 
-                        width: `${this.state.width}px`, 
-                        height: "auto",    
-                        position: "absolute",
-                        backgroundColor: "rgba(238,237,239,1)",
-                        left:`${this.state.x}px`,
-                        top:`8%`   
-                     }}          
-                >  
+
+    suggestionToComponent = (suggestion:keyworded, index:number) : JSX.Element => {
+
+        let object = suggestion.object;
+ 
+        switch(object.type){
+  
+            case "todo":
+                return getTodoLink(object, index, this.props.dispatch)
+            case "project":
+                return getProjectLink({width:"12px", height:"12px"},object, index, this.props.dispatch);
+            case "area":
+                return getAreaLink({width:"20px", height:"20px"},object, index, this.props.dispatch);
+        }
+    
+    }
+
+
+    render(){ 
+  
+        return <div 
+            ref={(e) => {this.ref=e;}}
+            onClick = {(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+            }}  
+            style={{   
+                padding: "10px", 
+                boxShadow: "0 0 18px rgba(0,0,0,0.2)", 
+                margin: "5px",
+                borderRadius: "5px",
+                zIndex: 30000, 
+                width: `${this.state.width}px`, 
+                height: "auto",    
+                position: "absolute",
+                backgroundColor: "rgba(238,237,239,1)",
+                left:`${this.state.x}px`,
+                top:`8%`   
+            }}          
+        >  
  
   
             <div style={{
@@ -310,10 +441,10 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
                         onChange={this.onChange}
                 />
             </div> 
-
- 
-            <div style={{maxHeight:"600px"}}>  
-               {
+    
+  
+            <div className="scroll" style={{maxHeight:"600px", overflowX:"hidden"}}>  
+                { 
                    this.state.value.length>0 ? null :
                     <div style={{
                        WebkitUserSelect: "none",
@@ -328,17 +459,20 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
                     }}>  
                         Quickly switch lists, find to-dos, search for tags 
                     </div>
-               }   
-               <div>
-                {
-                    this.state.suggestions.map( 
-                        s => <div>{s.keywords[0]}</div>
-                    )
+                }     
+               <div>  
+                {    
+                    this.state.value.length===0 ? null :
+                    this.state.suggestions
+                    .slice(0,10) 
+                    .map((s,index) =>  
+                        <div key={`suggestion-${index}`}>
+                            {this.suggestionToComponent(s, index)}
+                        </div>
+                    )  
                 }
                </div>  
             </div>  
-
-         
         </div>
 
     }

@@ -26,7 +26,8 @@ interface TodosListProps{
     selectedTag:string,
     rootRef:HTMLElement,  
     todos:Todo[],
-    tags:string[]     
+    tags:string[],
+    disabled?:boolean     
 }    
 
 
@@ -53,7 +54,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
          
         return true;  
            
-     } 
+     }  
  
 
      componentDidMount(){
@@ -83,9 +84,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         }     
   
      }  
- 
   
-     getTodoElem = (value:Todo, index:number) => {
+  
+     getTodoElement = (value:Todo, index:number) => {
      
          return <div style={{position:"relative"}}> 
                     <TodoInput   
@@ -104,6 +105,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
  
      shouldCancelStart = (e) => {
 
+        if(this.props.disabled)
+           return true;
+
         let nodes = [].slice.call(e.path);
 
         for(let i=0; i<nodes.length; i++){ 
@@ -115,9 +119,12 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
      } 
      
-     
+      
 
      shouldCancelAnimation = (e) => {
+ 
+        if(this.props.disabled)
+           return true;
 
         if(!this.props.rootRef)
             return true;
@@ -225,8 +232,8 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
          
          return <div style={{WebkitUserSelect: "none"}}> 
  
-            <SortableList  
-                getElement={this.getTodoElem}
+            <SortableList   
+                getElement={this.getTodoElement}
                 items={this.state.items} 
                 shouldCancelStart={this.shouldCancelStart}  
                 shouldCancelAnimation={this.shouldCancelAnimation}
