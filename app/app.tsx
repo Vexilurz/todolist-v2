@@ -504,12 +504,11 @@ let applicationObjectsReducer = (state:Store, action) => {
 
 
         case "updateTodo":
-
             idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
             
-            if(idx===-1){
-                throw new Error("Attempt to update non existing object. updateTodo.")
-            }
+            if(idx===-1)
+               throw new Error("Attempt to update non existing object. updateTodo.")
+            
 
             replacement = replace(state.todos,action.load,idx);
 
@@ -525,16 +524,12 @@ let applicationObjectsReducer = (state:Store, action) => {
 
 
         case "removeProject":
-
             idx = state.projects.findIndex( (p:Project) => p._id===action.load );
  
             if(idx===-1)  
                throw new Error(`Project does not exist. ${action.load} ${JSON.stringify(state.projects)}`);
 
-
-    
-            removeProject(action.load); 
-       
+               
             newState = {
                 ...state, 
                 selectedProjectId:null, 
@@ -544,7 +539,30 @@ let applicationObjectsReducer = (state:Store, action) => {
             break; 
  
 
+
+        case "duplicateTodo":
             
+            idx = state.todos.findIndex((item:Todo) => item._id===action.load);
+              
+            if(idx!==-1){
+    
+                let duplicatedTodo : any = state.todos[idx];
+    
+                if(duplicatedTodo===null || duplicatedTodo===undefined)
+                    return; 
+                    
+                duplicatedTodo  = {  ...duplicatedTodo, ...{_id:generateId()}  };
+    
+                delete duplicatedTodo._rev;
+    
+                newState = {  
+                    ...state, 
+                    todos:insert(state.todos, duplicatedTodo, idx)
+                }; 
+                break; 
+        
+            }
+                      
 
  
         case "duplicateProject":
@@ -562,7 +580,6 @@ let applicationObjectsReducer = (state:Store, action) => {
                         
             delete project._rev;
                 
-            addProject((e) => console.log(e), project);
           
             newState = {  
                 ...state, 
@@ -580,7 +597,6 @@ let applicationObjectsReducer = (state:Store, action) => {
             if(idx===-1)   
                 throw new Error(`Area does not exist. ${action.load} ${JSON.stringify(state.areas)}`);
 
-            removeArea(action.load); 
         
             newState = {  
                 ...state,  
@@ -590,8 +606,7 @@ let applicationObjectsReducer = (state:Store, action) => {
             break; 
              
             
-
-
+ 
 
         case "removeTodo":
         

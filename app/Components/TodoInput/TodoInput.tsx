@@ -306,13 +306,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         
         if(this.state.currentTodo.length===0){
 
-            removeTodo(todo._id); 
 
             this.removeTodo(todo._id);
 
         }else{  
  
-            updateTodo(todo._id,todo,this.onError);
 
             this.updateTodo(todo); 
 

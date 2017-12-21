@@ -941,4 +941,25 @@ export let splitEvery = (n, array)  => {
 }
 
 
+export let randomInteger = (n:number) : number => {
+    
+    return Math.round(Math.random() * n);
+
+}
+     
+    
+export let randomDate = (start, end) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+    
+    
+export let randomArrayMember = (array : any[]) => {
+
+    let range = array.length - 1;
+    
+    let idx = randomInteger(range);
+
+    let member = array[idx]; 
+
+    return member;
  
+} 
+    

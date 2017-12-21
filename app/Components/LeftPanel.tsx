@@ -96,44 +96,31 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
  
         onNewProjectClick = (e:any) => {
-            let newProject : Project = generateEmptyProject();
-            addProject((e) => console.log(e), newProject);
-             
-            this.props.dispatch({type:"newProject", load:newProject});
+            this.props.dispatch({type:"newProject", load:generateEmptyProject()});
         };
             
               
          
         onNewAreaClick = (e:any) => { 
-            let newArea : Area = generateEmptyArea();
-            addArea((e) => console.log(e), newArea); 
-              
-            this.props.dispatch({type:"newArea", load:newArea});
+            this.props.dispatch({type:"newArea", load:generateEmptyArea()});
         };
 
 
 
         render(){    
 
-
             let someday = this.props.todos.filter( v => v.category === "someday" && !v.checked).length;
 
-
             let upcoming = this.props.todos.length;
-
-
+ 
             let today = this.props.todos.filter(
                 v => !v.checked && (v.category === "today" || v.category === "evening")
             ).length; 
  
- 
             let inbox = this.props.todos.filter( v => v.category === "inbox"  && !v.checked ).length;
   
-
             let anytime = this.props.todos.filter( v => !v.checked ).length;
- 
-                
-  
+                 
             return   <div 
                         className="leftPanelScroll"
                         style={{

@@ -5,55 +5,144 @@ import { ipcRenderer } from 'electron';
 import PouchDB from 'pouchdb-browser';  
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 import { Category } from './Components/MainContainer';
-import { unique, splitEvery } from './utils';
-
+import { unique, splitEvery, randomArrayMember, randomInteger, randomDate } from './utils';
+const randomWord = require('random-word');
+let uniqid = require("uniqid"); 
+ 
 
 let todos_db;
 let projects_db; 
 let areas_db;
-let events_db;  
+let events_db;   
 
-
+ 
 export let initDB = () => {
-    todos_db = new PouchDB('todos'); 
-    projects_db = new PouchDB('projects');
-    areas_db = new PouchDB('areas');
-    events_db = new PouchDB('events');  
+  todos_db = new PouchDB('todos'); 
+  projects_db = new PouchDB('projects');
+  areas_db = new PouchDB('areas');
+  events_db = new PouchDB('events');  
 } 
    
 initDB(); 
 
-const randomWord = require('random-word');
-let uniqid = require("uniqid"); 
 
 
-let randomInteger = (n:number) : number => {
+Date.prototype["addDays"] = function(days) {
+  var dat = new Date(this.valueOf());
+  dat.setDate(dat.getDate() + days);
+  return dat; 
+};
 
-  return Math.round(Math.random() * n);
 
+
+
+export type ObjectType = "heading" | "project" | "todo" | "event" | "area"; 
+
+
+ 
+export interface Heading{
+  title : string, 
+  type : ObjectType,
+  _id : string, 
+  key : string 
 }
 
 
-let randomDate = (start, end) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+
+export type LayoutItem = string | Heading;
 
 
-let randomArrayMember = (array : any[]) => {
 
-    let range = array.length - 1;
-   
-    let idx = randomInteger(range);
+export interface Project{
+  _id : string,  
+  type : ObjectType, 
+  name : string,   
+  description : string, 
+  layout : LayoutItem[], 
+  created : Date, 
+  deadline : Date,
+  deleted : Date,
+  completed : Date, 
+  attachedTodosIds : string[],  
+  attachedTags : string[]
+}
+  
 
-    let member = array[idx]; 
-
-    if(member===undefined){
-      debugger;  
-      throw new Error(`Array member undefined. randomArrayMember.${array} ${idx}`)
-    
-    }
-
-    return member;
-
+ 
+export interface Area{
+  _id : string, 
+  name : string,  
+  type : ObjectType,
+  deleted : Date, 
+  description : string,
+  attachedTags : string[], 
+  attachedTodosIds : string[], 
+  attachedProjectsIds : string[],
 } 
+
+ 
+
+export interface Todo{ 
+  _id : string,
+  category : Category, 
+  type : ObjectType,
+  title : string,
+  priority : number,
+  note : string,  
+  checklist : ChecklistItem[],
+  reminder : any,  
+  attachedTags : string[], 
+  status : string,
+  deadline : Date,
+  created : Date,
+  deleted : Date,
+  attachedDate : Date, 
+  completed : Date, 
+  history : {
+      action : string,
+      date : Date
+  }[],
+  attachments : string[],
+  checked?:boolean
+}
+  
+
+ 
+export interface Event{
+  _id : string, 
+  title : string,
+  type : ObjectType,
+  note : string,
+  attachedProjectsIds : string[],
+  attachedTags : string[],
+  date:Date,
+  location:string,  
+  history : {
+      action : string,
+      date : Date
+  },
+  attachments : string[]
+}
+ 
+
+
+export interface Query<T>{
+  total_rows: 2, 
+  offset: 0, 
+  rows: QueryResult<T>[]
+}
+
+
+
+export interface QueryResult<T>{
+  doc:T,
+  id:string, 
+  key:string,
+  value:Object 
+}
+
+ 
+
 
 
 
@@ -68,14 +157,9 @@ let randomCategory = () => {
   return randomArrayMember(categories); 
 
 }
-
+ 
 
  
-Date.prototype["addDays"] = function(days) {
-  var dat = new Date(this.valueOf());
-  dat.setDate(dat.getDate() + days);
-  return dat; 
-};
 
 
 
@@ -87,14 +171,16 @@ let generateid = () => uniqid() + new Date().toJSON();
  
   
 let fakeTags = (n) => {
+
   let tags = [];
   let i  = randomInteger(n) + 5;
 
   
   for(let j=0; j<i; j++)
-      tags.push(randomWord())
+      tags.push(randomWord()); 
 
   return tags;
+
 }
   
 
@@ -165,7 +251,7 @@ let fakeTodo = (tags:string[]) : Todo => {
       history : null, 
       attachments : [],
       checked 
-  })
+  }) 
   
 }
 
@@ -185,7 +271,7 @@ let fakeHeading = () : Heading => {
     title : title.join(), 
     _id : generateid(), 
     key : generateid()
-  } 
+  };  
 
 } 
    
@@ -195,8 +281,6 @@ let fakeProject = (attachedTags, layout, attachedAreasIds, attachedTodosIds) : P
     
     let checked = Math.random() > 0.5 ? true : false;
 
-
-
     let name : string[] = [];
     
     let k = randomInteger(3) + 2;
@@ -204,9 +288,6 @@ let fakeProject = (attachedTags, layout, attachedAreasIds, attachedTodosIds) : P
     for(let i=0; i<k; i++)
         name.push(randomWord()); 
         
-        
-
-
     let description : string[] = [];
           
     let l = randomInteger(3) + 2;
@@ -214,22 +295,19 @@ let fakeProject = (attachedTags, layout, attachedAreasIds, attachedTodosIds) : P
     for(let i=0; i<l; i++)
         description.push(randomWord());  
     
-
-
-
-    return ({  
-      _id : generateid(),    
-      type : "project", 
-      name : name.join(),  
-      deleted : Math.random() < 0.5 ? new Date() : undefined,
-      description : description.join(),
-      created : randomDate(new Date()["addDays"](-50), new Date()),
-      deadline : randomDate(new Date(), new Date()["addDays"](50)),
-      completed : checked ? randomDate(new Date(), new Date()["addDays"](50)) : null,
-      layout,  
-      attachedTodosIds, 
-      attachedTags  
-    })
+    return {  
+        _id : generateid(),    
+        type : "project", 
+        name : name.join(),  
+        deleted : Math.random() < 0.5 ? new Date() : undefined,
+        description : description.join(),
+        created : randomDate(new Date()["addDays"](-50), new Date()),
+        deadline : randomDate(new Date(), new Date()["addDays"](50)),
+        completed : checked ? randomDate(new Date(), new Date()["addDays"](50)) : null,
+        layout,  
+        attachedTodosIds, 
+        attachedTags  
+    };   
 
 } 
 
@@ -384,112 +462,7 @@ export let generateRandomDatabase = (
 
 
 
-export type ObjectType = "heading" | "project" | "todo" | "event" | "area"; 
 
-
- 
-export interface Heading{
-  title : string, 
-  type : ObjectType,
-  _id : string, 
-  key : string 
-}
-
-
-
-export type LayoutItem = string | Heading;
-
-
-
-export interface Project{
-  _id : string,  
-  type : ObjectType, 
-  name : string,   
-  description : string, 
-  layout : LayoutItem[], 
-  created : Date, 
-  deadline : Date,
-  deleted : Date,
-  completed : Date, 
-  attachedTodosIds : string[],  
-  attachedTags : string[]
-}
-  
-
- 
-export interface Area{
-  _id : string, 
-  name : string,  
-  type : ObjectType,
-  deleted : Date, 
-  description : string,
-  attachedTags : string[], 
-  attachedTodosIds : string[], 
-  attachedProjectsIds : string[],
-} 
-
- 
-
-export interface Todo{ 
-  _id : string,
-  category : Category, 
-  type : ObjectType,
-  title : string,
-  priority : number,
-  note : string,  
-  checklist : ChecklistItem[],
-  reminder : any,  
-  attachedTags : string[], 
-  status : string,
-  deadline : Date,
-  created : Date,
-  deleted : Date,
-  attachedDate : Date, 
-  completed : Date, 
-  history : {
-      action : string,
-      date : Date
-  }[],
-  attachments : string[],
-  checked?:boolean
-}
-  
-
- 
-export interface Event{
-  _id : string, 
-  title : string,
-  type : ObjectType,
-  note : string,
-  attachedProjectsIds : string[],
-  attachedTags : string[],
-  date:Date,
-  location:string,  
-  history : {
-      action : string,
-      date : Date
-  },
-  attachments : string[]
-}
- 
-
-
-export interface Query<T>{
-  total_rows: 2, 
-  offset: 0, 
-  rows: QueryResult<T>[]
-}
-
-
-
-export interface QueryResult<T>{
-  doc:T,
-  id:string, 
-  key:string,
-  value:Object 
-}
-
- 
 
 
 
@@ -611,8 +584,6 @@ function updateItemInDatabase<T>(
 }
 
  
-
-
 
 
 

@@ -149,8 +149,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         if(isNil(this.props.selectedTodoId))
            return;  
 
-        this.removeTodoLocal(this.props.selectedTodoId);
-        removeTodo(this.props.selectedTodoId);
+        this.removeTodoLocal(this.props.selectedTodoId); 
           
     } 
 
@@ -269,8 +268,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
             history : [],    
             attachments : []
         }  
- 
-        addTodo(this.onError,todo);
  
         if(this.props.selectedCategory==="project"){ 
 

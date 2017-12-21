@@ -221,6 +221,7 @@ interface QuickSearchState{
     objectsWithKeywords:keyworded[],
     value:string,
     x:number,
+    y:number, 
     width:number,
     suggestions:keyworded[]
 } 
@@ -239,6 +240,7 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
             objectsWithKeywords : [],
             value:'',
             x:0,
+            y:0, 
             width:300,
             suggestions:[] 
         };
@@ -298,18 +300,21 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
     }
  
 
-    updatePosition = (props) => {
 
+
+    updatePosition = (props:QuickSearchProps) : void => { 
+        
         if(!props.container)
             return; 
- 
+
+        let fixedOffsetTop = 200;
         let rect = props.container.getBoundingClientRect();
-        let x = rect.width/2 - this.state.width/2;  
-
-        this.setState({x}); 
-
-    }
+        let x = rect.width/2 - this.state.width/2; 
+        let y = fixedOffsetTop + props.container.scrollTop;
  
+        this.setState({x,y});  
+  
+    }
 
 
     componentWillReceiveProps(nextProps:QuickSearchProps){

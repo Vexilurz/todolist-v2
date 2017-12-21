@@ -13,7 +13,7 @@ import { Transition } from 'react-transition-group';
 import { TodosList } from '../../Components/TodosList';
 import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '../ContainerHeader';
-import { byTags, chooseIcon } from '../../utils';
+import { byTags, chooseIcon, insideTargetArea } from '../../utils';
 import { getProjectLink } from '../Project/ProjectLink';
 import { getAreaLink } from '../Area/AreaLink';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
@@ -92,16 +92,16 @@ export class Trash extends Component<TrashProps,TrashState>{
         this.selectDeletedAreas(nextProps); 
 
     }  
-
+ 
 
 
     onEmptyTrash = (e) => {
+
         if(!this.state.showPopup)
             this.setState({showPopup:true}); 
-    }
-    
-    
 
+    }
+     
 
 
     onCancel = (e) => this.setState({showPopup:false}) 
@@ -165,7 +165,6 @@ export class Trash extends Component<TrashProps,TrashState>{
                 alignItems:"center"
             }}
         >  
-        
             <div 
                 onClick={(e) => this.restoreArea(value)} 
                 style={{
@@ -177,12 +176,11 @@ export class Trash extends Component<TrashProps,TrashState>{
                 }}     
             > 
                 <Restore style={{width:"20px", height:"20px"}}/> 
-            </div>  
+            </div>   
  
             <div style={{width:"100%"}}>
                 { getAreaLink({width:"20px",height:"20px"}, value, index, () => {}) }
             </div>  
-
         </div>   
     } 
 
@@ -196,34 +194,32 @@ export class Trash extends Component<TrashProps,TrashState>{
                 position:"relative", 
                 display:"flex", 
                 alignItems:"center"
-            }}  
+            }}   
          > 
+            <div  
+                onClick={(e) => this.restoreTodo(value)} 
+                style={{
+                    paddingRight:"5px",
+                    paddingBottom: "8px", 
+                    display:"flex",  
+                    cursor:"pointer", 
+                    position:"relative",
+                    alignItems:"center" 
+                }} 
+            > 
+                <Restore style={{width:"20px", height:"20px"}}/> 
+            </div>  
 
-                    <div  
-                        onClick={(e) => this.restoreTodo(value)} 
-                        style={{
-                            paddingRight:"5px",
-                            paddingBottom: "8px", 
-                            display:"flex",  
-                            cursor:"pointer", 
-                            position:"relative",
-                            alignItems:"center" 
-                        }} 
-                    > 
-                        <Restore style={{width:"20px", height:"20px"}}/> 
-                    </div>  
-
-                    <div style={{width:"100%"}}>
-                        <TodoInput   
-                            id={value._id}
-                            key = {value._id} 
-                            dispatch={this.props.dispatch}   
-                            tags={this.props.tags} 
-                            rootRef={this.props.rootRef} 
-                            todo={value}
-                        />   
-                    </div>   
-
+            <div style={{width:"100%"}}>
+                <TodoInput   
+                    id={value._id}
+                    key = {value._id} 
+                    dispatch={this.props.dispatch}   
+                    tags={this.props.tags} 
+                    rootRef={this.props.rootRef} 
+                    todo={value}
+                />   
+            </div>   
          </div>  
 
     } 
@@ -279,11 +275,12 @@ export class Trash extends Component<TrashProps,TrashState>{
             {
                 !this.state.showPopup ? null :
                 <TrashPopup
-                    container={this.props.rootRef} 
-                    onCancel={this.onCancel}
-                    onOk={this.onOk}
+                 dispatch={this.props.dispatch} 
+                 container={this.props.rootRef} 
+                 onCancel={this.onCancel}
+                 onOk={this.onOk}
                 />
-            }
+            } 
 
         </div>
          
@@ -291,14 +288,10 @@ export class Trash extends Component<TrashProps,TrashState>{
 
 } 
  
-
-
-
-
-
-
+  
 
 interface TrashPopupProps{
+    dispatch:Function,
     container:HTMLElement, 
     onCancel : (e) => void,
     onOk : (e) => void   
@@ -308,40 +301,63 @@ interface TrashPopupProps{
 
 interface TrashPopupState{
     width : number,
-    x : number
+    x : number,
+    y : number 
 }  
-
  
+  
 
 class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
 
-
-    popupRef:HTMLElement;
-
-
+    ref:HTMLElement; 
+    timeout:any;  
+ 
     constructor(props){
 
         super(props);
 
         this.state = { 
             width : 400, 
-            x : 0
+            x : 0,
+            y : 0 
         }; 
 
-    } 
+    }  
 
 
 
-    updatePosition = (props) => { 
+    onOutsideClick = (e) => {
+        
+        if(this.ref===null || this.ref===undefined)
+            return; 
+
+        let rect = this.ref.getBoundingClientRect();
+
+        let x = e.pageX;
+        
+        let y = e.pageY; 
+         
+        let inside : boolean = insideTargetArea(this.ref)(x, y);
+
+        if(!inside)
+            this.props.onCancel(null); 
+              
+    }  
+ 
+
+
+    updatePosition = (props:TrashPopupProps) : void => { 
         
         if(!props.container)
             return; 
-    
+
+        let fixedOffsetTop = 200;
         let rect = props.container.getBoundingClientRect();
         let x = rect.width/2 - this.state.width/2; 
-
-        this.setState({x}); 
-
+        let y = fixedOffsetTop + props.container.scrollTop;
+ 
+        this.setState({x,y});  
+  
     }
          
 
@@ -350,41 +366,54 @@ class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
 
         this.updatePosition(this.props);
 
-    }
+        this.timeout = setTimeout(() => window.addEventListener("click", this.onOutsideClick), 300);  
+        
+
+    }  
+
+
+
+    componentWillUnmount(){
+        
+        clearTimeout(this.timeout as any);
+
+        window.removeEventListener("click", this.onOutsideClick);
+
+    } 
  
 
 
     componentWillReceiveProps(nextProps){
 
        if(this.props.container!==nextProps.container)
-          this.updatePosition(this.props);
+          this.updatePosition(nextProps); 
 
     }
+  
+
  
-
-
     render(){
-
-        return <div  
-            ref={(e) => { this.popupRef=e; }}
-            onClick = {(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-            }}  
-            style={{   
-                padding: "10px", 
-                boxShadow: "0 0 18px rgba(0,0,0,0.5)", 
-                margin: "5px",
-                borderRadius: "5px",
-                zIndex: 30000, 
-                width: `${this.state.width}px`,  
-                height: "auto",    
-                position: "absolute",
-                backgroundColor: "rgba(238,237,239,1)",
-                left:`${this.state.x}px`,
-                top:`8%`   
-            }}          
-        >  
+ 
+     return <div   
+                ref={(e) => { this.ref=e; }}
+                onClick = {(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                }}  
+                style={{   
+                    padding: "10px", 
+                    boxShadow: "0 0 18px rgba(0,0,0,0.5)", 
+                    margin: "5px",
+                    borderRadius: "5px",
+                    zIndex: 30000, 
+                    width: `${this.state.width}px`,  
+                    height: "auto",    
+                    position: "absolute",
+                    backgroundColor: "rgba(238,237,239,1)",
+                    left:`${this.state.x}px`, 
+                    top:`${this.state.y}px`,   
+                }}          
+            >   
             <div style={{display:"flex", flexDirection:"column"}}>   
                 <div style={{display:"flex", alignItems:"center"}}>  
                     <div style={{
@@ -395,7 +424,7 @@ class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
                     }}>  
                         { chooseIcon({width:"80px", height:"80px"}, "inbox") } 
                     </div>
-                    <div style={{
+                    <div style={{ 
                         display:"flex",
                         flexDirection:"column",
                         justifyContent:"flex-start",
@@ -415,7 +444,7 @@ class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
  
                     </div>
                 </div>
-                <div style={{ 
+                <div style={{  
                     display:"flex",  
                     alignItems: "center", 
                     justifyContent: "flex-end",
@@ -436,10 +465,7 @@ class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
                                 backgroundColor:"white"  
                             }}  
                         > 
-                            <div style={{  
-                                color:"rgba(0,0,0,0.9)", 
-                                fontSize:"16px"
-                            }}>      
+                            <div style={{color:"rgba(0,0,0,0.9)", fontSize:"16px"}}>      
                                 Cancel
                             </div>  
                         </div>
@@ -459,16 +485,13 @@ class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
                                 backgroundColor:"rgb(10, 90, 250)"  
                             }}
                         > 
-                            <div style={{
-                                color:"white", 
-                                fontSize:"16px"
-                            }}>  
+                            <div style={{color:"white", fontSize:"16px"}}>  
                                 OK
                             </div>   
-                        </div>
+                        </div> 
                     </div>
                 </div>
             </div>   
-    </div>
-  }
+            </div>
+    } 
 }

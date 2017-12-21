@@ -12,8 +12,10 @@ import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import Popover from 'material-ui/Popover';
 import Button from 'material-ui-next/Button';
 import { attachDispatchToProps, replace, remove, insert } from '../utils';
-import { Todo, removeTodo, addTodo, generateId } from '../database';
+import { Todo, removeTodo, addTodo, generateId, Project, Area } from '../database';
 import { Store } from '../App';
+import { ChecklistItem } from './TodoInput/TodoChecklist';
+import { Category } from './MainContainer';
 let uniqid = require("uniqid");   
  
 
@@ -25,104 +27,145 @@ interface RightClickMenuState{}
 @connect((store,props) => store, attachDispatchToProps) 
 export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
-   constructor(props){
+    constructor(props){
        super(props);
-   }
+    }
  
-
-   updateTodo = (changedTodo:Todo) => {
-       let idx = this.props.todos.findIndex((t:Todo) => changedTodo._id===t._id);
-        
-       if(idx!==-1)
-           this.props.dispatch({
-               type:"todos",
-               load: replace(this.props.todos,changedTodo,idx)
-           });
-   }   
-   
-   
-    
-    removeTodoLocal = (_id:string) => {
-        let idx = this.props.todos.findIndex((item:Todo) => item._id===_id);
- 
-        if(idx!==-1)
-            this.props.dispatch({
-                type:"todos",
-                load: remove(this.props.todos,idx)
-            }); 
-    }  
-   
-
-   duplicateTodo = (_id:string) => {
-
-        let idx = this.props.todos.findIndex((item:Todo) => item._id===_id);
-        
-        if(idx!==-1){
-
-            let duplicatedTodo : any = this.props.todos[idx];
-
-            if(duplicatedTodo===null || duplicatedTodo===undefined)
-               return; 
-             
-            
-            duplicatedTodo  = {  ...duplicatedTodo, ...{_id:generateId()}  };
-
-            delete duplicatedTodo._rev;
-
-
-            addTodo((e) => console.log(e), duplicatedTodo);
-                
-            this.props.dispatch({
-                type:"todos",
-                load:insert(this.props.todos, duplicatedTodo, idx)
-            });
- 
-        }
-             
-   }  
 
     onDuplicate = (e) => {
-       this.duplicateTodo(this.props.rightClickedTodoId); 
+
+       this.props.dispatch({ type:"duplicateTodo", load: this.props.rightClickedTodoId }); 
+ 
     } 
+ 
 
     onDeleteToDo = (e) => {
-        this.removeTodoLocal(this.props.rightClickedTodoId);
-        removeTodo(this.props.rightClickedTodoId);
+
+        this.props.dispatch({ type:"removeTodo", load:this.props.rightClickedTodoId }); 
+
+    }  
+
+ 
+    onComplete = (e) => {
+        
+        let todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId); 
+        
+        this.props.dispatch({ type:"updateTodo", load:{ ...todo, ...{completed:new Date()} } });
+    
     } 
 
 
-   onWhen = (e) => {
-   } 
+    onConvertToProject = (e) => { 
+        let todo : Todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId); 
+        let todos = todo.checklist.map( 
+            (c : ChecklistItem) : Todo =>  ({ 
+                    _id : uniqid(), 
+                    category : "anytime" as Category, 
+                    type : "todo",
+                    title : c.text,  
+                    priority : Math.random(),
+                    note : '',  
+                    checklist : [],
+                    reminder : null,  
+                    attachedTags : [], 
+                    status : '',
+                    deadline : null,
+                    created : new Date(),
+                    deleted : null,
+                    attachedDate : null, 
+                    completed : c.checked ? new Date() : null, 
+                    history : [],
+                    attachments : [], 
+                    checked:c.checked
+            })
+        );
+ 
+        let layout : string[] = todos.map( (t:Todo) : string => t._id ); 
 
-   onMove = (e) => {
-   }
+        let converted : Project = {  
+            _id : generateId(),  
+            type : "project", 
+            name : todo.title,   
+            description : todo.note, 
+            layout,  
+            created : todo.created, 
+            deadline : todo.deadline,
+            deleted : todo.deleted,
+            completed : todo.completed, 
+            attachedTodosIds : [],  
+            attachedTags : todo.attachedTags
+        };
+        
+        this.props.dispatch({ type:"removeTodo", load:todo._id });
+        this.props.dispatch({ type:"newProject", load:converted });
+    }
+ 
 
-   onComplete = (e) => {}
 
-   onShortcuts = (e) => {}
+    onRemoveFromProjectArea = (e) => {
+        let projectSelected : boolean = this.props.selectedCategory==="project" && 
+                                        !!this.props.selectedProjectId;
 
-   onRepeat = (e) => {
-   }
+        let areaSelected : boolean = this.props.selectedCategory==="area" && 
+                                     !!this.props.selectedAreaId;
+                           
+                           
+        if(projectSelected){
+            
+            let project = this.props.projects.find((p:Project) => p._id===this.props.selectedProjectId);
 
-  
+            let ids = project.attachedTodosIds;
+            let idx = ids.indexOf(this.props.rightClickedTodoId);
 
-   onConvertToProject = (e) => {
-   }
+            this.props.dispatch({type:"updateProject", load:{...project, attachedTodosIds:remove(ids, idx)}});
+
+        }else if(areaSelected){
+
+            let area = this.props.areas.find((a:Area) => a._id===this.props.selectedAreaId)
+
+            let ids = area.attachedTodosIds;
+            let idx = ids.indexOf(this.props.rightClickedTodoId);
+ 
+            this.props.dispatch({type:"updateArea", load:{...area, attachedTodosIds:remove(ids,idx)}});
+
+        }  
+    }
+
+    onWhen = (e) => {} 
+
+    onMove = (e) => {}
+
+    onShortcuts = (e) => {}
+
+    onRepeat = (e) => {}
+
+    onShare = (e) => {}
 
  
-   
-  
 
-   onRemoveFromProject = (e) => {
-   }
-
-   onShare = (e) => {
-   }
+    render(){
 
 
-   render(){
-       return  !this.props.showRightClickMenu  ? null:
-               <div onClick = {(e) => {
+        let projectSelected = this.props.selectedCategory==="project" && 
+                              !!this.props.selectedProjectId;
+ 
+        let areaSelected = this.props.selectedCategory==="area" && 
+                           !!this.props.selectedAreaId;                       
+          
+        let canWhen = false;
+        let canMove = false;
+        let canComplete = true;
+        let canShortcuts = false; 
+        let canRepeat = false;
+        let canDuplicate = true;
+        let canConvert = true; 
+        let canDelete = true; 
+        let canRemoveFromProjectArea = projectSelected || areaSelected;
+        let canShare = false; 
+
+ 
+        return  !this.props.showRightClickMenu  ? null:
+                <div onClick = {(e) => {
                        e.stopPropagation();
                        e.preventDefault();
                     }} 
@@ -135,302 +178,178 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                        margin: "5px",
                        borderRadius: "5px",
                        zIndex: 30000, 
-                       width: "250px", 
-                       height: "240px", 
+                       width: "250px",  
                        position: "absolute",
                        backgroundColor: "rgba(238,237,239,1)",
                        left: this.props.rightClickMenuX+"px",
                        top: this.props.rightClickMenuY+"px"  
-                    }}        
-               >       
-                       <div 
-                       onClick = {(e) => {
-                           e.stopPropagation();
-                           e.preventDefault(); 
-                          
-                       }} 
-                       style={{
-                           display: "flex",
-                           flexDirection: "column"
-                       }}> 
-                            <div 
-                            
-                            onClick = {this.onWhen}
-                            
-                            className="rightclickmenuitem"
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                fontFamily: "sans-serif",
-                                paddingLeft: "5px",
-                                paddingRight: "5px",
-                                fontSize: "14px",
-                                cursor: "pointer",
-                                paddingTop: "2px",
-                                paddingBottom: "2px" 
-                            }}>
-                               <div>
-                                   When...
-                               </div>
-                               <p style={{    
-                                   margin: "0px",
-                                   fontWeight: 600,
-                                   color: "rgba(70,70,70,1)"
-                               }}> 
-                                   &#8984; S
-                               </p>
-                           </div>   
+                    }}         
+                >       
+                    <div   
+                        onClick = {(e) => {
+                            e.stopPropagation();
+                            e.preventDefault(); 
+                        }}  
+                        style={{
+                            display: "flex",
+                            flexDirection: "column"
+                        }}
+                    > 
 
-                           <div 
+                        <RightClickMenuItem 
+                            title={"When..."} 
+                            onClick={this.onWhen}
+                            disabled={!canWhen}
+                            icon={<p style={{ margin: "0px", fontWeight: 600 }}> &#8984; S </p>}
+                        />
+
+                        <RightClickMenuItem 
+                            title={"Move..."}
+                            onClick = {this.onMove}
+                            disabled = {!canMove}
+                            icon = { <p style={{ margin: "0px", fontWeight: 600 }}> &#8679;&#8984; M </p> }
+                        />
+
+                        <RightClickMenuItem 
+                            title={"Complete"} 
+                            onClick = {this.onComplete}
+                            disabled = {!canComplete}
+                            icon = {<ArrowDropRight style={{padding: 0, margin: 0}}/>}
+                        />
+
+                        <RightClickMenuItem 
+                            title = {"Shortcuts"}
+                            onClick = {this.onShortcuts}
+                            disabled = {!canShortcuts}
+                            icon={<ArrowDropRight style={{padding: 0, margin: 0}}/>}
+                        />
+ 
+                        <div style={{
+                            border:"1px solid rgba(200,200,200,0.5)",
+                            marginTop: "5px",
+                            marginBottom: "5px"
+                        }}>
+                        </div>
                            
-                           onClick = {this.onMove}
+                        <RightClickMenuItem 
+                            title={"Repeat..."} 
+                            onClick = {this.onRepeat}
+                            disabled={!canRepeat}
+                            icon={<p style={{margin: "0px", fontWeight: 600}}>&#8679;&#8984;R </p>} 
+                        />
+                                
 
-                           className="rightclickmenuitem"
-                           style={{
-                               display: "flex",
-                               justifyContent: "space-between",
-                               alignItems: "center",
-                               fontFamily: "sans-serif",
-                               paddingLeft: "5px",
-                               paddingRight: "5px",
-                               fontSize: "14px",
-                               cursor: "pointer",
-                               paddingTop: "2px",
-                               paddingBottom: "2px" 
-                           }}>
-                               <div>
-                                   Move...
-                               </div>
-                               <p style={{    
-                                   margin: "0px",
-                                   fontWeight: 600,
-                                   color: "rgba(70,70,70,1)"
-                               }}>
-                               &#8679;&#8984; M
-                               </p>   
-                           </div>
+                        <RightClickMenuItem 
+                            title={"Duplicate To-Do"}
+                            onClick = {this.onDuplicate}
+                            disabled = {!canDuplicate}
+                            icon={<p style={{margin: "0px", fontWeight: 600,}}>&#8984;D</p>}
+                        />
+           
 
-                           <div 
-                           
-                           onClick = {this.onComplete}
+                        <RightClickMenuItem 
+                            title={"Convert to Project"}
+                            onClick = {this.onConvertToProject}
+                            disabled = {!canConvert}
+                            icon={<p style={{margin: "0px", fontWeight: 600,}}>&#8984;D</p>}
+                        />
 
-                           className="rightclickmenuitem"
-                           style={{
-                               display: "flex",
-                               justifyContent: "space-between",
-                               alignItems: "center",
-                               fontFamily: "sans-serif",
-                               paddingLeft: "5px",
-                               paddingRight: "5px",
-                               fontSize: "14px",
-                               cursor: "pointer",
-                               paddingTop: "2px",
-                               paddingBottom: "2px" 
-                           }}>
-                               <div>
-                                   Complete
-                               </div>
-                               <div style={{
-                                   height: "14px",
-                                   display: "flex",
-                                   alignItems: "center" 
-                               }}>
-                                   <ArrowDropRight style={{
-                                       padding: 0,
-                                       margin: 0,
-                                       color: "rgba(0, 0, 0, 0.6)"
-                                   }}/>
-                               </div>
-                           </div>
 
-                           <div 
-                           
-                           onClick = {this.onShortcuts}
+                        <RightClickMenuItem 
+                            title={"Delete To-Do"}
+                            onClick = {this.onDeleteToDo}
+                            disabled = {!canDelete}
+                            icon={<ClearArrow  style={{padding:0, margin:0, height:"14px"}}/>}
+                        />
 
-                           className="rightclickmenuitem"
-                           style={{
-                               display: "flex",
-                               justifyContent: "space-between",
-                               alignItems: "center",
-                               fontFamily: "sans-serif",
-                               paddingLeft: "5px",
-                               paddingRight: "5px",
-                               fontSize: "14px",
-                               cursor: "pointer",
-                               paddingTop: "2px",
-                               paddingBottom: "2px" 
-                           }}>
-                               <div>
-                                   Shortcuts
-                               </div>
-                               <div style={{
-                                   height: "14px",
-                                   display: "flex",
-                                   alignItems: "center" 
-                               }}>
-                                   <ArrowDropRight style={{
-                                       padding: 0,
-                                       margin: 0, 
-                                       color: "rgba(0, 0, 0, 0.6)"
-                                   }}/>
-                               </div>
-                           </div> 
-                           
-                           <div style={{
-                                border:"1px solid rgba(200,200,200,0.5)",
-                                marginTop: "5px",
-                                marginBottom: "5px"
-                           }}>
-                           </div>
+                        <div style={{
+                            border:"1px solid rgba(200,200,200,0.5)",
+                            marginTop: "5px",
+                            marginBottom: "5px"
+                        }}>
+                        </div>  
 
-                           <div 
-                           onClick = {this.onRepeat}
-                           className="rightclickmenuitem"
-                           style={{
-                               display: "flex",
-                               justifyContent: "space-between",
-                               alignItems: "center",
-                               fontFamily: "sans-serif",
-                               paddingLeft: "5px",
-                               paddingRight: "5px",
-                               fontSize: "14px",
-                               cursor: "pointer",
-                               paddingTop: "2px",
-                               paddingBottom: "2px" 
-                           }}>
-                               <div>
-                                   Repeat...
-                               </div>
-                               <p style={{    
-                                   margin: "0px",
-                                   fontWeight: 600,
-                                   color: "rgba(70,70,70,1)"
-                               }}>&#8679;&#8984;R</p>
-                           </div>
+                        <RightClickMenuItem 
+                            title={"Remove From Project/Area"}
+                            onClick = {this.onRemoveFromProjectArea}
+                            disabled = {!canRemoveFromProjectArea}
+                            icon={null} 
+                        />
 
-                           <div  
-                           onClick = {this.onDuplicate}
-                           className="rightclickmenuitem"
-                           style={{
-                               display: "flex",
-                               justifyContent: "space-between",
-                               alignItems: "center",
-                               fontFamily: "sans-serif",
-                               paddingLeft: "5px",
-                               paddingRight: "5px",
-                               fontSize: "14px",
-                               cursor: "pointer",
-                               paddingTop: "2px",
-                               paddingBottom: "2px" 
-                           }}>
-                               <div>
-                                   Duplicate To-Do
-                               </div>
-                               <p style={{    
-                                   margin: "0px",
-                                   fontWeight: 600,
-                                   color: "rgba(70,70,70,1)"
-                               }}>&#8984;D</p>
-                           </div>
-                           
-                           <div 
-                           onClick = {this.onConvertToProject}
-                           className="rightclickmenuitem"
-                           style={{
-                               display: "flex",
-                               justifyContent: "space-between",
-                               alignItems: "center",
-                               fontFamily: "sans-serif",
-                               paddingLeft: "5px",
-                               paddingRight: "5px",
-                               fontSize: "14px",
-                               cursor: "pointer",
-                               paddingTop: "2px",
-                               paddingBottom: "2px" 
-                           }}>
-                               <div>
-                                   Convert to Project
-                               </div>
-                           </div>
+                        <div style={{
+                            border:"1px solid rgba(200,200,200,0.5)",
+                            marginTop: "5px",
+                            marginBottom: "5px"
+                        }}>
+                        </div>
 
-                           <div 
-                           onClick = {this.onDeleteToDo}
-                           className="rightclickmenuitem"
-                           style={{
-                               display: "flex",
-                               justifyContent: "space-between",
-                               alignItems: "center",
-                               fontFamily: "sans-serif",
-                               paddingLeft: "5px",
-                               paddingRight: "5px",
-                               fontSize: "14px",
-                               cursor: "pointer",
-                               paddingTop: "2px",
-                               paddingBottom: "2px" 
-                           }}> 
-                               <div>
-                                   Delete To-Do
-                               </div>
-                               <ClearArrow  style={{
-                                   padding: 0,
-                                   margin: 0,
-                                   color: "rgba(0, 0, 0, 0.6)",
-                                   height: "14px"
-                               }}/>
-                           </div>
-                           
-                           <div style={{
-                                border:"1px solid rgba(200,200,200,0.5)",
-                                marginTop: "5px",
-                                marginBottom: "5px"
-                           }}>
-                           </div>
-
-                           <div 
-                           onClick = {this.onRemoveFromProject}
-                           className="rightclickmenuitem"
-                           style={{
-                               display: "flex",
-                               justifyContent: "space-between",
-                               alignItems: "center",
-                               fontFamily: "sans-serif",
-                               paddingLeft: "5px",
-                               paddingRight: "5px",
-                               fontSize: "14px",
-                               cursor: "pointer",
-                               paddingTop: "2px",
-                               paddingBottom: "2px"  
-                           }}>
-                               <div>Remove From Project/Area</div>
-                           </div>
-
-                           <div style={{
-                               border:"1px solid rgba(200,200,200,0.5)",
-                               marginTop: "5px",
-                               marginBottom: "5px"
-                           }}>
-                           </div>
-
-                           <div   
-                           onClick = {this.onShare}
-                           className="rightclickmenuitem"
-                           style={{
-                               display: "flex",
-                               justifyContent: "space-between",
-                               alignItems: "center",
-                               fontFamily: "sans-serif",
-                               paddingLeft: "5px",
-                               paddingRight: "5px",
-                               fontSize: "14px",
-                               cursor: "pointer",
-                               paddingTop: "2px",
-                               paddingBottom: "2px" 
-                           }}> 
-                               <div>Share</div>
-                           </div>
-
+                        <RightClickMenuItem 
+                            title={"Share"}
+                            onClick = {this.onShare}
+                            disabled = {!canShare}
+                            icon={null} 
+                        />
                        </div> 
                </div>
            };
+}
+ 
+
+
+
+
+interface RightClickMenuItemProps{
+    title:string, 
+    onClick:(e) => void,
+    disabled:boolean,
+    icon:JSX.Element 
+} 
+
+interface RightClickMenuItemState{}
+
+export class RightClickMenuItem extends Component<RightClickMenuItemProps,RightClickMenuItemState>{
+
+    constructor(props){
+        super(props);
+    }
+
+
+    render(){ 
+
+         let disabledColor = "rgba(0,0,0,0.2)";
+
+         return <div  
+                    onClick = {(e) => !this.props.disabled ? this.props.onClick(e) : null}
+                    className="rightclickmenuitem"
+                    style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        fontFamily: "sans-serif",
+                        paddingLeft: "5px",
+                        paddingRight: "5px",
+                        fontSize: "14px",
+                        cursor: this.props.disabled ? "pointer" : "default",
+                        paddingTop: "2px",
+                        paddingBottom: "2px" 
+                    }}
+                >  
+                   
+                    <div style={{color: !this.props.disabled ? "rgba(70,70,70,1)" : disabledColor}}>
+                        {this.props.title} 
+                    </div>
+ 
+                    <div style={{
+                        height: "14px",
+                        display: "flex", 
+                        alignItems: "center",   
+                        margin: "0px", 
+                        fontWeight: 600 
+                    }}>
+                        {this.props.icon}
+                    </div>
+
+                </div> 
+    }
+
 }
