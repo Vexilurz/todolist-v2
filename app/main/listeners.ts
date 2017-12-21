@@ -2,13 +2,10 @@ import { mainWindow } from './main';
 import { loadApp } from './loadApp'; 
 import * as electron from 'electron'; 
 import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';
-import { compose, contains, toPairs, curry, replace, mergeAll, addIndex, toUpper, equals,
-         takeLast, map, fromPairs, isEmpty, flatten, defaultTo, range, all, splitEvery, ifElse,
-         prepend, cond, isNil, intersection, insert, add, findIndex, filter, reject, find, split 
-} from 'ramda'; 
 import { initWindow } from './initWindow';
+import { remove } from '../utils';
 let uniqid = require("uniqid");
-const {shell} = require('electron'); 
+const {shell} = require('electron');  
  
 
 interface RegisteredListener{ 
@@ -78,8 +75,8 @@ export class Listeners {
   
                        let browserWindow = this.spawnedWindows.find( browserWindow => browserWindow.id===id );  
   
-                       if(isNil(browserWindow))
-                         return;
+                       if(browserWindow===undefined || browserWindow===null)
+                          return;
 
   
                        browserWindow.reload();  
@@ -106,9 +103,9 @@ export class Listeners {
                 name : "action",
                 callback : (event, action : any, id : number) => {
 
-                    if(isNil(id))
+                    if(id===undefined || id===null)
                        return;  
-
+ 
                     let windows = this.spawnedWindows.filter( w => !w.isDestroyed());
 
                     for(let i=0; i<windows.length; i++){
@@ -133,9 +130,9 @@ export class Listeners {
                     let browserWindow = this.spawnedWindows.find( browserWindow => browserWindow.id===id );  
                     
 
-                    if(isNil(browserWindow))
-                       return; 
-
+                    if(browserWindow===undefined || browserWindow===null)
+                       return;
+                        
                     browserWindow.close(); 
 
                 }
@@ -152,8 +149,8 @@ export class Listeners {
                     let browserWindow = this.spawnedWindows.find( browserWindow => browserWindow.id===id );  
                     
 
-                    if(isNil(browserWindow))
-                       return; 
+                    if(browserWindow===undefined || browserWindow===null)
+                       return;
                    
 
                     browserWindow.minimize(); 
@@ -175,8 +172,8 @@ export class Listeners {
                     let browserWindow = this.spawnedWindows.find( browserWindow => browserWindow.id===id );  
                      
 
-                    if(isNil(browserWindow))
-                       return; 
+                    if(browserWindow===undefined || browserWindow===null)
+                       return;
                     
                     if(fullscreen)
                         browserWindow.setSize(width,height);
@@ -212,38 +209,26 @@ export class Listeners {
 
     unregisterListener(name : string) : void{
 
-        let filtered : RegisteredListener[] = reject( 
-            (listener : RegisteredListener) => listener.name==name
-        )(this.registeredListeners);
+        let idx = this.registeredListeners.findIndex((listener : RegisteredListener) => listener.name==name)
+ 
+        if(idx===-1)
+           return;
             
-        if(filtered.length!==this.registeredListeners.length){
-            this.registeredListeners=filtered;  
-            ipcMain.removeAllListeners(name); 
-        };    
+        this.registeredListeners = remove(this.registeredListeners, idx); 
+
+        ipcMain.removeAllListeners(name); 
 
     }; 
   
 
 
-
+ 
     startToListenOnAllChannels = () => 
-        map(
-            ({name,callback}) => 
-                ipcMain.on(
-                    name, 
-                    callback
-                ), 
-            this.registeredListeners
-        );  
+        this.registeredListeners.map(({name,callback}) => ipcMain.on(name, callback));  
     
-  
-
 
     stopToListenOnAllChannels = () => 
-        map( 
-            ({name,callback}) => ipcMain.removeAllListeners(name),
-            this.registeredListeners
-        );  
+        this.registeredListeners.map(({name,callback}) => ipcMain.removeAllListeners(name));  
     
 
 };         

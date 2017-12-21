@@ -1,12 +1,7 @@
 import './../assets/styles.css';   
 import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
-import * as ReactDOM from 'react-dom'; 
-import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
-    compose, append, contains, and, find, defaultTo, addIndex, split, filter, any,
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, 
-    groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs 
-} from 'ramda'; 
+import * as ReactDOM from 'react-dom';   
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton';  
 import { Component } from "react"; 
@@ -129,8 +124,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
     } 
 
 
-    removeTodoLocal = (_id:string) => {
-        let idx = findIndex((item:Todo) => item._id===_id)(this.props.todos);
+    removeTodoLocal = (_id:string) => { 
+        let idx = this.props.todos.findIndex((item:Todo) => item._id===_id);
  
         if(idx!==-1)
             this.props.dispatch({
@@ -146,9 +141,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     onDeleteToDo = (e) => { 
 
-        if(isNil(this.props.selectedTodoId))
+        if(this.props.selectedTodoId===null || this.props.selectedTodoId===undefined)
            return;  
-
+ 
         this.removeTodoLocal(this.props.selectedTodoId); 
           
     } 
@@ -177,15 +172,15 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 let areas = fakeData.areas;
                 
                 Promise.all([
-                    Promise.all(map( (t:Todo) => addTodo(this.onError,t) )(todos)),
-                    Promise.all(map( (e:Event) => addEvent(this.onError,e) )(events)),
-                    Promise.all(map( (p:Project) => addProject(this.onError,p) )(projects)),
-                    Promise.all(map( (a:Area) => addArea(this.onError,a) )(areas))
+                    Promise.all(todos.map( (t:Todo) => addTodo(this.onError,t) )),
+                    Promise.all(events.map( (e:Event) => addEvent(this.onError,e) )),
+                    Promise.all(projects.map( (p:Project) => addProject(this.onError,p) )),
+                    Promise.all(areas.map( (a:Area) => addArea(this.onError,a) ))
                 ]).then(
-                    () => this.fetchData() 
-                )
+                    () => this.fetchData()  
+                ) 
                   
-        }) 
+        })  
 
         
 

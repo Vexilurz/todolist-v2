@@ -1,4 +1,3 @@
-import { compose, map } from 'ramda';
 import { ipcMain, BrowserWindow } from 'electron';
 import { mainWindow } from "./main";
 import fs = require('fs');    
@@ -34,7 +33,7 @@ export let loadApp = (window) : Promise<void> =>
            (resolve) => resolve(), 
            (reject, error) => reject(),
            window 
-       )(
+       )( 
            `file://${__dirname}/app.html`
        );    
   

@@ -2,7 +2,6 @@ import './../assets/styles.css';
 import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import {groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs} from 'ramda';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 

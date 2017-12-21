@@ -1,11 +1,7 @@
 import '../../assets/styles.css';  
 import '../../assets/calendarStyle.css';   
 import * as React from 'react';
-import * as ReactDOM from 'react-dom'; 
-import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, 
-    compose, append, contains, and, find, defaultTo, addIndex, split, filter, 
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, groupBy, concat 
-} from 'ramda';
+import * as ReactDOM from 'react-dom';   
 import { Component } from "react"; 
 import { DraggableCore } from 'react-draggable';
  

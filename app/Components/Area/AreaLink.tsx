@@ -14,7 +14,6 @@ import { Project, Area } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import { stringToLength, remove, insert, unique, replace, swap, chooseIcon } from '../../utils';
 import { SortableList } from '../SortableList';
-import { equals } from 'ramda';
 
   
 export let getAreaLink = (iconSize, a:Area, index:number, dispatch:Function) : JSX.Element => {

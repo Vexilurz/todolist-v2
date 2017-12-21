@@ -1,10 +1,8 @@
 import './assets/styles.css';     
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
-import { map, range, merge, isEmpty, curry, cond, compose, contains, and, or,uniq,
-    find, defaultTo, split, filter, clone, take, drop, splitAt, last, isNil, toUpper, prepend, flatten, prop, toPairs } from 'ramda';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import {
+import { 
   cyan500, cyan700,   
   pinkA200, 
   grey100, grey300, grey400, grey500,
@@ -200,21 +198,59 @@ export let chooseIcon = (
 
 
 
-export let getTagsFromTodos = (todos:Todo[]) : string[] => compose(
-    uniq,    
-    flatten, 
-    prepend([
-      "Work", "Home",
-      "Priority", "High", "Medium","Low"
-    ]),
-    map(prop("attachedTags")), 
-    filter((v)  => !!v)
-)(todos) as any;
-  
+export let getTagsFromTodos = (todos:Todo[]) : string[] => {
+
+    let tags = [
+        //Priority:
+        "Low",
+        //Priority:
+        "Medium",
+        //Priority:
+        "High",
+        //Location:
+        "Home",
+        //Location:
+        "Office",
+        //Location:
+        "Everywhere",
+        //Status:
+        "Waiting",
+        //Time:
+        "5min",
+        //Time:
+        "15min",
+        //Time:
+        "1h",
+        //Energy:
+        "Easy",
+        //Energy:   
+        "Hard",
+        "Errand",
+        "Private",
+        "Work"
+    ];
+
+    for(let i = 0; i<todos.length; i++){
+
+        let todo : Todo = todos[i];
+
+        for(let j = 0; j<todo.attachedTags.length; j++){
+
+            if(tags.indexOf(todo.attachedTags[j])===-1)
+               tags.push(todo.attachedTags[j])
+
+        }
+        
+    }
+
+    return tags; 
+
+}
 
 
 
-export let attachDispatchToProps = (dispatch,props) => merge({dispatch},props);  
+
+export let attachDispatchToProps = (dispatch,props) => ({...props, dispatch});
 
 
 
@@ -239,19 +275,18 @@ export let allPass = (funcs : Function[], item) : boolean => {
             return false; 
 
     return true;
-}
-
+} 
+  
 
 
 export let stringToLength = (s : string, length : number) : string => {
 
     if( typeof s !== "string" )
-        throw new Error("Input is not a string.");
+        return '';
 
-    if(s.length>length){  
-        let splitted = splitAt(length,s);
-        return splitted[0] + "..."; 
-    }else 
+    if(s.length>length)  
+        return s.substring(0, length) + "..."; 
+    else 
         return s;
         
 }; 
@@ -358,18 +393,18 @@ export let byTags = (selectedTag:string) => (todo:Todo) : boolean => {
     if(selectedTag==="All" || selectedTag==="") 
         return true;    
 
-    if(isNil(todo))
-        return false;
- 
-    return contains(selectedTag,todo.attachedTags);
+    if(todo===undefined || todo===null)
+        return false; 
+  
+    return  todo.attachedTags.indexOf(selectedTag)!==-1;
 
-} 
+}  
     
 
     
 export let byCategory = (selectedCategory:string) => (todo:Todo) : boolean => { 
 
-    if(isNil(todo))
+    if(todo===undefined || todo===null)
         return false; 
 
     if(todo.category==="evening" && selectedCategory==="today")

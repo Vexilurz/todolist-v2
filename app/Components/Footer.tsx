@@ -2,11 +2,6 @@ import './../assets/styles.css';
 import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { findIndex, map, assoc, range, remove, merge, isEmpty, curry, cond, uniq,
-    compose, append, contains, and, find, defaultTo, addIndex, split, filter, any,
-    clone, take, drop, reject, isNil, not, equals, assocPath, sum, prop, all, 
-    groupBy, concat, flatten, toPairs, adjust, prepend, fromPairs 
-} from 'ramda';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react";
@@ -40,17 +35,23 @@ interface FooterProps{
 export class Footer extends Component<FooterProps,{}>{
 
     constructor(props){
-      super(props);
-    }    
-  
-    shouldComponentUpdate(nextProps){
+         
+        super(props);
 
-      return this.props.buttonsNamesToDispaly.length!==nextProps.buttonsNamesToDispaly.length; 
+    }      
+    
+
+
+    shouldComponentUpdate(nextProps:FooterProps){
+
+        return this.props.buttonsNamesToDispaly.length!==nextProps.buttonsNamesToDispaly.length; 
       
-    } 
+    }  
+
+
     
     render(){
-        return <div style={{    
+        return <div style={{     
             display: "flex",
             alignItems: "center",
             justifyContent: "space-around",
@@ -62,9 +63,9 @@ export class Footer extends Component<FooterProps,{}>{
         }}>
 
             {  
-                !contains("NewTodo")(this.props.buttonsNamesToDispaly as any) ? null :
+                this.props.buttonsNamesToDispaly.indexOf("NewTodo")===-1 ? null :
                 <IconButton  
-                    onClick = {this.props.onNewTodoClick}
+                    onClick = {this.props.onNewTodoClick} 
                     tooltip="New To-Do"
                     tooltipPosition="top-center"
                     iconStyle={{ 
@@ -75,14 +76,14 @@ export class Footer extends Component<FooterProps,{}>{
                 >      
                     <Plus />
                 </IconButton> 
-
             }
-
  
-{  
-                !contains("Heading")(this.props.buttonsNamesToDispaly as any) ? null :
+ 
+
+            {  
+                this.props.buttonsNamesToDispaly.indexOf("Heading")===-1 ? null :
                 <IconButton  
-                    onClick = {this.props.onHeadingClick}
+                    onClick = {this.props.onHeadingClick} 
                     tooltip="New heading"
                     tooltipPosition="top-center" 
                     iconStyle={{ 
@@ -93,15 +94,12 @@ export class Footer extends Component<FooterProps,{}>{
                 >      
                     <Heading />
                 </IconButton> 
-
             }
 
 
 
-
-
             {  
-                !contains("Calendar")(this.props.buttonsNamesToDispaly as any) ? null :
+                this.props.buttonsNamesToDispaly.indexOf("Calendar")===-1 ? null :
                 <div>
                     <IconButton 
                         onClick = {this.props.onCalendarClick}
@@ -117,8 +115,9 @@ export class Footer extends Component<FooterProps,{}>{
             }
 
 
-            {
-                !contains("Arrow")(this.props.buttonsNamesToDispaly as any) ? null :
+
+            { 
+                this.props.buttonsNamesToDispaly.indexOf("Arrow")===-1 ? null :
                 <IconButton 
                     onClick = {this.props.onArrowClick}
                     iconStyle={{ 
@@ -132,51 +131,54 @@ export class Footer extends Component<FooterProps,{}>{
             }
             
 
+
             {
-                !contains("Trash")(this.props.buttonsNamesToDispaly as any) ? null :
-                        <IconButton 
-                            onClick = {this.props.onTrashClick}
-                            iconStyle={{ 
-                                color:"rgb(79, 79, 79)",
-                                width:"25px", 
-                                height:"25px" 
-                            }}
-                        >      
-                            <TrashIcon />
-                        </IconButton> 
+                this.props.buttonsNamesToDispaly.indexOf("Trash")===-1 ? null :
+                <IconButton  
+                    onClick = {this.props.onTrashClick}
+                    iconStyle={{ 
+                        color:"rgb(79, 79, 79)",
+                        width:"25px", 
+                        height:"25px" 
+                    }}
+                >      
+                    <TrashIcon />
+                </IconButton> 
             }  
 
 
-            {
-                !contains("Search")(this.props.buttonsNamesToDispaly as any) ? null :
-                        <IconButton 
-                            tooltip="Search"
-                            tooltipPosition="top-center" 
-                            onClick = {this.props.onSearchClick}
-                            iconStyle={{  
-                                color:"rgb(79, 79, 79)",
-                                width:"25px", 
-                                height:"25px" 
-                            }}
-                        >     
-                            <Search />
-                        </IconButton> 
+ 
+            { 
+                this.props.buttonsNamesToDispaly.indexOf("Search")===-1 ? null :
+                <IconButton 
+                    tooltip="Search"
+                    tooltipPosition="top-center" 
+                    onClick = {this.props.onSearchClick}
+                    iconStyle={{  
+                        color:"rgb(79, 79, 79)",
+                        width:"25px", 
+                        height:"25px" 
+                    }}
+                >     
+                    <Search />
+                </IconButton> 
             }
+
 
   
             {
-                !contains("More")(this.props.buttonsNamesToDispaly as any) ? null :
-                        <IconButton 
-                            onClick = {this.props.onMoreClick}
-                            iconStyle={{  
-                                color:"rgb(79, 79, 79)",
-                                width:"25px", 
-                                height:"25px" 
-                            }}
-                        >     
-                            <ThreeDots />
-                        </IconButton>  
-            }
+                this.props.buttonsNamesToDispaly.indexOf("More")===-1 ? null :
+                <IconButton  
+                    onClick = {this.props.onMoreClick}
+                    iconStyle={{  
+                        color:"rgb(79, 79, 79)",
+                        width:"25px", 
+                        height:"25px" 
+                    }}
+                >     
+                    <ThreeDots />
+                </IconButton>  
+            } 
             
         </div>
     }

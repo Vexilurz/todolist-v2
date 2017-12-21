@@ -14,7 +14,6 @@ import { Project, Area } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import { stringToLength, remove, insert, unique, replace, swap } from '../../utils';
 import { SortableList } from '../SortableList';
-import { equals } from 'ramda';
  
 interface AreasListProps{  
     dispatch:Function,
