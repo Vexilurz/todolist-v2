@@ -11,7 +11,6 @@ import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area } from '../../database';
 import Popover from 'material-ui/Popover';
-import Button from 'material-ui-next/Button';
 import { Footer } from '../../Components/Footer';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
@@ -181,8 +180,7 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
  
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
                         <TodosList      
-                            dispatch={this.props.dispatch}    
-                            filters={[byTags(this.props.selectedTag)]}
+                            dispatch={this.props.dispatch}     
                             selectedCategory={"anytime"} 
                             selectedTag={this.props.selectedTag}  
                             rootRef={this.props.rootRef}
@@ -302,8 +300,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
             <div>  
                 <div>     
                     <TodosList      
-                        dispatch={this.props.dispatch}    
-                        filters={[byTags(this.props.selectedTag)]}
+                        dispatch={this.props.dispatch}     
                         selectedCategory={"anytime"} 
                         selectedTag={this.props.selectedTag}  
                         rootRef={this.props.rootRef}

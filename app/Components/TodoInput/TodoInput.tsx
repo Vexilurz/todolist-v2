@@ -674,7 +674,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         onClick = {this.onCheckBoxClick} 
                         style={{   
                             width: "14px",
-                            border: this.state.checked ? '' : "2px solid rgba(200,200,200,0.7)",
+                            border: this.state.checked ? '' : "2px solid rgba(200,200,200,0.7)", 
                             borderRadius: "3px",
                             backgroundColor: this.state.checked ? "rgb(32,86,184)" : '', 
                             height: "14px",    

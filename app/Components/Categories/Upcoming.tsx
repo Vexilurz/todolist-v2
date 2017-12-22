@@ -6,11 +6,10 @@ import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
 import { Provider, connect } from "react-redux"; 
 import Popover from 'material-ui/Popover';
-import Button from 'material-ui-next/Button'; 
 import { Footer } from '../../Components/Footer'; 
 import { Tags } from '../../Components/Tags';
 import { TodosList } from '../../Components/TodosList';
-import { Todo,Event, Project, Area } from '../../database';
+import { Todo,Project, Area } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 let moment = require("moment");
 import * as Waypoint from 'react-waypoint';
@@ -186,8 +185,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
                 projects={object.projects}  
 
-                events={[]}
-
                 areas={[]}   
                 
                 dispatch={this.props.dispatch}
@@ -269,7 +266,6 @@ interface CalendarDayProps{
     idx:number,
     day:number, 
     dayName:string,
-    events:Event[],
     projects:Project[],
     todos:Todo[],
     areas:Area[],
@@ -350,38 +346,6 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
                 </div>  
                  
-
-                {
-
-                    this.props.events.length===0 ? null :
-
-                    <div 
-                    style={{
-                        display:"flex", 
-                        flexDirection:"column", 
-                        width:"100%",
-                        paddingTop : "10px",
-                        paddingBottom : "10px"
-                    }}> 
-                    {  
-                        this.props.events
-                        .map((e:Event) =>  
-                            <div 
-                            key={e._id}
-                            style={{
-                                borderLeft:"5px solid black", 
-                                fontSize:"14px", 
-                                color:"rgba(100,100,100,0.1)"
-                            }}>
-                                {e.title}
-                            </div>
-                        )
-                    } 
-                    </div>
-
-                }
- 
-
                 {
 
                     this.props.areas.length===0 ? null :
@@ -465,8 +429,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                     }}>   
  
                         <TodosList 
-                            dispatch={this.props.dispatch}    
-                            filters={[byTags(this.props.selectedTag)]}
+                            dispatch={this.props.dispatch}     
                             selectedCategory={"upcoming"}
                             selectedTag={this.props.selectedTag}  
                             rootRef={this.props.rootRef}

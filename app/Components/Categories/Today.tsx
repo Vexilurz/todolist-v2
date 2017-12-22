@@ -14,7 +14,6 @@ import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo } from '../../database';
 import Popover from 'material-ui/Popover';
-import Button from 'material-ui-next/Button';
 import { Tags } from '../../Components/Tags';
 import { Footer } from '../../Components/Footer';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
@@ -34,6 +33,7 @@ import { ContainerHeader } from '.././ContainerHeader';
 import { TodosList } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { byTags, byCategory } from '../../utils';
+import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
  
  
 
@@ -76,7 +76,7 @@ export class Today extends Component<TodayProps,TodayState>{
 
         return <div style={{disaply:"flex", flexDirection:"column"}}> 
             <div style={{width: "100%"}}> 
-
+        
                     <div style={{
                         display:"flex", 
                         position:"relative",
@@ -100,6 +100,12 @@ export class Today extends Component<TodayProps,TodayState>{
                     </div> 
 
                     <TodaySchedule show={true}/> 
+ 
+                    <FadeBackgroundIcon    
+                        container={this.props.rootRef} 
+                        selectedCategory={"today"}  
+                        show={this.props.todos.length===0}
+                    />  
 
                     <Tags  
                         selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
@@ -117,8 +123,7 @@ export class Today extends Component<TodayProps,TodayState>{
                                 marginTop:"20px"
                             }} 
                         > 
-                            <TodosList     
-                                filters={filters("today")}
+                            <TodosList      
                                 dispatch={this.props.dispatch}   
                                 selectedCategory={"today"}
                                 selectedTag={this.props.selectedTag}  
@@ -166,8 +171,7 @@ export class Today extends Component<TodayProps,TodayState>{
                                     marginTop:"20px"
                                 }}   
                             >  
-                                <TodosList   
-                                    filters={filters("evening")}
+                                <TodosList    
                                     dispatch={this.props.dispatch}    
                                     selectedCategory={"evening"} 
                                     selectedTag={this.props.selectedTag}  

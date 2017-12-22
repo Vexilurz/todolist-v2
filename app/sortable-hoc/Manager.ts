@@ -27,11 +27,9 @@ export default class Manager {
   }
 
   getActive() {
-    return find(
-      this.refs[this.active.collection],
-      // eslint-disable-next-line eqeqeq
+    return this.refs[this.active.collection].find(
       ({node}) => node.sortableInfo.index == this.active.index
-    );
+    ); 
   }
 
   getIndex(collection, ref) {

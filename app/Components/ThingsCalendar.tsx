@@ -11,8 +11,9 @@ import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import DayPicker from 'react-day-picker';  
 import Popover from 'material-ui/Popover';
-import Button from 'material-ui-next/Button';
 import BusinessCase from 'material-ui/svg-icons/places/business-center';  
+import RaisedButton from 'material-ui/RaisedButton';
+
 
 interface ThingsCalendarProps{ 
     close : Function,
@@ -177,7 +178,7 @@ export class ThingsCalendar extends Component<ThingsCalendarProps,{}>{
                     </div> 
                 }
  
-                <Button 
+                <RaisedButton
                 onClick={this.props.onClear}
                 raised dense style={{
                     margin:"15px", 
@@ -185,7 +186,7 @@ export class ThingsCalendar extends Component<ThingsCalendarProps,{}>{
                     backgroundColor:"rgb(49,53,63)"
                 }}>
                     Clear
-                </Button>
+                </RaisedButton>
             </div>  
         </Popover> 
     } 

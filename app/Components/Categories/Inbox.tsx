@@ -8,6 +8,7 @@ import { Todo } from '../../database';
 import { TodosList } from '.././TodosList';
 import { ContainerHeader } from '.././ContainerHeader';
 import { byTags, byCategory } from '../../utils';
+import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 
  
  
@@ -42,7 +43,13 @@ export class Inbox extends Component<InboxProps, InboxState>{
               tags={this.props.tags}
               selectedTag={this.props.selectedTag}
             /> 
-  
+ 
+            <FadeBackgroundIcon    
+                container={this.props.rootRef} 
+                selectedCategory={"inbox"}  
+                show={this.props.todos.length===0}
+            />  
+ 
             <div   
                 className="unselectable" 
                 id="todos" 
@@ -53,11 +60,6 @@ export class Inbox extends Component<InboxProps, InboxState>{
             >  
                 <TodosList 
                     dispatch={this.props.dispatch}    
-                    filters={[
-                        byTags(this.props.selectedTag),
-                        byCategory("inbox"),
-                        (t:Todo) => !t.checked
-                    ]}
                     selectedCategory={"inbox"} 
                     selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}

@@ -1,5 +1,5 @@
 Arguments: 
-  C:\Program Files\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js remove react-transition-group
+  C:\Program Files\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js remove material-ui-next
 
 PATH: 
   C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files\Git\cmd;C:\Program Files (x86)\Yarn\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\Java\jdk1.8.0_141\bin;C:\Android\android-sdk\tools;C:\Android\android-sdk\platform-tools;C:\Program Files\nodejs\;C:\Program Files\MATLAB\R2014b\runtime\win64;C:\Program Files\MATLAB\R2014b\bin;C:\Program Files\MATLAB\R2014b\polyspace\bin;C:\Program Files (x86)\Skype\Phone\;C:\Users\Anatoly\AppData\Local\Programs\Python\Python36\Scripts\;C:\Users\Anatoly\AppData\Local\Programs\Python\Python36\;C:\Program Files (x86)\Microsoft VS Code\bin;C:\Users\Anatoly\AppData\Local\Yarn\bin;C:\Users\Anatoly\AppData\Roaming\npm;C:\Program Files\Docker Toolbox
@@ -31,6 +31,9 @@ npm manifest:
     "author": "Anatoly Strashkevich",
     "license": "",
     "devDependencies": {
+      "@types/electron": "^1.6.10",
+      "@types/react": "^15.6.1",
+      "@types/react-dom": "^15.5.2",
       "@types/chai": "^4.0.2",
       "@types/mocha": "^2.2.41",
       "@types/node": "^7.0.39",
@@ -56,11 +59,6 @@ npm manifest:
       "webpack": "^2.7.0"
     },
     "dependencies": {
-      "@types/electron": "^1.6.10",
-      "@types/ramda": "0.0.7",
-      "@types/react": "^15.6.1",
-      "@types/react-dom": "^15.5.2",
-      "electron-json-storage": "^4.0.2",
       "file-loader": "^0.11.2",
       "filereader": "^0.10.3",
       "font-loader": "^0.1.2",
@@ -68,36 +66,31 @@ npm manifest:
       "invariant": "^2.2.2",
       "lodash": "^4.17.4",
       "material-ui": "^0.19.4",
-      "material-ui-next": "npm:material-ui@next",
       "moment": "^2.19.3",
       "path": "^0.12.7",
       "pouchdb-browser": "^6.3.4",
       "prop-types": "^15.6.0",
-      "ramda": "^0.23.0",
+      "random-word": "^2.0.0",
       "randomstring": "^1.1.5",
       "react": "^15.6.1",
       "react-addons-test-utils": "^15.6.0",
-      "react-autocomplete": "^1.7.2",
       "react-autosuggest": "^9.3.2",
       "react-color": "^2.13.8",
       "react-day-picker": "^7.0.4",
       "react-dom": "^15.6.1",
       "react-draggable": "^3.0.4",
-      "react-infinite": "^0.12.1",
-      "react-infinite-scroller": "^1.1.2",
       "react-input-autosize": "^2.1.2",
+      "react-minimal-pie-chart": "^3.0.1",
       "react-redux": "^5.0.6",
-      "react-resizable": "^1.7.5",
-      "react-simple-infinite-scroll": "^0.0.1",
-      "react-sortable-hoc": "0.6.7",
       "react-tap-event-plugin": "^2.0.1",
       "react-test-render": "^1.0.3",
       "react-test-renderer": "^15.6.1",
+      "react-transition-group": "^2.2.1",
       "react-waypoint": "^7.3.2",
       "redux": "^3.7.2",
       "remote": "^0.2.6",
       "rimraf": "^2.6.1",
-      "roboto-fontface": "^0.7.1",
+      "typeface-roboto": "^0.0.45",
       "uniqid": "^4.1.1",
       "url": "^0.11.0",
       "webpack-target-electron-renderer": "^0.4.0"
@@ -419,7 +412,7 @@ Lockfile:
     version "1.5.2"
     resolved "https://registry.yarnpkg.com/async/-/async-1.5.2.tgz#ec6a61ae56480c0c3cb241c95618e20892f9672a"
   
-  async@^2.0.0, async@^2.1.2, async@^2.5.0:
+  async@^2.1.2, async@^2.5.0:
     version "2.5.0"
     resolved "https://registry.yarnpkg.com/async/-/async-2.5.0.tgz#843190fd6b7357a0b9e1c956edddd5ec8462b54d"
     dependencies:
@@ -920,7 +913,7 @@ Lockfile:
       mkdirp "^0.5.1"
       source-map-support "^0.4.15"
   
-  babel-runtime@^6.11.6, babel-runtime@^6.18.0, babel-runtime@^6.22.0, babel-runtime@^6.23.0, babel-runtime@^6.26.0:
+  babel-runtime@^6.18.0, babel-runtime@^6.22.0, babel-runtime@^6.23.0, babel-runtime@^6.26.0:
     version "6.26.0"
     resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.26.0.tgz#965c7058668e82b55d7bfe04ff2337bc8b5647fe"
     dependencies:
@@ -2008,10 +2001,6 @@ Lockfile:
     version "3.2.1"
     resolved "https://registry.yarnpkg.com/dom-helpers/-/dom-helpers-3.2.1.tgz#3203e07fed217bd1f424b019735582fc37b2825a"
   
-  dom-scroll-into-view@1.0.1:
-    version "1.0.1"
-    resolved "https://registry.yarnpkg.com/dom-scroll-into-view/-/dom-scroll-into-view-1.0.1.tgz#32abb92f0d8feca6215162aef43e4b449ab8d99c"
-  
   dom-serializer@0, dom-serializer@~0.1.0:
     version "0.1.0"
     resolved "https://registry.yarnpkg.com/dom-serializer/-/dom-serializer-0.1.0.tgz#073c697546ce0780ce23be4a28e293e40bc30c82"
@@ -2164,16 +2153,6 @@ Lockfile:
       rc "^1.1.2"
       semver "^5.3.0"
       sumchecker "^1.2.0"
-  
-  electron-json-storage@^4.0.2:
-    version "4.0.2"
-    resolved "https://registry.yarnpkg.com/electron-json-storage/-/electron-json-storage-4.0.2.tgz#c0d662ccd01bc6567d6078f17a6842ac74328ce4"
-    dependencies:
-      async "^2.0.0"
-      lodash "^4.0.1"
-      mkdirp "^0.5.1"
-      rimraf "^2.5.1"
-      rwlock "^5.0.0"
   
   electron-osx-sign@0.4.7:
     version "0.4.7"
@@ -3068,7 +3047,7 @@ Lockfile:
     version "1.0.4"
     resolved "https://registry.yarnpkg.com/interpret/-/interpret-1.0.4.tgz#820cdd588b868ffb191a809506d6c9c8f212b1b0"
   
-  invariant@^2.0.0, invariant@^2.2.1, invariant@^2.2.2:
+  invariant@^2.0.0, invariant@^2.2.2:
     version "2.2.2"
     resolved "https://registry.yarnpkg.com/invariant/-/invariant-2.2.2.tgz#9e1f56ac0acdb6bf303306f338be3b204ae60360"
     dependencies:
@@ -3684,13 +3663,9 @@ Lockfile:
     version "3.1.0"
     resolved "https://registry.yarnpkg.com/lodash.isarguments/-/lodash.isarguments-3.1.0.tgz#2f573d85c6a24289ff00663b491c1d338ff3458a"
   
-  lodash.isarray@3.0.4, lodash.isarray@^3.0.0:
+  lodash.isarray@^3.0.0:
     version "3.0.4"
     resolved "https://registry.yarnpkg.com/lodash.isarray/-/lodash.isarray-3.0.4.tgz#79e4eb88c36a8122af86f844aa9bcd851b5fbb55"
-  
-  lodash.isfinite@3.2.0:
-    version "3.2.0"
-    resolved "https://registry.yarnpkg.com/lodash.isfinite/-/lodash.isfinite-3.2.0.tgz#aa69ffb93a37e82fab0ce18862655f9174ced339"
   
   lodash.keys@^3.0.0:
     version "3.1.2"
@@ -3757,7 +3732,7 @@ Lockfile:
     version "3.10.1"
     resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
   
-  lodash@^4.0.1, lodash@^4.12.0, lodash@^4.14.0, lodash@^4.17.3, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0:
+  lodash@^4.0.1, lodash@^4.14.0, lodash@^4.17.3, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.2.1, lodash@^4.3.0:
     version "4.17.4"
     resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
   
@@ -4305,10 +4280,6 @@ Lockfile:
   oauth-sign@~0.8.1:
     version "0.8.2"
     resolved "https://registry.yarnpkg.com/oauth-sign/-/oauth-sign-0.8.2.tgz#46a6ab7f0aead8deae9ec0565780b7d4efeb9d43"
-  
-  object-assign@4.0.1:
-    version "4.0.1"
-    resolved "https://registry.yarnpkg.com/object-assign/-/object-assign-4.0.1.tgz#99504456c3598b5cad4fc59c26e8a9bb107fe0bd"
   
   object-assign@^3.0.0:
     version "3.0.0"
@@ -4950,7 +4921,7 @@ Lockfile:
     dependencies:
       asap "~2.0.3"
   
-  prop-types@15.x, prop-types@^15.0.0, prop-types@^15.5.10, prop-types@^15.5.6, prop-types@^15.5.7, prop-types@^15.5.8, prop-types@^15.6.0:
+  prop-types@^15.0.0, prop-types@^15.5.10, prop-types@^15.5.6, prop-types@^15.5.7, prop-types@^15.5.8, prop-types@^15.6.0:
     version "15.6.0"
     resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.6.0.tgz#ceaf083022fc46b4a35f69e13ef75aed0d639856"
     dependencies:
@@ -5032,9 +5003,12 @@ Lockfile:
     dependencies:
       global "~4.3.0"
   
-  ramda@^0.23.0:
-    version "0.23.0"
-    resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.23.0.tgz#ccd13fff73497a93974e3e86327bfd87bd6e8e2b"
+  random-word@^2.0.0:
+    version "2.0.0"
+    resolved "https://registry.yarnpkg.com/random-word/-/random-word-2.0.0.tgz#25ed18d5ba5a99409eaceb59dabe65b76d2ff6e9"
+    dependencies:
+      unique-random-array "^1.0.0"
+      word-list "^2.0.0"
   
   randomatic@^1.1.3:
     version "1.1.7"
@@ -5072,13 +5046,6 @@ Lockfile:
     version "15.6.2"
     resolved "https://registry.yarnpkg.com/react-addons-test-utils/-/react-addons-test-utils-15.6.2.tgz#c12b6efdc2247c10da7b8770d185080a7b047156"
   
-  react-autocomplete@^1.7.2:
-    version "1.7.2"
-    resolved "https://registry.yarnpkg.com/react-autocomplete/-/react-autocomplete-1.7.2.tgz#c55a0a4b8a9f4cba911dfccb74ef74f2161c46e0"
-    dependencies:
-      dom-scroll-into-view "1.0.1"
-      prop-types "^15.5.10"
-  
   react-autosuggest@^9.3.2:
     version "9.3.2"
     resolved "https://registry.yarnpkg.com/react-autosuggest/-/react-autosuggest-9.3.2.tgz#dd8c0fbe9c25aa94afe296180353647f6ecc10a7"
@@ -5112,7 +5079,7 @@ Lockfile:
       object-assign "^4.1.1"
       prop-types "^15.6.0"
   
-  react-dom@^15.5.4, react-dom@^15.6.1:
+  react-dom@^15.6.1:
     version "15.6.2"
     resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-15.6.2.tgz#41cfadf693b757faf2708443a1d1fd5a02bef730"
     dependencies:
@@ -5121,7 +5088,7 @@ Lockfile:
       object-assign "^4.1.0"
       prop-types "^15.5.10"
   
-  "react-draggable@^2.2.6 || ^3.0.3", react-draggable@^3.0.4:
+  react-draggable@^3.0.4:
     version "3.0.4"
     resolved "https://registry.yarnpkg.com/react-draggable/-/react-draggable-3.0.4.tgz#71cff58441e0fa2be9e1cd88f66718a8495210f7"
     dependencies:
@@ -5141,20 +5108,6 @@ Lockfile:
     version "0.2.0-beta.6"
     resolved "https://registry.yarnpkg.com/react-flow-types/-/react-flow-types-0.2.0-beta.6.tgz#bf49c8b7864fcd0951b03286c63a80d66ce9fae4"
   
-  react-infinite-scroller@^1.1.2:
-    version "1.1.2"
-    resolved "https://registry.yarnpkg.com/react-infinite-scroller/-/react-infinite-scroller-1.1.2.tgz#1081bd6186c304bc2022ac5feee25621a89a4bf4"
-    dependencies:
-      prop-types "^15.5.8"
-  
-  react-infinite@^0.12.1:
-    version "0.12.1"
-    resolved "https://registry.yarnpkg.com/react-infinite/-/react-infinite-0.12.1.tgz#74c5981f9ddd23f065f414cbb00c6d204bf7eda1"
-    dependencies:
-      lodash.isarray "3.0.4"
-      lodash.isfinite "3.2.0"
-      object-assign "4.0.1"
-  
   react-input-autosize@^2.1.2:
     version "2.1.2"
     resolved "https://registry.yarnpkg.com/react-input-autosize/-/react-input-autosize-2.1.2.tgz#a3dc11a5517c434db25229925541309de3f7a8f5"
@@ -5170,6 +5123,12 @@ Lockfile:
       jss-preset-default "^4.0.1"
       prop-types "^15.6.0"
       theming "^1.2.1"
+  
+  react-minimal-pie-chart@^3.0.1:
+    version "3.0.1"
+    resolved "https://registry.yarnpkg.com/react-minimal-pie-chart/-/react-minimal-pie-chart-3.0.1.tgz#9ccaa94edf9e457bedb1613e6189e833fec0bbe8"
+    dependencies:
+      prop-types "^15.5.7"
   
   react-popper@^0.7.4:
     version "0.7.4"
@@ -5189,13 +5148,6 @@ Lockfile:
       loose-envify "^1.1.0"
       prop-types "^15.5.10"
   
-  react-resizable@^1.7.5:
-    version "1.7.5"
-    resolved "https://registry.yarnpkg.com/react-resizable/-/react-resizable-1.7.5.tgz#83eb75bb3684da6989bbbf4f826e1470f0af902e"
-    dependencies:
-      prop-types "15.x"
-      react-draggable "^2.2.6 || ^3.0.3"
-  
   react-scrollbar-size@^2.0.2:
     version "2.0.2"
     resolved "https://registry.yarnpkg.com/react-scrollbar-size/-/react-scrollbar-size-2.0.2.tgz#237dd091fa39dec8e3a6f720807787703c5ebf9e"
@@ -5207,23 +5159,6 @@ Lockfile:
   react-shallow-testutils@2.0.x:
     version "2.0.0"
     resolved "https://registry.yarnpkg.com/react-shallow-testutils/-/react-shallow-testutils-2.0.0.tgz#9087b40b368b124674c7bfcf9fdd6ad983914a97"
-  
-  react-simple-infinite-scroll@^0.0.1:
-    version "0.0.1"
-    resolved "https://registry.yarnpkg.com/react-simple-infinite-scroll/-/react-simple-infinite-scroll-0.0.1.tgz#d3d160eb62ba9a5601c31d73e10f885a6ff4fb58"
-    dependencies:
-      lodash.throttle "^4.1.1"
-      react "^15.5.4"
-      react-dom "^15.5.4"
-  
-  react-sortable-hoc@0.6.7:
-    version "0.6.7"
-    resolved "https://registry.yarnpkg.com/react-sortable-hoc/-/react-sortable-hoc-0.6.7.tgz#e30d247bc36dd5a605430c331ac9cb50a5fa72a6"
-    dependencies:
-      babel-runtime "^6.11.6"
-      invariant "^2.2.1"
-      lodash "^4.12.0"
-      prop-types "^15.5.7"
   
   react-tap-event-plugin@^2.0.1:
     version "2.0.1"
@@ -5280,7 +5215,7 @@ Lockfile:
       consolidated-events "^1.1.0"
       prop-types "^15.0.0"
   
-  react@^15.5.4, react@^15.6.1:
+  react@^15.6.1:
     version "15.6.2"
     resolved "https://registry.yarnpkg.com/react/-/react-15.6.2.tgz#dba0434ab439cfe82f108f0f511663908179aa72"
     dependencies:
@@ -5607,14 +5542,6 @@ Lockfile:
     dependencies:
       hash-base "^2.0.0"
       inherits "^2.0.1"
-  
-  roboto-fontface@^0.7.1:
-    version "0.7.1"
-    resolved "https://registry.yarnpkg.com/roboto-fontface/-/roboto-fontface-0.7.1.tgz#94f97b7ee999b11dd0711092a26425826cb282f7"
-  
-  rwlock@^5.0.0:
-    version "5.0.0"
-    resolved "https://registry.yarnpkg.com/rwlock/-/rwlock-5.0.0.tgz#888d6a77a3351cc1a209204ef2ee1722093836cf"
   
   safe-buffer@^5.0.1, safe-buffer@^5.1.0, safe-buffer@^5.1.1, safe-buffer@~5.1.0, safe-buffer@~5.1.1:
     version "5.1.1"
@@ -6261,6 +6188,10 @@ Lockfile:
     version "0.0.6"
     resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   
+  typeface-roboto@^0.0.45:
+    version "0.0.45"
+    resolved "https://registry.yarnpkg.com/typeface-roboto/-/typeface-roboto-0.0.45.tgz#4686bdd505b2db3b7ba0a980d216eb3d5aec4788"
+  
   typescript@^2.4.2:
     version "2.5.3"
     resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.5.3.tgz#df3dcdc38f3beb800d4bc322646b04a3f6ca7f0d"
@@ -6344,6 +6275,16 @@ Lockfile:
   uniqs@^2.0.0:
     version "2.0.0"
     resolved "https://registry.yarnpkg.com/uniqs/-/uniqs-2.0.0.tgz#ffede4b36b25290696e6e165d4a59edb998e6b02"
+  
+  unique-random-array@^1.0.0:
+    version "1.0.0"
+    resolved "https://registry.yarnpkg.com/unique-random-array/-/unique-random-array-1.0.0.tgz#42b3721c579388d8b667c93c2dbde3d5d81a9136"
+    dependencies:
+      unique-random "^1.0.0"
+  
+  unique-random@^1.0.0:
+    version "1.0.0"
+    resolved "https://registry.yarnpkg.com/unique-random/-/unique-random-1.0.0.tgz#ce3e224c8242cd33a0e77b0d7180d77e6b62d0c4"
   
   unique-string@^1.0.0:
     version "1.0.0"
@@ -6605,6 +6546,10 @@ Lockfile:
     version "0.1.0"
     resolved "https://registry.yarnpkg.com/window-size/-/window-size-0.1.0.tgz#5438cd2ea93b202efa3a19fe8887aee7c94f9c9d"
   
+  word-list@^2.0.0:
+    version "2.0.0"
+    resolved "https://registry.yarnpkg.com/word-list/-/word-list-2.0.0.tgz#54ddfa4aae1faa71772cfb6e9208c4d8f999363e"
+  
   wordwrap@0.0.2:
     version "0.0.2"
     resolved "https://registry.yarnpkg.com/wordwrap/-/wordwrap-0.0.2.tgz#b79669bb42ecb409f83d583cad52ca17eaa1643f"
@@ -6729,4 +6674,4 @@ Lockfile:
       fd-slicer "~1.0.1"
 
 Trace: 
-  Error: EPERM: operation not permitted, unlink 'C:\Users\Anatoly\Desktop\lutzkeller\node_modules\material-ui\node_modules\react-transition-group\utils'
+  Error: EPERM: operation not permitted, unlink 'C:\Users\Anatoly\Desktop\lutzkeller\node_modules\material-ui-next\AppBar'

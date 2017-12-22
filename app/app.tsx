@@ -15,10 +15,10 @@ import {
 } from "./utils"; 
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
-import './assets/fonts/index.css';
-import { LeftPanel } from './Components/LeftPanel';
+import './assets/fonts/index.css'; 
+import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer, Category } from './Components/MainContainer';
-import { Project, Area, Todo, removeProject, generateId, addProject, removeArea } from './database';
+import { Project, Area, Todo, removeProject, generateId, addProject, removeArea, updateProject, addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, removeProjects } from './database';
 injectTapEventPlugin(); 
       
 (() => {     
@@ -128,7 +128,7 @@ export interface Store{
     selectedProjectId : string,
     selectedAreaId : string,
     showProjectMenuPopover : boolean,
-    openNewProjectAreaPopover : boolean,
+    openNewProjectAreaPopup : boolean,
     showRightClickMenu : boolean,
     rightClickedTodoId : string,
     rightClickMenuX : number,
@@ -170,7 +170,7 @@ export let defaultStoreItems : Store = {
 
     openRightClickMenu : undefined,
      
-    openNewProjectAreaPopover : false,
+    openNewProjectAreaPopup : false,
 
     showRightClickMenu : false,
 
@@ -269,7 +269,7 @@ let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}
                 selectedTag:"All", 
                 openSearch:false, 
                 selectedCategory:action.load,
-                openNewProjectAreaPopover:false 
+                openNewProjectAreaPopup:false 
             }; 
             break;
 
@@ -290,10 +290,10 @@ let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}
             break;
 
 
-        case "openNewProjectAreaPopover":
+        case "openNewProjectAreaPopup":
             newState = {
                 ...state,
-                openNewProjectAreaPopover:action.load
+                openNewProjectAreaPopup:action.load
             }; 
             break;
 
@@ -329,7 +329,7 @@ let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}
         case "closeAllItems":
             newState = {
                 ...state,
-                openNewProjectAreaPopover : false,
+                openNewProjectAreaPopup : false,
                 showRightClickMenu : false,
                 selectedTodoId : null
             };  
@@ -390,9 +390,84 @@ let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}
 
 }
 
+
+
+
+
+
+function removeDeleted<T>(objects : T[], updateDB : Function) : T[]{
+
+    let deleted = [];
+    let remainder = [];
+
+    for(let i=0; i<objects.length; i++){
+        if(!!objects[i]["deleted"]){
+            deleted.push(objects[i]);
+        }else{
+            remainder.push(objects[i]);  
+        } 
+    }
+
+    updateDB(deleted);
+    
+    return remainder;
+
+}
+
+
+
+let removeDeletedTodos = (todos:Todo[]) => {
+    return removeDeleted<Todo>(todos, removeTodos)
+}  
+
+let removeDeletedProjects = (projects:Project[]) => {
+    return removeDeleted<Project>(projects, removeProjects)
+} 
  
+let removeDeletedAreas = (areas:Area[]) => { 
+    return removeDeleted<Area>(areas, removeAreas)
+}
 
 
+
+
+
+let swapProjects = (from : number, to : number, projects : Project[]) : Project[] => {
+    let fromProject : Project = projects[from];
+    let toProject : Project = projects[to];
+
+    let fromPriority : number = fromProject.priority; 
+    let toPriority : number = toProject.priority;
+
+    let moveFrom = replace(projects, {...fromProject, toPriority}, from);
+    let moveTo = replace(projects, {...toProject, fromPriority}, to);
+    
+    return moveTo;
+}
+
+
+let swapTodos = (from : number, to : number, todos : Todo[]) : Todo[] => {
+    let fromTodo : Todo = todos[from];
+    let toTodo : Todo = todos[to];
+
+    let fromPriority : number = fromTodo.priority; 
+    let toPriority : number = toTodo.priority;
+
+    let moveFrom = replace(todos, {...fromTodo, toPriority}, from);
+    let moveTo = replace(todos, {...toTodo, fromPriority}, to);
+     
+    return moveTo;
+}
+
+
+
+
+ 
+let onError = (e) => {
+    console.log(e);
+    debugger;
+}
+ 
 
 let applicationObjectsReducer = (state:Store, action) => { 
     
@@ -401,30 +476,14 @@ let applicationObjectsReducer = (state:Store, action) => {
     let idx = -1; 
     let replacement = [];
     let project : any = null;
+    let area : any = null;
+    let from : any = null;
+    let to : any = null; 
+    
+    
   
 
     switch(action.type){
-
-        
-
-        //load : {projectId,todoId}    
-        case "attachTodoToProject":
-            idx = state.projects.findIndex( (p:Project) => p._id===action.load.projectId );
- 
-            if(idx===-1) 
-               return;  
-               //throw new Error(`Project does not exist ${action.load.projectId}. attachTodoToProject.`);
-
-            project = {...state.projects[idx]};
-
-            project.layout = [action.load.todoId, ...project.layout];
- 
-            newState = {
-                ...state,
-                projects:replace(state.projects,project,idx) 
-            }
-            break;
-
 
         case "setAllTypes":
             newState = {
@@ -432,86 +491,81 @@ let applicationObjectsReducer = (state:Store, action) => {
                 todos:[...action.load.todos],
                 projects:[...action.load.projects],
                 areas:[...action.load.areas],
-                events:[...action.load.events],
+                tags:getTagsFromTodos(action.load.todos),
+            }
+            break;  
+
+
+  
+        case "removeAllTypes":
+            newState = {
+                ...state,
+                todos:removeDeletedTodos(state.todos),  
+                projects:removeDeletedProjects(state.projects),
+                areas:removeDeletedAreas(state.areas),
                 tags:getTagsFromTodos(action.load.todos),
             }
             break; 
+            
+            
+        //{projectId,todoId}    
+        case "attachTodoToProject":
+            idx = state.projects.findIndex( (p:Project) => p._id===action.load.projectId );
+            if(idx===-1) 
+                return;  
+            project = {...state.projects[idx]};
+            project.layout = [action.load.todoId, ...project.layout];
+            updateProject(project._id,project,onError);
+            newState = {
+                ...state,
+                projects:replace(state.projects,project,idx) 
+            }
+            break; 
+  
+        //{areaId,todoId} 
+        case "attachTodoToArea":
+            idx = state.areas.findIndex( (a:Area) => a._id===action.load.areaId );
+            if(idx===-1) 
+                return;  
+            area = {...state.areas[idx]};
+            area.attachedProjectsIds = [action.load.todoId, ...area.attachedProjectsIds];
+            updateArea(area._id,area,onError);
+            newState = {
+                ...state,
+                projects:replace(state.projects,project,idx) 
+            }
+            break;     
+
  
- 
- 
-        case "newTodo":  
+        //{fromId,toId} 
+        case "swapTodos":
+            from  = state.todos.findIndex( (t:Todo) => t._id===action.load.fromId );
+            to  = state.todos.findIndex( (t:Todo) => t._id===action.load.toId );
             newState = {
                 ...state, 
-                selectedTodoId:action.load._id,
-                selectedTag:"All",
-                todos:[action.load,...state.todos],
-                showRightClickMenu:false
-            }; 
-            break; 
-        
-            
-        case "swapTodos":
-            let todos = [...state.todos];
-            let temp = null;
-            let from : number = todos.findIndex( (t:Todo) => t._id===action.load.fromId );
-            let to : number = todos.findIndex( (t:Todo) => t._id===action.load.toId );
-
-            if(from===-1 || to===-1)
-                throw new Error("Attempt to swap non existing objects. swapTodos");
-
-            temp = todos[from];   
-            todos[from] = todos[to];
-            todos[to] = temp; 
-
+                todos:swapTodos(from,to,state.todos)
+            }
             break;
-        
-         
 
 
-        case "updateProject":  
-            idx = state.projects.findIndex((p:Project) => action.load._id===p._id);
-            
-            if(idx===-1){
-               throw new Error("Attempt to update non existing object. updateProject.")
+        //{fromId,toId} 
+        case "swapProjects": 
+            from  = state.projects.findIndex( (p:Project) => p._id===action.load.fromId );
+            to  = state.projects.findIndex( (p:Project) => p._id===action.load.toId );
+            newState = {
+                ...state,
+                projects:swapProjects(from,to,state.projects)
             }
- 
-            newState = { 
-                ...state, 
-                selectedProjectId:action.load._id,
-                showProjectMenuPopover:false,
-                projects:replace(state.projects,action.load,idx)
-            }; 
-            break;   
- 
-
- 
-        case "updateArea":  
-            idx = state.areas.findIndex((a:Area) => action.load._id===a._id);
+            break;
             
-            if(idx===-1){ 
-               throw new Error("Attempt to update non existing object. updateArea.")
-            }
-
-            newState = {  
-                ...state,  
-                selectedAreaId:action.load._id,
-                areas:replace(state.areas,action.load,idx)
-            };  
-            break;   
-
-
-
-
+ 
 
         case "updateTodo":
             idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
-            
             if(idx===-1)
-               throw new Error("Attempt to update non existing object. updateTodo.")
-            
-
+               throw new Error("Attempt to update non existing object. updateTodo."); 
             replacement = replace(state.todos,action.load,idx);
-
+            updateTodo(action.load._id, action.load, onError);
             newState = {
                 ...state, 
                 selectedTodoId:action.load._id,
@@ -523,64 +577,57 @@ let applicationObjectsReducer = (state:Store, action) => {
             break; 
 
 
-        case "removeProject":
-            idx = state.projects.findIndex( (p:Project) => p._id===action.load );
- 
-            if(idx===-1)  
-               throw new Error(`Project does not exist. ${action.load} ${JSON.stringify(state.projects)}`);
-
-               
-            newState = {
+        case "updateProject":  
+            idx = state.projects.findIndex((p:Project) => action.load._id===p._id);
+            if(idx===-1)
+               throw new Error("Attempt to update non existing object. updateProject.");
+            updateProject(action.load._id,action.load, onError);   
+            newState = { 
                 ...state, 
-                selectedProjectId:null, 
+                selectedProjectId:action.load._id,
                 showProjectMenuPopover:false,
-                projects:remove(state.projects, idx)
+                projects:replace(state.projects,action.load,idx)
             }; 
-            break; 
- 
+            break;    
+
+             
+        case "updateArea":  
+            idx = state.areas.findIndex((a:Area) => action.load._id===a._id);
+            if(idx===-1)
+               throw new Error("Attempt to update non existing object. updateArea.");
+            updateArea(action.load._id,action.load,onError);
+            newState = {  
+                ...state,  
+                selectedAreaId:action.load._id,
+                areas:replace(state.areas,action.load,idx)
+            };  
+            break;    
 
 
         case "duplicateTodo":
-            
             idx = state.todos.findIndex((item:Todo) => item._id===action.load);
-              
-            if(idx!==-1){
-    
-                let duplicatedTodo : any = state.todos[idx];
-    
-                if(duplicatedTodo===null || duplicatedTodo===undefined)
-                    return; 
-                    
-                duplicatedTodo  = {  ...duplicatedTodo, ...{_id:generateId()}  };
-    
-                delete duplicatedTodo._rev;
-    
-                newState = {  
-                    ...state, 
-                    todos:insert(state.todos, duplicatedTodo, idx)
-                }; 
-                break; 
+            if(idx==-1)
+               throw new Error(`Todo does not exist. ${action.load}`);
+            let duplicatedTodo : any = state.todos[idx];
+            duplicatedTodo  = {  ...duplicatedTodo, ...{_id:generateId()}  };
+            delete duplicatedTodo._rev;
+            addTodo(onError, duplicatedTodo);
+            newState = {  
+                ...state, 
+                todos:insert(state.todos, duplicatedTodo, idx)
+            }; 
+            break; 
         
-            }
-                      
 
- 
         case "duplicateProject":
-
             idx = state.projects.findIndex( (p:Project) => p._id===action.load );
-    
             if(idx===-1)  
-                throw new Error(`Project does not exist. ${action.load} ${JSON.stringify(state.projects)}`);
-
+               throw new Error(`Project does not exist. ${action.load}`);
             project = { ...state.projects[idx] }; 
-
             let _id = generateId(); 
-                
             project  = {  ...project,  ...{_id}  };
-                        
             delete project._rev;
-                
-          
+            addProject(onError,project);
             newState = {  
                 ...state, 
                 selectedProjectId:_id,
@@ -588,126 +635,44 @@ let applicationObjectsReducer = (state:Store, action) => {
                 projects:insert(state.projects, project, idx)
             }; 
             break; 
-               
 
-        case "removeArea":
- 
-            idx = state.areas.findIndex( (a:Area) => a._id===action.load );
 
-            if(idx===-1)   
-                throw new Error(`Area does not exist. ${action.load} ${JSON.stringify(state.areas)}`);
-
-        
-            newState = {  
-                ...state,  
-                selectedAreaId:null, 
-                areas:remove(state.areas, idx)
-            }; 
-            break; 
-             
-            
- 
-
-        case "removeTodo":
-        
-            idx = state.todos.findIndex((t:Todo) => action.load===t._id);
-            
-            if(idx===-1){
-
-                throw new Error("Attempt to remove non existing object. updateTodo.")
-
-            }
-
-            replacement = remove(state.todos,idx);
-    
+        case "newTodo":  
+            addTodo(onError, action.load)
             newState = {
                 ...state, 
                 selectedTodoId:action.load._id,
-                selectedTag:"All", 
-                todos:remove(state.todos,idx),
-                tags:getTagsFromTodos(replacement),
+                selectedTag:"All",
+                todos:[action.load,...state.todos],
                 showRightClickMenu:false
             }; 
             break; 
+        
 
-
-
-        case "newArea":   
-            newState = { 
-                ...state, 
-                selectedCategory:"area", 
-                selectedTag:"All",
-                openNewProjectAreaPopover:false,
-                selectedAreaId:action.load._id, 
-                areas:[action.load,...state.areas]
-            };  
-            break;  
-
-
-
-        case "newProject":   
+        case "newProject": 
+            addProject(onError,action.load);
             newState = {
                 ...state,  
                 selectedCategory:"project", 
                 selectedTag:"All",
-                openNewProjectAreaPopover:false, 
+                openNewProjectAreaPopup:false, 
                 selectedProjectId:action.load._id,
                 projects:[action.load,...state.projects],
             };   
             break;
-        
 
-
-        case "newEvent":  
-            newState = {
-                ...state, 
-                events:[action.load,...state.events]
-            }; 
-            break;              
-
-
-
-        case "projects":  
-            newState = {
-                ...state,  
-                projects:[...action.load],
-                showProjectMenuPopover:false,
-                showRightClickMenu:false
-            }; 
-            break; 
-           
-            
-
-
-        case "todos": 
+ 
+        case "newArea":  
+            addArea(onError,action.load);
             newState = { 
                 ...state, 
-                todos:[...action.load],
-                showRightClickMenu:false, 
-                tags:getTagsFromTodos(action.load)
-            }; 
-            break;    
-
-
-              
-        case "areas": 
-            newState = {
-                ...state, 
-                areas:[...action.load],
-                showRightClickMenu:false
-            };     
-            break;
-          
-
-
-        case "events":  
-            newState = {
-                ...state, 
-                events:[...action.load],
-                showRightClickMenu:false
-            };       
-            break;
-
+                selectedCategory:"area", 
+                selectedTag:"All",
+                openNewProjectAreaPopup:false,
+                selectedAreaId:action.load._id, 
+                areas:[action.load,...state.areas]
+            };  
+            break;  
 
     } 
 

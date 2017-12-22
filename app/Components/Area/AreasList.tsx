@@ -199,6 +199,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         return <li className="area" key={index}> 
             <div    
                 onClick = {this.selectArea(a)}
+                id = {a._id}   
                 className="toggleFocus" 
                 style={{ 
                     marginLeft:"4px", marginRight:"4px",   
@@ -413,8 +414,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
  
         areas = replace(areas, toArea, toIdx);
         areas = replace(areas, fromArea, fromIdx);
-
-        this.props.dispatch({type:"areas", load:areas}); 
  
     } 
   

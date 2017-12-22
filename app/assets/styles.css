@@ -220,6 +220,16 @@ ul {
   background-color:rgb(68,139,245)
 }
 
+.leftpanelmenuitem{
+  background-color:none;
+}
+
+.leftpanelmenuitem:hover{
+  border-radius: 5px; 
+  background-color:rgba(228,230,233,1);
+}
+
+
 
 .listitem { 
   height: 60px;

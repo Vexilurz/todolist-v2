@@ -1,11 +1,5 @@
 import { loadApp } from './loadApp'; 
-import fs = require('fs');   
-import request = require('request'); 
-import path = require("path");
-import http = require('http');
-import url = require('url'); 
-import child_process = require('child_process');  
-let randomstring = require("randomstring");  
+import fs = require('fs');     
 import electron = require('electron');
 import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';
 import { Listeners } from "./listeners";
@@ -25,7 +19,7 @@ let onReady = () => {
     //60*(workingArea.width/100);
     let height = workingArea.height; 
     //70*(workingArea.height/100); 
-
+ 
     preventAnnoyingErrorPopups();     
      
     mainWindow = initWindow({width,height,transparent:false});          

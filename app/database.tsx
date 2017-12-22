@@ -57,6 +57,7 @@ export interface Project{
   _id : string,  
   type : ObjectType, 
   name : string,   
+  priority : number,
   description : string, 
   layout : LayoutItem[], 
   created : Date, 
@@ -73,6 +74,7 @@ export interface Area{
   _id : string, 
   name : string,  
   type : ObjectType,
+  priority : number,
   deleted : Date, 
   description : string,
   attachedTags : string[], 
@@ -107,23 +109,6 @@ export interface Todo{
 }
   
 
- 
-export interface Event{
-  _id : string, 
-  title : string,
-  type : ObjectType,
-  note : string,
-  attachedProjectsIds : string[],
-  attachedTags : string[],
-  date:Date,
-  location:string,  
-  history : {
-      action : string,
-      date : Date
-  },
-  attachments : string[]
-}
- 
 
 
 export interface Query<T>{
@@ -237,7 +222,7 @@ let fakeTodo = (tags:string[]) : Todo => {
       type:"todo",
       category : randomCategory(), 
       title : title.join(),
-      priority : Math.random()*100,
+      priority : Math.random()*999999999,
       note : note.join(),
       checklist : checklist,
       reminder : Math.random() > 0.5 ? {} : null, 
@@ -299,6 +284,7 @@ let fakeProject = (attachedTags, layout, attachedAreasIds, attachedTodosIds) : P
         _id : generateid(),    
         type : "project", 
         name : name.join(),  
+        priority : Math.random()*999999999,
         deleted : Math.random() < 0.5 ? new Date() : undefined,
         description : description.join(),
         created : randomDate(new Date()["addDays"](-50), new Date()),
@@ -340,7 +326,8 @@ let fakeArea = (
       _id : generateid(),   
       type : "area", 
       deleted : Math.random() < 0.5 ? new Date() : undefined,
-      name : name.join(),  
+      priority : Math.random()*999999999,
+      name : name.join(),   
       description : description.join(),  
       attachedTags, 
       attachedTodosIds:unique(attachedTodosIds), 
@@ -543,7 +530,6 @@ function getItemFromDatabase<T>(
 
 
 
-
 function getItems<T>(
   onError:Function, 
   db:any
@@ -561,6 +547,24 @@ function getItems<T>(
   }
 }
 
+
+
+function updateItemsInDatabase<T>(
+  middleware:Function,
+  onError:Function, 
+  db:any
+){
+  return function(items:T[]) : Promise<T[]>{
+    
+    return db.bulkDocs(items).then(
+      (updated) => {
+        middleware(db, updated);
+        return updated;
+      }
+    ).catch(onError); 
+    
+  } 
+}
 
 
   
@@ -582,16 +586,6 @@ function updateItemInDatabase<T>(
    
   } 
 }
-
- 
-
-
-
-
-
-
-
-
 
 
 
@@ -799,12 +793,37 @@ export let getTodos = (onError:Function) => (descending,limit) : Promise<Todo[]>
       limit
     ).then(queryToTodos)
          
+
+
+export let removeTodos = (todos : Todo[]) : Promise<any[]> => {
+  return updateItemsInDatabase<Todo>(
+    (db, value) => console.log(db,value),
+    (e) => console.log(e),
+    todos_db
+  )(todos.map( t => ({...t, _deleted: true}) ))
+}    
+
+
+ 
+export let removeProjects = (projects : Project[]) : Promise<any[]> => {
+  return updateItemsInDatabase<Project>(
+    (db, value) => console.log(db,value),
+    (e) => console.log(e),
+    projects_db
+  )(projects.map( p => ({...p, _deleted: true}) ))
+}    
   
  
 
+export let removeAreas = (areas : Area[]) : Promise<any[]> => {
+  return updateItemsInDatabase<Area>( 
+    (db, value) => console.log(db,value),
+    (e) => console.log(e),
+    areas_db      
+  )(areas.map( a => ({...a, _deleted: true}) ))
+}    
 
-
-    
+ 
 
 export let queryToTodos = (query:Query<Todo>) : Todo[] => queryToObjects<Todo>(query); 
 

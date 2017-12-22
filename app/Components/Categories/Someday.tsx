@@ -11,7 +11,6 @@ import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo } from '../../database';
 import Popover from 'material-ui/Popover';
-import Button from 'material-ui-next/Button';
 import { Tags } from '../../Components/Tags';
 import { Footer } from '../../Components/Footer';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
@@ -69,14 +68,9 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                     marginBottom: "100px", 
                     marginTop:"50px" 
                 }} 
-            >   
+            >    
                 <TodosList 
-                    dispatch={this.props.dispatch}    
-                    filters={[
-                        byTags(this.props.selectedTag),
-                        byCategory("someday"),
-                        (t:Todo) => !t.checked
-                    ]}
+                    dispatch={this.props.dispatch}  
                     selectedCategory={"someday"} 
                     selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}

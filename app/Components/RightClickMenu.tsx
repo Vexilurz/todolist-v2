@@ -10,7 +10,6 @@ import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import Popover from 'material-ui/Popover';
-import Button from 'material-ui-next/Button';
 import { attachDispatchToProps, replace, remove, insert } from '../utils';
 import { Todo, removeTodo, addTodo, generateId, Project, Area } from '../database';
 import { Store } from '../App';
@@ -88,6 +87,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
             name : todo.title,   
             description : todo.note, 
             layout,  
+            priority : todo.priority, 
             created : todo.created, 
             deadline : todo.deadline,
             deleted : todo.deleted,

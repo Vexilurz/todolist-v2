@@ -36,7 +36,7 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
-import { getTodos, queryToTodos, Todo, updateTodo } from './database';
+import { getTodos, queryToTodos, Todo, updateTodo, generateId, Project, Area } from './database';
 import { Category } from './Components/MainContainer';
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 let moment = require("moment");
@@ -998,3 +998,34 @@ export let randomArrayMember = (array : any[]) => {
  
 } 
     
+
+
+export let generateEmptyProject = () : Project => ({
+    _id : generateId(), 
+    type : "project", 
+    name : "New project",
+    description : "Project description...",
+    layout : [], 
+    priority : Math.random() * 9999999999,
+    deleted : undefined,
+    created : new Date(), 
+    deadline : null,
+    completed : null, 
+    attachedTodosIds : [], 
+    attachedTags : []
+});
+  
+ 
+  
+export let generateEmptyArea = () : Area => ({
+    _id : generateId(),
+    name : "New area",
+    priority : Math.random() * 9999999999,
+    deleted : undefined, 
+    type : "area",
+    description : "Area description",
+    attachedTags : [], 
+    attachedTodosIds : [],  
+    attachedProjectsIds : [],
+});
+  

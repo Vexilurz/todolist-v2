@@ -3,10 +3,19 @@ import { loadApp } from './loadApp';
 import * as electron from 'electron'; 
 import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';
 import { initWindow } from './initWindow';
-import { remove } from '../utils';
 let uniqid = require("uniqid");
 const {shell} = require('electron');  
  
+
+let remove = (array:any[], idx:number) : any[] => {
+    
+        return [
+            ...array.slice(0,idx),
+            ...array.slice(idx+1),
+        ]
+   
+}  
+
 
 interface RegisteredListener{ 
      name : string, 
