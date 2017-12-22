@@ -40,7 +40,12 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
     onDeleteToDo = (e) => {
 
-        this.props.dispatch({ type:"removeTodo", load:this.props.rightClickedTodoId }); 
+        let todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId );
+
+        if(!todo)
+           return;  
+
+        this.props.dispatch({ type:"updateTodo", load:{...todo, deleted:new Date()} }); 
 
     }  
 
@@ -48,6 +53,9 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
     onComplete = (e) => {
         
         let todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId); 
+
+        if(!todo) 
+           return;  
         
         this.props.dispatch({ type:"updateTodo", load:{ ...todo, ...{completed:new Date()} } });
     
@@ -145,26 +153,31 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
     render(){
 
+        let todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId);
+
+        if(!todo)
+           return null; 
 
         let projectSelected = this.props.selectedCategory==="project" && 
                               !!this.props.selectedProjectId;
  
         let areaSelected = this.props.selectedCategory==="area" && 
                            !!this.props.selectedAreaId;                       
-          
-        let canWhen = false;
-        let canMove = false;
-        let canComplete = true;
+            
+
+        let canWhen = false; 
+        let canMove = false; 
+        let canComplete = !todo.deleted;
         let canShortcuts = false; 
         let canRepeat = false;
-        let canDuplicate = true;
-        let canConvert = true; 
-        let canDelete = true; 
-        let canRemoveFromProjectArea = projectSelected || areaSelected;
+        let canDuplicate = !todo.deleted;
+        let canConvert = !todo.deleted;
+        let canDelete = !todo.deleted; 
+        let canRemoveFromProjectArea = !todo.deleted && (projectSelected || areaSelected);
         let canShare = false; 
 
  
-        return  !this.props.showRightClickMenu  ? null:
+        return  !this.props.showRightClickMenu ? null:
                 <div onClick = {(e) => {
                        e.stopPropagation();
                        e.preventDefault();

@@ -145,18 +145,18 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 initDB();
 
                 let fakeData = generateRandomDatabase({
-                    todos : 10,
+                    todos : 30,  
                     events : 3, 
-                    projects : 5,  
-                    areas : 3 
+                    projects : 20,  
+                    areas : 6 
                 });  
 
                 console.log("fakeData", fakeData); 
-                 
+                  
                 let todos = fakeData.todos;
-                let projects = fakeData.projects;
+                let projects = fakeData.projects; 
                 let events = fakeData.events;
-                let areas = fakeData.areas;
+                let areas = fakeData.areas; 
                 
                 Promise.all([
                     Promise.all(todos.map( (t:Todo) => addTodo(this.onError,t) )),
@@ -298,8 +298,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
 
     render(){  
-//let selectedItems = items.filter((item) => allPass(this.props.filters, item));
-           
  
         return  <div ref={(e) => { this.rootRef=e }}
                      className="scroll"  
@@ -319,9 +317,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     !this.props.openSearch ? null :
                     <QuickSearch  
                         container={this.rootRef}
-                        todos={this.props.todos.filter( t => !t.deleted )} 
-                        projects={this.props.projects.filter( t => !t.deleted )} 
-                        areas={this.props.areas.filter( t => !t.deleted )}  
+                        todos={this.props.todos} 
+                        projects={this.props.projects} 
+                        areas={this.props.areas}  
                         dispatch={this.props.dispatch} 
                     />
                 }   
@@ -332,7 +330,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     <div className="no-drag" style={{position: "fixed", top: 0, right: 0}}>  
 
                             <IconButton 
-                                iconStyle={{color:"cadetblue",opacity:0,width:"20px",height:"20px"}}
+                                iconStyle={{
+                                    color:"rgba(100,100,100,0.6)",
+                                    opacity:0,
+                                    width:"20px",
+                                    height:"20px" 
+                                }}
                                 className="no-drag" 
                                 onTouchTap={() => ipcRenderer.send("reload", this.props.windowId)}
                             >
@@ -342,7 +345,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             <IconButton    
                                 onClick={this.openNewWindow}   
                                 className="no-drag"  
-                                iconStyle={{color:"cadetblue",width:"20px",height:"20px"}}
+                                iconStyle={{color:"rgba(100,100,100,0.6)",width:"20px",height:"20px"}}
                             >     
                                 <OverlappingWindows />
                             </IconButton>  
@@ -355,14 +358,14 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
                 <div style={{padding:"60px"}}>
      
-                    {  
-                       { 
+                   {   
+                       {  
                             inbox:<Inbox 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
-                                todos={this.props.todos.filter( t => !t.deleted )}
+                                todos={this.props.todos}
                                 tags={this.props.tags}
                             />,  
  
@@ -371,15 +374,15 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
-                                todos={this.props.todos.filter( t => !t.deleted )}
+                                todos={this.props.todos}
                                 tags={this.props.tags}
                             />,
 
                             upcoming: <Upcoming 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
-                                todos={this.props.todos.filter( t => !t.deleted )}
-                                projects={this.props.projects.filter( t => !t.deleted )}
+                                todos={this.props.todos}
+                                projects={this.props.projects}
                                 selectedTag={this.props.selectedTag}
                                 tags={this.props.tags} 
                                 rootRef={this.rootRef}
@@ -388,49 +391,30 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             logbook: <Logbook   
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
-                                todos={this.props.todos.filter( t => !t.deleted )}
-                                projects={this.props.projects.filter( t => !t.deleted )}
+                                todos={this.props.todos}
+                                projects={this.props.projects}
                                 selectedTag={this.props.selectedTag}
                                 tags={this.props.tags} 
                                 rootRef={this.rootRef}
                             />, 
 
-                            project : <ProjectComponent 
-                                dispatch={this.props.dispatch} 
-                                selectedProjectId={this.props.selectedProjectId}
-                                todos={this.props.todos.filter( t => !t.deleted )}
-                                projects={this.props.projects.filter( t => !t.deleted )}  
-                                rootRef={this.rootRef}
-                                tags={this.props.tags} 
-                            />,    
- 
-                            area : <AreaComponent 
-                                areas={this.props.areas.filter( t => !t.deleted )}
-                                selectedAreaId={this.props.selectedAreaId}
-                                dispatch={this.props.dispatch}
-                                projects={this.props.projects.filter( t => !t.deleted )}
-                                todos={this.props.todos.filter( t => !t.deleted )}
-                                tags={this.props.tags}
-                                rootRef={this.rootRef}
-                            />,  
-                            
                             someday: <Someday 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
-                                todos={this.props.todos.filter( t => !t.deleted )}
+                                todos={this.props.todos}
                                 tags={this.props.tags}
                             />,   
 
                             anytime: <Anytime   
                                 dispatch={this.props.dispatch}
-                                selectedTodoId={this.props.selectedTodoId}
+                                selectedTodoId={this.props.selectedTodoId} 
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
-                                areas={this.props.areas.filter( t => !t.deleted )}
-                                projects={this.props.projects.filter( t => !t.deleted )} 
-                                todos={this.props.todos.filter( t => !t.deleted )}
+                                areas={this.props.areas}
+                                projects={this.props.projects} 
+                                todos={this.props.todos}
                                 tags={this.props.tags}
                             />, 
   
@@ -438,11 +422,33 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 dispatch={this.props.dispatch}
                                 tags={this.props.tags}
                                 selectedTag={this.props.selectedTag}
-                                todos={this.props.todos.filter( t => !!t.deleted )}
-                                projects={this.props.projects.filter( t => !!t.deleted )}
-                                areas={this.props.areas.filter( t => !!t.deleted )}
+                                todos={this.props.todos}
+                                projects={this.props.projects}
+                                areas={this.props.areas}
                                 rootRef={this.rootRef}      
-                            /> 
+                            />,
+                            
+
+
+
+                            project : <ProjectComponent 
+                                dispatch={this.props.dispatch} 
+                                selectedProjectId={this.props.selectedProjectId}
+                                todos={this.props.todos}
+                                projects={this.props.projects}  
+                                rootRef={this.rootRef}
+                                tags={this.props.tags} 
+                            />,    
+
+                            area : <AreaComponent 
+                                areas={this.props.areas}
+                                selectedAreaId={this.props.selectedAreaId}
+                                dispatch={this.props.dispatch}
+                                projects={this.props.projects}
+                                todos={this.props.todos}
+                                tags={this.props.tags}
+                                rootRef={this.rootRef}
+                            />  
 
                         }[this.props.selectedCategory]
                     }

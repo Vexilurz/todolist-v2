@@ -24,7 +24,7 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize'; 
-import { Todo, Project, Heading } from '../../database';
+import { Todo, Project, Heading, Area } from '../../database';
 import { uppercase, debounce, diffDays, daysRemaining } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import PieChart from 'react-minimal-pie-chart';
@@ -37,6 +37,7 @@ import { ProjectMenuPopover } from '../Project/ProjectMenu';
 interface AreaHeaderProps{
     name:string, 
     selectedAreaId:string,
+    areas:Area[],
     updateAreatName:(value:string) => void,
     dispatch:Function  
 }
@@ -91,7 +92,7 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
 
         this.setState({openMenu:false});
 
-    }
+    } 
  
 
 
@@ -103,11 +104,16 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
 
     onDeleteArea = () => {
 
-        this.props.dispatch({type:"removeArea", load:this.props.selectedAreaId});
+        let area = this.props.areas.find( (a:Area) => a._id===this.props.selectedAreaId ); 
+
+        if(!area)
+           return; 
+
+        this.props.dispatch({type:"updateArea", load:{...area, deleted:new Date()}});
          
     }
 
-
+ 
   
     shouldComponentUpdate(nextProps){
   

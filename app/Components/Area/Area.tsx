@@ -104,7 +104,8 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
         <div> 
             <div>
                 <AreaHeader
-                    name={this.state.area.name}
+                    name={this.state.area.name}  
+                    areas={this.props.areas}  
                     selectedAreaId={this.props.selectedAreaId}
                     updateAreatName={this.updateAreaName}
                     dispatch={this.props.dispatch} 

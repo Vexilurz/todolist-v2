@@ -112,9 +112,14 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
 
     onDelete = (e) => {   
 
-        this.props.dispatch({ type:"removeProject", load:this.props.selectedProjectId });
+        let project = this.props.projects.find( (p:Project) => p._id===this.props.selectedProjectId )
 
-    }
+        if(!project)
+            return; 
+
+        this.props.dispatch({ type:"updateProject", load:{...project, deleted:new Date()} });
+
+    } 
 
 
  
@@ -126,8 +131,9 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         
 
     render(){  
-          
-        return <Popover 
+            
+        return !this.props.showProjectMenuPopover ? null :
+        <Popover 
             className="nocolor"
             style={{
                 marginTop:"20px", 

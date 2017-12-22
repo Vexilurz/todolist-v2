@@ -8,7 +8,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, showTags, allPass 
+    chooseIcon, showTags, allPass, byNotCompleted, byNotDeleted 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -48,32 +48,25 @@ interface TodayProps{
 
  
 
-interface TodayState{}
-
+interface TodayState{
+    emptyEvening:boolean,
+    emptyToday:boolean 
+}
+ 
 
  
 export class Today extends Component<TodayProps,TodayState>{
 
     constructor(props){
         super(props);
+        this.state={
+            emptyEvening:false,
+            emptyToday:false
+        }
     }
  
     render(){ 
  
-        let filters = (type) : any [] => [
-            
-            (t) => t.category === type, 
-
-            byTags(this.props.selectedTag), 
-
-            (t:Todo) => !t.checked
-
-        ];
-
-        
-        let evening = this.props.todos.filter((item) => allPass( filters("evening"), item )); 
-         
-
         return <div style={{disaply:"flex", flexDirection:"column"}}> 
             <div style={{width: "100%"}}> 
         
@@ -99,14 +92,12 @@ export class Today extends Component<TodayProps,TodayState>{
                      
                     </div> 
 
-                    <TodaySchedule show={true}/> 
- 
                     <FadeBackgroundIcon    
                         container={this.props.rootRef} 
                         selectedCategory={"today"}  
-                        show={this.props.todos.length===0}
-                    />  
-
+                        show={this.state.emptyEvening && this.state.emptyToday}
+                    />          
+ 
                     <Tags  
                         selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
                         tags={this.props.tags}
@@ -114,77 +105,81 @@ export class Today extends Component<TodayProps,TodayState>{
                         show={showTags("today")} 
                     /> 
 
-                    {   
+                       
+                    <div   
+                        className="unselectable" 
+                        id="todos" 
+                        style={{
+                            marginBottom: "50px", 
+                            marginTop:"20px"
+                        }} 
+                    >  
+                        <TodosList   
+                            filters={[ 
+                                byTags(this.props.selectedTag),
+                                byCategory("today"),
+                                byNotCompleted, 
+                                byNotDeleted 
+                            ]}  
+                            isEmpty={(empty:boolean) => this.setState({emptyToday:empty})}   
+                            dispatch={this.props.dispatch}   
+                            selectedCategory={"today"}
+                            selectedTag={this.props.selectedTag}  
+                            rootRef={this.props.rootRef}
+                            todos={this.props.todos} 
+                            tags={this.props.tags} 
+                        />  
+                    </div>  
+                    
+  
+                    <div>
+                        <div style={{
+                            display: "flex",
+                            color: "rgba(0,0,0,0.8)",
+                            fontWeight: "bold",
+                            fontFamily: "sans-serif", 
+                            fontSize:"16px", 
+                            cursor: "default",  
+                            userSelect: "none",
+                            width:"100%",
+                            alignItems: "center", 
+                            borderBottom:"1px solid rgba(0,0,0,0.1)"  
+                        }}>
+                            <Moon style={{  
+                                transform:"rotate(145deg)", 
+                                color:"cornflowerblue", 
+                                height: "25px",
+                                width: "25px",
+                                cursor:"default" 
+                            }}/>   
+                            <div style={{marginLeft: "10px"}}>This Evening</div>
+                        </div>
+
                         <div   
                             className="unselectable" 
                             id="todos" 
                             style={{
                                 marginBottom: "50px", 
                                 marginTop:"20px"
-                            }} 
-                        > 
-                            <TodosList      
-                                dispatch={this.props.dispatch}   
-                                selectedCategory={"today"}
+                            }}   
+                        >  
+                            <TodosList     
+                                filters={[ 
+                                    byTags(this.props.selectedTag),
+                                    byCategory("evening"),
+                                    byNotCompleted, 
+                                    byNotDeleted  
+                                ]} 
+                                isEmpty={(empty:boolean) => this.setState({emptyEvening:empty})} 
+                                dispatch={this.props.dispatch}    
+                                selectedCategory={"evening"} 
                                 selectedTag={this.props.selectedTag}  
                                 rootRef={this.props.rootRef}
-                                todos={this.props.todos} 
+                                todos={this.props.todos}  
                                 tags={this.props.tags} 
                             /> 
-                        </div>  
-                    }
- 
-                    {  
-                        evening.length===0 ? null :    
-                        <div>
-
-
-                            <div style={{
-                                display: "flex",
-                                color: "rgba(0,0,0,0.8)",
-                                fontWeight: "bold",
-                                fontFamily: "sans-serif", 
-                                fontSize:"16px", 
-                                cursor: "default",  
-                                userSelect: "none",
-                                width:"100%",
-                                alignItems: "center", 
-                                borderBottom:"1px solid rgba(0,0,0,0.1)"  
-                            }}>
-                                <Moon style={{  
-                                    transform:"rotate(145deg)", 
-                                    color:"cornflowerblue", 
-                                    height: "25px",
-                                    width: "25px",
-                                    cursor:"default" 
-                                }}/>   
-                                <div style={{marginLeft: "10px"}}>This Evening</div>
-                            </div>
-
- 
-
-                            <div   
-                                className="unselectable" 
-                                id="todos" 
-                                style={{
-                                    marginBottom: "50px", 
-                                    marginTop:"20px"
-                                }}   
-                            >  
-                                <TodosList    
-                                    dispatch={this.props.dispatch}    
-                                    selectedCategory={"evening"} 
-                                    selectedTag={this.props.selectedTag}  
-                                    rootRef={this.props.rootRef}
-                                    todos={this.props.todos}  
-                                    tags={this.props.tags} 
-                                /> 
-                            </div> 
-
- 
-                        </div>    
-                           
-                    }
+                        </div> 
+                    </div>  
 
             </div>
     </div>

@@ -7,7 +7,7 @@ import { Component } from "react";
 import { Todo } from '../../database';
 import { TodosList } from '.././TodosList';
 import { ContainerHeader } from '.././ContainerHeader';
-import { byTags, byCategory } from '../../utils';
+import { byTags, byCategory, byNotCompleted, byNotDeleted } from '../../utils';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 
  
@@ -23,7 +23,9 @@ interface InboxProps{
  
 
 
-interface InboxState{}
+interface InboxState{
+    empty:boolean
+}
 
  
 
@@ -31,7 +33,10 @@ export class Inbox extends Component<InboxProps, InboxState>{
 
     constructor(props){
         super(props);
-    }
+        this.state={
+            empty:false 
+        }
+    }  
 
     render(){
    
@@ -47,7 +52,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
             <FadeBackgroundIcon    
                 container={this.props.rootRef} 
                 selectedCategory={"inbox"}  
-                show={this.props.todos.length===0}
+                show={this.state.empty}
             />  
  
             <div   
@@ -58,7 +63,14 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     marginTop:"50px" 
                 }} 
             >  
-                <TodosList 
+                <TodosList   
+                    filters={[
+                        byTags(this.props.selectedTag),
+                        byCategory("inbox"),
+                        byNotCompleted, 
+                        byNotDeleted 
+                    ]}  
+                    isEmpty={(empty:boolean) => this.setState({empty})}
                     dispatch={this.props.dispatch}    
                     selectedCategory={"inbox"} 
                     selectedTag={this.props.selectedTag}  

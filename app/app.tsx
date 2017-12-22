@@ -498,14 +498,15 @@ let applicationObjectsReducer = (state:Store, action) => {
 
   
         case "removeAllTypes":
+            let todos = removeDeletedTodos(state.todos);
             newState = {
                 ...state,
-                todos:removeDeletedTodos(state.todos),  
+                todos,  
                 projects:removeDeletedProjects(state.projects),
                 areas:removeDeletedAreas(state.areas),
-                tags:getTagsFromTodos(action.load.todos),
-            }
-            break; 
+                tags:getTagsFromTodos(todos), 
+            } 
+            break;  
             
             
         //{projectId,todoId}    

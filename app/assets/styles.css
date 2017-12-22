@@ -69,20 +69,19 @@ ul {
 
 
 .leftPanelScroll { 
-  background: white; 
   overflow-y: scroll;
 } 
   
 
 
 
-
+ 
 
 .leftPanelScroll::-webkit-scrollbar {
-   width: 1px;
+   width: 0px;
 } 
 
-
+ 
 
 
 
@@ -94,11 +93,11 @@ ul {
 
 
 
-
+ 
 
 .leftPanelScroll::-webkit-scrollbar-thumb {
-   border-radius: 5px;
-   background-color:white
+  border-radius: 15px;
+  background-color:rgba(114,113,114,0.7);
 }
 
 

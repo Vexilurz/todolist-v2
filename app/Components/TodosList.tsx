@@ -21,17 +21,21 @@ import { TodoInput } from './TodoInput/TodoInput';
 
 interface TodosListProps{
     dispatch:Function,
+    filters:( (t:Todo) => boolean )[],
     selectedCategory:string,
+    isEmpty:(empty:boolean) => void,
     selectedTag:string, 
     rootRef:HTMLElement,   
-    todos:Todo[],
+    todos:Todo[], 
     tags:string[],
     disabled?:boolean     
 }    
 
 
   
-interface TodosListState{}
+interface TodosListState{
+    todos:Todo[] 
+}
 
       
   
@@ -41,17 +45,41 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
         super(props);
 
+        this.state={todos:[]}
+
      } 
  
 
 
      shouldComponentUpdate(nextProps:TodosListProps){
-         
-        return true;  
-           
+        return true;   
      }  
  
 
+     init = (props:TodosListProps) => {
+        let todos = props.todos; 
+         
+        if(props.filters.length>0)
+           todos = todos.filter( (t:Todo) => allPass(props.filters,t) );
+         
+        if(typeof props.isEmpty==="function")
+           props.isEmpty(todos.length===0); 
+          
+        this.setState({todos}); 
+     }
+
+
+     componentDidMount(){
+        this.init(this.props);  
+     }
+
+ 
+     componentWillReceiveProps(nextProps:TodosListProps){
+        if(this.props.todos!==nextProps.todos)
+           this.init(nextProps);
+     }
+ 
+ 
   
      getTodoElement = (value:Todo, index:number) => {
      
@@ -137,7 +165,6 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         if(insideTargetArea(areas)(x,y) || insideTargetArea(projects)(x,y)){
 
             hideChildrens(helper);
-
             nested.style.visibility="";
             nested.style.opacity='1';    
                 
@@ -197,14 +224,14 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
           
          return <div style={{WebkitUserSelect: "none"}}> 
- 
+  
             <SortableList   
                 getElement={this.getTodoElement}
-                items={this.props.todos}  
+                items={this.state.todos.sort((a:Todo,b:Todo) => a.priority-b.priority)}  
                 shouldCancelStart={this.shouldCancelStart}  
                 shouldCancelAnimation={this.shouldCancelAnimation}
                 onSortEnd={this.onSortEnd}    
-                onSortMove={this.onSortMove} 
+                onSortMove={this.onSortMove}  
                 onSortStart={this.onSortStart} 
                 lockToContainerEdges={false}
                 distance={3}  

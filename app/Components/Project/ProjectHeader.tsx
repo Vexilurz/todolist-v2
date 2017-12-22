@@ -97,25 +97,21 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
      
      return <div>  
 
-            <ProjectMenuPopover 
-                 {...{anchorEl:this.state.projectMenuPopoverAnchor} as any}
-            />     
-    
-
+            <ProjectMenuPopover {...{anchorEl:this.state.projectMenuPopoverAnchor} as any} />  
+              
             <div style={{display:"flex", alignItems: "center"}}>
 
-
-                <div style={{   
-                       width: "30px",
-                       height: "30px",
-                       position: "relative",
-                       borderRadius: "100px",
-                       display: "flex",
-                       justifyContent: "center",
-                       alignItems: "center",
-                       border: "2px solid rgba(108, 135, 222, 1)",
-                       boxSizing: "border-box",
-                       marginRight: "10px"
+                <div style={{    
+                    width: "30px",
+                    height: "30px",
+                    position: "relative",
+                    borderRadius: "100px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    border: "2px solid rgba(108, 135, 222, 1)",
+                    boxSizing: "border-box",
+                    marginRight: "10px"
                 }}> 
                     <div style={{
                         width: "28px", 
@@ -124,26 +120,13 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         alignItems: "center",
                         justifyContent: "center",
                         position: "relative"
-                    }}>   
-                        { 
-                            this.props.completed===undefined ? null : 
-                            <div style={{ width: "22px", height: "22px"}}> 
-                                <Checked style={{ 
-                                    color:"white", width: "22px",
-                                    height: "22px",
-                                    position: "absolute",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center" 
-                                }}/>
-                            </div>  
-                        }
+                    }}>  
                         <PieChart
                             animate={true}   
-                            //radius={50} 
+                            //radius={50}  
                             totalValue={days}
-                            data={[{ 
-                                value:remaining,  
+                            data={[{  
+                                value:days-remaining,  
                                 key:1,  
                                 color:'rgba(108, 135, 222, 0.8)' 
                             }]}   

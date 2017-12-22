@@ -80,7 +80,7 @@ export class Trash extends Component<TrashProps,TrashState>{
         deletedAreas : props.areas.filter( (a:Area) => a.deleted !==undefined  )
     })
 
-
+ 
  
     componentWillReceiveProps(nextProps){
 
@@ -114,17 +114,23 @@ export class Trash extends Component<TrashProps,TrashState>{
      
  
 
-    restoreTodo = (t:Todo) : void => {}
+    restoreTodo = (t:Todo) : void => {
+        this.props.dispatch({type:"updateTodo", load:{...t,deleted:undefined}})
+    }
 
 
 
-    restoreProject = (p:Project) : void => {}
-
-
-
-    restoreArea = (a:Area) : void => {}
-  
+    restoreProject = (p:Project) : void => {
+        this.props.dispatch({type:"updateProject", load:{...p,deleted:undefined}})
+    }
  
+
+
+    restoreArea = (a:Area) : void => { 
+        this.props.dispatch({type:"updateArea", load:{...a,deleted:undefined}})
+    }
+   
+    
 
     getDeletedProjectElement = (value:Project, index:number) : JSX.Element => {
         return <div 

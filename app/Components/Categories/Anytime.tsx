@@ -6,7 +6,7 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byTags, showTags } from "../../utils"; 
+import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byTags, showTags, byNotCompleted, byNotDeleted, byCategory, allPass } from "../../utils"; 
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area } from '../../database';
@@ -49,7 +49,8 @@ interface AnytimeProps{
 
 
 interface AnytimeState{
-    table:any 
+    table:any,
+    empty:boolean  
 } 
  
 
@@ -59,7 +60,8 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
     constructor(props){
         super(props);
         this.state = {
-            table : null 
+            table : null,
+            empty:false  
         } 
     }
 
@@ -117,37 +119,52 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
     groupObjects = (props:AnytimeProps) => { 
 
         let table = {};
-        
-        let projects : Project[] = props.projects;
+
+        let filters = [
+            byTags(props.selectedTag),
+            byNotCompleted, 
+            byNotDeleted   
+        ];     
+
+        let projects : Project[] = props.projects; 
         let todos : Todo[] = props.todos;
-        let areas : Area[] = props.areas;
+        let areas : Area[] = props.areas; 
 
  
         for(let i=0;  i<projects.length; i++)
-            table[projects[i]._id] = [];
+            if(allPass(filters,projects[i]))
+               table[projects[i]._id] = [];
 
-
+   
         for(let i=0;  i<areas.length; i++)
-            table[areas[i]._id] = [];
+            if(allPass(filters,areas[i]))
+               table[areas[i]._id] = [];
 
-        table["detached"] = [];    
+        table["detached"] = [];     
   
         for(let i = 0; i<todos.length; i++){
+
+            if(!allPass(filters,todos[i]))
+                continue; 
 
             let attached = false;
 
             for(let j=0; j<projects.length; j++){
                 let p = projects[j];
+                if(!allPass(filters,p))
+                    continue; 
                 if(p.attachedTodosIds.indexOf(todos[i]._id)!==-1){
                    table[p._id].push(todos[i]);
                    attached = true; 
                    break; 
-                }
+                } 
 
             } 
 
             for(let k=0; k<areas.length; k++){
-                let a = areas[k];
+                let a = areas[k]; 
+                if(!allPass(filters,a))
+                    continue; 
                 if(a.attachedTodosIds.indexOf(todos[i]._id)!==-1){
                    table[a._id].push(todos[i]);
                    attached = true; 
@@ -156,7 +173,7 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
             }   
 
             if(!attached)
-                table["detached"].push(todos[i]); 
+               table["detached"].push(todos[i]); 
               
         }
 
@@ -176,10 +193,12 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
                         dispatch={this.props.dispatch} 
                         tags={this.props.tags} 
                         selectedTag={this.props.selectedTag}
-                    />  
+                    />   
  
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
-                        <TodosList      
+                        <TodosList    
+                            filters={[]}  
+                            isEmpty={(empty:boolean) => {}}    
                             dispatch={this.props.dispatch}     
                             selectedCategory={"anytime"} 
                             selectedTag={this.props.selectedTag}  
@@ -253,7 +272,7 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
                         } 
 
                     </div>  
-                </div>
+                </div> 
 
     }
 
@@ -295,11 +314,14 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
     render(){ 
 
         let idx = this.state.expanded ? this.props.todos.length : 3; 
+        let showExpandButton = this.props.todos.length > 3; 
          
         return <div>  
-            <div>  
-                <div>     
-                    <TodosList      
+            <div>     
+                <div>      
+                    <TodosList       
+                        filters={[]}  
+                        isEmpty={(empty:boolean) => {}}  
                         dispatch={this.props.dispatch}     
                         selectedCategory={"anytime"} 
                         selectedTag={this.props.selectedTag}  
@@ -308,20 +330,40 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                         tags={this.props.tags}  
                     /> 
                 </div>  
-               { 
-                    this.state.expanded ? null :
-                    <div   
-                        onClick={() => this.setState({expanded:true})}
-                        style={{
-                            width:"100%", 
-                            height:"30px", 
-                            fontSize:"14px", 
-                            color:"rgba(100,100,100,0.6)"
-                        }}
-                    >     
-                        { `Show ${ this.props.todos.length-3 } more items` }
+
+
+                {   
+                    !showExpandButton ? null :
+                    <div>
+                        {   
+                            this.state.expanded ?
+                            <div   
+                                onClick={() => this.setState({expanded:true})}
+                                style={{
+                                    width:"100%", 
+                                    height:"30px", 
+                                    fontSize:"14px", 
+                                    color:"rgba(100,100,100,0.6)"
+                                }}
+                            >     
+                                { `Show ${ this.props.todos.length-3 } more items` }
+                            </div>
+                            :
+                            <div   
+                                onClick={() => this.setState({expanded:false})}
+                                style={{
+                                    width:"100%", 
+                                    height:"30px", 
+                                    fontSize:"14px", 
+                                    color:"rgba(100,100,100,0.6)"
+                                }}
+                            >     
+                                { `Hide` }
+                            </div>
+                        }
                     </div>
-               }
+
+                }
             </div>
         </div>
  

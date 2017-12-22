@@ -32,7 +32,7 @@ export class WindowControlButtons extends Component<WindowControlButtonsProps,{}
                 width:`${this.props.leftPanelWidth}px`,
                 top: "0px",
                 left: "0px", 
-                backgroundColor: "rgb(240, 240, 240)",  
+                backgroundColor: "rgb(248, 248, 248)",  
                 display: "flex",
                 flexDirection: "row-reverse",
                 alignItems: "center",

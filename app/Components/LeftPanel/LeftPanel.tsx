@@ -5,7 +5,7 @@ import { ipcRenderer } from 'electron';
 import IconMenu from 'material-ui/IconMenu'; 
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, generateEmptyProject, generateEmptyArea } from "../../utils"; 
+import { attachDispatchToProps, generateEmptyProject, generateEmptyArea, byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, byDeleted, allPass } from "../../utils"; 
 import { Provider, connect } from "react-redux";
 import Menu from 'material-ui/Menu';
 import Star from 'material-ui/svg-icons/toggle/star';
@@ -42,7 +42,73 @@ import { LeftPanelMenu } from './LeftPanelMenu';
 import { WindowControlButtons } from './WindowControlButtons';
 import { NewProjectAreaPopup } from './NewProjectAreaPopup';
 
+
+interface ItemsAmount{
+    inbox:number,
+    today:number,
+    upcoming:number,
+    anytime:number,
+    someday:number,  
+    logbook:number,
+    trash:number 
+}
+
+
+let calculateAmount = (props:Store) : ItemsAmount => {
+
+    let todayFilter = (i) => byCategory("today")(i) || byCategory("evening")(i);
  
+    let amount = { 
+        inbox:0,
+        today:0,
+        upcoming:0,
+        anytime:0,
+        someday:0, 
+        logbook:0,
+        trash:0
+    } 
+ 
+    let inboxFilters = [byCategory("inbox"),byNotCompleted,byNotDeleted]; 
+
+    let todayFilters = [todayFilter, byNotCompleted, byNotDeleted];
+ 
+    let upcomingFilters = [byNotCompleted,byNotDeleted];  
+
+    let anytimeFilters = [byNotCompleted,byNotDeleted];     
+
+    let somedayFilters = [byCategory("someday"),byNotCompleted,byNotDeleted];
+
+    let logbookFilters = [byCompleted,byNotDeleted];  
+  
+    let trashFilters = [byDeleted];
+
+    let filters = [
+        {type:"inbox", filters:inboxFilters},
+        {type:"today", filters:todayFilters} ,
+        {type:"upcoming", filters:upcomingFilters}, 
+        {type:"anytime", filters:anytimeFilters},   
+        {type:"someday", filters:somedayFilters},
+        {type:"logbook", filters:logbookFilters},  
+        {type:"trash", filters:trashFilters}
+    ]; 
+    
+    for(let i=0; i<props.todos.length; i++){
+        let todo = props.todos[i];
+
+        for(let j=0; j<filters.length; j++){
+            let filter = filters[j];
+
+            if(allPass(filter.filters,todo))
+               amount[filter.type]+=1; 
+        }
+    }
+
+    return amount;
+ 
+}
+
+
+
 
   
 interface LeftPanelState{
@@ -90,41 +156,21 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                 }
             ) 
         };
-
+ 
 
 
         render(){    
 
-
-
- 
-            //account deleted   TODO  
-            let someday = this.props.todos.filter( v => v.category === "someday" && !v.checked).length;
- 
-            let upcoming = this.props.todos.length;
- 
-            let today = this.props.todos.filter(
-                v => !v.checked && (v.category === "today" || v.category === "evening")
-            ).length; 
- 
-            let inbox = this.props.todos.filter( v => v.category === "inbox"  && !v.checked ).length;
-  
-            let anytime = this.props.todos.filter( v => !v.checked ).length;
-                 
-
-
-
-
+            let amount : ItemsAmount = calculateAmount(this.props);
 
             return  <div 
-                        className="leftPanelScroll"
                         style={{
                             display: "flex",  
                             flexDirection: "column", 
                             width: this.props.clone ? "0px" : this.props.leftPanelWidth, 
                             height: "100%",
                             position:"relative", 
-                            backgroundColor: "rgb(240, 240, 240)"  
+                            backgroundColor: "rgb(248, 248, 248)"  
                         }}
                     > 
 
@@ -141,81 +187,105 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                         leftPanelWidth={this.props.leftPanelWidth}
                     /> 
 
-                    <LeftPanelMenu 
-                        dispatch={this.props.dispatch}
-                        inbox={0}
-                        today={0}
-                        upcoming={0}
-                        anytime={0}
-                        someday={0} 
-                        logbook={0}
-                        trash={0}
-                    />
+                    <div> 
+                        <LeftPanelMenu 
+                            dispatch={this.props.dispatch}
+                            inbox={amount.inbox}
+                            today={amount.today}
+                            upcoming={amount.upcoming}
+                            anytime={amount.anytime}
+                            someday={amount.someday}  
+                            logbook={amount.logbook}
+                            trash={amount.trash} 
+                        />  
+                    </div>
  
-                    {
+                    { 
                         this.props.areas.length===0 ? null:
-                        <div id="areas" style={{position:"relative", padding:"10px"}}>
+                        <div  className={"leftPanelScroll"}
+                            id="areas" 
+                            style={{
+                                position:"relative", 
+                                paddingTop:"10px",
+                                paddingLeft:"10px", 
+                                paddingBottom:"100px",
+                                paddingRight:"10px"
+                            }}   
+                        >
                             <AreasList  
-                                dispatch={this.props.dispatch}
+                                dispatch={this.props.dispatch}   
                                 areas={this.props.areas}
                                 projects={this.props.projects} 
                             />
                         </div> 
-                    }
+                    } 
 
-                    <NewProjectAreaPopup 
-                        anchor={this.newProjectAnchor}
-                        open={this.props.openNewProjectAreaPopup}
-                        close={() => this.props.dispatch({type:"openNewProjectAreaPopup",load:false})} 
-                        onNewProjectClick={this.onNewProjectClick}
-                        onNewAreaClick={this.onNewAreaClick}
-                    />
-        
-                
+                    { 
+                        !this.props.openNewProjectAreaPopup ? null :
+                        <NewProjectAreaPopup 
+                            anchor={this.newProjectAnchor}
+                            open={this.props.openNewProjectAreaPopup}
+                            close={() => this.props.dispatch({type:"openNewProjectAreaPopup",load:false})} 
+                            onNewProjectClick={this.onNewProjectClick}
+                            onNewAreaClick={this.onNewAreaClick}
+                        />
+                    }
+          
                     <div style={{    
                         display: "flex", 
                         alignItems: "center",  
                         position: "fixed",
                         width : this.props.leftPanelWidth,  
-                        justifyContent: "space-around",  
-                        bottom: "0px", 
+                        justifyContent: "space-between",  
+                        bottom: "0px",  
                         height: "60px",
-                        backgroundColor: "rgba(235, 235, 235, 1)",
+                        backgroundColor: "rgb(248, 248, 248)",
                         borderTop: "1px solid rgba(100, 100, 100, 0.2)"
                     }}>   
 
                         <div  
-                            ref = {(e) => {this.newProjectAnchor=e}}
-                            style={{display: "flex", alignItems: "center"}}
-                        >    
-                            <IconButton     
-                                onClick = {() => this.props.dispatch({type:"openNewProjectAreaPopup",load:true})}    
-                                iconStyle={{     
-                                    color:"rgb(79, 79, 79)",
-                                    width:"25px",
-                                    height:"25px"    
-                                }}
-                            >       
-                                <Plus />  
-                            </IconButton>
-                            <div style={{
-                                fontFamily: "sans-serif",
-                                fontWeight: 600, 
-                                color: "rgba(100,100,100,0.7)",
-                                fontSize:"15px",  
-                                cursor: "default",
+                           
+                            onClick = {() => {
+                                if(!this.props.openNewProjectAreaPopup)
+                                    this.props.dispatch({type:"openNewProjectAreaPopup",load:true})
+                            }}
+                            style={{
+                                display: "flex",
+                                padding: "5px",
+                                alignItems: "center",
+                                cursor: "pointer"
+                            }}
+                        >     
+
+                            <div ref = {(e) => {this.newProjectAnchor=e}} >
+                                <Plus    
+                                    style = {{     
+                                        color:"rgb(79, 79, 79)",
+                                        width:"25px",
+                                        height:"25px",
+                                        paddingLeft: "5px",
+                                        paddingRight: "5px"     
+                                    }}
+                                />
+                            </div>     
+
+                            <div 
+                            style={{
+                                color: "rgba(100, 100, 100, 1)",
+                                fontSize: "15px",
+                                cursor: "pointer",
                                 WebkitUserSelect: "none" 
-                            }}> 
+                            }}>  
                                 New List 
                             </div>    
                         </div>  
 
 
                         <div style={{ }}>   
-                            <IconButton   
-                            onClick = {() => console.log("")} 
+                            <IconButton    
+                            onClick = {() => {}}  
                             iconStyle={{  
-                                color:"rgb(79, 79, 79)",
+                                color:"rgba(100, 100, 100, 1)",
                                 width:"25px", 
                                 height:"25px"   
                             }}>        

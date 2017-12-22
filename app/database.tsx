@@ -280,7 +280,7 @@ let fakeProject = (attachedTags, layout, attachedAreasIds, attachedTodosIds) : P
     for(let i=0; i<l; i++)
         description.push(randomWord());  
     
-    return {  
+    return {   
         _id : generateid(),    
         type : "project", 
         name : name.join(),  
@@ -290,8 +290,8 @@ let fakeProject = (attachedTags, layout, attachedAreasIds, attachedTodosIds) : P
         created : randomDate(new Date()["addDays"](-50), new Date()),
         deadline : randomDate(new Date(), new Date()["addDays"](50)),
         completed : checked ? randomDate(new Date(), new Date()["addDays"](50)) : null,
-        layout,  
-        attachedTodosIds, 
+        layout,   
+        attachedTodosIds,  
         attachedTags  
     };   
 
@@ -374,61 +374,60 @@ export let generateRandomDatabase = (
     projects : Project[],
     areas : Area[] 
      
-} => {  
+} => { 
+  
+  
     let tags = fakeTags(8);
-
     let tagsChunks = splitEvery(3, tags); 
- 
     let todosItems : Todo[] = [];
-
 
     for(let i=0; i<todos; i++)
         todosItems.push(fakeTodo(randomArrayMember(tagsChunks)));
 
-    let generateTodosIds = todosItems.map( (t:Todo) => t._id );
 
+    let generateTodosIds = todosItems.map( (t:Todo) => t._id );
     let generateTodosIdsChunks = [];
 
 
-    for(let i=0; i<todos+areas+projects; i++){   
 
+
+    for(let i=0; i<todos; i++){   
         let interval = Math.round(Math.random() * todos);
         let chunk = [];
-
         for(let j=0; j<interval; j++)
-            chunk.push(randomArrayMember(generateTodosIds))
-       
-        generateTodosIdsChunks.push(chunk);      
-
+            chunk.push(randomArrayMember(generateTodosIds));
+        generateTodosIdsChunks.push(chunk);   
     }
  
 
+
+
     let projectItems = [];
+      
+
+
     
- 
-    for(let i=0; i<projects+areas; i++){
+    for(let i=0; i<projects; i++){
         projectItems.push(fakeProject(
           randomArrayMember(tagsChunks), 
           generateProjectLayout(generateTodosIds,10),
           [],
-          generateTodosIdsChunks[i],  
+          generateTodosIdsChunks[i] ? generateTodosIdsChunks[i] : [],  
       ))  
     }
     
 
+
     let generateProjectsIds = projectItems.map( (p:Project) => p._id );
-    
-
-    let projectsIdsChunks = splitEvery(areas,generateProjectsIds);
-    
+    let projectsIdsChunks = splitEvery( Math.round(Math.random()*5), generateProjectsIds );
     let areasItems = [];
-
-
  
+
+  
     for(let i=0; i<areas; i++){
         let areaItem = fakeArea(
-          generateTodosIdsChunks[i],
-          projectsIdsChunks[i], 
+          generateTodosIdsChunks[i] ? generateTodosIdsChunks[i] : [], 
+          projectsIdsChunks[i] ? projectsIdsChunks[i] : [], 
           [],
           randomArrayMember(tagsChunks)
         );

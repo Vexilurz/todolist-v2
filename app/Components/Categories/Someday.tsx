@@ -6,7 +6,7 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon } from "../../utils"; 
+import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byNotCompleted, byNotDeleted } from "../../utils"; 
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo } from '../../database';
@@ -29,6 +29,7 @@ import AutosizeInput from 'react-input-autosize';
 import { ContainerHeader } from '.././ContainerHeader';
 import { byTags, byCategory } from '../../utils';
 import { TodosList } from '.././TodosList';
+import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 
   
 
@@ -41,7 +42,9 @@ interface SomedayProps{
     todos:Todo[],
     tags:string[]
 } 
-interface SomedayState{}
+interface SomedayState{
+    empty:boolean 
+} 
 
 
 
@@ -49,6 +52,9 @@ export class Someday extends Component<SomedayProps, SomedayState>{
 
     constructor(props){
         super(props);
+        this.state={
+            empty:false 
+        }
     }
 
     render(){
@@ -60,7 +66,13 @@ export class Someday extends Component<SomedayProps, SomedayState>{
               tags={this.props.tags}
               selectedTag={this.props.selectedTag}
             /> 
-   
+
+            <FadeBackgroundIcon    
+                container={this.props.rootRef} 
+                selectedCategory={"someday"}  
+                show={this.state.empty}
+            />    
+    
             <div   
                 className="unselectable" 
                 id="todos" 
@@ -70,7 +82,14 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                 }} 
             >    
                 <TodosList 
-                    dispatch={this.props.dispatch}  
+                    filters={[ 
+                        byTags(this.props.selectedTag),
+                        byCategory("someday"),
+                        byNotCompleted, 
+                        byNotDeleted 
+                    ]}  
+                    isEmpty={(empty:boolean) => this.setState({empty})} 
+                    dispatch={this.props.dispatch}   
                     selectedCategory={"someday"} 
                     selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}

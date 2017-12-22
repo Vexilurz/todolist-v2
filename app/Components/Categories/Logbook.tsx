@@ -12,7 +12,7 @@ import { Transition } from 'react-transition-group';
 import { TodosList } from '../../Components/TodosList';
 import { Todo, Project } from '../../database';
 import { ContainerHeader } from '.././ContainerHeader';
-import { compareByDate, getMonthName, byTags } from '../../utils';
+import { compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, allPass, byNotCompleted } from '../../utils';
     
  
 
@@ -64,13 +64,19 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
     
 
     groupByMonth = () : any[][] => { 
- 
+
+        let filters = [
+            byTags(this.props.selectedTag),
+            byCompleted, 
+            byNotDeleted  
+        ];    
+     
 
         let getKey = (d:Date) : string => `${d.getFullYear()}-${d.getMonth()}`;
 
-        let todos = this.props.todos;
+        let todos = this.props.todos.filter( i => allPass(filters,i));
 
-        let projects = this.props.projects;  
+        let projects = this.props.projects.filter( i => allPass(filters,i)); 
 
         let compare = compareByDate( (i : Todo | Project) => new Date(i.completed) );
  
@@ -151,7 +157,9 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
             </div>
 
             <div style={{position:"relative", width:"100%"}}>
-                <TodosList 
+                <TodosList  
+                    filters={[]}  
+                    isEmpty={(empty:boolean) => {}} 
                     dispatch={this.props.dispatch}     
                     selectedCategory={"logbook"} 
                     selectedTag={this.props.selectedTag}  

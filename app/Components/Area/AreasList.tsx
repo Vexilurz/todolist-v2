@@ -12,9 +12,9 @@ import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
-import { stringToLength, remove, insert, unique, replace, swap } from '../../utils';
+import { stringToLength, remove, insert, unique, replace, swap, byNotCompleted, byNotDeleted, allPass, diffDays, daysRemaining } from '../../utils';
 import { SortableList } from '../SortableList';
- 
+import PieChart from 'react-minimal-pie-chart';
 interface AreasListProps{  
     dispatch:Function,
     areas:Area[],
@@ -52,17 +52,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     componentWillReceiveProps(nextProps:AreasListProps,nextState:AreasListState){
 
-        //if(nextProps.areas!==this.props.areas){
-
-            //this.init(nextProps);
-
-        //}else if(nextProps.projects!==this.props.projects){
 
             this.init(nextProps); 
-
-        //}else if(this.state.layout!==nextState.layout){
-
-        //}
 
     } 
 
@@ -82,7 +73,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
         let layout = this.generateLayout(props,group); 
 
-        this.setState({layout}); 
+        this.setState({layout:layout.filter( v => !!v )}); 
 
     }
 
@@ -106,17 +97,17 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     groupProjectsByArea = (props:AreasListProps) => {
  
-        let projects = props.projects;
-        let areas = props.areas;
+        let projects = props.projects.filter( p => !p.deleted );
+        let areas = props.areas.filter( a => !a.deleted );
+
         let table : { [key: string]: Project[]; } = {};
         let detached : Project[] = []; 
-
+     
 
         for(let i=0; i<areas.length; i++)
             table[areas[i]._id] = [];
-        
 
-
+      
         let attached;
 
         let project_id;
@@ -129,14 +120,13 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 
         for(let i=0; i<projects.length; i++){
-
-            attached = false;
+                
+            attached = false; 
 
             project_id = projects[i]._id;
 
-
             for(let j=0; j<areas.length; j++){
-
+                  
                 attachedProjectsIds = unique(areas[j].attachedProjectsIds);
                 idx = attachedProjectsIds.indexOf(project_id);
  
@@ -157,6 +147,10 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
              
         }  
 
+
+        for(let i=0; i<areas.length; i++)
+            table[areas[i]._id] = table[areas[i]._id].filter( v => !!v ); 
+
         return {table,detached};
     }
          
@@ -167,12 +161,12 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         { table, detached } : { table : { [key: string]: Project[]; }, detached:Project[] } 
     ) : LayoutItem[] => { 
 
-        let areas = props.areas;
-
+        let areas = props.areas.filter( a => !a.deleted );
+  
         let layout : LayoutItem[] = [];
 
         for(let i = 0; i<areas.length; i++){
-
+ 
             let key : string = areas[i]._id;
 
             let attachedProjects : Project[] = table[key];
@@ -196,22 +190,24 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 
     getAreaElement = (a : Area, index : number) : JSX.Element => {
-        return <li className="area" key={index}> 
-            <div    
+        return <li className="area" style={{paddingTop:"40px"}} key={index}> 
+            <div     
                 onClick = {this.selectArea(a)}
                 id = {a._id}   
-                className="toggleFocus" 
-                style={{ 
-                    marginLeft:"4px", marginRight:"4px",   
-                    width:"95%", display:"flex", alignItems: "center"
+                className="leftpanelmenuitem"  
+                style={{  
+                    height:"25px",
+                    width:"95%",
+                    display:"flex", 
+                    alignItems: "center" 
                 }}
             >      
                 <IconButton  
                     style={{
-                        width:"28px", height:"28px", padding: "0px",
+                        width:"18px", height:"18px", padding: "0px",
                         display: "flex", alignItems: "center", justifyContent: "center"
                     }}    
-                    iconStyle={{ color:"rgba(109,109,109,0.4)", width:"18px", height:"18px" }}  
+                    iconStyle={{ color:"rgba(109,109,109,0.7)", width:"18px", height:"18px" }}  
                 >   
                     <NewAreaIcon /> 
                 </IconButton> 
@@ -223,7 +219,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                     paddingLeft: "5px", 
                     WebkitUserSelect: "none",
                     fontWeight: "bolder", 
-                    color: "rgba(100, 100, 100, 1)"
+                    color: "rgba(100, 100, 100, 1)" 
                 }}>   
                     {
                         a.name.length===0 ? 
@@ -238,59 +234,79 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 
     getProjectElement = (p:Project, index:number) : JSX.Element => {
-        return <li key={index}> 
+
+        let days = diffDays(p.created,p.deadline);    
+        
+        let remaining = daysRemaining(p.deadline);  
+
+        return <li key={index}>  
             <div  
                 onClick = {this.selectProject(p)} 
-                id = {p._id}       
-                className="toggleFocus" 
+                id = {p._id}        
+                className="leftpanelmenuitem" 
                 style={{  
-                    marginLeft:"4px",
-                    marginRight:"4px", 
-                    paddingLeft:"5px", 
-                    height:"20px",
+                    height:"25px",
                     width:"95%",
                     display:"flex",
                     alignItems: "center" 
                 }}
             >     
-
-                    <IconButton    
-                        style={{
-                            width:"28px",
-                            height:"28px",
-                            padding: "0px",
+                    <div style={{    
+                        width: "18px",
+                        height: "18px",
+                        position: "relative",
+                        borderRadius: "100px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        border: "1px solid rgb(170, 170, 170)",
+                        boxSizing: "border-box" 
+                    }}> 
+                        <div style={{
+                            width: "18px",
+                            height: "18px",
                             display: "flex",
-                            alignItems: "center", 
-                            justifyContent: "center"
-                        }}  
-                        iconStyle={{
-                            color:"rgba(109,109,109,0.4)",
-                            width:"18px",
-                            height:"18px"
-                        }}  
-                    >  
-                        <Circle />  
-                    </IconButton> 
-
-                    <div 
-                    id = {p._id}   
-                    style={{  
-                        paddingLeft:"5px",
-                        fontFamily: "sans-serif",
-                        fontWeight: 600, 
-                        color: "rgba(100,100,100,0.7)",
-                        fontSize:"15px",  
-                        whiteSpace: "nowrap",
-                        cursor: "default",
-                        WebkitUserSelect: "none" 
-                    }}>   
-                        { 
-                            p.name.length==0 ? 
-                            "New Project" :
-                            stringToLength(p.name,15) 
-                        } 
+                            alignItems: "center",
+                            justifyContent: "center",
+                            position: "relative" 
+                        }}>  
+                            <PieChart
+                                animate={true}    
+                                totalValue={days}
+                                data={[{  
+                                    value:days-remaining,  
+                                    key:1,  
+                                    color:"rgba(159, 159, 159, 1)" 
+                                }]}    
+                                style={{ 
+                                    color: "rgba(159, 159, 159, 1)",
+                                    width: "12px",
+                                    height: "12px",
+                                    position: "absolute",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center"  
+                                }}
+                            />     
+                        </div>
+                    </div> 
+ 
+                    <div   
+                        id = {p._id}   
+                        style={{  
+                            paddingLeft:"5px",
+                            fontFamily: "sans-serif",
+                            fontWeight: 600, 
+                            color: "rgba(100,100,100,0.7)",
+                            fontSize:"15px",  
+                            whiteSpace: "nowrap",
+                            cursor: "default",
+                            WebkitUserSelect: "none" 
+                        }}
+                    >   
+                        { p.name.length==0 ? "New Project" : stringToLength(p.name,15) } 
                     </div>    
-
+ 
             </div>
         </li> 
     }

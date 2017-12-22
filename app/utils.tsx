@@ -270,6 +270,9 @@ export let debounce = (fun, mil=50) => {
 
 export let allPass = (funcs : Function[], item) : boolean => {
 
+    if(funcs.length===0)
+       return true;  
+
     for(let i=0; i<funcs.length; i++)
         if(!funcs[i](item))
             return false; 
@@ -387,33 +390,77 @@ export let getMousePositionX = (container : HTMLElement, event:any) => event.pag
 export let arrayContainsItem = (array) => (item) : boolean => array.includes(item); 
 
 
+
+
+
+
+type Item = Area | Project | Todo;
+
+
+export let byNotDeleted = (item:Item) : boolean => { 
+    
+    return !item.deleted;
+  
+}  
+
+export let byDeleted = (item:Project | Todo) : boolean => { 
+
+    if(item.type==="area")
+       return true; 
+    
+    return !!item.deleted;
  
-export let byTags = (selectedTag:string) => (todo:Todo) : boolean => { 
+}  
+
+export let byNotCompleted = (item:Project | Todo) : boolean => { 
+
+    if(item.type==="area")
+       return true; 
+    
+    return !item.completed;
+ 
+}   
+ 
+
+
+export let byCompleted = (item:Project | Todo) : boolean => { 
+
+    if(item.type==="area")
+       return true; 
+    
+    return !!item.completed;
+ 
+}  
+
+
+
+   
+export let byTags = (selectedTag:string) => (item:Item) : boolean => { 
     
     if(selectedTag==="All" || selectedTag==="") 
-        return true;    
+       return true;    
 
-    if(todo===undefined || todo===null)
-        return false; 
+    if(item===undefined || item===null)
+       return false; 
   
-    return  todo.attachedTags.indexOf(selectedTag)!==-1;
+    return item.attachedTags.indexOf(selectedTag)!==-1;
 
 }  
     
 
-    
-export let byCategory = (selectedCategory:string) => (todo:Todo) : boolean => { 
+     
+export let byCategory = (selectedCategory:string) => (item:Todo) : boolean => { 
 
-    if(todo===undefined || todo===null)
-        return false; 
-
-    if(todo.category==="evening" && selectedCategory==="today")
-        return true;
+    if(item===undefined || item===null)
+       return false; 
+      
+    if(item.type==="area" || item.type==="project")   
+       return true;    
 
     if(selectedCategory==="anytime")
         return true;  
-            
-    return todo.category===selectedCategory;
+   
+    return item.category===selectedCategory;
 
 } 
 
@@ -903,47 +950,6 @@ export let getDatesRange = (start : Date, days : number, includeStart : boolean,
 export let keyFromDate = (date:Date) : string => date.toISOString().split('T')[0];
 
 
-
-
-
-export let objectsToHashTableByDate = (props) => {
-    
-    let todos = props.todos;
-
-    let projects = props.projects;
-
-    let objects = [...todos, ...projects].filter((i) => !!getDateFromObject(i));
-
-    let objectsByDate = {};
-
-    if(objects.length===0)
-        return [];
-
-
-    for(let i=0; i<objects.length; i++){
-
-
-        let date : Date = getDateFromObject(objects[i]);
-
-        let key : string = keyFromDate(date);
-
-        if(objectsByDate[key]===undefined){
-
-            objectsByDate[key] = [objects[i]];
-
-        }else{
-
-            objectsByDate[key].push(objects[i]);
-
-        }
-
-
-    }   
-
-    return objectsByDate;
-
-}   
-     
 
 
 export let splitEvery = (n, array)  => {
