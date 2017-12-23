@@ -38,17 +38,15 @@ import { TextField } from 'material-ui';
 import { ThingsCalendar } from '.././ThingsCalendar';
 import {  
     insideTargetArea, daysRemaining, replace, remove, todoChanged, 
-    unique, daysLeftMark, generateTagElement
+    unique, daysLeftMark, generateTagElement, uppercase
 } from '../../utils';
 import { Todo, removeTodo, updateTodo, generateId } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
-import { Category } from '../MainContainer';
-import { SelectedCategoryLabel } from './SelectedCategoryLabel';
-import { DeadlineLabel } from './DeadlineLabel';
+import { Category } from '../MainContainer'; 
 import { TagsPopover, TodoTags } from './TodoTags';
-import { AttachedDateLabel } from './AttachedDateLabel';
-
- 
+import { TodoInputLabel } from './TodoInputLabel';
+let moment = require("moment"); 
+  
 
 
 
@@ -717,56 +715,73 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 </div>   
 
 
-        {   
+        {
+
             !this.state.open ? null :  
-            <div style={{display:"flex", flexDirection:"column"}}>            
+            <div style={{display:"flex", flexDirection:"column"}}> 
                 {  
                     ["evening","today","someday"].indexOf(this.state.newSelectedCategory)===-1 ? null :
 
                     <div style={{
-                        transition: "opacity 0.2s ease-in-out",
+                        transition: "opacity 0.4s ease-in-out",
                         opacity:this.state.open ? 1 : 0
-                    }}>            
-                        <SelectedCategoryLabel
+                    }}>    
+                        <TodoInputLabel 
                             onRemove={this.onRemoveSelectedCategoryLabel}
-                            selectedCategory={this.state.newSelectedCategory}
+                            category={this.state.newSelectedCategory}
+                            content={ 
+                                <div style={{marginLeft:"15px"}}>
+                                    {
+                                        this.state.newSelectedCategory==="evening" ? "This Evening" :
+                                        this.state.newSelectedCategory==="today" ? "Today" :
+                                        "Someday"
+                                    }
+                                </div>  
+                            }
                         />   
                     </div>  
                 }  
-
-
                 { 
                     !this.state.attachedDate ? null :
-
                     <div style={{
-                        transition : "opacity 0.2s ease-in-out",
-                        opacity : this.state.open ? 1 : 0
-                    }}> 
-                        <AttachedDateLabel
-                            onRemoveAttachedDate={() => this.setState({attachedDate:null})}
-                            date={this.state.attachedDate} 
-                        /> 
-                    </div> 
-                }
-
+                        transition: "opacity 0.4s ease-in-out",
+                        opacity:this.state.open ? 1 : 0
+                    }}>    
+                        <TodoInputLabel 
+                            onRemove={() => this.setState({attachedDate:null})}
+                            category={"upcoming"}
+                            content={ 
+                                <div style={{marginLeft:"15px", color:"black"}}>
+                                    When : {moment(this.state.attachedDate).format('MMMM D')}
+                                </div>   
+                            }
+                        />   
+                    </div>  
+                } 
                 { 
                     !this.state.deadline ? null :
-
+ 
                     <div style={{
-                        transition : "opacity 0.2s ease-in-out",
+                        transition : "opacity 0.4s ease-in-out",
                         opacity : this.state.open ? 1 : 0
                     }}>
-                        <DeadlineLabel
-                            onRemoveDeadline={() => this.setState({deadline:null})}
-                            deadline={this.state.deadline} 
-                        /> 
-                    </div> 
+                        <TodoInputLabel  
+                            onRemove={() => this.setState({deadline:null})}
+                            category={"deadline"} 
+                            content={ 
+                                <div style={{marginLeft:"15px", color:"black"}}>
+                                    Deadline: {moment(this.state.deadline).format('MMMM D')}
+                                </div>
+                            }
+                        />     
+                    </div>  
                 } 
             </div>
-        }
+
+        } 
 
 
-       {        
+        {        
             !this.state.open ? null :
 
             <div style={{

@@ -33,7 +33,7 @@ import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 
  
 export type Category = "inbox" | "today" | "upcoming" | "anytime" | "someday" | 
-                       "logbook" | "trash" | "project" | "area" | "evening"; 
+                       "logbook" | "trash" | "project" | "area" | "evening" | "deadline"; 
 
  
                        

@@ -379,7 +379,6 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
         let object = suggestion.object;
  
         switch(object.type){
-  
             case "todo":
                 return getTodoLink(object, index, this.props.dispatch)
             case "project":

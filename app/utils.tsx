@@ -154,9 +154,17 @@ export let chooseIcon = (
                     color:"cornflowerblue", 
                     cursor:"default" 
                 }
-            }}/>   
-
-
+            }}/>    
+ 
+        case "deadline":
+            return <Flag style={{
+                ...size,
+                ...{   
+                    color:"black",  
+                    cursor:"default"  
+                }
+            }}/>
+            
         case "area":
             return <NewAreaIcon style={{
                 ...size,

@@ -1,5 +1,4 @@
-import '../../assets/styles.css';  
-import '../../assets/calendarStyle.css';  
+import '../../assets/styles.css';   
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom';  
 import { ipcRenderer } from 'electron';
@@ -14,25 +13,25 @@ import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import Chip from 'material-ui/Chip';
 import BusinessCase from 'material-ui/svg-icons/places/business-center';  
-import Flag from 'material-ui/svg-icons/image/assistant-photo'; 
-let moment = require("moment");
-
+import Flag from 'material-ui/svg-icons/image/assistant-photo';  
+import { chooseIcon } from '../../utils';
+let moment = require("moment"); 
  
 
-interface DeadlineLabelProps{
-    onRemoveDeadline:Function,
-    deadline:Date  
+interface TodoInputLabelProps{
+    onRemove:Function,
+    category:Category,
+    content:JSX.Element 
 } 
 
-
-interface DeadlineLabelState{} 
-
+interface TodoInputLabelState{} 
 
 
-export class DeadlineLabel extends Component<DeadlineLabelProps,DeadlineLabelState>{
+
+export class TodoInputLabel extends Component<TodoInputLabelProps, TodoInputLabelState>{
 
     constructor(props){
-        super(props);
+        super(props); 
     }
 
  
@@ -47,10 +46,10 @@ export class DeadlineLabel extends Component<DeadlineLabelProps,DeadlineLabelSta
             marginRight: "20px",
             userSelect: "none"
         };
-
+ 
            
-        return  <Chip
-                    onRequestDelete={this.props.onRemoveDeadline}
+        return  <Chip 
+                    onRequestDelete={this.props.onRemove}
                     onClick={(e) => {}}
                     style={{
                         backgroundColor:"",
@@ -59,13 +58,12 @@ export class DeadlineLabel extends Component<DeadlineLabelProps,DeadlineLabelSta
                     }}  
                 >
                     <div style={containerStyle}>
-                        <Flag style={{   
-                            color:"black",  
-                            height: "25px",
-                            width: "25px",
-                            cursor:"default"  
-                        }}/>
-                        <div style={{marginLeft:"15px", color:"black"}}>Deadline: {moment(this.props.deadline).format('MMMM D')}</div>
+                        {
+                            chooseIcon({height: "25px", width: "25px"}, this.props.category)
+                        } 
+                        {
+                            this.props.content 
+                        }
                     </div>
                 </Chip>
     }

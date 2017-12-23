@@ -7,7 +7,7 @@ import { Component } from "react";
 import SortableContainer from '../../sortable-hoc/sortableContainer';
 import SortableElement from '../../sortable-hoc/sortableElement';
 import SortableHandle from '../../sortable-hoc/sortableHandle';
-import {arrayMove} from '../../sortable-hoc/utils';
+import { arrayMove } from '../../sortable-hoc/utils';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area } from '../../database';
@@ -15,6 +15,8 @@ import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import { stringToLength, remove, insert, unique, replace, swap, byNotCompleted, byNotDeleted, allPass, diffDays, daysRemaining } from '../../utils';
 import { SortableList } from '../SortableList';
 import PieChart from 'react-minimal-pie-chart';
+
+
 interface AreasListProps{  
     dispatch:Function,
     areas:Area[],
@@ -25,6 +27,7 @@ interface AreasListProps{
 interface AreasListState{
     layout : LayoutItem[]  
 }  
+
 
 interface Separator{ type:string };
 
@@ -42,9 +45,16 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     
 
-    shouldComponentUpdate(nextProps){
+    shouldComponentUpdate(nextProps, nextState){
+        let should = false;
 
-        return true;
+        if(this.props.areas!==nextProps.areas)
+           should = true;
+
+        if(this.props.projects!==nextProps.projects)
+           should = true;    
+
+        return should;
 
     }
 

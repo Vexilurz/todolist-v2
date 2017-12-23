@@ -67,7 +67,7 @@ let calculateAmount = (props:Store) : ItemsAmount => {
         logbook:0,
         trash:0
     } 
- 
+    
     let inboxFilters = [byCategory("inbox"),byNotCompleted,byNotDeleted]; 
 
     let todayFilters = [todayFilter, byNotCompleted, byNotDeleted];
