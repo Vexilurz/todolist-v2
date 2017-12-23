@@ -24,13 +24,15 @@ import {
     stringToLength,
     byNotCompleted,
     byNotDeleted,
-    allPass
+    allPass,
+    getTagsFromItems,
+    unique
 } from '../../utils';  
 import { getProjectLink } from '../Project/ProjectLink';
   
- 
+  
 
-let objectsToHashTableByDate = (props) => {
+let objectsToHashTableByDate = (props) : {objectsByDate:any,tags:string[]} => {
     
     let todos = props.todos;
 
@@ -43,12 +45,14 @@ let objectsToHashTableByDate = (props) => {
     ];    
 
     let objects = [...todos, ...projects].filter( i => allPass(filters,i)); 
+ 
+    let tags = unique(getTagsFromItems(objects));
 
     let objectsByDate = {};
 
-    if(objects.length===0)
-        return [];
-
+    if(objects.length===0) 
+       return {objectsByDate:[],tags:[]};
+ 
 
     for(let i=0; i<objects.length; i++){
 
@@ -70,7 +74,7 @@ let objectsToHashTableByDate = (props) => {
 
     }   
 
-    return objectsByDate;
+    return {objectsByDate,tags};
 
 }   
 
@@ -90,10 +94,11 @@ interface UpcomingProps{
     rootRef:HTMLElement 
 }
  
-
+ 
 
 interface UpcomingState{
-    objects : { date : Date, todos:Todo[], projects:Project[] }[]
+    objects : { date : Date, todos:Todo[], projects:Project[] }[],
+    tags : string[]
 }
 
 
@@ -103,12 +108,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
     constructor(props){
         super(props);
-
-
-        this.state = {
-            objects:[] 
-        } 
-
+        this.state = {objects:[],tags:[]}; 
     }  
 
 
@@ -118,27 +118,53 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
   
     shouldComponentUpdate(nextProps:UpcomingProps, nextState:UpcomingState){
-    
+
         return true;
- 
+
     }
 
 
 
     componentDidMount(){
-        
-        this.setState({objects:this.generateCalendarObjects(20)})
 
-    }  
+        let {objects,tags} = this.generateCalendarObjects(20);
+        this.setState({objects, tags}); 
+
+    }   
 
 
-    generateCalendarObjects = (n) : { date : Date, todos:Todo[], projects:Project[] }[] => {
+
+    componentWillReceiveProps(nextProps:UpcomingProps){
+
+        if(nextProps.projects!==this.props.projects)
+            this.updateCalendarObjects();
+        else if(nextProps.todos!==this.props.todos)
+            this.updateCalendarObjects();
+        else if(nextProps.selectedTag!==this.props.selectedTag)
+            this.updateCalendarObjects();
+
+    }
+ 
+
+    updateCalendarObjects = () => {
+        let n = this.state.objects.length;
+        this.setState(
+            {objects:[], tags:[]}, 
+            () => this.setState(this.generateCalendarObjects(n))
+        );
+    }
+ 
+
+    generateCalendarObjects = (n) : {
+       objects : { date : Date, todos:Todo[], projects:Project[] }[],
+       tags : string[] 
+    }=> {
         
         let objects = [...this.state.objects];
 
 
         var t0 = performance.now();
-        let table = objectsToHashTableByDate(this.props);
+        let {objectsByDate,tags} = objectsToHashTableByDate(this.props);
         var t1 = performance.now();
         console.log("Call to objectsToHashTableByDate (Upcoming) took " + (t1 - t0) + " milliseconds.");
          
@@ -168,7 +194,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
             let key = keyFromDate(range[i]);
 
-            let entry : any[] = table[key];
+            let entry : any[] = objectsByDate[key];
 
             if(entry===undefined){
 
@@ -187,7 +213,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         }
         
 
-        return objects;
+        return {objects,tags};
 
 
     }
@@ -246,8 +272,8 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
              
                 <ContainerHeader 
                     selectedCategory={"upcoming"} 
-                    dispatch={this.props.dispatch} 
-                    tags={this.props.tags}
+                    dispatch={this.props.dispatch}  
+                    tags={this.state.tags}
                     selectedTag={this.props.selectedTag}
                 />
    
@@ -260,12 +286,12 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                         onEnter={({ previousPosition, currentPosition, event }) => {
                             
                             var t0 = performance.now();
-                            let objects = this.generateCalendarObjects(20);
+                            let {objects,tags} = this.generateCalendarObjects(20);
                             var t1 = performance.now();
  
                             console.log("Call to generateCalendarObjects(20) (Upcoming) took " + (t1 - t0) + " milliseconds.");
-                             
-                            this.setState({objects});
+                              
+                            this.setState({objects}); 
 
                         }}
                         onLeave={({ previousPosition, currentPosition, event }) => {
@@ -409,7 +435,8 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         paddingBottom : "10px" 
                     }}>   
                         <TodosList  
-                            filters={[]} 
+                            filters={[]}   
+                            setSelectedTags={(tags:string[]) => {}}
                             isEmpty={(empty:boolean) => {}} 
                             dispatch={this.props.dispatch}     
                             selectedCategory={"upcoming"}

@@ -180,12 +180,16 @@ export class ThingsCalendar extends Component<ThingsCalendarProps,{}>{
  
                 <RaisedButton
                 onClick={this.props.onClear}
-                raised dense style={{
-                    margin:"15px", 
+                style={{
+                    margin:"15px",  
                     color:"white", 
                     backgroundColor:"rgb(49,53,63)"
+                }} 
+                buttonStyle={{  
+                    color:"white",  
+                    backgroundColor:"rgb(49,53,63)"
                 }}>
-                    Clear
+                    Clear 
                 </RaisedButton>
             </div>  
         </Popover> 

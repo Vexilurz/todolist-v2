@@ -12,11 +12,12 @@ import { Transition } from 'react-transition-group';
 import { TodosList } from '../../Components/TodosList';
 import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '../ContainerHeader';
-import { byTags, chooseIcon, insideTargetArea } from '../../utils';
+import { byTags, chooseIcon, insideTargetArea, unique, getTagsFromItems } from '../../utils';
 import { getProjectLink } from '../Project/ProjectLink';
 import { getAreaLink } from '../Area/AreaLink';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { TodoInput } from '../TodoInput/TodoInput';
+import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 
  
 
@@ -35,7 +36,9 @@ interface TrashState{
     showPopup : boolean,
     deletedTodos : Todo[],
     deletedProjects : Project[],
-    deletedAreas : Area[] 
+    deletedAreas : Area[],
+    tags:string[],
+    empty:boolean   
 }
 
   
@@ -49,50 +52,52 @@ export class Trash extends Component<TrashProps,TrashState>{
             showPopup : false,
             deletedTodos : [],
             deletedProjects :[],
-            deletedAreas : [] 
+            deletedAreas : [],
+            tags : [],
+            empty : false   
         }; 
  
     }  
 
 
 
-    componentDidMount(){
-        this.selectDeletedTodos(this.props);
-        this.selectDeletedProjects(this.props);
-        this.selectDeletedAreas(this.props);   
+
+    selectDeleted = (props) => {
+        let deletedTodos = props.todos.filter( (t:Todo) => t.deleted !==undefined );
+        let deletedProjects = props.projects.filter( (p:Project) => p.deleted !==undefined  );
+        let deletedAreas = props.areas.filter( (a:Area) => a.deleted !==undefined  ); 
+        let tags = unique(getTagsFromItems([...deletedTodos,...deletedProjects,...deletedAreas]));
+  
+        this.setState({
+            deletedTodos,
+            deletedProjects,
+            deletedAreas,
+            tags,
+            empty : deletedTodos.length===0 && 
+                    deletedProjects.length===0 && 
+                    deletedAreas.length===0  
+        }) 
+    }
+ 
+
+    componentDidMount(){ 
+        this.selectDeleted(this.props);
     }
 
-
-
-    selectDeletedTodos = (props:TrashProps) => this.setState({
-        deletedTodos : props.todos.filter( (t:Todo) => t.deleted !==undefined )
-    })
-
-
-
-    selectDeletedProjects = (props:TrashProps) => this.setState({
-        deletedProjects : props.projects.filter( (p:Project) => p.deleted !==undefined  )
-    })
-
-
-  
-    selectDeletedAreas = (props:TrashProps) => this.setState({
-        deletedAreas : props.areas.filter( (a:Area) => a.deleted !==undefined  )
-    })
-
- 
  
     componentWillReceiveProps(nextProps){
 
-        this.selectDeletedTodos(nextProps);
+        if(nextProps.selectedTag!==this.props.selectedTag)
+            this.selectDeleted(nextProps); 
+        else if(nextProps.todos!==this.props.todos)
+            this.selectDeleted(nextProps); 
+        else if(nextProps.projects!==this.props.projects)
+            this.selectDeleted(nextProps); 
+        else if(nextProps.areas!==this.props.areas)
+            this.selectDeleted(nextProps); 
 
-        this.selectDeletedProjects(nextProps);
-
-        this.selectDeletedAreas(nextProps); 
-
-    }  
+    }   
  
-
 
     onEmptyTrash = (e) => {
 
@@ -233,7 +238,7 @@ export class Trash extends Component<TrashProps,TrashState>{
     } 
          
    
-
+ 
     render(){ 
 
         return <div>
@@ -241,11 +246,16 @@ export class Trash extends Component<TrashProps,TrashState>{
                 <ContainerHeader  
                     selectedCategory={"trash"}  
                     dispatch={this.props.dispatch} 
-                    tags={this.props.tags} 
+                    tags={this.state.tags} 
                     selectedTag={this.props.selectedTag}
                 /> 
-            </div>   
-  
+            </div>     
+
+            <FadeBackgroundIcon    
+                container={this.props.rootRef} 
+                selectedCategory={"trash"}  
+                show={this.state.empty}
+            />        
 
             <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
                 <div    
@@ -283,12 +293,12 @@ export class Trash extends Component<TrashProps,TrashState>{
             {
                 !this.state.showPopup ? null :
                 <TrashPopup
-                 dispatch={this.props.dispatch} 
-                 container={this.props.rootRef} 
-                 onCancel={this.onCancel}
-                 onOk={this.onOk}
+                    dispatch={this.props.dispatch} 
+                    container={this.props.rootRef} 
+                    onCancel={this.onCancel}
+                    onOk={this.onOk}
                 />
-            } 
+            }  
 
         </div>
          
@@ -447,7 +457,7 @@ class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
                             Empty Trash 
                         </div>
                         <div style={{fontSize:"14px", color:"rgba(0,0,0,1)"}}>
-                            Are you sure you want to remove the items in the Trash permanently
+                            Are you sure you want to remove the items in the Trash permanently ?
                         </div>
  
                     </div>

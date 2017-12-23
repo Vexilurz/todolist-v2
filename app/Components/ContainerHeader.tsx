@@ -56,11 +56,11 @@ export class ContainerHeader extends Component<ContainerHeaderProps,ContainerHea
                     {uppercase(this.props.selectedCategory)}
                 </div> 
             
-            </div>
+            </div> 
 
             <Tags  
                 selectTag={(tag) => this.props.dispatch({type:"selectedTag",load:tag})}
-                tags={this.props.tags}
+                tags={this.props.tags} 
                 selectedTag={this.props.selectedTag}
                 show={showTags(this.props.selectedCategory)} 
             /> 

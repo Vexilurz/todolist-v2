@@ -43,7 +43,8 @@ interface SomedayProps{
     tags:string[]
 } 
 interface SomedayState{
-    empty:boolean 
+    empty:boolean,
+    tags:string[]  
 } 
 
 
@@ -53,7 +54,8 @@ export class Someday extends Component<SomedayProps, SomedayState>{
     constructor(props){
         super(props);
         this.state={
-            empty:false 
+            empty:false,
+            tags:[]  
         }
     }
 
@@ -63,7 +65,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
              <ContainerHeader 
               selectedCategory={"someday"} 
               dispatch={this.props.dispatch} 
-              tags={this.props.tags}
+              tags={this.state.tags}
               selectedTag={this.props.selectedTag}
             /> 
 
@@ -88,9 +90,10 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         byNotCompleted, 
                         byNotDeleted 
                     ]}  
+                    setSelectedTags={(tags:string[]) => this.setState({tags})}
                     isEmpty={(empty:boolean) => this.setState({empty})} 
                     dispatch={this.props.dispatch}   
-                    selectedCategory={"someday"} 
+                    selectedCategory={"someday"}  
                     selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}
                     todos={this.props.todos}  

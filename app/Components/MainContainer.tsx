@@ -324,11 +324,11 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     />
                 }   
              
-                 
+                  
                 <div style={{display: "flex", padding: "10px"}}>   
 
                     <div className="no-drag" style={{position: "fixed", top: 0, right: 0}}>  
-
+ 
                             <IconButton 
                                 iconStyle={{
                                     color:"rgba(100,100,100,0.6)",

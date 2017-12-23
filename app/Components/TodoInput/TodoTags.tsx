@@ -29,6 +29,8 @@ import List from 'material-ui/svg-icons/action/list';
 import Reorder from 'material-ui/svg-icons/action/reorder';  
 let uniqid = require("uniqid");  
 import Popover from 'material-ui/Popover';
+import { Todo } from '../../database';
+import { uppercase } from '../../utils';
 
 
 
@@ -44,8 +46,8 @@ interface TagsPopoverProps{
 }  
 
  
-
-export class TagsPopover extends Component<any,any>{
+ 
+export class TagsPopover extends Component<TagsPopoverProps,{}>{
      
         constructor(props){
             super(props);  
@@ -122,3 +124,56 @@ export class TagsPopover extends Component<any,any>{
       
     }
  
+
+
+interface TodoTagsProps{
+    todo:Todo 
+}    
+
+ 
+export class TodoTags extends Component<TodoTagsProps,{}>{
+
+    constructor(props){
+
+        super(props);
+
+    }
+ 
+
+    render(){
+
+        return <div style={{
+            display:"flex", 
+            paddingTop:"5px",
+            paddingBottom:"5px",
+            flexWrap:"wrap"
+        }}>{    
+            this.props.todo.attachedTags.map(
+                (tag:string, index:number) => <div 
+                key={`${tag}-${index}`} 
+                style={{
+                    paddingLeft:"5px", 
+                    paddingRight:"5px", 
+                    paddingTop:"5px",  
+                    cursor:"default", 
+                    WebkitUserSelect:"none"
+                }}> 
+                    <div style={{
+                        borderRadius:"15px", 
+                        backgroundColor:"rgb(189,219,209)",
+                    }}>
+                        <div style={{
+                            padding:"5px",  
+                            color:"rgb(115,167,152)",
+                            fontWeight: 600 
+                        }}> 
+                            {uppercase(tag)} 
+                        </div>
+                    </div>
+                </div> 
+            ) 
+        }</div>
+      
+    }
+
+}

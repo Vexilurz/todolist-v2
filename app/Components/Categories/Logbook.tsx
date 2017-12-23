@@ -12,7 +12,7 @@ import { Transition } from 'react-transition-group';
 import { TodosList } from '../../Components/TodosList';
 import { Todo, Project } from '../../database';
 import { ContainerHeader } from '.././ContainerHeader';
-import { compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, allPass, byNotCompleted } from '../../utils';
+import { compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, allPass, byNotCompleted, getTagsFromItems } from '../../utils';
     
  
 
@@ -28,10 +28,11 @@ interface LogbookProps{
 
 
 interface LogbookState{ 
-
+    groups:any,
+    tags:string[] 
 } 
 
-
+ 
 
 
 
@@ -41,32 +42,34 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
     
     constructor(props){
         super(props);
+        this.state={
+            groups:null,
+            tags:[] 
+        }
+    } 
+
+    componentDidMount(){
+        this.init(this.props);
+    }
+
+
+    init = (props:LogbookProps) => this.setState(this.groupByMonth(props));
+    
+    
+    componentWillReceiveProps(nextProps:LogbookProps){
+        if(this.props.todos!==nextProps.todos)
+           this.init(nextProps);
+        if(this.props.projects!==nextProps.projects)
+           this.init(nextProps);
+        if(this.props.selectedTag!==nextProps.selectedTag)
+           this.init(nextProps);
     } 
 
 
-    componentWillMount(){
-        
-        let onMountTodos = this.props.todos;
-
-        let onMountProjects = this.props.projects; 
-
-    }
-            
-
-
-    componentDidMount(){
-
-        let onMountTodos = this.props.todos;
-
-        let onMountProjects = this.props.projects; 
-
-    }
-    
-
-    groupByMonth = () : any[][] => { 
+    groupByMonth = (props:LogbookProps) => { 
 
         let filters = [
-            byTags(this.props.selectedTag),
+            byTags(props.selectedTag),
             byCompleted, 
             byNotDeleted  
         ];    
@@ -74,9 +77,11 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
         let getKey = (d:Date) : string => `${d.getFullYear()}-${d.getMonth()}`;
 
-        let todos = this.props.todos.filter( i => allPass(filters,i));
+        let todos = props.todos.filter( i => allPass(filters,i));
 
-        let projects = this.props.projects.filter( i => allPass(filters,i)); 
+        let projects = props.projects.filter( i => allPass(filters,i)); 
+
+        let tags = getTagsFromItems([...todos,...projects]);
 
         let compare = compareByDate( (i : Todo | Project) => new Date(i.completed) );
  
@@ -125,10 +130,10 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
             } 
 
         }
- 
+  
 
 
-        return groups;
+        return {groups,tags};
         
 
     }
@@ -160,6 +165,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                 <TodosList  
                     filters={[]}  
                     isEmpty={(empty:boolean) => {}} 
+                    setSelectedTags={(tags:string[]) => {}} 
                     dispatch={this.props.dispatch}     
                     selectedCategory={"logbook"} 
                     selectedTag={this.props.selectedTag}  
@@ -212,27 +218,24 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
     render(){ 
 
-        let groups = this.groupByMonth();
-
-        return <div>
-             
+        return !this.state.groups ? null :
+        <div>
             <ContainerHeader 
                 selectedCategory={"logbook"} 
                 dispatch={this.props.dispatch} 
-                tags={this.props.tags}
+                tags={this.state.tags} 
                 selectedTag={this.props.selectedTag}
             />
    
-            <div style={{
+            <div style={{ 
                 display:"flex", 
-                flexDirection:"column", 
+                flexDirection:"column",  
                 width:"100%"
             }}> 
              
-                { this.groupsToComponents(groups) }
+                { this.groupsToComponents(this.state.groups) }
 
             </div>
-
         </div>
 
     }

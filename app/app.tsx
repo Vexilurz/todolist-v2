@@ -11,8 +11,8 @@ import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import { Component } from "react"; 
 import {  
     wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, 
-    getTagsFromTodos, replace, remove, insert
-} from "./utils"; 
+    replace, remove, insert, getTagsFromItems, defaultTags
+} from "./utils";  
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
 import './assets/fonts/index.css'; 
@@ -460,12 +460,11 @@ let swapTodos = (from : number, to : number, todos : Todo[]) : Todo[] => {
 }
 
 
-
+ 
 
  
 let onError = (e) => {
     console.log(e);
-    debugger;
 }
  
 
@@ -491,21 +490,34 @@ let applicationObjectsReducer = (state:Store, action) => {
                 todos:[...action.load.todos],
                 projects:[...action.load.projects],
                 areas:[...action.load.areas],
-                tags:getTagsFromTodos(action.load.todos),
+                tags: [ 
+                    ...defaultTags, 
+                    ...getTagsFromItems([ 
+                        ...action.load.todos,
+                        ...action.load.projects,
+                        ...action.load.areas
+                    ])
+                ]
             }
             break;  
 
-
-  
+ 
+   
         case "removeAllTypes":
             let todos = removeDeletedTodos(state.todos);
+            let projects = removeDeletedProjects(state.projects);
+            let areas = removeDeletedAreas(state.areas);
+
             newState = {
                 ...state,
                 todos,  
-                projects:removeDeletedProjects(state.projects),
-                areas:removeDeletedAreas(state.areas),
-                tags:getTagsFromTodos(todos), 
-            } 
+                projects,
+                areas, 
+                tags: [ 
+                    ...defaultTags,
+                    ...getTagsFromItems([...todos, ...projects, ...areas])
+                ]
+            }  
             break;  
             
             
@@ -560,7 +572,7 @@ let applicationObjectsReducer = (state:Store, action) => {
             break;
             
  
-
+        
         case "updateTodo":
             idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
             if(idx===-1)
@@ -570,8 +582,7 @@ let applicationObjectsReducer = (state:Store, action) => {
             newState = {
                 ...state, 
                 selectedTodoId:action.load._id,
-                selectedTag:"All",
-                tags:getTagsFromTodos(replacement),
+                selectedTag:"All", 
                 todos:replace(state.todos,action.load,idx),
                 showRightClickMenu:false
             }; 

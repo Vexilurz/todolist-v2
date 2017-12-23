@@ -8,7 +8,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, showTags, allPass, byNotCompleted, byNotDeleted 
+    chooseIcon, showTags, allPass, byNotCompleted, byNotDeleted, unique 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -49,6 +49,7 @@ interface TodayProps{
  
 
 interface TodayState{
+    relevantTags:string[],
     emptyEvening:boolean,
     emptyToday:boolean 
 }
@@ -60,6 +61,7 @@ export class Today extends Component<TodayProps,TodayState>{
     constructor(props){
         super(props);
         this.state={
+            relevantTags:[], 
             emptyEvening:false,
             emptyToday:false
         }
@@ -100,11 +102,11 @@ export class Today extends Component<TodayProps,TodayState>{
  
                     <Tags  
                         selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
-                        tags={this.props.tags}
+                        tags={this.state.relevantTags}
                         selectedTag={this.props.selectedTag}
                         show={showTags("today")} 
                     /> 
-
+ 
                        
                     <div   
                         className="unselectable" 
@@ -121,6 +123,9 @@ export class Today extends Component<TodayProps,TodayState>{
                                 byNotCompleted, 
                                 byNotDeleted 
                             ]}  
+                            setSelectedTags={(tags:string[]) => {
+                                this.setState({relevantTags:unique([...tags,...this.state.relevantTags])})
+                            }}
                             isEmpty={(empty:boolean) => this.setState({emptyToday:empty})}   
                             dispatch={this.props.dispatch}   
                             selectedCategory={"today"}
@@ -168,8 +173,11 @@ export class Today extends Component<TodayProps,TodayState>{
                                     byTags(this.props.selectedTag),
                                     byCategory("evening"),
                                     byNotCompleted, 
-                                    byNotDeleted  
+                                    byNotDeleted    
                                 ]} 
+                                setSelectedTags={(tags:string[]) => this.setState({
+                                    relevantTags:unique([...tags,...this.state.relevantTags])
+                                })}  
                                 isEmpty={(empty:boolean) => this.setState({emptyEvening:empty})} 
                                 dispatch={this.props.dispatch}    
                                 selectedCategory={"evening"} 

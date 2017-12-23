@@ -24,7 +24,8 @@ interface InboxProps{
 
 
 interface InboxState{
-    empty:boolean
+    empty:boolean,
+    relevantTags:string[] 
 }
 
  
@@ -34,7 +35,8 @@ export class Inbox extends Component<InboxProps, InboxState>{
     constructor(props){
         super(props);
         this.state={
-            empty:false 
+            empty:false,
+            relevantTags:[]  
         }
     }  
 
@@ -44,9 +46,9 @@ export class Inbox extends Component<InboxProps, InboxState>{
  
             <ContainerHeader 
               selectedCategory={"inbox"} 
-              dispatch={this.props.dispatch} 
-              tags={this.props.tags}
-              selectedTag={this.props.selectedTag}
+              dispatch={this.props.dispatch}  
+              tags={this.state.relevantTags}
+              selectedTag={this.props.selectedTag} 
             /> 
  
             <FadeBackgroundIcon    
@@ -67,9 +69,10 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     filters={[
                         byTags(this.props.selectedTag),
                         byCategory("inbox"),
-                        byNotCompleted, 
+                        byNotCompleted,  
                         byNotDeleted 
                     ]}  
+                    setSelectedTags={(tags:string[]) => this.setState({relevantTags:tags})}
                     isEmpty={(empty:boolean) => this.setState({empty})}
                     dispatch={this.props.dispatch}    
                     selectedCategory={"inbox"} 

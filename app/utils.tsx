@@ -195,53 +195,54 @@ export let chooseIcon = (
 
 
 
+export let defaultTags = [
+    //Priority:
+    "Low",
+    //Priority:
+    "Medium",
+    //Priority: 
+    "High",
+    //Location:
+    "Home",
+    //Location:
+    "Office",
+    //Location:
+    "Everywhere",
+    //Status:
+    "Waiting",
+    //Time:
+    "5min",
+    //Time:
+    "15min",
+    //Time:
+    "1h",
+    //Energy:
+    "Easy",
+    //Energy:   
+    "Hard",
+    "Errand",
+    "Private",
+    "Work"
+];
 
 
 
-export let getTagsFromTodos = (todos:Todo[]) : string[] => {
+export let getTagsFromItems = (items:Item[]) : string[] => {
 
-    let tags = [
-        //Priority:
-        "Low",
-        //Priority:
-        "Medium",
-        //Priority:
-        "High",
-        //Location:
-        "Home",
-        //Location:
-        "Office",
-        //Location:
-        "Everywhere",
-        //Status:
-        "Waiting",
-        //Time:
-        "5min",
-        //Time:
-        "15min",
-        //Time:
-        "1h",
-        //Energy:
-        "Easy",
-        //Energy:   
-        "Hard",
-        "Errand",
-        "Private",
-        "Work"
-    ];
+    let tags = []; 
 
-    for(let i = 0; i<todos.length; i++){
+    for(let i = 0; i<items.length; i++){
 
-        let todo : Todo = todos[i];
+        let item : Item = items[i];
 
-        for(let j = 0; j<todo.attachedTags.length; j++){
+        for(let j = 0; j<item.attachedTags.length; j++){
 
-            if(tags.indexOf(todo.attachedTags[j])===-1)
-               tags.push(todo.attachedTags[j])
-
+            if(tags.indexOf(item.attachedTags[j])===-1)
+               tags.push(item.attachedTags[j])
+ 
         }
         
-    }
+    } 
 
     return tags; 
 
@@ -686,31 +687,6 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
 }
  
 
-export let renderSuggestion = (tag:string) : JSX.Element => {
-    return <div  
-        key={tag}  
-        className={"tagItem"} style={{
-            display:"flex", 
-            height:"auto",  
-            width:"140px", 
-            paddingLeft:"5px", 
-            paddingRight:"10px"  
-        }}
-    >  
-        <div style={{width:"24px",height:"24px"}}>
-            <TriangleLabel style={{color:"gainsboro"}}/>
-        </div> 
-        <div style={{
-            color:"gainsboro", 
-            marginLeft:"5px", 
-            marginRight:"5px",
-            overflowX:"hidden",
-            whiteSpace: "nowrap" 
-        }}> 
-            {tag}   
-        </div>     
-    </div>
-}
 
 
      

@@ -37,8 +37,8 @@ import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
 import { ThingsCalendar } from '.././ThingsCalendar';
 import { 
-    insideTargetArea, daysRemaining, replace, remove, todoChanged, 
-    daysLeftMark, generateTagElement, renderSuggestion 
+    insideTargetArea, daysRemaining, replace, 
+    remove, todoChanged, daysLeftMark, generateTagElement,
 } from '../../utils';
 import { Category } from '.././MainContainer';
 import { Todo, removeTodo, updateTodo, generateId } from '../../database';
@@ -77,11 +77,11 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         this.checklist = [...this.props.checklist]; 
 
     }
+ 
 
+    shouldComponentUpdate(nextProps:ChecklistProps){
 
-    shouldComponentUpdate(nextProps){
-
-        return true;
+        return nextProps.checklist!==this.props.checklist;
     
     }
 
@@ -204,16 +204,19 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
             >  
                 <div  onClick={(e) => this.onChecklistItemCheck(e, value.key)}
                     style={{
-                        backgroundColor:value.checked ? 'rgba(108, 135, 222, 0.8)' : '',
-                        width:"15px", 
+                        backgroundColor:value.checked ? 'rgb(10, 100, 240)' : '',
+                        width:"15px",  
                         height:"14px",
                         borderRadius:"50px",
-                        border:value.checked ? '' : "3px solid rgba(108, 135, 222, 0.8)",
+                        display:"flex",
+                        justifyContent:"center",
+                        position:"relative", 
+                        border:value.checked ? '' : "2px solid rgb(10, 100, 240)",
                         boxSizing:"border-box",
                         marginRight:"5px",
                         marginLeft:"5px" 
-                    }}  
-                >        
+                    }}   
+                >       
                 </div>  
 
                     <TextField  

@@ -6,7 +6,7 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byTags, showTags, byNotCompleted, byNotDeleted, byCategory, allPass } from "../../utils"; 
+import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byTags, showTags, byNotCompleted, byNotDeleted, byCategory, allPass, getTagsFromItems, unique } from "../../utils"; 
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area } from '../../database';
@@ -30,6 +30,7 @@ import { ContainerHeader } from '../ContainerHeader';
 import { Tags } from '../Tags';
 import { getProjectLink } from '../Project/ProjectLink';
 import { getAreaLink } from '../Area/AreaLink';
+import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
  
 
 
@@ -50,7 +51,8 @@ interface AnytimeProps{
 
 interface AnytimeState{
     table:any,
-    empty:boolean  
+    empty:boolean,
+    tags:string[]   
 } 
  
 
@@ -61,7 +63,8 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
         super(props);
         this.state = {
             table : null,
-            empty:false  
+            empty:false,
+            tags:[]  
         } 
     }
 
@@ -72,11 +75,18 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
 
         var t0 = performance.now();
         let table = this.groupObjects(props);
+        let tags = unique(
+            getTagsFromItems([
+                ...table["projects"],
+                ...table["areas"],
+                ...table["todos"]
+            ]) 
+        );
         var t1 = performance.now();
         console.log("Call to groupObjects (Anytime) took " + (t1 - t0) + " milliseconds.");
          
  
-        this.setState({table}); 
+        this.setState({table, tags}); 
  
     } 
     
@@ -126,45 +136,60 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
             byNotDeleted   
         ];     
 
-        let projects : Project[] = props.projects; 
+        let projects : Project[] = []; 
+        let areas : Area[] = [];
         let todos : Todo[] = props.todos;
-        let areas : Area[] = props.areas; 
+         
+        table["projects"] = [];
+        table["areas"] = [];
+        table["todos"] = []; 
+
 
  
-        for(let i=0;  i<projects.length; i++)
-            if(allPass(filters,projects[i]))
-               table[projects[i]._id] = [];
+        for(let i=0;  i<props.projects.length; i++){
+            let project = props.projects[i]; 
+            if(allPass(filters,project)){
+               table[project._id] = [];
+               table["projects"].push(project); 
+               projects.push(project);
+            }
+        }
 
    
-        for(let i=0;  i<areas.length; i++)
-            if(allPass(filters,areas[i]))
-               table[areas[i]._id] = [];
+        for(let i=0;  i<props.areas.length; i++){
+            let area = props.areas[i];
+            if(allPass(filters,area)){
+               table[area._id] = [];
+               table["areas"].push(area); 
+               areas.push(area);
+            }
+        }
+
+
 
         table["detached"] = [];     
   
         for(let i = 0; i<todos.length; i++){
 
             if(!allPass(filters,todos[i]))
-                continue; 
+                continue;  
+
+            table["todos"].push(todos[i]);     
 
             let attached = false;
 
+
             for(let j=0; j<projects.length; j++){
                 let p = projects[j];
-                if(!allPass(filters,p))
-                    continue; 
                 if(p.attachedTodosIds.indexOf(todos[i]._id)!==-1){
                    table[p._id].push(todos[i]);
                    attached = true; 
                    break; 
                 } 
-
             } 
 
             for(let k=0; k<areas.length; k++){
                 let a = areas[k]; 
-                if(!allPass(filters,a))
-                    continue; 
                 if(a.attachedTodosIds.indexOf(todos[i]._id)!==-1){
                    table[a._id].push(todos[i]);
                    attached = true; 
@@ -177,9 +202,21 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
               
         }
 
+
+        if(
+            table["projects"].length===0  &&  
+            table["areas"].length===0  &&  
+            table["todos"].length===0
+        ){
+
+            this.setState({empty:true});
+        
+        }
+
+
         return table; 
 
-    }
+    } 
 
  
 
@@ -194,11 +231,18 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
                         tags={this.props.tags} 
                         selectedTag={this.props.selectedTag}
                     />   
+                    
+                    <FadeBackgroundIcon    
+                        container={this.props.rootRef} 
+                        selectedCategory={"anytime"}  
+                        show={this.state.empty}
+                    />   
  
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
                         <TodosList    
                             filters={[]}  
                             isEmpty={(empty:boolean) => {}}    
+                            setSelectedTags={(tags:string[]) => {}}
                             dispatch={this.props.dispatch}     
                             selectedCategory={"anytime"} 
                             selectedTag={this.props.selectedTag}  
@@ -208,75 +252,164 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
                         /> 
                     </div>      
  
-                    <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
+                    
 
-                        {   
-                            this.props.projects.map(
-                                (p:Project, index:number) : JSX.Element => {
-
-                                    return <div key={`project-${index}`} style={{padding:"10px"}}>
-
-                                        <div style={{padding:"10px"}}>{
+                    <AnytimeProjectsList 
+                        dispatch={this.props.dispatch}
+                        selectedTag={this.props.selectedTag}
+                        rootRef={this.props.rootRef}
+                        tags={this.props.tags}
+                        table={this.state.table}
+                    /> 
+                
+                    <AnytimeAreasList 
+                        dispatch={this.props.dispatch}
+                        selectedTag={this.props.selectedTag}
+                        rootRef={this.props.rootRef}
+                        tags={this.props.tags}
+                        table={this.state.table}
+                    />
  
-                                            getProjectLink({width: "15px", height: "15px"}, p, index, this.props.dispatch)
-
-                                        }</div> 
-
-                                        <ExpandableTodosList
-                                            dispatch={this.props.dispatch}   
-                                            selectedTag={this.props.selectedTag} 
-                                            rootRef={this.props.rootRef}
-                                            todos={this.state.table[p._id]} 
-                                            tags={this.props.tags}
-                                        />
-
-                                    </div>
- 
-                                }
-                            )
-                        } 
-
-                    </div>  
-
- 
-                    <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
- 
-                        {  
-                            this.props.areas.map(
-                                (a:Area, index:number) : JSX.Element => {
-
-                                    return <div key={`area${index}`} style={{padding:"10px"}}>
-  
-                                        <div style={{padding:"10px"}}>
-                                        { 
-                                            getAreaLink( 
-                                                {width:"20px", height:"20px"}, 
-                                                a, 
-                                                index,  
-                                                this.props.dispatch
-                                            )
-                                        }</div> 
-
-                                        <ExpandableTodosList
-                                            dispatch={this.props.dispatch}   
-                                            selectedTag={this.props.selectedTag} 
-                                            rootRef={this.props.rootRef}
-                                            todos={this.state.table[a._id]} 
-                                            tags={this.props.tags} 
-                                        />
-
-                                    </div>
-
-                                }
-                            )
-                        } 
-
-                    </div>  
+                    
                 </div> 
 
     }
 
 }
+ 
+
+
+
+
+
+
+
+
+
+
+
+interface AnytimeProjectsListProps{
+    dispatch:Function,
+    selectedTag:string, 
+    rootRef:HTMLElement,
+    tags:string[],
+    table:any
+} 
+ 
+interface AnytimeProjectsListState{}
+
+class AnytimeProjectsList extends Component<AnytimeProjectsListProps,AnytimeProjectsListState>{
+
+
+    constructor(props){
+        super(props);
+    }
+
+
+    render(){
+
+        return  <div style={{paddingTop:"20px", paddingBottom:"20px"}}> 
+            {    
+                this.props.table.projects.map(
+                    (p:Project, index:number) : JSX.Element => {
+
+                        return <div key={`project-${index}`} style={{padding:"10px"}}>
+
+                            <div style={{padding:"10px"}}>{
+
+                                getProjectLink({width: "15px", height: "15px"}, p, index, this.props.dispatch)
+
+                            }</div> 
+
+                            <ExpandableTodosList
+                                dispatch={this.props.dispatch}   
+                                selectedTag={this.props.selectedTag} 
+                                rootRef={this.props.rootRef}
+                                todos={this.props.table[p._id]} 
+                                tags={this.props.tags}
+                            />
+
+                        </div>
+
+                    }
+                )
+            } 
+        </div>
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+interface AnytimeAreasListProps{
+    dispatch:Function,
+    selectedTag:string, 
+    rootRef:HTMLElement,
+    tags:string[],
+    table:any
+}
+
+interface AnytimeAreasListState{}
+
+class AnytimeAreasList extends Component<AnytimeAreasListProps,AnytimeAreasListState>{
+
+
+    constructor(props){
+        super(props);
+    }
+ 
+
+    render(){
+
+        return <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
+                {  
+                    this.props.table.areas.map(
+                        (a:Area, index:number) : JSX.Element => {
+
+                            return <div key={`area${index}`} style={{padding:"10px"}}>
+
+                                <div style={{padding:"10px"}}>
+                                { 
+                                    getAreaLink( 
+                                        {width:"20px", height:"20px"}, 
+                                        a, 
+                                        index,  
+                                        this.props.dispatch
+                                    )
+                                }</div> 
+ 
+                                <ExpandableTodosList
+                                    dispatch={this.props.dispatch}   
+                                    selectedTag={this.props.selectedTag} 
+                                    rootRef={this.props.rootRef}
+                                    todos={this.props.table[a._id]} 
+                                    tags={this.props.tags} 
+                                />
+
+                            </div>
+
+                        }
+                    )
+                } 
+        </div>  
+
+    }
+
+}
+
+ 
+
+
 
 
 
@@ -315,13 +448,14 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
 
         let idx = this.state.expanded ? this.props.todos.length : 3; 
         let showExpandButton = this.props.todos.length > 3; 
-         
+          
         return <div>  
             <div>     
-                <div>      
+                <div style={{padding:"10px"}}>      
                     <TodosList       
                         filters={[]}  
                         isEmpty={(empty:boolean) => {}}  
+                        setSelectedTags={(tags:string[]) => {}}
                         dispatch={this.props.dispatch}     
                         selectedCategory={"anytime"} 
                         selectedTag={this.props.selectedTag}  
@@ -331,38 +465,32 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                     /> 
                 </div>  
 
-
+  
                 {   
                     !showExpandButton ? null :
-                    <div>
+                    <div style={{cursor: "pointer", height: "30px"}}>
                         {   
-                            this.state.expanded ?
-                            <div   
-                                onClick={() => this.setState({expanded:true})}
+                            <div     
+                                onClick={() => this.setState({expanded:!this.state.expanded})}
                                 style={{
-                                    width:"100%", 
-                                    height:"30px", 
-                                    fontSize:"14px", 
-                                    color:"rgba(100,100,100,0.6)"
+                                    width:"100%",
+                                    height:"30px",
+                                    fontSize:"14px",
+                                    display:"flex",
+                                    alignItems:"center",
+                                    cursor:"pointer",  
+                                    paddingLeft:"30px",
+                                    color:"rgba(100, 100, 100, 0.6)"
                                 }}
                             >     
-                                { `Show ${ this.props.todos.length-3 } more items` }
-                            </div>
-                            :
-                            <div   
-                                onClick={() => this.setState({expanded:false})}
-                                style={{
-                                    width:"100%", 
-                                    height:"30px", 
-                                    fontSize:"14px", 
-                                    color:"rgba(100,100,100,0.6)"
-                                }}
-                            >     
-                                { `Hide` }
+                                { 
+                                    !this.state.expanded ? 
+                                    `Show ${ this.props.todos.length-3 } more items` :
+                                    `Hide` 
+                                } 
                             </div>
                         }
                     </div>
-
                 }
             </div>
         </div>

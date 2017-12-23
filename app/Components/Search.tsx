@@ -33,7 +33,9 @@ import { TextField } from 'material-ui';
 import { ThingsCalendar } from './ThingsCalendar';
 import {  
     insideTargetArea, daysRemaining, replace, remove, todoChanged, 
-    unique, daysLeftMark, generateTagElement, renderSuggestion, attachDispatchToProps, chooseIcon, stringToLength 
+    unique, daysLeftMark, generateTagElement, 
+    attachDispatchToProps, chooseIcon, 
+    stringToLength  
 } from '../utils';
 import { Todo, removeTodo, updateTodo, generateId, ObjectType, Area, Project, Heading } from '../database';
 import { Store } from '../App';
@@ -41,7 +43,7 @@ import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { getAreaLink } from './Area/AreaLink';
 import { getProjectLink } from './Project/ProjectLink';
 
- 
+  
 interface keyworded{ object : any, keywords : string[] } 
 
 

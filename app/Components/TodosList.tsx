@@ -6,7 +6,7 @@ import { Todo } from '../database';
 import { Component } from 'react';
 import { 
     insideTargetArea, hideChildrens, makeChildrensVisible, 
-    generateDropStyle, allPass 
+    generateDropStyle, allPass, getTagsFromItems 
 } from '../utils';  
 import { RightClickMenu } from './RightClickMenu';
 import SortableContainer from '../sortable-hoc/sortableContainer';
@@ -23,8 +23,9 @@ interface TodosListProps{
     dispatch:Function,
     filters:( (t:Todo) => boolean )[],
     selectedCategory:string,
+    setSelectedTags:(tags:string[]) => void,
     isEmpty:(empty:boolean) => void,
-    selectedTag:string, 
+    selectedTag:string,  
     rootRef:HTMLElement,   
     todos:Todo[], 
     tags:string[],
@@ -51,10 +52,21 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
  
 
 
-     shouldComponentUpdate(nextProps:TodosListProps){
-        return true;   
-     }  
+     shouldComponentUpdate(nextProps:TodosListProps, nextState:TodosListState){
+
+        let should = false; 
+
+        if(this.props.todos!==nextProps.todos) 
+           should=true;   
  
+        if(this.state.todos!==nextState.todos)
+           should=true;        
+
+        return should;
+
+     }  
+  
+
 
      init = (props:TodosListProps) => {
         let todos = props.todos; 
@@ -64,7 +76,10 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
          
         if(typeof props.isEmpty==="function")
            props.isEmpty(todos.length===0); 
-          
+        
+        if(typeof props.setSelectedTags==="function")   
+            props.setSelectedTags(getTagsFromItems(todos)); 
+           
         this.setState({todos}); 
      }
 
