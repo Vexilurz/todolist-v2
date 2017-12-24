@@ -554,14 +554,26 @@ function updateItemsInDatabase<T>(
   db:any
 ){
   return function(items:T[]) : Promise<T[]>{
-    
-    return db.bulkDocs(items).then(
-      (updated) => {
-        middleware(db, updated);
-        return updated;
-      }
-    ).catch(onError); 
-    
+
+   return getItems(onError,db)(0,100000)   
+          .then( (query:Query<T>) => queryToObjects<T>(query) )
+          .then( (allItems:T[]) => {
+
+             for(let i=0; i<items.length; i++){
+                 let received = allItems.find( (item) => item["_id"]===items[i]["_id"]);
+                 items[i]["_rev"] = received["_rev"];
+             }
+
+             return db.bulkDocs(items) 
+                      .then(
+                        (updated) => {
+                          middleware(db, updated);
+                          return updated;
+                        } 
+                      ).catch(onError); 
+
+          }); 
+
   } 
 }
 
@@ -575,15 +587,13 @@ function updateItemInDatabase<T>(
   return function(_id:string, changed:T) : Promise<T>{
     
     return db.get(_id)
-           .then(
-              (doc) => {  
-                let updated = {...doc,...changed as any};
-                middleware(updated,db);
-                return db.put(updated);
-              } 
-            ).catch(onError); 
-   
-  } 
+             .then((doc) => {   
+                changed["_rev"] = doc["_rev"];
+                middleware(changed,db);
+                return db.put(changed);  
+             }).catch(onError); 
+    
+  }  
 }
 
 
@@ -812,7 +822,7 @@ export let removeProjects = (projects : Project[]) : Promise<any[]> => {
   )(projects.map( p => ({...p, _deleted: true}) ))
 }    
   
- 
+  
 
 export let removeAreas = (areas : Area[]) : Promise<any[]> => {
   return updateItemsInDatabase<Area>( 
@@ -821,8 +831,38 @@ export let removeAreas = (areas : Area[]) : Promise<any[]> => {
     areas_db      
   )(areas.map( a => ({...a, _deleted: true}) ))
 }    
-
  
+ 
+
+export let updateTodos = (todos : Todo[], onError : Function) : Promise<any[]> => {
+  return updateItemsInDatabase<Todo>( 
+    (db, value) => console.log(db,value),
+    (e) => console.log(e),
+    todos_db       
+  )(todos)
+} 
+
+
+
+export let updateProjects = (projects : Project[], onError : Function) : Promise<any[]> => {
+  return updateItemsInDatabase<Project>( 
+    (db, value) => console.log(db,value),
+    (e) => console.log(e),
+    projects_db       
+  )(projects)
+} 
+
+
+
+export let updateAreas = (areas : Area[], onError : Function) : Promise<any[]> => {
+  return updateItemsInDatabase<Area>( 
+    (db, value) => console.log(db,value),
+    (e) => console.log(e),
+    areas_db       
+  )(areas)
+}
+  
+
 
 export let queryToTodos = (query:Query<Todo>) : Todo[] => queryToObjects<Todo>(query); 
 

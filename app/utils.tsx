@@ -767,8 +767,6 @@ export let addDays = (date:Date, days:number) => {
  
 
 
-
-
 export let daysLeftMark = (open:boolean, deadline, showFlag:boolean) : JSX.Element => {
  
     if(open)
@@ -826,7 +824,6 @@ export let daysLeftMark = (open:boolean, deadline, showFlag:boolean) : JSX.Eleme
 
 
 
-
 export let isToday = (date : Date) => {
     let clone = new Date(date.getTime());
     let today = new Date();
@@ -834,6 +831,7 @@ export let isToday = (date : Date) => {
     clone.setHours(0,0,0,0);
     return today.getTime() == clone.getTime();
 }    
+
 
 
 export let getDateFromObject = (i) => {

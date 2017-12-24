@@ -31,9 +31,10 @@ interface LeftPanelMenuItemProps{
     icon:JSX.Element,
     title:string,
     showCounter:boolean, 
-    counter:number  
+    counter:number,
+    hot?:number  
 }
-
+ 
  
 
 interface LeftPanelMenuItemState{}
@@ -88,19 +89,51 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
             </div>
 
             {   
-                !this.props.showCounter ? null : 
+                !this.props.hot && !this.props.counter ? null :
                 <div style={{
-                    height: "100%",
-                    display: "flex", 
+                    display: "flex",
                     alignItems: "center",
-                    paddingRight: "5px", 
-                    fontWeight: 700,
-                    color:"rgba(100, 100, 100, 0.6)" 
-                }}>
-                    {this.props.counter}
-                </div>
+                    justifyContent: "center"
+                }}>    
+                {
+                    !this.props.hot ? null : 
+                    <div style={{ 
+                        display: "flex", 
+                        alignItems: "center",
+                        height: "18px",
+                        width: "25px",
+                        borderRadius: "10px", 
+                        backgroundColor: "rgb(239, 80, 120)",
+                        color: "white"
+                    }}>   
+                        <div style={{
+                            padding: "2px",
+                            width: "100%",
+                            textAlign: "center"  
+                        }}>
+                            {this.props.hot}
+                        </div>
+                    </div> 
+                }    
+
+                {   
+                    !this.props.showCounter ? null : 
+                    <div style={{
+                        height: "100%",
+                        display: "flex", 
+                        alignItems: "center",
+                        paddingRight: "5px", 
+                        paddingLeft: "5px", 
+                        fontWeight: 700,
+                        color:"rgba(100, 100, 100, 0.6)" 
+                    }}>
+                        {this.props.counter}
+                    </div>
+                }
+                </div> 
             }
         </div> 
+        
         
     }
  
@@ -120,11 +153,7 @@ interface LeftPanelMenuProps{
     dispatch:Function,
     inbox:number,
     today:number,
-    upcoming:number,
-    anytime:number,
-    someday:number,
-    logbook:number,
-    trash:number 
+    hot:number
 } 
  
  
@@ -175,6 +204,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 title={"Today"}
                 showCounter={true}
                 counter={this.props.today}
+                hot={this.props.hot}
             /> 
 
             <LeftPanelMenuItem
@@ -182,23 +212,23 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 icon={<Calendar style={{color:"crimson"}}/>}
                 title={"Upcoming"}
                 showCounter={false}
-                counter={this.props.upcoming}
+                counter={0}
             /> 
 
             <LeftPanelMenuItem
                 onClick={() => this.props.dispatch({type:"selectedCategory", load:"anytime"})} 
                 icon={<Layers style={{color:"darkgreen"}}/>}
                 title={"Anytime"}
-                showCounter={true}
-                counter={this.props.anytime}
+                showCounter={false}
+                counter={0}
             /> 
 
             <LeftPanelMenuItem
                 onClick={() => this.props.dispatch({type:"selectedCategory", load:"someday"})} 
                 icon={<BusinessCase style={{color:"burlywood"}}/>}
                 title={"Someday"}
-                showCounter={true}
-                counter={this.props.someday}
+                showCounter={false}
+                counter={0}
             /> 
 
             <Separator />    
@@ -208,15 +238,15 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 icon={<Logbook style={{color:"limegreen"}}/>}
                 title={"Logbook"}
                 showCounter={false}
-                counter={this.props.logbook}
+                counter={0}
             />  
 
             <LeftPanelMenuItem
                 onClick={() => this.props.dispatch({type:"selectedCategory",load:"trash"})} 
                 icon={<Trash style={{color:"darkgray"}}/>}
-                title={"Trash"} 
-                showCounter={false}
-                counter={this.props.trash}
+                title={"Trash"}  
+                showCounter={false} 
+                counter={0}
             />  
 
             <Separator /> 

@@ -263,7 +263,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
 
     render(){
-
+ 
         return <div> 
 
             <SortableList
@@ -271,8 +271,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 items={this.state.selectedItems}
                 
                 shouldCancelStart={this.shouldCancelStart}
-                shouldCancelAnimation={this.shouldCancelAnimation}
+                shouldCancelAnimation={this.shouldCancelAnimation}  
 
+                container={this.props.rootRef ? this.props.rootRef : document.body}
                 onSortEnd={this.onSortEnd}
                 onSortMove={this.onSortMove}
                 onSortStart={this.onSortStart}

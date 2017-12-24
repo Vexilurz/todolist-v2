@@ -5,7 +5,7 @@ import { ipcRenderer } from 'electron';
 import IconMenu from 'material-ui/IconMenu'; 
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, generateEmptyProject, generateEmptyArea, byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, byDeleted, allPass } from "../../utils"; 
+import { attachDispatchToProps, generateEmptyProject, generateEmptyArea, byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, byDeleted, allPass, dateDiffInDays } from "../../utils"; 
 import { Provider, connect } from "react-redux";
 import Menu from 'material-ui/Menu';
 import Star from 'material-ui/svg-icons/toggle/star';
@@ -29,7 +29,7 @@ import Logbook from 'material-ui/svg-icons/av/library-books';
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import Popover from 'material-ui/Popover';
-import { generateId, addProject, Project, Area, addArea } from '../../database';
+import { generateId, addProject, Project, Area, addArea, Todo } from '../../database';
 import Clear from 'material-ui/svg-icons/content/clear';
 import Remove from 'material-ui/svg-icons/content/remove'; 
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
@@ -46,13 +46,24 @@ import { NewProjectAreaPopup } from './NewProjectAreaPopup';
 interface ItemsAmount{
     inbox:number,
     today:number,
-    upcoming:number,
-    anytime:number,
-    someday:number,  
-    logbook:number,
-    trash:number 
+    hot:number 
 }
 
+
+let hotFilter = (todo:Todo) : boolean => {
+
+    if(!todo.deadline)
+       return false;
+    if(!todo.attachedDate)
+       return false;        
+
+    let deadline = typeof todo.deadline === "string" ? new Date(todo.deadline) : todo.deadline;
+    let attachedDate = typeof todo.attachedDate === "string" ? new Date(todo.attachedDate) : todo.attachedDate;   
+    
+
+    return dateDiffInDays(deadline,attachedDate)===0;    
+
+}
 
 let calculateAmount = (props:Store) : ItemsAmount => {
 
@@ -61,37 +72,24 @@ let calculateAmount = (props:Store) : ItemsAmount => {
     let amount = { 
         inbox:0,
         today:0,
-        upcoming:0,
-        anytime:0,
-        someday:0, 
-        logbook:0,
-        trash:0
+        hot:0
     } 
     
     let inboxFilters = [byCategory("inbox"),byNotCompleted,byNotDeleted]; 
 
     let todayFilters = [todayFilter, byNotCompleted, byNotDeleted];
  
-    let upcomingFilters = [byNotCompleted,byNotDeleted];  
-
-    let anytimeFilters = [byNotCompleted,byNotDeleted];     
-
-    let somedayFilters = [byCategory("someday"),byNotCompleted,byNotDeleted];
-
-    let logbookFilters = [byCompleted,byNotDeleted];  
-  
-    let trashFilters = [byDeleted];
+    let hotFilters = [todayFilter, byNotCompleted, byNotDeleted, hotFilter];
+   
 
     let filters = [
         {type:"inbox", filters:inboxFilters},
-        {type:"today", filters:todayFilters} ,
-        {type:"upcoming", filters:upcomingFilters}, 
-        {type:"anytime", filters:anytimeFilters},   
-        {type:"someday", filters:somedayFilters},
-        {type:"logbook", filters:logbookFilters},  
-        {type:"trash", filters:trashFilters}
+        {type:"today", filters:todayFilters},
+        {type:"hot", filters:hotFilters}
     ]; 
-    
+     
+
+
     for(let i=0; i<props.todos.length; i++){
         let todo = props.todos[i];
 
@@ -161,8 +159,8 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
         render(){    
 
-            let amount : ItemsAmount = calculateAmount(this.props);
-
+            let {inbox,today,hot} : ItemsAmount = calculateAmount(this.props);
+                  
             return  <div 
                         style={{
                             display: "flex",  
@@ -171,9 +169,9 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             height: "100%",
                             position:"relative", 
                             backgroundColor: "rgb(248, 248, 248)"  
-                        }}
-                    > 
-
+                        }}    
+                    >  
+ 
                     <ResizableHandle  
                         onDrag={(e,d) => this.props.dispatch({
                             type:"leftPanelWidth",
@@ -186,18 +184,14 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                         toggleWindowSize={this.toggleWindowSize}
                         leftPanelWidth={this.props.leftPanelWidth}
                     /> 
-
+ 
                     <div> 
                         <LeftPanelMenu 
                             dispatch={this.props.dispatch}
-                            inbox={amount.inbox}
-                            today={amount.today}
-                            upcoming={amount.upcoming}
-                            anytime={amount.anytime}
-                            someday={amount.someday}  
-                            logbook={amount.logbook}
-                            trash={amount.trash} 
-                        />  
+                            inbox={inbox} 
+                            today={today} 
+                            hot={hot} 
+                        />   
                     </div>
  
                     { 

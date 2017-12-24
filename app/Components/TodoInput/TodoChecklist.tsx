@@ -249,7 +249,8 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         >   
             <SortableList 
                 getElement={this.getCheckListItem}
-                items={this.props.checklist}  
+                items={this.props.checklist}    
+                container={document.body}
                 shouldCancelStart={() => false}
                 shouldCancelAnimation={() => false}
                 onSortEnd={this.onSortEnd} 

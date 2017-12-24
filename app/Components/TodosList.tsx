@@ -236,12 +236,13 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
        
        
      render(){  
-
+ 
           
          return <div style={{WebkitUserSelect: "none"}}> 
   
             <SortableList   
                 getElement={this.getTodoElement}
+                container={this.props.rootRef ? this.props.rootRef : document.body}
                 items={this.state.todos.sort((a:Todo,b:Todo) => a.priority-b.priority)}  
                 shouldCancelStart={this.shouldCancelStart}  
                 shouldCancelAnimation={this.shouldCancelAnimation}

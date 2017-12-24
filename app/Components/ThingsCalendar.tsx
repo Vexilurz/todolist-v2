@@ -54,7 +54,9 @@ export class ThingsCalendar extends Component<ThingsCalendarProps,{}>{
             anchorOrigin={this.props.origin} 
             targetOrigin={this.props.point}
         >   
-            <div style={{  
+            <div 
+            onClick={(e) => {e.stopPropagation();}}  
+            style={{  
                 display:"flex",
                 flexDirection:"column", 
                 backgroundColor:"rgb(39,43,53)", 

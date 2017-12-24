@@ -14,6 +14,8 @@ interface SortableListProps{
     getElement : ( value : any, index : number ) => JSX.Element,
     items : any[],
     
+    container : HTMLElement, 
+
     shouldCancelStart : ( e : any ) => boolean,
     shouldCancelAnimation : ( e : any ) => boolean,
 
@@ -77,7 +79,8 @@ export class SortableList extends Component<SortableListProps, SortableListState
         let Container = SortableContainer(({items}) => this.getSortableList(items),{withRef:true})
 
         return <Container
-            axis='y' 
+            axis='y'   
+            getContainer={() => this.props.container} 
             shouldCancelStart={this.props.shouldCancelStart}
             shouldCancelAnimation={this.props.shouldCancelAnimation}
             lockToContainerEdges={this.props.lockToContainerEdges}  

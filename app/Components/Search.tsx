@@ -66,9 +66,9 @@ let getTodoLink = (todo : Todo, index : number, dispatch : Function) : JSX.Eleme
                         width:"95%",
                         display:"flex",
                         alignItems: "center" 
-                    }}
+                    }} 
                 >             
-                            {chooseIcon({width:"20px", height:"20px"}, todo.category)}
+                            <div>{chooseIcon({width:"20px", height:"20px"}, todo.category)}</div>
                             
                         <div    
                             id = {todo._id}   

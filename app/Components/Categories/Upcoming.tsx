@@ -41,8 +41,9 @@ let objectsToHashTableByDate = (props) : {objectsByDate:any,tags:string[]} => {
     let filters = [
         byTags(props.selectedTag),
         byNotCompleted, 
+        //TODO Have attached date 
         byNotDeleted  
-    ];    
+    ];     
 
     let objects = [...todos, ...projects].filter( i => allPass(filters,i)); 
  
@@ -58,6 +59,9 @@ let objectsToHashTableByDate = (props) : {objectsByDate:any,tags:string[]} => {
 
 
         let date : Date = getDateFromObject(objects[i]);
+
+        if(!date)
+           continue; 
 
         let key : string = keyFromDate(date);
 

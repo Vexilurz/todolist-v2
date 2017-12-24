@@ -654,8 +654,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                 defaultValue = {this.state.currentTodo} 
                                 fullWidth = {true}   
                                 onChange={this.onNewTodoChange}
-                                inputStyle = {{
-                                    fontWeight:600, 
+                                inputStyle = {{ 
                                     color:"rgba(100,100,100,1)", 
                                     fontSize:"16px",
                                     cursor:"default"

@@ -18,7 +18,7 @@ import { Provider, connect } from "react-redux";
 import './assets/fonts/index.css'; 
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer, Category } from './Components/MainContainer';
-import { Project, Area, Todo, removeProject, generateId, addProject, removeArea, updateProject, addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, removeProjects } from './database';
+import { Project, Area, Todo, removeProject, generateId, addProject, removeArea, updateProject, addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, removeProjects, updateAreas, updateProjects } from './database';
 injectTapEventPlugin(); 
       
 (() => {     
@@ -119,7 +119,7 @@ ipcRenderer.on(
 
 export interface Store{
     selectedCategory : Category,
-    selectedTodoId : string,
+    selectedTodoId : string, 
     openSearch : boolean, 
     selectedTag : string,
     leftPanelWidth : number,
@@ -435,28 +435,29 @@ let removeDeletedAreas = (areas:Area[]) => {
 let swapProjects = (from : number, to : number, projects : Project[]) : Project[] => {
     let fromProject : Project = projects[from];
     let toProject : Project = projects[to];
+    let temp = null;
 
-    let fromPriority : number = fromProject.priority; 
-    let toPriority : number = toProject.priority;
-
-    let moveFrom = replace(projects, {...fromProject, toPriority}, from);
-    let moveTo = replace(projects, {...toProject, fromPriority}, to);
+    temp = fromProject.priority;
+    fromProject.priority = toProject.priority;
+    toProject.priority = temp;   
     
-    return moveTo;
+    updateProjects([fromProject,toProject],onError);
+
+    return [...projects]; 
 }
 
 
 let swapTodos = (from : number, to : number, todos : Todo[]) : Todo[] => {
-    let fromTodo : Todo = todos[from];
+    /*let fromTodo : Todo = todos[from];
     let toTodo : Todo = todos[to];
 
     let fromPriority : number = fromTodo.priority; 
     let toPriority : number = toTodo.priority;
 
     let moveFrom = replace(todos, {...fromTodo, toPriority}, from);
-    let moveTo = replace(todos, {...toTodo, fromPriority}, to);
+    let moveTo = replace(todos, {...toTodo, fromPriority}, to);*/ 
      
-    return moveTo;
+    return todos;
 }
 
 
@@ -565,6 +566,7 @@ let applicationObjectsReducer = (state:Store, action) => {
         case "swapProjects": 
             from  = state.projects.findIndex( (p:Project) => p._id===action.load.fromId );
             to  = state.projects.findIndex( (p:Project) => p._id===action.load.toId );
+            
             newState = {
                 ...state,
                 projects:swapProjects(from,to,state.projects)
@@ -614,7 +616,21 @@ let applicationObjectsReducer = (state:Store, action) => {
                 areas:replace(state.areas,action.load,idx)
             };  
             break;    
+  
+          
+        case "updateAreas":  
+            let changed : string[] = action.load.map((a:Area) => a._id);
+            let fixed : Area[] = state.areas.filter( (a:Area) => changed.indexOf(a._id)===-1 )  
+ 
+            updateAreas(action.load,onError);
 
+            newState = {    
+                ...state,  
+                selectedAreaId:action.load._id,  
+                areas:[...fixed,...action.load] 
+            };  
+            break;       
+        
 
         case "duplicateTodo":
             idx = state.todos.findIndex((item:Todo) => item._id===action.load);

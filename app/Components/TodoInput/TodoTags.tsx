@@ -142,28 +142,35 @@ export class TodoTags extends Component<TodoTagsProps,{}>{
 
     render(){
 
-        return <div style={{
+        return <div
+        onClick={(e) => {e.stopPropagation();}} 
+        style={{
             display:"flex", 
             paddingTop:"5px",
             paddingBottom:"5px",
             flexWrap:"wrap"
         }}>{    
             this.props.todo.attachedTags.map(
-                (tag:string, index:number) => <div 
-                key={`${tag}-${index}`} 
-                style={{
-                    paddingLeft:"5px", 
-                    paddingRight:"5px", 
-                    paddingTop:"5px",  
-                    cursor:"default", 
-                    WebkitUserSelect:"none"
-                }}> 
+                (tag:string, index:number) => 
+                <div  
+                    key={`${tag}-${index}`} 
+                    style={{
+                        paddingLeft:"5px", 
+                        paddingRight:"5px", 
+                        paddingTop:"5px",  
+                        cursor:"default", 
+                        WebkitUserSelect:"none"
+                    }} 
+                > 
                     <div style={{
                         borderRadius:"15px", 
                         backgroundColor:"rgb(189,219,209)",
                     }}>
                         <div style={{
-                            padding:"5px",  
+                            paddingLeft: "10px",
+                            paddingTop: "5px",
+                            paddingBottom: "5px",
+                            paddingRight: "10px",
                             color:"rgb(115,167,152)",
                             fontWeight: 600 
                         }}> 

@@ -213,8 +213,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 <SortableList
                     getElement={this.getElement}
                     items={this.state.selectedProjects}
-                    
-                    shouldCancelStart={this.shouldCancelStart}
+                    container={this.props.rootRef ? this.props.rootRef : document.body}
+                    shouldCancelStart={this.shouldCancelStart} 
                     shouldCancelAnimation={this.shouldCancelAnimation}
 
                     onSortEnd={this.onSortEnd}
@@ -231,11 +231,11 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
             <div style={{paddingTop:"20px", paddingBottom:"20px"}}> 
                 <SortableList
                     getElement={this.getElement}
-                    items={this.state.selectedTodos}
-                    
+                    items={this.state.selectedTodos}  
+                    container={this.props.rootRef ? this.props.rootRef : document.body}
                     shouldCancelStart={this.shouldCancelStart}
                     shouldCancelAnimation={this.shouldCancelAnimation}
-
+    
                     onSortEnd={this.onSortEnd}
                     onSortMove={this.onSortMove}
                     onSortStart={this.onSortStart}
