@@ -114,11 +114,11 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     groupProjectsByArea = (props:AreasListProps) => {
  
-        let projects = props.projects.filter( p => !p.deleted );
-        let areas = props.areas.filter( a => !a.deleted );
+        let projects = props.projects.filter( p => !!p ).filter( p => !p.deleted );
+        let areas = props.areas.filter( p => !!p ).filter( a => !a.deleted );
+ 
 
-
-
+    
         let table : { [key: string]: Project[]; } = {};
         let detached : Project[] = []; 
      

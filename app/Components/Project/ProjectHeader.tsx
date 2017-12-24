@@ -235,22 +235,23 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                             cursor: "pointer" 
                         }} />
                 </div> 
-
-            </div>
-
-            <TextField     
-                id = {"project_notes"} 
-                hintText = "Notes"     
-                value = {this.state.description}    
-                multiLine = {true}  
-                fullWidth = {true}   
-                onChange = {(event, newValue:string) => this.updateProjectDescription(newValue)} 
-                rows = {4}   
-                inputStyle = {{color:"rgba(100,100,100,0.7)", fontSize:"15px"}}   
-                underlineFocusStyle = {{borderColor: "rgba(0,0,0,0)"}}    
-                underlineStyle = {{borderColor: "rgba(0,0,0,0)"}}   
-            />  
     
+            </div> 
+            <div style={{paddingTop:"10px"}}>                
+                <TextField      
+                    id = {"project_notes"} 
+                    hintText = "Notes"      
+                    hintStyle={{top:"12px"}}
+                    value = {this.state.description}    
+                    multiLine = {true}  
+                    fullWidth = {true}   
+                    onChange = {(event, newValue:string) => this.updateProjectDescription(newValue)} 
+                    rows = {3}   
+                    inputStyle = {{color:"rgba(100,100,100,0.7)", fontSize:"15px"}}   
+                    underlineFocusStyle = {{borderColor: "rgba(0,0,0,0)"}}    
+                    underlineStyle = {{borderColor: "rgba(0,0,0,0)"}}   
+                />  
+            </div>
         </div> 
     }
 

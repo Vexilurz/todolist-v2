@@ -8,7 +8,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, showTags, allPass, byNotCompleted, byNotDeleted, unique 
+    chooseIcon, showTags, allPass, byNotCompleted, byNotDeleted, unique, getTagsFromItems 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -66,13 +66,30 @@ export class Today extends Component<TodayProps,TodayState>{
             emptyToday:false
         }
     }
+
+    componentDidMount(){
+        let filters = [ 
+            byTags(this.props.selectedTag),
+            (i) => byCategory("evening")(i) || byCategory("today")(i),
+            byNotCompleted, 
+            byNotDeleted    
+        ];
+
+        let todos = this.props.todos.filter( (t:Todo) => allPass(filters,t) );
+        
+        let tags = getTagsFromItems(todos);
+
+        this.setState({relevantTags:tags})
+    }
  
     render(){ 
+        
+        
  
         return <div style={{disaply:"flex", flexDirection:"column"}}> 
             <div style={{width: "100%"}}> 
         
-                    <div style={{
+                    <div style={{ 
                         display:"flex", 
                         position:"relative",
                         alignItems:"center",
@@ -102,9 +119,9 @@ export class Today extends Component<TodayProps,TodayState>{
  
                     <Tags  
                         selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
-                        tags={this.state.relevantTags}
+                        tags={this.state.relevantTags} 
                         selectedTag={this.props.selectedTag}
-                        show={true} 
+                        show={true}  
                     />  
  
                        
@@ -116,7 +133,7 @@ export class Today extends Component<TodayProps,TodayState>{
                             marginTop:"20px"
                         }} 
                     >  
-                        <TodosList   
+                        <TodosList    
                             filters={[ 
                                 byTags(this.props.selectedTag),
                                 byCategory("today"),
@@ -124,7 +141,7 @@ export class Today extends Component<TodayProps,TodayState>{
                                 byNotDeleted 
                             ]}  
                             setSelectedTags={(tags:string[]) => {
-                                this.setState({relevantTags:unique([...tags,...this.state.relevantTags])})
+                                //this.setState({relevantTags:unique([...tags,...this.state.relevantTags])})
                             }}
                             isEmpty={(empty:boolean) => this.setState({emptyToday:empty})}   
                             dispatch={this.props.dispatch}   
@@ -175,9 +192,9 @@ export class Today extends Component<TodayProps,TodayState>{
                                     byNotCompleted, 
                                     byNotDeleted    
                                 ]} 
-                                setSelectedTags={(tags:string[]) => this.setState({
-                                    relevantTags:unique([...tags,...this.state.relevantTags])
-                                })}  
+                                setSelectedTags={(tags:string[]) => {}
+                                //this.setState({relevantTags:unique([...tags,...this.state.relevantTags])})
+                                }  
                                 isEmpty={(empty:boolean) => this.setState({emptyEvening:empty})} 
                                 dispatch={this.props.dispatch}    
                                 selectedCategory={"evening"} 

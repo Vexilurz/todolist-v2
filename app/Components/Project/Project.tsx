@@ -108,12 +108,15 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         
         if(nextProps.projects!==this.props.projects)
            shouldUpdate = true;
-                
+         
+        if(nextProps.todos!==this.props.todos)
+           shouldUpdate = true;      
+           
         if(nextProps.selectedProjectId!==this.props.selectedProjectId)   
            shouldUpdate = true;
         
         if(nextState.project!==this.state.project)
-           shouldUpdate = true;  
+           shouldUpdate = true;   
 
 
         return shouldUpdate; 
@@ -182,7 +185,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     moveHeading = (heading_id:string) => {}
 
-
+ 
 
     removeHeading = (heading_id:string) => {
 
@@ -201,9 +204,9 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
  
 
  
-    render(){ 
+    render(){   
  
-        return  this.state.project===undefined ? null :
+        return  !this.state.project ? null :
                 <div>  
                     <div>    
                         <ProjectHeader
@@ -217,16 +220,16 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             dispatch={this.props.dispatch} 
                         />       
                     </div> 
- 
-                    <div>
-                        <ProjectBody 
+  
+                    <div> 
+                        <ProjectBody   
                             layout={this.state.project.layout}
                             updateLayout={this.updateLayout}
                             updateHeading={this.updateHeading}
                             archiveHeading={this.archiveHeading}
                             moveHeading={this.moveHeading} 
                             removeHeading={this.removeHeading}
-                            todos={this.props.todos}
+                            todos={this.props.todos} 
                             tags={this.props.tags}
                             rootRef={this.props.rootRef}
                             dispatch={this.props.dispatch} 

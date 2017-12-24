@@ -37,7 +37,7 @@ interface TodosListProps{
 interface TodosListState{
     todos:Todo[] 
 }
-
+ 
       
   
 export class TodosList extends Component<TodosListProps, TodosListState>{
@@ -62,27 +62,31 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         if(this.state.todos!==nextState.todos)
            should=true;        
 
+        if(this.props.selectedTag!==nextProps.selectedTag)
+           should=true;   
+
+
         return should;
 
      }  
   
 
-
-     init = (props:TodosListProps) => {
+ 
+     init = (props:TodosListProps) => { 
         let todos = props.todos; 
          
-        if(props.filters.length>0)
-           todos = todos.filter( (t:Todo) => allPass(props.filters,t) );
-         
-        if(typeof props.isEmpty==="function")
+        if(props.filters.length>0) 
+           todos = todos.filter((t:Todo) => allPass(props.filters,t));
+          
+        if(typeof props.isEmpty==="function") 
            props.isEmpty(todos.length===0); 
         
         if(typeof props.setSelectedTags==="function")   
-            props.setSelectedTags(getTagsFromItems(todos)); 
+           props.setSelectedTags(getTagsFromItems(todos)); 
            
-        this.setState({todos}); 
+        this.setState({todos});  
      }
-
+ 
 
      componentDidMount(){
         this.init(this.props);  
@@ -90,10 +94,12 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
  
      componentWillReceiveProps(nextProps:TodosListProps){
+        if(this.props.selectedTag!==nextProps.selectedTag)
+           this.init(nextProps);
         if(this.props.todos!==nextProps.todos)
            this.init(nextProps);
-     }
- 
+     }  
+    
  
   
      getTodoElement = (value:Todo, index:number) => {

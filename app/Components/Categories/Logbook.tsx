@@ -55,18 +55,37 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
     init = (props:LogbookProps) => this.setState(this.groupByMonth(props));
     
+
+
+    shouldComponentUpdate(nextProps:LogbookProps, nextState:LogbookState){
+ 
+     if(this.props.todos!==nextProps.todos)
+        return true;
+     if(this.props.projects!==nextProps.projects) 
+        return true;
+     if(this.props.selectedTag!==nextProps.selectedTag)
+        return true;
+
+     if(this.state.groups!==nextState.groups)
+        return true;
+     if(this.state.tags!==nextState.tags)
+        return true;
+
+    }
+ 
+
     
     componentWillReceiveProps(nextProps:LogbookProps){
         if(this.props.todos!==nextProps.todos)
            this.init(nextProps);
-        if(this.props.projects!==nextProps.projects)
+        if(this.props.projects!==nextProps.projects) 
            this.init(nextProps);
         if(this.props.selectedTag!==nextProps.selectedTag)
            this.init(nextProps);
     } 
 
 
-    groupByMonth = (props:LogbookProps) => { 
+    groupByMonth = (props:LogbookProps) => {  
 
         let filters = [
             byTags(props.selectedTag),
@@ -92,8 +111,11 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
         let group = [];
 
         let last : number = objects.length-2;
-
-
+ 
+        if(objects.length<2)
+           return {groups:[ [...objects] ],tags};
+         
+ 
 
           
         for(let i=0; i<objects.length-1; i++){

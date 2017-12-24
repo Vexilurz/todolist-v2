@@ -41,8 +41,8 @@ export class Inbox extends Component<InboxProps, InboxState>{
     }  
 
     render(){
-   
-        return <div> 
+    
+        return <div>  
  
             <ContainerHeader 
               selectedCategory={"inbox"} 

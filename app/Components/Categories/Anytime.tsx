@@ -75,6 +75,20 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
 
         var t0 = performance.now();
         let table = this.groupObjects(props);
+        var t1 = performance.now();
+        console.log("Call to groupObjects (Anytime) took " + (t1 - t0) + " milliseconds.");
+         
+ 
+        this.setState({table}); 
+
+        return table;
+    } 
+    
+
+    componentDidMount(){
+
+        let table = this.init(this.props);
+
         let tags = unique(
             getTagsFromItems([
                 ...table["projects"],
@@ -82,18 +96,8 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
                 ...table["todos"]
             ]) 
         );
-        var t1 = performance.now();
-        console.log("Call to groupObjects (Anytime) took " + (t1 - t0) + " milliseconds.");
-         
- 
-        this.setState({table, tags}); 
- 
-    } 
-    
 
-    componentDidMount(){
-
-        this.init(this.props);
+        this.setState({tags}); 
  
     }
 
@@ -240,7 +244,11 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
  
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
                         <TodosList    
-                            filters={[]}  
+                            filters={[
+                                byTags(this.props.selectedTag),
+                                byNotCompleted,   
+                                byNotDeleted  
+                            ]}   
                             isEmpty={(empty:boolean) => {}}    
                             setSelectedTags={(tags:string[]) => {}}
                             dispatch={this.props.dispatch}     
@@ -251,7 +259,7 @@ export class Anytime extends Component<AnytimeProps, AnytimeState>{
                             tags={this.props.tags}  
                         /> 
                     </div>      
- 
+  
                     
 
                     <AnytimeProjectsList 
@@ -302,15 +310,15 @@ class AnytimeProjectsList extends Component<AnytimeProjectsListProps,AnytimeProj
 
 
     constructor(props){
-        super(props);
+        super(props); 
     }
 
 
     render(){
-
+ 
         return  <div style={{paddingTop:"20px", paddingBottom:"20px"}}> 
             {    
-                this.props.table.projects.map(
+                this.props.table.projects.filter(byTags(this.props.selectedTag)).map(
                     (p:Project, index:number) : JSX.Element => {
 
                         return <div key={`project-${index}`} style={{padding:"10px"}}>
@@ -366,15 +374,15 @@ class AnytimeAreasList extends Component<AnytimeAreasListProps,AnytimeAreasListS
 
     constructor(props){
         super(props);
-    }
+    } 
  
 
-    render(){
+    render(){ 
 
-        return <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
+        return <div style={{paddingTop:"20px", paddingBottom:"20px"}}> 
                 {  
-                    this.props.table.areas.map(
-                        (a:Area, index:number) : JSX.Element => {
+                    this.props.table.areas.filter(byTags(this.props.selectedTag)).map(
+                        (a:Area, index:number) : JSX.Element => { 
 
                             return <div key={`area${index}`} style={{padding:"10px"}}>
 
@@ -385,14 +393,14 @@ class AnytimeAreasList extends Component<AnytimeAreasListProps,AnytimeAreasListS
                                         a, 
                                         index,  
                                         this.props.dispatch
-                                    )
-                                }</div> 
- 
+                                    ) 
+                                }</div>  
+  
                                 <ExpandableTodosList
                                     dispatch={this.props.dispatch}   
-                                    selectedTag={this.props.selectedTag} 
+                                    selectedTag={this.props.selectedTag}  
                                     rootRef={this.props.rootRef}
-                                    todos={this.props.table[a._id]} 
+                                    todos={this.props.table[a._id].filter(byTags(this.props.selectedTag))} 
                                     tags={this.props.tags} 
                                 />
 
@@ -465,7 +473,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                     /> 
                 </div>  
 
-  
+   
                 {   
                     !showExpandButton ? null :
                     <div style={{cursor: "pointer", height: "30px"}}>

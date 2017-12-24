@@ -228,7 +228,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             <LeftPanelMenuItem
                 onClick={() => this.props.dispatch({type:"selectedCategory", load:"anytime"})} 
                 icon={<Layers style={{color:"darkgreen"}}/>}
-                title={"Anytime"}
+                title={"Next"}
                 showCounter={false}
                 counter={0}
             /> 

@@ -8,6 +8,7 @@ import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import { Area, Project, Todo } from '../../database';
 import { AreaHeader } from './AreaHeader';
 import { AreaBody } from './AreaBody';
+import { debounce } from '../../utils';
   
  
 interface AreaComponentProps{
@@ -81,6 +82,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
     }
 
 
+
     updateArea = (selectedArea:Area, updatedProps) : void => { 
          
         let type = "updateArea"; 
@@ -91,15 +93,18 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
 
     }
 
-    updateAreaName = (value:string) : void => {
+
+
+    updateAreaName = debounce((value:string) : void => { 
 
         this.updateArea(this.state.area, {name:value});
-
-    }
- 
+    
+    },200)
+  
  
  
     render(){
+
         return !this.state.area ? null :
         <div> 
             <div>
@@ -107,14 +112,11 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                     name={this.state.area.name}  
                     areas={this.props.areas}  
                     selectedAreaId={this.props.selectedAreaId}
-                    updateAreatName={this.updateAreaName}
+                    updateAreaName={this.updateAreaName}
                     dispatch={this.props.dispatch} 
-                />
-               
+                /> 
             </div>
- 
             <div> 
-
                 <AreaBody 
                     area={this.state.area} 
                     projects={this.props.projects}
@@ -123,10 +125,9 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                     rootRef={this.props.rootRef}
                     dispatch={this.props.dispatch}
                 />
-
-            </div>    
-            
+            </div>  
         </div>
+
     }
 
 } 

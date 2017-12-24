@@ -493,7 +493,17 @@ function setItemToDatabase<T>(
 }  
  
  
+function setItemsToDatabase<T>(
+  onError:Function, 
+  db:any
+){ 
+  return function(items:T[]) : Promise<void>{
 
+    return db.bulkDocs(items).catch(onError); 
+ 
+  }  
+}  
+ 
 
 
 export function removeObject<T>(
@@ -750,11 +760,13 @@ export let addEvent = (onError:Function, event : Event) : Promise<void> =>
 
 
 
+ 
 
-
-
-
-
+export let addTodos = (onError:Function, todos : Todo[]) : Promise<void> => 
+          setItemsToDatabase<Todo>(
+              (e) => console.log(e), 
+              todos_db
+          )(todos);
 
 
 export let addTodo = (onError:Function, todo : Todo) : Promise<void> => 

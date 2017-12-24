@@ -18,7 +18,7 @@ import { Provider, connect } from "react-redux";
 import './assets/fonts/index.css'; 
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer, Category } from './Components/MainContainer';
-import { Project, Area, Todo, removeProject, generateId, addProject, removeArea, updateProject, addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, removeProjects, updateAreas, updateProjects } from './database';
+import { Project, Area, Todo, removeProject, generateId, addProject, removeArea, updateProject, addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, removeProjects, updateAreas, updateProjects, addTodos } from './database';
 injectTapEventPlugin(); 
       
 (() => {     
@@ -321,7 +321,7 @@ let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}
             newState = {
                 ...state,
                 selectedTodoId : action.load,
-                openSearch : false
+                //openSearch : false
             }; 
             break;
 
@@ -526,8 +526,9 @@ let applicationObjectsReducer = (state:Store, action) => {
         case "attachTodoToProject":
             idx = state.projects.findIndex( (p:Project) => p._id===action.load.projectId );
             if(idx===-1) 
-                return;  
-            project = {...state.projects[idx]};
+               return;   
+            project = {...state.projects[idx]};  
+            project.attachedTodosIds = [action.load.todoId, ...project.attachedTodosIds]
             project.layout = [action.load.todoId, ...project.layout];
             updateProject(project._id,project,onError);
             newState = {
@@ -542,14 +543,14 @@ let applicationObjectsReducer = (state:Store, action) => {
             if(idx===-1) 
                 return;  
             area = {...state.areas[idx]};
-            area.attachedProjectsIds = [action.load.todoId, ...area.attachedProjectsIds];
+            area.attachedTodosIds = [action.load.todoId, ...area.attachedTodosIds];
             updateArea(area._id,area,onError);
-            newState = {
-                ...state,
-                projects:replace(state.projects,project,idx) 
+            newState = {     
+                ...state,  
+                areas:replace(state.areas,area,idx) 
             }
             break;     
-
+    
  
         //{fromId,toId} 
         case "swapTodos":
@@ -579,16 +580,27 @@ let applicationObjectsReducer = (state:Store, action) => {
             idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
             if(idx===-1)
                throw new Error("Attempt to update non existing object. updateTodo."); 
-            replacement = replace(state.todos,action.load,idx);
+
             updateTodo(action.load._id, action.load, onError);
-            newState = {
-                ...state, 
-                selectedTodoId:action.load._id,
-                selectedTag:"All", 
-                todos:replace(state.todos,action.load,idx),
-                showRightClickMenu:false
-            }; 
-            break; 
+
+            if(!!action.load.deleted){
+                newState = { 
+                    ...state, 
+                    selectedTodoId:null,
+                    showProjectMenuPopover:false, 
+                    showRightClickMenu:false,  
+                    todos:replace(state.todos,action.load,idx),
+                };  
+            }else{
+                newState = { 
+                    ...state, 
+                    //selectedTodoId:action.load._id,
+                    selectedTag:"All", 
+                    todos:replace(state.todos,action.load,idx),
+                    showRightClickMenu:false
+                }; 
+            };  
+            break;
 
 
         case "updateProject":  
@@ -604,13 +616,15 @@ let applicationObjectsReducer = (state:Store, action) => {
                     selectedProjectId:null,
                     selectedCategory:"inbox", 
                     showProjectMenuPopover:false, 
-                    projects:remove(state.projects, idx)
+                    showRightClickMenu:false,
+                    projects:replace(state.projects,action.load,idx)
                 }; 
             }else{
                 newState = {  
                     ...state, 
                     selectedProjectId:action.load._id,
                     showProjectMenuPopover:false,
+                    showRightClickMenu:false, 
                     projects:replace(state.projects,action.load,idx)
                 };  
             };  
@@ -619,17 +633,27 @@ let applicationObjectsReducer = (state:Store, action) => {
              
         case "updateArea":  
             idx = state.areas.findIndex((a:Area) => action.load._id===a._id);
-            if(idx===-1)
+            if(idx===-1) 
                throw new Error("Attempt to update non existing object. updateArea.");
             updateArea(action.load._id,action.load,onError);
-            newState = {  
-                ...state,  
-                selectedAreaId:action.load._id,
-                areas:replace(state.areas,action.load,idx)
+    
+            if(!!action.load.deleted){
+                newState = { 
+                    ...state, 
+                    selectedAreaId:null, 
+                    selectedCategory:"inbox", 
+                    areas:replace(state.areas,action.load,idx)
+                };  
+            }else{
+                newState = {   
+                    ...state,  
+                    selectedAreaId:action.load._id,
+                    areas:replace(state.areas,action.load,idx)
+                };  
             };  
-            break;    
-  
-          
+            break;         
+
+            
         case "updateAreas":  
             let changed : string[] = action.load.map((a:Area) => a._id);
             let fixed : Area[] = state.areas.filter( (a:Area) => changed.indexOf(a._id)===-1 )  
@@ -654,7 +678,8 @@ let applicationObjectsReducer = (state:Store, action) => {
             addTodo(onError, duplicatedTodo);
             newState = {  
                 ...state, 
-                todos:insert(state.todos, duplicatedTodo, idx)
+                todos:insert(state.todos, duplicatedTodo, idx),
+                showRightClickMenu:false
             }; 
             break; 
         
@@ -673,6 +698,17 @@ let applicationObjectsReducer = (state:Store, action) => {
                 selectedProjectId:_id,
                 showProjectMenuPopover:false, 
                 projects:insert(state.projects, project, idx)
+            }; 
+            break; 
+
+        case "addTodos":
+            addTodos(onError, action.load)
+            newState = {
+                ...state,  
+                selectedTodoId:action.load._id,
+                selectedTag:"All", 
+                todos:[...action.load,...state.todos],
+                showRightClickMenu:false
             }; 
             break; 
 
@@ -698,6 +734,7 @@ let applicationObjectsReducer = (state:Store, action) => {
                 openNewProjectAreaPopup:false, 
                 selectedProjectId:action.load._id,
                 projects:[action.load,...state.projects],
+                showRightClickMenu:false
             };   
             break;
 

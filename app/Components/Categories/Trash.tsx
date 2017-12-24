@@ -61,16 +61,15 @@ export class Trash extends Component<TrashProps,TrashState>{
 
 
 
-
     selectDeleted = (props) => {
-        let deletedTodos = props.todos.filter( (t:Todo) => t.deleted !==undefined );
-        let deletedProjects = props.projects.filter( (p:Project) => p.deleted !==undefined  );
-        let deletedAreas = props.areas.filter( (a:Area) => a.deleted !==undefined  ); 
+        let deletedTodos = props.todos.filter( (t:Todo) => !!t.deleted && byTags(props.selectedTag)(t)  );
+        let deletedProjects = props.projects.filter( (p:Project) => !!p.deleted && byTags(props.selectedTag)(p) );
+        let deletedAreas = props.areas.filter( (a:Area) => !!a.deleted && byTags(props.selectedTag)(a)  ); 
         let tags = unique(getTagsFromItems([...deletedTodos,...deletedProjects,...deletedAreas]));
-  
-        this.setState({
+   
+        this.setState({   
             deletedTodos,
-            deletedProjects,
+            deletedProjects, 
             deletedAreas,
             tags,
             empty : deletedTodos.length===0 && 
@@ -80,21 +79,22 @@ export class Trash extends Component<TrashProps,TrashState>{
     }
  
 
+
     componentDidMount(){ 
         this.selectDeleted(this.props);
     }
 
  
-    componentWillReceiveProps(nextProps){
+    componentWillReceiveProps(nextProps){ 
 
-        if(nextProps.selectedTag!==this.props.selectedTag)
+        //if(nextProps.selectedTag!==this.props.selectedTag)
             this.selectDeleted(nextProps); 
-        else if(nextProps.todos!==this.props.todos)
+        /*else if(nextProps.todos!==this.props.todos)
             this.selectDeleted(nextProps); 
         else if(nextProps.projects!==this.props.projects)
             this.selectDeleted(nextProps); 
         else if(nextProps.areas!==this.props.areas)
-            this.selectDeleted(nextProps); 
+            this.selectDeleted(nextProps);*/ 
 
     }   
  

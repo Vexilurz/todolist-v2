@@ -15,10 +15,9 @@ let preventAnnoyingErrorPopups = () => dialog.showErrorBox = (title, content) =>
  
 let onReady = () => {  
     let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
-    let width = workingArea.width;
-    //60*(workingArea.width/100);
-    let height = workingArea.height; 
-    //70*(workingArea.height/100); 
+
+    let width = 70*(workingArea.width/100); 
+    let height = 80*(workingArea.height/100); 
  
     preventAnnoyingErrorPopups();     
      
@@ -26,7 +25,7 @@ let onReady = () => {
         
     listeners = new Listeners(mainWindow);
    
-    loadApp(mainWindow)   
+    loadApp(mainWindow)    
     .then(() => {  
 
         mainWindow.webContents.send(
@@ -37,7 +36,7 @@ let onReady = () => {
             }
         ); 
  
-        mainWindow.webContents.openDevTools();   
+        //mainWindow.webContents.openDevTools();   
 
     });     
 }            

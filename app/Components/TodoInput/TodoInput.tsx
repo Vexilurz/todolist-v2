@@ -258,6 +258,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         if(!inside){   
 
+            this.props.dispatch({type:"selectedTodoId", load:null});
+
             if(this.state.open){
                   
                 this.enableDragOfThisItem();
@@ -267,8 +269,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     {open:false}, 
                        
                     () => {
-                        this.props.dispatch({type:"selectedTodoId", load:null});
-                         
                         let todo : Todo = this.todoFromState();   
                         
                         if(this.state.currentTodo.length===0 || todoChanged(this.props.todo,todo))
@@ -276,7 +276,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     }    
 
                 ); 
-            
+               
             }
 
         }   
@@ -286,19 +286,19 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
     updateTodo = (changedTodo:Todo) : void => {
-
-        this.props.dispatch({type:"updateTodo",load:changedTodo});  
+    
+        this.props.dispatch({type:"updateTodo", load:changedTodo});  
 
     }  
- 
+    
+    
 
-
-    removeTodo = (_id:string) : void => {
-
-        this.props.dispatch({type:"removeTodo", load: _id});
+    removeTodo = (changedTodo:Todo) : void => {
+     
+        this.props.dispatch({ type:"updateTodo", load:{...changedTodo, deleted:new Date()} });
 
     }   
-    
+     
 
 
     addTodoFromInput = (todo:Todo) : void => {
@@ -306,7 +306,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         if(this.state.currentTodo.length===0){
 
 
-            this.removeTodo(todo._id);
+            this.removeTodo(todo);
 
         }else{  
  
@@ -458,7 +458,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
             let remaining = daysRemaining(day);
                 
-            if(remaining>0){
+            if(remaining>=0){
 
                 this.setState({ 
                     showCalendar:false, deadline:day 

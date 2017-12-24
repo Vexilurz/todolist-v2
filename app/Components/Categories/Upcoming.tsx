@@ -147,17 +147,22 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         else if(nextProps.selectedTag!==this.props.selectedTag)
             this.updateCalendarObjects();
 
-    }
- 
+    } 
+    
 
     updateCalendarObjects = () => {
         let n = this.state.objects.length;
-        this.setState(
-            {objects:[], tags:[]}, 
-            () => this.setState(this.generateCalendarObjects(n))
+        this.setState( 
+            {objects:[]}, 
+            () => {
+                
+                let {objects,tags} = this.generateCalendarObjects(n);
+                this.setState({objects}); 
+            
+            }
         );
     }
- 
+  
 
     generateCalendarObjects = (n) : {
        objects : { date : Date, todos:Todo[], projects:Project[] }[],
@@ -195,13 +200,13 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 todos : [], 
                 projects : [] 
             }
-
+ 
             let key = keyFromDate(range[i]);
 
             let entry : any[] = objectsByDate[key];
-
+ 
             if(entry===undefined){
-
+ 
                objects.push(object);
 
             }else{

@@ -51,7 +51,7 @@ export class Listeners {
 
                     let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
 
-                    let width = 40*(workingArea.width/100);  
+                    let width = 50*(workingArea.width/100);  
                     let height = 80*(workingArea.height/100); 
 
                     let newWindow = initWindow({width, height, transparent:false}); 
@@ -68,7 +68,7 @@ export class Listeners {
                             type:"clone",  
                             load:storeWithId  
                         });
-                        newWindow.webContents.openDevTools();    
+                        //newWindow.webContents.openDevTools();    
                     });      
 
                 } 

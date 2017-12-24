@@ -52,8 +52,8 @@ export class ContainerHeader extends Component<ContainerHeaderProps,ContainerHea
                     paddingLeft: "10px",
                     WebkitUserSelect: "none",
                     cursor:"default" 
-                }}>   
-                    {uppercase(this.props.selectedCategory)}
+                }}>    
+                    {uppercase(this.props.selectedCategory==="anytime" ? "next" : this.props.selectedCategory)}
                 </div> 
             
             </div> 

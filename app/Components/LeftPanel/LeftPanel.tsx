@@ -184,18 +184,19 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                         toggleWindowSize={this.toggleWindowSize}
                         leftPanelWidth={this.props.leftPanelWidth}
                     /> 
- 
+                    {this.props.clone ? null : 
                     <div> 
-                        <LeftPanelMenu  
+                        <LeftPanelMenu   
                             dispatch={this.props.dispatch}
                             inbox={inbox} 
                             today={today} 
                             hot={hot} 
                         />    
                     </div>
+                    } 
  
-                    { 
-                        this.props.areas.length===0 ? null:
+                    { this.props.clone ? null :
+                        //this.props.areas.length===0 ? null:
                         <div  className={"leftPanelScroll"}
                             id="areas" 
                             style={{
@@ -212,8 +213,8 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                                 projects={this.props.projects} 
                             />
                         </div> 
-                    } 
-
+                    }  
+ 
                     { 
                         !this.props.openNewProjectAreaPopup ? null :
                         <NewProjectAreaPopup 

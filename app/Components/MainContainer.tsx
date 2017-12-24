@@ -118,8 +118,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     }
                 })  
                   
-            }
-        ) 
+            } 
+        )  
 
     } 
  
@@ -140,17 +140,17 @@ export class MainContainer extends Component<Store,MainContainerState>{
     componentDidMount(){
 
 
-        destroyEverything().then(() => { 
+        /*destroyEverything().then(() => { 
                 
                 initDB();
 
                 let fakeData = generateRandomDatabase({
-                    todos : 30,  
-                    events : 3, 
-                    projects : 20,  
-                    areas : 6 
+                    todos : 0,  
+                    events : 0, 
+                    projects : 0,  
+                    areas : 0 
                 });  
-
+ 
                 console.log("fakeData", fakeData); 
                   
                 let todos = fakeData.todos;
@@ -163,14 +163,14 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     Promise.all(events.map( (e:Event) => addEvent(this.onError,e) )),
                     Promise.all(projects.map( (p:Project) => addProject(this.onError,p) )),
                     Promise.all(areas.map( (a:Area) => addArea(this.onError,a) ))
-                ]).then(
+                ]).then( 
                     () => this.fetchData()  
                 ) 
                   
-        })  
+        })*/  
 
         
-
+        this.fetchData()  
         window.addEventListener("resize", this.updateWidth);
 
         window.addEventListener("click", this.closeRightClickMenu); 
@@ -243,11 +243,15 @@ export class MainContainer extends Component<Store,MainContainerState>{
         //attach to project
         //attach to area
         //etc
+ 
+        if(this.props.selectedCategory==="trash")
+           return;
+
 
         e.stopPropagation(); 
 
         let id = generateId();
-
+ 
         let todo : Todo = {    
             _id : id,
             type:"todo",
@@ -305,15 +309,49 @@ export class MainContainer extends Component<Store,MainContainerState>{
  
     selectFooterButtons = () => {
 
-        return [  
-            "NewTodo" , 
-            "Calendar" , 
-            "Arrow" , 
-            "Search",  
-            this.props.selectedCategory==="project" ? "Heading" : undefined,
-            this.props.selectedTodoId!==null ? "Trash" : undefined 
-        ].filter( v => !!v)
- 
+        if(this.props.selectedCategory==="project"){
+            return [
+                "NewTodo",
+                "Heading",
+                this.props.selectedTodoId!==null ? "Trash" : undefined,
+                this.props.selectedTodoId!==null ? "Arrow" : undefined,
+                this.props.selectedTodoId!==null ? "Calendar" : undefined,
+                "Search"  
+            ].filter( v => !!v) 
+        }else if(this.props.selectedCategory==="area"){
+            return [
+                "NewTodo",
+                this.props.selectedTodoId!==null ? "Trash" : undefined,
+                this.props.selectedTodoId!==null ? "Arrow" : undefined,
+                this.props.selectedTodoId!==null ? "Calendar" : undefined,
+                "Search"  
+            ].filter( v => !!v)  
+        }else if(this.props.selectedCategory==="trash"){
+            return ["Search"]
+        }else if(this.props.selectedCategory==="logbook"){
+            return [
+                this.props.selectedTodoId!==null ? "Trash" : undefined,
+                this.props.selectedTodoId!==null ? "Arrow" : undefined,
+                this.props.selectedTodoId!==null ? "Calendar" : undefined,
+                "Search"   
+            ].filter( v => !!v) 
+        }else if(this.props.selectedCategory==="upcoming"){
+            return [
+                this.props.selectedTodoId!==null ? "Trash" : undefined,
+                this.props.selectedTodoId!==null ? "Arrow" : undefined,
+                this.props.selectedTodoId!==null ? "Calendar" : undefined,
+                "Search"   
+            ].filter( v => !!v)   
+        }else{
+            return [
+                "NewTodo",
+                this.props.selectedTodoId!==null ? "Trash" : undefined,
+                this.props.selectedTodoId!==null ? "Arrow" : undefined,
+                this.props.selectedTodoId!==null ? "Calendar" : undefined,
+                "Search"  
+            ].filter( v => !!v)  
+        }
+  
     }
 
 

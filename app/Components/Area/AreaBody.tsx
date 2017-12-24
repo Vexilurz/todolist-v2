@@ -47,11 +47,8 @@ interface AreaBodyProps{
  
  
    
-interface AreaBodyState{
-    selectedProjects : Project[],
-    selectedTodos : Todo[] 
-} 
-
+interface AreaBodyState{} 
+ 
  
  
 export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
@@ -62,60 +59,53 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
  
         super(props);
 
-        this.state = {
-            selectedProjects : [],
-            selectedTodos : [] 
-        }
+        this.state = {};
          
     }
     
-
+ 
 
     shouldComponentUpdate(nextProps:AreaBodyProps, nextState:AreaBodyState){ 
         
-        return true;    
+        let should = false; 
+        
+        if(nextProps.area!==this.props.area) 
+           should = true;
+
+        if(nextProps.projects!==this.props.projects)
+           should = true;
+
+        if(nextProps.todos!==this.props.todos)
+           should = true;  
+
+        if(nextProps.tags!==this.props.tags)  
+           should = true;
+
+
+        return should;    
     
     }     
  
 
 
-    componentDidMount(){  
-         
-        this.setState({  
-            selectedProjects : this.selectProjects(this.props),
-            selectedTodos : this.selectTodos(this.props)
-        }); 
-
-    } 
-
-
-         
-    componentWillReceiveProps(nextProps:AreaBodyProps){
- 
-        this.setState({  
-            selectedProjects : this.selectProjects(nextProps),
-            selectedTodos : this.selectTodos(this.props)
-        }); 
-
-    } 
-         
-   
-
     selectTodos = (props:AreaBodyProps) : Todo[] => { 
  
         let todosIds : string[] = props.area.attachedTodosIds;
 
-        return props.todos.filter( (t:Todo) => todosIds.indexOf(t._id)!==-1 );
+        return props.todos.filter( v => !!v).filter( (t:Todo) => todosIds.indexOf(t._id)!==-1 );
         
     }
 
 
+
     selectProjects = (props:AreaBodyProps) : any[] => { 
+
+
         
         let projectsIds : string[] = props.area.attachedProjectsIds;
 
-        return props.projects.filter( (p:Project) => projectsIds.indexOf(p._id)!==-1 );
-         
+        return props.projects.filter( v => !!v).filter( (p:Project) => projectsIds.indexOf(p._id)!==-1 );
+          
     }
          
 
@@ -169,8 +159,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         return false; 
 
     } 
-        
-                
+                 
                     
         
     shouldCancelAnimation = (e) => {
@@ -204,15 +193,18 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
           
     }
 
-
- 
+    
+    
     render(){
+
+        let selectedProjects = this.selectProjects(this.props);
+        let selectedTodos = this.selectTodos(this.props);
 
         return <div>  
             <div style={{paddingTop:"20px", paddingBottom:"20px"}}> 
                 <SortableList
                     getElement={this.getElement}
-                    items={this.state.selectedProjects}
+                    items={selectedProjects}
                     container={this.props.rootRef ? this.props.rootRef : document.body}
                     shouldCancelStart={this.shouldCancelStart} 
                     shouldCancelAnimation={this.shouldCancelAnimation}
@@ -227,11 +219,11 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                     lock={false} 
                 />
             </div>      
-
+ 
             <div style={{paddingTop:"20px", paddingBottom:"20px"}}> 
                 <SortableList
                     getElement={this.getElement}
-                    items={this.state.selectedTodos}  
+                    items={selectedTodos}  
                     container={this.props.rootRef ? this.props.rootRef : document.body}
                     shouldCancelStart={this.shouldCancelStart}
                     shouldCancelAnimation={this.shouldCancelAnimation}

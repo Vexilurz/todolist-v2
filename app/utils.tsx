@@ -924,14 +924,21 @@ export let getDatesRange = (start : Date, days : number, includeStart : boolean,
     
     return dates; 
      
+} 
+
+
+
+export let keyFromDate = (date) => {
+    let year = date.getFullYear();
+    let day = date.getDate();
+    let month = date.getMonth();
+
+    return [year,month+1,day].join('-');
+    //"2017-12-24"
 }
+//date.toISOString().split('T')[0];
 
-
-
-
-export let keyFromDate = (date:Date) : string => date.toISOString().split('T')[0];
-
-
+ 
 
 
 export let splitEvery = (n, array)  => {
@@ -991,13 +998,13 @@ export let randomArrayMember = (array : any[]) => {
 export let generateEmptyProject = () : Project => ({
     _id : generateId(), 
     type : "project", 
-    name : "New project",
-    description : "Project description...",
+    name : "", 
+    description : "",
     layout : [], 
     priority : Math.random() * 9999999999,
     deleted : undefined,
     created : new Date(), 
-    deadline : null,
+    deadline : null, 
     completed : null, 
     attachedTodosIds : [], 
     attachedTags : []
@@ -1007,11 +1014,11 @@ export let generateEmptyProject = () : Project => ({
   
 export let generateEmptyArea = () : Area => ({
     _id : generateId(),
-    name : "New area",
+    name : "",
     priority : Math.random() * 9999999999,
     deleted : undefined, 
-    type : "area",
-    description : "Area description",
+    type : "area", 
+    description : "",
     attachedTags : [], 
     attachedTodosIds : [],  
     attachedProjectsIds : [],

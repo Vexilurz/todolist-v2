@@ -52,17 +52,18 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
  
     onComplete = (e) => {
         
-        let todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId); 
+        let todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId ); 
 
         if(!todo) 
            return;  
-        
-        this.props.dispatch({ type:"updateTodo", load:{ ...todo, ...{completed:new Date()} } });
-    
+         
+        this.props.dispatch({ type:"updateTodo", load:{ ...todo, ...{completed:new Date()}, checked:true } });
+     
     } 
 
 
     onConvertToProject = (e) => { 
+
         let todo : Todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId); 
         let todos = todo.checklist.map( 
             (c : ChecklistItem) : Todo =>  ({ 
@@ -105,10 +106,12 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         };
         
         this.props.dispatch({ type:"removeTodo", load:todo._id });
+        this.props.dispatch({ type:"addTodos", load:todos });
         this.props.dispatch({ type:"newProject", load:converted });
+
     }
  
-
+      
 
     onRemoveFromProjectArea = (e) => {
         let projectSelected : boolean = this.props.selectedCategory==="project" && 
@@ -119,20 +122,37 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                            
                            
         if(projectSelected){
-            
+              
             let project = this.props.projects.find((p:Project) => p._id===this.props.selectedProjectId);
 
-            let ids = project.attachedTodosIds;
-            let idx = ids.indexOf(this.props.rightClickedTodoId);
+            if(!project)
+               return; 
 
-            this.props.dispatch({type:"updateProject", load:{...project, attachedTodosIds:remove(ids, idx)}});
+            let attachedTodosIds = [...project.attachedTodosIds]; 
+            let idx = attachedTodosIds.indexOf(this.props.rightClickedTodoId);
+
+            if(idx===-1)
+               return;
+
+            attachedTodosIds = remove(attachedTodosIds,idx); 
+            
+            let layoutIdx = project.layout.findIndex( i => i===this.props.selectedProjectId );
+            let layout = remove(project.layout,layoutIdx);
+ 
+            this.props.dispatch({type:"updateProject", load:{...project, attachedTodosIds, layout}});
 
         }else if(areaSelected){
 
-            let area = this.props.areas.find((a:Area) => a._id===this.props.selectedAreaId)
+            let area = this.props.areas.find((a:Area) => a._id===this.props.selectedAreaId);
+
+            if(!area)
+               return;
 
             let ids = area.attachedTodosIds;
             let idx = ids.indexOf(this.props.rightClickedTodoId);
+
+            if(idx===-1)
+               return;
  
             this.props.dispatch({type:"updateArea", load:{...area, attachedTodosIds:remove(ids,idx)}});
 

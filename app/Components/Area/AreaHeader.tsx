@@ -38,7 +38,7 @@ interface AreaHeaderProps{
     name:string, 
     selectedAreaId:string,
     areas:Area[],
-    updateAreatName:(value:string) => void,
+    updateAreaName:(value:string) => void,
     dispatch:Function  
 }
   
@@ -47,11 +47,11 @@ interface AreaHeaderProps{
   
 interface AreaHeaderState{
     menuAnchor:HTMLElement,
-    openMenu:boolean  
-}
-  
-
-
+    openMenu:boolean,
+    name:string   
+} 
+   
+ 
 
 export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
 
@@ -61,15 +61,42 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
     constructor(props){ 
          
         super(props);
-
+        
         this.state = {
             menuAnchor:null,
-            openMenu:false  
+            openMenu:false,
+            name:this.props.name   
         }; 
- 
+   
     }  
 
-   
+
+
+    shouldComponentUpdate(nextProps, nextState){
+        
+        let should = false;  
+
+        if(this.state.menuAnchor!==nextState.menuAnchor)
+           should = true;
+
+        if(this.state.openMenu!==nextState.openMenu)
+           should = true;
+
+        if(this.state.name!==nextState.name)
+           should = true; 
+             
+        if(nextProps.name!==this.props.name)
+           should = true;
+
+        if(nextProps.selectedAreaId!==this.props.selectedAreaId)
+           should = true;
+          
+        return should;    
+
+    } 
+
+
+
 
     componentDidMount(){ 
   
@@ -99,7 +126,7 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
     onAddTags = () => {
 
     }
-
+ 
 
 
     onDeleteArea = () => {
@@ -115,15 +142,18 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
 
  
   
-    shouldComponentUpdate(nextProps){
-  
-        return true;    
+    updateAreaName = (event) => { 
 
+        this.setState(
+            {name:event.target.value},  
+            () => this.props.updateAreaName(this.state.name) 
+        ); 
+    
     }
   
     
-    
-    render(){
+     
+    render(){ 
      
     
      return <div>  
@@ -165,10 +195,10 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
                             border: "none",
                             fontSize: "26px",
                             outline: "none"  
-                        }} 
-                        value={this.props.name}
-                        placeholder="New Area"
-                        onChange={event => this.props.updateAreatName(event.target.value)} 
+                        }}     
+                        value={this.state.name}
+                        placeholder="New Area" 
+                        onChange={this.updateAreaName} 
                     />  
                 </div>   
 

@@ -29,6 +29,7 @@ import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeading } from './ProjectHeading'; 
 import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';
+import { RightClickMenu } from '../RightClickMenu';
 
 
 
@@ -69,7 +70,7 @@ let layoutOrderChanged = (before:LayoutItem[], after:LayoutItem[]) : boolean => 
 
 }
 
-
+ 
 
 interface ProjectBodyProps{
     layout:LayoutItem[],
@@ -116,10 +117,10 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         if(nextProps.tags !== this.props.tags)
            should = true; 
-
-
+ 
+ 
         return should; 
-    
+     
     }   
 
 
@@ -254,7 +255,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         this.props.updateLayout(moved);      
              
     } 
-
+ 
  
 
     onSortMove = ( e : any, helper : HTMLElement ) => {
@@ -271,9 +272,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
     render(){
         
-        let items = this.selectItems(this.props.layout, this.props.todos);
+        let items = this.selectItems(this.props.layout, this.props.todos.filter( t => !t.deleted));
 
-        return <div> 
+        return <div>  
 
             <SortableList 
                 getElement={this.getElement}
@@ -292,7 +293,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 useDragHandle={false}
                 lock={false} 
             />
-
+        
+            {/*<RightClickMenu {...{} as any}/>*/}
+             
         </div>
 
     }
