@@ -233,8 +233,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                     paddingLeft: "5px", 
                     WebkitUserSelect: "none",
                     fontWeight: "bolder", 
-                    color: "rgba(100, 100, 100, 1)" 
-                }}>   
+                    color: "rgba(0, 0, 0, 0.8)" 
+                }}>    
                     {
                         a.name.length===0 ? 
                         "New Area" : 
@@ -310,8 +310,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                         style={{  
                             paddingLeft:"5px",
                             fontFamily: "sans-serif",
-                            fontWeight: 600, 
-                            color: "rgba(100,100,100,0.7)",
                             fontSize:"15px",  
                             whiteSpace: "nowrap",
                             cursor: "default",

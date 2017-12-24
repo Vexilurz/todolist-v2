@@ -100,8 +100,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     }
  
 
-
-    shouldComponentUpdate(nextProps, nextState){
+ 
+    shouldComponentUpdate(nextProps:ProjectComponentProps, nextState:ProjectComponentState){
 
         let shouldUpdate = false;
         
@@ -134,20 +134,20 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
 
 
-    updateProjectName = (value:string) : void => {
-
+    updateProjectName = debounce((value:string) : void => {
+        console.log("updateProjectName"); 
         this.updateProject(this.state.project, {name:value});
-
-    }  
-
-
-
-    updateProjectDescription = (value:string) : void => {
-
-        this.updateProject(this.state.project, {description:value});
  
-    }
-    
+    }, 1000)    
+
+ 
+
+    updateProjectDescription = debounce((value:string) : void => {
+        console.log("updateProjectDescription"); 
+        this.updateProject(this.state.project, {description:value});
+  
+    }, 1000)
+       
 
   
     updateLayout = (layout:LayoutItem[]) => {

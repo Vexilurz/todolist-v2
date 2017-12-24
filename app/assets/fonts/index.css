@@ -1,25 +1,46 @@
-* {
-    font-family: Roboto, sans-serif !important;  
-  } 
+    * {
+        font-family:OpenSans, sans-serif !important; 
+    }  
+
+    @font-face {
+        font-family: 'Roboto';
+        src: url('Roboto-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: 'Roboto';
+        src: url('Roboto-Italic.ttf') format('truetype');
+        font-weight: normal;
+        font-style: italic;
+    }
+ 
+    @font-face {
+        font-family: 'Roboto';
+        src: url('Roboto-Bold.ttf') format('truetype');
+        font-weight: bold;
+        font-style: normal;
+    }
   
-  @font-face {
-      font-family: 'Roboto';
-      src: url('Roboto-Regular.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-  }
-  
-  @font-face {
-      font-family: 'Roboto';
-      src: url('Roboto-Italic.ttf') format('truetype');
-      font-weight: normal;
-      font-style: italic;
-  }
-  
-  @font-face {
-      font-family: 'Roboto';
-      src: url('Roboto-Bold.ttf') format('truetype');
-      font-weight: bold;
-      font-style: normal;
-  }
-  
+    
+    @font-face {
+        font-family: 'OpenSans';
+        src: url('OpenSans-Bold.ttf') format('truetype');
+        font-weight: 700;
+        font-style: normal;
+    }
+ 
+    @font-face {
+        font-family: 'OpenSans';
+        src: url('OpenSans-SemiBold.ttf') format('truetype');
+        font-weight: 500;
+        font-style: normal;
+    }
+
+    @font-face {  
+        font-family: 'OpenSans';
+        src: url('OpenSans-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }

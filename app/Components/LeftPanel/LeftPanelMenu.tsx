@@ -77,14 +77,24 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
                     WebkitUserSelect:"none"  
                 }}>
                     {this.props.icon}
-                </div>
-                <div style={{
-                    height:"100%",  
-                    display:"flex",
-                    alignItems:"center",
-                    WebkitUserSelect:"none"   
-                }}> 
-                    {this.props.title}
+                </div>  
+                <div style={{    
+                    position: "relative",
+                    height: "100%",
+                    width: "0px"
+                }}>
+                    <div style={{
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        transform: "scale(0.3, 0.3)",
+                        fontWeight: 500,
+                        fontSize: "53px",  
+                        color: "rgba(10, 10, 10, 0.9)", 
+                        WebkitUserSelect:"none"   
+                    }}>     
+                        {this.props.title}
+                    </div>
                 </div>
             </div>
 

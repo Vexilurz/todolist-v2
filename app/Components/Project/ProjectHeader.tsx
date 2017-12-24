@@ -43,7 +43,9 @@ interface ProjectHeaderProps{
 
   
 interface ProjectHeaderState{
-    projectMenuPopoverAnchor:HTMLElement 
+    projectMenuPopoverAnchor:HTMLElement,
+    name:string,
+    description:string  
 }
   
 
@@ -57,11 +59,13 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
          
         super(props);
         this.state = {
-            projectMenuPopoverAnchor:null 
+            projectMenuPopoverAnchor:null,
+            name:this.props.name,
+            description:this.props.description    
         }
  
-    }  
-
+    }   
+ 
  
 
     componentDidMount(){
@@ -76,15 +80,45 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
 
     }
  
+   
  
- 
-    shouldComponentUpdate(nextProps:ProjectHeaderProps){
+    shouldComponentUpdate(nextProps:ProjectHeaderProps, nextState:ProjectHeaderState){
+
+        let should = false; 
+
+        if(this.props.name!==nextProps.name)
+            should = true;
+        if(this.props.description!==nextProps.description)
+            should = true;
+
+        if(this.state.name!==nextState.name)
+            should = true; 
+        if(this.state.description!==nextState.description)
+            should = true;      
+            
+        if(this.props.created!==nextProps.created)
+            should = true;
+        if(this.props.deadline!==nextProps.deadline)
+            should = true;
+        if(this.props.completed!==nextProps.completed)
+            should = true;
   
-        return true;    
+ 
+        return should;    
 
     }
  
 
+
+    updateProjectName = (value : string) => {
+        this.setState({name:value}, () => this.props.updateProjectName(value));
+
+    }
+
+    updateProjectDescription = (newValue : string) => {
+        this.setState({description:newValue}, () => this.props.updateProjectDescription(newValue)); 
+    }
+ 
 
     openMenu = (e) => this.props.dispatch({type:"showProjectMenuPopover", load:true})
    
@@ -122,8 +156,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         position: "relative"
                     }}>  
                         <PieChart
-                            animate={true}   
-                            //radius={50}  
+                            animate={true}    
                             totalValue={days}
                             data={[{  
                                 value:days-remaining,  
@@ -158,10 +191,10 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                             border: "none",
                             fontSize: "26px",
                             outline: "none"  
-                        }} 
-                        value={this.props.name}
-                        placeholder="New Project"
-                        onChange={event => this.props.updateProjectName(event.target.value)} 
+                        }}  
+                        value={this.state.name}
+                        placeholder="New Project"  
+                        onChange={(e) => this.updateProjectName(e.target.value)} 
                     />  
                 </div>  
 
@@ -196,10 +229,10 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             <TextField   
                 id = {"project_notes"}
                 hintText = "Notes"   
-                defaultValue = {this.props.description}    
+                defaultValue = {this.state.description}    
                 multiLine = {true}  
                 fullWidth = {true}   
-                onChange = {(event, newValue:string) => this.props.updateProjectDescription(newValue)} 
+                onChange = {(event, newValue:string) => this.updateProjectDescription(newValue)} 
                 rows = {4}   
                 inputStyle = {{color:"rgba(100,100,100,0.7)", fontSize:"15px"}}   
                 underlineFocusStyle = {{borderColor: "rgba(0,0,0,0)"}}    

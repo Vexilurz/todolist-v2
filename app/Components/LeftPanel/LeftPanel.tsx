@@ -186,12 +186,12 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                     /> 
  
                     <div> 
-                        <LeftPanelMenu 
+                        <LeftPanelMenu  
                             dispatch={this.props.dispatch}
                             inbox={inbox} 
                             today={today} 
                             hot={hot} 
-                        />   
+                        />    
                     </div>
  
                     { 
@@ -251,7 +251,14 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             }}
                         >     
 
-                            <div ref = {(e) => {this.newProjectAnchor=e}} >
+                            <div 
+                                style={{ 
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center" 
+                                }}
+                                ref = {(e) => {this.newProjectAnchor=e}} 
+                            >
                                 <Plus    
                                     style = {{     
                                         color:"rgb(79, 79, 79)",

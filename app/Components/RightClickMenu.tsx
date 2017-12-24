@@ -163,7 +163,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
  
         let areaSelected = this.props.selectedCategory==="area" && 
                            !!this.props.selectedAreaId;                       
-            
+             
 
         let canWhen = false; 
         let canMove = false; 
@@ -213,28 +213,36 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             title={"When..."} 
                             onClick={this.onWhen}
                             disabled={!canWhen}
-                            icon={<p style={{ margin: "0px", fontWeight: 600 }}> &#8984; S </p>}
+                            icon={null
+                            //<p style={{ margin: "0px", fontWeight: 600 }}> &#8984; S </p>
+                            }
                         />
 
                         <RightClickMenuItem 
                             title={"Move..."}
                             onClick = {this.onMove}
                             disabled = {!canMove}
-                            icon = { <p style={{ margin: "0px", fontWeight: 600 }}> &#8679;&#8984; M </p> }
+                            icon = {null 
+                            //<p style={{ margin: "0px", fontWeight: 600 }}> &#8679;&#8984; M </p> 
+                            }
                         />
 
                         <RightClickMenuItem 
                             title={"Complete"} 
                             onClick = {this.onComplete}
                             disabled = {!canComplete}
-                            icon = {<ArrowDropRight style={{padding: 0, margin: 0}}/>}
+                            icon = {null
+                            //<ArrowDropRight style={{padding: 0, margin: 0}}/>
+                            }
                         />
 
                         <RightClickMenuItem 
                             title = {"Shortcuts"}
                             onClick = {this.onShortcuts}
                             disabled = {!canShortcuts}
-                            icon={<ArrowDropRight style={{padding: 0, margin: 0}}/>}
+                            icon={null
+                            //<ArrowDropRight style={{padding: 0, margin: 0}}/>
+                            }
                         />
  
                         <div style={{
@@ -248,7 +256,9 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             title={"Repeat..."} 
                             onClick = {this.onRepeat}
                             disabled={!canRepeat}
-                            icon={<p style={{margin: "0px", fontWeight: 600}}>&#8679;&#8984;R </p>} 
+                            icon={null
+                            //<p style={{margin: "0px", fontWeight: 600}}>&#8679;&#8984;R </p>
+                            } 
                         />
                                 
 
@@ -256,7 +266,9 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             title={"Duplicate To-Do"}
                             onClick = {this.onDuplicate}
                             disabled = {!canDuplicate}
-                            icon={<p style={{margin: "0px", fontWeight: 600,}}>&#8984;D</p>}
+                            icon={null
+                            //<p style={{margin: "0px", fontWeight: 600,}}>&#8984;D</p>
+                            }
                         />
            
 
@@ -264,7 +276,9 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             title={"Convert to Project"}
                             onClick = {this.onConvertToProject}
                             disabled = {!canConvert}
-                            icon={<p style={{margin: "0px", fontWeight: 600,}}>&#8984;D</p>}
+                            icon={null
+                            //<p style={{margin: "0px", fontWeight: 600,}}>&#8984;D</p>
+                            }
                         />
 
 
@@ -272,7 +286,9 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             title={"Delete To-Do"}
                             onClick = {this.onDeleteToDo}
                             disabled = {!canDelete}
-                            icon={<ClearArrow  style={{padding:0, margin:0, height:"14px"}}/>}
+                            icon={null
+                            //<ClearArrow  style={{padding:0, margin:0, height:"14px"}}/>
+                            }
                         />
 
                         <div style={{

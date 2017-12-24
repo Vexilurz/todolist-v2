@@ -202,30 +202,33 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                     display:"flex",   
                  }} 
             >  
-                <div  onClick={(e) => this.onChecklistItemCheck(e, value.key)}
-                    style={{
-                        backgroundColor:value.checked ? 'rgb(10, 100, 240)' : '',
-                        width:"15px",  
-                        height:"14px",
-                        borderRadius:"50px",
-                        display:"flex",
-                        justifyContent:"center",
-                        position:"relative", 
-                        border:value.checked ? '' : "2px solid rgb(10, 100, 240)",
-                        boxSizing:"border-box",
-                        marginRight:"5px",
-                        marginLeft:"5px" 
-                    }}   
-                >       
+ 
+                <div>
+                    <div  onClick={(e) => this.onChecklistItemCheck(e, value.key)}
+                        style={{
+                            backgroundColor:value.checked ? 'rgb(10, 100, 240)' : '',
+                            width:"15px",  
+                            height:"15px",
+                            borderRadius:"50px",
+                            display:"flex",
+                            justifyContent:"center",
+                            position:"relative", 
+                            border:value.checked ? '' : "2px solid rgb(10, 100, 240)",
+                            boxSizing:"border-box",
+                            marginRight:"5px",
+                            marginLeft:"5px" 
+                        }}   
+                    >       
+                    </div>  
                 </div>  
-
+                 
                     <TextField  
                         id={value.key}
                         fullWidth={true}   
                         defaultValue={value.text}
                         hintStyle={{top:"3px", left:0, width:"100%", height:"100%"}}  
                         style={{height:"28px",cursor:"default"}}  
-                        inputStyle={{fontWeight:600, color:"rgba(100,100,100,1)", fontSize:"16px"}}   
+                        inputStyle={{color:"rgba(0,0,0,1)", fontSize:"16px"}}    
                         underlineFocusStyle={{borderColor: "rgba(0,0,0,0)"}}  
                         underlineStyle={{borderColor: "rgba(0,0,0,0)"}}   
                         onChange={(event, newText:string) => this.onChecklistItemChange(value.key, event, newText)}
@@ -235,7 +238,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
     
                     <DragHandle />
 
-            </div> 
+            </div>  
         </li>     
     }
 

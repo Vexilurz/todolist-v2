@@ -250,7 +250,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 onSortMove={this.onSortMove}  
                 onSortStart={this.onSortStart} 
                 lockToContainerEdges={false}
-                distance={3}  
+                distance={5}  
                 useDragHandle={false}
                 lock={false}
             /> 

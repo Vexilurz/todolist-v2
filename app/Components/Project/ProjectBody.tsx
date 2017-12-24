@@ -80,35 +80,47 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         
     componentWillReceiveProps(nextProps:ProjectBodyProps){
+ 
+        let should = false;
 
-        let selectedItems = this.selectItems(nextProps.layout, nextProps.todos);
+        if(nextProps.todos!==this.props.todos)
+           should=true; 
 
-        this.setState({selectedItems});
+        if(nextProps.layout!==this.props.layout)
+           should=true; 
+
+        if(nextProps.tags!==this.props.tags)
+           should=true;  
+
+        if(should){   
+
+            let selectedItems = this.selectItems(nextProps.layout, nextProps.todos);
+            this.setState({selectedItems});
+
+        }
 
     } 
         
     
         
     shouldComponentUpdate(nextProps:ProjectBodyProps, nextState:ProjectBodyState){ 
-    
-        let layoutChanged = nextProps.layout !== this.props.layout;
-        let todosChanged = nextProps.todos !== this.props.todos; 
-        let tagsChanged = nextProps.tags !== this.props.tags;
-        let selectedItemsChanged = nextState.selectedItems !== this.state.selectedItems; 
+
+        let should = false;
+
+        if(nextProps.layout !== this.props.layout)
+            should = true;
+
+        if(nextProps.todos !== this.props.todos) 
+            should = true;
+
+        if(nextProps.tags !== this.props.tags)
+            should = true;
+
+        if(nextState.selectedItems !== this.state.selectedItems) 
+            should = true;
+
          
-        if(layoutChanged)
-           return true; 
-
-        if(todosChanged) 
-           return true; 
-
-        if(tagsChanged)
-           return true; 
-
-        if(selectedItemsChanged)
-           return true;    
-
-        return false; 
+        return should; 
     
     }   
 
@@ -175,7 +187,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                             </div> 
 
             case "heading":    
-            
+             
                     return  <div style={{ 
                                 position:"relative", 
                                 paddingTop: "10px",
