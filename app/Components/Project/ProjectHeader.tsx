@@ -29,17 +29,19 @@ import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
 
+
+
 interface ProjectHeaderProps{
     name:string, 
     description:string,
-    created:Date,
-    deadline:Date,
-    completed:Date,
+    created:string,
+    deadline:string,
+    completed:string,
     updateProjectName:(value:string) => void,
     updateProjectDescription:(value:string) => void,
     dispatch:Function  
 }
-  
+   
 
   
 interface ProjectHeaderState{
@@ -48,20 +50,20 @@ interface ProjectHeaderState{
     description:string  
 }
   
-
+  
 
 export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderState>{
 
     projectMenuPopoverAnchor:HTMLElement;  
   
-
     constructor(props){ 
          
         super(props);
+
         this.state = {
             projectMenuPopoverAnchor:null,
             name:this.props.name,
-            description:this.props.description    
+            description:this.props.description  
         }
  
     }   
@@ -70,32 +72,48 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
 
     componentDidMount(){
 
-        if(this.projectMenuPopoverAnchor){
+        if(this.projectMenuPopoverAnchor)
+           this.setState({projectMenuPopoverAnchor:this.projectMenuPopoverAnchor});
  
-            this.setState({
-                projectMenuPopoverAnchor:this.projectMenuPopoverAnchor
-            })
-
-        }
-
     }
- 
+    
    
+
+    componentWillReceiveProps(nextProps:ProjectHeaderProps, nextState:ProjectHeaderState){
+
+        if(this.props.name!==nextProps.name)
+           this.setState({name:nextProps.name});
+
+
+        if(this.props.description!==nextProps.description)
+           this.setState({description:nextProps.description});
+           
+ 
+        if(!this.state.projectMenuPopoverAnchor && !!this.projectMenuPopoverAnchor)
+            this.setState({projectMenuPopoverAnchor:this.projectMenuPopoverAnchor});
+  
+    }    
+    
+      
  
     shouldComponentUpdate(nextProps:ProjectHeaderProps, nextState:ProjectHeaderState){
 
         let should = false; 
+ 
+        if(this.state.projectMenuPopoverAnchor!==nextState.projectMenuPopoverAnchor)
+           should = true;
 
         if(this.props.name!==nextProps.name)
             should = true;
         if(this.props.description!==nextProps.description)
-            should = true;
+            should = true;   
 
         if(this.state.name!==nextState.name)
             should = true; 
+            
         if(this.state.description!==nextState.description)
             should = true;      
-            
+
         if(this.props.created!==nextProps.created)
             should = true;
         if(this.props.deadline!==nextProps.deadline)
@@ -103,33 +121,36 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         if(this.props.completed!==nextProps.completed)
             should = true;
   
- 
+
         return should;    
 
     }
- 
-
+    
+    
 
     updateProjectName = (value : string) => {
         this.setState({name:value}, () => this.props.updateProjectName(value));
-
     }
+ 
 
-    updateProjectDescription = (newValue : string) => {
-        this.setState({description:newValue}, () => this.props.updateProjectDescription(newValue)); 
+
+    updateProjectDescription = (newValue : string) => {    
+        this.setState({description:newValue}, () => this.props.updateProjectDescription(newValue));
     }
+ 
  
 
     openMenu = (e) => this.props.dispatch({type:"showProjectMenuPopover", load:true})
    
 
-    render(){
-     
-     let days = diffDays(this.props.created,this.props.deadline);    
 
-     let remaining = daysRemaining(this.props.deadline);     
+    render(){ 
      
-     return <div>  
+        let days = diffDays(new Date(this.props.created),new Date(this.props.deadline));    
+
+        let remaining = daysRemaining(new Date(this.props.deadline));     
+      
+        return <div>  
 
             <ProjectMenuPopover {...{anchorEl:this.state.projectMenuPopoverAnchor} as any} />  
               
@@ -154,14 +175,14 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         alignItems: "center",
                         justifyContent: "center",
                         position: "relative"
-                    }}>  
+                    }}>   
                         <PieChart
                             animate={true}    
                             totalValue={days}
                             data={[{  
-                                value:days-remaining,  
-                                key:1,  
-                                color:'rgba(108, 135, 222, 0.8)' 
+                                value:this.props.completed ? days : (days-remaining),  
+                                key:1,   
+                                color:'rgba(108, 135, 222, 0.8)'  
                             }]}   
                             style={{ 
                                 width: "22px", 
@@ -175,8 +196,6 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     </div>
                 </div> 
                 
-
-
                 <div>
                     <AutosizeInput
                         type="text"
@@ -198,8 +217,6 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     />  
                 </div>  
 
-
-
                 <div    
                     onClick={this.openMenu}  
                     style={{ 
@@ -219,17 +236,12 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         }} />
                 </div> 
 
-
-
             </div>
 
-
-
-
-            <TextField   
-                id = {"project_notes"}
-                hintText = "Notes"   
-                defaultValue = {this.state.description}    
+            <TextField     
+                id = {"project_notes"} 
+                hintText = "Notes"     
+                value = {this.state.description}    
                 multiLine = {true}  
                 fullWidth = {true}   
                 onChange = {(event, newValue:string) => this.updateProjectDescription(newValue)} 
@@ -239,9 +251,6 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                 underlineStyle = {{borderColor: "rgba(0,0,0,0)"}}   
             />  
     
-
- 
-
         </div> 
     }
 

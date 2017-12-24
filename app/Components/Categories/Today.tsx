@@ -104,8 +104,8 @@ export class Today extends Component<TodayProps,TodayState>{
                         selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
                         tags={this.state.relevantTags}
                         selectedTag={this.props.selectedTag}
-                        show={showTags("today")} 
-                    /> 
+                        show={true} 
+                    />  
  
                        
                     <div   

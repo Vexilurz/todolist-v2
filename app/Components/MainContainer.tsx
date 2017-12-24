@@ -207,6 +207,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
         this.props.dispatch({type:"openSearch", load:true}); 
 
     }
+
+
    
     createHeading = (e) => {
 
@@ -214,10 +216,26 @@ export class MainContainer extends Component<Store,MainContainerState>{
            return;
 
         let id = this.props.selectedProjectId;
-        
-        
 
+        let heading = {
+            type : "heading", 
+            title : '',  
+            _id : generateId(), 
+            key : generateId()
+        }; 
+
+        let project = this.props.projects.find( (p:Project) => p._id===id );
+
+        if(!project)
+           return; 
+ 
+        let load = {...project, layout:[heading,...project.layout]};
+        
+        this.props.dispatch({ type:"updateProject", load });
+          
     }
+
+
 
     createNewTodo = (e) => { 
  
@@ -251,29 +269,32 @@ export class MainContainer extends Component<Store,MainContainerState>{
             attachments : []
         }  
 
+ 
         this.props.dispatch({type:"newTodo", load:todo});
+
  
         if(this.props.selectedCategory==="project"){ 
+
             this.props.dispatch({ 
                 type:"attachTodoToProject", 
                 load:{
                     projectId:this.props.selectedProjectId,
                     todoId:todo._id
-                }
+                } 
             });   
+
         }else if(this.props.selectedCategory==="area"){
+
             this.props.dispatch({ 
                 type:"attachTodoToArea", 
                 load:{
                     areaId:this.props.selectedAreaId,
                     todoId:todo._id
-                }   
-            });           
+                }     
+            });  
+
         }   
 
-
-
-         
  
         if(this.rootRef) 
            this.rootRef.scrollTop = 0; 

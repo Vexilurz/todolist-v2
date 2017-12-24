@@ -72,7 +72,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         
     }
 
-
+ 
  
     componentDidMount(){
 
@@ -82,14 +82,14 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
 
 
-    componentWillReceiveProps(nextProps:ProjectComponentProps){
+    componentWillReceiveProps(nextProps:ProjectComponentProps, nextState:ProjectComponentState){
  
         let selectProject = false;
+
 
         if(nextProps.projects!==this.props.projects)
            selectProject = true;
              
-
         if(nextProps.selectedProjectId!==this.props.selectedProjectId)   
            selectProject = true;
          
@@ -125,75 +125,63 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     updateProject = (selectedProject:Project, updatedProps) : void => { 
 
         let type = "updateProject"; 
-  
         let load = { ...selectedProject, ...updatedProps };
-
         this.props.dispatch({ type, load });
-
-    }
-
-
-
-    updateProjectName = debounce((value:string) : void => {
-        console.log("updateProjectName"); 
-        this.updateProject(this.state.project, {name:value});
- 
-    }, 1000)    
-
- 
-
-    updateProjectDescription = debounce((value:string) : void => {
-        console.log("updateProjectDescription"); 
-        this.updateProject(this.state.project, {description:value});
-  
-    }, 1000)
-       
-
-  
-    updateLayout = (layout:LayoutItem[]) => {
-
-        this.updateProject(this.state.project, {layout});
 
     } 
 
 
 
-    updateHeading = (heading_id:string, newValue:string) => {
+    updateProjectName = debounce((value:string) : void => {
 
+        this.updateProject(this.state.project, {name:value});
+ 
+    }, 200)  
+    
+    
+
+    updateProjectDescription = debounce((value:string) : void => {
+   
+        this.updateProject(this.state.project, {description:value});
+  
+    }, 200)
+
+    
+      
+    updateHeading = debounce((heading_id:string, newValue:string) => { 
+ 
         let layout = this.state.project.layout;
         let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
 
-        if(idx===-1){
-
-           throw new Error(`Item does not exist. ${heading_id} .updateHeading. ${layout}`) 
-
-        }
-
+        if(idx===-1)
+           throw new Error(`Item does not exist. ${heading_id} .updateHeading. ${layout}`); 
+ 
         let heading : Heading = {...layout[idx] as Heading} ;
-
         heading.title=newValue;
- 
         this.updateProject(this.state.project, {layout:replace(layout,heading,idx)});
- 
-    }
- 
+  
+    },200)
+  
 
 
+    updateLayout = (layout:LayoutItem[]) => {
+        
+        this.updateProject(this.state.project, {layout});
+
+    }  
+
+
+    
     archiveHeading = (heading_id:string) => {
 
-        let layout = this.state.project.layout;
-        let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
-
-        if(idx===-1){
-  
-           throw new Error(`Item does not exist. ${heading_id} .archiveHeading. ${layout}`) 
-
-        }
+        this.removeHeading(heading_id); 
 
     }
+
 
 
     moveHeading = (heading_id:string) => {}
+
 
 
     removeHeading = (heading_id:string) => {
@@ -211,18 +199,19 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     }
  
- 
-    render(){
 
-         return this.state.project===undefined ? null :
+ 
+    render(){ 
+ 
+        return  this.state.project===undefined ? null :
                 <div>  
                     <div>    
                         <ProjectHeader
                             name={this.state.project.name}
                             description={this.state.project.description}
-                            created={new Date(this.state.project.created)} 
-                            deadline={new Date(this.state.project.deadline)}
-                            completed={new Date(this.state.project.completed)}
+                            created={this.state.project.created as any}  
+                            deadline={this.state.project.deadline as any} 
+                            completed={this.state.project.completed as any} 
                             updateProjectName={this.updateProjectName}
                             updateProjectDescription={this.updateProjectDescription} 
                             dispatch={this.props.dispatch} 

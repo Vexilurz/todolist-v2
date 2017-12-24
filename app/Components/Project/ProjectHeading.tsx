@@ -28,9 +28,6 @@ import { uppercase, debounce } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 
 
- 
-  
-
 
 interface ProjectHeadingProps{
     heading : Heading,
@@ -40,56 +37,53 @@ interface ProjectHeadingProps{
     onRemove : (heading_id:string) => void
 }
 
-
+ 
 
 interface ProjectHeadingState{
-    open:boolean  
+    open:boolean
 }
-
  
+   
  
 export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeadingState>{
 
     actionsAnchor:HTMLElement; 
 
-    constructor(props){
+    constructor(props){ 
+
         super(props);
-        this.state = {
+
+        this.state = { 
             open:false
         }
+         
     }
 
- 
+
+
     render(){
         return <div>
 
         <div  
-            className="projectHeading"
-            style={{ 
-                display:"flex",  
-                alignItems:"center",
-                justifyContent: "space-between"
-            }}
-        >   
-            <div style={{
-                width:"100%",  
-                paddingLeft:"10px"
-            }}> 
+            className="projectHeading" 
+            style={{display:"flex", alignItems:"center", justifyContent: "space-between"}} 
+        >     
+            <div style={{ width:"100%", paddingLeft:"10px" }}> 
                 <div style={{display:"flex"}}>  
                     <TextField   
                         hintText = "Heading"     
                         id = {this.props.heading.key} 
                         defaultValue = {uppercase(this.props.heading.title)} 
-                        fullWidth = {true}  
+                        fullWidth = {true}   
                         onChange = {(event, newValue:string) => this.props.onChange(this.props.heading._id, newValue)}
                         inputStyle = {{fontWeight:600, color:"rgba(10,110,205,1)", fontSize:"16px"}}  
                         hintStyle = {{top:"3px", left:0, width:"100%", height:"100%"}}   
                         style = {{height:"28px"}}      
-                        underlineFocusStyle = {{borderColor: "rgba(0,0,0,0)"}}    
-                        underlineStyle = {{borderColor: "rgba(0,0,0,0)"}}  
+                        underlineFocusStyle = {{borderColor:"rgba(0,0,0,0)"}}    
+                        underlineStyle = {{borderColor:"rgba(0,0,0,0)"}}  
                     /> 
                 </div>  
-            </div>
+            </div> 
 
             <div   
                 onClick = {() => this.setState({open:true})}  

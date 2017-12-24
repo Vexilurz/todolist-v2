@@ -596,12 +596,24 @@ let applicationObjectsReducer = (state:Store, action) => {
             if(idx===-1)
                throw new Error("Attempt to update non existing object. updateProject.");
             updateProject(action.load._id,action.load, onError);   
-            newState = { 
-                ...state, 
-                selectedProjectId:action.load._id,
-                showProjectMenuPopover:false,
-                projects:replace(state.projects,action.load,idx)
-            }; 
+
+
+            if(!!action.load.deleted){
+                newState = { 
+                    ...state, 
+                    selectedProjectId:null,
+                    selectedCategory:"inbox", 
+                    showProjectMenuPopover:false, 
+                    projects:remove(state.projects, idx)
+                }; 
+            }else{
+                newState = {  
+                    ...state, 
+                    selectedProjectId:action.load._id,
+                    showProjectMenuPopover:false,
+                    projects:replace(state.projects,action.load,idx)
+                };  
+            };  
             break;    
 
              

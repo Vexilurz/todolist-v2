@@ -32,6 +32,45 @@ import { TodoInput } from '../TodoInput/TodoInput';
 
 
 
+
+
+let layoutOrderChanged = (before:LayoutItem[], after:LayoutItem[]) : boolean => {
+
+    if(before.length!==after.length)
+       return true;
+
+    for(let i=0; i<before.length; i++){
+        let beforeItem : LayoutItem = before[i];
+        let afterItem : LayoutItem = after[i];
+
+        if(typeof beforeItem !== typeof afterItem)
+           return true;
+
+        if(typeof beforeItem === "string"){
+
+            if(beforeItem !== afterItem)
+               return true;
+            else 
+               continue;
+
+        }else if(beforeItem.type==="heading"){
+ 
+            if(beforeItem["_id"] !== afterItem["_id"])
+               return true;
+            else  
+               continue;    
+
+        }
+
+    }
+
+
+    return false;   
+
+}
+
+
+
 interface ProjectBodyProps{
     layout:LayoutItem[],
     updateLayout:(layout:LayoutItem[]) => void,
@@ -47,9 +86,7 @@ interface ProjectBodyProps{
  
 
  
-interface ProjectBodyState{
-    selectedItems:any[] 
-} 
+interface ProjectBodyState{} 
 
 
  
@@ -61,65 +98,26 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         super(props);
 
-        this.state = { 
-            selectedItems : [] 
-        }
+        this.state = {};
 
     }
 
-
-
-    componentDidMount(){ 
-        
-        let selectedItems = this.selectItems(this.props.layout, this.props.todos);
-
-        this.setState({selectedItems}); 
-
-    }
-
-
-        
-    componentWillReceiveProps(nextProps:ProjectBodyProps){
- 
-        let should = false;
-
-        if(nextProps.todos!==this.props.todos)
-           should=true; 
-
-        if(nextProps.layout!==this.props.layout)
-           should=true; 
-
-        if(nextProps.tags!==this.props.tags)
-           should=true;  
-
-        if(should){   
-
-            let selectedItems = this.selectItems(nextProps.layout, nextProps.todos);
-            this.setState({selectedItems});
-
-        }
-
-    } 
-        
     
         
     shouldComponentUpdate(nextProps:ProjectBodyProps, nextState:ProjectBodyState){ 
 
         let should = false;
-
-        if(nextProps.layout !== this.props.layout)
-            should = true;
-
+ 
+        if(layoutOrderChanged(nextProps.layout,this.props.layout))
+           should = true;
+ 
         if(nextProps.todos !== this.props.todos) 
-            should = true;
+           should = true;
 
         if(nextProps.tags !== this.props.tags)
-            should = true;
+           should = true; 
 
-        if(nextState.selectedItems !== this.state.selectedItems) 
-            should = true;
 
-         
         return should; 
     
     }   
@@ -171,14 +169,17 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
     getElement = (value:Heading | Todo, index:number) : JSX.Element => { 
         
-        switch(value.type){
+        switch(value.type){ 
 
             case "todo":
 
-                    return  <div style={{position:"relative"}}> 
-                                <TodoInput   
+                    return  <div  
+                                key = {`${value["_id"]}-todo`}  
+                                style={{position:"relative"}}
+                            >  
+                                <TodoInput    
                                     id={value["_id"]} 
-                                    key = {value["_id"]} 
+                                    key={value["_id"]} 
                                     dispatch={this.props.dispatch}   
                                     tags={this.props.tags} 
                                     rootRef={this.props.rootRef} 
@@ -187,18 +188,21 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                             </div> 
 
             case "heading":    
-             
-                    return  <div style={{ 
-                                position:"relative", 
-                                paddingTop: "10px",
-                                paddingBottom: "10px"
-                            }}>
-                                <ProjectHeading 
-                                    heading = {value as Heading}
-                                    onChange = {this.props.updateHeading}
-                                    onArchive = {this.props.archiveHeading}
-                                    onMove = {this.props.moveHeading} 
-                                    onRemove = {this.props.removeHeading}
+              
+                    return  <div   
+                                key={`${value["_id"]}-heading`} 
+                                style={{ 
+                                    position:"relative", 
+                                    paddingTop:"10px", 
+                                    paddingBottom: "10px"
+                                }}         
+                            > 
+                                <ProjectHeading  
+                                    heading={value as Heading}
+                                    onChange={this.props.updateHeading}
+                                    onArchive={this.props.archiveHeading}
+                                    onMove={this.props.moveHeading} 
+                                    onRemove={this.props.removeHeading}
                                 />
                             </div> 
 
@@ -243,21 +247,12 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     
 
 
-    onSortEnd = ( data : Data, e : any ) => {
+    onSortEnd = ( data : Data, e : any ) => { 
 
-        this.setState( 
-            {
-                selectedItems:arrayMove([...this.state.selectedItems], data.oldIndex, data.newIndex)
-            }, 
-            () => {
-                let items : LayoutItem[] = this.state.selectedItems.map( 
-                  (item: Todo | Heading) : any => item.type==="todo" ? item._id : item 
-                );
- 
-                this.props.updateLayout(items);
-            }
-        )
-         
+        let moved = arrayMove(this.props.layout, data.oldIndex, data.newIndex);
+
+        this.props.updateLayout(moved);      
+             
     } 
 
  
@@ -275,12 +270,14 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
 
     render(){
- 
+        
+        let items = this.selectItems(this.props.layout, this.props.todos);
+
         return <div> 
 
-            <SortableList
+            <SortableList 
                 getElement={this.getElement}
-                items={this.state.selectedItems}
+                items={items}
                 
                 shouldCancelStart={this.shouldCancelStart}
                 shouldCancelAnimation={this.shouldCancelAnimation}  
@@ -291,7 +288,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 onSortStart={this.onSortStart}
 
                 lockToContainerEdges={false}
-                distance={3}
+                distance={5}
                 useDragHandle={false}
                 lock={false} 
             />

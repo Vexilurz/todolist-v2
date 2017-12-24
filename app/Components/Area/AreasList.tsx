@@ -287,8 +287,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                             <PieChart
                                 animate={true}    
                                 totalValue={days}
-                                data={[{  
-                                    value:days-remaining,  
+                                data={[{    
+                                    value:p.completed ? days : (days-remaining), 
                                     key:1,  
                                     color:"rgba(159, 159, 159, 1)" 
                                 }]}    

@@ -43,8 +43,8 @@ export class Footer extends Component<FooterProps,{}>{
 
 
     shouldComponentUpdate(nextProps:FooterProps){
-
-        return this.props.buttonsNamesToDispaly.length!==nextProps.buttonsNamesToDispaly.length; 
+ 
+        return true; 
       
     }  
 
@@ -60,14 +60,12 @@ export class Footer extends Component<FooterProps,{}>{
             backgroundColor: "white", 
             width: "70%",
             height: "60px"      
-        }}>
+        }}> 
 
             {  
                 this.props.buttonsNamesToDispaly.indexOf("NewTodo")===-1 ? null :
                 <IconButton  
                     onClick = {this.props.onNewTodoClick} 
-                    tooltip="New To-Do"
-                    tooltipPosition="top-center"
                     iconStyle={{ 
                         color:"rgb(79, 79, 79)", 
                         width:"25px", 
@@ -84,8 +82,6 @@ export class Footer extends Component<FooterProps,{}>{
                 this.props.buttonsNamesToDispaly.indexOf("Heading")===-1 ? null :
                 <IconButton  
                     onClick = {this.props.onHeadingClick} 
-                    tooltip="New heading"
-                    tooltipPosition="top-center" 
                     iconStyle={{ 
                         color:"rgb(79, 79, 79)", 
                         width:"25px", 
@@ -151,8 +147,6 @@ export class Footer extends Component<FooterProps,{}>{
             { 
                 this.props.buttonsNamesToDispaly.indexOf("Search")===-1 ? null :
                 <IconButton 
-                    tooltip="Search"
-                    tooltipPosition="top-center" 
                     onClick = {this.props.onSearchClick}
                     iconStyle={{  
                         color:"rgb(79, 79, 79)",

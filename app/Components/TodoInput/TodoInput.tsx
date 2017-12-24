@@ -255,25 +255,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let y = e.pageY;
 
         let inside = insideTargetArea(this.ref)(x,y);
-        /* 
-        let rect = this.ref.getBoundingClientRect();
-
-        
-
-        let bottom = rect.bottom;
-        
-        let top = rect.top;
-          
-
-        if( x>rect.left && x<rect.right ) 
-
-            if( y>rect.top && y<bottom )
-
-                inside = true;  
-        */      
-
-
-
 
         if(!inside){   
 
@@ -286,7 +267,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     {open:false}, 
                        
                     () => {
-
                         this.props.dispatch({type:"selectedTodoId", load:null});
                          
                         let todo : Todo = this.todoFromState();   
