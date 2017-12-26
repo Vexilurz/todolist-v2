@@ -5,15 +5,15 @@ import * as ReactDOM from 'react-dom';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton';  
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, 
-    showTags, debounce, byTags, byCategory 
+import { 
+    attachDispatchToProps, uppercase, insideTargetArea, 
+    chooseIcon, debounce, byTags, byCategory 
 } from "../utils";  
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects, getEvents, 
-    getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, removeProject, generateRandomDatabase, 
-    destroyEverything, addArea, addProject, addEvent, generateId } from '.././database';
-import { Footer } from '.././Components/Footer';
+import { getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects, 
+    getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, 
+    removeProject, destroyEverything, addArea, addProject, generateId, addTodos, addProjects, addAreas, Heading, LayoutItem } from '.././database';
 import { Store } from '.././App'; 
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import { AreaComponent } from './Area/Area';
@@ -27,22 +27,177 @@ import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { QuickSearch } from './Search';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
-
-
+import { generateRandomDatabase } from '../generateRandomObjects';
+import { isEmpty, last, isNil, contains } from 'ramda';
+import { isString } from 'util';
 
 
  
 export type Category = "inbox" | "today" | "upcoming" | "anytime" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | "deadline"; 
 
- 
-                       
+             
 
 interface MainContainerState{ 
     fullWindowSize:boolean
 }
+
+
+  
+let createHeading = (e, props:Store) : void => {
+    
+    if(props.selectedCategory!=="project"){
+        throw new Error(
+            `Attempt to create heading outside of project template. ${props.selectedCategory}. 
+            createHeading`
+        );
+    }  
+
+    let id : string = props.selectedProjectId;
+
+    if(isNil(id))
+       throw new Error(`selectedProjectId undefined ${id}. createHeading.`);
+
       
- 
+    let project = props.projects.find( (p:Project) => p._id===id );
+
+    if(!project){  
+        throw new Error(
+            `this.props.selectedProjectId ${props.selectedProjectId} do not correspond to existing project.
+            ${JSON.stringify(props.projects)}. createHeading`
+        );     
+    }
+
+    let priority = 0;
+
+    if(!isEmpty(project.layout)){
+        let item : LayoutItem = last(project.layout);
+
+        if(isString(item)){ 
+
+            let todo = props.todos.find( (t:Todo) => t._id===item );
+
+            if(todo.type!=="todo") 
+                throw new Error(`todo is not of type Todo. ${todo} item : ${item} createHeading `);
+
+            priority = todo.priority + 1; 
+            
+        }else if(item.type==="heading"){
+
+            let heading : Heading = item; 
+
+            if(heading.type!=="heading") 
+                throw new Error(`heading is not of type Heading. ${heading} createHeading `);
+
+            priority = heading.priority + 1;
+
+        }else{
+
+            throw new Error(`Selected item is not of type LayoutItem. ${item}. createHeading.`); 
+
+        }
+    }
+
+
+    let heading : Heading = {
+        type : "heading", 
+        priority,
+        title : '',  
+        _id : generateId(), 
+        key : generateId()
+    }; 
+
+    let load = {...project, layout:[heading,...project.layout]};
+    
+    props.dispatch({ type:"updateProject", load });
+        
+}
+
+
+
+let createNewTodo = (e, props:Store, rootRef:HTMLElement) : void => {   
+    
+    let allowedTodoCreation : Category[] = [
+        "inbox",
+        "today", 
+        "someday",
+        "anytime", 
+        "project", 
+        "area"
+    ] 
+
+    if(!contains(props.selectedCategory, allowedTodoCreation))
+        return; 
+
+
+    let id : string = generateId();
+    let priority : number = 0;
+
+    if(!isEmpty(props.todos)){
+        let first : Todo = props.todos[0];
+        priority = first.priority - 1; 
+    } 
+
+    let todo : Todo = {    
+        _id : id,
+        type:"todo",
+        category : props.selectedCategory,  
+        title : '', 
+        priority, 
+        reminder : null, 
+        checked : false,  
+        note : '',
+        checklist : [],   
+        attachedTags : [],
+        attachedDate : null,
+        deadline : null,
+        created : new Date(),  
+        deleted : null, 
+        completed : null
+    }  
+
+    props.dispatch({type:"addTodo", load:todo});
+
+    if(props.selectedCategory==="project"){ 
+        
+        let project : Project = props.projects.find( (p:Project) => p._id===props.selectedProjectId );
+
+        if(isNil(project)){ 
+            throw new Error( 
+              `Project with selectedProjectId does not exist.
+              ${props.selectedProjectId} ${project}. 
+              createNewTodo.`
+            )   
+        }     
+
+        props.dispatch({ 
+            type:"attachTodoToProject", 
+            load:{ projectId:project._id, todoId:todo._id } 
+        });    
+
+    }else if(props.selectedCategory==="area"){
+
+        let area : Area = props.areas.find( (a:Area) => a._id===props.selectedAreaId );
+         
+        if(isNil(area)){  
+            throw new Error(  
+                `Area with selectedAreaId does not exist.
+                ${props.selectedAreaId} ${area}. 
+                createNewTodo.` 
+            )   
+        }  
+
+        props.dispatch({ 
+            type:"attachTodoToArea", 
+            load:{ areaId:area._id, todoId:todo._id }      
+        });  
+
+    }    
+
+    if(rootRef) 
+       rootRef.scrollTop = 0; 
+
+} 
 
 
 
@@ -69,7 +224,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
     
     
 
-    openNewWindow = () => {
+    openNewWindow = () => { 
         
         let clonedStore = {...this.props};
 
@@ -103,20 +258,18 @@ export class MainContainer extends Component<Store,MainContainerState>{
         Promise.all([ 
             getTodos(this.onError)(true,this.limit),
             getProjects(this.onError)(true,this.limit), 
-            getAreas(this.onError)(true,this.limit),
-            getEvents(this.onError)(true,this.limit) 
+            getAreas(this.onError)(true,this.limit)
         ]).then( 
-            ([todos, projects, areas, events]) => {  
+            ([todos, projects, areas]) => {  
  
                 this.props.dispatch({
                     type:"setAllTypes", 
                     load:{ 
                         todos,
                         projects,
-                        areas,
-                        events
+                        areas
                     }
-                })  
+                })   
                   
             } 
         )  
@@ -125,54 +278,40 @@ export class MainContainer extends Component<Store,MainContainerState>{
  
 
 
-
     onDeleteToDo = (e) => { 
 
         if(this.props.selectedTodoId===null || this.props.selectedTodoId===undefined)
            return;  
  
-        //this.removeTodoLocal(this.props.selectedTodoId); 
-          
     } 
 
 
     
     componentDidMount(){
 
+        destroyEverything().then(() => { 
+            initDB();
 
-        /*destroyEverything().then(() => { 
-                
-                initDB();
+            let fakeData = generateRandomDatabase({
+                todos : 0,  
+                projects : 0,  
+                areas : 0 
+            });  
 
-                let fakeData = generateRandomDatabase({
-                    todos : 0,  
-                    events : 0, 
-                    projects : 0,  
-                    areas : 0 
-                });  
- 
-                console.log("fakeData", fakeData); 
-                  
-                let todos = fakeData.todos;
-                let projects = fakeData.projects; 
-                let events = fakeData.events;
-                let areas = fakeData.areas; 
-                
-                Promise.all([
-                    Promise.all(todos.map( (t:Todo) => addTodo(this.onError,t) )),
-                    Promise.all(events.map( (e:Event) => addEvent(this.onError,e) )),
-                    Promise.all(projects.map( (p:Project) => addProject(this.onError,p) )),
-                    Promise.all(areas.map( (a:Area) => addArea(this.onError,a) ))
-                ]).then( 
-                    () => this.fetchData()  
-                ) 
-                  
-        })*/  
+            let todos = fakeData.todos;
+            let projects = fakeData.projects; 
+            let areas = fakeData.areas; 
+            
+            Promise.all([
+                addTodos(this.onError,todos),    
+                addProjects(this.onError,projects), 
+                addAreas(this.onError,areas) 
+            ])
+            .then(() => this.fetchData())    
+        })  
 
         
-        this.fetchData()  
         window.addEventListener("resize", this.updateWidth);
-
         window.addEventListener("click", this.closeRightClickMenu); 
 
         //update separate windows 
@@ -181,14 +320,14 @@ export class MainContainer extends Component<Store,MainContainerState>{
     
     }      
     
-
+ 
 
     componentWillUnmount(){
 
         window.removeEventListener("resize", this.updateWidth);
         window.removeEventListener("click", this.closeRightClickMenu);
 
-    } 
+    }  
       
     
 
@@ -201,167 +340,13 @@ export class MainContainer extends Component<Store,MainContainerState>{
     }
   
  
-
-    onSearchClick = (e) => { 
-
-        this.props.dispatch({type:"openSearch", load:true}); 
-
-    }
-
-
-   
-    createHeading = (e) => {
-
-        if(this.props.selectedCategory!=="project")
-           return;
-
-        let id = this.props.selectedProjectId;
-
-        let heading = {
-            type : "heading", 
-            title : '',  
-            _id : generateId(), 
-            key : generateId()
-        }; 
-
-        let project = this.props.projects.find( (p:Project) => p._id===id );
-
-        if(!project)
-           return; 
- 
-        let load = {...project, layout:[heading,...project.layout]};
-        
-        this.props.dispatch({ type:"updateProject", load });
-          
-    }
-
-
-
-    createNewTodo = (e) => { 
- 
-        //what category selected now?
-        //attach to project
-        //attach to area
-        //etc
- 
-        if(this.props.selectedCategory==="trash")
-           return;
-
-
-        e.stopPropagation(); 
-
-        let id = generateId();
- 
-        let todo : Todo = {    
-            _id : id,
-            type:"todo",
-            category : this.props.selectedCategory,  
-            title : '', 
-            priority : Math.round(Math.random() * 1000), 
-            reminder : null, 
-            checked : false,  
-            note : '',
-            checklist : [],   
-            attachedTags : [],
-            status : "", 
-            attachedDate : null,
-            deadline : null,
-            created : new Date(),  
-            deleted : null, 
-            completed : null, 
-            history : [],    
-            attachments : []
-        }  
-
- 
-        this.props.dispatch({type:"addTodo", load:todo});
-
- 
-        if(this.props.selectedCategory==="project"){ 
-
-            this.props.dispatch({ 
-                type:"attachTodoToProject", 
-                load:{
-                    projectId:this.props.selectedProjectId,
-                    todoId:todo._id
-                } 
-            });   
-
-        }else if(this.props.selectedCategory==="area"){
-
-            this.props.dispatch({ 
-                type:"attachTodoToArea", 
-                load:{
-                    areaId:this.props.selectedAreaId,
-                    todoId:todo._id
-                }     
-            });  
-
-        }   
-
- 
-        if(this.rootRef) 
-           this.rootRef.scrollTop = 0; 
     
-    } 
-    
-
- 
-    selectFooterButtons = () => {
-
-        if(this.props.selectedCategory==="project"){
-            return [
-                "NewTodo",
-                "Heading",
-                this.props.selectedTodoId!==null ? "Trash" : undefined,
-                this.props.selectedTodoId!==null ? "Arrow" : undefined,
-                this.props.selectedTodoId!==null ? "Calendar" : undefined,
-                "Search"  
-            ].filter( v => !!v) 
-        }else if(this.props.selectedCategory==="area"){
-            return [
-                "NewTodo",
-                this.props.selectedTodoId!==null ? "Trash" : undefined,
-                this.props.selectedTodoId!==null ? "Arrow" : undefined,
-                this.props.selectedTodoId!==null ? "Calendar" : undefined,
-                "Search"  
-            ].filter( v => !!v)  
-        }else if(this.props.selectedCategory==="trash"){
-            return ["Search"]
-        }else if(this.props.selectedCategory==="logbook"){
-            return [
-                this.props.selectedTodoId!==null ? "Trash" : undefined,
-                this.props.selectedTodoId!==null ? "Arrow" : undefined,
-                this.props.selectedTodoId!==null ? "Calendar" : undefined,
-                "Search"   
-            ].filter( v => !!v) 
-        }else if(this.props.selectedCategory==="upcoming"){
-            return [
-                this.props.selectedTodoId!==null ? "Trash" : undefined,
-                this.props.selectedTodoId!==null ? "Arrow" : undefined,
-                this.props.selectedTodoId!==null ? "Calendar" : undefined,
-                "Search"   
-            ].filter( v => !!v)   
-        }else{
-            return [
-                "NewTodo",
-                this.props.selectedTodoId!==null ? "Trash" : undefined,
-                this.props.selectedTodoId!==null ? "Arrow" : undefined,
-                this.props.selectedTodoId!==null ? "Calendar" : undefined,
-                "Search"  
-            ].filter( v => !!v)  
-        }
-  
-    }
-
-
-
     render(){  
  
         return  <div ref={(e) => { this.rootRef=e }}
-                     className="scroll"  
-                     id="maincontainer"  
-                     style={{    
+                    className="scroll"  
+                    id="maincontainer"  
+                    style={{    
                         width : this.props.clone ? "100%" : (window.innerWidth-this.props.leftPanelWidth),
                         position :"relative", 
                         display : "flex", 
@@ -369,20 +354,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         backgroundColor : "rgba(209, 209, 209, 0.1)", 
                         overflow : "scroll",  
                         flexDirection: "column" 
-                     }} 
+                    }} 
                 >    
- 
-                {
-                    !this.props.openSearch ? null :
-                    <QuickSearch  
-                        container={this.rootRef}
-                        todos={this.props.todos} 
-                        projects={this.props.projects} 
-                        areas={this.props.areas}  
-                        dispatch={this.props.dispatch} 
-                    />
-                }   
-             
+  
                   
                 <div style={{display: "flex", padding: "10px"}}>   
 
@@ -392,9 +366,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 iconStyle={{
                                     color:"rgba(100,100,100,0.6)",
                                     opacity:0,
-                                    width:"20px",
-                                    height:"20px" 
-                                }}
+                                    width:"18px",
+                                    height:"18px" 
+                                }} 
                                 className="no-drag" 
                                 onTouchTap={() => ipcRenderer.send("reload", this.props.windowId)}
                             >
@@ -404,21 +378,19 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             <IconButton    
                                 onClick={this.openNewWindow}   
                                 className="no-drag"  
-                                iconStyle={{color:"rgba(100,100,100,0.6)",width:"20px",height:"20px"}}
+                                iconStyle={{color:"rgba(100,100,100,0.6)",width:"18px",height:"18px"}}
                             >     
                                 <OverlappingWindows />
                             </IconButton>  
 
                     </div>   
-
+ 
                 </div>    
 
 
-
                 <div style={{padding:"60px"}}>
-     
-                   {   
-                       {  
+                    {   
+                        {   
                             inbox:<Inbox 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
@@ -476,7 +448,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 todos={this.props.todos}
                                 tags={this.props.tags}
                             />, 
-  
+   
                             trash: <Trash 
                                 dispatch={this.props.dispatch}
                                 tags={this.props.tags}
@@ -487,9 +459,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 rootRef={this.rootRef}      
                             />,
                             
-
-
-
                             project : <ProjectComponent 
                                 dispatch={this.props.dispatch} 
                                 selectedProjectId={this.props.selectedProjectId}
@@ -508,45 +477,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 tags={this.props.tags}
                                 rootRef={this.rootRef}
                             />  
-
                         }[this.props.selectedCategory]
                     }
- 
-
-
-                    <div style={{  
-                        height:"60px", 
-                        width:this.props.clone ? "100%" : window.innerWidth-this.props.leftPanelWidth, 
-                        position:"fixed", 
-                        right:"0px",   
-                        zIndex:1500,
-                        display:"flex",
-                        justifyContent:"center",
-                        backgroundColor:"white",
-                        bottom:"0px",
-                        borderTop:"1px solid rgba(100, 100, 100, 0.2)" 
-                    }}>     
-                        <Footer     
-                            buttonsNamesToDispaly={this.selectFooterButtons() as any}
- 
-                            onNewTodoClick={this.createNewTodo}
-
-                            onTrashClick={this.onDeleteToDo}  
-
-                            onSearchClick={this.onSearchClick} 
-
-                            onHeadingClick={this.createHeading}
-
-                            onCalendarClick={(e) => {}} 
-
-                            onArrowClick={(e) => {}}  
-
-                            onMoreClick={(e) => {}} 
-                        />   
-
-                    </div>  
-
-             </div>  
+                </div>   
         </div> 
   }
 } 
@@ -554,7 +487,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
 
 
-
+ 
 
 
 

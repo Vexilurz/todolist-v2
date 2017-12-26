@@ -561,6 +561,26 @@ export let byNotCompleted = (item:Project | Todo) : boolean => {
 }   
  
 
+export let hotFilter = (todo:Todo) : boolean => {
+
+    if(isNil(todo))
+       throw new Error(`Todo is undefined ${todo}. hotFilter`);
+     
+    if(!todo.deadline)
+        return false;
+     
+    if(!todo.attachedDate)
+        return false;        
+     
+    if(!isDate(todo.deadline))
+        throw new Error(`Deadline is not date. ${todo.deadline} hotFilter`);
+    
+    if(!isDate(todo.attachedDate))
+        throw new Error(`attachedDate is not date. ${todo.attachedDate} hotFilter`);
+        
+    return dateDiffInDays(todo.deadline, todo.attachedDate)===0;    
+         
+}
 
 export let byCompleted = (item:Project | Todo) : boolean => { 
 

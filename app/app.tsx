@@ -11,7 +11,7 @@ import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import { Component } from "react"; 
 import {  
     wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, 
-    replace, remove, insert, getTagsFromItems, defaultTags
+    getTagsFromItems, defaultTags
 } from "./utils";  
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
@@ -19,6 +19,8 @@ import './assets/fonts/index.css';
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer, Category } from './Components/MainContainer';
 import { Project, Area, Todo, removeProject, generateId, addProject, removeArea, updateProject, addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, removeProjects, updateAreas, updateProjects, addTodos } from './database';
+import { applicationStateReducer } from './StateReducer';
+import { applicationObjectsReducer } from './ObjectsReducer';
 injectTapEventPlugin(); 
       
 
@@ -44,7 +46,7 @@ export class App extends Component<any,any>{
 
  
     componentDidMount(){
-
+ 
         let {type,load} = this.props.initialLoad;
 
         switch(type){
@@ -137,19 +139,16 @@ export interface Store{
     rightClickMenuY : number,
     windowId:number,
     projects:Project[],
-    areas:Area[],
-    events:Event[],   
+    areas:Area[], 
     todos:Todo[],
     tags:string[],
-    
     clone?:boolean,
     dispatch?:Function
 } 
 
-
+ 
 
 export let defaultStoreItems : Store = {
-
     windowId:null, 
      
     selectedCategory : "inbox",
@@ -186,17 +185,10 @@ export let defaultStoreItems : Store = {
 
     areas:[],
 
-    events:[], 
-
     clone : false,
     todos:[], 
 
-    tags:[
-        "Work", "Home",
-        "Priority", "High", "Medium",
-        "Low"
-    ]
-
+    tags:[]
 };    
     
  
@@ -205,13 +197,11 @@ let reducer = (reducers) => (state:Store, action) => {
 
     let newState = undefined;
  
-
     if(action.type==="newStore"){
 
        return {...action.load}  
 
     }
-
 
     for(let i=0; i<reducers.length; i++){
 
@@ -222,18 +212,9 @@ let reducer = (reducers) => (state:Store, action) => {
 
     }
  
-
     return state; 
 };
-   
  
-
-
- 
-
- 
-
-
 
 
 let applicationReducer = reducer([

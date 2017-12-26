@@ -24,6 +24,7 @@ import Search from 'material-ui/svg-icons/action/search';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
+import { QuickSearch } from '../Search';
 
 
 interface LeftPanelMenuItemProps{
@@ -52,7 +53,7 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
 
     render(){ 
 
-        return <div
+        return <div 
             className="no-drag leftpanelmenuitem"  
             onClick={this.props.onClick} 
             style={{    
@@ -195,7 +196,11 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             paddingTop:"50px",
             paddingBottom:"10px"  
         }}>
-
+        
+            <Separator />
+ 
+            <QuickSearch {...{} as any}/>
+ 
             <Separator />
         
             <LeftPanelMenuItem

@@ -6,14 +6,11 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
     
        let newState = undefined;
    
-    
        switch(action.type){  
    
            case "openSearch": 
                newState = {
                    ...state, 
-                   showProjectMenuPopover:false, 
-                   showRightClickMenu:false,
                    openSearch:action.load 
                }; 
                break;
@@ -42,10 +39,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
            case "selectedCategory":
                newState = {
                    ...state,
-                   selectedTag:"All", 
-                   openSearch:false, 
-                   selectedCategory:action.load,
-                   openNewProjectAreaPopup:false 
+                   selectedCategory:action.load
                }; 
                break;
    
@@ -85,19 +79,10 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                break;
    
    
-           case "showRightClickMenu": 
-               newState = {
-                   ...state,
-                   showRightClickMenu : action.load
-               };
-               break;
-   
-   
            case "selectedTodoId":
                newState = {
                    ...state,
                    selectedTodoId : action.load,
-                   //openSearch : false
                }; 
                break;
    
@@ -105,34 +90,12 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
            case "closeAllItems":
                newState = {
                    ...state,
-                   openNewProjectAreaPopup : false,
-                   showRightClickMenu : false,
-                   selectedTodoId : null
+                   openSearch:false,
+                   openRightClickMenu:false,
+                   showProjectMenuPopover:false,
+                   openNewProjectAreaPopup:false,
+                   showRightClickMenu:false, 
                };  
-               break;
-   
-   
-           case "rightClickedTodoId" :
-               newState = {
-                   ...state,
-                   rightClickedTodoId : action.load
-               }; 
-               break;
-   
-   
-           case "rightClickMenuX" :
-               newState = {
-                   ...state,
-                   rightClickMenuX : action.load
-               }; 
-               break;
-   
-   
-           case "rightClickMenuY" :
-               newState = {
-                   ...state,
-                   rightClickMenuY : action.load
-               }; 
                break;
    
    
@@ -140,28 +103,19 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                newState = {
                    ...state, 
                    selectedCategory:"project", 
-                   selectedTag:"All",
-                   openSearch:false,
                    selectedProjectId:action.load
                };    
                break;
            
-   
            case "selectedAreaId": 
                newState = { 
                    ...state, 
                    selectedCategory:"area", 
-                   selectedTag:"All",
-                   openSearch:false,
                    selectedAreaId:action.load
                };    
                break;
    
-   
-       }
-   
+       } 
    
        return  newState;
-    
-   
-   }
+}

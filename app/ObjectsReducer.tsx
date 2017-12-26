@@ -12,19 +12,26 @@ import {
 } from './utils';
 import { adjust, cond, equals } from 'ramda';
 
+
+
 let onError = (e) => {
     console.log(e); 
 }
+
  
 
-let applicationObjectsReducer = (state:Store, action) : Store => { 
+export let applicationObjectsReducer = (state:Store, action) : Store => { 
 
     let newState : Store = undefined;
 
-    cond([
-      [
-            (action) => equals("setAllTypes", action.type),  
-            (action) => ({  
+    newState = cond([
+        [
+            (action:{type:string}) : boolean => "setAllTypes"===action.type,  
+
+            (action:{
+                type:string,
+                load:{todos:Todo[],projects:Project[],areas:Area[]}
+            }) : Store => ({  
                 ...state,
                 todos : [...action.load.todos],
                 projects : [...action.load.projects],
@@ -38,303 +45,347 @@ let applicationObjectsReducer = (state:Store, action) : Store => {
                     ])
                 ]
             })
-      ], 
-      [
-        equals("setAllTypes"),  () => ({  
-                                    ...state,
-                                    todos : [...action.load.todos],
-                                    projects : [...action.load.projects],
-                                    areas : [...action.load.areas],
-                                    tags : [  
-                                        ...defaultTags, 
-                                        ...getTagsFromItems([ 
-                                            ...action.load.todos,
-                                            ...action.load.projects,
-                                            ...action.load.areas
-                                        ])
-                                    ]
-                                })
-      ], 
-      [
-        equals("setAllTypes"),  () => ({  
-                                    ...state,
-                                    todos : [...action.load.todos],
-                                    projects : [...action.load.projects],
-                                    areas : [...action.load.areas],
-                                    tags : [  
-                                        ...defaultTags, 
-                                        ...getTagsFromItems([ 
-                                            ...action.load.todos,
-                                            ...action.load.projects,
-                                            ...action.load.areas
-                                        ])
-                                    ]
-                                })
-      ], 
-    ])(action)
+        ], 
 
+        [
+            (action:{type:string}) : boolean => "removeDeleted"===action.type, 
 
+            (action:{type:string}) : Store => {
+                let todos = removeDeletedTodos(state.todos);
+                let projects = removeDeletedProjects(state.projects);
+                let areas = removeDeletedAreas(state.areas);
+
+                return {  
+                    ...state,
+                    todos,
+                    projects,
+                    areas,
+                    tags :  [ 
+                        ...defaultTags,
+                        ...getTagsFromItems([...todos, ...projects, ...areas])
+                    ]
+                }
+            }
+        ], 
+
+        [
+            (action:{type:string}) : boolean => "addTodo"===action.type,
+
+            (action:{type:string, load:Todo}) : Store => {
+                
+                if(action.load.type!=="todo")
+                   throw new Error(`Load is not of type Todo. ${action.load} addTodo. objectsReducer.`);
+ 
+                addTodo(onError, action.load);
+                
+                return {
+                    ...state, 
+                    todos:[action.load,...state.todos],
+                };  
+            }
+
+        ], 
+
+        [
+            (action:{type:string}) : boolean => "addProject"===action.type,
+
+            (action:{type:string, load:Project}) : Store => {
+                
+                if(action.load.type!=="project")
+                   throw new Error(`Load is not of type Project. ${action.load} addProject. objectsReducer.`);
+ 
+                addProject(onError,action.load);
+
+                return {
+                    ...state,  
+                    projects:[action.load,...state.projects]
+                };   
+            }
+
+        ], 
+
+        [
+            (action:{type:string}) : boolean =>"addArea"===action.type,
+
+            (action:{type:string, load:Area}) : Store => {
+                
+                if(action.load.type!=="area")
+                   throw new Error(`Load is not of type Area. ${action.load} addArea. objectsReducer.`);
+ 
+                addArea(onError,action.load);
+
+                return {
+                    ...state,  
+                    areas:[action.load,...state.areas]
+                };   
+
+            }
+        ],
+
+        [
+            (action:{type:string}) => "attachTodoToProject"===action.type,
+
+            (action:{type:string, load:{projectId:string,todoId:string} }) : Store => {
+
+                let idx = state.projects.findIndex( (p:Project) => p._id===action.load.projectId );
+
+                if(idx===-1) 
+                   throw new Error("Attempt to update non existing object. attachTodoToProject. objectsReducer.");   
+    
+                let project : Project = {...state.projects[idx]};  
+                project.layout = [action.load.todoId, ...project.layout];
+    
+                updateProject(project._id,project,onError);
+
+                return {
+                    ...state,
+                    projects:adjust(() => project, idx, state.projects)
+                }
+
+            }
+        ],
+
+        [
+            (action:{type:string}) => "attachTodoToArea"===action.type,
+
+            (action:{type:string, load:{areaId:string,todoId:string} }) : Store => {
+
+                let idx = state.areas.findIndex( (a:Area) => a._id===action.load.areaId );
+
+                if(idx===-1) 
+                   throw new Error("Attempt to update non existing object. attachTodoToArea. objectsReducer.");  
+    
+                let area = {...state.areas[idx]};
+                area.attachedTodosIds = [action.load.todoId, ...area.attachedTodosIds];
+    
+                updateArea(area._id,area,onError);
+
+                return {     
+                    ...state,  
+                    areas:adjust(() => area, idx, state.areas)
+                } 
+            }
+        ],
+
+        [
+            (action:{type:string}) => "changeTodosPriority"===action.type,
+
+            (action:{type:string, load:{fromId:string,toId:string} }) : Store => {
+
+                let from  = state.todos.findIndex( (t:Todo) => t._id===action.load.fromId );
+                let to  = state.todos.findIndex( (t:Todo) => t._id===action.load.toId );
+
+                return {
+                    ...state, 
+                    todos:changePriority(from,to,state.todos) as Todo[]
+                }
+            }
+        ],
+
+        [ 
+            (action:{type:string}) => "changeProjectsPriority"===action.type,
+
+            (action:{type:string, load:{fromId:string,toId:string} }) : Store => {
+
+                let from  = state.projects.findIndex( (p:Project) => p._id===action.load.fromId );
+                let to  = state.projects.findIndex( (p:Project) => p._id===action.load.toId );
+                
+                return {  
+                    ...state,
+                    projects:changePriority(from,to,state.projects) as Project[]
+                }
+            }
+        ],
+
+        [ 
+            (action:{type:string}) => "changeAreasPriority"===action.type,
+
+            (action:{type:string, load:{fromId:string,toId:string} }) : Store => {
+
+                let from  = state.areas.findIndex( (a:Area) => a._id===action.load.fromId );
+                let to  = state.areas.findIndex( (a:Area) => a._id===action.load.toId );
+                
+                return {  
+                    ...state,
+                    areas:changePriority(from,to,state.areas) as Area[]
+                }
+            }
+        ],
+
+        [ 
+            (action:{type:string}) => "updateTodo"===action.type,
+
+            (action:{type:string, load:Todo}) : Store => {
+
+                let idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
+                
+                if(idx===-1){
+                   throw new Error(
+                     `Attempt to update non existing object ${action.load}. updateTodo. objectsReducer.`
+                   ); 
+                }
+
+                if(action.load.type!=="todo")
+                   throw new Error(`Load is not of type Todo. ${action.load} updateTodo. objectsReducer.`);
  
     
-
-
-
-    switch(action.type){
-
-        case "setAllTypes":
-            newState = {
-                ...state,
-                todos : [...action.load.todos],
-                projects : [...action.load.projects],
-                areas : [...action.load.areas],
-                tags : [  
-                    ...defaultTags, 
-                    ...getTagsFromItems([ 
-                        ...action.load.todos,
-                        ...action.load.projects,
-                        ...action.load.areas
-                    ])
-                ]
-            }
-            break;  
- 
-
-        case "removeDeleted":
-            let todos : Todo[] = removeDeletedTodos(state.todos);
-            let projects : Project[] = removeDeletedProjects(state.projects);
-            let areas : Area[] = removeDeletedAreas(state.areas);
-
-            newState = {
-                ...state,
-                todos,  
-                projects,
-                areas, 
-                tags: [ 
-                  ...defaultTags,
-                  ...getTagsFromItems([...todos, ...projects, ...areas])
-                ]
-            }  
-            break;  
-
-
-        case "addTodo":  
-            addTodo(onError, action.load);
-
-            newState = {
-                ...state, 
-                todos:[action.load,...state.todos],
-            };  
-            break; 
-        
-
-        case "addArea":  
-            addArea(onError, action.load);
-
-            newState = { 
-                ...state, 
-                areas:[action.load,...state.areas]
-            };  
-            break;    
-            
-
-        case "addProject": 
-            addProject(onError,action.load);
-
-            newState = {
-                ...state,  
-                projects:[action.load,...state.projects]
-            };   
-            break;
- 
-
-        //{projectId,todoId}    
-        case "attachTodoToProject":
-            idx = state.projects.findIndex( (p:Project) => p._id===action.load.projectId );
-            if(idx===-1) 
-               throw new Error("Attempt to update non existing object. attachTodoToProject.");   
-
-            project = {...state.projects[idx]};  
-            project.layout = [action.load.todoId, ...project.layout];
-
-            updateProject(project._id,project,onError);
-            newState = {
-                ...state,
-                projects:adjust(() => project, idx, state.projects)
-            }
-            break; 
-  
-
-        //{areaId,todoId} 
-        case "attachTodoToArea":
-            idx = state.areas.findIndex( (a:Area) => a._id===action.load.areaId );
-            if(idx===-1) 
-               throw new Error("Attempt to update non existing object. attachTodoToArea.");  
-
-            area = {...state.areas[idx]};
-            area.attachedTodosIds = [action.load.todoId, ...area.attachedTodosIds];
-
-            updateArea(area._id,area,onError);
-            newState = {     
-                ...state,  
-                areas:adjust(() => area, idx, state.areas)
-            } 
-            break;     
+                updateTodo(action.load._id, action.load, onError);
     
+                return { 
+                    ...state, 
+                    todos:adjust(() => action.load, idx, state.todos)
+                }; 
 
-        //{fromId,toId} 
-        case "changeTodosPriority":
-            from  = state.todos.findIndex( (t:Todo) => t._id===action.load.fromId );
-            to  = state.todos.findIndex( (t:Todo) => t._id===action.load.toId );
-            newState = {
-                ...state, 
-                todos:changePriority(from,to,state.todos) as Todo[]
             }
-            break;
+        ],
 
+        [ 
+            (action:{type:string}) => "updateProject"===action.type,
 
-        //{fromId,toId} 
-        case "changeProjectsPriority": 
-            from  = state.projects.findIndex( (p:Project) => p._id===action.load.fromId );
-            to  = state.projects.findIndex( (p:Project) => p._id===action.load.toId );
-            
-            newState = {  
-                ...state,
-                projects:changePriority(from,to,state.projects) as Project[]
-            }
-            break; 
-            
+            (action:{type:string, load:Project}) : Store => {
 
-        //{fromId,toId}  
-        case "changeAreasPriority": 
-            from  = state.areas.findIndex( (a:Area) => a._id===action.load.fromId );
-            to  = state.areas.findIndex( (a:Area) => a._id===action.load.toId );
-            
-            newState = {  
-                ...state,
-                areas:changePriority(from,to,state.areas) as Area[]
-            }
-            break; 
-        
-        
-        case "updateTodo":
-            idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
-
-            if(idx===-1)
-               throw new Error("Attempt to update non existing object. updateTodo."); 
-
-            updateTodo(action.load._id, action.load, onError);
-
-            newState = { 
-                ...state, 
-                todos:adjust(() => action.load, idx, state.todos)
-            }; 
-            break; 
-
-
-        case "updateProject":  
-            idx = state.projects.findIndex((p:Project) => action.load._id===p._id);
-
-            if(idx===-1)
-               throw new Error("Attempt to update non existing object. updateProject.");
-
-            updateProject(action.load._id, action.load, onError);   
-
-            newState = { 
-                ...state, 
-                projects:adjust(() => action.load, idx, state.projects)
-            };
-            break;    
-
-             
-        case "updateArea":  
-            idx = state.areas.findIndex((a:Area) => action.load._id===a._id);
-
-            if(idx===-1) 
-               throw new Error("Attempt to update non existing object. updateArea.");
-
-            updateArea(action.load._id, action.load, onError);
+                let idx = state.projects.findIndex((p:Project) => action.load._id===p._id);
+                
+                if(idx===-1)
+                   throw new Error("Attempt to update non existing object. updateProject. objectsReducer.");
     
-            newState = { 
-                ...state, 
-                areas:adjust(() => action.load, idx, state.areas)
-            };  
-            break;         
-
-            
-
-
-
-
-
-        case "updateTodos":  
-            changed = action.load.map( (t:Todo) => t._id );
-            fixed = state.todos.filter( (t:Todo) => changed.indexOf(t._id)===-1 )  
+                if(action.load.type!=="project")
+                   throw new Error(`Load is not of type Project. ${action.load} updateProject. objectsReducer.`);
  
-            updateTodos(action.load,onError);
+                updateProject(action.load._id, action.load, onError);   
+    
+                return { 
+                    ...state, 
+                    projects:adjust(() => action.load, idx, state.projects)
+                };
 
-            newState = {    
-                ...state,  
-                todos:[...fixed,...action.load] 
-            };  
-            break;       
-      
+            }
+        ],
 
-        case "updateProjects":  
-            changed = action.load.map( (p:Project) => p._id );
-            fixed = state.projects.filter( (p:Project) => changed.indexOf(p._id)===-1 );  
+        [ 
+            (action:{type:string}) => "updateArea"===action.type,
+
+            (action:{type:string, load:Area}) : Store => {
+
+                let idx = state.areas.findIndex((a:Area) => action.load._id===a._id);
+                
+                if(idx===-1) 
+                   throw new Error("Attempt to update non existing object. updateArea. objectsReducer.");
+         
+                if(action.load.type!=="area")  
+                   throw new Error(`Load is not of type Area. ${action.load} updateArea. objectsReducer.`);
+    
+                updateArea(action.load._id, action.load, onError);
+        
+                return { 
+                    ...state, 
+                    areas:adjust(() => action.load, idx, state.areas)
+                };  
+
+            }
+        ],
+
+        [ 
+            (action:{type:string}) => "updateTodos"===action.type,
  
-            updateProjects(action.load,onError);
+            (action:{type:string, load:Todo[]}) : Store => {
 
-            newState = {    
-                ...state,  
-                projects:[...fixed,...action.load] 
-            };  
-            break;    
+                let changed = action.load.map( (t:Todo) => t._id );
+                let fixed = state.todos.filter( (t:Todo) => changed.indexOf(t._id)===-1 )  
+     
+                updateTodos(action.load,onError);
+    
+                return {    
+                    ...state,  
+                    todos:[...fixed,...action.load] 
+                };
+
+            }
+        ],
+
+        [ 
+            (action:{type:string}) => "updateProjects"===action.type,
+ 
+            (action:{type:string, load:Project[]}) : Store => {
+ 
+                let changed = action.load.map( (p:Project) => p._id );
+                let fixed = state.projects.filter( (p:Project) => changed.indexOf(p._id)===-1 );  
+     
+                updateProjects(action.load,onError);
+    
+                return {    
+                    ...state,  
+                    projects:[...fixed,...action.load] 
+                };  
+
+            }
+        ],
+
+        [ 
+            (action:{type:string}) => "updateAreas"===action.type,
+ 
+            (action:{type:string, load:Area[]}) : Store => {
+ 
+                let changed = action.load.map( (a:Area) => a._id );
+                let fixed = state.areas.filter( (a:Area) => changed.indexOf(a._id)===-1 )  
+    
+                updateAreas(action.load,onError);
+    
+                return {     
+                    ...state,  
+                    areas:[...fixed,...action.load] 
+                };  
             
-            
-        case "updateAreas":  
-            changed = action.load.map( (a:Area) => a._id );
-            fixed = state.areas.filter( (a:Area) => changed.indexOf(a._id)===-1 )  
+            }
+        ],
 
-            updateAreas(action.load,onError);
+        [ 
+            (action:{type:string}) => "addTodos"===action.type,
+ 
+            (action:{type:string, load:Todo[]}) : Store => {
+ 
+                addTodos(onError, action.load);
+                 
+                return {
+                    ...state,  
+                    todos:[...action.load,...state.todos]
+                }; 
 
-            newState = {    
-                ...state,  
-                areas:[...fixed,...action.load] 
-            };  
-            break;    
+            }
+        ],
 
+        [ 
+            (action:{type:string}) => "addProjects"===action.type,
+ 
+            (action:{type:string, load:Project[]}) : Store => {
+ 
+                addProjects(onError, action.load);
+                
+                return {
+                    ...state,  
+                    projects:[...action.load,...state.projects]
+                }; 
 
-        case "addTodos":
-            addTodos(onError, action.load);
+            }
+        ],
 
-            newState = {
-                ...state,  
-                todos:[...action.load,...state.todos]
-            }; 
-            break; 
+        [ 
+            (action:{type:string}) => "addAreas"===action.type,
+ 
+            (action:{type:string, load:Area[]}) : Store => {
 
+                addAreas(onError, action.load);
+                
+                return {
+                    ...state,   
+                    areas:[...action.load,...state.areas]
+                }; 
 
-        case "addProjects":
-            addProjects(onError, action.load);
+            }
+        ],
 
-            newState = {
-                ...state,  
-                projects:[...action.load,...state.projects]
-            }; 
-            break;     
+    ])(action);
 
-            
-        case "addAreas":
-            addAreas(onError, action.load);
-
-            newState = {
-                ...state,   
-                areas:[...action.load,...state.areas]
-            }; 
-            break;     
-
-    } 
 
 
     if(newState){ 
@@ -345,7 +396,7 @@ let applicationObjectsReducer = (state:Store, action) : Store => {
            
        }
     
-    }
+    }  
  
  
 

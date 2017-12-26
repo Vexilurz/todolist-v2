@@ -35,7 +35,8 @@ import {
     insideTargetArea, daysRemaining, replace, remove, todoChanged, 
     unique, daysLeftMark, generateTagElement, 
     attachDispatchToProps, chooseIcon, 
-    stringToLength  
+    stringToLength,  
+    isItem
 } from '../utils';
 import { Todo, removeTodo, updateTodo, generateId, ObjectType, Area, Project, Heading } from '../database';
 import { Store } from '../App';
@@ -189,9 +190,6 @@ let objectToKeywords = (object : any) : string[] => {
     }
 } 
  
- 
- 
-
 
 
 let attachKeywordsToObjects = (objects : any[]) => {
@@ -209,30 +207,18 @@ let attachKeywordsToObjects = (objects : any[]) => {
 
 
 
-
-
-interface QuickSearchProps{
-    container:HTMLElement,
-    todos:Todo[],
-    projects:Project[],
-    areas:Area[],
-    dispatch:Function  
-}  
+interface QuickSearchProps extends Store{}  
 
 interface QuickSearchState{
     objectsWithKeywords:keyworded[],
     value:string,
-    x:number,
-    y:number, 
-    width:number,
     suggestions:keyworded[]
 } 
- 
- 
-export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
 
-    ref:HTMLElement; 
-    timeout:any; 
+ 
+
+@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
+export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
 
     constructor(props){
 
@@ -241,9 +227,6 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
         this.state = {
             objectsWithKeywords : [],
             value:'',
-            x:0,
-            y:0, 
-            width:300,
             suggestions:[] 
         };
   
@@ -253,44 +236,19 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
 
     componentDidMount(){ 
 
-        this.init(this.props);
-
-        this.updatePosition(this.props); 
-         
-        this.timeout = setTimeout(() => window.addEventListener("click", this.onOutsideClick), 300);  
+        this.init(this.props); 
 
     }      
          
-          
-            
-    componentWillUnmount(){
-
-        clearTimeout(this.timeout as any);
-
-        window.removeEventListener("click", this.onOutsideClick);
-
-    }
-     
-
     
-    onOutsideClick = (e) => {
-            
-        if(this.ref===null || this.ref===undefined)
-            return; 
+
+    shouldComponentUpdate(nextProps:QuickSearchProps,nextState:QuickSearchState){
+
+        return this.state.value!==nextState.value; 
  
-        let rect = this.ref.getBoundingClientRect();
-
-        let x = e.pageX;
-        
-        let y = e.pageY;
-        
-        let inside : boolean = insideTargetArea(this.ref)(x, y);
-
-        if(!inside)
-           this.props.dispatch({type:"openSearch", load:false})   
-       
-    }  
+    }
     
+
 
     init = (props) => {
 
@@ -299,24 +257,9 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
         let objectsWithKeywords = attachKeywordsToObjects(objects);
         
         this.setState({objectsWithKeywords}); 
+
     }
  
-
-
-
-    updatePosition = (props:QuickSearchProps) : void => { 
-        
-        if(!props.container)
-            return; 
-
-        let fixedOffsetTop = 200;
-        let rect = props.container.getBoundingClientRect();
-        let x = rect.width/2 - this.state.width/2; 
-        let y = fixedOffsetTop + props.container.scrollTop;
- 
-        this.setState({x,y});  
-  
-    }
 
 
     componentWillReceiveProps(nextProps:QuickSearchProps){
@@ -336,22 +279,15 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
         if(update)
            this.init(nextProps);
 
-        if(this.props.container!==nextProps.container)
-           this.updatePosition(nextProps); 
-          
     }  
 
-    
+
 
     onChange = (e) => {
-        console.log(this.state.objectsWithKeywords);
 
+        let suggestions = this.state.objectsWithKeywords.filter(k => {
 
-        var t0 = performance.now();
-        let suggestions = this.state.objectsWithKeywords.filter( 
-            k => {
-
-                for(let i=0; i<k.keywords.length; i++){
+                for(let i=0; i<k.keywords.length; i++){ 
                     
                     let value = e.target.value.toLowerCase();
                     let word = k.keywords[i].toLowerCase().slice(0, value.length);
@@ -361,59 +297,45 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
 
                 }
 
-            }
-        );   
-        var t1 = performance.now();
-        console.log("Call to this.state.objectsWithKeywords.filter (Search) took " + (t1 - t0) + " milliseconds.");
-         
-        
-        this.setState({
-            value:e.target.value, 
-            suggestions
-        });
+        });   
+
+        this.setState({value:e.target.value, suggestions});
+
     }
- 
+    
+
 
     suggestionToComponent = (suggestion:keyworded, index:number) : JSX.Element => {
 
         let object = suggestion.object;
- 
+
+        if(!isItem(object))
+            throw new Error(`object is not of type Item. ${object}. suggestionToComponent.`);
+  
         switch(object.type){
             case "todo":
                 return getTodoLink(object, index, this.props.dispatch)
             case "project":
-                return getProjectLink({width:"12px", height:"12px"},object, index, this.props.dispatch);
-            case "area":
-                return getAreaLink({width:"20px", height:"20px"},object, index, this.props.dispatch);
+                return getProjectLink({width:"12px", height:"12px"}, object, index, this.props.dispatch);
+            case "area": 
+                return getAreaLink({width:"20px", height:"20px"}, object, index, this.props.dispatch);
         }
     
     }
+    
 
 
     render(){ 
   
-        return <div 
-            ref={(e) => {this.ref=e;}}
-            onClick = {(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-            }}  
-            style={{   
-                padding: "10px", 
-                boxShadow: "0 0 18px rgba(0,0,0,0.2)", 
-                margin: "5px",
-                borderRadius: "5px",
-                zIndex: 30000, 
-                width: `${this.state.width}px`, 
-                height: "auto",    
-                position: "absolute",
-                backgroundColor: "rgba(238,237,239,1)",
-                left:`${this.state.x}px`,
-                top:`8%`   
-            }}          
-        >  
+        return <div style={{    
+            padding: "10px", 
+            boxShadow: "0 0 18px rgba(0,0,0,0.2)", 
+            margin: "5px",
+            borderRadius: "5px",
+            position: "relative",
+            backgroundColor: "rgba(238,237,239,1)"
+        }}>  
  
-  
             <div style={{
                 backgroundColor: "rgb(217, 218, 221)",
                 borderRadius: "5px",
@@ -426,55 +348,41 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
                     alignItems: "center",
                     justifyContent: "center"
                 }}>
-                <Search style={{   
-                    color: "rgb(100, 100, 100)",
-                    height: "20px",
-                    width: "20px"
-                }}/>  
+                    <Search style={{   
+                        color: "rgb(100, 100, 100)",
+                        height: "20px",
+                        width: "20px"
+                    }}/>   
                 </div>  
-                 
-                <input  style={{  
-                            outline: "none",
-                            border: "none", 
-                            width: "100%", 
-                            backgroundColor: "rgb(217,218,221)",
-                            caretColor: "cornflowerblue"  
-                        }} 
-                        placeholder="Quick Find"
-                        type="text" 
-                        name="search" 
-                        value={this.state.value} 
-                        onChange={this.onChange}
+                  
+                <input style={{  
+                        outline: "none",
+                        border: "none", 
+                        width: "100%", 
+                        backgroundColor: "rgb(217,218,221)",
+                        caretColor: "cornflowerblue"  
+                    }} 
+                    placeholder="Quick Find"
+                    type="text" 
+                    name="search" 
+                    value={this.state.value} 
+                    onChange={this.onChange}
                 />
             </div> 
     
   
-            <div className="scroll" style={{maxHeight:"600px", overflowX:"hidden"}}>  
-                { 
-                   this.state.value.length>0 ? null :
-                    <div style={{
-                       WebkitUserSelect: "none",
-                       cursor:"default",  
-                       fontSize: "14px", 
-                       color: "rgba(100, 100, 100, 0.5)",
-                       paddingTop: "30px",
-                       paddingBottom: "30px",
-                       paddingLeft: "25px",
-                       paddingRight: "25px",       
-                       textAlign: "center" 
-                    }}>  
-                        Quickly switch lists, find to-dos, search for tags 
-                    </div>
-                }     
+            <div className="scroll" style={{maxHeight:"600px", overflowX:"hidden"}}>
                <div>  
                 {    
                     this.state.value.length===0 ? null :
-                    this.state.suggestions
-                    .slice(0,10) 
-                    .map((s,index) =>  
-                        <div key={`suggestion-${index}`}>
+                    this
+                    .state  
+                    .suggestions 
+                    .slice(0,10)
+                    .map(
+                        (s,index) => <div key={`suggestion-${index}`}>
                             {this.suggestionToComponent(s, index)}
-                        </div>
+                        </div> 
                     )  
                 }
                </div>  
