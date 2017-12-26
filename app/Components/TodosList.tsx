@@ -5,8 +5,11 @@ import * as ReactDOM from 'react-dom';
 import { Todo } from '../database';
 import { Component } from 'react';
 import { 
-    insideTargetArea, hideChildrens, makeChildrensVisible, 
-    generateDropStyle, allPass, getTagsFromItems 
+    insideTargetArea, 
+    hideChildrens, 
+    makeChildrensVisible, 
+    generateDropStyle, 
+    getTagsFromItems  
 } from '../utils';  
 import { RightClickMenu } from './RightClickMenu';
 import SortableContainer from '../sortable-hoc/sortableContainer';
@@ -16,6 +19,7 @@ import {arrayMove} from '../sortable-hoc/utils';
 import {  byTags, byCategory } from '../utils';
 import { SortableList } from './SortableList';
 import { TodoInput } from './TodoInput/TodoInput';
+import { allPass } from 'ramda';
 
 
 
@@ -23,84 +27,41 @@ interface TodosListProps{
     dispatch:Function,
     filters:( (t:Todo) => boolean )[],
     selectedCategory:string,
-    setSelectedTags:(tags:string[]) => void,
     isEmpty:(empty:boolean) => void,
     selectedTag:string,  
     rootRef:HTMLElement,   
-    todos:Todo[], 
+    todos:Todo[],  
     tags:string[],
     disabled?:boolean     
 }    
 
 
   
-interface TodosListState{
-    todos:Todo[] 
-}
+interface TodosListState{}
  
       
   
 export class TodosList extends Component<TodosListProps, TodosListState>{
 
      constructor(props){
-
         super(props);
-
-        this.state={todos:[]}
-
      } 
  
 
 
      shouldComponentUpdate(nextProps:TodosListProps, nextState:TodosListState){
-
         let should = false; 
 
         if(this.props.todos!==nextProps.todos) 
            should=true;   
  
-        if(this.state.todos!==nextState.todos)
-           should=true;        
-
         if(this.props.selectedTag!==nextProps.selectedTag)
            should=true;   
 
-
         return should;
-
      }  
   
 
- 
-     init = (props:TodosListProps) => { 
-        let todos = props.todos; 
-         
-        if(props.filters.length>0) 
-           todos = todos.filter((t:Todo) => allPass(props.filters,t));
-          
-        if(typeof props.isEmpty==="function") 
-           props.isEmpty(todos.length===0); 
-        
-        if(typeof props.setSelectedTags==="function")   
-           props.setSelectedTags(getTagsFromItems(todos)); 
-           
-        this.setState({todos});  
-     }
- 
-
-     componentDidMount(){
-        this.init(this.props);  
-     }
-
- 
-     componentWillReceiveProps(nextProps:TodosListProps){
-        if(this.props.selectedTag!==nextProps.selectedTag)
-           this.init(nextProps);
-        if(this.props.todos!==nextProps.todos)
-           this.init(nextProps);
-     }  
-    
- 
   
      getTodoElement = (value:Todo, index:number) => {
      
@@ -156,11 +117,8 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
 
      onSortStart = ({node, index, collection}, e, helper) => { 
-        
         let helperRect = helper.getBoundingClientRect();
         let offset = e.clientX - helperRect.left;
-
-
 
         let el = generateDropStyle("nested"); 
         el.style.left=`${offset}px`;  
@@ -168,36 +126,27 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         el.style.opacity='0'; 
         
         helper.appendChild(el);  
-
      }
-
+ 
      
 
      onSortMove = (e, helper : HTMLElement) => {
-        
         let x = e.clientX;
         let y = e.clientY+this.props.rootRef.scrollTop;  
 
-            
         let areas = document.getElementById("areas");
         let projects = document.getElementById("projects");
         let nested = document.getElementById("nested");
 
-        if(insideTargetArea(areas)(x,y) || insideTargetArea(projects)(x,y)){
-
+        if(insideTargetArea(areas,x,y) || insideTargetArea(projects,x,y)){
             hideChildrens(helper);
             nested.style.visibility="";
             nested.style.opacity='1';    
-                
         }else{ 
-
             makeChildrensVisible(helper); 
             nested.style.visibility="hidden";
             nested.style.opacity='0';  
-
         } 
-
-
      }
  
  
@@ -213,7 +162,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         let projects = document.getElementById("projects");
 
 
-        if(insideTargetArea(areas)(x,y) || insideTargetArea(projects)(x,y)){
+        if(insideTargetArea(areas,x,y) || insideTargetArea(projects,x,y)){
 
             let el = document.elementFromPoint(e.clientX, e.clientY);
             
@@ -236,20 +185,25 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
      }
  
-   
- 
- 
-       
+      
        
      render(){  
+
+        let todos = this.props
+                        .todos
+                        .filter(allPass(this.props.filters))
+                        .sort((a:Todo,b:Todo) => a.priority-b.priority);
+        
+        if(typeof this.props.isEmpty==="function") 
+           this.props.isEmpty(todos.length===0); 
  
-          
-         return <div style={{WebkitUserSelect: "none"}}> 
-  
+ 
+        return <div style={{WebkitUserSelect: "none"}}> 
+   
             <SortableList   
                 getElement={this.getTodoElement}
-                container={this.props.rootRef ? this.props.rootRef : document.body}
-                items={this.state.todos.sort((a:Todo,b:Todo) => a.priority-b.priority)}  
+                container={this.props.rootRef}
+                items={todos}  
                 shouldCancelStart={this.shouldCancelStart}  
                 shouldCancelAnimation={this.shouldCancelAnimation}
                 onSortEnd={this.onSortEnd}    

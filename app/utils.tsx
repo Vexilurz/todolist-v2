@@ -43,8 +43,9 @@ let moment = require("moment");
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { TodoInput } from './Components/TodoInput/TodoInput';
 import { contains, isNil, all } from 'ramda';
+ 
 
-type Item = Area | Project | Todo;
+export type Item = Area | Project | Todo;
 
 export let isItem = (item:Item) : boolean => item.type==="project" || item.type==="area" || item.type==="todo";
 
@@ -59,7 +60,7 @@ export let isString = (item) : boolean => typeof item==="string";
 export let isCategory = (category : Category) : boolean => { 
 
     let categories : Category[] = [
-        "inbox" , "today" , "upcoming" , "anytime" , "someday" , 
+        "inbox" , "today" , "upcoming" , "next" , "someday" , 
         "logbook" , "trash" , "project" , "area" , "evening" , 
         "deadline"
     ]; 
@@ -245,7 +246,7 @@ export let chooseIcon = (
                 }
             }}/>;
 
-        case "anytime":
+        case "next":
             return <Layers style={{
                 ...size,
                 ...{

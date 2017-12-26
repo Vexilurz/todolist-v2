@@ -6,15 +6,14 @@ import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
 import { Provider, connect } from "react-redux";
 import Popover from 'material-ui/Popover';
-import { Footer } from '../../Components/Footer';
 import { Tags } from '../../Components/Tags'; 
 import { Transition } from 'react-transition-group';
 import { TodosList } from '../../Components/TodosList';
 import { Todo, Project } from '../../database';
 import { ContainerHeader } from '.././ContainerHeader';
-import { compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, allPass, byNotCompleted, getTagsFromItems } from '../../utils';
-    
- 
+import { compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems } from '../../utils';
+import { allPass, compose } from 'ramda';
+     
 
 interface LogbookProps{
     dispatch:Function,
@@ -25,56 +24,37 @@ interface LogbookProps{
     tags:string[],
     rootRef:HTMLElement 
 }
-
-
-interface LogbookState{ 
-    groups:any,
-    tags:string[] 
-} 
-
  
 
+interface LogbookState{
+    groups:(Todo | Project)[][]
+} 
 
 
 export class Logbook extends Component<LogbookProps,LogbookState>{
 
-
-    
     constructor(props){
         super(props);
         this.state={
-            groups:null,
-            tags:[] 
+            groups:null 
         }
     } 
+    
+ 
+
+    init = (props:LogbookProps) => {
+        let groups : (Todo | Project)[][] = this.groupByMonth(props);
+        this.setState({groups});
+    } 
+
+
 
     componentDidMount(){
         this.init(this.props);
     }
 
 
-    init = (props:LogbookProps) => this.setState(this.groupByMonth(props));
-    
 
-
-    shouldComponentUpdate(nextProps:LogbookProps, nextState:LogbookState){
- 
-     if(this.props.todos!==nextProps.todos)
-        return true;
-     if(this.props.projects!==nextProps.projects) 
-        return true;
-     if(this.props.selectedTag!==nextProps.selectedTag)
-        return true;
-
-     if(this.state.groups!==nextState.groups)
-        return true;
-     if(this.state.tags!==nextState.tags)
-        return true;
-
-    }
- 
-
-    
     componentWillReceiveProps(nextProps:LogbookProps){
         if(this.props.todos!==nextProps.todos)
            this.init(nextProps);
@@ -84,48 +64,59 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
            this.init(nextProps);
     } 
 
+    
 
-    groupByMonth = (props:LogbookProps) => {  
+    shouldComponentUpdate(nextProps:LogbookProps, nextState:LogbookState){
 
+        if(this.state.groups!==nextState.groups)
+            return true;
+
+     
+        if(this.props.todos!==nextProps.todos)
+            return true;
+        if(this.props.projects!==nextProps.projects) 
+            return true;
+        if(this.props.selectedTag!==nextProps.selectedTag)
+            return true;
+
+    }
+ 
+
+
+    groupByMonth = (props:LogbookProps) : (Todo | Project)[][] => {  
+ 
         let filters = [
             byTags(props.selectedTag),
             byCompleted, 
             byNotDeleted  
-        ];    
-     
+        ];     
 
         let getKey = (d:Date) : string => `${d.getFullYear()}-${d.getMonth()}`;
 
-        let todos = props.todos.filter( i => allPass(filters,i));
+        let todos : Todo[] = props.todos.filter(allPass(filters));
 
-        let projects = props.projects.filter( i => allPass(filters,i)); 
-
-        let tags = getTagsFromItems([...todos,...projects]);
+        let projects : Project[] = props.projects.filter(allPass(filters)); 
 
         let compare = compareByDate( (i : Todo | Project) => new Date(i.completed) );
- 
-        let objects = [...todos, ...projects].filter((i) => i.completed!==null && i.completed!==undefined).sort(compare);
- 
+
+        let objects = [...todos, ...projects].sort(compare);
+
+        if(objects.length<2)
+           return [ [...objects] ];
+        
         let groups = [];
 
-        let group = [];
-
+        let group : (Todo | Project)[] = [];
+ 
         let last : number = objects.length-2;
  
-        if(objects.length<2)
-           return {groups:[ [...objects] ],tags};
-         
- 
-
-          
-        for(let i=0; i<objects.length-1; i++){
-
+        for(let i=0; i<objects.length-1; i++){ 
 
             let key = getKey(new Date(objects[i].completed));
-            let nextKey = getKey(new Date(objects[i+1].completed));
- 
-            if(i === last){
 
+            let nextKey = getKey(new Date(objects[i+1].completed));
+   
+            if(i === last){
                 if(key===nextKey){
                     group.push(objects[i]);
                     group.push(objects[i+1]);
@@ -137,27 +128,17 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                 }
 
                 break;
-
             }
-
-            
 
             group.push(objects[i]);
 
             if(key !== nextKey){
-
                 groups.push(group);
                 group = []; 
-
             } 
-
         }
-  
 
-
-        return {groups,tags};
-        
-
+        return groups;
     }
 
 
@@ -187,7 +168,6 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                 <TodosList  
                     filters={[]}  
                     isEmpty={(empty:boolean) => {}} 
-                    setSelectedTags={(tags:string[]) => {}} 
                     dispatch={this.props.dispatch}     
                     selectedCategory={"logbook"} 
                     selectedTag={this.props.selectedTag}  
@@ -195,7 +175,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                     todos={todos}  
                     tags={this.props.tags} 
                 />  
-            </div>         
+            </div>          
 
         </div> 
 
@@ -206,13 +186,6 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
     groupsToComponents = (groups : any[][]) : JSX.Element[] => {
 
         let elements = [];
-
-
-        if(groups.length===0){
-
-           return elements;
-        
-        }
 
    
         for(let i=0; i<groups.length; i++){
@@ -226,26 +199,36 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
             let projects : Project[] = group.filter( (item:Project) => item.type==="project" );
 
             let month : string = getMonthName(new Date(group[0].completed));
-  
-            elements.push(this.getComponent(month,todos,projects));
 
+            elements.push(this.getComponent(month,todos,projects));
         }
 
+
         return elements; 
-
-
     }
 
  
 
     render(){ 
+ 
+        let tags = compose(
+            getTagsFromItems,
+            (todos) => todos.filter(
+                allPass([
+                    byCompleted,  
+                    byNotDeleted 
+                ])  
+            )
+        )([...this.props.todos, ...this.props.projects]);
+        
 
         return !this.state.groups ? null :
         <div>
             <ContainerHeader 
                 selectedCategory={"logbook"} 
                 dispatch={this.props.dispatch} 
-                tags={this.state.tags} 
+                tags={tags} 
+                showTags={true} 
                 selectedTag={this.props.selectedTag}
             />
    

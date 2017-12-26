@@ -21,7 +21,7 @@ import { ProjectComponent } from './Project/Project';
 import { Trash } from './Categories/Trash';
 import { Logbook } from './Categories/Logbook';
 import { Someday } from './Categories/Someday';
-import { Anytime } from './Categories/Anytime';
+import { Next } from './Categories/Next';  
 import { Upcoming } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
@@ -33,7 +33,7 @@ import { isString } from 'util';
 
 
  
-export type Category = "inbox" | "today" | "upcoming" | "anytime" | "someday" | 
+export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | "deadline"; 
 
              
@@ -121,7 +121,7 @@ let createNewTodo = (e, props:Store, rootRef:HTMLElement) : void => {
         "inbox",
         "today", 
         "someday",
-        "anytime", 
+        "next", 
         "project", 
         "area"
     ] 
@@ -436,9 +436,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 rootRef={this.rootRef}
                                 todos={this.props.todos}
                                 tags={this.props.tags}
-                            />,   
+                            />,    
 
-                            anytime: <Anytime   
+                            next: <Next   
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId} 
                                 selectedTag={this.props.selectedTag}
@@ -482,7 +482,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 </div>   
         </div> 
   }
-} 
+}  
 
 
 

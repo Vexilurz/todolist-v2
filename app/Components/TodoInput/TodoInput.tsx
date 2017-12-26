@@ -37,14 +37,15 @@ import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
 import { ThingsCalendar } from '.././ThingsCalendar';
 import {  
-    insideTargetArea, daysRemaining, replace, remove, todoChanged, 
-    unique, daysLeftMark, generateTagElement, uppercase
+    insideTargetArea, daysRemaining, todoChanged, 
+    daysLeftMark, generateTagElement, uppercase 
 } from '../../utils';
 import { Todo, removeTodo, updateTodo, generateId } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopover, TodoTags } from './TodoTags';
 import { TodoInputLabel } from './TodoInputLabel';
+import { uniq } from 'ramda';
 let moment = require("moment"); 
   
 
@@ -144,7 +145,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     onError = (e) => console.log(e);
     
-
+ 
 
     componentDidMount(){ 
 
@@ -199,24 +200,21 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     todoFromState = () : Todo => ({
         _id : this.props.todo._id,  
-        priority : this.props.todo.priority, 
-        status : this.props.todo.status,
+        priority : this.props.todo.priority,  
         created : this.props.todo.created,  
         deleted : this.props.todo.deleted,
         completed : this.state.completed, 
-        history : this.props.todo.history,    
-        attachments : this.props.todo.attachments,
         type:"todo", 
         category :  this.state.newSelectedCategory,  
         title : this.state.currentTodo, 
         reminder : this.state.reminder, 
         checked : this.state.checked, 
         note : this.state.currentNote,
-        checklist : this.state.checklist,  // TODO 
+        checklist : this.state.checklist, 
         attachedTags : this.state.attachedTags,
         attachedDate : this.state.attachedDate,
         deadline : this.state.deadline 
-    })
+    }) 
 
  
 
@@ -252,9 +250,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         let x = e.pageX;
 
-        let y = e.pageY;
+        let y = e.pageY; 
 
-        let inside = insideTargetArea(this.ref)(x,y);
+        let inside = insideTargetArea(this.ref,x,y);
 
         if(!inside){   
 
@@ -331,17 +329,20 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         tags.push(tag); 
 
-        this.setState({currentTag:'', attachedTags:unique(tags), showtagsPopover:false, tagsInputDisplay:false});
-    }
+        this.setState({
+            currentTag:'', 
+            attachedTags:uniq(tags), 
+            showtagsPopover:false, 
+            tagsInputDisplay:false
+        });
+    } 
 
 
     
     onTagFieldEnterPress = (event) => {  
 
         if(event.key==="Enter"){
-
             this.attachTag(this.state.currentTag);
-
         } 
          
     }  
@@ -370,12 +371,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 }, 
                  
                 () => {
-
                     let todo : Todo = this.todoFromState();   
     
                     if(this.state.currentTodo.length===0 || todoChanged(this.props.todo,todo))
                        this.addTodoFromInput(todo);
- 
                 } 
                 
             ); 
@@ -886,3 +885,4 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
  
  
 
+ 

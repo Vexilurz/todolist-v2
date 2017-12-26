@@ -136,15 +136,15 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                         />    
                     </div>
  
-                    <div  className={"leftPanelScroll"}
-                        id="areas" 
-                        style={{
+                    <div id="areas"  
+                         style={{
+                            overflowY:"scroll", 
                             position:"relative", 
                             paddingTop:"10px",
                             paddingLeft:"10px", 
                             paddingBottom:"100px",
                             paddingRight:"10px"
-                        }}   
+                         }}    
                     >
                         <AreasList  
                           dispatch={this.props.dispatch}   

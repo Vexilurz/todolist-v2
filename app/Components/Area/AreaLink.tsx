@@ -12,10 +12,10 @@ import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
-import { stringToLength, remove, insert, unique, replace, swap, chooseIcon } from '../../utils';
+import { stringToLength, chooseIcon } from '../../utils';
 import { SortableList } from '../SortableList';
 
-  
+   
 export let getAreaLink = (iconSize, a:Area, index:number, dispatch:Function) : JSX.Element => {
  
     return <div key={`${a._id}-${index}`} style={{position:"relative", padding:"5px"}}>  

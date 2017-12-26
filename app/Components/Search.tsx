@@ -32,8 +32,8 @@ import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
 import { ThingsCalendar } from './ThingsCalendar';
 import {  
-    insideTargetArea, daysRemaining, replace, remove, todoChanged, 
-    unique, daysLeftMark, generateTagElement, 
+    insideTargetArea, daysRemaining, todoChanged, 
+    daysLeftMark, generateTagElement, 
     attachDispatchToProps, chooseIcon, 
     stringToLength,  
     isItem
@@ -93,7 +93,7 @@ let getTodoLink = (todo : Todo, index : number, dispatch : Function) : JSX.Eleme
                 </div> 
             </div>  
 
-}
+} 
 
 
 

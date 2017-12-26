@@ -24,14 +24,14 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
-import { uppercase, debounce, stringToLength, diffDays, daysRemaining, daysLeftMark, chooseIcon } from '../../utils';
+import { uppercase, debounce, stringToLength, daysRemaining, daysLeftMark, chooseIcon } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import PieChart from 'react-minimal-pie-chart';
-
+ 
   
 
 export let getProjectLink = (iconSize, value:Project, index:number, dispatch:Function) : JSX.Element => { 

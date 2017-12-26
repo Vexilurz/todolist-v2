@@ -6,18 +6,18 @@ import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
 import { Provider, connect } from "react-redux";
 import Popover from 'material-ui/Popover';
-import { Footer } from '../../Components/Footer';
 import { Tags } from '../../Components/Tags';
 import { Transition } from 'react-transition-group';
 import { TodosList } from '../../Components/TodosList';
 import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '../ContainerHeader';
-import { byTags, chooseIcon, insideTargetArea, unique, getTagsFromItems } from '../../utils';
+import { byTags, chooseIcon, insideTargetArea, getTagsFromItems, byDeleted, Item } from '../../utils';
 import { getProjectLink } from '../Project/ProjectLink';
 import { getAreaLink } from '../Area/AreaLink';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
+import { uniq, compose } from 'ramda';
 
  
 
@@ -37,7 +37,6 @@ interface TrashState{
     deletedTodos : Todo[],
     deletedProjects : Project[],
     deletedAreas : Area[],
-    tags:string[],
     empty:boolean   
 }
 
@@ -47,31 +46,28 @@ export class Trash extends Component<TrashProps,TrashState>{
     constructor(props){
 
         super(props);
-
+ 
         this.state = {
             showPopup : false,
             deletedTodos : [],
             deletedProjects :[],
             deletedAreas : [],
-            tags : [],
             empty : false   
         }; 
  
     }  
 
 
-
+     
     selectDeleted = (props) => {
         let deletedTodos = props.todos.filter( (t:Todo) => !!t.deleted && byTags(props.selectedTag)(t)  );
         let deletedProjects = props.projects.filter( (p:Project) => !!p.deleted && byTags(props.selectedTag)(p) );
         let deletedAreas = props.areas.filter( (a:Area) => !!a.deleted && byTags(props.selectedTag)(a)  ); 
-        let tags = unique(getTagsFromItems([...deletedTodos,...deletedProjects,...deletedAreas]));
-   
+        
         this.setState({   
             deletedTodos,
             deletedProjects, 
             deletedAreas,
-            tags,
             empty : deletedTodos.length===0 && 
                     deletedProjects.length===0 && 
                     deletedAreas.length===0  
@@ -84,26 +80,17 @@ export class Trash extends Component<TrashProps,TrashState>{
         this.selectDeleted(this.props);
     }
 
+
  
     componentWillReceiveProps(nextProps){ 
-
-        //if(nextProps.selectedTag!==this.props.selectedTag)
-            this.selectDeleted(nextProps); 
-        /*else if(nextProps.todos!==this.props.todos)
-            this.selectDeleted(nextProps); 
-        else if(nextProps.projects!==this.props.projects)
-            this.selectDeleted(nextProps); 
-        else if(nextProps.areas!==this.props.areas)
-            this.selectDeleted(nextProps);*/ 
-
+        this.selectDeleted(nextProps); 
     }   
  
 
-    onEmptyTrash = (e) => {
 
+    onEmptyTrash = (e) => {
         if(!this.state.showPopup)
             this.setState({showPopup:true}); 
-
     }
      
  
@@ -111,31 +98,13 @@ export class Trash extends Component<TrashProps,TrashState>{
     onCancel = (e) => this.setState({showPopup:false}) 
     
 
- 
+
     onOk = (e) => this.setState( 
         {showPopup:false}, 
         () => this.props.dispatch({type:"removeDeleted"})
     ) 
-     
- 
-
-    restoreTodo = (t:Todo) : void => {
-        this.props.dispatch({type:"updateTodo", load:{...t,deleted:undefined}})
-    }
 
 
-
-    restoreProject = (p:Project) : void => {
-        this.props.dispatch({type:"updateProject", load:{...p,deleted:undefined}})
-    }
- 
-
-
-    restoreArea = (a:Area) : void => { 
-        this.props.dispatch({type:"updateArea", load:{...a,deleted:undefined}})
-    }
-   
-    
 
     getDeletedProjectElement = (value:Project, index:number) : JSX.Element => {
         return <div 
@@ -237,17 +206,78 @@ export class Trash extends Component<TrashProps,TrashState>{
 
     } 
          
+     
+ 
+
+
+
+ 
+
+
+
+    
+   
+
+
+
+
+
+    restoreTodo = (t:Todo) : void => {
+        this.props.dispatch({type:"updateTodo", load:{...t,deleted:undefined}})
+    }
+
+
+
+    restoreProject = (p:Project) : void => {
+        this.props.dispatch({type:"updateProject", load:{...p,deleted:undefined}})
+    }
+ 
+
+
+    restoreArea = (a:Area) : void => { 
+        this.props.dispatch({type:"updateArea", load:{...a,deleted:undefined}})
+    }
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
    
  
     render(){ 
 
-        return <div>
+        let tags = compose(
+            getTagsFromItems, 
+            (items : Item[]) => items.filter(byDeleted)  
+        )([
+            ...this.props.todos, 
+            ...this.props.projects, 
+            ...this.props.areas
+        ]); 
+ 
+
+        return <div> 
             <div> 
                 <ContainerHeader  
                     selectedCategory={"trash"}  
                     dispatch={this.props.dispatch} 
-                    tags={this.state.tags} 
+                    tags={tags} 
                     selectedTag={this.props.selectedTag}
+                    showTags={true} 
                 /> 
             </div>     
 
@@ -308,6 +338,13 @@ export class Trash extends Component<TrashProps,TrashState>{
  
   
 
+
+
+
+
+
+
+
 interface TrashPopupProps{
     dispatch:Function,
     container:HTMLElement, 
@@ -355,7 +392,7 @@ class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
         
         let y = e.pageY; 
          
-        let inside : boolean = insideTargetArea(this.ref)(x, y);
+        let inside : boolean = insideTargetArea(this.ref, x, y);
 
         if(!inside)
             this.props.onCancel(null); 
@@ -365,7 +402,6 @@ class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
 
 
     updatePosition = (props:TrashPopupProps) : void => { 
-        
         if(!props.container)
             return; 
 
@@ -375,37 +411,27 @@ class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
         let y = fixedOffsetTop + props.container.scrollTop;
  
         this.setState({x,y});  
-  
     }
          
 
 
     componentDidMount(){
-
         this.updatePosition(this.props);
-
         this.timeout = setTimeout(() => window.addEventListener("click", this.onOutsideClick), 300);  
-        
-
     }  
 
 
 
     componentWillUnmount(){
-        
         clearTimeout(this.timeout as any);
-
         window.removeEventListener("click", this.onOutsideClick);
-
     } 
  
 
 
     componentWillReceiveProps(nextProps){
-
        if(this.props.container!==nextProps.container)
           this.updatePosition(nextProps); 
-
     }
   
 
@@ -510,6 +536,6 @@ class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
                     </div>
                 </div>
             </div>   
-            </div>
+        </div>
     } 
-}
+} 

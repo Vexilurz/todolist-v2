@@ -6,7 +6,6 @@ import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
 import { Provider, connect } from "react-redux"; 
 import Popover from 'material-ui/Popover';
-import { Footer } from '../../Components/Footer'; 
 import { Tags } from '../../Components/Tags';
 import { TodosList } from '../../Components/TodosList';
 import { Todo,Project, Area } from '../../database';
@@ -24,40 +23,48 @@ import {
     stringToLength,
     byNotCompleted,
     byNotDeleted,
-    allPass,
     getTagsFromItems,
-    unique
 } from '../../utils';  
 import { getProjectLink } from '../Project/ProjectLink';
+import { allPass, uniq, isNil, compose } from 'ramda';
   
-  
+type Item = Project | Todo;
+ 
+interface objectsByDate{ 
+    [key:string]:Item[]
+}  
 
-let objectsToHashTableByDate = (props) : {objectsByDate:any,tags:string[]} => {
-    
+
+let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
+     
     let todos = props.todos;
 
-    let projects = props.projects;
+    let projects = props.projects; 
+
+    let haveDate = (item : Project | Todo) : boolean => {
+        if(item.type==="project"){ 
+           return !!item.deadline; 
+        }else if(item.type==="todo"){ 
+           return !!item["attachedDate"];
+        }
+    }
 
     let filters = [
+        haveDate, 
         byTags(props.selectedTag),
         byNotCompleted, 
-        //TODO Have attached date 
         byNotDeleted  
-    ];     
+    ];      
 
-    let objects = [...todos, ...projects].filter( i => allPass(filters,i)); 
+    let objects = [...todos, ...projects].filter( i => allPass(filters)(i)); 
  
-    let tags = unique(getTagsFromItems(objects));
+    let objectsByDate : objectsByDate = {};
 
-    let objectsByDate = {};
-
-    if(objects.length===0) 
+    if(objects.length===0){ 
        return {objectsByDate:[],tags:[]};
- 
-
+    }
+  
     for(let i=0; i<objects.length; i++){
-
-
         let date : Date = getDateFromObject(objects[i]);
 
         if(!date)
@@ -65,26 +72,15 @@ let objectsToHashTableByDate = (props) : {objectsByDate:any,tags:string[]} => {
 
         let key : string = keyFromDate(date);
 
-        if(objectsByDate[key]===undefined){
-
+        if(isNil(objectsByDate[key])){
             objectsByDate[key] = [objects[i]];
-
         }else{
-
             objectsByDate[key].push(objects[i]);
-
         }
+    }    
 
-
-    }   
-
-    return {objectsByDate,tags};
-
+    return objectsByDate;
 }   
-
-
-
-
 
 
 
@@ -96,13 +92,12 @@ interface UpcomingProps{
     selectedTag:string,
     tags:string[],
     rootRef:HTMLElement 
-}
+} 
  
  
 
 interface UpcomingState{
-    objects : { date : Date, todos:Todo[], projects:Project[] }[],
-    tags : string[]
+    objects : { date : Date, todos:Todo[], projects:Project[] }[]
 }
 
 
@@ -112,87 +107,28 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
     constructor(props){
         super(props);
-        this.state = {objects:[],tags:[]}; 
+        this.state = {objects:[]}; 
     }  
+ 
 
-
-   
     onError = (e) => console.log(e); 
 
 
-  
-    shouldComponentUpdate(nextProps:UpcomingProps, nextState:UpcomingState){
 
-        return true;
-
-    }
-
-
-
-    componentDidMount(){
-
-        let {objects,tags} = this.generateCalendarObjects(20);
-        this.setState({objects, tags}); 
-
-    }   
-
-
-
-    componentWillReceiveProps(nextProps:UpcomingProps){
-
-        if(nextProps.projects!==this.props.projects)
-            this.updateCalendarObjects();
-        else if(nextProps.todos!==this.props.todos)
-            this.updateCalendarObjects();
-        else if(nextProps.selectedTag!==this.props.selectedTag)
-            this.updateCalendarObjects();
-
-    } 
-    
-
-    updateCalendarObjects = () => {
-        let n = this.state.objects.length;
-        this.setState( 
-            {objects:[]}, 
-            () => {
-                
-                let {objects,tags} = this.generateCalendarObjects(n);
-                this.setState({objects}); 
-            
-            }
-        );
-    }
-  
-
-    generateCalendarObjects = (n) : {
-       objects : { date : Date, todos:Todo[], projects:Project[] }[],
-       tags : string[] 
-    }=> {
+    generateCalendarObjects = (n) : { date : Date, todos:Todo[], projects:Project[] }[] => {
         
         let objects = [...this.state.objects];
-
-
-        var t0 = performance.now();
-        let {objectsByDate,tags} = objectsToHashTableByDate(this.props);
-        var t1 = performance.now();
-        console.log("Call to objectsToHashTableByDate (Upcoming) took " + (t1 - t0) + " milliseconds.");
-         
-        
-
+ 
+        let objectsByDate = objectsToHashTableByDate(this.props);
+ 
         let range : Date[] = [];
 
-
         if(objects.length===0){
-
-            range = getDatesRange( new Date(), n, true, true ); 
-        
+            range = getDatesRange( new Date(), n, true, true); 
         }else{  
-
-            range = getDatesRange( objects[ objects.length - 1 ].date, n, false, true );
-
+            range = getDatesRange( objects[ objects.length - 1 ].date, n, false, true);
         }
  
-
         for(let i = 0; i<range.length; i++){
 
             let object = {
@@ -201,88 +137,98 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 projects : [] 
             }
  
-            let key = keyFromDate(range[i]);
+            let key : string = keyFromDate(range[i]);
 
-            let entry : any[] = objectsByDate[key];
+            let entry : Item[] = objectsByDate[key];
  
             if(entry===undefined){
- 
                objects.push(object);
-
             }else{
-
-               object.todos = entry.filter( (el:Todo) => el.type==="todo" ); 
-               object.projects = entry.filter( (el:Project) => el.type==="project" ); 
+               object.todos = entry.filter((el:Todo) => el.type==="todo"); 
+               object.projects = entry.filter((el:Project) => el.type==="project"); 
                objects.push(object);
-
             }
-
-            
-
-        }
-        
-
-        return {objects,tags};
-
-
+        } 
+         
+        return objects;
     }
+
+
+
+    componentDidMount(){ 
+        let objects  = this.generateCalendarObjects(50);
+        this.setState({objects}); 
+    }    
+
+
+
+    componentWillReceiveProps(nextProps:UpcomingProps){
+        if(nextProps.projects!==this.props.projects)
+            this.updateCalendarObjects();
+        else if(nextProps.todos!==this.props.todos)
+            this.updateCalendarObjects();
+        else if(nextProps.selectedTag!==this.props.selectedTag)
+            this.updateCalendarObjects();
+    } 
+
+
+     
+    updateCalendarObjects = () => {
+        let n = this.state.objects.length;
+        this.setState({objects:this.generateCalendarObjects(n)}); 
+    }
+  
 
 
     objectToComponent = (
-
         object : { date : Date, todos:Todo[], projects:Project[] }, 
-
         idx:number
-
     ) : JSX.Element => {
-
 
         return <div key={idx}>
             <CalendarDay 
- 
                 idx={idx} 
-   
                 day={object.date.getDate()}
- 
                 dayName={getDayName(object.date)}
- 
                 todos={object.todos}
-
                 projects={object.projects}  
-
-                areas={[]}   
-                
                 dispatch={this.props.dispatch}
-
                 selectedTodoId={this.props.selectedTodoId}
-
                 selectedTag={this.props.selectedTag}
-
                 rootRef={this.props.rootRef}
-
                 tags={this.props.tags}
- 
-            /> 
+             /> 
         </div>
-  
-
     }
-  
-
-
-
-
-
 
     
 
+    onEnter = ({ previousPosition, currentPosition }) => {
+        let objects = this.generateCalendarObjects(50);
+        this.setState({objects});  
+    }
+   
+    
+
     render(){ 
+        
+        let tags = compose(
+            getTagsFromItems,
+            (items : Item[]) => items.filter(
+                allPass([
+                    byNotCompleted,  
+                    byNotDeleted 
+                ])  
+            )
+        )([...this.props.todos, ...this.props.projects]); 
+
+
         return <div> 
-             
                 <ContainerHeader 
                     selectedCategory={"upcoming"} 
                     dispatch={this.props.dispatch}  
-                    tags={this.state.tags}
+                    tags={tags}
+                    showTags={true} 
                     selectedTag={this.props.selectedTag}
                 />
    
@@ -291,23 +237,9 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
     
                 <div style={{width:"100%", height:"1px"}}> 
-                    <Waypoint 
-                        onEnter={({ previousPosition, currentPosition, event }) => {
-                            
-                            var t0 = performance.now();
-                            let {objects,tags} = this.generateCalendarObjects(20);
-                            var t1 = performance.now();
- 
-                            console.log("Call to generateCalendarObjects(20) (Upcoming) took " + (t1 - t0) + " milliseconds.");
-                              
-                            this.setState({objects}); 
-
-                        }}
-                        onLeave={({ previousPosition, currentPosition, event }) => {
-                            
-
-
-                        }}
+                    <Waypoint  
+                        onEnter={this.onEnter} 
+                        onLeave={({ previousPosition, currentPosition, event }) => {}}
                     />
                 </div>
  
@@ -333,7 +265,6 @@ interface CalendarDayProps{
     dayName:string,
     projects:Project[],
     todos:Todo[],
-    areas:Area[],
     dispatch:Function, 
     selectedTodoId:string,
     selectedTag:string,
@@ -355,8 +286,6 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
         super(props)
  
     }
-
-
 
 
     render(){ 
@@ -444,8 +373,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         paddingBottom : "10px" 
                     }}>   
                         <TodosList  
-                            filters={[]}   
-                            setSelectedTags={(tags:string[]) => {}}
+                            filters={[]}    
                             isEmpty={(empty:boolean) => {}} 
                             dispatch={this.props.dispatch}     
                             selectedCategory={"upcoming"}

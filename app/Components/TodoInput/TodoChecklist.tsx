@@ -37,12 +37,14 @@ import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
 import { ThingsCalendar } from '.././ThingsCalendar';
 import { 
-    insideTargetArea, daysRemaining, replace, 
-    remove, todoChanged, daysLeftMark, generateTagElement,
+    insideTargetArea, daysRemaining, 
+    todoChanged, daysLeftMark, 
+    generateTagElement
 } from '../../utils';
 import { Category } from '.././MainContainer';
 import { Todo, removeTodo, updateTodo, generateId } from '../../database';
 import { SortableList } from '../SortableList';
+import { replace, adjust } from 'ramda';
 
 
 
@@ -119,8 +121,8 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                 
             updatedItem.text = newText; 
 
-            this.checklist = replace(this.checklist, updatedItem, idx);
-
+            this.checklist = adjust(() => updatedItem, idx, this.checklist)
+            
         }   
 
     } 
@@ -136,10 +138,10 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
             
             item.checked=!item.checked;
 
-            this.checklist = replace(this.checklist, item, idx);  
+            this.checklist = adjust(() => item, idx, this.checklist)
             
             this.updateChecklist(); 
-                 
+                    
         } 
 
     }
@@ -242,7 +244,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         </li>     
     }
 
-
+ 
 
     render(){
 

@@ -5,16 +5,17 @@ import * as ReactDOM from 'react-dom';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, chooseIcon, showTags } from "../utils"; 
+import { attachDispatchToProps, uppercase, chooseIcon } from "../utils"; 
 import { Tags } from './Tags';
 import { Category } from './MainContainer';
-
+ 
  
 
 export interface ContainerHeaderProps{
     selectedCategory:Category, 
     dispatch:Function, 
     tags:string[],
+    showTags:boolean,
     selectedTag:string
 }  
 
@@ -53,17 +54,17 @@ export class ContainerHeader extends Component<ContainerHeaderProps,ContainerHea
                     WebkitUserSelect: "none",
                     cursor:"default" 
                 }}>    
-                    {uppercase(this.props.selectedCategory==="anytime" ? "next" : this.props.selectedCategory)}
+                    {uppercase(this.props.selectedCategory)}
                 </div> 
-            
+             
             </div> 
-
+ 
             <Tags  
                 selectTag={(tag) => this.props.dispatch({type:"selectedTag",load:tag})}
                 tags={this.props.tags} 
                 selectedTag={this.props.selectedTag}
-                show={showTags(this.props.selectedCategory)} 
-            /> 
+                show={this.props.showTags} 
+            />    
         </div>  
         </div>
 

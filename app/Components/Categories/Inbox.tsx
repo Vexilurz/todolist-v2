@@ -7,8 +7,9 @@ import { Component } from "react";
 import { Todo } from '../../database';
 import { TodosList } from '.././TodosList';
 import { ContainerHeader } from '.././ContainerHeader';
-import { byTags, byCategory, byNotCompleted, byNotDeleted } from '../../utils';
+import { byTags, byCategory, byNotCompleted, byNotDeleted, getTagsFromItems } from '../../utils';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
+import { compose, filter, allPass } from 'ramda';
 
  
  
@@ -21,33 +22,69 @@ interface InboxProps{
     tags:string[]
 } 
  
-
+ 
 
 interface InboxState{
-    empty:boolean,
-    relevantTags:string[] 
+    empty:boolean
 }
 
- 
+  
 
 export class Inbox extends Component<InboxProps, InboxState>{
 
     constructor(props){
+
         super(props);
-        this.state={
-            empty:false,
-            relevantTags:[]  
-        }
+
+        this.state={empty:false};
+
     }  
+
+
+    shouldComponentUpdate(nextProps:InboxProps,nextState:InboxState){
+
+        let should = false;
+
+        if(this.props.selectedTodoId!==nextProps.selectedTodoId)
+           should = true;
+
+        if(this.props.selectedTag!==nextProps.selectedTag)
+           should = true; 
+
+        if(this.props.rootRef!==nextProps.rootRef)
+           should = true;
+
+        if(this.props.todos!==nextProps.todos)
+           should = true;
+
+        if(this.props.tags!==nextProps.tags)
+           should = true;
+
+        return should; 
+        
+    }
+ 
 
     render(){
     
+        let tags = compose(
+            getTagsFromItems,
+            (todos) => todos.filter(
+                allPass([
+                    byCategory("inbox"),
+                    byNotCompleted,  
+                    byNotDeleted 
+                ])  
+            )
+        )(this.props.todos);
+
+
         return <div>  
- 
             <ContainerHeader 
               selectedCategory={"inbox"} 
               dispatch={this.props.dispatch}  
-              tags={this.state.relevantTags}
+              tags={tags}
+              showTags={false} 
               selectedTag={this.props.selectedTag} 
             /> 
  
@@ -66,13 +103,12 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 }} 
             >  
                 <TodosList   
-                    filters={[
+                    filters={[  
                         byTags(this.props.selectedTag),
                         byCategory("inbox"),
                         byNotCompleted,  
                         byNotDeleted 
-                    ]}  
-                    setSelectedTags={(tags:string[]) => this.setState({relevantTags:tags})}
+                    ]}   
                     isEmpty={(empty:boolean) => this.setState({empty})}
                     dispatch={this.props.dispatch}    
                     selectedCategory={"inbox"} 

@@ -23,10 +23,10 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui'; 
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, generateId, addProject, removeProject } from '../../database';
-import { uppercase, debounce, attachDispatchToProps, insert, remove } from '../../utils';
+import { uppercase, debounce, attachDispatchToProps } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { Store } from '../../App';
-
+ 
  
 
 interface ProjectMenuPopoverProps extends Store{

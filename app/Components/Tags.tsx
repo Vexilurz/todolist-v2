@@ -10,18 +10,6 @@ import { createStore, combineReducers } from "redux";
 import { Provider, connect } from "react-redux"; 
 import DayPicker from 'react-day-picker';
    
- 
-
-  
-
-/*
-<Tags 
-    selectTag={(tag) => this.setState({selectedTag:tag})}
-    tags={this.props.tags}
-    selectedTag={this.props.selectedTag}
-    show={true}
-/> 
-*/
 
 
 interface TagsProps{
@@ -31,16 +19,13 @@ interface TagsProps{
     show:boolean
   } 
   
-  export class Tags extends Component<TagsProps,{}>{
+export class Tags extends Component<TagsProps,{}>{
   
-
       constructor(props){
           super(props);
       }
 
-
       selectTagBackgroundColor = (tag,selectedTag) => {
-
 
         if(this.props.selectedTag==="All" && tag==="All"){
 
@@ -60,7 +45,6 @@ interface TagsProps{
 
         }
         
-
       }
 
 
@@ -85,7 +69,7 @@ interface TagsProps{
 
         }
 
-       
+        
       } 
 
   
@@ -93,9 +77,9 @@ interface TagsProps{
          return !this.props.show ? null :
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>  
                     {   
-                        ["All",...this.props.tags].map((tag:string) =>  
-                            <div key={tag} style={{padding:"10px"}}>
-                                <div className="chip"    
+                        this.props.tags.map(
+                            (tag:string) => <div key={tag} style={{padding:"10px"}}>
+                                <div className="chip"     
                                     onClick={() => this.props.selectTag(tag)} 
                                     style={{
                                         width: "auto",

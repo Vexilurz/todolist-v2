@@ -16,7 +16,7 @@ let uniqid = require("uniqid");
 let randomCategory = () : Category => {
     
     let categories : Category[] = [
-    "inbox" , "today" , "upcoming" , "anytime" , "someday" , 
+    "inbox" , "today" , "upcoming" , "next" , "someday" , 
     //"logbook" , "trash" , "project" , "area" , 
     "evening"
     ];  
@@ -117,6 +117,7 @@ let fakeHeading = () : Heading => {
 
     return {
         type : "heading", 
+        priority:randomInteger(9999999),
         title : title.join(), 
         _id : generateId(), 
         key : generateId()

@@ -8,7 +8,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, byCategory, byTags, allPass 
+    chooseIcon, byCategory, byTags, 
 } from "../utils"; 
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -69,7 +69,7 @@ export let chooseFadeIcon = (container:HTMLElement, selectedCategory:Category) =
         case "upcoming":
             return <CalendarIco style={style}/>
 
-        case "anytime":
+        case "next":
             return <Layers style={style}/>
 
         case "someday":

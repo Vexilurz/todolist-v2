@@ -23,7 +23,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem } from '../../database'; 
-import { uppercase, debounce, replace, remove } from '../../utils';
+import { uppercase, debounce } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
@@ -32,7 +32,7 @@ import { ProjectBody } from './ProjectBody';
 
 interface ProjectComponentProps{
     projects:Project[], 
-    selectedProjectId:string,
+    selectedProjectId:string, 
     todos:Todo[],
     tags:string[],
     rootRef:HTMLElement,

@@ -34,6 +34,7 @@ import { TodosList } from '.././TodosList';
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { byTags, byCategory } from '../../utils';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
+import { compose } from 'ramda';
  
  
 
@@ -46,45 +47,40 @@ interface TodayProps{
     tags:string[]
 } 
 
- 
 
+ 
 interface TodayState{
-    relevantTags:string[],
-    emptyEvening:boolean,
-    emptyToday:boolean 
+    emptyEvening : boolean,
+    emptyToday : boolean
 }
  
-
+ 
  
 export class Today extends Component<TodayProps,TodayState>{
 
+
     constructor(props){
         super(props);
-        this.state={
-            relevantTags:[], 
-            emptyEvening:false,
-            emptyToday:false
+        this.state = {
+            emptyEvening : false,
+            emptyToday : false
         }
     }
-
-    componentDidMount(){
-        let filters = [ 
-            byTags(this.props.selectedTag),
-            (i) => byCategory("evening")(i) || byCategory("today")(i),
-            byNotCompleted, 
-            byNotDeleted    
-        ];
-
-        let todos = this.props.todos.filter( (t:Todo) => allPass(filters,t) );
-        
-        let tags = getTagsFromItems(todos);
-
-        this.setState({relevantTags:tags})
-    }
  
+   
     render(){ 
-        
-        
+
+        let tags = compose(
+            getTagsFromItems,
+            (todos) => todos.filter(
+                allPass([
+                    byCategory("today"),
+                    byNotCompleted,  
+                    byNotDeleted 
+                ])  
+            )
+        )(this.props.todos);
+
  
         return <div style={{disaply:"flex", flexDirection:"column"}}> 
             <div style={{width: "100%"}}> 
@@ -94,8 +90,7 @@ export class Today extends Component<TodayProps,TodayState>{
                         position:"relative",
                         alignItems:"center",
                         marginBottom:"20px"
-                    }}>  
-
+                    }}>   
                         <div>{chooseIcon({width:"50px",height:"50px"}, "today")}</div>
 
                         <div style={{  
@@ -119,12 +114,13 @@ export class Today extends Component<TodayProps,TodayState>{
  
                     <Tags  
                         selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
-                        tags={this.state.relevantTags} 
+                        tags={tags} 
                         selectedTag={this.props.selectedTag}
                         show={true}  
                     />  
- 
-                       
+  
+                {    
+                    this.state.emptyToday ? null :   
                     <div   
                         className="unselectable" 
                         id="todos" 
@@ -139,10 +135,7 @@ export class Today extends Component<TodayProps,TodayState>{
                                 byCategory("today"),
                                 byNotCompleted, 
                                 byNotDeleted 
-                            ]}  
-                            setSelectedTags={(tags:string[]) => {
-                                //this.setState({relevantTags:unique([...tags,...this.state.relevantTags])})
-                            }}
+                            ]} 
                             isEmpty={(empty:boolean) => this.setState({emptyToday:empty})}   
                             dispatch={this.props.dispatch}   
                             selectedCategory={"today"}
@@ -152,9 +145,10 @@ export class Today extends Component<TodayProps,TodayState>{
                             tags={this.props.tags} 
                         />  
                     </div>  
-                    
-  
-                    <div>
+                }    
+                {  
+                     this.state.emptyEvening ? null :                
+                    <div> 
                         <div style={{
                             display: "flex",
                             color: "rgba(0,0,0,0.8)",
@@ -176,15 +170,11 @@ export class Today extends Component<TodayProps,TodayState>{
                             }}/>   
                             <div style={{marginLeft: "10px"}}>This Evening</div>
                         </div>
-
-                        <div   
+                        <div    
                             className="unselectable" 
                             id="todos" 
-                            style={{
-                                marginBottom: "50px", 
-                                marginTop:"20px"
-                            }}   
-                        >  
+                            style={{marginBottom: "50px", marginTop:"20px"}}   
+                        >   
                             <TodosList     
                                 filters={[ 
                                     byTags(this.props.selectedTag),
@@ -192,9 +182,6 @@ export class Today extends Component<TodayProps,TodayState>{
                                     byNotCompleted, 
                                     byNotDeleted    
                                 ]} 
-                                setSelectedTags={(tags:string[]) => {}
-                                //this.setState({relevantTags:unique([...tags,...this.state.relevantTags])})
-                                }  
                                 isEmpty={(empty:boolean) => this.setState({emptyEvening:empty})} 
                                 dispatch={this.props.dispatch}    
                                 selectedCategory={"evening"} 
@@ -202,9 +189,10 @@ export class Today extends Component<TodayProps,TodayState>{
                                 rootRef={this.props.rootRef}
                                 todos={this.props.todos}  
                                 tags={this.props.tags} 
-                            /> 
+                            />  
                         </div> 
                     </div>  
+                }    
 
             </div>
     </div>
