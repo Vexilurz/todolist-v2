@@ -114,7 +114,7 @@ export class Trash extends Component<TrashProps,TrashState>{
  
     onOk = (e) => this.setState( 
         {showPopup:false}, 
-        () => this.props.dispatch({type:"removeAllTypes"})
+        () => this.props.dispatch({type:"removeDeleted"})
     ) 
      
  

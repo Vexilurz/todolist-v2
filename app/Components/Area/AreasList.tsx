@@ -440,7 +440,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             let to : any = this.state.layout[newIndex];
 
             if(from.type==="project" && to.type==="project") 
-               this.props.dispatch({type:"swapProjects", load:{fromId:from._id,toId:to._id}});
+               this.props.dispatch({type:"changeProjectsPriority", load:{fromId:from._id,toId:to._id}});
 
 
         }else if(!detachedBefore && !detachedAfter){
@@ -471,7 +471,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 let to : any = this.state.layout[newIndex];
     
                 if(from.type==="project" && to.type==="project") 
-                   this.props.dispatch({type:"swapProjects", load:{fromId:from._id,toId:to._id}});
+                   this.props.dispatch({type:"changeProjectsPriority", load:{fromId:from._id,toId:to._id}});
      
  
             }

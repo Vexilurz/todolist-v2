@@ -37,11 +37,3 @@ export let loadApp = (window) : Promise<void> =>
            `file://${__dirname}/app.html`
        );    
   
-
-
-export let log = (info : any) => {
-    console.log(info);
-    return info;
-};  
-
-

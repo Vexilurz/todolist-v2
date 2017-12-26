@@ -15,28 +15,19 @@ export let initWindow = ({width,height,transparent})  => {
         icon:path.join(__dirname,'icon.ico'),
         width,         
         height,   
-        transparent, 
-        //'node-integration': true,
+        transparent,  
         opacity:transparent ? 0 : 1, 
         //backgroundColor:"#ffffff", 
         title:'tasklist',      
         center:true,     
-        frame:false   
+        frame:true 
     } as any);              
             
     handler.setMovable(true);   
 
-    handler.on(
-        'ready-to-show', 
-        () => handler.show()
-    );
+    handler.on('ready-to-show', () => handler.show());
   
-    handler.on( 
-        'closed', 
-        () => {
-            handler = null;
-        } 
-    ); 
+    handler.on('closed', () => {handler = null;}); 
   
     return handler; 
 };         

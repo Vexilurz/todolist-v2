@@ -104,8 +104,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
 
     onDuplicate = (e) => { 
         
-        this.props.dispatch({ type:"duplicateProject", load:this.props.selectedProjectId }); 
- 
+        //newProject
     }
 
 

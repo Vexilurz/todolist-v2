@@ -5,8 +5,12 @@ import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';
 import { initWindow } from './initWindow';
 let uniqid = require("uniqid");
 const {shell} = require('electron');  
- 
 
+
+let clonedWindowWidth : number = 50;
+let clonedWindowHeight : number = 90;
+
+ 
 let remove = (array:any[], idx:number) : any[] => {
     
         return [
@@ -24,35 +28,26 @@ interface RegisteredListener{
   
 
  
-export class Listeners {
-      
+export class Listeners{
+       
     registeredListeners : RegisteredListener[]; 
-
 
     spawnedWindows : any[];
  
- 
     constructor(window){
   
-
-
-
       this.spawnedWindows = [mainWindow];  
  
-
-
-
-      this.registeredListeners = [  
-
+      this.registeredListeners = [   
 
             { 
                 name : "cloneWindow",
                 callback : (event, store) => {
 
                     let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
-
-                    let width = 50*(workingArea.width/100);  
-                    let height = 80*(workingArea.height/100); 
+                    let width = clonedWindowWidth*(workingArea.width/100);  
+                    let height = clonedWindowHeight*(workingArea.height/100); 
+ 
 
                     let newWindow = initWindow({width, height, transparent:false}); 
                     
@@ -64,11 +59,8 @@ export class Listeners {
  
                     loadApp(newWindow)     
                     .then(() => {        
-                        newWindow.webContents.send("loaded", {
-                            type:"clone",  
-                            load:storeWithId  
-                        });
-                        //newWindow.webContents.openDevTools();    
+                        newWindow.webContents.send("loaded", {type:"clone",load:storeWithId}); 
+                        newWindow.webContents.openDevTools();    
                     });      
 
                 } 
@@ -79,31 +71,23 @@ export class Listeners {
                 name : "reload", 
                 callback : (event, id:number) => { 
                     
-  
-                       this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed());
-  
-                       let browserWindow = this.spawnedWindows.find( browserWindow => browserWindow.id===id );  
-  
-                       if(browserWindow===undefined || browserWindow===null)
-                          return;
+                    this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed() );
 
-  
-                       browserWindow.reload();  
+                    let browserWindow = this.spawnedWindows.find( browserWindow => browserWindow.id===id );  
+ 
+                    if(browserWindow===undefined || browserWindow===null)
+                       return;
 
-                        loadApp(browserWindow)
-                        .then(
-                          () => browserWindow.webContents.send(
-                                    "loaded", 
-                                    {
-                                        type:"reload", 
-                                        load:browserWindow.id
-                                    }
-                                )
-                        );  
-
-                       
-  
-  
+                    browserWindow.reload();  
+ 
+                    loadApp(browserWindow)
+                    .then(
+                        () => browserWindow.webContents.send(
+                            "loaded",
+                            {type:"reload",load:browserWindow.id}
+                        )
+                    );  
+ 
                 }     
             }, 
 
@@ -127,74 +111,8 @@ export class Listeners {
                     }
 
                 }
-            }, 
-
-
-            { 
-                name : "close", 
-                callback : (event, id:number) => {
-
-                    this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed());
-
-                    let browserWindow = this.spawnedWindows.find( browserWindow => browserWindow.id===id );  
-                    
-
-                    if(browserWindow===undefined || browserWindow===null)
-                       return;
-                        
-                    browserWindow.close(); 
-
-                }
-            }, 
-
-
-            { 
-
-                name : "hide", 
-                callback : (event, id:number) => {
-
-                    this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed());
-
-                    let browserWindow = this.spawnedWindows.find( browserWindow => browserWindow.id===id );  
-                    
-
-                    if(browserWindow===undefined || browserWindow===null)
-                       return;
-                   
-
-                    browserWindow.minimize(); 
-
-                } 
-    
-            },  
- 
-
-            { 
-                
-              name : "size", 
-              callback : (event, id:number, fullscreen:boolean) => { 
-
-                    this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed());
-
-                    const {width,height} = electron.screen.getPrimaryDisplay().workAreaSize;
-
-                    let browserWindow = this.spawnedWindows.find( browserWindow => browserWindow.id===id );  
-                     
-
-                    if(browserWindow===undefined || browserWindow===null)
-                       return;
-                    
-                    if(fullscreen)
-                        browserWindow.setSize(width,height);
-                    else 
-                        browserWindow.setSize(960,720);  
-                        
-                        
-                    browserWindow.center(); 
- 
-              }
- 
             }
+
       ];    
       
 

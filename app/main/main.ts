@@ -5,19 +5,23 @@ import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';
 import { Listeners } from "./listeners";
 import { initWindow } from "./initWindow";
  
- 
+
 export let mainWindow;   
 export let listeners; 
 
 
+let mainWindowWidth : number = 70;
+let mainWindowHeight : number = 80; 
+
  
 let preventAnnoyingErrorPopups = () => dialog.showErrorBox = (title, content) => {};
  
+
 let onReady = () => {  
     let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
-
-    let width = 70*(workingArea.width/100); 
-    let height = 80*(workingArea.height/100); 
+ 
+    let width = mainWindowWidth*(workingArea.width/100); 
+    let height = mainWindowHeight*(workingArea.height/100); 
  
     preventAnnoyingErrorPopups();     
      
@@ -35,18 +39,15 @@ let onReady = () => {
                 load:mainWindow.id
             }
         ); 
- 
-        //mainWindow.webContents.openDevTools();   
+  
+        mainWindow.webContents.openDevTools();   
 
     });     
 }            
  
 
-
-  
 process.on("unchaughtException" as any,(error) => console.log(error)); 
   
-//app.disableHardwareAcceleration(); 
 
 app.on('ready', onReady);  
  

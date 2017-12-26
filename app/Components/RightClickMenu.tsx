@@ -32,9 +32,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
  
 
     onDuplicate = (e) => {
-
-       this.props.dispatch({ type:"duplicateTodo", load: this.props.rightClickedTodoId }); 
- 
+//newTodo
     } 
  
 
@@ -107,7 +105,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         
         this.props.dispatch({ type:"removeTodo", load:todo._id });
         this.props.dispatch({ type:"addTodos", load:todos });
-        this.props.dispatch({ type:"newProject", load:converted });
+        this.props.dispatch({ type:"addProject", load:converted });
 
     }
  

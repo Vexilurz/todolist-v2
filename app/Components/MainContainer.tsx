@@ -110,7 +110,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
  
                 this.props.dispatch({
                     type:"setAllTypes", 
-                    load:{
+                    load:{ 
                         todos,
                         projects,
                         areas,
@@ -274,7 +274,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         }  
 
  
-        this.props.dispatch({type:"newTodo", load:todo});
+        this.props.dispatch({type:"addTodo", load:todo});
 
  
         if(this.props.selectedCategory==="project"){ 

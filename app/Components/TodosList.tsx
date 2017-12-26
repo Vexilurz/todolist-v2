@@ -230,7 +230,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
     
             let toId = items[newIndex]._id; 
     
-            this.props.dispatch({type:"swapTodos", load:{fromId,toId}});
+            this.props.dispatch({type:"changeTodosPriority", load:{fromId,toId}});
 
         }
 

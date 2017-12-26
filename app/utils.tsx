@@ -2,7 +2,7 @@ import './assets/styles.css';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import { 
+import {  
   cyan500, cyan700,   
   pinkA200, 
   grey100, grey300, grey400, grey500,
@@ -36,44 +36,186 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
-import { getTodos, queryToTodos, Todo, updateTodo, generateId, Project, Area } from './database';
+import { getTodos, queryToTodos, Todo, updateTodo, generateId, Project, Area, removeTodos, removeProjects, removeAreas, updateProjects, updateTodos, updateAreas } from './database';
 import { Category } from './Components/MainContainer';
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 let moment = require("moment");
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { TodoInput } from './Components/TodoInput/TodoInput';
+import { contains, isNil, all } from 'ramda';
+
+type Item = Area | Project | Todo;
+
+export let isItem = (item:Item) : boolean => item.type==="project" || item.type==="area" || item.type==="todo";
+
+export let isArray = (item:any[]) : boolean => Array.isArray(item); 
+
+export let isDate = (date) : boolean => date instanceof Date; 
+
+export let isFunction = (item) : boolean => typeof item==="function"; 
+
+export let isString = (item) : boolean => typeof item==="string"; 
+
+export let isCategory = (category : Category) : boolean => { 
+
+    let categories : Category[] = [
+        "inbox" , "today" , "upcoming" , "anytime" , "someday" , 
+        "logbook" , "trash" , "project" , "area" , "evening" , 
+        "deadline"
+    ]; 
+
+    return contains(category,categories);
+
+}  
 
 
- 
-export let daysRemaining = (date) : number => {
 
-    var eventdate = moment(date);
+export let keyFromDate = (date:Date) : string => {
+    
+    if(!isDate(date))
+       throw new Error(`keyFromDate. input is not a date. ${date}`); 
+    
+    let year = date.getFullYear();
+    let day = date.getDate();
+    let month = date.getMonth();
+    return [year,month+1,day].join('-');
+        
+}
+    
 
-    var todaysdate = moment();
 
-    return eventdate.diff(todaysdate, 'days');
+
+export let changePriority = (from : number, to : number, items : Item[] ) : Item[] => {
+
+    if(isNaN(from) || from===-1)
+        throw new Error(`from incorrect value ${from}. changePriority.`);
+
+    if(isNaN(to) || to===-1)
+        throw new Error(`to incorrect value ${to}. changePriority.`);
+
+    if(!items) 
+       throw new Error(`Items list undefined. changePriority.`);
+
+    if(items.length===0)
+       throw new Error(`Items empty. changePriority.`);      
+       
+    let fromItem : Item = items[from];
+    let toItem : Item = items[to];
+    let temp = null;  
+
+
+    if(!fromItem) 
+        throw new Error(`fromItem undefined. changePriority. changePriority.`);
+    if(!toItem) 
+        throw new Error(`toItem undefined. changePriority. changePriority.`);
+
+
+    if(!isItem(fromItem)) 
+        throw new Error(`fromItem - value type is not a project. changePriority.`);
+    if(!isItem(toItem))  
+        throw new Error(`toItem - value type is not a project. changePriority.`);
+
+
+    let onError = (e) => {
+        console.log(` 
+            Error occured. ${e}. ${JSON.stringify(e)} changePriority.
+            ${JSON.stringify([fromItem,toItem])}
+        `); 
+    } 
+
+
+    temp = fromItem.priority;
+    fromItem.priority = toItem.priority;
+    toItem.priority = temp;  
+
+
+    if( all((i:Item) => i.type==="todo", items) ){
+        updateTodos([fromItem,toItem] as Todo[],onError);
+    }else if( all((i:Item) => i.type==="project", items) ){
+        updateProjects([fromItem,toItem] as Project[],onError);
+    }else if( all((i:Item) => i.type==="area", items) ){
+        updateAreas([fromItem,toItem] as Area[],onError);
+    }
+     
+    return [...items];
 
 }
 
 
- 
-export let swap = (array:any[], fromIdx:number, toIdx:number) : any[] => {
-        let copy = [...array];
 
-        let temp = copy[fromIdx];
-        copy[fromIdx] = copy[toIdx]; 
-        copy[toIdx] = copy[fromIdx]; 
+let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {
+ 
+    if(!objects)
+        throw new Error(`objects undefined. ${objects} removeDeleted.`);
+
+    if(!updateDB)
+        throw new Error(`updateDB undefined. ${updateDB} removeDeleted.`);    
+
+    if(!isFunction(updateDB))   
+        throw new Error(`updateDB is not a function. ${updateDB} removeDeleted.`);    
+    
+
+    let deleted = [];
+    let remainder = [];
+
+
+    for(let i=0; i<objects.length; i++){
+
+        let object = objects[i];
+        
+        if(!isItem(object))
+           throw new Error(`object has incorrect type ${object} ${i} ${JSON.stringify(objects)}`);
+
+        if(!!objects[i]["deleted"]){
+            deleted.push(objects[i]);
+        }else{
+            remainder.push(objects[i]);  
+        } 
+
+    } 
+ 
+
+    if(deleted.length>0)
+        updateDB(deleted);
+    
+    return remainder;
+    
+}
+        
+ 
+        
+export let removeDeletedTodos = (todos:Todo[]) : Todo[] => {
+    return removeDeleted(todos, removeTodos) as Todo[]
+}  
+
+ 
+
+export let removeDeletedProjects = (projects:Project[]) : Project[] => {
+    return removeDeleted(projects, removeProjects) as Project[]
+} 
+
+ 
+
+export let removeDeletedAreas = (areas:Area[]) : Area[] => { 
+    return removeDeleted(areas, removeAreas) as Area[] 
+}
   
-        return copy;
-}
-
-
+ 
 
 export let chooseIcon = (
     size : { width:string, height:string }, 
     selectedCategory : Category
-) : JSX.Element => {
+) => {
 
+    if(!isString(size.width))
+        throw new Error(`Width is not a string. ${size.width}. chooseIcon.`);
+
+    if(!isString(size.height))
+        throw new Error(`Height is not a string. ${size.height}. chooseIcon.`);
+    
+    if(!isCategory(selectedCategory))
+        throw new Error(`selectedCategory is not a category. ${size.height}. chooseIcon.`);
+    
     switch(selectedCategory){  
 
         case "inbox":
@@ -83,8 +225,7 @@ export let chooseIcon = (
                     color:"dodgerblue", 
                     cursor:"default" 
                 }
-            }} /> 
-
+            }} />; 
 
         case "today":
             return <Star style={{
@@ -93,8 +234,7 @@ export let chooseIcon = (
                     color:"gold", 
                     cursor:"default" 
                 }
-            }}/>
-
+            }}/>;
 
         case "upcoming":
             return <CalendarIco style={{
@@ -103,8 +243,7 @@ export let chooseIcon = (
                     color:"crimson", 
                     cursor:"default"
                 }
-            }}/>
-
+            }}/>;
 
         case "anytime":
             return <Layers style={{
@@ -113,8 +252,7 @@ export let chooseIcon = (
                     color:"darkgreen", 
                     cursor:"default"
                 }
-            }}/>
-
+            }}/>;
 
         case "someday":
             return <BusinessCase  style={{
@@ -123,9 +261,8 @@ export let chooseIcon = (
                     color:"burlywood", 
                     cursor:"default"
                 }
-            }}/>  
+            }}/>;  
  
-
         case "logbook":
             return <Logbook style={{
                 ...size,    
@@ -133,8 +270,7 @@ export let chooseIcon = (
                     color:"limegreen", 
                     cursor:"default"
                 }
-            }}/>  
-
+            }}/>;  
 
         case "trash":
             return <Trash style={{
@@ -143,8 +279,7 @@ export let chooseIcon = (
                     color:"darkgray", 
                     cursor:"default" 
                 }
-            }}/> 
-
+            }}/>; 
 
         case "evening":
             return <Moon style={{
@@ -154,7 +289,7 @@ export let chooseIcon = (
                     color:"cornflowerblue", 
                     cursor:"default" 
                 }
-            }}/>    
+            }}/>;    
  
         case "deadline":
             return <Flag style={{
@@ -163,7 +298,7 @@ export let chooseIcon = (
                     color:"black",  
                     cursor:"default"  
                 }
-            }}/>
+            }}/>;
             
         case "area":
             return <NewAreaIcon style={{
@@ -171,9 +306,8 @@ export let chooseIcon = (
                 ...{
                     color:"lightblue"
                 }
-            }}/>        
+            }}/>;        
  
-
         case "project":
             return <div>          
                 <div style={{
@@ -187,9 +321,8 @@ export let chooseIcon = (
                     }  
                 }}>   
                 </div>
-            </div>    
+            </div>;    
  
-
         default:
             return <Inbox style={{  
                 ...size,
@@ -197,7 +330,7 @@ export let chooseIcon = (
                     color:"dodgerblue", 
                     cursor:"default"
                 }   
-            }}/> 
+            }}/>; 
     }
 }
 
@@ -243,12 +376,37 @@ export let getTagsFromItems = (items:Item[]) : string[] => {
 
         let item : Item = items[i];
 
-        for(let j = 0; j<item.attachedTags.length; j++){
-
-            if(tags.indexOf(item.attachedTags[j])===-1)
-               tags.push(item.attachedTags[j])
- 
+        if(!item){
+           throw new Error(`item undefined ${item}. getTagsFromItems.`);
         }
+            
+        if(!isItem(item)){
+           throw new Error(`item is not Item ${item}. getTagsFromItems.`);
+        } 
+  
+        let attachedTags : string[] = item.attachedTags;
+
+        if(!isArray(attachedTags)){
+            throw new Error(
+                `attachedTags is not array. ${attachedTags} ${JSON.stringify(item)} getTagsFromItems.`
+            ) 
+        } 
+
+
+        for(let j = 0; j<attachedTags.length; j++){
+
+            let tag : string = attachedTags[j];
+
+            if(!isString(tag)){
+                throw new Error(
+                   `tag is not a string ${tag} ${JSON.stringify(attachedTags)}.getTagsFromItems.`
+                );
+            }
+ 
+            if(tags.indexOf(item.attachedTags[j])===-1)
+               tags.push(item.attachedTags[j]); 
+ 
+        } 
         
     } 
 
@@ -258,10 +416,8 @@ export let getTagsFromItems = (items:Item[]) : string[] => {
 
 
 
-
-export let attachDispatchToProps = (dispatch,props) => ({...props, dispatch});
-
-
+export let attachDispatchToProps = (dispatch:Function,props) => ({...props, dispatch});
+ 
 
 
 export let debounce = (fun, mil=50) => {
@@ -276,40 +432,18 @@ export let debounce = (fun, mil=50) => {
  
 
 
-
-export let allPass = (funcs : Function[], item) : boolean => {
-
-    if(funcs.length===0)
-       return true;  
-
-    for(let i=0; i<funcs.length; i++)
-        if(!funcs[i](item))
-            return false; 
-
-    return true;
-} 
-  
-
-
 export let stringToLength = (s : string, length : number) : string => {
 
-    if( typeof s !== "string" )
-        return '';
+    if(!isString(s))
+       throw new Error(`s is not a string ${s}. stringToLength.`);
 
-    if(s.length>length)  
-        return s.substring(0, length) + "..."; 
-    else 
-        return s;
-        
+    if(isNaN(length))
+       throw new Error(`length is not a number ${length}. stringToLength.`);
+
+    return s.substring(0, length) + "...";
+
 }; 
    
-
- 
-export let diffDays = (dateA : Date, dateB : Date) : number => {
-    var a = moment(dateA); 
-    var b = moment(dateB);
-    return b.diff(a, 'days');
-};
 
 
 
@@ -317,6 +451,9 @@ export let diffDays = (dateA : Date, dateB : Date) : number => {
 
 
 export let uppercase = (str:string) : string => { 
+
+    if(!isString(str))
+       throw new Error(`str is not a string ${str}. uppercase.`); 
 
     if(str.length===0)
        return str; 
@@ -330,7 +467,7 @@ export let uppercase = (str:string) : string => {
 
 
 
-export let wrapMuiThemeDark = (component : JSX.Element) : JSX.Element => { 
+export let wrapMuiThemeDark = (component) => { 
  
     return <MuiThemeProvider muiTheme={getMuiTheme(darkBaseTheme)}>
         
@@ -343,7 +480,7 @@ export let wrapMuiThemeDark = (component : JSX.Element) : JSX.Element => {
  
 
 
-export let wrapMuiThemeLight = (component : JSX.Element) : JSX.Element =>  {
+export let wrapMuiThemeLight = (component) =>  {
 
     return <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
         
@@ -356,7 +493,7 @@ export let wrapMuiThemeLight = (component : JSX.Element) : JSX.Element =>  {
 
 
 
-export let wrapCustomMuiTheme = (component : JSX.Element) : JSX.Element =>  {
+export let wrapCustomMuiTheme = (component) =>  {
     
     return <MuiThemeProvider muiTheme={muiTheme}>  
     
@@ -392,40 +529,33 @@ export const muiTheme = getMuiTheme({
 
 
 
-export let getMousePositionX = (container : HTMLElement, event:any) => event.pageX - container.offsetLeft;  
-
-
-
-export let arrayContainsItem = (array) => (item) : boolean => array.includes(item); 
-
-
-
-
-
-
-type Item = Area | Project | Todo;
-
-
 export let byNotDeleted = (item:Item) : boolean => { 
+
+    if(!isItem(item))
+       throw new Error(`item have incorrect type. ${item}. byNotDeleted`); 
     
     return !item.deleted;
   
 }  
 
-export let byDeleted = (item:Project | Todo) : boolean => { 
 
-    if(item.type==="area")
-       return true; 
-    
+
+export let byDeleted = (item:Item) : boolean => { 
+
+    if(!isItem(item))
+       throw new Error(`item have incorrect type. ${item}. byDeleted`); 
+
     return !!item.deleted;
  
 }  
 
+
+
 export let byNotCompleted = (item:Project | Todo) : boolean => { 
 
-    if(item.type==="area")
-       return true; 
-    
+    if(item.type!=="project" && item.type!=="todo")
+       throw new Error(`item have incorrect type. ${item}. byNotCompleted`); 
+
     return !item.completed;
  
 }   
@@ -434,135 +564,85 @@ export let byNotCompleted = (item:Project | Todo) : boolean => {
 
 export let byCompleted = (item:Project | Todo) : boolean => { 
 
-    if(item.type==="area")
-       return true; 
-    
+    if(item.type!=="project" && item.type!=="todo")
+       throw new Error(`item have incorrect type. ${item}. byCompleted`); 
+
     return !!item.completed;
  
 }  
 
 
-
    
 export let byTags = (selectedTag:string) => (item:Item) : boolean => { 
-    
-    if(selectedTag==="All" || selectedTag==="") 
+
+    if(!isString(selectedTag))
+       throw new Error(`selectedTag is not a string. ${selectedTag}. byTags.`); 
+     
+    if(selectedTag.length===0)
+       throw new Error(`selectedTag is empty. byTags.`); 
+
+    if(selectedTag==="All") 
        return true;    
 
     if(item===undefined || item===null)
-       return false; 
+       return false;   
   
     return item.attachedTags.indexOf(selectedTag)!==-1;
 
 }  
     
-
+ 
      
-export let byCategory = (selectedCategory:string) => (item:Todo) : boolean => { 
+export let byCategory = (selectedCategory:Category) => (item:Todo) : boolean => { 
+ 
+    if(!isCategory(selectedCategory)){
+        throw new Error(`selectedCategory is not of type Category. ${selectedCategory}. byCategory.`);
+    }
+ 
+    if(item.type!=="todo"){
+        throw new Error(`item is not of type Todo. ${item}. ${selectedCategory}. byCategory.`);
+    }
 
-    if(item===undefined || item===null)
-       return false; 
-      
-    if(item.type==="area" || item.type==="project")   
-       return true;    
-
-    if(selectedCategory==="anytime")
-        return true;  
-   
     return item.category===selectedCategory;
 
 } 
-
-
-
  
- 
-export let showTags = (selectedCategory:Category) : boolean => 
-    selectedCategory!=="inbox" && 
-    selectedCategory!=="someday" &&
-    selectedCategory!=="area" &&
-    selectedCategory!=="project";
 
 
+export let insideTargetArea = (target:HTMLElement,x:number,y:number) : boolean => {
 
-export let insideTargetArea = (target) => (x,y) : boolean => {
     if(target===null || target===undefined)
-       return false;  
+       return false;   
 
+    if(!isFunction(target.getBoundingClientRect))
+        throw new Error(`target is not an HTMLElement. ${target}. insideTargetArea`);   
+ 
     let react = target.getBoundingClientRect();
      
     if(x>react.left && x<react.right)
-        if(y>react.top && y<react.bottom)
-              return true;
-   
+       if(y>react.top && y<react.bottom)
+          return true; 
+    
     return false;
-};
-
-
-
-
-
-export let insert = (array:any[], item:any, idx:number) : any[] => {
-    
-        return [
-            ...array.slice(0,idx),
-            item,
-            ...array.slice(idx),
-        ] 
- 
-}  
-
-
-
-export let replace = (array:any[], item:any, idx:number) : any[] => {
-    
-        return [
-            ...array.slice(0,idx),
-            item,
-            ...array.slice(idx+1),
-        ]
- 
-}  
-
-
-
-export let remove = (array:any[], idx:number) : any[] => {
-    
-        return [
-            ...array.slice(0,idx),
-            ...array.slice(idx+1),
-        ]
-  
-}  
-
-
-export let unique = (array:string[]) : string[] => {
- 
-    let values = [];
-
-    for(var i=0; i<array.length; i++)
-        if(values.indexOf(array[i]) === -1)
-           values.push(array[i]);
-
-    return values;
 
 }
 
 
 
-export let hideChildrens = (elem) => {
+export let hideChildrens = (elem:HTMLElement) : void => {
     
-        let children = [].slice.call(elem.children);
-        
-        for(let i=0; i<children.length; i++){ 
-            children[i].style.visibility = 'hidden';
-            children[i].style.opacity = 0; 
-        }
-        
+    let children = [].slice.call(elem.children);
+    
+    for(let i=0; i<children.length; i++){ 
+        children[i].style.visibility = 'hidden';
+        children[i].style.opacity = 0; 
     }
     
+}  
+  
 
-export let makeChildrensVisible = (elem) => {
+ 
+export let makeChildrensVisible = (elem:HTMLElement) : void => {
 
     let children = [].slice.call(elem.children);
     
@@ -572,9 +652,11 @@ export let makeChildrensVisible = (elem) => {
     }
 
 }
-     
     
-export let generateDropStyle = (id): HTMLElement => {
+
+    
+export let generateDropStyle = (id:string) : HTMLElement => {
+
     let rectangle = document.createElement("div");
     let container = document.createElement("div");
     let counter = document.createElement("div");
@@ -619,60 +701,181 @@ export let generateDropStyle = (id): HTMLElement => {
 
 
 
+
+
 export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
-    
-    if(oldTodo.checklist.length!==newTodo.checklist.length)
-        return true;
+
+     
+    if(oldTodo.type!=="todo")
+        throw new Error(`oldTodo is not todo ${oldTodo}. todoChanged.`);
+
+    if(newTodo.type!=="todo")
+        throw new Error(`newTodo is not todo ${newTodo}. todoChanged.`);
+
+
+
+    if(typeof oldTodo._id!=="string")
+        throw new Error(`oldTodo._id is not string ${oldTodo._id}. todoChanged.`);
+    if(typeof newTodo._id!=="string")
+        throw new Error(`newTodo._id is not string ${newTodo._id}. todoChanged.`);
+
+
+
+    if(oldTodo._id!==newTodo._id)
+       return true;
         
+
+
+    if(typeof oldTodo.title!=="string")
+        throw new Error(`oldTodo.title is not string ${oldTodo.title}. todoChanged.`);
+    if(typeof newTodo.title!=="string")
+        throw new Error(`newTodo.title is not string ${newTodo.title}. todoChanged.`);
+
+
+    if(typeof oldTodo.note!=="string")
+        throw new Error(`oldTodo.note is not string ${oldTodo.title}. todoChanged.`);
+    if(typeof newTodo.note!=="string")
+        throw new Error(`newTodo.note is not string ${newTodo.title}. todoChanged.`);
+
+
+
+    if(oldTodo.title!==newTodo.title)
+       return true;
  
-    if(oldTodo.attachedTags.length!==newTodo.attachedTags.length)
-        return true;
+    if(oldTodo.note!==newTodo.note)
+       return true;  
+
+
+
+    if(isNaN(oldTodo.priority))
+        throw new Error(`oldTodo.priority is not number ${oldTodo.priority}. todoChanged.`);
+    if(isNaN(newTodo.priority))
+        throw new Error(`newTodo.priority is not number ${newTodo.priority}. todoChanged.`);
+         
+  
+
+    if(oldTodo.priority!==newTodo.priority)
+       return true;
+
+
+
+    if(isCategory(oldTodo.category))
+        throw new Error(`oldTodo.category is not of type Category ${oldTodo.category}. todoChanged.`);
+    if(isCategory(newTodo.category))
+        throw new Error(`newTodo.category is not of type Category ${newTodo.category}. todoChanged.`);
+         
 
 
     if(oldTodo.category!==newTodo.category)
         return true;
 
-    if(oldTodo.title!==newTodo.title)
-        return true;
 
     if(oldTodo.checked!==newTodo.checked)
         return true;   
 
-    if(oldTodo.note!==newTodo.note)
-        return true;   
 
 
-    if(oldTodo.deadline instanceof Date  &&  newTodo.deadline instanceof Date){
 
-        if(oldTodo.deadline.getTime()!==newTodo.deadline.getTime())
-            return true;  
-
-    }else{
-
-        if(oldTodo.deadline!==newTodo.deadline)
-            return true;  
-
-    }  
+    if(!isArray(oldTodo.checklist)) 
+        throw new Error(`oldTodo.checklist is not an Array. ${oldTodo.checklist}. todoChanged.`);
+    if(!isArray(newTodo.checklist))
+        throw new Error(`newTodo.checklist is not an Array. ${newTodo.checklist}. todoChanged.`);
     
 
-    if(oldTodo.attachedDate instanceof Date  &&  newTodo.attachedDate instanceof Date){
+    if(!isArray(oldTodo.attachedTags)) 
+        throw new Error(`oldTodo.attachedTags is not an Array. ${oldTodo.attachedTags}. todoChanged.`);
+    if(!isArray(newTodo.attachedTags))
+        throw new Error(`newTodo.attachedTags is not an Array. ${newTodo.attachedTags}. todoChanged.`);
+         
+    
+    if(oldTodo.checklist.length!==newTodo.checklist.length)
+        return true;
         
-        if(oldTodo.attachedDate.getTime()!==newTodo.attachedDate.getTime())
+    if(oldTodo.attachedTags.length!==newTodo.attachedTags.length)
+        return true;
+
+
+    if(!isDate(oldTodo.created)) 
+        throw new Error(`oldTodo.created is not date ${oldTodo.created}. todoChanged.`);
+
+    if(!isDate(newTodo.created))
+        throw new Error(`newTodo.created is not date ${newTodo.created}. todoChanged.`);
+     
+    if(oldTodo.created.getTime()!==newTodo.created.getTime())
+        return true; 
+
+
+
+    if(isDate(newTodo.deadline) && isDate(oldTodo.deadline)){
+        if(oldTodo.deadline.getTime()!==newTodo.deadline.getTime())
             return true;  
-
     }else{
+        if(oldTodo.deadline!==newTodo.deadline)
+            return true;  
+    }
 
+
+
+    if(isDate(newTodo.deleted) && isDate(oldTodo.deleted)){
+        if(oldTodo.deleted.getTime()!==newTodo.deleted.getTime())
+            return true;  
+    }else{
+        if(oldTodo.deleted!==newTodo.deleted)
+            return true;  
+    }
+
+
+
+    if(isDate(newTodo.attachedDate) && isDate(oldTodo.attachedDate)){
+        if(oldTodo.attachedDate.getTime()!==newTodo.attachedDate.getTime())
+            return true; 
+    }else{
         if(oldTodo.attachedDate!==newTodo.attachedDate)
             return true;  
+    }
 
-    }   
+
+
+    if(isDate(newTodo.completed) && isDate(oldTodo.completed)){
+        if(oldTodo.completed.getTime()!==newTodo.completed.getTime())
+            return true;    
+    }else{ 
+        if(oldTodo.completed!==newTodo.completed)
+            return true;  
+    }
+
+
+
+    if(isDate(newTodo.reminder) && isDate(oldTodo.reminder)){
+        if(oldTodo.reminder.getTime()!==newTodo.reminder.getTime())
+            return true;    
+    }else{ 
+        if(oldTodo.reminder!==newTodo.reminder)
+            return true;  
+    }
+
+
 
 
     for(let i=0; i<oldTodo.checklist.length; i++){
 
         let oldItem : ChecklistItem = oldTodo.checklist[i];
         let newItem : ChecklistItem = newTodo.checklist[i];
- 
+
+
+        if(!isString(oldItem.text))
+            throw new Error(`oldItem.text is not a string ${oldItem.text}. todoChanged.`);
+
+        if(!isString(newItem.text))
+            throw new Error(`newItem.text is not a string ${newItem.text}. todoChanged.`);
+        
+        if(!isString(oldItem.key))
+            throw new Error(`oldItem.key is not a string ${oldItem.key}. todoChanged.`);
+
+        if(!isString(newItem.key))
+            throw new Error(`newItem.key is not a string ${newItem.key}. todoChanged.`);
+        
+            
         if(oldItem.checked!==newItem.checked)
            return true; 
 
@@ -688,18 +891,29 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
     }
 
 
-    for(let i=0; i<newTodo.attachedTags.length; i++)
+    for(let i=0; i<newTodo.attachedTags.length; i++){
+
+        if(!isString(oldTodo.attachedTags[i]))
+            throw new Error(`oldTodo.attachedTags[${i}] is not a string ${oldTodo.attachedTags[i]}. todoChanged.`);
+
+        if(!isString(newTodo.attachedTags[i]))
+            throw new Error(`newTodo.attachedTags[${i}] is not a string ${newTodo.attachedTags[i]}. todoChanged.`);
+        
+
         if(oldTodo.attachedTags[i]!==newTodo.attachedTags[i])
            return true; 
+    }
     
+
+
 }
  
 
 
 
-     
- 
-export let generateTagElement = (tag:string,idx:number) : JSX.Element => {
+
+  
+export let generateTagElement = (tag:string,idx:number) => {
 
     return <div key={String(idx)}>  
         <div style={{ 
@@ -720,7 +934,7 @@ export let generateTagElement = (tag:string,idx:number) : JSX.Element => {
             }}
         >      
             <div style={{padding:"10px"}}>  
-            {tag.substring(0, 25) + (tag.length > 25 ? "..." : '')}  
+                {stringToLength(tag,25)}  
             </div>
         </div>
     </div>
@@ -731,23 +945,28 @@ export let generateTagElement = (tag:string,idx:number) : JSX.Element => {
 
 export let getMonthName = (d:Date) : string => {
 
-  let monthNames = ["January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
-  
-  return monthNames[d.getMonth()];
+    if(!isDate(d)) 
+        throw new Error(`d is not a Date ${d}. getMonthName.`);  
 
+    let monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+ 
+    return monthNames[d.getMonth()];
+ 
 }
 
-
  
-export let getDayName = (d:Date) => { 
-    
+ 
+export let getDayName = (d:Date) : string => { 
+
+    if(!isDate(d)) 
+        throw new Error(`d is not a Date ${d}. getDayName.`);  
+
     let days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-    let dayName = days[d.getDay()];
-
-    return dayName;
+    return days[d.getDay()];
 
 }
 
@@ -756,7 +975,14 @@ export let getDayName = (d:Date) => {
      
     
 export let addDays = (date:Date, days:number) => {
-    
+ 
+    if(!isDate(date))    
+        throw new Error(`date is not a Date. ${date}. addDays.`);
+ 
+    if(isNaN(days))
+        throw new Error(`days is not a number. ${days}. addDays.`);
+
+     
     let next = new Date();
         
     next.setDate(date.getDate() + days);
@@ -767,13 +993,17 @@ export let addDays = (date:Date, days:number) => {
  
 
 
-export let daysLeftMark = (open:boolean, deadline, showFlag:boolean) : JSX.Element => {
+export let daysLeftMark = (hide:boolean, deadline:Date, showFlag:boolean)  => {
  
-    if(open)
-       return null;
-    
-    if(deadline === null || deadline===undefined)
-       return null;   
+    if(hide)  
+       return null; 
+     
+    if(isNil(deadline))
+       throw new Error(`deadline undefined. ${deadline}. daysLeftMark.`);
+ 
+    if( !isDate(deadline) )    
+        throw new Error(`deadline not a Date. ${deadline}. daysLeftMark.`);
+
 
     let daysLeft = daysRemaining(deadline);      
 
@@ -823,52 +1053,54 @@ export let daysLeftMark = (open:boolean, deadline, showFlag:boolean) : JSX.Eleme
 }   
 
 
-
+ 
 export let isToday = (date : Date) => {
-    let clone = new Date(date.getTime());
-    let today = new Date();
-    today.setHours(0,0,0,0);
-    clone.setHours(0,0,0,0);
-    return today.getTime() == clone.getTime();
+    
+    if(!isDate(date))  
+        throw new Error(`date is not a Date. ${date}. isToday.`);
+    
+    return dateDiffInDays(new Date(), date)===0;
 }    
 
 
 
-export let getDateFromObject = (i) => {
-    
-    if(i.type==="todo"){
-            
-        if(typeof i.attachedDate === "string")
-            return new Date(i.attachedDate)
-        else 
-            return i.attachedDate;
+export let getDateFromObject = (i) : Date => {
+    if(i.type!=="todo" && i.type!=="project")
+       throw new Error(`Input value have incorrect type. ${i}. getDateFromObject.`);
 
+    if(i.type==="todo"){ 
+        return i.attachedDate;
     }else if(i.type==="project"){ 
-
-        if(typeof i.deadline === "string")
-            return new Date(i.deadline)
-        else 
-            return i.deadline;
-
-    }
-
-    return false;  
-
+        return i.deadline;
+    } 
 }
 
 
 
-export let compareByDate = (getDateFromObject:Function) => (i, j) => {
+export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:Todo | Project) => {
 
+    if(typeof getDateFromObject !== "function")
+       throw new Error(`getDateFromObject is not a function. ${getDateFromObject}. compareByDate.`);
+    
     let iDate = getDateFromObject(i); 
     let jDate = getDateFromObject(j);
 
-    if(iDate===null || iDate===undefined || iDate===false)
+
+    if(iDate===null || iDate===undefined || !iDate)
         return -1;
         
-    if(jDate===null || jDate===undefined || jDate===false)
+    if(jDate===null || jDate===undefined || !jDate)
         return -1;  
             
+    
+    if( !isDate(iDate) )
+        throw new Error(`iDate is not a Date. ${getDateFromObject}. compareByDate.`);
+
+
+    if( !isDate(jDate) )
+        throw new Error(`jDate is not a Date. ${getDateFromObject}. compareByDate.`);
+    
+        
 
     if(iDate.getTime() > jDate.getTime())
         return 1;
@@ -879,10 +1111,26 @@ export let compareByDate = (getDateFromObject:Function) => (i, j) => {
 
 
 
+export let daysRemaining = (date:Date) : number => {
+
+    if(!isDate(date))
+         throw new Error(`date is not Date ${date}. daysRemaining.`);  
+ 
+
+    return dateDiffInDays(new Date(), date); 
+} 
+
 
 
 export let dateDiffInDays = (a : Date, b : Date) : number  => {
-    
+ 
+    if(!isDate(a))
+         throw new Error(`a is not date ${a}`);  
+          
+    if(!isDate(b))
+         throw new Error(`a is not date ${a}`);  
+  
+ 
     let _MS_PER_DAY = 1000 * 60 * 60 * 24;
 
     let utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
@@ -894,16 +1142,23 @@ export let dateDiffInDays = (a : Date, b : Date) : number  => {
 }
     
 
-
     
-export let getDatesRange = (start : Date, days : number, includeStart : boolean, includeEnd : boolean) : Date[] => {
-    
+export let getDatesRange = (
+    start : Date, 
+    days : number, 
+    includeStart : boolean, 
+    includeEnd : boolean
+) : Date[] => {
+ 
+    if(!isDate(start))
+       throw new Error(`start is not Date ${start}. getDatesRange`);  
+         
     Date.prototype["addDays"] = function(days) {
         var date = new Date(this.valueOf());
         date.setDate(date.getDate() + days);
         return date;
     }
-
+ 
     let dates = [];
     
     let from = 1; 
@@ -923,65 +1178,30 @@ export let getDatesRange = (start : Date, days : number, includeStart : boolean,
         dates.push( new Date(start.getTime())["addDays"]( i ) );
     
     return dates; 
-     
+      
 } 
 
 
-
-export let keyFromDate = (date) => {
-    let year = date.getFullYear();
-    let day = date.getDate();
-    let month = date.getMonth();
-
-    return [year,month+1,day].join('-');
-    //"2017-12-24"
-}
-//date.toISOString().split('T')[0];
-
- 
-
-
-export let splitEvery = (n, array)  => {
-
-    if(n===0 || array.length===0 || array.length<=n){
-        return [array];
-    }
-
-    let result = [];
-    let acc = [];
-    let counter = 0;
-
-    for(let i=0; i<array.length; i++){
-        
-        acc.push(array[i]);
-        counter++;
-
-        if(counter===n){
-            result.push(acc);
-            acc = []; 
-            counter=0; 
-        }
- 
-    }
- 
-    if(acc.length>0)
-       result.push(acc);
-
-    return result; 
-}
 
 
 export let randomInteger = (n:number) : number => {
     
     return Math.round(Math.random() * n);
 
-}
-     
+} 
     
+
+    
+
 export let randomDate = (start, end) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-    
+ 
+
+
     
 export let randomArrayMember = (array : any[]) => {
+
+    if(array.length===0) 
+       throw new Error(`randomArrayMember. array empty.`)
 
     let range = array.length - 1;
     
@@ -993,6 +1213,7 @@ export let randomArrayMember = (array : any[]) => {
  
 } 
     
+ 
 
 
 export let generateEmptyProject = () : Project => ({
@@ -1006,18 +1227,18 @@ export let generateEmptyProject = () : Project => ({
     created : new Date(), 
     deadline : null, 
     completed : null, 
-    attachedTodosIds : [], 
     attachedTags : []
 });
   
  
-  
+   
 export let generateEmptyArea = () : Area => ({
     _id : generateId(),
     name : "",
     priority : Math.random() * 9999999999,
     deleted : undefined, 
     type : "area", 
+    created : new Date(), 
     description : "",
     attachedTags : [], 
     attachedTodosIds : [],  

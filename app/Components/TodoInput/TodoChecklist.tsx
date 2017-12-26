@@ -53,7 +53,7 @@ export interface ChecklistItem{
     text : string, 
     checked : boolean,
     idx : number,
-    key? : string  
+    key : string  
 }   
  
 

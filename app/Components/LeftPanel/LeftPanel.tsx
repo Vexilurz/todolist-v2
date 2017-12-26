@@ -131,13 +131,13 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
  
         onNewProjectClick = (e:any) => {
-            this.props.dispatch({type:"newProject", load:generateEmptyProject()});
+            this.props.dispatch({type:"addProject", load:generateEmptyProject()});
         };
             
               
          
         onNewAreaClick = (e:any) => { 
-            this.props.dispatch({type:"newArea", load:generateEmptyArea()});
+            this.props.dispatch({type:"addArea", load:generateEmptyArea()});
         };
 
 
