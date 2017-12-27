@@ -10,7 +10,7 @@ import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import Popover from 'material-ui/Popover';
-import { attachDispatchToProps } from '../utils';
+import { attachDispatchToProps, insideTargetArea } from '../utils';
 import { Todo, removeTodo, addTodo, generateId, Project, Area, LayoutItem } from '../database';
 import { Store } from '../App';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
@@ -27,10 +27,51 @@ interface RightClickMenuState{}
 @connect((store,props) => store, attachDispatchToProps) 
 export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
+    ref:HTMLElement; 
+
     constructor(props){
        super(props);
     }
  
+
+    componentDidMount(){ 
+        
+        window.addEventListener("click", this.onOutsideClick);
+
+    }
+
+
+    componentWillUnmount(){
+
+        window.removeEventListener("click", this.onOutsideClick);
+
+    }
+ 
+
+    onOutsideClick = (e) => {
+        
+        if(this.ref===null || this.ref===undefined)
+            return; 
+
+        let x = e.pageX;
+        let y = e.pageY; 
+
+        let inside = insideTargetArea(this.ref,x,y);
+    
+        if(!inside){
+           this.props.dispatch({
+                type: "openRightClickMenu",
+                load: {
+                    showRightClickMenu: false,
+                    rightClickedTodoId: null,
+                    rightClickMenuX: 0,
+                    rightClickMenuY: 0
+                }
+           }); 
+        }   
+         
+    }   
+               
 
 
     onDeleteToDo = (e) => {
@@ -190,14 +231,14 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         }  
  
         if(area.type!=="area"){
-           throw new Error(`
+            throw new Error(`
               area is not of type Area. 
               ${JSON.stringify(area)} 
               ${this.props.selectedAreaId}. 
               removeFromArea. 
-           `);   
+            `);   
         } 
-
+ 
         let idx : number = area.attachedTodosIds.indexOf(this.props.rightClickedTodoId);
 
         if(idx===-1){
@@ -237,7 +278,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
     } 
 
-
+    
 
     onWhen = (e) => {} 
 
@@ -283,7 +324,9 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
  
         return  !this.props.showRightClickMenu ? null:
-                <div onClick = {(e) => {
+                <div  
+                    ref={(e) => { this.ref=e; }}   
+                    onClick = {(e) => {
                        e.stopPropagation();
                        e.preventDefault();
                     }} 
@@ -437,7 +480,7 @@ export class RightClickMenuItem extends Component<RightClickMenuItemProps,RightC
          let disabledColor = "rgba(0,0,0,0.2)";
 
          return <div  
-                    onClick = {(e) => !this.props.disabled ? this.props.onClick(e) : null}
+                    onClick = {(e) => !this.props.disabled ? this.props.onClick(e) : null} 
                     className="rightclickmenuitem"
                     style={{
                         display: "flex",

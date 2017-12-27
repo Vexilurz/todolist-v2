@@ -8,7 +8,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems 
+    chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -110,7 +110,7 @@ export class Today extends Component<TodayProps,TodayState>{
                         container={this.props.rootRef} 
                         selectedCategory={"today"}  
                         show={this.state.emptyEvening && this.state.emptyToday}
-                    />          
+                    />           
  
                     <Tags  
                         selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
@@ -136,6 +136,7 @@ export class Today extends Component<TodayProps,TodayState>{
                                 byNotCompleted, 
                                 byNotDeleted 
                             ]}  
+                            attachEmptyTodo={attachEmptyTodo("today")}
                             selectedTodoId={this.props.selectedTodoId}
                             isEmpty={(empty:boolean) => this.setState({emptyToday:empty})}   
                             dispatch={this.props.dispatch}   
@@ -180,9 +181,10 @@ export class Today extends Component<TodayProps,TodayState>{
                                 filters={[ 
                                     byTags(this.props.selectedTag),
                                     byCategory("evening"),
-                                    byNotCompleted, 
+                                    byNotCompleted,  
                                     byNotDeleted    
-                                ]} 
+                                ]}  
+                                attachEmptyTodo={attachEmptyTodo("evening")}
                                 selectedTodoId={this.props.selectedTodoId} 
                                 isEmpty={(empty:boolean) => this.setState({emptyEvening:empty})} 
                                 dispatch={this.props.dispatch}    

@@ -6,7 +6,7 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems } from "../../utils"; 
+import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo } from "../../utils"; 
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo } from '../../database';
@@ -104,7 +104,8 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                             byCategory("someday"),
                             byNotCompleted, 
                             byNotDeleted 
-                        ]}  
+                        ]}     
+                        attachEmptyTodo={attachEmptyTodo("someday")}
                         selectedTodoId={this.props.selectedTodoId} 
                         isEmpty={(empty:boolean) => this.setState({empty})} 
                         dispatch={this.props.dispatch}   
@@ -115,7 +116,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         tags={this.props.tags} 
                     /> 
                 </div>  
-            }
+            }   
         </div>
     }
 

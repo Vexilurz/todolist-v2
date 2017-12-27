@@ -20,7 +20,7 @@ import {arrayMove} from '../sortable-hoc/utils';
 import {  byTags, byCategory } from '../utils';
 import { SortableList } from './SortableList';
 import { TodoInput } from './TodoInput/TodoInput';
-import { allPass, isNil, prepend } from 'ramda';
+import { allPass, isNil, prepend, isEmpty } from 'ramda';
 import { Category } from './MainContainer';
 
 
@@ -35,6 +35,7 @@ interface TodosListProps{
     rootRef:HTMLElement,   
     todos:Todo[],  
     tags:string[],
+    attachEmptyTodo?:(todos:Todo[]) => Todo[], 
     disabled?:boolean     
 }    
 
@@ -62,8 +63,13 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                         .filter(allPass(this.props.filters)) 
                         .sort((a:Todo,b:Todo) => a.priority-b.priority);
 
-        if(typeof this.props.isEmpty==="function") 
+        if(typeof this.props.attachEmptyTodo==="function"){
+           todos = this.props.attachEmptyTodo(todos); 
+        }                 
+
+        if(typeof this.props.isEmpty==="function"){ 
            this.props.isEmpty(todos.length===0);  
+        }
         
         this.setState({todos});  
             
@@ -82,15 +88,21 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                         .filter(allPass(nextProps.filters)) 
                         .sort((a:Todo,b:Todo) => a.priority-b.priority);
                 
-            if(typeof this.props.isEmpty==="function") 
-               this.props.isEmpty(todos.length===0);  
-            
+
+            if(typeof nextProps.attachEmptyTodo==="function"){
+                todos = nextProps.attachEmptyTodo(todos); 
+            }                 
+
+            if(typeof nextProps.isEmpty==="function"){ 
+                nextProps.isEmpty(todos.length===0);  
+            }     
+             
             this.setState({todos});    
         }  
  
      }
  
- 
+  
 
      shouldComponentUpdate(nextProps:TodosListProps, nextState:TodosListState){
         let should = false; 
@@ -106,7 +118,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
  
         return should;
      }  
-   
+    
 
      
      getTodoElement = (value:Todo, index:number) => {
@@ -127,7 +139,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
  
      shouldCancelStart = (e) => {
-
+ 
         if(this.props.disabled)
            return true;
 
@@ -175,7 +187,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
      }
  
      
-
+ 
      onSortMove = (e, helper : HTMLElement) => {
         let x = e.clientX;
         let y = e.clientY+this.props.rootRef.scrollTop;  
@@ -202,11 +214,12 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         let x = e.clientX; 
         let y = e.clientY+this.props.rootRef.scrollTop;  
         let draggedTodo = this.state.todos[oldIndex];
+
+        if(isEmpty(draggedTodo.title))
+           return;
  
-         
         let areas = document.getElementById("areas");
         let projects = document.getElementById("projects");
-
 
         if(insideTargetArea(areas,x,y) || insideTargetArea(projects,x,y)){
 
@@ -222,24 +235,15 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         } 
      }
  
-       
         
      render(){  
 
-         
-        let todos : Todo[] = prepend(
-            generateEmptyTodo(
-                generateId(),
-                this.props.selectedCategory as Category,
-                0
-            ) 
-        )(this.state.todos); 
  
         return <div style={{WebkitUserSelect: "none"}}> 
             <SortableList   
                 getElement={this.getTodoElement}
                 container={this.props.rootRef} 
-                items={todos}  
+                items={this.state.todos}  
                 shouldCancelStart={this.shouldCancelStart}  
                 shouldCancelAnimation={this.shouldCancelAnimation}
                 onSortEnd={this.onSortEnd}    

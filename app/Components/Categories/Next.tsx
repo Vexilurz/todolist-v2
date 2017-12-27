@@ -8,7 +8,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byTags, 
-    byNotCompleted, byNotDeleted, byCategory, getTagsFromItems, isString 
+    byNotCompleted, byNotDeleted, byCategory, getTagsFromItems, isString, attachEmptyTodo 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -206,7 +206,7 @@ export class Next extends Component<NextProps, NextState>{
                 ...table.areas,
                 ...table.todos
             ]) 
-        ); 
+        );  
 
  
         return  <div>
@@ -223,8 +223,9 @@ export class Next extends Component<NextProps, NextState>{
                         show={empty} 
                     />   
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
-                        <TodosList    
+                        <TodosList     
                             filters={[]}    
+                            attachEmptyTodo={attachEmptyTodo("next")}   
                             isEmpty={(empty:boolean) => {}}    
                             selectedTodoId={this.props.selectedTodoId} 
                             dispatch={this.props.dispatch}     

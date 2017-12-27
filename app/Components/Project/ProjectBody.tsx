@@ -275,7 +275,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                         ( a:(Todo | Heading), b:(Todo | Heading) ) => a.priority-b.priority
                     );   
     
-
+                    
         return <div>  
             <SortableList 
                 getElement={this.getElement}

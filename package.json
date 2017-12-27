@@ -2,7 +2,7 @@
   "name": "tasklist",
   "version": "1.0.0",
   "description": "tasklist",
-  "main": "dist/main.js",
+  "main": "production/main.js",
   "scripts": {
     "start": "electron .",
     "pack": "build --win",
@@ -15,6 +15,7 @@
   "author": "Anatoly Strashkevich",
   "license": "",
   "devDependencies": {
+    "electron": "^1.7.10",
     "@types/chai": "^4.0.2",
     "@types/electron": "^1.6.10",
     "@types/mocha": "^2.2.41",
@@ -43,7 +44,6 @@
     "webpack": "^2.7.0"
   },
   "dependencies": {
-    "electron": "^1.7.10",
     "file-loader": "^0.11.2",
     "filereader": "^0.10.3",
     "font-loader": "^0.1.2",
@@ -89,10 +89,14 @@
       "production"
     ],
     "win": {
-      "target": [
-        "nsis"
-      ],
+      "target": ["nsis"],
       "icon": "./icon.ico"
+    },
+    "nsis":{
+      "oneClick":false, 
+      "allowToChangeInstallationDirectory":true, 
+      "multiLanguageInstaller":true, 
+      "menuCategory":true
     },
     "directories": {
       "output": "release"

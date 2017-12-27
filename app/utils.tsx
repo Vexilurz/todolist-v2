@@ -42,7 +42,7 @@ import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 let moment = require("moment");
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { TodoInput } from './Components/TodoInput/TodoInput';
-import { contains, isNil, all } from 'ramda';
+import { contains, isNil, all, prepend } from 'ramda';
  
 
 export type Item = Area | Project | Todo; 
@@ -906,9 +906,19 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
 
 
 }
- 
- 
+  
 
+
+export let attachEmptyTodo = (selectedCategory:Category) => (todos:Todo[]) => {
+    let sorted = todos.sort((a:Todo,b:Todo) => a.priority-b.priority);
+    let priority = sorted[0] ? sorted[0].priority - 1 : 0;
+    let emptyTodo = generateEmptyTodo(generateId(),selectedCategory,priority);  
+
+    return prepend(emptyTodo)(todos);
+}
+  
+
+ 
 export let generateEmptyTodo = (
     _id:string,
     selectedCategory:Category,

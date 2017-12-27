@@ -492,7 +492,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 areas={this.props.areas}
                                 rootRef={this.rootRef}      
                             />,
-                            
+                           
                             project : <ProjectComponent 
                                 dispatch={this.props.dispatch} 
                                 selectedCategory={this.props.selectedCategory}

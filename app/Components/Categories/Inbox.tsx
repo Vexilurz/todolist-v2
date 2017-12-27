@@ -4,12 +4,12 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { ipcRenderer } from 'electron';
 import { Component } from "react";  
-import { Todo } from '../../database';
+import { Todo, generateId } from '../../database';
 import { TodosList } from '.././TodosList';
 import { ContainerHeader } from '.././ContainerHeader';
-import { byTags, byCategory, byNotCompleted, byNotDeleted, getTagsFromItems } from '../../utils';
+import { byTags, byCategory, byNotCompleted, byNotDeleted, getTagsFromItems, generateEmptyTodo, attachEmptyTodo } from '../../utils';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { compose, filter, allPass } from 'ramda';
+import { compose, filter, allPass, prepend } from 'ramda';
 
  
  
@@ -69,12 +69,12 @@ export class Inbox extends Component<InboxProps, InboxState>{
     render(){
 
         return <div>  
-            <ContainerHeader 
-              selectedCategory={"inbox"} 
-              dispatch={this.props.dispatch}  
-              tags={[]} 
-              showTags={false} 
-              selectedTag={this.props.selectedTag} 
+            <ContainerHeader  
+                selectedCategory={"inbox"} 
+                dispatch={this.props.dispatch}  
+                tags={[]} 
+                showTags={false} 
+                selectedTag={this.props.selectedTag} 
             /> 
  
             <FadeBackgroundIcon    
@@ -86,18 +86,16 @@ export class Inbox extends Component<InboxProps, InboxState>{
             <div   
                 className="unselectable" 
                 id="todos" 
-                style={{
-                    marginBottom:"100px", 
-                    marginTop:"50px" 
-                }} 
-            >  
+                style={{marginBottom:"100px", marginTop:"50px"}} 
+            >   
                 <TodosList   
                     filters={[  
                         byTags(this.props.selectedTag),
                         byCategory("inbox"),
                         byNotCompleted,  
                         byNotDeleted 
-                    ]}    
+                    ]}     
+                    attachEmptyTodo={attachEmptyTodo("inbox")}
                     selectedTodoId={this.props.selectedTodoId}
                     isEmpty={(empty:boolean) => this.setState({empty})}
                     dispatch={this.props.dispatch}    

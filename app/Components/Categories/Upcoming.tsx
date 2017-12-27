@@ -156,8 +156,8 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
 
 
-    componentDidMount(){ 
-        let objects  = this.generateCalendarObjects(50);
+    componentDidMount(){  
+        let objects  = this.generateCalendarObjects(15);
         this.setState({objects}); 
     }    
 
@@ -233,10 +233,8 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                     selectedTag={this.props.selectedTag}
                 />
    
-
                 <div>{ this.state.objects.map(this.objectToComponent) }</div>
 
-    
                 <div style={{width:"100%", height:"1px"}}> 
                     <Waypoint  
                         onEnter={this.onEnter} 

@@ -314,12 +314,13 @@ export class Trash extends Component<TrashProps,TrashState>{
                     <div style={{color:"white", fontSize:"15px"}}>  
                         Empty Trash  
                     </div>  
-                </div> 
+                </div>  
             </div> 
              
             <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
                 <TodosList    
-                    filters={[ ]}    
+                    filters={[ ]}     
+                    disabled={true} 
                     selectedTodoId={this.props.selectedTodoId}
                     isEmpty={(empty:boolean) => {}}
                     dispatch={this.props.dispatch}    

@@ -45,7 +45,7 @@ import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopover, TodoTags } from './TodoTags';
 import { TodoInputLabel } from './TodoInputLabel';
-import { uniq } from 'ramda';
+import { uniq, isEmpty, contains } from 'ramda';
 let moment = require("moment"); 
   
 
@@ -141,41 +141,53 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         }     
     }   
 
-
+ 
 
     onError = (e) => console.log(e);
     
  
 
     componentDidMount(){ 
+         
+        if(isEmpty(this.state.currentTodo)){
+            this.preventDragOfThisItem();
+         }
     
         window.addEventListener("click", this.onOutsideClick);
 
         window.addEventListener("keydown",this.onWindowEnterPress);    
-          
-        //if(this.state.currentTodo.length===0)   
-           //setTimeout(() => this.setState({open:true}), 10);   
+           
     }      
       
- 
+   
 
     componentWillReceiveProps(nextProps:TodoInputProps){
-
         if(nextProps.todo!==this.props.todo){  
            this.setState(this.stateFromTodo(this.state,nextProps.todo));  
         }
-         
-
-    }
+    } 
 
 
    
     componentWillUnmount(){
-
+  
         window.removeEventListener("click", this.onOutsideClick);
+        window.removeEventListener("keydown", this.onWindowEnterPress); 
 
     }
     
+
+    componentDidUpdate(prevProps:TodoInputProps,prevState){
+
+        if(isEmpty(this.state.currentTodo)){
+           this.preventDragOfThisItem();
+        }else if(this.state.open){
+           this.preventDragOfThisItem();
+        }else{
+           this.enableDragOfThisItem()
+        }
+    }
+
 
 
     onWindowEnterPress = (e) => {
@@ -253,11 +265,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             return; 
 
         this.preventDragOfThisItem();
-
-
+ 
         if(!this.state.open)
             this.setState({open:true});  
-
     } 
  
 
@@ -310,7 +320,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     updateTodo = (changedTodo:Todo) : void => {
     
         this.props.dispatch({type:"updateTodo", load:changedTodo});  
-
     }  
     
     
@@ -318,7 +327,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     removeTodo = (changedTodo:Todo) : void => {
      
         this.props.dispatch({ type:"updateTodo", load:{...changedTodo, deleted:new Date()} });
-
     }   
      
 
@@ -327,19 +335,14 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         
         if(this.state.currentTodo.length===0){
 
-
             this.removeTodo(todo);
- 
         }else{  
  
-
             this.updateTodo(todo); 
-
         }   
-        
     } 
       
-
+ 
 
     attachTag = (tag) => {
         
@@ -359,16 +362,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             showtagsPopover:false, 
             tagsInputDisplay:false
         });
-    } 
-
-
-     
-
-
-    onTagFieldBlur = (event) => {  
-
-        this.attachTag(this.state.currentTag);
-
     } 
 
 
@@ -414,18 +407,15 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     rightClickMenuY:e.clientY-this.props.rootRef.offsetTop+this.props.rootRef.scrollTop
                 }
             });   
-
         }
- 
     }
     
  
 
     onCheckListIconClick = (e) => {
-        
+
         if(this.props.todo.checklist.length===0)
            this.setState({checklist:[{checked:false, text:'', idx:0, key: generateId()}]}); 
-
     }   
 
 
@@ -448,7 +438,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             newSelectedCategory:this.props.todo.category as Category,
             attachedDate:null 
         })
-    
     }  
 
 
@@ -478,14 +467,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 this.setState({ 
                     showCalendar:false, deadline:day 
                 }) 
-
             }
-
         }
-
     }
 
-
+ 
 
     onCalendarSomedayClick = (e) => {
 
@@ -572,7 +558,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     render(){  
         
         let buttonsNamesToDisplay = this.selectButtonsToDisplay(); 
-
+  
         return  <div  
             id={this.props.id}  
             onContextMenu={this.onRightClickMenu}
@@ -583,7 +569,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 justifyContent:"center"
             }} 
         >   
-  
+   
         <div  
             onClick={(e) => {e.stopPropagation();}}
             ref={(e) => { this.ref=e; }} 
@@ -709,13 +695,13 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 </div>   
 
 
-        {
+        { 
 
             !this.state.open ? null :  
             <div style={{display:"flex", flexDirection:"column"}}> 
-                {  
-                    ["evening","today","someday"].indexOf(this.state.newSelectedCategory)===-1 ? null :
-
+                {   
+                    !contains(this.state.newSelectedCategory)(["evening","today","someday"]) ? null :
+ 
                     <div style={{
                         transition: "opacity 0.4s ease-in-out",
                         opacity:this.state.open ? 1 : 0
@@ -729,9 +715,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                         this.state.newSelectedCategory==="evening" ? "This Evening" :
                                         this.state.newSelectedCategory==="today" ? "Today" :
                                         "Someday"
-                                    }
+                                    }   
                                 </div>  
-                            }
+                            }  
                         />   
                     </div>  
                 }  
