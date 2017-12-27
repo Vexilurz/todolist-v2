@@ -38,11 +38,14 @@ export let getProjectLink = (iconSize, value:Project, index:number, dispatch:Fun
        
         return  <div 
             key={`${value._id}-${index}`}   
-            style={{position:"relative", padding:"5px"}}
+            style={{position:"relative", padding:"5px"}} 
         >  
             <div   
                 className="toggleFocus"    
-                onClick = {() => dispatch({ type:"selectedProjectId", load:value._id })} 
+                onClick = {() => {
+                    dispatch({ type:"selectedCategory", load:"project" });
+                    dispatch({ type:"selectedProjectId", load:value._id });
+                }}
                 id = {value._id}       
                 style={{     
                     marginLeft:"4px",

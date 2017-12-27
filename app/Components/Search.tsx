@@ -219,6 +219,8 @@ interface QuickSearchState{
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
 export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
+    
+    ref:HTMLElement; 
 
     constructor(props){
 
@@ -234,21 +236,44 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
 
 
 
+    onOutsideClick = (e) => {
+        
+        if(this.ref===null || this.ref===undefined)
+            return; 
+
+        let rect = this.ref.getBoundingClientRect();
+        let x = e.pageX;
+        let y = e.pageY; 
+         
+        let inside : boolean = insideTargetArea(this.ref, x, y);
+        if(!inside)
+            this.setState({value:'', suggestions:[]}) 
+    }  
+  
+     
+
     componentDidMount(){ 
 
         this.init(this.props); 
 
+        window.addEventListener("click", this.onOutsideClick)
     }      
-         
+        
+
+     
+    componentWillUnmount(){
+
+        window.removeEventListener("click", this.onOutsideClick);
+    } 
     
+
 
     shouldComponentUpdate(nextProps:QuickSearchProps,nextState:QuickSearchState){
 
         return this.state.value!==nextState.value; 
- 
     }
     
-
+    
 
     init = (props) => {
 
@@ -257,31 +282,31 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
         let objectsWithKeywords = attachKeywordsToObjects(objects);
         
         this.setState({objectsWithKeywords}); 
-
     }
  
+ 
 
-
-    componentWillReceiveProps(nextProps:QuickSearchProps){
-
+    componentWillReceiveProps(nextProps:QuickSearchProps, nextState:QuickSearchState){   
+ 
         let update = false; 
 
+        if(this.props.selectedCategory!==nextProps.selectedCategory)
+           this.setState({value:'', suggestions:[]})       
+        
         if(nextProps.todos !== this.props.todos)
            update = true;
-        
+         
         if(nextProps.areas !== this.props.areas)
            update = true;
 
         if(nextProps.projects !== this.props.projects)
            update = true;  
 
-
         if(update)
            this.init(nextProps);
-
     }  
 
-
+ 
 
     onChange = (e) => {
 
@@ -300,9 +325,8 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
         });   
 
         this.setState({value:e.target.value, suggestions});
-
     }
-    
+     
  
 
     suggestionToComponent = (suggestion:keyworded, index:number) : JSX.Element => {
@@ -326,15 +350,18 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
 
 
     render(){ 
-  
-        return <div style={{   
-            boxShadow: "0 0 18px rgba(0,0,0,0.2)", 
-            zIndex: 30000,
-            borderRadius: "5px",
-            position: "absolute",
-            width: "100%",
-            backgroundColor: "rgba(238,237,239,1)"
-        }}>   
+   
+        return <div 
+            ref={(e) => { this.ref=e; }}
+            style={{   
+                boxShadow: "0 0 18px rgba(0,0,0,0.2)", 
+                zIndex: 30000,
+                borderRadius: "5px",
+                position: "absolute",
+                width: "100%",
+                backgroundColor: "rgba(238,237,239,1)"
+            }}
+        >   
         <div style={{position:"relative", padding:"10px"}}>    
             <div style={{
                 backgroundColor: "rgb(217, 218, 221)",

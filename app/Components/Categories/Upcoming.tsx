@@ -49,7 +49,7 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
         }
     }
 
-    let filters = [
+    let filters = [ 
         haveDate, 
         byTags(props.selectedTag),
         byNotCompleted, 
@@ -68,7 +68,7 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
         let date : Date = getDateFromObject(objects[i]);
 
         if(!date)
-           continue; 
+           continue;  
 
         let key : string = keyFromDate(date);
 
@@ -87,6 +87,7 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
 interface UpcomingProps{
     dispatch:Function,
     selectedTodoId:string,
+    selectedCategory:string, 
     todos:Todo[],
     projects:Project[],
     selectedTag:string,
@@ -316,7 +317,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         WebkitUserSelect: "none" 
                     }}>
                         {this.props.day} 
-                    </div> 
+                    </div>  
                  
                     <div style={{
                         width: "82%",
@@ -371,10 +372,11 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         paddingTop : "10px",
                         paddingBottom : "10px" 
                     }}>   
-                        <TodosList  
+                        <TodosList   
                             filters={[]}    
                             isEmpty={(empty:boolean) => {}} 
                             dispatch={this.props.dispatch}     
+                            selectedTodoId={this.props.selectedTodoId} 
                             selectedCategory={"upcoming"}
                             selectedTag={this.props.selectedTag}  
                             rootRef={this.props.rootRef}

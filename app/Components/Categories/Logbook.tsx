@@ -18,6 +18,7 @@ import { allPass, compose } from 'ramda';
 interface LogbookProps{
     dispatch:Function,
     todos:Todo[],
+    selectedCategory:string, 
     selectedTodoId:string, 
     projects:Project[],
     selectedTag:string,
@@ -70,8 +71,10 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
         if(this.state.groups!==nextState.groups)
             return true;
-
-     
+        
+             
+        if(this.props.selectedCategory!==nextProps.selectedCategory)
+            return true;
         if(this.props.todos!==nextProps.todos)
             return true;
         if(this.props.projects!==nextProps.projects) 
@@ -166,8 +169,9 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
             <div style={{position:"relative", width:"100%"}}>
                 <TodosList  
-                    filters={[]}  
+                    filters={[]}   
                     isEmpty={(empty:boolean) => {}} 
+                    selectedTodoId={this.props.selectedTodoId}
                     dispatch={this.props.dispatch}     
                     selectedCategory={"logbook"} 
                     selectedTag={this.props.selectedTag}  

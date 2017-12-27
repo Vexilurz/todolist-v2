@@ -20,9 +20,12 @@ export let getAreaLink = (iconSize, a:Area, index:number, dispatch:Function) : J
  
     return <div key={`${a._id}-${index}`} style={{position:"relative", padding:"5px"}}>  
         <div    
-            className="toggleFocus"  
-            onClick = { () => dispatch({type:"selectedAreaId", load:a._id}) }   
-            id = {a._id}       
+            className="toggleFocus"   
+            onClick = {() => {
+                dispatch({type:"selectedCategory", load:"area"});
+                dispatch({type:"selectedAreaId", load:a._id});
+            }}   
+            id = {a._id}        
             style={{         
                 marginLeft:"4px",
                 marginRight:"4px", 

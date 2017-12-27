@@ -148,14 +148,26 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
  
 
     componentDidMount(){ 
+    
+        window.addEventListener("click", this.onOutsideClick);
 
-        window.addEventListener("click", this.onOutsideClick);  
-     
-        if(this.state.currentTodo.length===0)   
-           setTimeout(() => this.setState({open:true}), 10);   
-
+        window.addEventListener("keydown",this.onWindowEnterPress);    
+          
+        //if(this.state.currentTodo.length===0)   
+           //setTimeout(() => this.setState({open:true}), 10);   
     }      
       
+ 
+
+    componentWillReceiveProps(nextProps:TodoInputProps){
+
+        if(nextProps.todo!==this.props.todo){  
+           this.setState(this.stateFromTodo(this.state,nextProps.todo));  
+        }
+         
+
+    }
+
 
    
     componentWillUnmount(){
@@ -166,29 +178,46 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     
 
 
-    shouldComponentUpdate(nextProps:TodoInputProps, nextState:TodoInputState){
-
-        let should = false;
-
-        if(this.props.todo!==nextProps.todo) 
-           should=true; 
-        
-        if(this.state!==nextState)
-           should=true;
-           
-        return should;    
- 
+    onWindowEnterPress = (e) => {
+        if(e.keyCode == 13){
+            this.collapse(); 
+        }  
     } 
 
+    
+ 
+    stateFromTodo = (state:TodoInputState,todo:Todo) : TodoInputState => ({   
+        ...state,
+        formId : todo._id, 
+        checklist : todo.checklist,
+        completed : todo.completed,
+        newSelectedCategory : todo.category as Category, 
+        checked : todo.checked,
+        attachedDate : todo.attachedDate,
+        currentTodo : todo.title, 
+        currentNote : todo.note, 
+        deadline : todo.deadline, 
+        attachedTags : todo.attachedTags, 
+        reminder : todo.reminder
+    }) 
 
+
+
+    shouldComponentUpdate(nextProps:TodoInputProps, nextState:TodoInputState){
+        
+        return true; 
+
+    } 
+
+    
      
     enableDragOfThisItem = () => {
         if(this.ref)
            this.ref["preventDrag"] = false; 
     }
     
-
-
+ 
+     
     preventDragOfThisItem = () => {
         if(this.ref)
            this.ref["preventDrag"] = true; 
@@ -247,38 +276,35 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            return; 
 
         let x = e.pageX;
-
         let y = e.pageY; 
 
         let inside = insideTargetArea(this.ref,x,y);
-
+ 
         if(!inside){   
-
-            this.props.dispatch({type:"selectedTodoId", load:null});
-
-            if(this.state.open){
-                  
-                this.enableDragOfThisItem();
-
-                this.setState(
-                    
-                    {open:false}, 
-                       
-                    () => {
-                        let todo : Todo = this.todoFromState();   
-                        
-                        if(this.state.currentTodo.length===0 || todoChanged(this.props.todo,todo))
-                           this.addTodoFromInput(todo);
-                    }    
-
-                ); 
-               
-            }
-
-        }   
-
+           this.collapse();
+        }
     }   
      
+
+    collapse = () => {
+
+        this.props.dispatch({type:"selectedTodoId", load:null});
+        
+        if(this.state.open){
+                
+            this.enableDragOfThisItem();
+
+            this.setState( 
+                {open:false}, 
+                () => {
+                    let todo : Todo = this.todoFromState();   
+                    
+                    if(this.state.currentTodo.length===0 || todoChanged(this.props.todo,todo))
+                        this.addTodoFromInput(todo);
+                } 
+            ); 
+        }
+    }
 
 
     updateTodo = (changedTodo:Todo) : void => {
@@ -303,7 +329,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
             this.removeTodo(todo);
-
+ 
         }else{  
  
 
@@ -336,14 +362,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     } 
 
 
-    
-    onTagFieldEnterPress = (event) => {  
-
-        if(event.key==="Enter"){
-            this.attachTag(this.state.currentTag);
-        } 
-         
-    }  
      
 
 
@@ -539,17 +557,14 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
     selectButtonsToDisplay = () => {
-        
         let buttonsNamesToDisplay : any = [
             "Calendar",
             "Tag",
             "Flag",
             "Add" 
         ]; 
-
-        
+         
         return buttonsNamesToDisplay;
-
     }
 
     
@@ -623,7 +638,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         }}    
                         onClick={this.onFieldsContainerClick}
                     >   
-                    
+                     
                         <div style={{display:"flex"}}>
                             <TextField   
                                 hintText = "New To-Do"   
@@ -642,7 +657,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                 underlineStyle = {{borderColor: "rgba(0,0,0,0)"}}  
                             /> 
   
-                            { daysLeftMark(this.state.open, this.state.deadline, false) }
+                            {  
+                                !this.state.deadline ? null :
+                                daysLeftMark(this.state.open, this.state.deadline, false) 
+                            }
 
                         </div>  
                         { 
@@ -682,10 +700,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                     updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})} 
                                 /> 
 
-                                <TodoTags todo={this.props.todo}/>
+                                <TodoTags tags={this.state.attachedTags}/>
 
                             </div> 
-                        }
+                        }  
 
                     </div>   
                 </div>   

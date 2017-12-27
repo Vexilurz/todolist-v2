@@ -36,6 +36,7 @@ import { allPass, compose } from 'ramda';
  
 interface SomedayProps{
     dispatch:Function,
+    selectedCategory:string, 
     selectedTodoId:string,
     selectedTag:string,
     rootRef:HTMLElement,
@@ -104,6 +105,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                             byNotCompleted, 
                             byNotDeleted 
                         ]}  
+                        selectedTodoId={this.props.selectedTodoId} 
                         isEmpty={(empty:boolean) => this.setState({empty})} 
                         dispatch={this.props.dispatch}   
                         selectedCategory={"someday"}  

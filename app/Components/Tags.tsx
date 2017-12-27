@@ -9,6 +9,7 @@ import { Component } from "react";
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux"; 
 import DayPicker from 'react-day-picker';
+import { append, prepend } from 'ramda';
    
 
 
@@ -70,15 +71,16 @@ export class Tags extends Component<TagsProps,{}>{
         }
 
         
-      } 
-
+      }  
+ 
   
       render(){
          return !this.props.show ? null :
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>  
-                    {   
-                        this.props.tags.map(
-                            (tag:string) => <div key={tag} style={{padding:"10px"}}>
+                    {    
+                        prepend("All",this.props.tags)
+                        .map((tag:string) =>  
+                            <div key={tag} style={{padding:"10px"}}>
                                 <div className="chip"     
                                     onClick={() => this.props.selectTag(tag)} 
                                     style={{

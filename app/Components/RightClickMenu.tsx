@@ -296,7 +296,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                        margin: "5px",
                        borderRadius: "5px",
                        zIndex: 30000, 
-                       width: "250px",  
+                       width: "250px",    
                        position: "absolute",
                        backgroundColor: "rgba(238,237,239,1)",
                        left: this.props.rightClickMenuX+"px",

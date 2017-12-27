@@ -33,6 +33,7 @@ import { adjust, remove } from 'ramda';
 
 interface ProjectComponentProps{
     projects:Project[], 
+    selectedCategory:string, 
     selectedProjectId:string, 
     todos:Todo[],
     tags:string[],

@@ -8,9 +8,9 @@ import {
 } from './database';
 import { 
     getTagsFromItems, defaultTags, removeDeletedProjects, 
-    removeDeletedAreas, removeDeletedTodos, changePriority, Item 
+    removeDeletedAreas, removeDeletedTodos, changePriority, Item, ItemWithPriority 
 } from './utils';
-import { adjust, cond, equals, all } from 'ramda';
+import { adjust, cond, equals, all, clone } from 'ramda';
 
 
 
@@ -18,6 +18,17 @@ let onError = (e) => {
     console.log(e); 
 }
 
+let priorityChanged = (before : ItemWithPriority[], after : ItemWithPriority[]) : boolean => {
+    
+    for(let i=0; i<before.length; i++){
+        if(before[i].priority!==after[i].priority)
+           return true; 
+        else 
+           continue;     
+    }
+
+    return false; 
+}
  
 
 export let applicationObjectsReducer = (state:Store, action) : Store => { 
@@ -165,9 +176,9 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                     areas:adjust(() => area, idx, state.areas)
                 } 
             }
-        ],
+        ], 
 
-        [
+        [ 
             (action:{type:string}) => "changeTodosPriority"===action.type,
 
             (action:{type:string, load:{fromId:string,toId:string} }) : Store => {
@@ -175,8 +186,11 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 let from  = state.todos.findIndex( (t:Todo) => t._id===action.load.fromId );
                 let to  = state.todos.findIndex( (t:Todo) => t._id===action.load.toId );
 
+                let fromItemBefore = {...state.todos[from]};
+                let toItemBefore = {...state.todos[to]};
+                  
                 let items = changePriority(from,to,state.todos) as Todo[];
-
+                 
                 let fromItem = items[from];
                 let toItem = items[to];  
 
@@ -186,10 +200,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                     throw new Error(`Not all objects are of type Todo. ${JSON.stringify(items)}`);
                 }
 
-                return {
-                    ...state, 
-                    todos:items
-                }
+                return {...state, todos:items}
             }
         ],
 
@@ -246,15 +257,22 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
                 let idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
                 
-                if(idx===-1){
-                   throw new Error(
-                     `Attempt to update non existing object ${JSON.stringify(action.load)}. updateTodo. objectsReducer.`
-                   ); 
+                if(idx===-1){ 
+                    addTodo(onError, action.load);
+                    
+                    return {
+                        ...state, 
+                        todos:[action.load,...state.todos],
+                    };  
                 }
 
-                if(action.load.type!=="todo")
-                   throw new Error(`Load is not of type Todo. ${JSON.stringify(action.load)} updateTodo. objectsReducer.`);
- 
+                if(action.load.type!=="todo"){
+                   throw new Error(`
+                      Load is not of type Todo. ${JSON.stringify(action.load)} 
+                      updateTodo. objectsReducer.`
+                   );
+                }
+  
     
                 updateTodo(action.load._id, action.load, onError);
     
@@ -422,10 +440,11 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
           ipcRenderer.send("action", action, state.windowId); 
            
        }
+     
+    }   
+ 
+
     
-    }  
- 
- 
 
     return newState; 
    

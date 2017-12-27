@@ -40,6 +40,7 @@ import { compose, allPass } from 'ramda';
 interface TodayProps{ 
     dispatch:Function,
     selectedTodoId:string,
+    selectedCategory:string, 
     selectedTag:string,
     rootRef:HTMLElement,
     todos:Todo[], 
@@ -72,11 +73,11 @@ export class Today extends Component<TodayProps,TodayState>{
         let tags = compose(
             getTagsFromItems,
             (todos) => todos.filter(
-                allPass([
-                    byCategory("today"),
+                allPass([ 
+                    (t:Todo) => byCategory("today")(t) || byCategory("evening")(t),
                     byNotCompleted,  
-                    byNotDeleted 
-                ])  
+                    byNotDeleted  
+                ])   
             )
         )(this.props.todos);
 
@@ -134,7 +135,8 @@ export class Today extends Component<TodayProps,TodayState>{
                                 byCategory("today"),
                                 byNotCompleted, 
                                 byNotDeleted 
-                            ]} 
+                            ]}  
+                            selectedTodoId={this.props.selectedTodoId}
                             isEmpty={(empty:boolean) => this.setState({emptyToday:empty})}   
                             dispatch={this.props.dispatch}   
                             selectedCategory={"today"}
@@ -181,6 +183,7 @@ export class Today extends Component<TodayProps,TodayState>{
                                     byNotCompleted, 
                                     byNotDeleted    
                                 ]} 
+                                selectedTodoId={this.props.selectedTodoId} 
                                 isEmpty={(empty:boolean) => this.setState({emptyEvening:empty})} 
                                 dispatch={this.props.dispatch}    
                                 selectedCategory={"evening"} 

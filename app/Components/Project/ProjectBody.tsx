@@ -32,8 +32,7 @@ import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
 
 
-
-
+ 
 
 let layoutOrderChanged = (before:LayoutItem[], after:LayoutItem[]) : boolean => {
 

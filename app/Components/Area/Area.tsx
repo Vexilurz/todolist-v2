@@ -12,8 +12,10 @@ import { debounce } from '../../utils';
   
  
 interface AreaComponentProps{
-    areas:Area[],
+    areas:Area[], 
+    selectedCategory:string, 
     selectedAreaId:string,
+    selectedTodoId:string, 
     selectedTag:string, 
     dispatch:Function,  
     projects:Project[],
@@ -116,11 +118,12 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                     updateAreaName={this.updateAreaName}
                     dispatch={this.props.dispatch} 
                 />  
-            </div>
+            </div> 
             <div> 
                 <AreaBody 
                     area={this.state.area} 
                     projects={this.props.projects}
+                    selectedTodoId={this.props.selectedTodoId}
                     todos={this.props.todos} 
                     tags={this.props.tags}
                     selectedTag={this.props.selectedTag}

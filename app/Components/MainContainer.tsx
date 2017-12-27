@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, debounce, byTags, byCategory 
+    chooseIcon, debounce, byTags, byCategory, generateEmptyTodo 
 } from "../utils";  
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -66,79 +66,79 @@ let convertDates = ([todos, projects, areas]) => [
         deleted : a.deleted ? new Date(a.deleted) : undefined
     }))
 ];  
-
+ 
   
 let createHeading = (e, props:Store) : void => {
     
-    if(props.selectedCategory!=="project"){
-        throw new Error(
-            `Attempt to create heading outside of project template. ${props.selectedCategory}. 
-            createHeading`
-        );
-    }  
+        if(props.selectedCategory!=="project"){
+            throw new Error(
+                `Attempt to create heading outside of project template. ${props.selectedCategory}. 
+                createHeading`
+            );
+        }  
 
-    let id : string = props.selectedProjectId;
+        let id : string = props.selectedProjectId;
 
-    if(isNil(id))
-       throw new Error(`selectedProjectId undefined ${id}. createHeading.`);
+        if(isNil(id))
+        throw new Error(`selectedProjectId undefined ${id}. createHeading.`);
 
-      
-    let project = props.projects.find( (p:Project) => p._id===id );
+        
+        let project = props.projects.find( (p:Project) => p._id===id );
 
-    if(!project){  
-        throw new Error(
-            `this.props.selectedProjectId ${props.selectedProjectId} do not correspond to existing project.
-            ${JSON.stringify(props.projects)}. createHeading`
-        );     
-    }
-
-    let priority = 0;
-
-    if(!isEmpty(project.layout)){
-        let item : LayoutItem = last(project.layout);
-
-        if(isString(item)){ 
-
-            let todo = props.todos.find( (t:Todo) => t._id===item );
-
-            if(todo.type!=="todo") 
-                throw new Error(`
-                    todo is not of type Todo. 
-                    todo : ${JSON.stringify(todo)}. 
-                    item : ${JSON.stringify(item)}. 
-                    createHeading.
-                `); 
-
-            priority = todo.priority + 1; 
-            
-        }else if(item.type==="heading"){
-
-            let heading : Heading = item; 
-
-            if(heading.type!=="heading") 
-                throw new Error(`heading is not of type Heading. ${JSON.stringify(heading)} createHeading `);
-
-            priority = heading.priority + 1;
-
-        }else{
-
-            throw new Error(`Selected item is not of type LayoutItem. ${JSON.stringify(item)}. createHeading.`); 
-
+        if(!project){  
+            throw new Error(
+                `this.props.selectedProjectId ${props.selectedProjectId} do not correspond to existing project.
+                ${JSON.stringify(props.projects)}. createHeading`
+            );     
         }
-    }
+
+        let priority = 0;
+
+        if(!isEmpty(project.layout)){
+            let item : LayoutItem = last(project.layout);
+
+            if(isString(item)){ 
+
+                let todo = props.todos.find( (t:Todo) => t._id===item );
+
+                if(todo.type!=="todo") 
+                    throw new Error(`
+                        todo is not of type Todo. 
+                        todo : ${JSON.stringify(todo)}. 
+                        item : ${JSON.stringify(item)}. 
+                        createHeading.
+                    `); 
+
+                priority = todo.priority + 1; 
+                
+            }else if(item.type==="heading"){
+
+                let heading : Heading = item; 
+
+                if(heading.type!=="heading") 
+                    throw new Error(`heading is not of type Heading. ${JSON.stringify(heading)} createHeading `);
+
+                priority = heading.priority + 1;
+
+            }else{
+
+                throw new Error(`Selected item is not of type LayoutItem. ${JSON.stringify(item)}. createHeading.`); 
+
+            }
+        }
 
 
-    let heading : Heading = {
-        type : "heading", 
-        priority,
-        title : '',  
-        _id : generateId(), 
-        key : generateId()
-    }; 
+        let heading : Heading = {
+            type : "heading", 
+            priority,
+            title : '',  
+            _id : generateId(), 
+            key : generateId()
+        }; 
 
-    let load = {...project, layout:[heading,...project.layout]};
-    
-    props.dispatch({ type:"updateProject", load });
+        let load = {...project, layout:[heading,...project.layout]};
+        
+        props.dispatch({ type:"updateProject", load });
         
 }
 
@@ -146,86 +146,70 @@ let createHeading = (e, props:Store) : void => {
 
 let createNewTodo = (e, props:Store, rootRef:HTMLElement) : void => {   
     
-    let allowedTodoCreation : Category[] = [
-        "inbox",
-        "today", 
-        "someday",
-        "next", 
-        "project", 
-        "area"
-    ] 
+        let allowedTodoCreation : Category[] = [
+            "inbox",
+            "today", 
+            "someday",
+            "next", 
+            "project", 
+            "area"
+        ] 
 
-    if(!contains(props.selectedCategory, allowedTodoCreation))
-        return; 
+        if(!contains(props.selectedCategory, allowedTodoCreation))
+            return; 
+    
 
+        let id : string = generateId();
+        let priority : number = 0;
 
-    let id : string = generateId();
-    let priority : number = 0;
+        if(!isEmpty(props.todos)){
+            let first : Todo = props.todos[0];
+            priority = first.priority - 1; 
+        } 
 
-    if(!isEmpty(props.todos)){
-        let first : Todo = props.todos[0];
-        priority = first.priority - 1; 
-    } 
+        let todo : Todo = generateEmptyTodo(id,props.selectedCategory,priority);   
 
-    let todo : Todo = {    
-        _id : id,
-        type:"todo",
-        category : props.selectedCategory,  
-        title : '', 
-        priority, 
-        reminder : null, 
-        checked : false,  
-        note : '',
-        checklist : [],   
-        attachedTags : [],
-        attachedDate : null,
-        deadline : null,
-        created : new Date(),  
-        deleted : null, 
-        completed : null
-    }  
+        props.dispatch({type:"addTodo", load:todo});
 
-    props.dispatch({type:"addTodo", load:todo});
+        if(props.selectedCategory==="project"){ 
+            
+            let project : Project = props.projects.find( (p:Project) => p._id===props.selectedProjectId );
 
-    if(props.selectedCategory==="project"){ 
-        
-        let project : Project = props.projects.find( (p:Project) => p._id===props.selectedProjectId );
+            if(isNil(project)){ 
+                throw new Error( 
+                `Project with selectedProjectId does not exist.
+                ${props.selectedProjectId} ${JSON.stringify(project)}. 
+                createNewTodo.`
+                )   
+            }     
 
-        if(isNil(project)){ 
-            throw new Error( 
-              `Project with selectedProjectId does not exist.
-              ${props.selectedProjectId} ${JSON.stringify(project)}. 
-              createNewTodo.`
-            )   
-        }     
+            props.dispatch({ 
+                type:"attachTodoToProject", 
+                load:{ projectId:project._id, todoId:todo._id } 
+            });    
 
-        props.dispatch({ 
-            type:"attachTodoToProject", 
-            load:{ projectId:project._id, todoId:todo._id } 
-        });    
+        }else if(props.selectedCategory==="area"){
 
-    }else if(props.selectedCategory==="area"){
+            let area : Area = props.areas.find( (a:Area) => a._id===props.selectedAreaId );
+            
+            if(isNil(area)){  
+                throw new Error(  
+                    `Area with selectedAreaId does not exist.
+                    ${props.selectedAreaId}. 
+                    ${JSON.stringify(area)}. 
+                    createNewTodo.`  
+                )   
+            }  
 
-        let area : Area = props.areas.find( (a:Area) => a._id===props.selectedAreaId );
-         
-        if(isNil(area)){  
-            throw new Error(  
-                `Area with selectedAreaId does not exist.
-                ${props.selectedAreaId}. 
-                ${JSON.stringify(area)}. 
-                createNewTodo.`  
-            )   
-        }  
+            props.dispatch({ 
+                type:"attachTodoToArea", 
+                load:{ areaId:area._id, todoId:todo._id }      
+            });  
 
-        props.dispatch({ 
-            type:"attachTodoToArea", 
-            load:{ areaId:area._id, todoId:todo._id }      
-        });  
+        }    
 
-    }    
-
-    if(rootRef) 
-       rootRef.scrollTop = 0; 
+        if(rootRef) 
+        rootRef.scrollTop = 0; 
 
 } 
 
@@ -319,15 +303,17 @@ export class MainContainer extends Component<Store,MainContainerState>{
     
     componentDidMount(){
 
-        destroyEverything().then(() => { 
+        destroyEverything()
+        .then(() => { 
+             
             initDB();
 
             let fakeData = generateRandomDatabase({
-                todos : 20,  
-                projects : 10,  
-                areas : 4 
-            });  
-
+                todos : 40,  
+                projects : 5,  
+                areas : 2 
+            });   
+    
             let todos = fakeData.todos;
             let projects = fakeData.projects; 
             let areas = fakeData.areas; 
@@ -424,15 +410,27 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             inbox:<Inbox 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
+                                selectedCategory={this.props.selectedCategory}
+                                selectedTag={this.props.selectedTag} 
+                                rootRef={this.rootRef}
+                                todos={this.props.todos}
+                                tags={this.props.tags}
+                            />,   
+          
+                            today: <Today 
+                                dispatch={this.props.dispatch}
+                                selectedTodoId={this.props.selectedTodoId}
+                                selectedCategory={this.props.selectedCategory}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
                                 todos={this.props.todos}
                                 tags={this.props.tags}
-                            />,  
- 
-                            today: <Today 
+                            />,
+  
+                            evening: <Today 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
+                                selectedCategory={this.props.selectedCategory}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
                                 todos={this.props.todos}
@@ -442,6 +440,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             upcoming: <Upcoming 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
+                                selectedCategory={this.props.selectedCategory}
                                 todos={this.props.todos}
                                 projects={this.props.projects}
                                 selectedTag={this.props.selectedTag}
@@ -452,6 +451,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             logbook: <Logbook   
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
+                                selectedCategory={this.props.selectedCategory}
                                 todos={this.props.todos}
                                 projects={this.props.projects}
                                 selectedTag={this.props.selectedTag}
@@ -462,6 +462,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             someday: <Someday 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
+                                selectedCategory={this.props.selectedCategory}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
                                 todos={this.props.todos}
@@ -471,18 +472,21 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             next: <Next   
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId} 
+                                selectedCategory={this.props.selectedCategory}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
                                 areas={this.props.areas}
                                 projects={this.props.projects} 
                                 todos={this.props.todos}
                                 tags={this.props.tags}
-                            />, 
-     
-                            trash: <Trash 
+                            />,  
+       
+                            trash: <Trash   
                                 dispatch={this.props.dispatch}
                                 tags={this.props.tags}
+                                selectedCategory={this.props.selectedCategory}
                                 selectedTag={this.props.selectedTag}
+                                selectedTodoId={this.props.selectedTodoId} 
                                 todos={this.props.todos}
                                 projects={this.props.projects}
                                 areas={this.props.areas}
@@ -491,6 +495,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             
                             project : <ProjectComponent 
                                 dispatch={this.props.dispatch} 
+                                selectedCategory={this.props.selectedCategory}
                                 selectedProjectId={this.props.selectedProjectId}
                                 todos={this.props.todos}
                                 projects={this.props.projects}  
@@ -498,13 +503,15 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 tags={this.props.tags} 
                             />,    
 
-                            area : <AreaComponent 
+                            area : <AreaComponent  
                                 areas={this.props.areas}
+                                selectedCategory={this.props.selectedCategory}
                                 selectedAreaId={this.props.selectedAreaId}
                                 selectedTag={this.props.selectedTag}
                                 dispatch={this.props.dispatch}    
                                 projects={this.props.projects}
                                 todos={this.props.todos}
+                                selectedTodoId={this.props.selectedTodoId} 
                                 tags={this.props.tags}
                                 rootRef={this.rootRef}
                             />  

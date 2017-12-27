@@ -63,12 +63,15 @@ export class TagsPopover extends Component<TagsPopoverProps,{}>{
                 anchorOrigin={this.props.origin} 
                 targetOrigin={this.props.point} 
                 zDepth={0}
-            >     
-                <div className={"darkscroll"}
-                        style={{  
-                            borderRadius:"10px",  
-                            width:"140px"
-                        }}> 
+            >      
+                <div 
+                    className={"darkscroll"}
+                    onClick = {(e) => { 
+                        e.stopPropagation();
+                        e.preventDefault(); 
+                    }} 
+                    style={{borderRadius:"10px", width:"180px"}}
+                > 
                     <div    
                         className={"darkscroll"}
                         style={{   
@@ -127,30 +130,29 @@ export class TagsPopover extends Component<TagsPopoverProps,{}>{
 
 
 interface TodoTagsProps{
-    todo:Todo 
+    tags:string[] 
 }    
 
  
 export class TodoTags extends Component<TodoTagsProps,{}>{
 
     constructor(props){
-
         super(props);
-
     }
- 
-
+  
+    
     render(){
 
         return <div
-        onClick={(e) => {e.stopPropagation();}} 
-        style={{
-            display:"flex", 
-            paddingTop:"5px",
-            paddingBottom:"5px",
-            flexWrap:"wrap"
-        }}>{    
-            this.props.todo.attachedTags.map(
+            onClick={(e) => {e.stopPropagation();}} 
+            style={{
+                display:"flex", 
+                paddingTop:"5px",
+                paddingBottom:"5px",
+                flexWrap:"wrap"
+            }}
+        >{      
+            this.props.tags.map(
                 (tag:string, index:number) => 
                 <div  
                     key={`${tag}-${index}`} 
@@ -180,7 +182,6 @@ export class TodoTags extends Component<TodoTagsProps,{}>{
                 </div> 
             ) 
         }</div>
-      
     }
-
 }
+ 

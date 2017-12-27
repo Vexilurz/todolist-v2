@@ -8,7 +8,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byTags, 
-    byNotCompleted, byNotDeleted, byCategory, getTagsFromItems 
+    byNotCompleted, byNotDeleted, byCategory, getTagsFromItems, isString 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -33,13 +33,14 @@ import { Tags } from '../Tags';
 import { getProjectLink } from '../Project/ProjectLink';
 import { getAreaLink } from '../Area/AreaLink';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { uniq, allPass } from 'ramda';
+import { uniq, allPass, isEmpty } from 'ramda';
  
  
 
 interface NextProps{
-    dispatch:Function,
+    dispatch:Function, 
     selectedTodoId:string,
+    selectedCategory:string, 
     selectedTag:string,
     rootRef:HTMLElement,
     areas:Area[], 
@@ -71,7 +72,9 @@ export class Next extends Component<NextProps, NextState>{
 
     shouldComponentUpdate(nextProps:NextProps , nextState:NextState){
         let should = false;
-
+        
+        if(this.props.selectedCategory!==nextProps.selectedCategory)
+           should = true;  
         if(this.props.selectedTodoId!==nextProps.selectedTodoId)
            should = true;
         if(this.props.selectedTag!==nextProps.selectedTag)
@@ -99,7 +102,7 @@ export class Next extends Component<NextProps, NextState>{
             todos : [],
             detached : []   
         };
-
+ 
 
         for(let i=0;  i<this.props.projects.length; i++){
             let project : Project = this.props.projects[i]; 
@@ -197,16 +200,16 @@ export class Next extends Component<NextProps, NextState>{
                     table.areas.length===0  &&  
                     table.todos.length===0;
 
-        let tags = uniq( 
+        let tags = uniq(  
             getTagsFromItems([
                 ...table.projects,
                 ...table.areas,
                 ...table.todos
             ]) 
-        );
+        ); 
 
-
-        return <div>
+ 
+        return  <div>
                     <ContainerHeader 
                         selectedCategory={"next"}  
                         dispatch={this.props.dispatch} 
@@ -217,12 +220,13 @@ export class Next extends Component<NextProps, NextState>{
                     <FadeBackgroundIcon    
                         container={this.props.rootRef} 
                         selectedCategory={"next"}  
-                        show={empty}
+                        show={empty} 
                     />   
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
                         <TodosList    
                             filters={[]}    
                             isEmpty={(empty:boolean) => {}}    
+                            selectedTodoId={this.props.selectedTodoId} 
                             dispatch={this.props.dispatch}     
                             selectedCategory={"next"} 
                             selectedTag={this.props.selectedTag}  
@@ -234,13 +238,15 @@ export class Next extends Component<NextProps, NextState>{
                     <NextProjectsList 
                         dispatch={this.props.dispatch}
                         selectedTag={this.props.selectedTag}
+                        selectedTodoId={this.props.selectedTodoId} 
                         rootRef={this.props.rootRef}
                         tags={this.props.tags}
                         table={table}
                     />  
-                    <NextAreasList  
+                    <NextAreasList   
                         dispatch={this.props.dispatch}
-                        selectedTag={this.props.selectedTag}
+                        selectedTag={this.props.selectedTag} 
+                        selectedTodoId={this.props.selectedTodoId}
                         rootRef={this.props.rootRef}
                         tags={this.props.tags}
                         table={table}
@@ -249,13 +255,27 @@ export class Next extends Component<NextProps, NextState>{
 
     }
 
+}  
+
+
+let byHaveTodos = (project:Project) : boolean => {
+    let todosIds : string[] = project.layout.filter(isString) as string[]; 
+    return !isEmpty(todosIds); 
 }
+
+
+let byContainsItems = (area:Area) : boolean => {
+    let todosIds : string[] = area.attachedTodosIds;
+    let projectsIds : string[] = area.attachedProjectsIds;
+
+    return !isEmpty(todosIds) || !isEmpty(projectsIds);
+}  
+   
  
-
-
 interface NextProjectsListProps{
     dispatch:Function,
     selectedTag:string, 
+    selectedTodoId:string, 
     rootRef:HTMLElement,
     tags:string[],
     table:Table
@@ -267,21 +287,21 @@ class NextProjectsList extends Component<NextProjectsListProps, NextProjectsList
 
     constructor(props){
         super(props); 
-    }
+    }  
 
-    render(){
+    render(){ 
  
         return  <div style={{paddingTop:"20px", paddingBottom:"20px"}}> 
-            {    
-                this.props.table.projects.map(
+            {     
+                this.props.table.projects.filter(byHaveTodos).map(
                     (p:Project, index:number) : JSX.Element => {
 
                         return <div key={`project-${index}`} style={{padding:"10px"}}>
 
                             <div style={{padding:"10px"}}>{
                                 getProjectLink(
-                                    {width: "15px", height: "15px"}, 
-                                    p, 
+                                    { width:"15px", height:"15px" },  
+                                    p,    
                                     index, 
                                     this.props.dispatch
                                 )
@@ -290,6 +310,7 @@ class NextProjectsList extends Component<NextProjectsListProps, NextProjectsList
                             <ExpandableTodosList
                                 dispatch={this.props.dispatch}   
                                 selectedTag={this.props.selectedTag} 
+                                selectedTodoId={this.props.selectedTodoId} 
                                 rootRef={this.props.rootRef}
                                 todos={this.props.table[p._id] as Todo[]} 
                                 tags={this.props.tags}
@@ -312,6 +333,7 @@ class NextProjectsList extends Component<NextProjectsListProps, NextProjectsList
 interface NextAreasListProps{
     dispatch:Function,
     selectedTag:string, 
+    selectedTodoId:string, 
     rootRef:HTMLElement,
     tags:string[],
     table:Table
@@ -328,7 +350,7 @@ class NextAreasList extends Component<NextAreasListProps,NextAreasListState>{
     render(){ 
         return <div style={{paddingTop:"20px", paddingBottom:"20px"}}> 
                 {  
-                    this.props.table.areas.map(
+                    this.props.table.areas.filter(byContainsItems).map(
                         (a:Area, index:number) : JSX.Element => { 
                             return <div key={`area${index}`} style={{padding:"10px"}}>
 
@@ -347,6 +369,7 @@ class NextAreasList extends Component<NextAreasListProps,NextAreasListState>{
                                     dispatch={this.props.dispatch}   
                                     selectedTag={this.props.selectedTag}  
                                     rootRef={this.props.rootRef}
+                                    selectedTodoId={this.props.selectedTodoId} 
                                     todos={this.props.table[a._id] as Todo[]} 
                                     tags={this.props.tags} 
                                 />
@@ -367,6 +390,7 @@ class NextAreasList extends Component<NextAreasListProps,NextAreasListState>{
 interface ExpandableTodosListProps{
     dispatch:Function,   
     selectedTag:string, 
+    selectedTodoId:string, 
     rootRef:HTMLElement, 
     todos:Todo[],
     tags:string[] 
@@ -424,6 +448,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                         isEmpty={(empty:boolean) => {}}  
                         dispatch={this.props.dispatch}     
                         selectedCategory={"next"} 
+                        selectedTodoId={this.props.selectedTodoId} 
                         selectedTag={this.props.selectedTag}  
                         rootRef={this.props.rootRef}
                         todos={this.props.todos.slice(0,idx)}  

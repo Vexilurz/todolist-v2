@@ -24,7 +24,9 @@ import { isString } from 'util';
 
 interface TrashProps{ 
     dispatch:Function,
+    selectedCategory:string,  
     tags:string[],
+    selectedTodoId:string,  
     selectedTag:string,
     todos:Todo[],
     projects:Project[],
@@ -318,6 +320,7 @@ export class Trash extends Component<TrashProps,TrashState>{
             <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
                 <TodosList    
                     filters={[ ]}    
+                    selectedTodoId={this.props.selectedTodoId}
                     isEmpty={(empty:boolean) => {}}
                     dispatch={this.props.dispatch}    
                     selectedCategory={"trash"}    
@@ -394,7 +397,7 @@ class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
         }; 
 
     }  
-
+    
 
 
     onOutsideClick = (e) => {
@@ -403,19 +406,15 @@ class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
             return; 
 
         let rect = this.ref.getBoundingClientRect();
-
         let x = e.pageX;
-        
         let y = e.pageY; 
          
         let inside : boolean = insideTargetArea(this.ref, x, y);
-
         if(!inside)
             this.props.onCancel(null); 
-              
     }  
  
-
+    
 
     updatePosition = (props:TrashPopupProps) : void => { 
         if(!props.container)
@@ -496,7 +495,7 @@ class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
                             fontSize:"15px", 
                             color:"rgba(0,0,0,1)"
                         }}>   
-                            Empty Trash 
+                            Empty Trash  
                         </div>
                         <div style={{fontSize:"14px", color:"rgba(0,0,0,1)"}}>
                             Are you sure you want to remove the items in the Trash permanently ?

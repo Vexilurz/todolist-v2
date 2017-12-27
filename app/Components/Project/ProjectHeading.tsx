@@ -1,4 +1,3 @@
-
 import '../../assets/styles.css';  
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
@@ -27,7 +26,7 @@ import { Todo, Project, Heading, LayoutItem } from '../../database';
 import { uppercase, debounce } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 
-
+ 
 
 interface ProjectHeadingProps{
     heading : Heading,
@@ -44,20 +43,17 @@ interface ProjectHeadingState{
 }
  
    
- 
+  
 export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeadingState>{
 
     actionsAnchor:HTMLElement; 
 
     constructor(props){ 
-
         super(props);
-
         this.state = { 
             open:false
         }
-         
-    }
+    } 
 
 
 

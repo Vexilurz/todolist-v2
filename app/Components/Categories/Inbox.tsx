@@ -17,6 +17,7 @@ interface InboxProps{
     dispatch:Function,
     selectedTodoId:string, 
     selectedTag:string,
+    selectedCategory:string, 
     rootRef:HTMLElement,
     todos:Todo[],
     tags:string[]
@@ -47,7 +48,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
 
         if(this.props.selectedTodoId!==nextProps.selectedTodoId)
            should = true;
-
+           
         if(this.props.selectedTag!==nextProps.selectedTag)
            should = true; 
 
@@ -66,24 +67,12 @@ export class Inbox extends Component<InboxProps, InboxState>{
  
 
     render(){
-    
-        let tags = compose(
-            getTagsFromItems,
-            (todos) => todos.filter(
-                allPass([
-                    byCategory("inbox"),
-                    byNotCompleted,  
-                    byNotDeleted 
-                ])  
-            )
-        )(this.props.todos);
-
 
         return <div>  
             <ContainerHeader 
               selectedCategory={"inbox"} 
               dispatch={this.props.dispatch}  
-              tags={tags}
+              tags={[]} 
               showTags={false} 
               selectedTag={this.props.selectedTag} 
             /> 
@@ -98,7 +87,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 className="unselectable" 
                 id="todos" 
                 style={{
-                    marginBottom: "100px", 
+                    marginBottom:"100px", 
                     marginTop:"50px" 
                 }} 
             >  
@@ -108,7 +97,8 @@ export class Inbox extends Component<InboxProps, InboxState>{
                         byCategory("inbox"),
                         byNotCompleted,  
                         byNotDeleted 
-                    ]}   
+                    ]}    
+                    selectedTodoId={this.props.selectedTodoId}
                     isEmpty={(empty:boolean) => this.setState({empty})}
                     dispatch={this.props.dispatch}    
                     selectedCategory={"inbox"} 

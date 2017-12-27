@@ -81,11 +81,11 @@ export let keyFromDate = (date:Date) : string => {
     let day = date.getDate();
     let month = date.getMonth();
     return [year,month+1,day].join('-');
-        
+         
 }
      
 
-type ItemWithPriority = Area | Project | Todo | Heading; 
+export type ItemWithPriority = Area | Project | Todo | Heading; 
  
 export let changePriority = (from : number, to : number, items : ItemWithPriority[] ) : ItemWithPriority[] => {
 
@@ -104,7 +104,7 @@ export let changePriority = (from : number, to : number, items : ItemWithPriorit
     let fromItem : ItemWithPriority = items[from];
     let toItem : ItemWithPriority = items[to];
     let temp = null;  
- 
+  
 
     if(!fromItem) 
         throw new Error(`fromItem undefined. changePriority. changePriority.`);
@@ -125,13 +125,12 @@ export let changePriority = (from : number, to : number, items : ItemWithPriorit
         `); 
     } 
 
-
+     
     temp = fromItem.priority;
     fromItem.priority = toItem.priority;
     toItem.priority = temp;  
 
-    return [...items];
-
+    return [...items];  
 }
 
 
@@ -329,34 +328,22 @@ export let chooseIcon = (
 
 
 
-export let defaultTags = [
-    //Priority:
-    "Low",
-    //Priority:
-    "Medium",
-    //Priority: 
-    "High",
-    //Location:
-    "Home",
-    //Location:
-    "Office",
-    //Location:
-    "Everywhere",
-    //Status:
-    "Waiting",
-    //Time:
-    "5min",
-    //Time:
-    "15min",
-    //Time:
-    "1h",
-    //Energy:
-    "Easy",
-    //Energy:   
-    "Hard",
-    "Errand",
-    "Private",
-    "Work"
+export let defaultTags = [ 
+    "Priority:Low",
+    "Priority:Medium",
+    "Priority:High",
+    "Location:Home",
+    "Location:Office",
+    "Location:Everywhere",
+    "Status:Waiting",
+    "Time:5min",
+    "Time:15min",
+    "Time:1h",
+    "Energy:easy",
+    "Energy:hard",
+    "Errand", 
+    "Private",  
+    "Work" 
 ];
 
 
@@ -920,8 +907,29 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
 
 }
  
+ 
 
-
+export let generateEmptyTodo = (
+    _id:string,
+    selectedCategory:Category,
+    priority:number
+) : Todo => ({    
+    _id,
+    type:"todo", 
+    category : selectedCategory,  
+    title : '', 
+    priority, 
+    reminder : null, 
+    checked : false,  
+    note : '',
+    checklist : [],   
+    attachedTags : [],
+    attachedDate : null,
+    deadline : null,
+    created : new Date(),  
+    deleted : null, 
+    completed : null
+}  )
 
 
   

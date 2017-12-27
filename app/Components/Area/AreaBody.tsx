@@ -41,6 +41,7 @@ import { TodosList } from '../TodosList';
 interface AreaBodyProps{ 
     area:Area, 
     projects:Project[],
+    selectedTodoId:string, 
     todos:Todo[],
     tags:string[],
     selectedTag:string, 
@@ -241,7 +242,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 }} 
             >  
                 <TodosList    
-                    filters={[ ]}    
+                    filters={[ ]}   
+                    selectedTodoId={this.props.selectedTodoId} 
                     isEmpty={(empty:boolean) => {}}
                     dispatch={this.props.dispatch}    
                     selectedCategory={"area"}  

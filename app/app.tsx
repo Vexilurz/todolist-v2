@@ -134,7 +134,7 @@ export interface Store{
     dispatch?:Function
 } 
 
- 
+  
 
 export let defaultStoreItems : Store = {
     windowId:null, 
@@ -171,12 +171,13 @@ export let defaultStoreItems : Store = {
     
     projects:[],
 
-    areas:[],
+    areas:[],  
 
     clone : false,
-    todos:[], 
 
-    tags:[]
+    todos:[], 
+ 
+    tags:[...defaultTags]
 };    
     
  

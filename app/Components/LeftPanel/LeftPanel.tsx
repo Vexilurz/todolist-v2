@@ -105,7 +105,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
     onNewAreaClick = (e:any) => {   
         this.props.dispatch({type:"addArea", load:generateEmptyArea()});
     };
-
+    
 
 
     render(){    
@@ -116,6 +116,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                     display: "flex",  
                     flexDirection: "column", 
                     width: this.props.leftPanelWidth, 
+                    overflowX: "hidden", 
                     height: "100%",
                     position:"relative", 
                     backgroundColor: "rgb(248, 248, 248)"  
@@ -172,7 +173,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                           projects={this.props.projects} 
                         />
                     </div> 
-
+  
                     { 
                         !this.props.openNewProjectAreaPopup ? null :
                         <NewProjectAreaPopup 
@@ -184,17 +185,18 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                         />
                     }
                     
-                    <div style={{    
+                    <div style={{     
                         display:"flex", 
                         alignItems:"center",  
-                        position:"fixed",
+                        position:"fixed",   
                         width:this.props.leftPanelWidth,  
+                        overflowX: "hidden",
                         justifyContent:"space-between",  
                         bottom:"0px",  
                         height:"60px",
                         backgroundColor:"rgb(248, 248, 248)",
                         borderTop:"1px solid rgba(100, 100, 100, 0.2)"
-                    }}>  
+                    }}>      
 
                         <div  
                             onClick = {() => {
@@ -225,7 +227,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             }}>  
                                 New List 
                             </div>    
-                        </div>  
+                        </div>   
 
                         <div>     
                             <IconButton    
