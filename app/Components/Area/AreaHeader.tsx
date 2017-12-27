@@ -30,7 +30,7 @@ import { arrayMove } from '../../sortable-hoc/utils';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import { ProjectMenuPopover } from '../Project/ProjectMenu';
-
+import { contains } from 'ramda';
 
 
 
@@ -38,20 +38,21 @@ interface AreaHeaderProps{
     name:string, 
     selectedAreaId:string,
     areas:Area[],
+    projects:Project[],
+    todos:Todo[], 
     updateAreaName:(value:string) => void,
     dispatch:Function  
-}
+} 
   
-  
+ 
 
-  
 interface AreaHeaderState{
     menuAnchor:HTMLElement,
     openMenu:boolean,
     name:string   
-} 
+}  
    
- 
+  
 
 export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
 
@@ -93,13 +94,12 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
           
         return should;    
 
-    } 
-
+    }  
 
 
 
     componentDidMount(){ 
-  
+
         if(this.menuAnchor)
            this.setState({menuAnchor:this.menuAnchor});
 
@@ -121,11 +121,9 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
 
     } 
  
+    
 
-
-    onAddTags = () => {
-
-    }
+    onAddTags = () => {}
  
 
 
@@ -133,13 +131,41 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
 
         let area = this.props.areas.find( (a:Area) => a._id===this.props.selectedAreaId ); 
 
-        if(!area)
-           return; 
+        if(!area){
+           throw new Error(`
+              Area with selectedAreaId does not exist. 
+              ${JSON.stringify(this.props.areas)}.
+              ${this.props.selectedAreaId}.
+           `); 
+        }  
 
-        this.props.dispatch({type:"updateArea", load:{...area, deleted:new Date()}});
+        let relatedTodosIds : string[] = area.attachedTodosIds;
+           
+        let relatedProjectsIds : string[] = area.attachedProjectsIds;
+
+        let selectedProjects : Project[] = this.props.projects.filter(
+            (p:Project) : boolean => contains(p._id)(relatedProjectsIds)
+        );    
+
+        let selectedTodos : Todo[] = this.props.todos.filter(
+            (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
+        );   
+        
+        this.props.dispatch({
+            type:"updateTodos", 
+            load:selectedTodos.map((t:Todo) => ({...t,deleted:new Date()}))
+        })
+
+        this.props.dispatch({
+            type:"updateProjects", 
+            load:selectedProjects.map((p:Project) => ({...p,deleted:new Date()}))
+        })
+ 
+        this.props.dispatch({type:"updateArea", load:{...area,deleted:new Date()}});   
+ 
          
     }
-
+ 
  
   
     updateAreaName = (event) => { 

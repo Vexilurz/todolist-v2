@@ -27,6 +27,7 @@ import { uppercase, debounce } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
+import { adjust, remove } from 'ramda';
 
 
 
@@ -140,7 +141,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         this.updateProject(this.state.project, {name:value});
  
     }, 200)  
-    
+     
     
 
     updateProjectDescription = debounce((value:string) : void => {
@@ -156,12 +157,22 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         let layout = this.state.project.layout;
         let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
 
-        if(idx===-1)
-           throw new Error(`Item does not exist. ${heading_id} .updateHeading. ${layout}`); 
+        if(idx===-1){
+           throw new Error(`
+                Item does not exist. 
+                ${heading_id}.
+                updateHeading. 
+                ${JSON.stringify(layout)}
+           `);  
+        } 
  
         let heading : Heading = {...layout[idx] as Heading} ;
         heading.title=newValue;
-        this.updateProject(this.state.project, {layout:replace(layout,heading,idx)});
+
+        this.updateProject(
+            this.state.project, 
+            {layout:adjust(() => heading, idx, layout)}
+        );
   
     },200)
   
@@ -173,7 +184,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     }  
 
-
+ 
     
     archiveHeading = (heading_id:string) => {
 
@@ -192,16 +203,19 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         let layout = this.state.project.layout;
         let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
 
-        if(idx===-1){
-  
-           throw new Error(`Item does not exist. ${heading_id} .archiveHeading. ${layout}`) 
-
-        }
+        if(idx===-1){ 
+           throw new Error(`
+                Item does not exist. 
+                ${heading_id}.
+                archiveHeading.
+                ${JSON.stringify(layout)}
+           `)   
+        }  
  
-        this.updateProject(this.state.project, {layout:remove(layout,idx)});
-
+        this.updateProject(this.state.project, {layout:remove(idx,1,layout)});
+ 
     }
- 
+  
 
  
     render(){   

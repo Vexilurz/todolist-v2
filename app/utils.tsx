@@ -36,7 +36,7 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
-import { getTodos, queryToTodos, Todo, updateTodo, generateId, Project, Area, removeTodos, removeProjects, removeAreas, updateProjects, updateTodos, updateAreas } from './database';
+import { getTodos, queryToTodos, Todo, updateTodo, generateId, Project, Area, removeTodos, removeProjects, removeAreas, updateProjects, updateTodos, updateAreas, Heading } from './database';
 import { Category } from './Components/MainContainer';
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 let moment = require("moment");
@@ -45,7 +45,7 @@ import { TodoInput } from './Components/TodoInput/TodoInput';
 import { contains, isNil, all } from 'ramda';
  
 
-export type Item = Area | Project | Todo;
+export type Item = Area | Project | Todo; 
 
 export let isItem = (item:Item) : boolean => item.type==="project" || item.type==="area" || item.type==="todo";
 
@@ -65,8 +65,9 @@ export let isCategory = (category : Category) : boolean => {
         "deadline"
     ]; 
 
-    return contains(category,categories);
+    let yes = contains(category,categories);
 
+    return yes; 
 }  
 
 
@@ -74,7 +75,7 @@ export let isCategory = (category : Category) : boolean => {
 export let keyFromDate = (date:Date) : string => {
     
     if(!isDate(date))
-       throw new Error(`keyFromDate. input is not a date. ${date}`); 
+       throw new Error(`keyFromDate. input is not a date. ${JSON.stringify(date)}`); 
     
     let year = date.getFullYear();
     let day = date.getDate();
@@ -82,17 +83,17 @@ export let keyFromDate = (date:Date) : string => {
     return [year,month+1,day].join('-');
         
 }
-    
+     
 
-
-
-export let changePriority = (from : number, to : number, items : Item[] ) : Item[] => {
+type ItemWithPriority = Area | Project | Todo | Heading; 
+ 
+export let changePriority = (from : number, to : number, items : ItemWithPriority[] ) : ItemWithPriority[] => {
 
     if(isNaN(from) || from===-1)
-        throw new Error(`from incorrect value ${from}. changePriority.`);
+        throw new Error(`from incorrect value ${JSON.stringify(from)}. changePriority.`);
 
     if(isNaN(to) || to===-1)
-        throw new Error(`to incorrect value ${to}. changePriority.`);
+        throw new Error(`to incorrect value ${JSON.stringify(to)}. changePriority.`);
 
     if(!items) 
        throw new Error(`Items list undefined. changePriority.`);
@@ -100,10 +101,10 @@ export let changePriority = (from : number, to : number, items : Item[] ) : Item
     if(items.length===0)
        throw new Error(`Items empty. changePriority.`);      
        
-    let fromItem : Item = items[from];
-    let toItem : Item = items[to];
+    let fromItem : ItemWithPriority = items[from];
+    let toItem : ItemWithPriority = items[to];
     let temp = null;  
-
+ 
 
     if(!fromItem) 
         throw new Error(`fromItem undefined. changePriority. changePriority.`);
@@ -111,13 +112,13 @@ export let changePriority = (from : number, to : number, items : Item[] ) : Item
         throw new Error(`toItem undefined. changePriority. changePriority.`);
 
 
-    if(!isItem(fromItem)) 
-        throw new Error(`fromItem - value type is not a project. changePriority.`);
-    if(!isItem(toItem))  
-        throw new Error(`toItem - value type is not a project. changePriority.`);
+    if(!fromItem.priority)      
+        throw new Error(`fromItem - incorrect type. ${JSON.stringify(fromItem)} changePriority.`);
+    if(!toItem.priority)   
+        throw new Error(`toItem - incorrect type. ${JSON.stringify(toItem)} changePriority.`);
 
-
-    let onError = (e) => {
+    
+    let onError = (e) => { 
         console.log(` 
             Error occured. ${e}. ${JSON.stringify(e)} changePriority.
             ${JSON.stringify([fromItem,toItem])}
@@ -129,15 +130,6 @@ export let changePriority = (from : number, to : number, items : Item[] ) : Item
     fromItem.priority = toItem.priority;
     toItem.priority = temp;  
 
-
-    if( all((i:Item) => i.type==="todo", items) ){
-        updateTodos([fromItem,toItem] as Todo[],onError);
-    }else if( all((i:Item) => i.type==="project", items) ){
-        updateProjects([fromItem,toItem] as Project[],onError);
-    }else if( all((i:Item) => i.type==="area", items) ){
-        updateAreas([fromItem,toItem] as Area[],onError);
-    }
-     
     return [...items];
 
 }
@@ -147,15 +139,15 @@ export let changePriority = (from : number, to : number, items : Item[] ) : Item
 let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {
  
     if(!objects)
-        throw new Error(`objects undefined. ${objects} removeDeleted.`);
+        throw new Error(`objects undefined. ${JSON.stringify(objects)} removeDeleted.`);
 
     if(!updateDB)
-        throw new Error(`updateDB undefined. ${updateDB} removeDeleted.`);    
+        throw new Error(`updateDB undefined. ${JSON.stringify(updateDB)} removeDeleted.`);    
 
     if(!isFunction(updateDB))   
-        throw new Error(`updateDB is not a function. ${updateDB} removeDeleted.`);    
+        throw new Error(`updateDB is not a function. ${JSON.stringify(updateDB)} removeDeleted.`);    
     
-
+ 
     let deleted = [];
     let remainder = [];
 
@@ -165,7 +157,7 @@ let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {
         let object = objects[i];
         
         if(!isItem(object))
-           throw new Error(`object has incorrect type ${object} ${i} ${JSON.stringify(objects)}`);
+           throw new Error(`object has incorrect type ${JSON.stringify(object)} ${i} ${JSON.stringify(objects)}`);
 
         if(!!objects[i]["deleted"]){
             deleted.push(objects[i]);
@@ -372,17 +364,17 @@ export let defaultTags = [
 export let getTagsFromItems = (items:Item[]) : string[] => {
 
     let tags = []; 
-
+ 
     for(let i = 0; i<items.length; i++){
 
         let item : Item = items[i];
 
         if(!item){
-           throw new Error(`item undefined ${item}. getTagsFromItems.`);
+           throw new Error(`item undefined ${JSON.stringify(item)}. getTagsFromItems.`);
         }
             
         if(!isItem(item)){
-           throw new Error(`item is not Item ${item}. getTagsFromItems.`);
+           throw new Error(`item is not Item ${JSON.stringify(item)}. getTagsFromItems.`);
         } 
   
         let attachedTags : string[] = item.attachedTags;
@@ -533,7 +525,7 @@ export const muiTheme = getMuiTheme({
 export let byNotDeleted = (item:Item) : boolean => { 
 
     if(!isItem(item))
-       throw new Error(`item have incorrect type. ${item}. byNotDeleted`); 
+       throw new Error(`item have incorrect type. ${JSON.stringify(item)}. byNotDeleted`); 
     
     return !item.deleted;
   
@@ -544,7 +536,7 @@ export let byNotDeleted = (item:Item) : boolean => {
 export let byDeleted = (item:Item) : boolean => { 
 
     if(!isItem(item))
-       throw new Error(`item have incorrect type. ${item}. byDeleted`); 
+       throw new Error(`item have incorrect type. ${JSON.stringify(item)}. byDeleted`); 
 
     return !!item.deleted;
  
@@ -555,7 +547,7 @@ export let byDeleted = (item:Item) : boolean => {
 export let byNotCompleted = (item:Project | Todo) : boolean => { 
 
     if(item.type!=="project" && item.type!=="todo")
-       throw new Error(`item have incorrect type. ${item}. byNotCompleted`); 
+       throw new Error(`item have incorrect type. ${JSON.stringify(item)}. byNotCompleted`); 
 
     return !item.completed;
  
@@ -565,7 +557,7 @@ export let byNotCompleted = (item:Project | Todo) : boolean => {
 export let hotFilter = (todo:Todo) : boolean => {
 
     if(isNil(todo))
-       throw new Error(`Todo is undefined ${todo}. hotFilter`);
+       throw new Error(`Todo is undefined ${JSON.stringify(todo)}. hotFilter`);
      
     if(!todo.deadline)
         return false;
@@ -574,10 +566,10 @@ export let hotFilter = (todo:Todo) : boolean => {
         return false;        
      
     if(!isDate(todo.deadline))
-        throw new Error(`Deadline is not date. ${todo.deadline} hotFilter`);
-    
+        throw new Error(`Deadline is not date. ${JSON.stringify(todo.deadline)} hotFilter`);
+     
     if(!isDate(todo.attachedDate))
-        throw new Error(`attachedDate is not date. ${todo.attachedDate} hotFilter`);
+        throw new Error(`attachedDate is not date. ${JSON.stringify(todo.attachedDate)} hotFilter`);
         
     return dateDiffInDays(todo.deadline, todo.attachedDate)===0;    
          
@@ -586,7 +578,7 @@ export let hotFilter = (todo:Todo) : boolean => {
 export let byCompleted = (item:Project | Todo) : boolean => { 
 
     if(item.type!=="project" && item.type!=="todo")
-       throw new Error(`item have incorrect type. ${item}. byCompleted`); 
+       throw new Error(`item have incorrect type. ${JSON.stringify(item)}. byCompleted`); 
 
     return !!item.completed;
  
@@ -621,7 +613,7 @@ export let byCategory = (selectedCategory:Category) => (item:Todo) : boolean => 
     }
  
     if(item.type!=="todo"){
-        throw new Error(`item is not of type Todo. ${item}. ${selectedCategory}. byCategory.`);
+        throw new Error(`item is not of type Todo. ${JSON.stringify(item)}. ${selectedCategory}. byCategory.`);
     }
 
     return item.category===selectedCategory;
@@ -636,7 +628,7 @@ export let insideTargetArea = (target:HTMLElement,x:number,y:number) : boolean =
        return false;   
 
     if(!isFunction(target.getBoundingClientRect))
-        throw new Error(`target is not an HTMLElement. ${target}. insideTargetArea`);   
+        throw new Error(`target is not an HTMLElement. ${JSON.stringify(target)}. insideTargetArea`);   
  
     let react = target.getBoundingClientRect();
      
@@ -728,10 +720,10 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
 
      
     if(oldTodo.type!=="todo")
-        throw new Error(`oldTodo is not todo ${oldTodo}. todoChanged.`);
+        throw new Error(`oldTodo is not todo ${JSON.stringify(oldTodo)}. todoChanged.`);
 
     if(newTodo.type!=="todo")
-        throw new Error(`newTodo is not todo ${newTodo}. todoChanged.`);
+        throw new Error(`newTodo is not todo ${JSON.stringify(newTodo)}. todoChanged.`);
 
 
 
@@ -777,12 +769,12 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
 
     if(oldTodo.priority!==newTodo.priority)
        return true;
+    
 
 
-
-    if(isCategory(oldTodo.category))
+    if(!isCategory(oldTodo.category))
         throw new Error(`oldTodo.category is not of type Category ${oldTodo.category}. todoChanged.`);
-    if(isCategory(newTodo.category))
+    if(!isCategory(newTodo.category))
         throw new Error(`newTodo.category is not of type Category ${newTodo.category}. todoChanged.`);
          
 
@@ -793,8 +785,7 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
 
     if(oldTodo.checked!==newTodo.checked)
         return true;   
-
-
+    
 
 
     if(!isArray(oldTodo.checklist)) 
@@ -1265,4 +1256,4 @@ export let generateEmptyArea = () : Area => ({
     attachedTodosIds : [],  
     attachedProjectsIds : [],
 });
-  
+   

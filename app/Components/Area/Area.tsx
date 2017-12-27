@@ -14,13 +14,14 @@ import { debounce } from '../../utils';
 interface AreaComponentProps{
     areas:Area[],
     selectedAreaId:string,
+    selectedTag:string, 
     dispatch:Function,  
     projects:Project[],
     todos:Todo[],
     tags:string[],
     rootRef:HTMLElement 
 } 
-
+  
  
  
 interface AreaComponentState{
@@ -71,14 +72,12 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
         if(nextProps.areas!==this.props.areas)
            selectArea = true;
             
-
         if(nextProps.selectedAreaId!==this.props.selectedAreaId)   
            selectArea = true;
           
-
         if(selectArea)      
            this.selectArea(nextProps);    
-          
+            
     }
 
 
@@ -106,22 +105,25 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
     render(){
 
         return !this.state.area ? null :
-        <div> 
+        <div>  
             <div>
                 <AreaHeader
                     name={this.state.area.name}  
                     areas={this.props.areas}  
+                    projects={this.props.projects}
+                    todos={this.props.todos} 
                     selectedAreaId={this.props.selectedAreaId}
                     updateAreaName={this.updateAreaName}
                     dispatch={this.props.dispatch} 
-                /> 
+                />  
             </div>
             <div> 
                 <AreaBody 
                     area={this.state.area} 
                     projects={this.props.projects}
-                    todos={this.props.todos}
+                    todos={this.props.todos} 
                     tags={this.props.tags}
+                    selectedTag={this.props.selectedTag}
                     rootRef={this.props.rootRef}
                     dispatch={this.props.dispatch}
                 />

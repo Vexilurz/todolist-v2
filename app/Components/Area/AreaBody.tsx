@@ -24,7 +24,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
-import { uppercase, debounce, stringToLength, daysRemaining, daysLeftMark } from '../../utils';
+import { uppercase, debounce, stringToLength, daysRemaining, daysLeftMark, byNotCompleted, byNotDeleted } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';
@@ -32,6 +32,8 @@ import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import PieChart from 'react-minimal-pie-chart';
 import { getProjectLink } from '../Project/ProjectLink';
+import { allPass } from 'ramda';
+import { TodosList } from '../TodosList';
 
 
  
@@ -41,6 +43,7 @@ interface AreaBodyProps{
     projects:Project[],
     todos:Todo[],
     tags:string[],
+    selectedTag:string, 
     rootRef:HTMLElement,
     dispatch:Function
 } 
@@ -91,20 +94,29 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
     selectTodos = (props:AreaBodyProps) : Todo[] => { 
  
         let todosIds : string[] = props.area.attachedTodosIds;
+        let filters = [
+            byNotCompleted,
+            byNotDeleted,
+            (t:Todo) => todosIds.indexOf(t._id)!==-1
+        ]
 
-        return props.todos.filter( v => !!v).filter( (t:Todo) => todosIds.indexOf(t._id)!==-1 );
+        return props.todos.filter( allPass(filters) );
         
     }
 
 
 
-    selectProjects = (props:AreaBodyProps) : any[] => { 
+    selectProjects = (props:AreaBodyProps) : Project[] => { 
 
-
-        
         let projectsIds : string[] = props.area.attachedProjectsIds;
+        let filters = [
+            byNotCompleted,
+            byNotDeleted,
+            (p:Project) => projectsIds.indexOf(p._id)!==-1
+        ]
+ 
 
-        return props.projects.filter( v => !!v).filter( (p:Project) => projectsIds.indexOf(p._id)!==-1 );
+        return props.projects.filter( allPass(filters) );
           
     }
          
@@ -196,11 +208,11 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
     
     
     render(){
-
-        let selectedProjects = this.selectProjects(this.props);
-        let selectedTodos = this.selectTodos(this.props);
-
-        return <div>  
+ 
+        let selectedProjects = this.selectProjects(this.props).sort(( a:Project, b:Project ) => a.priority-b.priority); 
+        let selectedTodos = this.selectTodos(this.props).sort(( a:Todo, b:Todo ) => a.priority-b.priority); 
+            
+        return <div>   
             <div style={{paddingTop:"20px", paddingBottom:"20px"}}> 
                 <SortableList
                     getElement={this.getElement}
@@ -217,27 +229,29 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                     distance={3}
                     useDragHandle={false}
                     lock={false} 
-                />
+                /> 
             </div>      
  
-            <div style={{paddingTop:"20px", paddingBottom:"20px"}}> 
-                <SortableList
-                    getElement={this.getElement}
-                    items={selectedTodos}  
-                    container={this.props.rootRef ? this.props.rootRef : document.body}
-                    shouldCancelStart={this.shouldCancelStart}
-                    shouldCancelAnimation={this.shouldCancelAnimation}
-    
-                    onSortEnd={this.onSortEnd}
-                    onSortMove={this.onSortMove}
-                    onSortStart={this.onSortStart}
-
-                    lockToContainerEdges={false}
-                    distance={3}
-                    useDragHandle={false}
-                    lock={false} 
-                />
+            <div   
+                className="unselectable" 
+                id="todos" 
+                style={{
+                    paddingTop:"20px", 
+                    paddingBottom:"20px"
+                }} 
+            >  
+                <TodosList    
+                    filters={[ ]}    
+                    isEmpty={(empty:boolean) => {}}
+                    dispatch={this.props.dispatch}    
+                    selectedCategory={"area"}  
+                    selectedTag={this.props.selectedTag}  
+                    rootRef={this.props.rootRef}
+                    todos={selectedTodos}  
+                    tags={this.props.tags} 
+                /> 
             </div>
+
         </div>
 
     }

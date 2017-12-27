@@ -8,14 +8,13 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, showTags, allPass, byNotCompleted, byNotDeleted, unique, getTagsFromItems 
+    chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo } from '../../database';
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
-import { Footer } from '../../Components/Footer';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
@@ -34,7 +33,7 @@ import { TodosList } from '.././TodosList';
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { byTags, byCategory } from '../../utils';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { compose } from 'ramda';
+import { compose, allPass } from 'ramda';
  
  
 
@@ -248,7 +247,7 @@ export class TodaySchedule extends Component<TodayScheduleProps,any>{
                     color:"rgba(100, 100, 100, 0.9)",
                     paddingTop:"5px",
                     
-                }}>
+                }}> 
                     {"08:30 Blinkist // Quora"}
                 </div>
 

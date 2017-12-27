@@ -183,21 +183,19 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
      
     enableDragOfThisItem = () => {
-        
-            this.ref["preventDrag"] = false; 
-
+        if(this.ref)
+           this.ref["preventDrag"] = false; 
     }
     
 
 
     preventDragOfThisItem = () => {
-
+        if(this.ref)
            this.ref["preventDrag"] = true; 
-
     }
 
 
-
+ 
     todoFromState = () : Todo => ({
         _id : this.props.todo._id,  
         priority : this.props.todo.priority,  

@@ -50,10 +50,14 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let table = {};
         let detached : Project[] = [];
 
+        for(let i=0; i<areas.length; i++)
+            table[areas[i]._id] = [];
+         
+
         for(let i=0; i<projects.length; i++){
                 
             let attached = false; 
-
+        
             let projectId = projects[i]._id;
 
             for(let j=0; j<areas.length; j++){
@@ -85,7 +89,11 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         { table, detached } : { table : { [key: string]: Project[]; }, detached:Project[] } 
     ) : LayoutItem[] => { 
 
-        let areas : Area[] = props.areas.filter( byNotDeleted ).sort((a:Area,b:Area) => a.priority-b.priority);
+        let areas : Area[] = props
+                            .areas
+                            .filter( byNotDeleted )
+                            .sort((a:Area,b:Area) => a.priority-b.priority);
+                             
         let layout : LayoutItem[] = [];
 
         for(let i = 0; i<areas.length; i++){
@@ -94,21 +102,21 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             let attachedProjects : Project[] = table[key].sort((a:Project,b:Project) => a.priority-b.priority);
 
             layout.push(areas[i]);
-            
+             
             for(let j=0; j<attachedProjects.length; j++)
                 layout.push(attachedProjects[j]);
         }
 
         layout.push({type:"separator"});
-
-        detached.sort((a:Project,b:Project) => a.priority-b.priority);
+         
+        detached.sort((a:Project, b:Project) => a.priority-b.priority);
 
         for(let i=0; i<detached.length; i++)
             layout.push(detached[i]);
  
         return layout;
 
-    }
+    } 
  
 
 
@@ -339,7 +347,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             throw new Error(`closestArea undefined. attachToArea.`);
 
         if(closestArea.type!=="area")  
-           throw new Error(`closestArea is not of type Area. ${closestArea}. attachToArea.`);    
+           throw new Error(`closestArea is not of type Area. ${JSON.stringify(closestArea)}. attachToArea.`);    
 
         closestArea.attachedProjectsIds = [selectedProject._id,...closestArea.attachedProjectsIds];
         this.props.dispatch({type:"updateArea", load:closestArea});  
@@ -362,11 +370,21 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
            `)
         }
 
-        if(selectedProject.type!=="project")  
-            throw new Error(`selectedProject is not of type project. ${selectedProject}. removeFromArea.`);    
+        if(selectedProject.type!=="project"){  
+            throw new Error(`
+                selectedProject is not of type project. 
+                ${JSON.stringify(selectedProject)}. 
+                removeFromArea.
+            `);  
+        }   
 
-        if(fromArea.type!=="area")  
-            throw new Error(`fromArea is not of type Area. ${fromArea}. removeFromArea.`);    
+        if(fromArea.type!=="area"){  
+            throw new Error(`
+                fromArea is not of type Area. 
+                ${JSON.stringify(fromArea)}. 
+                removeFromArea.
+            `);    
+        }
  
  
         fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
@@ -383,11 +401,11 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 
         if(from.type!=="project")  
-           throw new Error(`from is not of type project. ${from}. swapProjects.`);    
+           throw new Error(`from is not of type project. ${JSON.stringify(from)}. swapProjects.`);    
 
         if(to.type!=="project")   
-           throw new Error(`to is not of type project. ${to}. swapProjects.`);    
-
+           throw new Error(`to is not of type project. ${JSON.stringify(to)}. swapProjects.`);    
+ 
  
         this.props.dispatch({type:"changeProjectsPriority", load:{fromId:from._id,toId:to._id}});
 
@@ -398,10 +416,10 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     moveToClosestArea = (fromArea:Area, closestArea:Area, selectedProject:Project) : void => {
  
         if(fromArea.type!=="area")  
-           throw new Error(`fromArea is not of type Area. ${fromArea}. moveToClosestArea.`);    
+           throw new Error(`fromArea is not of type Area. ${JSON.stringify(fromArea)}. moveToClosestArea.`);    
 
         if(closestArea.type!=="area")  
-           throw new Error(`closestArea is not of type Area. ${closestArea}. moveToClosestArea.`);    
+           throw new Error(`closestArea is not of type Area. ${JSON.stringify(closestArea)}. moveToClosestArea.`);    
 
   
         let idx : number = fromArea.attachedProjectsIds.findIndex( (id:string) => id===selectedProject._id );
@@ -442,7 +460,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let detachedBefore = this.isDetached(oldIndex, layout);
         let detachedAfter = this.isDetached(newIndex, listAfter);
      
-
+ 
         if(detachedBefore && !detachedAfter){
 
             this.attachToArea(closestArea, selectedProject);

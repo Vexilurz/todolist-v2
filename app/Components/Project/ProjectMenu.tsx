@@ -26,6 +26,8 @@ import { Todo, Project, Heading, generateId, addProject, removeProject } from '.
 import { uppercase, debounce, attachDispatchToProps } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { Store } from '../../App';
+import { isString } from 'util';
+import { contains } from 'ramda';
  
  
 
@@ -113,19 +115,35 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
 
         let project = this.props.projects.find( (p:Project) => p._id===this.props.selectedProjectId )
 
-        if(!project)
-            return; 
+        if(!project){
+            throw new Error(`
+                project with id selectedProjectId does not exist.
+                ${JSON.stringify(this.props.projects)}
+                ${JSON.stringify(this.props.selectedProjectId)}
+            `); 
+        } 
 
-        this.props.dispatch({ type:"updateProject", load:{...project, deleted:new Date()} });
+        let relatedTodosIds : string[] = project.layout.filter(isString);
+        
+        let selectedTodos : Todo[] = this.props.todos.filter(
+            (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
+        );   
+            
+        this.props.dispatch({
+            type:"updateTodos", 
+            load:selectedTodos.map((t:Todo) => ({...t,deleted:new Date()}))
+        })
+ 
+        this.props.dispatch({type:"updateProject", load:{...project,deleted:new Date()}});
 
     } 
-
+ 
 
  
     closeMenu = () => this.props.dispatch({
         type:"showProjectMenuPopover",
         load:false
-    })
+    }) 
 
         
 

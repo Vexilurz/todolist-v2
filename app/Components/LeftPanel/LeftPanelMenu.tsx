@@ -189,18 +189,14 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
         return <div style={{
             display:"flex",
             flexDirection:"column",
-            width:"95%", 
-            height: "250px", 
-            paddingLeft:"10px",
-            paddingRight:"10px",
-            paddingTop:"50px",
-            paddingBottom:"10px"  
+            width:"100%"
         }}>
-        
-            <Separator />
- 
-            <QuickSearch {...{} as any}/>
- 
+            <div style={{ 
+                paddingLeft:"10px",
+                paddingRight:"10px",
+                paddingTop:"50px",
+                paddingBottom:"10px"  
+            }}>
             <Separator />
         
             <LeftPanelMenuItem
@@ -209,7 +205,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 title={"Inbox"}
                 showCounter={true}
                 counter={this.props.inbox}
-            /> 
+            />  
 
             <Separator />
 
@@ -265,7 +261,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             />  
 
             <Separator /> 
-
+            </div>
         </div>     
     }
 

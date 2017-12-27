@@ -78,19 +78,7 @@ export class App extends Component<any,any>{
                 scroll:"none",
                 zIndex:2001,  
             }}>  
-                <div style={{display:"flex", width:"inherit", height:"inherit"}}>    
-    
-                    <div className="drag"
-                            style={{
-                                pointerEvents:"none",   
-                                position : "absolute", 
-                                top:0,
-                                left:0,     
-                                width:"100%", 
-                                height:"6%" 
-                            }}  
-                    >   
-                    </div>  
+                <div style={{display:"flex", width:"inherit", height:"inherit"}}>  
  
                     <LeftPanel {...{} as any}  /> 
 
@@ -157,7 +145,7 @@ export let defaultStoreItems : Store = {
 
     selectedTodoId : null,
 
-    selectedTag : "",
+    selectedTag : "All",
 
     leftPanelWidth : window.innerWidth/3.7,
      

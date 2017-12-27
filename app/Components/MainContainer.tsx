@@ -43,6 +43,30 @@ interface MainContainerState{
 }
 
 
+let convertDates = ([todos, projects, areas]) => [ 
+    todos.map((t:Todo) => ({
+        ...t, 
+        reminder : t.reminder ? new Date(t.reminder) : undefined,  
+        deadline : t.deadline ? new Date(t.deadline) : undefined, 
+        created : t.created ? new Date(t.created) : undefined, 
+        deleted : t.deleted ? new Date(t.deleted) : undefined, 
+        attachedDate : t.attachedDate ? new Date(t.attachedDate) : undefined, 
+        completed : t.completed ? new Date(t.completed) : undefined,  
+    })),
+    projects.map((p:Project) => ({
+        ...p,
+        created : p.created ? new Date(p.created) : undefined,  
+        deadline : p.deadline ? new Date(p.deadline) : undefined, 
+        deleted : p.deleted ? new Date(p.deleted) : undefined, 
+        completed : p.completed ? new Date(p.completed) : undefined,
+    })),
+    areas.map((a:Area) => ({
+        ...a, 
+        created : a.created ? new Date(a.created) : undefined,  
+        deleted : a.deleted ? new Date(a.deleted) : undefined
+    }))
+];  
+
   
 let createHeading = (e, props:Store) : void => {
     
@@ -78,7 +102,12 @@ let createHeading = (e, props:Store) : void => {
             let todo = props.todos.find( (t:Todo) => t._id===item );
 
             if(todo.type!=="todo") 
-                throw new Error(`todo is not of type Todo. ${todo} item : ${item} createHeading `);
+                throw new Error(`
+                    todo is not of type Todo. 
+                    todo : ${JSON.stringify(todo)}. 
+                    item : ${JSON.stringify(item)}. 
+                    createHeading.
+                `); 
 
             priority = todo.priority + 1; 
             
@@ -87,13 +116,13 @@ let createHeading = (e, props:Store) : void => {
             let heading : Heading = item; 
 
             if(heading.type!=="heading") 
-                throw new Error(`heading is not of type Heading. ${heading} createHeading `);
+                throw new Error(`heading is not of type Heading. ${JSON.stringify(heading)} createHeading `);
 
             priority = heading.priority + 1;
 
         }else{
 
-            throw new Error(`Selected item is not of type LayoutItem. ${item}. createHeading.`); 
+            throw new Error(`Selected item is not of type LayoutItem. ${JSON.stringify(item)}. createHeading.`); 
 
         }
     }
@@ -165,7 +194,7 @@ let createNewTodo = (e, props:Store, rootRef:HTMLElement) : void => {
         if(isNil(project)){ 
             throw new Error( 
               `Project with selectedProjectId does not exist.
-              ${props.selectedProjectId} ${project}. 
+              ${props.selectedProjectId} ${JSON.stringify(project)}. 
               createNewTodo.`
             )   
         }     
@@ -182,8 +211,9 @@ let createNewTodo = (e, props:Store, rootRef:HTMLElement) : void => {
         if(isNil(area)){  
             throw new Error(  
                 `Area with selectedAreaId does not exist.
-                ${props.selectedAreaId} ${area}. 
-                createNewTodo.` 
+                ${props.selectedAreaId}. 
+                ${JSON.stringify(area)}. 
+                createNewTodo.`  
             )   
         }  
 
@@ -259,19 +289,19 @@ export class MainContainer extends Component<Store,MainContainerState>{
             getTodos(this.onError)(true,this.limit),
             getProjects(this.onError)(true,this.limit), 
             getAreas(this.onError)(true,this.limit)
-        ]).then( 
-            ([todos, projects, areas]) => {  
- 
-                this.props.dispatch({
+        ])
+        .then(convertDates)
+        .then(([todos, projects, areas]) => {
+
+                this.props.dispatch({ 
                     type:"setAllTypes", 
                     load:{ 
                         todos,
                         projects,
                         areas
                     }
-                })   
-                  
-            } 
+                })  
+            }
         )  
 
     } 
@@ -293,9 +323,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
             initDB();
 
             let fakeData = generateRandomDatabase({
-                todos : 0,  
-                projects : 0,  
-                areas : 0 
+                todos : 20,  
+                projects : 10,  
+                areas : 4 
             });  
 
             let todos = fakeData.todos;
@@ -448,7 +478,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 todos={this.props.todos}
                                 tags={this.props.tags}
                             />, 
-   
+     
                             trash: <Trash 
                                 dispatch={this.props.dispatch}
                                 tags={this.props.tags}
@@ -471,7 +501,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             area : <AreaComponent 
                                 areas={this.props.areas}
                                 selectedAreaId={this.props.selectedAreaId}
-                                dispatch={this.props.dispatch}
+                                selectedTag={this.props.selectedTag}
+                                dispatch={this.props.dispatch}    
                                 projects={this.props.projects}
                                 todos={this.props.todos}
                                 tags={this.props.tags}

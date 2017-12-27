@@ -45,6 +45,7 @@ import { ResizableHandle } from './../ResizableHandle';
 import { LeftPanelMenu } from './LeftPanelMenu';
 import { NewProjectAreaPopup } from './NewProjectAreaPopup';
 import { allPass } from 'ramda';
+import { QuickSearch } from '../Search';
  
  
 interface ItemsAmount{
@@ -127,7 +128,26 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                         })}   
                     />  
 
-                    <div> 
+                    <div style={{
+                        width:this.props.leftPanelWidth, 
+                        position:"relative", 
+                        display:"flex", 
+                        alignItems:"center",
+                        justifyContent:"center", 
+                        paddingTop:"15px" 
+                    }}>   
+                        <div style={{    
+                            marginLeft:"15px",
+                            marginRight:"15px", 
+                            position:"relative",
+                            width:"100%" 
+                        }}>  
+                            <QuickSearch {...{} as any}/>
+                        </div>
+                    </div>   
+                    
+  
+                    <div style={{width:this.props.leftPanelWidth}}> 
                         <LeftPanelMenu   
                             dispatch={this.props.dispatch}
                             inbox={inbox} 
@@ -137,7 +157,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                     </div>
  
                     <div id="areas"  
-                         style={{
+                         style={{  
                             overflowY:"scroll", 
                             position:"relative", 
                             paddingTop:"10px",

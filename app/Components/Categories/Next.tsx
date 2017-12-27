@@ -105,7 +105,7 @@ export class Next extends Component<NextProps, NextState>{
             let project : Project = this.props.projects[i]; 
 
             if(project.type!=="project") 
-               throw new Error(`project is not of type Project ${project}. groupObjects.`); 
+               throw new Error(`project is not of type Project ${JSON.stringify(project)}. groupObjects.`); 
 
             let filters = [
                 byTags(this.props.selectedTag), 
@@ -124,7 +124,7 @@ export class Next extends Component<NextProps, NextState>{
             let area : Area = this.props.areas[i];
 
             if(area.type!=="area") 
-               throw new Error(`area is not of type Area ${area}. groupObjects.`); 
+               throw new Error(`area is not of type Area ${JSON.stringify(area)}. groupObjects.`); 
  
             let filters = [
                 byTags(this.props.selectedTag),
@@ -142,7 +142,7 @@ export class Next extends Component<NextProps, NextState>{
             let todo : Todo = this.props.todos[i]; 
 
             if(todo.type!=="todo") 
-               throw new Error(`todo is not of type Todo ${todo}. groupObjects.`); 
+               throw new Error(`todo is not of type Todo ${JSON.stringify(todo)}. groupObjects.`); 
 
             let filters = [
                 byTags(this.props.selectedTag), 

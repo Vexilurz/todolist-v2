@@ -17,7 +17,8 @@ import { getAreaLink } from '../Area/AreaLink';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { uniq, compose } from 'ramda';
+import { uniq, compose, contains } from 'ramda';
+import { isString } from 'util';
 
  
 
@@ -165,7 +166,7 @@ export class Trash extends Component<TrashProps,TrashState>{
             </div>  
         </div>   
     } 
-
+ 
 
 
     getDeletedTodoElement = (value:Todo, index:number) : JSX.Element => {   
@@ -205,59 +206,66 @@ export class Trash extends Component<TrashProps,TrashState>{
          </div>  
 
     } 
-         
-     
- 
-
-
-
- 
-
-
-
-    
-   
-
-
-
-
+        
+      
 
     restoreTodo = (t:Todo) : void => {
-        this.props.dispatch({type:"updateTodo", load:{...t,deleted:undefined}})
-    }
+
+        this.props.dispatch({type:"updateTodo", load:{...t,deleted:undefined}});
+
+    } 
 
 
 
-    restoreProject = (p:Project) : void => {
-        this.props.dispatch({type:"updateProject", load:{...p,deleted:undefined}})
+    restoreProject = (p:Project) : void => { 
+
+        let relatedTodosIds : string[] = p.layout.filter(isString);
+
+        let selectedTodos : Todo[] = this.props.todos.filter(
+            (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
+        );   
+           
+        this.props.dispatch({
+            type:"updateTodos", 
+            load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))
+        })
+
+        this.props.dispatch({type:"updateProject", load:{...p,deleted:undefined}});
+
     }
  
-
+     
 
     restoreArea = (a:Area) : void => { 
-        this.props.dispatch({type:"updateArea", load:{...a,deleted:undefined}})
+
+        let relatedTodosIds : string[] = a.attachedTodosIds;
+
+        let relatedProjectsIds : string[] = a.attachedProjectsIds;
+
+        let selectedProjects : Project[] = this.props.projects.filter(
+            (p:Project) : boolean => contains(p._id)(relatedProjectsIds)
+        );    
+
+        let selectedTodos : Todo[] = this.props.todos.filter(
+            (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
+        );   
+        
+        this.props.dispatch({
+            type:"updateTodos", 
+            load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))
+        })
+
+        this.props.dispatch({
+            type:"updateProjects", 
+            load:selectedProjects.map((p:Project) => ({...p,deleted:undefined}))
+        })
+
+        this.props.dispatch({type:"updateArea", load:{...a,deleted:undefined}});
+
     }
    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     
 
-    
-   
- 
     render(){ 
 
         let tags = compose(
@@ -304,12 +312,20 @@ export class Trash extends Component<TrashProps,TrashState>{
                     <div style={{color:"white", fontSize:"15px"}}>  
                         Empty Trash  
                     </div>  
-                </div>
+                </div> 
             </div> 
-            
-
+             
             <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
-                {this.state.deletedTodos.map(this.getDeletedTodoElement)}
+                <TodosList    
+                    filters={[ ]}    
+                    isEmpty={(empty:boolean) => {}}
+                    dispatch={this.props.dispatch}    
+                    selectedCategory={"trash"}    
+                    selectedTag={this.props.selectedTag}  
+                    rootRef={this.props.rootRef}
+                    todos={this.state.deletedTodos}  
+                    tags={this.props.tags} 
+                /> 
             </div>    
 
             <div style={{paddingTop:"10px", paddingBottom:"10px"}}>

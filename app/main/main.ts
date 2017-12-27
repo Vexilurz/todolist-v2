@@ -9,14 +9,14 @@ import { initWindow } from "./initWindow";
 export let mainWindow;   
 export let listeners; 
 
-
-let mainWindowWidth : number = 70;
-let mainWindowHeight : number = 80; 
+ 
+let mainWindowWidth : number = 100;//70;
+let mainWindowHeight : number = 100;//80; 
 
  
 let preventAnnoyingErrorPopups = () => dialog.showErrorBox = (title, content) => {};
  
-
+ 
 let onReady = () => {  
     let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
  

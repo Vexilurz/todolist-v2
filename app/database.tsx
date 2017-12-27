@@ -130,7 +130,7 @@ export let generateId = () => uniqid() + new Date().toJSON();
 function queryToObjects<T>(query:Query<T>){
 
     if(isNil(query))
-       throw new Error(`query undefined ${query}. queryToObjects.`);
+       throw new Error(`query undefined ${JSON.stringify(query)}. queryToObjects.`);
  
     let rows : any[] = query.rows;
     let docs = [];
@@ -279,7 +279,7 @@ function updateItemInDatabase<T>(
 export let addArea = (onError:Function, area : Area) : Promise<void> => {
 
       if(area.type!=="area")  
-         throw new Error(`Input value is not of type area. ${area}. addArea.`);  
+         throw new Error(`Input value is not of type area. ${JSON.stringify(area)}. addArea.`);  
  
 
       return setItemToDatabase<Area>(
@@ -340,7 +340,7 @@ export let getAreaById = (onError:Function, _id : string) : Promise<Area> => {
 export let updateArea = (_id : string, replacement : Area, onError:Function) : Promise<Area> => {
 
       if(replacement.type!=="area")
-         throw new Error(`Input value is not of type area. ${replacement}. updateArea.`);  
+         throw new Error(`Input value is not of type area. ${JSON.stringify(replacement)}. updateArea.`);  
  
       return updateItemInDatabase<Area>(
         () => {},
@@ -396,7 +396,7 @@ export let removeAreas = (areas : Area[]) : Promise<any[]> => {
 export let addProject = (onError:Function, project : Project) : Promise<void> => {
 
       if(project.type!=="project")
-         throw new Error(`Input value is not of type project. ${project}. addProject.`);  
+         throw new Error(`Input value is not of type project. ${JSON.stringify(project)}. addProject.`);  
  
       return setItemToDatabase<Project>(
           (e) => console.log(e), 
@@ -455,7 +455,7 @@ export let getProjectById = (onError:Function, _id : string) : Promise<Project> 
 export let updateProject = (_id : string, replacement : Project, onError:Function) : Promise<Project> => {
 
       if(replacement.type!=="project"){  
-        throw new Error(`Input value is not of type Project ${replacement}. updateProject.`);
+        throw new Error(`Input value is not of type Project ${JSON.stringify(replacement)}. updateProject.`);
       }     
 
       return updateItemInDatabase<Project>(
@@ -517,7 +517,7 @@ export let updateProjects = (projects : Project[], onError : Function) : Promise
 export let addTodo = (onError:Function, todo : Todo) : Promise<void> => {
 
       if(todo.type!=="todo"){  
-        throw new Error(`Input value is not of type Todo ${todo}. addTodo.`);
+        throw new Error(`Input value is not of type Todo ${JSON.stringify(todo)}. addTodo.`);
       }    
   
       return setItemToDatabase<Todo>((e) => console.log(e),todos_db)(todo);
@@ -573,7 +573,7 @@ export let getTodoById = (onError:Function, _id : string) : Promise<Todo> => {
 export let updateTodo = (_id : string, replacement : Todo, onError:Function) : Promise<Todo> => {
 
       if(replacement.type!=="todo"){  
-        throw new Error(`Input value is not of type Todo ${replacement}. updateTodo.`);
+        throw new Error(`Input value is not of type Todo ${JSON.stringify(replacement)}. updateTodo.`);
       }    
 
       return updateItemInDatabase<Todo>(  

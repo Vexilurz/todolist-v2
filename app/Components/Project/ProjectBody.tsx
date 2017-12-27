@@ -24,7 +24,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem } from '../../database';
-import { uppercase, debounce } from '../../utils';
+import { uppercase, debounce, byNotDeleted, changePriority } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeading } from './ProjectHeading'; 
 import { SortableList, Data } from '../SortableList';
@@ -125,45 +125,32 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
 
 
-    selectItems = (layout:LayoutItem[], todos:Todo[]) : any[] => { 
-
+    selectItems = (layout:LayoutItem[], todos:Todo[]) : (Todo | Heading)[] => { 
+ 
         let items = [];
-
+        let filteredTodos : Todo[] = todos.filter(byNotDeleted);
+   
         for(let i=0; i<layout.length; i++){
-
             let item : LayoutItem = layout[i];
-
-            if(item===undefined || item===null){
-
+ 
+            if(item===undefined || item===null)
                continue; 
 
-            }
-
-
             if(typeof item === "string"){
-                
-               let todo : Todo = todos.find( (t:Todo) => t._id===item );
-
+               let todo : Todo = filteredTodos.find( (t:Todo) => t._id===item );
+ 
                if(todo!==undefined && todo!==null){
 
-                    if(todo.type==="todo"){
-
-                        items.push(todo);
-
-                    }
-
-               }
-
+                    if(todo.type==="todo")
+                       items.push(todo);
+                     
+               }  
             }else if(item.type==="heading"){
-
                 items.push(item);
-
             }
-
         }
 
         return items; 
-    
     }
 
 
@@ -244,16 +231,24 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         return x < rect.left;   
 
-    } 
+    }  
     
 
 
     onSortEnd = ( data : Data, e : any ) => { 
 
-        let moved = arrayMove(this.props.layout, data.oldIndex, data.newIndex);
-
-        this.props.updateLayout(moved);      
-             
+        let items = this.selectItems(
+            this.props.layout, 
+            this.props.todos
+        )  
+ 
+        let changed = changePriority(data.oldIndex, data.newIndex,items) as (Heading | Todo)[]; 
+        let layout = changed.map( 
+            (i:Heading | Todo) : LayoutItem => i.type==="todo" ? i._id : i as LayoutItem
+        ); 
+ 
+        this.props.updateLayout(layout);      
+  
     } 
  
  
@@ -272,10 +267,17 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
     render(){
         
-        let items = this.selectItems(this.props.layout, this.props.todos.filter( t => !t.deleted));
+        let items = this
+                    .selectItems(
+                        this.props.layout, 
+                        this.props.todos
+                    )  
+                    .sort(   
+                        ( a:(Todo | Heading), b:(Todo | Heading) ) => a.priority-b.priority
+                    );   
+    
 
         return <div>  
-
             <SortableList 
                 getElement={this.getElement}
                 items={items}
@@ -293,9 +295,8 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 useDragHandle={false}
                 lock={false} 
             />
-        
-            {/*<RightClickMenu {...{} as any}/>*/}
-             
+         
+            <RightClickMenu {...{} as any}/> 
         </div>
 
     }

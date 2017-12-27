@@ -264,12 +264,12 @@ export let generateRandomDatabase = (
             randomArrayMember(tagsChunks), 
             generateProjectLayout(generateTodosIds,10)
         );
-
+ 
         projectItems.push(project);
     }
        
     let generateProjectsIds = projectItems.map( (p:Project) => p._id );
-    let projectsIdsChunks = splitEvery( Math.round(Math.random()*5), generateProjectsIds );
+    let projectsIdsChunks = splitEvery(Math.round(Math.random()*5)+1, generateProjectsIds );
     let areasItems = [];
      
     for(let i=0; i<areas; i++){

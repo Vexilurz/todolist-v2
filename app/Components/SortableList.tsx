@@ -80,7 +80,7 @@ export class SortableList extends Component<SortableListProps, SortableListState
 
         return <Container
             axis='y'   
-            getContainer={() => this.props.container} 
+            getContainer={() => this.props.container ? this.props.container : document.body} 
             shouldCancelStart={this.props.shouldCancelStart}
             shouldCancelAnimation={this.props.shouldCancelAnimation}
             lockToContainerEdges={this.props.lockToContainerEdges}  

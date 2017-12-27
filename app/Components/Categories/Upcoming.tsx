@@ -353,10 +353,9 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             paddingBottom : "10px"
                     }}>    
                         {
-                            this.props.projects
-                            .map((p:Project, index:number) : JSX.Element => 
-                                getProjectLink({width:"15px", height:"15px"},p, index, this.props.dispatch)
-                            )   
+                            this.props.projects.map((p:Project, index:number) : JSX.Element => 
+                                getProjectLink({width:"15px", height:"15px"}, p, index, this.props.dispatch)
+                            )    
                         }     
                     </div> 
 

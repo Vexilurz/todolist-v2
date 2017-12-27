@@ -34,7 +34,20 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
 
     onDeleteToDo = (e) => {
-        this.props.rightClickedTodoId
+
+        let todo : Todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId );
+        
+        if(!todo){
+           throw new Error(`
+                Todo with id rightClickedTodoId does not exist. 
+                onDeleteToDo.
+                ${JSON.stringify(todo)}
+           `);
+        }   
+
+  
+        this.props.dispatch({type:"updateTodo", load:{...todo,deleted:new Date()}});
+
     }  
 
  
@@ -47,8 +60,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         duplicate._id = generateId();
         delete duplicate['_rev']; 
  
-        this.props.dispatch({type:"addTodo", load:duplicate); 
-
+        this.props.dispatch({type:"addTodo", load:duplicate}); 
     } 
 
 
@@ -56,10 +68,19 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
     onComplete = (e) => {
         let todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId ); 
 
-        if(!todo) 
-           throw new Error(`todo undefined. ${todo} ${this.props.rightClickedTodoId}. onComplete.`);  
+        if(!todo){  
+            throw new Error(`
+                todo undefined. 
+                ${JSON.stringify(todo)} 
+                ${this.props.rightClickedTodoId}. 
+                onComplete.
+            `);  
+        } 
          
-        this.props.dispatch({ type:"updateTodo", load:{ ...todo, ...{completed:new Date()}, checked:true } });
+        this.props.dispatch({ 
+            type:"updateTodo", 
+            load:{ ...todo, ...{completed:new Date()}, checked:true } 
+        });
     }
     
     
@@ -121,16 +142,20 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         
         if(!project){ 
             throw new Error(`
-              project undefined. ${project} ${this.props.selectedProjectId}. 
-              removeFromProject .
+                project undefined. 
+                ${JSON.stringify(project)} 
+                ${this.props.selectedProjectId}. 
+                removeFromProject.
             `);
         } 
 
         if(project.type!=="project"){
            throw new Error(`
-              project is not of type Project. ${project} ${this.props.selectedProjectId}. 
+              project is not of type Project. 
+              ${JSON.stringify(project)} 
+              ${this.props.selectedProjectId}. 
               removeFromProject .
-           `);
+           `); 
         } 
 
         let layout : LayoutItem[] = [...project.layout]; 
@@ -157,16 +182,20 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         
         if(!area){ 
             throw new Error(`
-              area undefined. ${area} ${this.props.selectedAreaId}. 
+              area undefined. 
+              ${JSON.stringify(area)} 
+              ${this.props.selectedAreaId}. 
               removeFromArea.
             `);
         }  
  
         if(area.type!=="area"){
            throw new Error(`
-              area is not of type Area. ${area} ${this.props.selectedAreaId}. 
+              area is not of type Area. 
+              ${JSON.stringify(area)} 
+              ${this.props.selectedAreaId}. 
               removeFromArea. 
-           `);  
+           `);   
         } 
 
         let idx : number = area.attachedTodosIds.indexOf(this.props.rightClickedTodoId);

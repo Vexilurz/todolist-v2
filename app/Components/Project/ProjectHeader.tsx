@@ -23,7 +23,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize'; 
 import { Todo, Project, Heading } from '../../database';
-import { uppercase, debounce, daysRemaining } from '../../utils';
+import { uppercase, debounce, daysRemaining, dateDiffInDays } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
@@ -34,14 +34,14 @@ import Checked from 'material-ui/svg-icons/navigation/check';
 interface ProjectHeaderProps{
     name:string, 
     description:string,
-    created:string,
-    deadline:string,
-    completed:string,
+    created:Date,
+    deadline:Date,
+    completed:Date,
     updateProjectName:(value:string) => void,
     updateProjectDescription:(value:string) => void,
     dispatch:Function  
 }
-   
+    
 
   
 interface ProjectHeaderState{
@@ -146,9 +146,9 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
 
     render(){ 
      
-        let days = diffDays(new Date(this.props.created),new Date(this.props.deadline));    
+        let days = dateDiffInDays(this.props.created,this.props.deadline);    
 
-        let remaining = daysRemaining(new Date(this.props.deadline));     
+        let remaining = daysRemaining(this.props.deadline);     
       
         return <div>  
 

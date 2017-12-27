@@ -303,17 +303,17 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
 
     }
     
-
+ 
 
     suggestionToComponent = (suggestion:keyworded, index:number) : JSX.Element => {
 
         let object = suggestion.object;
 
         if(!isItem(object))
-            throw new Error(`object is not of type Item. ${object}. suggestionToComponent.`);
+            throw new Error(`object is not of type Item. ${JSON.stringify(object)}. suggestionToComponent.`);
   
         switch(object.type){
-            case "todo":
+            case "todo": 
                 return getTodoLink(object, index, this.props.dispatch)
             case "project":
                 return getProjectLink({width:"12px", height:"12px"}, object, index, this.props.dispatch);
@@ -327,19 +327,19 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
 
     render(){ 
   
-        return <div style={{    
-            padding: "10px", 
+        return <div style={{   
             boxShadow: "0 0 18px rgba(0,0,0,0.2)", 
-            margin: "5px",
+            zIndex: 30000,
             borderRadius: "5px",
-            position: "relative",
+            position: "absolute",
+            width: "100%",
             backgroundColor: "rgba(238,237,239,1)"
-        }}>  
- 
+        }}>   
+        <div style={{position:"relative", padding:"10px"}}>    
             <div style={{
                 backgroundColor: "rgb(217, 218, 221)",
                 borderRadius: "5px",
-                display: "flex",
+                display: "flex",  
                 alignItems: "center"
             }}>  
                 <div style={{
@@ -355,40 +355,51 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
                     }}/>   
                 </div>  
                   
-                <input style={{  
+                <input 
+                    style={{  
                         outline: "none",
                         border: "none", 
                         width: "100%", 
                         backgroundColor: "rgb(217,218,221)",
                         caretColor: "cornflowerblue"  
                     }} 
-                    placeholder="Quick Find"
+                    placeholder="Quick Find" 
                     type="text" 
                     name="search" 
                     value={this.state.value} 
                     onChange={this.onChange}
                 />
-            </div> 
-    
-  
-            <div className="scroll" style={{maxHeight:"600px", overflowX:"hidden"}}>
-               <div>  
-                {    
-                    this.state.value.length===0 ? null :
-                    this
-                    .state  
-                    .suggestions 
-                    .slice(0,10)
-                    .map(
-                        (s,index) => <div key={`suggestion-${index}`}>
-                            {this.suggestionToComponent(s, index)}
-                        </div> 
-                    )  
-                }
-               </div>  
             </div>  
+      
+            <div style={{position:"relative"}}>        
+                <div 
+                    className="scroll" 
+                    style={{
+                        maxHeight:"600px",
+                        width:"100%",
+                        overflowX:"hidden"
+                    }}    
+                >
+                <div>  
+                    {    
+                        this.state.value.length===0 ? null :
+                        this
+                        .state  
+                        .suggestions 
+                        .slice(0,10)
+                        .map(
+                            (s,index) => <div key={`suggestion-${index}`}>
+                                {this.suggestionToComponent(s, index)}
+                            </div> 
+                        )  
+                    }
+                </div>  
+                </div>  
+            </div>  
+            
         </div>
-
+        </div>
+        
     }
 
 
