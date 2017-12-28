@@ -25,11 +25,14 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import { QuickSearch } from '../Search';
+import { merge } from 'ramda';
+import { Category } from '../MainContainer';
 
 
 interface LeftPanelMenuItemProps{
     onClick : (e) => void, 
     icon:JSX.Element,
+    selected:boolean,
     title:string,
     showCounter:boolean, 
     counter:number,
@@ -53,17 +56,21 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
 
     render(){ 
 
+        let selectedStyle = { borderRadius: "5px", backgroundColor: "rgba(228,230,233,1)" };
+        let style = {    
+            justifyContent: "space-between" as any,
+            display: "flex",
+            height: "25px", 
+            alignItems: "center" as any,
+            padding: "5px",
+            cursor: "pointer" 
+        }; 
+        let selected = this.props.selected;  
+        
         return <div 
-            className="no-drag leftpanelmenuitem"  
+            className={this.props.selected ? `` : `leftpanelmenuitem`}  
             onClick={this.props.onClick} 
-            style={{    
-                justifyContent: "space-between",
-                display: "flex",
-                height: "25px",
-                alignItems: "center",
-                padding: "5px",
-                cursor: "pointer" 
-            }}
+            style={selected ? merge(style,selectedStyle) : style}
         >     
             <div style={{   
                 display:"flex",
@@ -162,12 +169,13 @@ class Separator extends Component<{},{}>{
 
 interface LeftPanelMenuProps{
     dispatch:Function,
+    selectedCategory:Category,
     inbox:number,
     today:number,
     hot:number
 } 
  
- 
+  
 
 interface LeftPanelMenuState{}
 
@@ -180,19 +188,17 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
         super(props);
 
     }
+    
 
+    render(){ 
 
-    render(){
-
-        
- 
         return <div style={{
             display:"flex",
             flexDirection:"column",
             width:"100%"
         }}>
             <div style={{ 
-                paddingLeft:"10px",
+                paddingLeft:"10px", 
                 paddingRight:"10px",
                 paddingTop:"50px",
                 paddingBottom:"10px"  
@@ -203,8 +209,9 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 onClick={() => this.props.dispatch({type:"selectedCategory",load:"inbox"})}
                 icon={<Inbox style={{ color:"dodgerblue" }} />}
                 title={"Inbox"}
+                selected={this.props.selectedCategory==="inbox"}
                 showCounter={true}
-                counter={this.props.inbox}
+                counter={this.props.inbox} 
             />  
 
             <Separator />
@@ -214,6 +221,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 icon={<Star style={{color:"gold"}}/>}
                 title={"Today"}
                 showCounter={true}
+                selected={this.props.selectedCategory==="today"}
                 counter={this.props.today}
                 hot={this.props.hot}
             /> 
@@ -221,8 +229,9 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             <LeftPanelMenuItem
                 onClick={() => this.props.dispatch({type:"selectedCategory",load:"upcoming"})}
                 icon={<Calendar style={{color:"crimson"}}/>}
+                selected={this.props.selectedCategory==="upcoming"}
                 title={"Upcoming"}
-                showCounter={false}
+                showCounter={false} 
                 counter={0}
             /> 
 
@@ -230,6 +239,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 onClick={() => this.props.dispatch({type:"selectedCategory", load:"next"})} 
                 icon={<Layers style={{color:"darkgreen"}}/>}
                 title={"Next"}
+                selected={this.props.selectedCategory==="next"}
                 showCounter={false}
                 counter={0}
             /> 
@@ -238,8 +248,9 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 onClick={() => this.props.dispatch({type:"selectedCategory", load:"someday"})} 
                 icon={<BusinessCase style={{color:"burlywood"}}/>}
                 title={"Someday"}
+                selected={this.props.selectedCategory==="someday"}
                 showCounter={false}
-                counter={0}
+                counter={0} 
             /> 
 
             <Separator />    
@@ -248,14 +259,16 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 onClick={() => this.props.dispatch({type:"selectedCategory",load:"logbook"})} 
                 icon={<Logbook style={{color:"limegreen"}}/>}
                 title={"Logbook"}
+                selected={this.props.selectedCategory==="logbook"}
                 showCounter={false}
                 counter={0}
-            />  
+            />   
 
             <LeftPanelMenuItem
                 onClick={() => this.props.dispatch({type:"selectedCategory",load:"trash"})} 
                 icon={<Trash style={{color:"darkgray"}}/>}
                 title={"Trash"}  
+                selected={this.props.selectedCategory==="trash"}
                 showCounter={false} 
                 counter={0}
             />  
@@ -264,10 +277,9 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             </div>
         </div>     
     }
-
 }  
 
-
+ 
 
 
 

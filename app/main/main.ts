@@ -4,16 +4,29 @@ import electron = require('electron');
 import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';
 import { Listeners } from "./listeners";
 import { initWindow } from "./initWindow";
- 
+import { autoUpdater } from "electron-updater";
 
 export let mainWindow;   
 export let listeners; 
-
+export let updater;
+ 
  
 let mainWindowWidth : number = 100;//70;
 let mainWindowHeight : number = 100;//80; 
 
  
+class AppUpdater {
+    constructor() {
+        const log = require("electron-log");
+        log.transports.file.level = "info"
+        autoUpdater.logger = log
+        autoUpdater.checkForUpdatesAndNotify()
+    }
+}
+
+
+
+
 let preventAnnoyingErrorPopups = () => dialog.showErrorBox = (title, content) => {};
  
  
@@ -28,6 +41,8 @@ let onReady = () => {
     mainWindow = initWindow({width,height,transparent:false});          
         
     listeners = new Listeners(mainWindow);
+
+    updater = new AppUpdater(); 
    
     loadApp(mainWindow)    
     .then(() => {  

@@ -2,7 +2,7 @@
   "name": "tasklist",
   "version": "1.0.0",
   "description": "tasklist",
-  "main": "production/main.js",
+  "main": "dist/main.js",
   "scripts": {
     "start": "electron .",
     "pack": "build --win",
@@ -15,11 +15,10 @@
   "author": "Anatoly Strashkevich",
   "license": "",
   "devDependencies": {
-    "electron": "^1.7.10",
     "@types/chai": "^4.0.2",
     "@types/electron": "^1.6.10",
     "@types/mocha": "^2.2.41",
-    "@types/node": "^7.0.39",
+    "@types/node": "^8.5.2",
     "@types/ramda": "types/npm-ramda#dist",
     "@types/react": "^15.6.1",
     "@types/react-dom": "^15.5.2",
@@ -32,6 +31,7 @@
     "clean-webpack-plugin": "^0.1.17",
     "copy-webpack-plugin": "^4.0.1",
     "css-loader": "^0.28.4",
+    "electron": "^1.7.10",
     "electron-builder": "^19.31.1",
     "electron-winstaller": "^2.6.3",
     "enzyme": "^2.9.1",
@@ -44,6 +44,8 @@
     "webpack": "^2.7.0"
   },
   "dependencies": {
+    "electron-log": "^2.2.13",
+    "electron-updater": "^2.17.6",
     "file-loader": "^0.11.2",
     "filereader": "^0.10.3",
     "font-loader": "^0.1.2",
@@ -89,14 +91,14 @@
       "production"
     ],
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "icon": "./icon.ico"
     },
-    "nsis":{
-      "oneClick":false, 
-      "allowToChangeInstallationDirectory":true, 
-      "multiLanguageInstaller":true, 
-      "menuCategory":true
+    "nsis": {
+      "allowToChangeInstallationDirectory": true,
+      "oneClick": false
     },
     "directories": {
       "output": "release"

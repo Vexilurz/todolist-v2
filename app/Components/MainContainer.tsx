@@ -310,8 +310,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
             let fakeData = generateRandomDatabase({
                 todos : 40,  
-                projects : 5,  
-                areas : 2 
+                projects : 25,  
+                areas : 8 
             });   
     
             let todos = fakeData.todos;
@@ -363,15 +363,14 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     className="scroll"  
                     id="maincontainer"  
                     style={{    
-                        width : this.props.clone ? "100%" : (window.innerWidth-this.props.leftPanelWidth),
-                        position :"relative", 
-                        display : "flex", 
-                        borderRadius :"1%",  
+                        width : "100%",
+                        position :"relative",  
+                        display : "flex",   
                         backgroundColor : "rgba(209, 209, 209, 0.1)", 
                         overflow : "scroll",  
-                        flexDirection: "column" 
-                    }} 
-                >    
+                        flexDirection: "column"  
+                    }}  
+                >     
   
                   
                 <div style={{display: "flex", padding: "10px"}}>   

@@ -568,9 +568,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 alignItems:"center",   
                 justifyContent:"center"
             }} 
-        >   
+        >     
    
-        <div  
+        <div   
             onClick={(e) => {e.stopPropagation();}}
             ref={(e) => { this.ref=e; }} 
             style={{           
@@ -613,7 +613,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         }}>   
                             { this.state.checked ? <Checked style={{color:"white"}}/> : null }
                         </div> 
-                    </div>   
+                    </div>    
 
                     <div 
                         style={{    
@@ -656,7 +656,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                 opacity:this.state.open ? 1 : 0
                             }}>      
                                     
-                                <TextField 
+                                <TextField  
                                     id={ `${this.props.todo._id}note` }
                                     defaultValue={this.state.currentNote} 
                                     hintText="Notes"
