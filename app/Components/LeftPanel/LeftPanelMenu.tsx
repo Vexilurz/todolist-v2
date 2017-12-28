@@ -159,7 +159,7 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
  
 
 
-class Separator extends Component<{},{}>{
+export class Separator extends Component<{},{}>{
     render(){
         return <div style={{outline: "none", width:"100%",height:"20px"}}></div>
     }
@@ -198,8 +198,8 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             width:"100%"
         }}>
             <div style={{ 
-                paddingLeft:"10px", 
-                paddingRight:"10px",
+                paddingLeft:"15px", 
+                paddingRight:"15px",
                 paddingTop:"50px",
                 paddingBottom:"10px"  
             }}>
@@ -272,8 +272,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 showCounter={false} 
                 counter={0}
             />  
-
-            <Separator /> 
+            
             </div>
         </div>     
     }

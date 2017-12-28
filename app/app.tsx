@@ -107,7 +107,7 @@ ipcRenderer.on(
     }
 );    
   
-
+ 
 
 export interface Store{
     selectedCategory : Category,
@@ -115,6 +115,7 @@ export interface Store{
     openSearch : boolean, 
     selectedTag : string,
     leftPanelWidth : number,
+    currentleftPanelWidth : number,
     closeAllItems : any,
     openRightClickMenu : any, 
     selectedProjectId : string,
@@ -144,11 +145,13 @@ export let defaultStoreItems : Store = {
     openSearch : false, 
 
     selectedTodoId : null,
-
+ 
     selectedTag : "All",
 
     leftPanelWidth : window.innerWidth/3.7,
-     
+ 
+    currentleftPanelWidth : window.innerWidth/3.7,
+    
     selectedProjectId : null,
 
     selectedAreaId : null,

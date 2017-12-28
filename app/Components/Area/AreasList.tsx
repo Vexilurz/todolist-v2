@@ -150,9 +150,15 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     }
          
 
-
+ 
     getAreaElement = (a : Area, index : number) : JSX.Element => {
-        return <li className="area" style={{paddingTop:"40px"}} key={index}> 
+        return <li className="area" key={index}> 
+            <div style={{
+                outline:"none", 
+                width:"100%",
+                height:"20px" 
+            }}> 
+            </div>  
             <div     
                 onClick = {(e) => this.selectArea(a)}
                 id = {a._id}   
@@ -498,10 +504,11 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
   
         return  <div  
             style={{
-                display: "flex",flexDirection: "column", 
-                padding:"10px", position:"relative" 
-            }}
-        >  
+                display:"flex",
+                flexDirection:"column",
+                position:"relative" 
+            }} 
+        >   
            <SortableList 
                 getElement={this.getElement}
                 items={layout}    
