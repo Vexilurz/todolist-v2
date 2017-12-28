@@ -14,10 +14,9 @@ import {
   provideDisplayName,
   omit,
 } from './utils';
+import { hideChildrens, makeChildrensVisible } from '../utils';
   
 
-
-// Export Higher Order Sortable Container Component
 export default function SortableContainer(WrappedComponent, config = {withRef: false}) {
   return class extends Component<any,any>{
     manager:any;
@@ -68,11 +67,6 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
         end: this.handleEnd,
       };
 
-      /*invariant(
-        !(props.distance && props.pressDelay),
-        'Attempted to set both `pressDelay` and `distance` on SortableContainer, you may only use one or the other, not both at the same time.'
-      );*/
-
       this.state = {};
     }
 
@@ -102,7 +96,7 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
       }),
     };
 
-    static propTypes = {
+    static propTypes = { 
       axis: PropTypes.oneOf(['x', 'y', 'xy']),
       distance: PropTypes.number, 
       lockAxis: PropTypes.string,
@@ -286,13 +280,9 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
           hideSortableGhost,
           onSortStart,
           useWindowAsScrollContainer,
-
-          applyCustomStyle,
-          removeCustomStyle,
-
-          shouldCancelAnimation
-
+          shouldCancelAnimation  
         } = this.props;
+
         const {node, collection} = active;
         const {index} = node.sortableInfo;
         const margin = getElementMargin(node);
@@ -351,14 +341,12 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
         this.helper.style.boxSizing = 'border-box';
         this.helper.style.pointerEvents = 'none';
         this.helper.style.zIndex = '200000';
-
-        if(applyCustomStyle){
-          applyCustomStyle(node); 
-        }else if (hideSortableGhost) {
+          
+        if(hideSortableGhost) {
           this.sortableGhost = node;
           node.style.visibility = 'hidden';
           node.style.opacity = 0;
-        }
+        } 
   
         this.minTranslate = {};
         this.maxTranslate = {};
@@ -414,6 +402,7 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
       }
     };
 
+
     handleSortMove = e => {
       const {onSortMove, shouldCancelAnimation} = this.props;
       e.preventDefault(); // Prevent scrolling on mobile
@@ -435,13 +424,16 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
       } 
 
 
+     
+         
+ 
       this.autoscroll(e);
 
-      if (onSortMove) onSortMove(e, this.helper);
+      if (onSortMove) onSortMove(e, this.helper, this.newIndex);
     };
-
+ 
     handleSortEnd = e => {
-      const {hideSortableGhost, onSortEnd, removeCustomStyle} = this.props;
+      const {hideSortableGhost, onSortEnd} = this.props;
       const {collection} = this.manager.active;
 
       // Remove the event listeners if the node is still in the DOM
@@ -458,18 +450,11 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
       // Remove the helper from the DOM
       this.helper.parentNode.removeChild(this.helper);
 
-      if(removeCustomStyle){
-
-        if(this.sortableGhost) 
-           removeCustomStyle(this.sortableGhost);
-            
-      }else if(hideSortableGhost && this.sortableGhost) {
-
+      if(hideSortableGhost && this.sortableGhost) {
         this.sortableGhost.style.visibility = '';
         this.sortableGhost.style.opacity = '';
-        this.sortableGhost.style.background = '';
-        
-      } 
+        this.sortableGhost.style.background = ''; 
+      }  
   
       const nodes = this.manager.refs[collection];
       for (let i = 0, len = nodes.length; i < len; i++) {
@@ -639,7 +624,7 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
     }
 
     animateNodes() {
-      const {transitionDuration, hideSortableGhost, applyCustomStyle} = this.props;
+      const {transitionDuration, hideSortableGhost} = this.props;
       const nodes = this.manager.getOrderedRefs();
       const deltaScroll = {
         left: this.scrollContainer.scrollLeft - this.initialScroll.left,
@@ -691,25 +676,17 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
 
 
           if (hideSortableGhost) {
+
+            
             /*
 						 * With windowing libraries such as `react-virtualized`, the sortableGhost
 						 * node may change while scrolling down and then back up (or vice-versa),
 						 * so we need to update the reference to the new node just to be safe.
-						 */
-
-             
-            if(applyCustomStyle){
- 
-              this.sortableGhost = node;
-              applyCustomStyle(this.sortableGhost);
-
-            }else{
-              this.sortableGhost = node;
+						 */ 
+              this.sortableGhost = node; 
               node.style.visibility = 'hidden';
-              node.style.opacity = 0;
-            }
-
-          } 
+              node.style.opacity = 0; 
+          }   
 
           continue;
         }
@@ -720,7 +697,7 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
           ] = `${transitionDuration}ms`;
         }
 
-        if (this.axis.x) {
+        if (this.axis.x) {     
           if (this.axis.y) {
             // Calculations for a grid setup
             if (
@@ -809,8 +786,8 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
 
       if (this.newIndex == null) {
         this.newIndex = this.index;
-      }
-    }
+      } 
+    }  
 
     autoscroll = (e) => {
       const translate = this.translate;
@@ -820,8 +797,8 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
       };
       const speed = {
         x: 1,
-        y: 4,
-      };
+        y: 4, 
+      }; 
       const acceleration = {
         x: 10,
         y: 10,
@@ -894,7 +871,7 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
 
       return (
         <WrappedComponent
-          ref={ref}
+          ref={ref} 
           {...omit(
             this.props,
             'contentWindow',

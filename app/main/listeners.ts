@@ -7,9 +7,9 @@ let uniqid = require("uniqid");
 const {shell} = require('electron');  
 
 
-let clonedWindowWidth : number = 50;
-let clonedWindowHeight : number = 90;
-
+let clonedWindowWidth : number = 30;
+let clonedWindowHeight : number = 80;
+ 
  
 let remove = (array:any[], idx:number) : any[] => {
     

@@ -19,8 +19,8 @@ interface SortableListProps{
     shouldCancelStart : ( e : any ) => boolean,
     shouldCancelAnimation : ( e : any ) => boolean,
 
-    onSortEnd : ( data : Data, e : any ) => void, 
-    onSortMove : ( e : any, helper : HTMLElement ) => void,
+    onSortEnd : ( data : Data, e : any ) => void,  
+    onSortMove : ( e : any, helper : HTMLElement, newIndex:number ) => void,
     onSortStart : ( data : any, e : any, helper : HTMLElement) => void,
 
     lockToContainerEdges : boolean,
@@ -43,9 +43,9 @@ export class SortableList extends Component<SortableListProps, SortableListState
 
         this.state = {};
 
-    }
+    } 
 
-    
+     
     getSortableList = (items:any[]) : JSX.Element =>  {
         
         return <ul style={{ 
@@ -54,45 +54,51 @@ export class SortableList extends Component<SortableListProps, SortableListState
             display: "flex",
             flexDirection: "column" 
         }}>     
-            {     
+            {            
                 items.map(        
                     (item:any, index) => {   
                         let SortableItem = SortableElement(({value}) => this.props.getElement(value,index)); 
                         return <SortableItem  key={`item-${index}`} index={index} value={item} />;
                     }
-                )   
+                )    
             }   
         </ul> 
         
     }    
 
 
-    shouldComponentUpdate(){
+    shouldComponentUpdate(nextProps:SortableListProps){
+        let should = false;
 
-        return true; 
+        if(nextProps.items!==this.props.items)
+            should=true; 
+         
+        if(nextProps.container!==this.props.container)
+            should=true;
 
+        return should;  
     }
 
         
     getSortableContainer = () => {
 
-        let Container = SortableContainer(({items}) => this.getSortableList(items),{withRef:true})
-
-        return <Container
+        let Container = SortableContainer(({items}) => this.getSortableList(items),{withRef:true});
+         
+        return <Container 
             axis='y'   
             getContainer={() => this.props.container ? this.props.container : document.body} 
             shouldCancelStart={this.props.shouldCancelStart}
             shouldCancelAnimation={this.props.shouldCancelAnimation}
+            hideSortableGhost={true} 
             lockToContainerEdges={this.props.lockToContainerEdges}  
             distance={this.props.distance}   
             items={this.props.items}   
             useDragHandle={this.props.useDragHandle} 
             lockAxis={this.props.lock ? 'y' : null}  
-            onSortEnd={this.props.onSortEnd} 
-            onSortMove={this.props.onSortMove}
+            onSortEnd={this.props.onSortEnd}  
+            onSortMove={this.props.onSortMove}  
             onSortStart={this.props.onSortStart}
-        />
-        
+        /> 
     }
 
  
@@ -104,6 +110,3 @@ export class SortableList extends Component<SortableListProps, SortableListState
 
 }  
 
-
-
-    

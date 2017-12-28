@@ -35,7 +35,7 @@ import Reorder from 'material-ui/svg-icons/action/reorder';
 let uniqid = require("uniqid");  
 import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
-import { ThingsCalendar } from '.././ThingsCalendar';
+import { ThingsCalendar, ThingsCalendarSimple } from '.././ThingsCalendar';
 import {  
     insideTargetArea, daysRemaining, todoChanged, 
     daysLeftMark, generateTagElement, uppercase 
@@ -454,9 +454,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         if(this.state.calendarType==="full"){
 
-            this.setState({
-                showCalendar:false, attachedDate:day
-            }) 
+            this.setState({attachedDate:day}); 
 
         }else if(this.state.calendarType==="simple"){
 
@@ -464,9 +462,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 
             if(remaining>=0){
 
-                this.setState({ 
-                    showCalendar:false, deadline:day 
-                }) 
+                this.setState({deadline:day}) 
             }
         }
     }
@@ -476,7 +472,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onCalendarSomedayClick = (e) => {
 
         this.setState({ 
-            showCalendar:false, 
             newSelectedCategory:"someday"
         })
 
@@ -487,7 +482,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onCalendarTodayClick = (e) => { 
 
         this.setState({ 
-            showCalendar:false, 
             newSelectedCategory:"today",
             attachedDate:new Date()
         }) 
@@ -499,7 +493,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onCalendarThisEveningClick = (e) => { 
 
         this.setState({
-            showCalendar:false, 
             newSelectedCategory:"evening",
             attachedDate:new Date()
         })
@@ -508,11 +501,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
      
     
 
-    onCalendarAddReminderClick = (e) => { 
+    onCalendarAddReminderClick = (reminder:Date) : void => { 
 
-        //this.setState({ 
-        //    showCalendar:false, reminder:{} 
-        //})
+        this.setState({reminder})
 
     }
 
@@ -523,31 +514,21 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         if(this.state.calendarType==="full"){ 
             
             this.setState({ 
-                showCalendar:false,
                 newSelectedCategory:this.props.todo.category as Category,
                 attachedDate:null
             })
-    
-
         }else if(this.state.calendarType==="simple"){ 
     
-            this.setState({ 
-                showCalendar:false, 
-                deadline:null 
-            }) 
-
+            this.setState({showCalendar:false, deadline:null}) 
         }
-
     }
 
 
 
     selectButtonsToDisplay = () => {
+
         let buttonsNamesToDisplay : any = [
-            "Calendar",
-            "Tag",
-            "Flag",
-            "Add" 
+            "Calendar","Tag","Flag","Add" 
         ]; 
          
         return buttonsNamesToDisplay;
@@ -773,24 +754,36 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 right: 0  
             }}>   
 
-                <ThingsCalendar
-                    close = {this.closeCalendar}   
-                    open = {this.state.showCalendar}
-                    anchorEl = {
-                        this.state.calendarType==="simple" ? 
-                        this.calendarSimpleOrigin : 
-                        this.calendarOrigin
-                    }  
-                    simple = {this.state.calendarType==="simple"}  
-                    onClear = {this.onCalendarClear}
-                    origin = {{vertical: "center", horizontal: "right"}} 
-                    point = {{vertical: "center", horizontal: "right"}} 
-                    onDayClick = {this.onCalendarDayClick}  
-                    onSomedayClick = {this.onCalendarSomedayClick}   
-                    onTodayClick = {this.onCalendarTodayClick} 
-                    onThisEveningClick = {this.onCalendarThisEveningClick}
-                    onAddReminderClick = {this.onCalendarAddReminderClick}
-                /> 
+                {  
+                    this.state.calendarType==="simple" ? 
+                    <ThingsCalendarSimple   
+                        close = {this.closeCalendar}   
+                        open = {this.state.showCalendar}
+                        anchorEl = {this.calendarSimpleOrigin}
+                        onClear = {this.onCalendarClear}
+                        origin = {{vertical: "center", horizontal: "right"}} 
+                        point = {{vertical: "center", horizontal: "right"}} 
+                        onDayClick = {this.onCalendarDayClick}  
+                    /> 
+                    :
+                    this.state.calendarType==="full" ? 
+                    <ThingsCalendar
+                        close = {this.closeCalendar}   
+                        open = {this.state.showCalendar}
+                        anchorEl = {this.calendarOrigin}
+                        attachedDate={this.state.attachedDate}
+                        onClear = {this.onCalendarClear}
+                        origin = {{vertical: "center", horizontal: "right"}} 
+                        point = {{vertical: "center", horizontal: "right"}} 
+                        onDayClick = {this.onCalendarDayClick}  
+                        onSomedayClick = {this.onCalendarSomedayClick}   
+                        onTodayClick = {this.onCalendarTodayClick} 
+                        onThisEveningClick = {this.onCalendarThisEveningClick}
+                        onAddReminderClick = {this.onCalendarAddReminderClick}
+                    />
+                    :
+                    null 
+                } 
 
                 <TagsPopover   
                     tags={this.props.tags}

@@ -69,10 +69,8 @@ export class Tags extends Component<TagsProps,{}>{
             return "dimgray";
 
         }
-
-        
       }  
- 
+      
   
       render(){
          return !this.props.show ? null :
@@ -80,23 +78,22 @@ export class Tags extends Component<TagsProps,{}>{
                     {    
                         prepend("All",this.props.tags)
                         .map((tag:string) =>  
-                            <div key={tag} style={{padding:"10px"}}>
-                                <div className="chip"     
+                            <div key={tag} style={{padding:"4px"}}>
+                                <div className="chip"      
                                     onClick={() => this.props.selectTag(tag)} 
                                     style={{
                                         width: "auto",
-                                        height: "30px",
+                                        height: "20px", 
                                         alignItems: "center",
                                         display: "flex",
                                         cursor: "pointer",
                                         borderRadius: "100px", 
                                         backgroundColor: this.selectTagBackgroundColor(tag,this.props.selectedTag),
                                         color:this.selectTagFontColor(tag,this.props.selectedTag),                  
-                                        fontWeight: 700, 
-                                        fontFamily: "sans-serif"  
-                                    }}  
+                                        fontWeight: 700 
+                                    }}    
                                 >  
-                                    <div style={{padding:"10px"}}>{tag}</div> 
+                                    <div style={{padding:"8px"}}>{tag}</div> 
                                 </div> 
                             </div>   
                         )

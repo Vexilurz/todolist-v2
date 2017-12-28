@@ -74,7 +74,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
     constructor(props){
 
-        super(props);
+        super(props); 
 
         this.checklist = [...this.props.checklist]; 
 
@@ -219,8 +219,8 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                             boxSizing:"border-box",
                             marginRight:"5px",
                             marginLeft:"5px" 
-                        }}   
-                    >       
+                        }}    
+                    >        
                     </div>  
                 </div>  
                  

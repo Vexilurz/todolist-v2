@@ -42,19 +42,22 @@ interface TodosListProps{
 
   
 interface TodosListState{
-    todos:Todo[]
+    todos:Todo[],
+    currentIndex:number, 
+    helper:HTMLElement,
+    showPlaceholder:boolean 
 }
- 
+  
        
    
 export class TodosList extends Component<TodosListProps, TodosListState>{
 
 
-     constructor(props){
+     constructor(props){ 
         super(props);
-        this.state={todos:[]}; 
+        this.state={todos:[], currentIndex:0, helper:null, showPlaceholder:false}; 
      }  
-        
+         
 
      componentDidMount(){
 
@@ -116,6 +119,15 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         if(this.state.todos!==nextState.todos)
            should=true;   
  
+        if(this.state.currentIndex!==nextState.currentIndex)
+           should=true;   
+
+        if(this.state.helper!==nextState.helper)
+           should=true;    
+       
+        if(this.state.showPlaceholder!==nextState.showPlaceholder)
+           should=true;        
+            
         return should;
      }  
     
@@ -175,6 +187,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
 
      onSortStart = ({node, index, collection}, e, helper) => { 
+
+        this.setState({showPlaceholder:true});
+         
         let helperRect = helper.getBoundingClientRect();
         let offset = e.clientX - helperRect.left;
 
@@ -188,9 +203,11 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
  
      
  
-     onSortMove = (e, helper : HTMLElement) => {
-        let x = e.clientX;
+     onSortMove = (e, helper : HTMLElement, newIndex:number) => {
+        let x = e.clientX; 
         let y = e.clientY+this.props.rootRef.scrollTop;  
+
+        this.setState({currentIndex:newIndex,helper}); 
 
         let areas = document.getElementById("areas");
         let projects = document.getElementById("projects");
@@ -210,7 +227,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
  
 
      onSortEnd = ({oldIndex, newIndex, collection}, e) => { 
-         
+
+        this.setState({showPlaceholder:false});
+          
         let x = e.clientX; 
         let y = e.clientY+this.props.rootRef.scrollTop;  
         let draggedTodo = this.state.todos[oldIndex];
@@ -236,10 +255,19 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
      }
  
         
-     render(){  
+     render(){   
 
- 
-        return <div style={{WebkitUserSelect: "none"}}> 
+        return <div style={{
+            WebkitUserSelect:"none", 
+            position:"relative"
+        }}>  
+            { 
+                <Placeholder   
+                    helper={this.state.helper}
+                    currentIndex={this.state.currentIndex}
+                    show={this.state.showPlaceholder}
+                /> 
+            }
             <SortableList   
                 getElement={this.getTodoElement}
                 container={this.props.rootRef} 
@@ -248,9 +276,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 shouldCancelAnimation={this.shouldCancelAnimation}
                 onSortEnd={this.onSortEnd}    
                 onSortMove={this.onSortMove}  
-                onSortStart={this.onSortStart} 
+                onSortStart={this.onSortStart}  
                 lockToContainerEdges={false}
-                distance={5}  
+                distance={5}   
                 useDragHandle={false}
                 lock={false}
             />  
@@ -260,3 +288,43 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
      }  
  } 
  
+ 
+
+
+interface PlaceholderProps{
+    helper:HTMLElement, 
+    currentIndex:number,
+    show:boolean 
+}
+ 
+interface PlaceholderState{} 
+
+class Placeholder extends Component<PlaceholderProps,PlaceholderState>{
+
+    constructor(props){
+        super(props);
+    }  
+
+    render(){       
+        if(!this.props.helper) 
+            return null; 
+ 
+        let rect = this.props.helper.getBoundingClientRect();
+         
+        let offset = this.props.currentIndex*rect.height;
+ 
+        return !this.props.show ? null : 
+        <div style={{   
+            backgroundColor:"rgba(205,221,253,0.5)",
+            zIndex:100,     
+            transition:this.props.show ? "transform 0.2s ease-in-out" : "", 
+            height:"30px", 
+            borderRadius:"5px",     
+            width:"100%",    
+            position:"absolute",  
+            transform:`translateY(${offset}px)`
+        }}>   
+        </div>
+    } 
+ 
+} 

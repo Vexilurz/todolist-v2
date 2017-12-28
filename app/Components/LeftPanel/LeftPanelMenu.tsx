@@ -203,6 +203,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 paddingTop:"50px",
                 paddingBottom:"10px"  
             }}>
+
             <Separator />
         
             <LeftPanelMenuItem
@@ -271,8 +272,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 selected={this.props.selectedCategory==="trash"}
                 showCounter={false} 
                 counter={0}
-            />  
-            
+            />   
             </div>
         </div>     
     }

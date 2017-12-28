@@ -41,7 +41,7 @@ export class ContainerHeader extends Component<ContainerHeaderProps,ContainerHea
                 alignItems:"center",
                 marginBottom:"20px"  
             }}>  
-
+ 
                 <div>  
                     {chooseIcon({width:"50px", height:"50px"},this.props.selectedCategory)}
                 </div>
@@ -58,13 +58,14 @@ export class ContainerHeader extends Component<ContainerHeaderProps,ContainerHea
                 </div> 
              
             </div> 
- 
-            <Tags  
-                selectTag={(tag) => this.props.dispatch({type:"selectedTag",load:tag})}
-                tags={this.props.tags} 
-                selectedTag={this.props.selectedTag}
-                show={this.props.showTags} 
-            />    
+            <div>       
+                <Tags  
+                  selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
+                  tags={this.props.tags} 
+                  selectedTag={this.props.selectedTag}
+                  show={this.props.showTags} 
+                />   
+            </div>  
         </div>  
         </div>
 

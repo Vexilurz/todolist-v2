@@ -1,6 +1,7 @@
 html{
   height:860px; 
 } 
+ 
 
 body{  
   background-size: cover;
@@ -9,6 +10,23 @@ body{
   margin : 0; 
 } 
 
+input::-webkit-clear-button {  
+  -webkit-appearance: none !important;  
+  margin: 0 !important;  
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;  
+} 
+input::-webkit-outer-spin-button { 
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  margin: 0 !important; 
+}  
+  
+ 
 li{   
   margin:0 !important; 
   margin-left:0 !important;

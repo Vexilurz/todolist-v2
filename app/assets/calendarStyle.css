@@ -4,6 +4,13 @@
   display: inline-block;
 } 
 
+
+input[type=time]::-webkit-outer-spin-button { 
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  margin: 0 !important;
+}  
+
 .DayPicker-wrapper {
   position: relative;
   border-radius: 20px;
