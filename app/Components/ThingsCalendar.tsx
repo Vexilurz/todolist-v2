@@ -18,13 +18,18 @@ import { Category } from './MainContainer';
 import Clear from 'material-ui/svg-icons/content/clear'; 
 import { insideTargetArea } from '../utils';
 import { isNil } from 'ramda';
+import { isDate } from 'util';
  
 
-interface ThingsCalendarProps{ 
+interface DateCalendarProps{ 
     close : Function,
-    open : boolean, 
+    open : boolean,
+    origin : any,  
     anchorEl : HTMLElement,
+    rootRef : HTMLElement, 
     attachedDate : Date,
+    reminder : Date, 
+    point : any,  
     onDayClick : (day:Date, modifiers:Object, e:any) => void,
     onSomedayClick : (e:any) => void,  
     onTodayClick : (e:any) => void, 
@@ -35,40 +40,33 @@ interface ThingsCalendarProps{
        
  
 
-interface ThingsCalendarState{
-    zIndex:number,
-}
- 
- 
+interface DateCalendarState{}
+  
 
-export class ThingsCalendar extends Component<ThingsCalendarProps,ThingsCalendarState>{
+
+export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
 
     ref:HTMLElement; 
     
     constructor(props){
         super(props);
-        this.state={zIndex:3000000}; 
     }
-     
-    
+
+
     componentDidMount(){ 
-        
-        window.addEventListener("click", this.onOutsideClick);
-     
+        document.body.addEventListener("click", this.onOutsideClick);
     }
- 
+
 
     componentWillUnmount(){
+        document.body.removeEventListener("click", this.onOutsideClick);
+    } 
+  
 
-        window.removeEventListener("click", this.onOutsideClick);
-    }
-     
-    
     onOutsideClick = (e) => {
-        
         if(this.ref===null || this.ref===undefined)
             return; 
- 
+
         let x = e.pageX;
         let y = e.pageY; 
 
@@ -76,40 +74,37 @@ export class ThingsCalendar extends Component<ThingsCalendarProps,ThingsCalendar
     
         if(!inside){
             this.props.close(); 
-        }      
+        }   
     }   
+               
+ 
      
+    render(){    
 
-    render(){  
-
-        if(!this.props.open)
-            return null; 
-
-        if(!this.props.anchorEl)
-            return null; 
-        
-        let rect = this.props.anchorEl.getBoundingClientRect();
-   
-
-        return <div 
-            style={{    
-                position:"absolute",
+        return <Popover 
+            open={this.props.open}
+            scrollableContainer={this.props.rootRef}
+            anchorEl={this.props.anchorEl}
+            style={{
                 backgroundColor:"rgba(0,0,0,0)",
-                background:"rgba(0,0,0,0)", 
-                zIndex:30002,     
-                //top:`${rect.top}px`, 
-                //left:`${rect.left}px`,  
-                borderRadius:"20px",    
-                transform:`scale(0.8,0.8)`
-            }}    
-        >      
+                background:"rgba(0,0,0,0)",  
+                borderRadius:"20px",  
+                transform:`scale(0.8,0.8)` 
+            }}   
+            useLayerForClickAway={false} 
+            onRequestClose={() => this.props.close()}
+            anchorOrigin={this.props.origin} 
+            targetOrigin={this.props.point}
+        >    
             <div 
+            ref={(e) => { this.ref=e; }}  
             onClick={(e) => {e.stopPropagation();}}  
             style={{     
                 display:"flex",
                 flexDirection:"column",  
-                backgroundColor:"rgb(39,43,53)", 
-                borderRadius: "20px"
+                backgroundColor:"rgb(39,43,53)",  
+                borderRadius: "20px",
+                overflowX:"hidden"  
             }}>    
                 
                 <div style={{
@@ -139,19 +134,22 @@ export class ThingsCalendar extends Component<ThingsCalendarProps,ThingsCalendar
                         height:"15px",
                         cursor:"default" 
                     }}/> 
-                    <div style={{marginLeft:"15px"}}>Today</div>
+                    <div style={{marginLeft:"15px"}}>
+                        Today
+                    </div>
                 </div>
 
-                <div className="hoverDateType"
-                onClick={this.props.onThisEveningClick}
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    color: "white",
-                    cursor: "default",
-                    marginLeft: "20px",
-                    marginRight: "20px",
-                    WebkitUserSelect:"none"  
+                <div  
+                    className="hoverDateType"
+                    onClick={this.props.onThisEveningClick}
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        color: "white",
+                        cursor: "default",
+                        marginLeft: "20px",
+                        marginRight: "20px",
+                        WebkitUserSelect:"none"  
                 }}>
                     <Moon style={{ 
                         transform:"rotate(145deg)", 
@@ -159,8 +157,10 @@ export class ThingsCalendar extends Component<ThingsCalendarProps,ThingsCalendar
                         width:"15px",
                         height:"15px",
                         cursor:"default" 
-                    }}/>
-                    <div style={{marginLeft:"15px"}}>This Evening</div>
+                    }}/> 
+                    <div style={{marginLeft:"15px"}}>
+                        This Evening
+                    </div>
                 </div>
 
                 <div style={{
@@ -192,7 +192,7 @@ export class ThingsCalendar extends Component<ThingsCalendarProps,ThingsCalendar
                     <div style={{marginLeft:"15px"}}>
                         Someday
                     </div>
-                </div>
+                </div> 
                   
                 <div style={{
                     border:"1px solid rgba(200,200,200,0.1)",
@@ -206,49 +206,56 @@ export class ThingsCalendar extends Component<ThingsCalendarProps,ThingsCalendar
                     onAddReminder={this.props.onAddReminderClick}
                     attachedDate={this.props.attachedDate}
                     onClear={this.props.onClear}
+                    reminder={this.props.reminder}
                 /> 
             </div>   
-        </div> 
+        </Popover> 
     } 
 }  
 
  
- 
- 
+
+
 
 
 interface CalendarFooterState{ 
-    openReminderInput : boolean,
-    time:any
+    openReminderInput:boolean,
+    time:any,
+    timeSet:boolean   
 } 
  
 interface CalendarFooterProps{   
-    onAddReminder : (reminder : Date) => void,
-    attachedDate : Date,
-    onClear : (e:any) => void 
+    onAddReminder:(reminder : Date) => void,
+    attachedDate:Date,
+    reminder:Date, 
+    onClear:(e:any) => void 
 }
   
 class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
 
     constructor(props){ 
-        super(props); 
+        super(props);
         this.state = {
+           timeSet:false,
            openReminderInput:false,
-           time:null
-        };  
-    }
-
+           time:this.props.attachedDate ? 
+                this.props.attachedDate.toLocaleTimeString().replace(/[a-z]/ig, "").trim() : 
+                ''
+        };     
+    }  
+ 
 
     onTimeInput = (e) => { 
-        console.log(e, "onTimeInput"); 
+        let time : string = e.target.value.replace(/[a-z]/ig, "").trim();
+        this.setState({time, timeSet:true});
     }
+  
 
-   
     render(){
         return <div>
             { 
             !this.state.openReminderInput ? null :
-            <div> 
+            <div>
                 <div style={{
                     display:"flex", 
                     alignItems:"center", 
@@ -261,9 +268,6 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                         alignItems: "center",
                         justifyContent: "space-around" 
                     }}> 
- 
-    
-
                         <div style={{  
                             display: "flex",
                             alignItems: "center",
@@ -312,21 +316,22 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                                         fontSize:"18px",
                                         backgroundColor:"rgb(87, 87, 87)",
                                         caretColor:"cornflowerblue"  
-                                    }}    
+                                    }}     
                                     placeholder=""    
                                     type="time"  
                                     name="time"  
                                     value={this.state.time}  
                                     onChange={this.onTimeInput}
                                 />   
-                                <div style={{
-                                    position: "absolute",
-                                    right: "0px", 
+                                <div 
+                                onClick={() => this.setState({time:''})}
+                                style={{ 
+                                    cursor: "pointer",
                                     display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center" 
+                                    alignItems: "center", 
+                                    justifyContent: "center"
                                 }}>
-                                    <Clear style={{color:"rgb(192, 192, 192)"}} />
+                                    <Clear style={{color:"rgb(192, 192, 192)"}}/>
                                 </div> 
                             </div>   
                         </div>
@@ -334,7 +339,17 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                     <div style={{display:"flex"}}>  
                         <div>    
                             <RaisedButton
-                                onClick={this.props.onClear}
+                                onClick={() => {
+                                    this.setState({
+                                        timeSet:false, 
+                                        time:this.props.attachedDate ? 
+                                             this.props.attachedDate
+                                                 .toLocaleTimeString()
+                                                 .replace(/[a-z]/ig, "")
+                                                 .trim() : '',  
+                                        openReminderInput:false
+                                    }) 
+                                }}
                                 style={{
                                     margin:"15px",  
                                     color:"white", 
@@ -345,15 +360,28 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                                     backgroundColor:"rgb(87, 87, 87)"
                                 }}
                             > 
-                                Clear  
+                                Clear 
                             </RaisedButton>
                         </div>
-                        <div>  
-                            <RaisedButton 
+                        <div>   
+                            <RaisedButton  
+                                disabled={!this.state.timeSet}
                                 onClick={() => {
+                                    let time = this.state.time; 
+                                    let hours : number = Number(time.split(':')[0]); 
+                                    let minutes : number = Number(time.split(':')[1]); 
+
+                                    if(!isDate(this.props.attachedDate))
+                                       throw new Error(`attachedDate is not of type Date. ${this.props.attachedDate}. Done.`); 
+                                       
+                                    let date = new Date(this.props.attachedDate.getTime());
+                                    date.setHours(hours);
+                                    date.setMinutes(minutes);
+                                    this.props.onAddReminder(date); 
+                                    this.setState({openReminderInput:false, timeSet:false}); 
                                 }}
                                 style={{
-                                    margin:"15px",  
+                                    margin:"15px",   
                                     color:"white", 
                                     backgroundColor:"rgb(87, 87, 87)"
                                 }} 
@@ -367,15 +395,18 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> 
             }
             {  
                 this.state.openReminderInput ? null :
                 <div> 
-                    <AddReminderButton 
-                        openReminderInput={(e) => this.setState({openReminderInput:true})}
-                        disabled={isNil(this.props.attachedDate)}
-                    />
+                    {
+                        this.props.reminder ? null :    
+                        <AddReminderButton 
+                            openReminderInput={(e) => this.setState({openReminderInput:true})}
+                            disabled={isNil(this.props.attachedDate)}
+                        />
+                    }
                     <div style={{width:"90%"}}>
                         <RaisedButton
                             onClick={this.props.onClear}
@@ -422,17 +453,18 @@ class AddReminderButton extends Component<any,{}>{
                 this.props.openReminderInput(e);
             }} 
             style={{
-            display:"flex", 
-            cursor:"default", 
-            alignItems:"center",
-            paddingLeft:"15px", 
-            paddingRight:"15px"  
-        }}>     
-            <Plus style={{       
+                display:"flex", 
+                cursor:"default", 
+                alignItems:"center",    
+                marginLeft:"15px", 
+                marginRight:"15px"  
+            }}  
+        >       
+            <Plus  style={{       
                 color: this.props.disabled ? "rgba(70,70,70,0.5)" : "white",    
-                width:"25px",
+                width:"25px", 
                 height:"25px"     
-            }}/>  
+            }}/>   
             <div style={{
                 fontFamily: "sans-serif",
                 fontWeight: 600, 
@@ -446,79 +478,58 @@ class AddReminderButton extends Component<any,{}>{
         </div>  
     }
 
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+} 
  
 
-
-interface ThingsCalendarSimpleProps{  
+interface DeadlineCalendarProps{   
     close : Function,
     open : boolean,
     origin : any,  
     anchorEl : HTMLElement,
     point : any,    
     onDayClick : (day: Date, modifiers: Object, e : any) => void,
-    onClear : (e:any) => void
+    onClear : (e:any) => void,
+    rootRef : HTMLElement 
 }   
-
-interface ThingsCalendarSimpleState{}
  
-export class ThingsCalendarSimple extends Component<ThingsCalendarSimpleProps,ThingsCalendarSimpleState>{
-
+interface DeadlineCalendarState{} 
+  
+export class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCalendarState>{
+    ref:HTMLElement;
     constructor(props){
         super(props);
     }   
+
+
+    componentDidMount(){ 
+        document.body.addEventListener("click", this.onOutsideClick);
+    }
+
+
+    componentWillUnmount(){
+        document.body.removeEventListener("click", this.onOutsideClick);
+    } 
+  
+
+    onOutsideClick = (e) => {
+        if(this.ref===null || this.ref===undefined)
+            return; 
+
+        let x = e.pageX;
+        let y = e.pageY; 
+
+        let inside = insideTargetArea(this.ref,x,y);
+    
+        if(!inside){
+            this.props.close(); 
+        }   
+    }   
+               
      
     render(){  
         return <Popover 
+            scrollableContainer={this.props.rootRef}
+            useLayerForClickAway={false} 
             open={this.props.open}
             anchorEl={this.props.anchorEl}
             style={{
@@ -533,8 +544,10 @@ export class ThingsCalendarSimple extends Component<ThingsCalendarSimpleProps,Th
         >   
             <div 
             onClick={(e) => {e.stopPropagation();}}  
+            ref={(e) => { this.ref=e; }}   
             style={{     
                 display:"flex",
+                overflowX:"hidden",
                 flexDirection:"column",  
                 backgroundColor:"rgb(39,43,53)", 
                 borderRadius: "20px"

@@ -22,7 +22,6 @@ import { SortableList } from './SortableList';
 import { TodoInput } from './TodoInput/TodoInput';
 import { allPass, isNil, prepend, isEmpty } from 'ramda';
 import { Category } from './MainContainer';
-import { ThingsCalendar } from './ThingsCalendar';
 
 
 
@@ -30,7 +29,7 @@ interface TodosListProps{
     dispatch:Function,
     filters:( (t:Todo) => boolean )[],
     selectedTodoId:string, 
-    selectedCategory:string,
+    selectedCategory:Category,
     isEmpty:(empty:boolean) => void,
     selectedTag:string,  
     rootRef:HTMLElement,   
@@ -140,7 +139,8 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                     <TodoInput   
                         id={value._id}
                         key={value._id} 
-                        dispatch={this.props.dispatch}   
+                        dispatch={this.props.dispatch}  
+                        selectedCategory={this.props.selectedCategory} 
                         tags={this.props.tags} 
                         rootRef={this.props.rootRef}  
                         todo={value}
@@ -283,24 +283,8 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 lock={false}
             />  
             <RightClickMenu {...{} as any}/> 
-
-
-            {  
-                <ThingsCalendar
-                    close = {() => {}}   
-                    open = {true}
-                    anchorEl = {document.body}
-                    attachedDate={new Date()}
-                    onClear = {() => {}}
-                    onDayClick = {() => {}}  
-                    onSomedayClick = {() => {}} 
-                    onTodayClick ={() => {}} 
-                    onThisEveningClick = {() => {}}
-                    onAddReminderClick = {() => {}}
-                />
-            }  
          </div> 
-            
+             
      }   
  } 
  

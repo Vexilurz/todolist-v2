@@ -34,6 +34,7 @@ import PieChart from 'react-minimal-pie-chart';
 import { getProjectLink } from '../Project/ProjectLink';
 import { allPass } from 'ramda';
 import { TodosList } from '../TodosList';
+import { Category } from '../MainContainer';
 
 
  
@@ -44,6 +45,7 @@ interface AreaBodyProps{
     selectedTodoId:string, 
     todos:Todo[],
     tags:string[],
+    selectedCategory:Category, 
     selectedTag:string, 
     rootRef:HTMLElement,
     dispatch:Function
@@ -128,6 +130,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
             <TodoInput   
                 id={value["_id"]} 
                 key = {value["_id"]} 
+                selectedCategory={this.props.selectedCategory}
                 dispatch={this.props.dispatch}   
                 tags={this.props.tags} 
                 rootRef={this.props.rootRef} 
@@ -253,11 +256,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                     tags={this.props.tags} 
                 /> 
             </div>
-
         </div>
-
     }
-
 } 
 
 

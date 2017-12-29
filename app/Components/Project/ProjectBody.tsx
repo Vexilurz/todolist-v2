@@ -73,6 +73,7 @@ let layoutOrderChanged = (before:LayoutItem[], after:LayoutItem[]) : boolean => 
 
 interface ProjectBodyProps{
     layout:LayoutItem[],
+
     updateLayout:(layout:LayoutItem[]) => void,
     updateHeading: (heading_id:string, newValue:string) => void,
     archiveHeading: (heading_id:string) => void,
@@ -169,7 +170,8 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                                     key={value["_id"]} 
                                     dispatch={this.props.dispatch}   
                                     tags={this.props.tags} 
-                                    rootRef={this.props.rootRef} 
+                                    selectedCategory={"project"}
+                                    rootRef={this.props.rootRef}  
                                     todo={value as Todo}
                                 />     
                             </div> 

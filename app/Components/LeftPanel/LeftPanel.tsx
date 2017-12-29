@@ -92,9 +92,9 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         
     constructor(props){  
         super(props);      
-        this.deltaX = window.innerWidth/8; 
+        this.deltaX = window.innerWidth/12; 
         this.state = {
-            collapsed:false,   
+            collapsed:false,     
             fullWindowSize:true,
             ctrlPressed:false  
         }   

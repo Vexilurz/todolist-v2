@@ -35,7 +35,6 @@ import Reorder from 'material-ui/svg-icons/action/reorder';
 let uniqid = require("uniqid");  
 import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
-import { ThingsCalendar } from '.././ThingsCalendar';
 import { 
     insideTargetArea, daysRemaining, 
     todoChanged, daysLeftMark, 
@@ -56,6 +55,7 @@ let shouldUpdateChecklist = (
 
     if(checklistBefore.length!==checklistAfter.length){
        should = true; 
+       return should; 
     }
 
 
@@ -72,10 +72,12 @@ let shouldUpdateChecklist = (
         }
     }
 
+    console.log("shouldUpdateChecklist",should); 
+    
     return should;
 }
 
-
+ 
 
 export interface ChecklistItem{
     text : string, 
@@ -87,7 +89,7 @@ export interface ChecklistItem{
 
 interface ChecklistProps{
     checklist : ChecklistItem[],
-    updateChecklist : (checklist:ChecklistItem[]) => void,  
+    updateChecklist : (checklist:ChecklistItem[]) => void   
 }
 
 interface ChecklistState{} 
@@ -104,20 +106,49 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         return shouldUpdateChecklist(nextProps.checklist, this.props.checklist);
     } 
  
-    onCheckListEnterPress = (event) => {
-        event.stopPropagation();
-
+    onCheckListEnterPress = (event, key) => { 
         if (event.which == 13 || event.keyCode == 13){
-            this.forceUpdate();  
-        }
-    } 
+            event.stopPropagation();
+            let idx : number = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
+         
+            if(idx!==-1){
+               this.forceUpdate(); 
+            }else{
+                let newItem = {
+                    checked:false,  
+                    text:event.target.value,  
+                    idx:this.props.checklist.length, 
+                    key:generateId() 
+                };
+
+                let checklist = append(newItem)(this.props.checklist);
+    
+                this.props.updateChecklist(checklist); 
+            }
+            
+        }  
+    }    
  
-    onChecklistItemBlur = (e) => {
-        this.forceUpdate();   
-    } 
+    onChecklistItemBlur = (event, key) => {
+        let idx : number = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
+        
+        if(idx!==-1){
+            this.forceUpdate(); 
+         }else{
+             let newItem = {
+                 checked:false,  
+                 text:event.target.value,  
+                 idx:this.props.checklist.length, 
+                 key:generateId() 
+             };
+
+             let checklist = append(newItem)(this.props.checklist);
+ 
+             this.props.updateChecklist(checklist); 
+         } 
+    }   
 
     onChecklistItemChange = (key:string, event, newText:string) => {  
-        
         let idx : number = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
         
         if(idx!==-1){
@@ -129,47 +160,23 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
             let checklist = adjust(() => updatedItem, idx, this.props.checklist);
 
             this.props.updateChecklist(checklist);  
-        }else{ 
-             
-            let newItem = {
-                checked:false, 
-                text:newText,  
-                idx:this.props.checklist.length, 
-                key:generateId() 
-            };
-
-            let checklist = prepend(newItem)(this.props.checklist);
- 
-            this.props.updateChecklist(checklist); 
-        }   
-    }   
+        } 
+    }    
    
     onChecklistItemCheck = (e, key:string) => {
         
         let idx = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
             
         if(idx!==-1){
-
-            let item = this.props.checklist[idx];
+ 
+            let item = {...this.props.checklist[idx]};
             
             item.checked=!item.checked;
 
             let checklist = adjust(() => item, idx, this.props.checklist);
-            
+
             this.props.updateChecklist(checklist);  
-        }else{
-
-            let newItem = {
-                checked:true, 
-                text:'',  
-                idx:this.props.checklist.length, 
-                key:generateId() 
-            };
-
-            let checklist = prepend(newItem)(this.props.checklist);
- 
-            this.props.updateChecklist(checklist); 
-        } 
+        }
     }
   
     onSortEnd = ({oldIndex, newIndex, collection}, e) => {
@@ -229,44 +236,57 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                         }}    
                     >        
                     </div>  
-                </div>  
-                 
-                    <TextField  
-                        id={value.key}
+                </div>   
+                    <div    
+                        style={{  
+                            display:"flex",
+                            justifyContent:"space-around",
+                            width:"100%",    
+                            alignItems:"center"
+                        }} 
+                    >    
+                    <TextField     
+                        id={value.key} 
                         fullWidth={true}   
                         defaultValue={value.text}
                         hintStyle={{top:"3px", left:0, width:"100%", height:"100%"}}  
                         style={{height:"28px",cursor:"default"}}  
-                        inputStyle={{color:"rgba(0,0,0,1)", fontSize:"16px"}}    
+                        inputStyle={{
+                            color:"rgba(0,0,0,1)", 
+                            fontSize:"16px",
+                            textDecoration:value.checked ? "line-through" : "none"
+                        }}    
                         underlineFocusStyle={{borderColor: "rgba(0,0,0,0)"}}  
                         underlineStyle={{borderColor: "rgba(0,0,0,0)"}}   
                         onChange={(event, newText:string) => this.onChecklistItemChange(value.key, event, newText)}
-                        onBlur={this.onChecklistItemBlur} 
-                        onKeyPress={this.onCheckListEnterPress}
-                    />     
-    
-                    <DragHandle />
-
+                        onBlur={(event) => this.onChecklistItemBlur(event, value.key)} 
+                        onKeyDown={(event) => this.onCheckListEnterPress(event, value.key)}
+                    /> 
+                    <DragHandle /> 
+                    </div>  
             </div>  
         </li>     
     }
 
-    render(){
+    render(){  
+
+        let blank = { 
+            checked:false,  
+            text:'',  
+            idx:this.props.checklist.length, 
+            key:generateId()
+        };
 
         return <div 
-            style={{marginTop:"5px",marginBottom:"15px"}}
-            onClick={(e) => {e.stopPropagation();}}
+            style={{
+                marginTop:"5px",
+                marginBottom:"15px" 
+            }}
+            onClick={(e) => {e.stopPropagation();}}  
         >     
             <SortableList 
                 getElement={this.getCheckListItem}
-                items={
-                    prepend({ 
-                        checked:false,  
-                        text:'',  
-                        idx:this.props.checklist.length, 
-                        key:generateId()
-                    })(this.props.checklist)
-                }      
+                items={this.props.checklist}      
                 container={document.body}
                 shouldCancelStart={() => false}
                 shouldCancelAnimation={() => false}
@@ -275,9 +295,10 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                 onSortStart={({node, index, collection}, e, helper) => { }}
                 lockToContainerEdges={true}
                 distance={0} 
-                useDragHandle={true} 
-                lock={true}
+                useDragHandle={true}  
+                lock={true} 
             />
+            { this.getCheckListItem(blank, 0) }
         </div>
     }
 }

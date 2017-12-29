@@ -9,11 +9,12 @@ import { Area, Project, Todo } from '../../database';
 import { AreaHeader } from './AreaHeader';
 import { AreaBody } from './AreaBody';
 import { debounce } from '../../utils';
+import { Category } from '../MainContainer';
   
  
 interface AreaComponentProps{
     areas:Area[], 
-    selectedCategory:string, 
+    selectedCategory:Category, 
     selectedAreaId:string,
     selectedTodoId:string, 
     selectedTag:string, 
@@ -124,6 +125,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                     area={this.state.area} 
                     projects={this.props.projects}
                     selectedTodoId={this.props.selectedTodoId}
+                    selectedCategory={this.props.selectedCategory}
                     todos={this.props.todos} 
                     tags={this.props.tags}
                     selectedTag={this.props.selectedTag}

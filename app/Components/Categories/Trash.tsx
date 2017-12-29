@@ -19,12 +19,13 @@ import { TodoInput } from '../TodoInput/TodoInput';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { uniq, compose, contains } from 'ramda';
 import { isString } from 'util';
+import { Category } from '../MainContainer';
 
  
 
 interface TrashProps{ 
     dispatch:Function,
-    selectedCategory:string,  
+    selectedCategory:Category,  
     tags:string[],
     selectedTodoId:string,  
     selectedTag:string,
@@ -199,6 +200,7 @@ export class Trash extends Component<TrashProps,TrashState>{
                 <TodoInput   
                     id={value._id}
                     key = {value._id} 
+                    selectedCategory={this.props.selectedCategory}
                     dispatch={this.props.dispatch}   
                     tags={this.props.tags} 
                     rootRef={this.props.rootRef} 

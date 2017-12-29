@@ -21,19 +21,18 @@ interface TagsProps{
   } 
   
 export class Tags extends Component<TagsProps,{}>{
-  
-      constructor(props){
-          super(props);
-      }
 
-      selectTagBackgroundColor = (tag,selectedTag) => {
+  
+ 
+
+    selectTagBackgroundColor = (tag,selectedTag) => {
 
         if(this.props.selectedTag==="All" && tag==="All"){
 
             return "dimgray";
 
         }else if(this.props.selectedTag==="High" && tag==="High"){
- 
+
             return "red";
             
         }else if(this.props.selectedTag === tag && tag!=="All" && tag!=="High"){
@@ -45,11 +44,11 @@ export class Tags extends Component<TagsProps,{}>{
             return "white";
 
         }
-        
-      }
+    
+    }
+  
 
-
-      selectTagFontColor = (tag,selectedTag) => {
+    selectTagFontColor = (tag,selectedTag) => {
 
 
         if(this.props.selectedTag==="All" && tag==="All"){
@@ -57,7 +56,7 @@ export class Tags extends Component<TagsProps,{}>{
             return "white";
 
         }else if(this.props.selectedTag==="High" && tag==="High"){
-    
+
             return "white";
             
         }else if(this.props.selectedTag === tag && tag!=="All" && tag!=="High"){
@@ -69,7 +68,7 @@ export class Tags extends Component<TagsProps,{}>{
             return "dimgray";
 
         }
-      }  
+    }  
       
   
       render(){
@@ -82,18 +81,20 @@ export class Tags extends Component<TagsProps,{}>{
                                 <div className="chip"      
                                     onClick={() => this.props.selectTag(tag)} 
                                     style={{
-                                        width: "auto",
-                                        height: "20px", 
-                                        alignItems: "center",
-                                        display: "flex",
-                                        cursor: "pointer",
-                                        borderRadius: "100px", 
-                                        backgroundColor: this.selectTagBackgroundColor(tag,this.props.selectedTag),
+                                        width:"auto",
+                                        height:"25px", 
+                                        alignItems:"center",   
+                                        display:"flex",
+                                        paddingLeft:"5px",
+                                        paddingRight:"5px", 
+                                        cursor:"pointer",
+                                        borderRadius:"100px", 
+                                        backgroundColor:this.selectTagBackgroundColor(tag,this.props.selectedTag),
                                         color:this.selectTagFontColor(tag,this.props.selectedTag),                  
-                                        fontWeight: 700 
-                                    }}    
-                                >  
-                                    <div style={{padding:"8px"}}>{tag}</div> 
+                                        fontWeight:700 
+                                    }}     
+                                >   
+                                    <div style={{padding:"4px"}}>{tag}</div> 
                                 </div> 
                             </div>   
                         )
@@ -102,4 +103,4 @@ export class Tags extends Component<TagsProps,{}>{
       }
   } 
   
-  
+   

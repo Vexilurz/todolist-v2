@@ -30,41 +30,74 @@ import Reorder from 'material-ui/svg-icons/action/reorder';
 let uniqid = require("uniqid");  
 import Popover from 'material-ui/Popover';
 import { Todo } from '../../database';
-import { uppercase } from '../../utils';
+import { uppercase, insideTargetArea } from '../../utils';
 
 
 
 
-interface TagsPopoverProps{
+interface TagsPopupProps{
     tags:string[], 
     close : Function,
     open : boolean,
     attachTag:(tag:string) => void,
     origin : any,  
+    rootRef : HTMLElement, 
     anchorEl : HTMLElement,
     point : any
 }  
 
  
  
-export class TagsPopover extends Component<TagsPopoverProps,{}>{
-     
-        constructor(props){
-            super(props);  
-        }  
-
+export class TagsPopup extends Component<TagsPopupProps,{}>{
     
+        ref:HTMLElement; 
+        
+        constructor(props){
+            super(props);
+        }
+
+
+        componentDidMount(){ 
+            document.body.addEventListener("click", this.onOutsideClick);
+        }
+
+
+        componentWillUnmount(){
+            document.body.removeEventListener("click", this.onOutsideClick);
+        } 
+
+
+        onOutsideClick = (e) => {
+            if(this.ref===null || this.ref===undefined)
+                return; 
+
+            let x = e.pageX;
+            let y = e.pageY; 
+
+            let inside = insideTargetArea(this.ref,x,y);
+        
+            if(!inside){
+                this.props.close(); 
+            }   
+        }      
+                
         render(){ 
             return <Popover  
                 open={this.props.open}
-                style={{background:"rgba(39, 43, 53, 0)", backgroundColor:"rgb(39, 43, 53, 0)"}}
+                style={{
+                    background:"rgba(39, 43, 53, 0)", 
+                    backgroundColor:"rgb(39, 43, 53, 0)"
+                }}
                 anchorEl={this.props.anchorEl}
-                onRequestClose={() => this.props.close()}
+                onRequestClose={this.props.close}
+                scrollableContainer={this.props.rootRef}
+                useLayerForClickAway={false} 
                 anchorOrigin={this.props.origin} 
                 targetOrigin={this.props.point} 
-                zDepth={0}
+                zDepth={0}        
             >      
-                <div 
+                <div   
+                    ref={(e) => { this.ref=e; }}
                     className={"darkscroll"}
                     onClick = {(e) => { 
                         e.stopPropagation();
@@ -156,23 +189,23 @@ export class TodoTags extends Component<TodoTagsProps,{}>{
                 (tag:string, index:number) => 
                 <div  
                     key={`${tag}-${index}`} 
-                    style={{
-                        paddingLeft:"5px", 
-                        paddingRight:"5px", 
-                        paddingTop:"5px",  
-                        cursor:"default", 
+                    style={{ 
+                        paddingLeft:"4px", 
+                        paddingRight:"4px", 
+                        paddingTop:"4px",  
+                        cursor:"default",  
                         WebkitUserSelect:"none"
-                    }} 
+                    }}   
                 > 
                     <div style={{
                         borderRadius:"15px", 
                         backgroundColor:"rgb(189,219,209)",
+                        paddingLeft:"5px",
+                        paddingRight:"5px"   
                     }}>
                         <div style={{
-                            paddingLeft: "10px",
-                            paddingTop: "5px",
-                            paddingBottom: "5px",
-                            paddingRight: "10px",
+                            height:"20px",
+                            padding:"4px", 
                             color:"rgb(115,167,152)",
                             fontWeight: 600 
                         }}> 
