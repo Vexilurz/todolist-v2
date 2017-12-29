@@ -36,7 +36,7 @@ let onReady = () => {
     let width = mainWindowWidth*(workingArea.width/100); 
     let height = mainWindowHeight*(workingArea.height/100); 
 
-    width = width <= 800 ? width : 800; 
+    //width = width <= 800 ? width : 800; 
   
     preventAnnoyingErrorPopups();     
      
@@ -47,7 +47,7 @@ let onReady = () => {
     updater = new AppUpdater(); 
    
     loadApp(mainWindow)    
-    .then(() => {  
+    .then(() => {    
 
         mainWindow.webContents.send(
             "loaded",  

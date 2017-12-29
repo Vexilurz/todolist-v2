@@ -19,7 +19,7 @@ import { remove } from 'ramda';
 let uniqid = require("uniqid");   
  
  
-  
+   
 
  
 interface RightClickMenuState{}  
@@ -32,7 +32,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
     constructor(props){
        super(props);
     }
- 
+      
 
     componentDidMount(){ 
         

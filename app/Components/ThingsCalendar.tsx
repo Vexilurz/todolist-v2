@@ -16,15 +16,15 @@ import BusinessCase from 'material-ui/svg-icons/places/business-center';
 import RaisedButton from 'material-ui/RaisedButton';
 import { Category } from './MainContainer';  
 import Clear from 'material-ui/svg-icons/content/clear'; 
+import { insideTargetArea } from '../utils';
+import { isNil } from 'ramda';
  
 
 interface ThingsCalendarProps{ 
     close : Function,
-    open : boolean,
-    origin : any,  
+    open : boolean, 
     anchorEl : HTMLElement,
     attachedDate : Date,
-    point : any,  
     onDayClick : (day:Date, modifiers:Object, e:any) => void,
     onSomedayClick : (e:any) => void,  
     onTodayClick : (e:any) => void, 
@@ -35,32 +35,74 @@ interface ThingsCalendarProps{
        
  
 
-interface ThingsCalendarState{}
+interface ThingsCalendarState{
+    zIndex:number,
+}
  
  
 
 export class ThingsCalendar extends Component<ThingsCalendarProps,ThingsCalendarState>{
 
+    ref:HTMLElement; 
+    
     constructor(props){
         super(props);
-    }   
+        this.state={zIndex:3000000}; 
+    }
      
     
+    componentDidMount(){ 
+        
+        window.addEventListener("click", this.onOutsideClick);
+     
+    }
  
+
+    componentWillUnmount(){
+
+        window.removeEventListener("click", this.onOutsideClick);
+    }
+     
+    
+    onOutsideClick = (e) => {
+        
+        if(this.ref===null || this.ref===undefined)
+            return; 
+ 
+        let x = e.pageX;
+        let y = e.pageY; 
+
+        let inside = insideTargetArea(this.ref,x,y);
+    
+        if(!inside){
+            this.props.close(); 
+        }      
+    }   
+     
+
     render(){  
-        return <Popover 
-            open={this.props.open}
-            anchorEl={this.props.anchorEl}
-            style={{ 
+
+        if(!this.props.open)
+            return null; 
+
+        if(!this.props.anchorEl)
+            return null; 
+        
+        let rect = this.props.anchorEl.getBoundingClientRect();
+   
+
+        return <div 
+            style={{    
+                position:"absolute",
                 backgroundColor:"rgba(0,0,0,0)",
-                background:"rgba(0,0,0,0)",  
-                borderRadius:"20px",  
+                background:"rgba(0,0,0,0)", 
+                zIndex:30002,     
+                //top:`${rect.top}px`, 
+                //left:`${rect.left}px`,  
+                borderRadius:"20px",    
                 transform:`scale(0.8,0.8)`
-            }}   
-            onRequestClose={() => this.props.close()}
-            anchorOrigin={this.props.origin} 
-            targetOrigin={this.props.point}
-        >   
+            }}    
+        >      
             <div 
             onClick={(e) => {e.stopPropagation();}}  
             style={{     
@@ -165,19 +207,19 @@ export class ThingsCalendar extends Component<ThingsCalendarProps,ThingsCalendar
                     attachedDate={this.props.attachedDate}
                     onClear={this.props.onClear}
                 /> 
-            </div>  
-        </Popover> 
+            </div>   
+        </div> 
     } 
 }  
 
  
-
-
+ 
+ 
 
 
 interface CalendarFooterState{ 
     openReminderInput : boolean,
-    time:any  
+    time:any
 } 
  
 interface CalendarFooterProps{   
@@ -189,10 +231,10 @@ interface CalendarFooterProps{
 class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
 
     constructor(props){ 
-        super(props);
+        super(props); 
         this.state = {
            openReminderInput:false,
-           time:null 
+           time:null
         };  
     }
 
@@ -201,12 +243,12 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
         console.log(e, "onTimeInput"); 
     }
 
-
+   
     render(){
         return <div>
             { 
             !this.state.openReminderInput ? null :
-            <div>
+            <div> 
                 <div style={{
                     display:"flex", 
                     alignItems:"center", 
@@ -303,13 +345,12 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                                     backgroundColor:"rgb(87, 87, 87)"
                                 }}
                             > 
-                                Clear 
+                                Clear  
                             </RaisedButton>
                         </div>
                         <div>  
                             <RaisedButton 
                                 onClick={() => {
-                                    this.props.onAddReminder
                                 }}
                                 style={{
                                     margin:"15px",  
@@ -331,57 +372,81 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
             {  
                 this.state.openReminderInput ? null :
                 <div> 
-                    <div  
-                    className="hoverDateType"
-                    onClick = {(e) => this.setState({openReminderInput:true})} 
-                    style={{
-                        display:"flex", 
-                        cursor:"default", 
-                        alignItems:"center",
-                        paddingLeft:"15px", 
-                        paddingRight:"15px"  
-                    }}>     
-                        <Plus style={{       
-                            color: "white",    
-                            width:"25px",
-                            height:"25px"    
-                        }} /> 
-                        <div style={{
-                            fontFamily: "sans-serif",
-                            fontWeight: 600, 
-                            color: "white",  
-                            fontSize: "15px",  
-                            cursor: "default",
-                            WebkitUserSelect: "none" 
-                        }}> 
-                            Add reminder  
-                        </div>      
-                    </div>  
+                    <AddReminderButton 
+                        openReminderInput={(e) => this.setState({openReminderInput:true})}
+                        disabled={isNil(this.props.attachedDate)}
+                    />
                     <div style={{width:"90%"}}>
-                    <RaisedButton
-                        onClick={this.props.onClear}
-                        style={{
-                            width:"100%", 
-                            margin:"15px",  
-                            color:"white",  
-                            backgroundColor:"rgb(87, 87, 87)"
-                        }} 
-                        buttonStyle={{  
-                            color:"white",  
-                            backgroundColor:"rgb(87, 87, 87)"
-                        }}
-                    >
-                        Clear 
-                    </RaisedButton>
+                        <RaisedButton
+                            onClick={this.props.onClear}
+                            style={{
+                                width:"100%", 
+                                margin:"15px",  
+                                color:"white",  
+                                backgroundColor:"rgb(87, 87, 87)"
+                            }} 
+                            buttonStyle={{  
+                                color:"white",  
+                                backgroundColor:"rgb(87, 87, 87)"
+                            }}
+                        >
+                            Clear 
+                        </RaisedButton>
                     </div>
                 </div>
             }
         </div>
     } 
 }
-
  
  
+ 
+interface AddReminderButtonProps{
+    openReminderInput:Function,
+    disable:boolean 
+}
+
+
+class AddReminderButton extends Component<any,{}>{
+
+    constructor(props){
+        super(props);
+    }
+
+ 
+    render(){
+        return <div  
+            className={this.props.disabled ? "" : "hoverDateType"}
+            onClick = {(e) => { 
+                this.props.disabled ? null : 
+                this.props.openReminderInput(e);
+            }} 
+            style={{
+            display:"flex", 
+            cursor:"default", 
+            alignItems:"center",
+            paddingLeft:"15px", 
+            paddingRight:"15px"  
+        }}>     
+            <Plus style={{       
+                color: this.props.disabled ? "rgba(70,70,70,0.5)" : "white",    
+                width:"25px",
+                height:"25px"     
+            }}/>  
+            <div style={{
+                fontFamily: "sans-serif",
+                fontWeight: 600, 
+                color: this.props.disabled ? "rgba(70,70,70,0.5)" : "white",  
+                fontSize: "15px",  
+                cursor: "default",
+                WebkitUserSelect: "none"   
+            }}> 
+                Add reminder  
+            </div>      
+        </div>  
+    }
+
+}
 
 
 
@@ -397,6 +462,41 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
 
 
 interface ThingsCalendarSimpleProps{  

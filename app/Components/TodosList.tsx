@@ -22,6 +22,7 @@ import { SortableList } from './SortableList';
 import { TodoInput } from './TodoInput/TodoInput';
 import { allPass, isNil, prepend, isEmpty } from 'ramda';
 import { Category } from './MainContainer';
+import { ThingsCalendar } from './ThingsCalendar';
 
 
 
@@ -182,9 +183,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
         return x < rect.left;   
 
-     }  
+     }   
 
-
+ 
 
      onSortStart = ({node, index, collection}, e, helper) => { 
 
@@ -261,13 +262,12 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             WebkitUserSelect:"none", 
             position:"relative"
         }}>  
-            { 
-                <Placeholder   
-                    helper={this.state.helper}
-                    currentIndex={this.state.currentIndex}
-                    show={this.state.showPlaceholder}
-                /> 
-            }
+            
+            <Placeholder   
+                helper={this.state.helper}
+                currentIndex={this.state.currentIndex}
+                show={this.state.showPlaceholder}
+            /> 
             <SortableList   
                 getElement={this.getTodoElement}
                 container={this.props.rootRef} 
@@ -283,9 +283,25 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 lock={false}
             />  
             <RightClickMenu {...{} as any}/> 
+
+
+            {  
+                <ThingsCalendar
+                    close = {() => {}}   
+                    open = {true}
+                    anchorEl = {document.body}
+                    attachedDate={new Date()}
+                    onClear = {() => {}}
+                    onDayClick = {() => {}}  
+                    onSomedayClick = {() => {}} 
+                    onTodayClick ={() => {}} 
+                    onThisEveningClick = {() => {}}
+                    onAddReminderClick = {() => {}}
+                />
+            }  
          </div> 
             
-     }  
+     }   
  } 
  
  

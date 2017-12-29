@@ -44,10 +44,36 @@ import {
 import { Category } from '.././MainContainer';
 import { Todo, removeTodo, updateTodo, generateId } from '../../database';
 import { SortableList } from '../SortableList';
-import { replace, adjust } from 'ramda';
+import { replace, adjust, append, prepend, isEmpty } from 'ramda';
 
 
+let shouldUpdateChecklist = (
+    checklistBefore:ChecklistItem[],
+    checklistAfter:ChecklistItem[]
+) : boolean => {
 
+    let should = false;
+
+    if(checklistBefore.length!==checklistAfter.length){
+       should = true; 
+    }
+
+
+    for(let i=0; i<checklistBefore.length; i++){
+        let before = checklistBefore[i];
+        let after = checklistAfter[i];
+
+        if(before.checked!==after.checked){
+           should = true; 
+        }else if(before.idx!==after.idx){
+           should = true; 
+        }else if(before.key!==after.key){
+           should = true; 
+        }
+    }
+
+    return should;
+}
 
 
 
@@ -70,99 +96,82 @@ interface ChecklistState{}
 
 export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
-    checklist : ChecklistItem[]
-
     constructor(props){
-
         super(props); 
-
-        this.checklist = [...this.props.checklist]; 
-
     }
- 
-
+  
     shouldComponentUpdate(nextProps:ChecklistProps){
+        return shouldUpdateChecklist(nextProps.checklist, this.props.checklist);
+    } 
+ 
+    onCheckListEnterPress = (event) => {
+        event.stopPropagation();
 
-        return nextProps.checklist!==this.props.checklist;
-    
-    }
-
-
-    updateChecklist = () => {
-        
-        let allNotEmpty = this.checklist.reduce((acc, val) => acc && val.text.length>0, true);
-        
-        if(allNotEmpty){    
-
-            this.checklist = [ 
-                ...this.checklist,
-                {
-                    checked:false, 
-                    text:'',  
-                    idx:this.checklist.length, 
-                    key:generateId()
-                }
-            ]; 
-
-        } 
-
-        this.props.updateChecklist(this.checklist);  
-     
-    }
-
+        if (event.which == 13 || event.keyCode == 13){
+            this.forceUpdate();  
+        }
+    } 
+ 
+    onChecklistItemBlur = (e) => {
+        this.forceUpdate();   
+    } 
 
     onChecklistItemChange = (key:string, event, newText:string) => {  
         
-        let idx = this.checklist.findIndex((c:ChecklistItem) => c.key===key);
+        let idx : number = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
         
         if(idx!==-1){
 
-            let updatedItem = {...this.checklist[idx]};
+            let updatedItem = {...this.props.checklist[idx]};
                 
             updatedItem.text = newText; 
 
-            this.checklist = adjust(() => updatedItem, idx, this.checklist)
-            
+            let checklist = adjust(() => updatedItem, idx, this.props.checklist);
+
+            this.props.updateChecklist(checklist);  
+        }else{ 
+             
+            let newItem = {
+                checked:false, 
+                text:newText,  
+                idx:this.props.checklist.length, 
+                key:generateId() 
+            };
+
+            let checklist = prepend(newItem)(this.props.checklist);
+ 
+            this.props.updateChecklist(checklist); 
         }   
-
-    } 
-
-
+    }   
+   
     onChecklistItemCheck = (e, key:string) => {
         
-        let idx = this.checklist.findIndex((c:ChecklistItem) => c.key===key);
+        let idx = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
             
         if(idx!==-1){
 
-            let item = this.checklist[idx];
+            let item = this.props.checklist[idx];
             
             item.checked=!item.checked;
 
-            this.checklist = adjust(() => item, idx, this.checklist)
+            let checklist = adjust(() => item, idx, this.props.checklist);
             
-            this.updateChecklist(); 
-                    
-        } 
+            this.props.updateChecklist(checklist);  
+        }else{
 
+            let newItem = {
+                checked:true, 
+                text:'',  
+                idx:this.props.checklist.length, 
+                key:generateId() 
+            };
+
+            let checklist = prepend(newItem)(this.props.checklist);
+ 
+            this.props.updateChecklist(checklist); 
+        } 
     }
   
-        
-    onCheckListEnterPress = (event) => {
-
-        if (event.which == 13 || event.keyCode == 13) 
-            this.updateChecklist(); 
-             
-    } 
-         
-        
-    onChecklistItemBlur = (e) => {
-            
-        this.updateChecklist();  
-
-    } 
-
-
-
     onSortEnd = ({oldIndex, newIndex, collection}, e) => {
         
         let updateIndex = (el:ChecklistItem,idx:number) => {
@@ -172,13 +181,11 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
         let moved = arrayMove([...this.props.checklist],oldIndex,newIndex);
 
-        this.checklist = moved.map(updateIndex);  
+        let checklist = moved.map(updateIndex).filter((el:ChecklistItem) => !isEmpty(el.text));  
 
-        this.updateChecklist(); 
-            
-    }
+        this.props.updateChecklist(checklist); 
+    } 
         
-
     getCheckListItem = (value:ChecklistItem, index:number) => {
         
         const DragHandle = SortableHandle(() => 
@@ -244,17 +251,22 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         </li>     
     }
 
- 
-
     render(){
 
         return <div 
             style={{marginTop:"5px",marginBottom:"15px"}}
             onClick={(e) => {e.stopPropagation();}}
-        >   
+        >     
             <SortableList 
                 getElement={this.getCheckListItem}
-                items={this.props.checklist}    
+                items={
+                    prepend({ 
+                        checked:false,  
+                        text:'',  
+                        idx:this.props.checklist.length, 
+                        key:generateId()
+                    })(this.props.checklist)
+                }      
                 container={document.body}
                 shouldCancelStart={() => false}
                 shouldCancelAnimation={() => false}
@@ -267,11 +279,9 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                 lock={true}
             />
         </div>
-
     }
-
-
 }
 
  
 
+    
