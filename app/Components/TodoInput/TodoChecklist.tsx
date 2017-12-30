@@ -95,7 +95,7 @@ interface ChecklistProps{
 interface ChecklistState{} 
 
   
-
+ 
 export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
     constructor(props){
@@ -106,48 +106,6 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         return shouldUpdateChecklist(nextProps.checklist, this.props.checklist);
     } 
  
-    onCheckListEnterPress = (event, key) => { 
-        if (event.which == 13 || event.keyCode == 13){
-            event.stopPropagation();
-            let idx : number = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
-         
-            if(idx!==-1){
-               this.forceUpdate(); 
-            }else{
-                let newItem = {
-                    checked:false,  
-                    text:event.target.value,  
-                    idx:this.props.checklist.length, 
-                    key:generateId() 
-                };
-
-                let checklist = append(newItem)(this.props.checklist);
-    
-                this.props.updateChecklist(checklist); 
-            }
-            
-        }  
-    }    
- 
-    onChecklistItemBlur = (event, key) => {
-        let idx : number = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
-        
-        if(idx!==-1){
-            this.forceUpdate(); 
-         }else{
-             let newItem = {
-                 checked:false,  
-                 text:event.target.value,  
-                 idx:this.props.checklist.length, 
-                 key:generateId() 
-             };
-
-             let checklist = append(newItem)(this.props.checklist);
- 
-             this.props.updateChecklist(checklist); 
-         } 
-    }   
-
     onChecklistItemChange = (key:string, event, newText:string) => {  
         let idx : number = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
         
@@ -191,7 +149,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         let checklist = moved.map(updateIndex).filter((el:ChecklistItem) => !isEmpty(el.text));  
 
         this.props.updateChecklist(checklist); 
-    } 
+    }  
         
     getCheckListItem = (value:ChecklistItem, index:number) => {
         
@@ -205,20 +163,19 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
             
         return <li style={{width:"100%"}}>  
-
-            <div className="toggleFocus"
+            <div 
+            //className="toggleFocus"
                  style={{   
                     transition: "opacity 0.4s ease-in-out", 
                     opacity:1,
                     width:"100%", 
                     fontSize:"16px",
-                    border:"1px solid rgba(150,150,150,0.1)",
+                    //border:"1px solid rgba(150,150,150,0.1)",
                     borderRadius:"5px",
                     alignItems:"center", 
                     display:"flex",   
                  }} 
             >  
- 
                 <div>
                     <div  onClick={(e) => this.onChecklistItemCheck(e, value.key)}
                         style={{
@@ -238,53 +195,82 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                     </div>  
                 </div>   
                     <div    
-                        style={{  
+                        style={{   
                             display:"flex",
                             justifyContent:"space-around",
                             width:"100%",    
                             alignItems:"center"
                         }} 
                     >    
-                    <TextField     
-                        id={value.key} 
-                        fullWidth={true}   
-                        defaultValue={value.text}
-                        hintStyle={{top:"3px", left:0, width:"100%", height:"100%"}}  
-                        style={{height:"28px",cursor:"default"}}  
-                        inputStyle={{
-                            color:"rgba(0,0,0,1)", 
-                            fontSize:"16px",
-                            textDecoration:value.checked ? "line-through" : "none"
-                        }}    
-                        underlineFocusStyle={{borderColor: "rgba(0,0,0,0)"}}  
-                        underlineStyle={{borderColor: "rgba(0,0,0,0)"}}   
-                        onChange={(event, newText:string) => this.onChecklistItemChange(value.key, event, newText)}
-                        onBlur={(event) => this.onChecklistItemBlur(event, value.key)} 
-                        onKeyDown={(event) => this.onCheckListEnterPress(event, value.key)}
-                    /> 
-                    <DragHandle /> 
+                        <TextField     
+                            id={value.key} 
+                            fullWidth={true}   
+                            defaultValue={value.text}
+                            hintStyle={{top:"3px", left:0, width:"100%", height:"100%"}}  
+                            style={{height:"28px",cursor:"default"}}  
+                            inputStyle={{
+                                color:"rgba(0,0,0,1)", 
+                                fontSize:"16px",
+                                textDecoration:value.checked ? "line-through" : "none"
+                            }}    
+                            underlineFocusStyle={{borderColor: "rgba(0,0,0,0)"}}  
+                            underlineStyle={{borderColor: "rgba(0,0,0,0)"}}   
+                            onChange={(event, newText:string) => this.onChecklistItemChange(value.key, event, newText)}
+                            onKeyDown={(event) => { 
+                                if(event.which == 13 || event.keyCode == 13){
+                                   event.stopPropagation();
+                                }      
+                            }} 
+                        />  
+                        <DragHandle /> 
                     </div>  
             </div>  
         </li>     
+    } 
+
+
+    onBlankBlur = (event) => {
+        if(event.target.value==='')
+           return;  
+
+        let newItem = {
+            checked:false,  
+            text:event.target.value,  
+            idx:this.props.checklist.length, 
+            key:generateId() 
+        };
+ 
+        let checklist = append(newItem)(this.props.checklist);
+        this.props.updateChecklist(checklist); 
+    }
+
+
+    onBlankEnterPress = (event) => { 
+        if(event.which == 13 || event.keyCode == 13){
+            event.stopPropagation();
+
+            if(event.target.value==='')
+               return;  
+                 
+            let newItem = { 
+                checked:false,  
+                text:event.target.value,  
+                idx:this.props.checklist.length, 
+                key:generateId() 
+            };
+
+            let checklist = append(newItem)(this.props.checklist);
+            this.props.updateChecklist(checklist); 
+        }     
     }
 
     render(){  
-
-        let blank = { 
-            checked:false,  
-            text:'',  
-            idx:this.props.checklist.length, 
-            key:generateId()
-        };
-
+ 
         return <div 
-            style={{
-                marginTop:"5px",
-                marginBottom:"15px" 
-            }}
+            style={{marginTop:"5px",marginBottom:"15px"}}
             onClick={(e) => {e.stopPropagation();}}  
         >     
-            <SortableList 
+            <SortableList  
                 getElement={this.getCheckListItem}
                 items={this.props.checklist}      
                 container={document.body}
@@ -298,11 +284,66 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                 useDragHandle={true}  
                 lock={true} 
             />
-            { this.getCheckListItem(blank, 0) }
+            {   
+                <div
+                    style={{   
+                        transition: "opacity 0.4s ease-in-out", 
+                        opacity:1,
+                        width:"100%", 
+                        fontSize:"16px",
+                        //border:"1px solid rgba(150,150,150,0.1)",
+                        borderRadius:"5px",
+                        alignItems:"center", 
+                        display:"flex",   
+                    }} 
+                >  
+                    <div> 
+                        <div
+                            style={{
+                                backgroundColor:'',
+                                width:"15px",  
+                                height:"15px",
+                                borderRadius:"50px",
+                                display:"flex",
+                                justifyContent:"center",
+                                position:"relative", 
+                                border:"2px solid rgb(10, 100, 240)",
+                                boxSizing:"border-box",
+                                marginRight:"5px",
+                                marginLeft:"5px" 
+                            }}    
+                        >        
+                        </div>  
+                    </div>   
+                        <div     
+                            key={generateId()}
+                            style={{   
+                                display:"flex",
+                                justifyContent:"space-around",
+                                width:"100%",    
+                                alignItems:"center"
+                            }}  
+                        >    
+                            <TextField       
+                                id={generateId()} 
+                                key={generateId()}
+                                fullWidth={true}   
+                                defaultValue={''}
+                                hintStyle={{top:"3px", left:0, width:"100%", height:"100%"}}  
+                                style={{height:"28px", cursor:"default"}}  
+                                inputStyle={{
+                                    color:"rgba(0,0,0,1)",    
+                                    fontSize:"16px",
+                                    textDecoration:"none"
+                                }}    
+                                underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}}  
+                                underlineStyle={{borderColor:"rgba(0,0,0,0)"}}   
+                                onBlur={this.onBlankBlur}  
+                                onKeyDown={this.onBlankEnterPress} 
+                            />  
+                        </div>  
+                </div>   
+            }
         </div>
     }
 }
-
- 
-
-    

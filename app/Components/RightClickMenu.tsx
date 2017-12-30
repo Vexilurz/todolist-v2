@@ -8,7 +8,6 @@ import { Provider, connect } from "react-redux";
 import ClearArrow from 'material-ui/svg-icons/content/backspace';   
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
-import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import Popover from 'material-ui/Popover';
 import { attachDispatchToProps, insideTargetArea } from '../utils';
 import { Todo, removeTodo, addTodo, generateId, Project, Area, LayoutItem } from '../database';

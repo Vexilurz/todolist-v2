@@ -31,7 +31,6 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books'; 
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
-import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 import Popover from 'material-ui/Popover';
 import { generateId, addProject, Project, Area, addArea, Todo } from '../../database';
 import Clear from 'material-ui/svg-icons/content/clear';
@@ -51,7 +50,9 @@ import { QuickSearch } from '../Search';
 interface ItemsAmount{
     inbox:number,
     today:number,
-    hot:number 
+    hot:number,
+    trash:number,
+    logbook:number  
 }
 
  
@@ -63,18 +64,22 @@ let calculateAmount = (props:Store) : ItemsAmount => {
     let inboxFilters = [byCategory("inbox"),byNotCompleted,byNotDeleted]; 
  
     let todayFilters = [todayFilter, byNotCompleted, byNotDeleted];
+
+    let trashFilters = [byDeleted];
+
+    let logbookFilters = [byCompleted, byNotDeleted]; 
     
     let hotFilters = [todayFilter, byNotCompleted, byNotDeleted, hotFilter];
-       
- 
-    return {    
+        
+    return {      
         inbox:props.todos.filter( (t:Todo) => allPass(inboxFilters)(t) ).length,
         today:props.todos.filter( (t:Todo) => allPass(todayFilters)(t) ).length,
-        hot:props.todos.filter( (t:Todo) => allPass(hotFilters)(t) ).length
+        hot:props.todos.filter( (t:Todo) => allPass(hotFilters)(t) ).length,
+        trash:props.todos.filter( (t:Todo) => allPass(trashFilters)(t) ).length, 
+        logbook:props.todos.filter( (t:Todo) => allPass(logbookFilters)(t) ).length
     }  
-  
-}
-
+} 
+ 
 
   
 interface LeftPanelState{ 
@@ -176,9 +181,10 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
  
     render(){     
 
-        let {inbox,today,hot} : ItemsAmount = calculateAmount(this.props);
-                  
-        return  <div     
+        let {inbox,today,hot,trash,logbook} : ItemsAmount = calculateAmount(this.props);
+                   
+        return  <div      
+                    id="leftpanel"
                     className="scroll"
                     style={{
                         display: "flex",   
@@ -229,6 +235,8 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             inbox={inbox} 
                             today={today} 
                             hot={hot} 
+                            trash={trash}
+                            logbook={logbook}
                         />    
                     </div>
 

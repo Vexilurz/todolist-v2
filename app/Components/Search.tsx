@@ -346,14 +346,12 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
     
     }
     
-
+    
 
     render(){ 
-   
         return <div 
             ref={(e) => { this.ref=e; }}
             style={{   
-                boxShadow: "0 0 18px rgba(0,0,0,0.2)", 
                 zIndex: 30000,
                 borderRadius: "5px",
                 position: "absolute",

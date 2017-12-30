@@ -8,7 +8,7 @@ import {
 } from './database';
 import { 
     getTagsFromItems, defaultTags, removeDeletedProjects, 
-    removeDeletedAreas, removeDeletedTodos, changePriority, Item, ItemWithPriority 
+    removeDeletedAreas, removeDeletedTodos, Item, ItemWithPriority 
 } from './utils';
 import { adjust, cond, equals, all, clone } from 'ramda';
 
@@ -176,79 +176,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                     areas:adjust(() => area, idx, state.areas)
                 } 
             }
-        ], 
-
-        [ 
-            (action:{type:string}) => "changeTodosPriority"===action.type,
-
-            (action:{type:string, load:{fromId:string,toId:string} }) : Store => {
-
-                let from  = state.todos.findIndex( (t:Todo) => t._id===action.load.fromId );
-                let to  = state.todos.findIndex( (t:Todo) => t._id===action.load.toId );
-
-                let fromItemBefore = {...state.todos[from]};
-                let toItemBefore = {...state.todos[to]};
-                  
-                let items = changePriority(from,to,state.todos) as Todo[];
-                 
-                let fromItem = items[from];
-                let toItem = items[to];  
-
-                if( all((i:Item) => i.type==="todo", items) ){
-                    updateTodos([fromItem,toItem] as Todo[],onError);
-                }else{
-                    throw new Error(`Not all objects are of type Todo. ${JSON.stringify(items)}`);
-                }
-
-                return {...state, todos:items}
-            }
-        ],
-
-        [ 
-            (action:{type:string}) => "changeProjectsPriority"===action.type,
-
-            (action:{type:string, load:{fromId:string,toId:string} }) : Store => {
-
-                let from  = state.projects.findIndex( (p:Project) => p._id===action.load.fromId );
-                let to  = state.projects.findIndex( (p:Project) => p._id===action.load.toId );
-                
-                let items = changePriority(from,to,state.projects) as Project[];
-
-                let fromItem = items[from]; 
-                let toItem = items[to];  
- 
-                if( all((i:Item) => i.type==="project", items) ){
-                    updateProjects([fromItem,toItem] as Project[], onError);
-                }else{
-                    throw new Error(`Not all objects are of type Project. ${JSON.stringify(items)}`);
-                } 
-
-                return {...state, projects:items}
-            }
-        ], 
-
-        [ 
-            (action:{type:string}) => "changeAreasPriority"===action.type,
-
-            (action:{type:string, load:{fromId:string,toId:string} }) : Store => { 
-
-                let from  = state.areas.findIndex( (a:Area) => a._id===action.load.fromId );
-                let to  = state.areas.findIndex( (a:Area) => a._id===action.load.toId );
-
-                let items = changePriority(from,to,state.areas) as Area[]; 
-                
-                let fromItem = items[from]; 
-                let toItem = items[to];  
-  
-                if( all((i:Item) => i.type==="area", items) ){
-                    updateAreas([fromItem,toItem] as Area[], onError);
-                }else{
-                    throw new Error(`Not all objects are of type Area. ${JSON.stringify(items)}`);
-                }
-                
-                return {...state, areas:items}
-            }
-        ],
+        ],  
 
         [ 
             (action:{type:string}) => "updateTodo"===action.type,
@@ -269,11 +197,10 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 if(action.load.type!=="todo"){
                    throw new Error(`
                       Load is not of type Todo. ${JSON.stringify(action.load)} 
-                      updateTodo. objectsReducer.`
-                   );
-                }
+                      updateTodo. objectsReducer.
+                   `);
+                }  
   
-    
                 updateTodo(action.load._id, action.load, onError);
     
                 return { 
@@ -302,8 +229,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 return { 
                     ...state, 
                     projects:adjust(() => action.load, idx, state.projects)
-                };
-
+                }; 
             }
         ],
 

@@ -10,20 +10,23 @@ import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';
 export let initWindow = ({width,height,transparent})  => {
       
     Menu.setApplicationMenu(null);   
+    let icon = path.resolve(__dirname,'icon.ico');
+    
+    console.log(icon); 
       
-    let handler = new BrowserWindow({   
-        icon:path.join(__dirname,'icon.ico'),
+    let handler = new BrowserWindow({    
+        icon,
         width,         
         height,   
-        transparent,  
+        transparent,    
         opacity:transparent ? 0 : 1, 
         //backgroundColor:"#ffffff", 
-        title:'tasklist',      
-        center:true,     
+        title:'Tasklist',      
+        center:true,      
         frame:true 
-    } as any);              
+    } as any);               
             
-    handler.setMovable(true);   
+    //handler.setMovable(true);   
 
     handler.on('ready-to-show', () => handler.show());
   

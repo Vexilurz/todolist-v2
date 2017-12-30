@@ -11,7 +11,7 @@ import {arrayMove} from '../../sortable-hoc/utils';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area } from '../../database';
-import NewAreaIcon from 'material-ui/svg-icons/action/tab';
+import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
 import { stringToLength, chooseIcon } from '../../utils';
 import { SortableList } from '../SortableList';
 

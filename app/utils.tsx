@@ -27,7 +27,7 @@ import Adjustments from 'material-ui/svg-icons/image/tune';
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Flag from 'material-ui/svg-icons/image/assistant-photo'; 
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
-import NewAreaIcon from 'material-ui/svg-icons/action/tab';
+import NewAreaIcon from 'material-ui/svg-icons/maps/layers'; 
 import Plus from 'material-ui/svg-icons/content/add';
 import Trash from 'material-ui/svg-icons/action/delete';
 import Search from 'material-ui/svg-icons/action/search'; 
@@ -86,53 +86,6 @@ export let keyFromDate = (date:Date) : string => {
      
 
 export type ItemWithPriority = Area | Project | Todo | Heading; 
- 
-export let changePriority = (from : number, to : number, items : ItemWithPriority[] ) : ItemWithPriority[] => {
-
-    if(isNaN(from) || from===-1)
-        throw new Error(`from incorrect value ${JSON.stringify(from)}. changePriority.`);
-
-    if(isNaN(to) || to===-1)
-        throw new Error(`to incorrect value ${JSON.stringify(to)}. changePriority.`);
-
-    if(!items) 
-       throw new Error(`Items list undefined. changePriority.`);
-
-    if(items.length===0)
-       throw new Error(`Items empty. changePriority.`);      
-       
-    let fromItem : ItemWithPriority = items[from];
-    let toItem : ItemWithPriority = items[to];
-    let temp = null;  
-  
-
-    if(!fromItem) 
-        throw new Error(`fromItem undefined. changePriority. changePriority.`);
-    if(!toItem) 
-        throw new Error(`toItem undefined. changePriority. changePriority.`);
-
-
-    if(!fromItem.priority)      
-        throw new Error(`fromItem - incorrect type. ${JSON.stringify(fromItem)} changePriority.`);
-    if(!toItem.priority)   
-        throw new Error(`toItem - incorrect type. ${JSON.stringify(toItem)} changePriority.`);
-
-    
-    let onError = (e) => { 
-        console.log(` 
-            Error occured. ${e}. ${JSON.stringify(e)} changePriority.
-            ${JSON.stringify([fromItem,toItem])}
-        `); 
-    } 
-
-     
-    temp = fromItem.priority;
-    fromItem.priority = toItem.priority;
-    toItem.priority = temp;  
-
-    return [...items];  
-}
-
 
 
 let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {

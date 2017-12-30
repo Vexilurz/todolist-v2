@@ -26,7 +26,7 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books'; 
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
-import NewAreaIcon from 'material-ui/svg-icons/action/tab';
+import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
 import Popover from 'material-ui/Popover'; 
   
 

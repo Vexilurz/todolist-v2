@@ -1,5 +1,5 @@
 
-import NewAreaIcon from 'material-ui/svg-icons/action/tab';
+import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
 import '../../assets/styles.css';  
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom';  

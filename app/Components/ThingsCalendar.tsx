@@ -320,11 +320,11 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                                     placeholder=""    
                                     type="time"  
                                     name="time"  
-                                    value={this.state.time}  
+                                    value={this.state.time}   
                                     onChange={this.onTimeInput}
-                                />   
-                                <div 
-                                onClick={() => this.setState({time:''})}
+                                />    
+                                <div  
+                                onClick={() => this.setState({time:'', timeSet:false})}
                                 style={{ 
                                     cursor: "pointer",
                                     display: "flex",

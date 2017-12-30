@@ -172,7 +172,9 @@ interface LeftPanelMenuProps{
     selectedCategory:Category,
     inbox:number,
     today:number,
-    hot:number
+    hot:number,
+    logbook:number,
+    trash:number 
 } 
  
   
@@ -228,15 +230,6 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             /> 
 
             <LeftPanelMenuItem
-                onClick={() => this.props.dispatch({type:"selectedCategory",load:"upcoming"})}
-                icon={<Calendar style={{color:"crimson"}}/>}
-                selected={this.props.selectedCategory==="upcoming"}
-                title={"Upcoming"}
-                showCounter={false} 
-                counter={0}
-            /> 
-
-            <LeftPanelMenuItem
                 onClick={() => this.props.dispatch({type:"selectedCategory", load:"next"})} 
                 icon={<Layers style={{color:"darkgreen"}}/>}
                 title={"Next"}
@@ -244,6 +237,15 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 showCounter={false}
                 counter={0}
             /> 
+
+            <LeftPanelMenuItem
+                onClick={() => this.props.dispatch({type:"selectedCategory",load:"upcoming"})}
+                icon={<Calendar style={{color:"crimson"}}/>}
+                selected={this.props.selectedCategory==="upcoming"}
+                title={"Upcoming"}
+                showCounter={false} 
+                counter={0}
+            />  
 
             <LeftPanelMenuItem
                 onClick={() => this.props.dispatch({type:"selectedCategory", load:"someday"})} 
@@ -256,23 +258,28 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
             <Separator />    
 
-            <LeftPanelMenuItem
-                onClick={() => this.props.dispatch({type:"selectedCategory",load:"logbook"})} 
-                icon={<Logbook style={{color:"limegreen"}}/>}
-                title={"Logbook"}
-                selected={this.props.selectedCategory==="logbook"}
-                showCounter={false}
-                counter={0}
-            />   
-
-            <LeftPanelMenuItem
-                onClick={() => this.props.dispatch({type:"selectedCategory",load:"trash"})} 
-                icon={<Trash style={{color:"darkgray"}}/>}
-                title={"Trash"}  
-                selected={this.props.selectedCategory==="trash"}
-                showCounter={false} 
-                counter={0}
-            />   
+            {
+                this.props.logbook===0 ? null :
+                <LeftPanelMenuItem
+                    onClick={() => this.props.dispatch({type:"selectedCategory",load:"logbook"})} 
+                    icon={<Logbook style={{color:"limegreen"}}/>}
+                    title={"Logbook"}
+                    selected={this.props.selectedCategory==="logbook"}
+                    showCounter={false}
+                    counter={0}
+                />   
+            }   
+            {
+                this.props.trash===0 ? null :    
+                <LeftPanelMenuItem
+                    onClick={() => this.props.dispatch({type:"selectedCategory",load:"trash"})} 
+                    icon={<Trash style={{color:"darkgray"}}/>}
+                    title={"Trash"}  
+                    selected={this.props.selectedCategory==="trash"}
+                    showCounter={false} 
+                    counter={0}
+                />
+            }   
             </div>
         </div>     
     }

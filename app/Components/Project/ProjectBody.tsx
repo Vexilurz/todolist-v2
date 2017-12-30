@@ -24,9 +24,9 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem } from '../../database';
-import { uppercase, debounce, byNotDeleted, changePriority } from '../../utils';
+import { uppercase, debounce, byNotDeleted } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
-import { ProjectHeading } from './ProjectHeading'; 
+import { ProjectHeading } from './ProjectHeading';  
 import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
@@ -234,19 +234,17 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
     }  
     
-
+     
 
     onSortEnd = ( data : Data, e : any ) => { 
 
-        let items = this.selectItems(
-            this.props.layout, 
-            this.props.todos
-        )  
+        let items = this.selectItems(this.props.layout, this.props.todos);  
  
-        let changed = changePriority(data.oldIndex, data.newIndex,items) as (Heading | Todo)[]; 
+        let changed = [] //changePriority(data.oldIndex, data.newIndex,items) as (Heading | Todo)[]; 
+
         let layout = changed.map( 
             (i:Heading | Todo) : LayoutItem => i.type==="todo" ? i._id : i as LayoutItem
-        ); 
+        );  
  
         this.props.updateLayout(layout);      
   

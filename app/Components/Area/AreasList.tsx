@@ -11,11 +11,11 @@ import { arrayMove } from '../../sortable-hoc/utils';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area } from '../../database';
-import NewAreaIcon from 'material-ui/svg-icons/action/tab';
+import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
 import { stringToLength, byNotCompleted, byNotDeleted, daysRemaining, dateDiffInDays } from '../../utils';
 import { SortableList } from '../SortableList';
 import PieChart from 'react-minimal-pie-chart';
-import { uniq, allPass, remove } from 'ramda';
+import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains } from 'ramda';
 
 
 interface AreasListProps{   
@@ -55,28 +55,34 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
          
 
         for(let i=0; i<projects.length; i++){
-                
-            let attached = false; 
-        
             let projectId = projects[i]._id;
+            let haveArea = false;
 
             for(let j=0; j<areas.length; j++){
                   
                 let attachedProjectsIds : string[] = areas[j].attachedProjectsIds;
-                let idx : number = attachedProjectsIds.indexOf(projectId);
- 
-                if(idx !== -1){
+  
+                if(contains(projectId,attachedProjectsIds)){
                    let key = areas[j]._id;
                    table[key].push(projects[i]);
-                   let attached = true;  
+                   haveArea=true;
+                   break;
                 }
-
             }
-
-            if(!attached)
-                detached.push(projects[i]);
              
+            if(!haveArea)
+               detached.push(projects[i]);
         }  
+
+        
+        let pairs = toPairs(table);
+        let detachedIds : string[] = detached.map( p => p._id );
+        for(let i=0; i<pairs.length; i++){
+            let ids = pairs[i][1].map( p => p._id );
+            if(!isEmpty(intersection(ids,detachedIds))){
+                //throw new Error(`Somehow they intersect ${JSON.stringify(table)} ${JSON.stringify(detached)}`);    
+            } 
+        }
 
         return {table,detached};
 
@@ -129,26 +135,21 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         if(this.props.projects!==nextProps.projects)
             should = true;
             
-        return should;
-         
+        return should; 
     }
 
 
 
     selectArea = (a:Area) => {
-
-        this.props.dispatch({type:"selectedAreaId",load:a._id}) 
-
+        this.props.dispatch({type:"selectedAreaId",load:a._id}); 
     }
 
 
 
     selectProject = (p:Project) => {
-         
         this.props.dispatch({type:"selectedProjectId",load:p._id});
-
     }
-         
+          
 
  
     getAreaElement = (a : Area, index : number) : JSX.Element => {
@@ -172,14 +173,14 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             >      
                 <IconButton  
                     style={{
-                        width:"18px", height:"18px", padding: "0px",
+                        width:"26px", height:"26px", padding: "0px",
                         display: "flex", alignItems: "center", justifyContent: "center"
                     }}    
-                    iconStyle={{ color:"rgba(109,109,109,0.7)", width:"18px", height:"18px" }}  
+                    iconStyle={{ color:"rgba(109,109,109,0.7)", width:"26px", height:"26px" }}  
                 >   
                     <NewAreaIcon /> 
                 </IconButton> 
-
+                
                 <div style={{
                     fontFamily: "sans-serif",
                     fontSize: "15px",    
@@ -212,11 +213,12 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 onClick = {(e) => this.selectProject(p)} 
                 id = {p._id}        
                 className="leftpanelmenuitem" 
-                style={{  
+                style={{   
                     height:"25px",
+                    paddingLeft:"4px", 
                     width:"95%",
                     display:"flex",
-                    alignItems: "center" 
+                    alignItems:"center" 
                 }}
             >     
                     <div style={{    
@@ -399,25 +401,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     }
 
 
-
-    swapProjects = (layout:LayoutItem[], oldIndex:number, newIndex:number) : void => {
-
-        let from : Project = layout[oldIndex] as Project;
-        let to : Project = layout[newIndex] as Project;
-
-
-        if(from.type!=="project")  
-           throw new Error(`from is not of type project. ${JSON.stringify(from)}. swapProjects.`);    
-
-        if(to.type!=="project")   
-           throw new Error(`to is not of type project. ${JSON.stringify(to)}. swapProjects.`);    
- 
- 
-        this.props.dispatch({type:"changeProjectsPriority", load:{fromId:from._id,toId:to._id}});
-
-    }
-
-
   
     moveToClosestArea = (fromArea:Area, closestArea:Area, selectedProject:Project) : void => {
  
@@ -431,12 +414,12 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let idx : number = fromArea.attachedProjectsIds.findIndex( (id:string) => id===selectedProject._id );
         
         if(idx===-1){
-            throw new Error(`
-                 selectedProject is not attached to fromArea.
-                 ${JSON.stringify(selectedProject)} 
-                 ${JSON.stringify(fromArea)}
-            `)
-        }
+           throw new Error(`
+              selectedProject is not attached to fromArea.
+              ${JSON.stringify(selectedProject)} 
+              ${JSON.stringify(fromArea)}
+           `);  
+        } 
  
 
         fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
@@ -446,9 +429,66 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     }
   
+    
+
+    changeProjectPriorityInsideArea = (layout:(Project | Area | Separator)[], oldIndex:number, newIndex:number) : void => { 
+        let project = {...layout[oldIndex]} as Project; 
+        let item = layout[newIndex] as Project;
+        let newPriority = item.priority; 
+ 
+        if(newIndex>oldIndex){
+            let after = layout[newIndex+1] as Project;  
+            if(after.type==="project"){
+               project.priority = (newPriority + after.priority)/2;
+            }else{
+              project.priority = (newPriority + 1);
+            }
+        }else{ 
+            let before = layout[newIndex-1] as Project;
+            if(before.type==="project"){
+               project.priority = (newPriority + before.priority)/2; 
+            }else{
+               project.priority = (newPriority - 1);
+            }
+        }   
+        
+        this.props.dispatch({type:"updateProject", load:project});
+    }
+
+
+
+    changeProjectPriority = (layout, oldIndex:number, newIndex:number) : void => { 
+        let project = {...layout[oldIndex]} as Project; 
+        let item = layout[newIndex] as Project;
+        let newPriority = item.priority; 
+ 
+        if(newIndex>oldIndex){
+            let after = layout[newIndex+1] as Project;
+            after = after ? after : {} as any;  
+            if(after.type==="project"){
+               project.priority = (newPriority + after.priority)/2;
+            }else{
+              project.priority = (newPriority + 1);
+            }
+        }else{ 
+            let before = layout[newIndex-1] as Project;
+            before = before ? before : {} as any; 
+            if(before.type==="project"){ 
+               project.priority = (newPriority + before.priority)/2; 
+            }else{
+               project.priority = (newPriority - 1);
+            }
+        }    
+         
+        this.props.dispatch({type:"updateProject", load:project});
+    }
       
 
+
     onSortEnd = ({oldIndex, newIndex, collection}, e) : void => { 
+
+        if(oldIndex===newIndex)
+           return; 
 
         if(this.props.areas.length===0)
            return; 
@@ -465,34 +505,26 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let closestArea : Area = this.findClosestArea(newIndex, listAfter);
         let detachedBefore = this.isDetached(oldIndex, layout);
         let detachedAfter = this.isDetached(newIndex, listAfter);
-     
- 
+         
         if(detachedBefore && !detachedAfter){
 
             this.attachToArea(closestArea, selectedProject);
-
         }else if(!detachedBefore && detachedAfter){
 
             this.removeFromArea(fromArea, selectedProject); 
- 
         }else if(detachedBefore && detachedAfter){
 
-            this.swapProjects(layout, oldIndex, newIndex);
-
+            this.changeProjectPriority(layout, oldIndex, newIndex);
         }else if(!detachedBefore && !detachedAfter){
 
             if(fromArea._id!==closestArea._id){
 
-                this.moveToClosestArea(fromArea, closestArea, selectedProject);    
-
+                this.moveToClosestArea(fromArea, closestArea, selectedProject);  
             }else if(fromArea._id===closestArea._id){
- 
-                this.swapProjects(layout, oldIndex, newIndex);
- 
-            }
 
-        }
-  
+                this.changeProjectPriorityInsideArea(layout, oldIndex, newIndex);
+            }
+        } 
     } 
    
  
@@ -501,7 +533,10 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let {table,detached} = this.groupProjectsByArea(this.props);
         let layout = this.generateLayout(this.props,{table,detached}); 
         let container = document.getElementById("areas");
-  
+
+        for(let i=0; i<detached.length; i++)
+            console.log("detached",detached[i]);   
+   
         return  <div  
             style={{
                 display:"flex",
@@ -524,12 +559,9 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 distance={5}   
                 useDragHandle={false} 
                 lock={true}
-            />
+            /> 
          </div>
-
     }
-
-
 }
 
 

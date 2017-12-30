@@ -9,7 +9,6 @@ import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
 import { TodosList } from '../../Components/TodosList';
 import { Todo,Project, Area } from '../../database';
-import NewAreaIcon from 'material-ui/svg-icons/action/tab';
 let moment = require("moment");
 import * as Waypoint from 'react-waypoint';
 import { ContainerHeader } from '.././ContainerHeader';
@@ -50,7 +49,8 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
     }
 
     let filters = [ 
-        haveDate, 
+        haveDate,  
+        (t:Todo) => t.category!=="inbox", 
         byTags(props.selectedTag),
         byNotCompleted, 
         byNotDeleted  
@@ -217,8 +217,9 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             getTagsFromItems,
             (items : Item[]) => items.filter(
                 allPass([
+                    (t:Todo) => t.category!=="inbox",  
                     byNotCompleted,  
-                    byNotDeleted 
+                    byNotDeleted  
                 ])  
             )
         )([...this.props.todos, ...this.props.projects]); 

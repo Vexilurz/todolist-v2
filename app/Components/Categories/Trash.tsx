@@ -210,13 +210,11 @@ export class Trash extends Component<TrashProps,TrashState>{
          </div>  
 
     } 
-        
+         
       
 
     restoreTodo = (t:Todo) : void => {
-
         this.props.dispatch({type:"updateTodo", load:{...t,deleted:undefined}});
-
     } 
 
 
@@ -265,12 +263,11 @@ export class Trash extends Component<TrashProps,TrashState>{
         })
 
         this.props.dispatch({type:"updateArea", load:{...a,deleted:undefined}});
-
     }
-   
+    
     
 
-    render(){ 
+    render(){  
 
         let tags = compose(
             getTagsFromItems, 
@@ -281,7 +278,6 @@ export class Trash extends Component<TrashProps,TrashState>{
             ...this.props.areas
         ]); 
  
-
         return <div> 
             <div> 
                 <ContainerHeader  

@@ -101,7 +101,7 @@ export class Next extends Component<NextProps, NextState>{
             areas : [],
             todos : [],
             detached : []   
-        };
+        };  
  
 
         for(let i=0;  i<this.props.projects.length; i++){
@@ -111,10 +111,10 @@ export class Next extends Component<NextProps, NextState>{
                throw new Error(`project is not of type Project ${JSON.stringify(project)}. groupObjects.`); 
 
             let filters = [
-                byTags(this.props.selectedTag), 
+                byTags(this.props.selectedTag),
                 byNotCompleted, 
                 byNotDeleted
-            ];
+            ]; 
 
             if(allPass(filters)(project)){
                table[project._id] = [];
@@ -148,6 +148,7 @@ export class Next extends Component<NextProps, NextState>{
                throw new Error(`todo is not of type Todo ${JSON.stringify(todo)}. groupObjects.`); 
 
             let filters = [
+                (t:Todo) => t.category!=="inbox",  
                 byTags(this.props.selectedTag), 
                 byNotCompleted, 
                 byNotDeleted
@@ -193,7 +194,7 @@ export class Next extends Component<NextProps, NextState>{
 
 
 
-    render(){
+    render(){ 
 
         let table = this.groupObjects();
         let empty = table.projects.length===0  &&  

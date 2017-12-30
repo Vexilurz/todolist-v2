@@ -206,28 +206,30 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
  
      onSortMove = (e, helper : HTMLElement, newIndex:number) => {
         let x = e.clientX; 
-        let y = e.clientY+this.props.rootRef.scrollTop;  
+        let y = e.clientY+this.props.rootRef.scrollTop;   
 
         this.setState({currentIndex:newIndex,helper}); 
 
-        let areas = document.getElementById("areas");
-        let projects = document.getElementById("projects");
+        let leftpanel = document.getElementById("leftpanel");
         let nested = document.getElementById("nested");
 
-        if(insideTargetArea(areas,x,y) || insideTargetArea(projects,x,y)){
-            hideChildrens(helper);
-            nested.style.visibility="";
+        if(insideTargetArea(leftpanel,x,y)){
+            hideChildrens(helper);  
+            nested.style.visibility=""; 
             nested.style.opacity='1';    
         }else{ 
-            makeChildrensVisible(helper); 
+            makeChildrensVisible(helper);  
             nested.style.visibility="hidden";
             nested.style.opacity='0';  
         } 
      }
- 
+  
  
 
      onSortEnd = ({oldIndex, newIndex, collection}, e) => { 
+          
+        if(oldIndex===newIndex)
+           return; 
 
         this.setState({showPlaceholder:false});
           
@@ -238,20 +240,40 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         if(isEmpty(draggedTodo.title))
            return;
  
-        let areas = document.getElementById("areas");
-        let projects = document.getElementById("projects");
+        let leftpanel = document.getElementById("leftpanel");
 
-        if(insideTargetArea(areas,x,y) || insideTargetArea(projects,x,y)){
+        if(insideTargetArea(leftpanel,x,y)){   
 
             let el = document.elementFromPoint(e.clientX, e.clientY);
             let id = el.id || el.parentElement.id;
-            this.props.dispatch({type:"attachTodoToProject", load:{projectId:id,todoId:draggedTodo._id}});
+            if(id){ 
+                this.props.dispatch({
+                  type:"attachTodoToProject", 
+                  load:{projectId:id,todoId:draggedTodo._id}
+                });
+            } 
         }else{      
-     
             let items = this.state.todos; 
-            let fromId = items[oldIndex]._id; 
-            let toId = items[newIndex]._id; 
-            this.props.dispatch({type:"changeTodosPriority", load:{fromId,toId}});
+            let todo : Todo = {...items[oldIndex]};
+ 
+            if(newIndex===0){
+                console.log("newIndex===0")
+                let first = items[newIndex];
+                let newPriority = first.priority/2;
+                todo.priority = newPriority;
+                this.props.dispatch({type:"updateTodo",load:todo});
+            }else if(newIndex===items.length-1){
+                let last = items[newIndex];
+                let newPriority = last.priority+1;
+                todo.priority = newPriority; 
+                this.props.dispatch({type:"updateTodo",load:todo});
+            }else{
+                let itemBefore = items[newIndex];
+                let itemAfter = newIndex>oldIndex ? items[newIndex+1] : items[newIndex-1];
+                let newPriority = (itemBefore.priority + itemAfter.priority)/2;
+                todo.priority = newPriority;
+                this.props.dispatch({type:"updateTodo",load:todo});
+            }    
         } 
      }
  
@@ -317,7 +339,7 @@ class Placeholder extends Component<PlaceholderProps,PlaceholderState>{
         <div style={{   
             backgroundColor:"rgba(205,221,253,0.5)",
             zIndex:100,     
-            transition:this.props.show ? "transform 0.2s ease-in-out" : "", 
+            //transition:this.props.show ? "transform 0.2s ease-in-out" : "", 
             height:"30px", 
             borderRadius:"5px",     
             width:"100%",    
