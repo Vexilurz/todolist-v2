@@ -253,7 +253,11 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 });
             } 
         }else{      
-            let items = this.state.todos; 
+            let items = this.state.todos;  
+
+            if(items.length<=2)
+               return; 
+
             let todo : Todo = {...items[oldIndex]};
  
             if(newIndex===0){

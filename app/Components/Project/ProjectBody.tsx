@@ -30,6 +30,7 @@ import { ProjectHeading } from './ProjectHeading';
 import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
+import { equals } from 'ramda';
 
 
  
@@ -72,14 +73,13 @@ let layoutOrderChanged = (before:LayoutItem[], after:LayoutItem[]) : boolean => 
  
 
 interface ProjectBodyProps{
-    layout:LayoutItem[],
-
+    layout:LayoutItem[], 
     updateLayout:(layout:LayoutItem[]) => void,
-    updateHeading: (heading_id:string, newValue:string) => void,
-    archiveHeading: (heading_id:string) => void,
-    moveHeading: (heading_id:string) => void,  
-    removeHeading: (heading_id:string) => void,
-    todos:Todo[],
+    updateHeading:(heading_id:string, newValue:string) => void,
+    archiveHeading:(heading_id:string) => void,
+    moveHeading:(heading_id:string) => void,  
+    removeHeading:(heading_id:string) => void,
+    todos:Todo[], 
     tags:string[],
     rootRef:HTMLElement,
     dispatch:Function
@@ -239,17 +239,18 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     onSortEnd = ( data : Data, e : any ) => { 
 
         let items = this.selectItems(this.props.layout, this.props.todos);  
+        
+        items = items.map( i => i.type==="todo" ? i._id : i ) as any;
  
-        let changed = [] //changePriority(data.oldIndex, data.newIndex,items) as (Heading | Todo)[]; 
-
-        let layout = changed.map( 
-            (i:Heading | Todo) : LayoutItem => i.type==="todo" ? i._id : i as LayoutItem
-        );  
+        let changed = arrayMove(items, data.oldIndex, data.newIndex); 
  
-        this.props.updateLayout(layout);      
+        if(equals(items,changed))
+           console.log("did not changed")
+ 
+        this.props.updateLayout(changed);      
   
     } 
- 
+  
  
 
     onSortMove = ( e : any, helper : HTMLElement ) => {
@@ -271,10 +272,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                         this.props.layout, 
                         this.props.todos
                     )  
-                    .sort(   
-                        ( a:(Todo | Heading), b:(Todo | Heading) ) => a.priority-b.priority
-                    );   
-    
                     
         return <div>  
             <SortableList 

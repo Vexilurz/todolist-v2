@@ -89,6 +89,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     deadline:HTMLElement;
     tags:HTMLElement;
     ref:HTMLElement; 
+    inputRef:HTMLElement; 
  
     constructor(props){
 
@@ -131,11 +132,18 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }   
 
     componentDidMount(){ 
-        if(isEmpty(this.state.title))
+        if(isEmpty(this.state.title)){ 
            this.preventDragOfThisItem();
+           this.setState({open:true});
+           if(this.inputRef) 
+            this.inputRef.focus(); 
+           
+        }
+
+       
         
         window.addEventListener("click",this.onOutsideClick);
-    }      
+    }       
       
     componentWillReceiveProps(nextProps:TodoInputProps){
         if(nextProps.todo!==this.props.todo){  
@@ -452,9 +460,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                             overflow:"hidden" 
                         }}    
                         onClick={this.onFieldsContainerClick}
-                    >   
+                    >    
                         <div style={{display:"flex"}}>
                             <TextField   
+                                ref={e => {this.inputRef=e;}}
                                 hintText="New To-Do"   
                                 id={this.props.todo._id}
                                 defaultValue={this.state.title} 

@@ -262,7 +262,7 @@ export let generateRandomDatabase = (
     for(let i=0; i<projects; i++){
         let project = fakeProject(
             randomArrayMember(tagsChunks), 
-            generateProjectLayout(generateTodosIds,10)
+            generateProjectLayout(generateTodosIds,25)
         );
  
         projectItems.push(project);

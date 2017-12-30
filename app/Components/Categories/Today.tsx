@@ -183,8 +183,8 @@ export class Today extends Component<TodayProps,TodayState>{
                                     byCategory("evening"),
                                     byNotCompleted,  
                                     byNotDeleted    
-                                ]}  
-                                attachEmptyTodo={attachEmptyTodo("evening")}
+                                ]}   
+                                //attachEmptyTodo={attachEmptyTodo("evening")}
                                 selectedTodoId={this.props.selectedTodoId} 
                                 isEmpty={(empty:boolean) => this.setState({emptyEvening:empty})} 
                                 dispatch={this.props.dispatch}    
