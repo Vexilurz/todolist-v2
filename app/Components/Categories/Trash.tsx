@@ -198,9 +198,10 @@ export class Trash extends Component<TrashProps,TrashState>{
 
             <div style={{width:"100%"}}>
                 <TodoInput   
-                    id={value._id}
+                    id={value._id} 
                     key = {value._id} 
                     selectedCategory={this.props.selectedCategory}
+                    selectedTodoId={this.props.selectedTodoId} 
                     dispatch={this.props.dispatch}   
                     tags={this.props.tags} 
                     rootRef={this.props.rootRef} 

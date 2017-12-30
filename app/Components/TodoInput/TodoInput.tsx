@@ -76,11 +76,12 @@ export interface TodoInputState{
 export interface TodoInputProps{ 
     dispatch : Function, 
     selectedCategory : Category,
+    selectedTodoId : string, 
     tags : string[], 
     todo : Todo,  
     rootRef : HTMLElement,  
     id : string
-}   
+}    
   
   
 export class TodoInput extends Component<TodoInputProps,TodoInputState>{
@@ -130,19 +131,24 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             showDeadlineCalendar : false
         }      
     }   
-
-    componentDidMount(){ 
+ 
+    componentDidMount(){  
         if(isEmpty(this.state.title)){ 
            this.preventDragOfThisItem();
-           this.setState({open:true});
-           if(this.inputRef) 
-            this.inputRef.focus(); 
-           
-        }
-
-       
+           this.setState({open:true}); 
+           //if(this.inputRef){ 
+           //   this.inputRef.focus();  
+           //} 
+        }   
         
-        window.addEventListener("click",this.onOutsideClick);
+        /*else if(this.props.selectedTodoId===this.props.todo._id){
+            console.log("selected",this.props.todo);  
+            let rect = this.inputRef.getBoundingClientRect();
+            this.props.rootRef.scrollTop=rect.top;  
+            this.inputRef.focus();  
+         }*/       
+          
+        window.addEventListener("click",this.onOutsideClick);  
     }       
       
     componentWillReceiveProps(nextProps:TodoInputProps){

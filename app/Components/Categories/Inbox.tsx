@@ -94,8 +94,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                         byCategory("inbox"),
                         byNotCompleted,  
                         byNotDeleted 
-                    ]}     
-                    attachEmptyTodo={attachEmptyTodo("inbox")}
+                    ]}      
                     selectedTodoId={this.props.selectedTodoId}
                     isEmpty={(empty:boolean) => this.setState({empty})}
                     dispatch={this.props.dispatch}    

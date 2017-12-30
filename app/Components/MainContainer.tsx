@@ -290,16 +290,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     } 
  
-
-
-    onDeleteToDo = (e) => { 
-
-        if(this.props.selectedTodoId===null || this.props.selectedTodoId===undefined)
-           return;  
- 
-    } 
-
-
     
     componentDidMount(){
 
@@ -496,6 +486,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 dispatch={this.props.dispatch} 
                                 selectedCategory={this.props.selectedCategory}
                                 selectedProjectId={this.props.selectedProjectId}
+                                selectedTodoId={this.props.selectedTodoId} 
                                 todos={this.props.todos}
                                 projects={this.props.projects}  
                                 rootRef={this.rootRef}

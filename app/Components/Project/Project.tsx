@@ -35,6 +35,7 @@ interface ProjectComponentProps{
     projects:Project[], 
     selectedCategory:string, 
     selectedProjectId:string, 
+    selectedTodoId:string, 
     todos:Todo[],
     tags:string[],
     rootRef:HTMLElement,
@@ -242,6 +243,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             updateLayout={this.updateLayout}
                             updateHeading={this.updateHeading}
                             archiveHeading={this.archiveHeading}
+                            selectedTodoId={this.props.selectedTodoId} 
                             moveHeading={this.moveHeading} 
                             removeHeading={this.removeHeading}
                             todos={this.props.todos} 

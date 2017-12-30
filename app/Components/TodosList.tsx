@@ -34,8 +34,7 @@ interface TodosListProps{
     selectedTag:string,  
     rootRef:HTMLElement,   
     todos:Todo[],  
-    tags:string[],
-    attachEmptyTodo?:(todos:Todo[]) => Todo[], 
+    tags:string[], 
     disabled?:boolean     
 }    
 
@@ -66,17 +65,17 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                         .filter(allPass(this.props.filters)) 
                         .sort((a:Todo,b:Todo) => a.priority-b.priority);
 
-        if(typeof this.props.attachEmptyTodo==="function"){
-           todos = this.props.attachEmptyTodo(todos); 
-        }                 
+        //if(typeof this.props.attachEmptyTodo==="function"){
+        //   todos = this.props.attachEmptyTodo(todos); 
+        //}                  
 
-        if(typeof this.props.isEmpty==="function"){ 
+        if(typeof this.props.isEmpty==="function"){  
            this.props.isEmpty(todos.length===0);  
         }
         
         this.setState({todos});  
-            
-     } 
+              
+     }  
 
 
 
@@ -91,14 +90,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                         .filter(allPass(nextProps.filters)) 
                         .sort((a:Todo,b:Todo) => a.priority-b.priority);
                 
-
-            if(typeof nextProps.attachEmptyTodo==="function"){
-                todos = nextProps.attachEmptyTodo(todos); 
-            }                 
-
             if(typeof nextProps.isEmpty==="function"){ 
                 nextProps.isEmpty(todos.length===0);  
-            }     
+            }      
              
             this.setState({todos});    
         }  
@@ -141,6 +135,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                         key={value._id} 
                         dispatch={this.props.dispatch}  
                         selectedCategory={this.props.selectedCategory} 
+                        selectedTodoId={this.props.selectedTodoId}
                         tags={this.props.tags} 
                         rootRef={this.props.rootRef}  
                         todo={value}
@@ -148,7 +143,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 </div> 
 
      }
-      
+       
 
  
      shouldCancelStart = (e) => {
@@ -283,12 +278,28 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
  
         
      render(){   
-
+        let empty = generateEmptyTodo(
+            generateId(),
+            this.props.selectedCategory,
+            0
+        ) 
+ 
         return <div style={{
             WebkitUserSelect:"none", 
             position:"relative"
         }}>  
-            
+
+            <TodoInput   
+                id={empty._id}
+                key={empty._id} 
+                dispatch={this.props.dispatch}  
+                selectedCategory={this.props.selectedCategory} 
+                selectedTodoId={this.props.selectedTodoId}
+                tags={this.props.tags} 
+                rootRef={this.props.rootRef}  
+                todo={empty}
+            /> 
+              
             <Placeholder   
                 helper={this.state.helper}
                 currentIndex={this.state.currentIndex}

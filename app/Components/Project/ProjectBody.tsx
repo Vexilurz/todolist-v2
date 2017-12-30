@@ -79,6 +79,7 @@ interface ProjectBodyProps{
     archiveHeading:(heading_id:string) => void,
     moveHeading:(heading_id:string) => void,  
     removeHeading:(heading_id:string) => void,
+    selectedTodoId:string, 
     todos:Todo[], 
     tags:string[],
     rootRef:HTMLElement,
@@ -141,7 +142,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
  
                if(todo!==undefined && todo!==null){
 
-                    if(todo.type==="todo")
+                    if(todo.type==="todo") 
                        items.push(todo);
                      
                }  
@@ -170,6 +171,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                                     key={value["_id"]} 
                                     dispatch={this.props.dispatch}   
                                     tags={this.props.tags} 
+                                    selectedTodoId={this.props.selectedTodoId} 
                                     selectedCategory={"project"}
                                     rootRef={this.props.rootRef}  
                                     todo={value as Todo}

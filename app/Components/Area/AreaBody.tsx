@@ -131,7 +131,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 id={value["_id"]} 
                 key = {value["_id"]} 
                 selectedCategory={this.props.selectedCategory}
-                dispatch={this.props.dispatch}   
+                selectedTodoId={this.props.selectedTodoId}
+                dispatch={this.props.dispatch}    
                 tags={this.props.tags} 
                 rootRef={this.props.rootRef} 
                 todo={value as Todo}

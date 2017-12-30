@@ -225,8 +225,7 @@ export class Next extends Component<NextProps, NextState>{
                     />   
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
                         <TodosList     
-                            filters={[]}    
-                            attachEmptyTodo={attachEmptyTodo("next")}   
+                            filters={[]}      
                             isEmpty={(empty:boolean) => {}}    
                             selectedTodoId={this.props.selectedTodoId} 
                             dispatch={this.props.dispatch}     
