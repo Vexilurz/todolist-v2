@@ -512,9 +512,9 @@ export let hotFilter = (todo:Todo) : boolean => {
     if(!isDate(todo.attachedDate))
         throw new Error(`attachedDate is not date. ${JSON.stringify(todo.attachedDate)} hotFilter`);
     */
-    return dateDiffInDays(todo.deadline, todo.attachedDate)===0;    
-         
-}
+    return dateDiffInDays(todo.deadline, todo.attachedDate)===0;  
+} 
+
 
 export let byCompleted = (item:Project | Todo) : boolean => { 
 
@@ -1122,25 +1122,28 @@ export let daysRemaining = (date:Date) : number => {
     return dateDiffInDays(new Date(), date); 
 } 
  
-  
+   
 
 export let dateDiffInDays = (a : Date, b : Date) : number  => {
 
     if(isNil(a) || isNil(b)){
        return 999;  //TODO
     }
-  
+
+    let A = typeof a === "string" ? new Date(a) : a;
+    let B = typeof b === "string" ? new Date(b) : b;
+   
     let _MS_PER_DAY = 1000 * 60 * 60 * 24;
 
-    let utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+    let utc1 = Date.UTC(A.getFullYear(), A.getMonth(), A.getDate());
 
-    let utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
-
+    let utc2 = Date.UTC(B.getFullYear(), B.getMonth(), B.getDate());
+ 
     return Math.floor((utc2 - utc1) / _MS_PER_DAY);
 }
     
 
-    
+     
 export let getDatesRange = (
     start : Date,  
     days : number, 

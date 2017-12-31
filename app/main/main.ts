@@ -57,9 +57,9 @@ let onReady = () => {
             }
         ); 
   
-        mainWindow.webContents.openDevTools();   
-
-    });     
+        //mainWindow.webContents.openDevTools();   
+    
+    });      
 }            
   
 

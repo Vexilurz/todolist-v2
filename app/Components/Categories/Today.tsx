@@ -161,7 +161,7 @@ export class Today extends Component<TodayProps,TodayState>{
                     </div>  
                 }    
                 {  
-                    this.state.emptyEvening ? null :                
+                    //this.state.emptyEvening ? null :                
                     <div style={{paddingTop:"20px"}}>  
                         <div style={{  
                             display: "flex",
@@ -205,12 +205,12 @@ export class Today extends Component<TodayProps,TodayState>{
                                 projects={this.props.projects}
                                 selectedTag={this.props.selectedTag}  
                                 rootRef={this.props.rootRef}
-                                todos={this.props.todos}  
+                                todos={this.props.todos}   
                                 tags={this.props.tags} 
                             />  
                         </div> 
                     </div>  
-                }    
+                }      
 
             </div>
     </div>
