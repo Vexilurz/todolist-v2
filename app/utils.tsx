@@ -503,14 +503,15 @@ export let hotFilter = (todo:Todo) : boolean => {
         return false;
      
     if(!todo.attachedDate)
-        return false;        
+        return false;         
      
+    /*  
     if(!isDate(todo.deadline))
         throw new Error(`Deadline is not date. ${JSON.stringify(todo.deadline)} hotFilter`);
      
     if(!isDate(todo.attachedDate))
         throw new Error(`attachedDate is not date. ${JSON.stringify(todo.attachedDate)} hotFilter`);
-        
+    */
     return dateDiffInDays(todo.deadline, todo.attachedDate)===0;    
          
 }
@@ -871,6 +872,28 @@ export let attachEmptyTodo = (selectedCategory:Category) => (todos:Todo[]) => {
 }
   
 
+
+
+export let byNotAttachedToAreaFilter = (areas:Area[]) => (t:Todo) : boolean => {
+    for(let i=0; i<areas.length; i++)
+        if(contains(t._id)(areas[i].attachedTodosIds))
+           return false;
+    return true;             
+}; 
+
+
+export let byNotAttachedToProjectFilter = (projects:Project[]) => (t:Todo) : boolean => {
+    for(let i=0; i<projects.length; i++){
+        let attachedTodosIds = projects[i].layout.filter(isString) as string[];
+         
+        if(contains(t._id)(attachedTodosIds))
+           return false;
+    } 
+    return true;     
+};  
+
+
+
  
 export let generateEmptyTodo = (
     _id:string,
@@ -1091,29 +1114,22 @@ export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:
         return -1;   
 
 }
-
+ 
 
 
 export let daysRemaining = (date:Date) : number => {
 
-    if(!isDate(date))
-         throw new Error(`date is not Date ${date}. daysRemaining.`);  
- 
-
     return dateDiffInDays(new Date(), date); 
 } 
-
-
+ 
+  
 
 export let dateDiffInDays = (a : Date, b : Date) : number  => {
- 
-    if(!isDate(a))
-         throw new Error(`a is not date ${a}`);  
-          
-    if(!isDate(b))
-         throw new Error(`a is not date ${a}`);  
+
+    if(isNil(a) || isNil(b)){
+       return 999;  //TODO
+    }
   
- 
     let _MS_PER_DAY = 1000 * 60 * 60 * 24;
 
     let utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
@@ -1121,13 +1137,12 @@ export let dateDiffInDays = (a : Date, b : Date) : number  => {
     let utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
 
     return Math.floor((utc2 - utc1) / _MS_PER_DAY);
-
 }
     
 
     
 export let getDatesRange = (
-    start : Date, 
+    start : Date,  
     days : number, 
     includeStart : boolean, 
     includeEnd : boolean

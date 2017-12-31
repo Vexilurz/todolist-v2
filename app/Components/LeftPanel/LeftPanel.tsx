@@ -8,7 +8,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
-    byDeleted, dateDiffInDays, hotFilter 
+    byDeleted, dateDiffInDays, hotFilter, byNotAttachedToProjectFilter, byNotAttachedToAreaFilter 
 } from "../../utils"; 
 import { Provider, connect } from "react-redux";
 import Menu from 'material-ui/Menu';
@@ -61,7 +61,13 @@ let calculateAmount = (props:Store) : ItemsAmount => {
 
     let todayFilter = (i) => byCategory("today")(i) || byCategory("evening")(i);
  
-    let inboxFilters = [byCategory("inbox"),byNotCompleted,byNotDeleted]; 
+    let inboxFilters = [ 
+        byNotAttachedToAreaFilter(props.areas), 
+        byNotAttachedToProjectFilter(props.projects), 
+        byCategory("inbox"),
+        byNotCompleted, 
+        byNotDeleted 
+    ]; 
  
     let todayFilters = [todayFilter, byNotCompleted, byNotDeleted];
 
@@ -99,11 +105,11 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         super(props);      
         this.deltaX = window.innerWidth/12; 
         this.state = {
-            collapsed:false,     
+            collapsed:this.props.clone ? true : false,     
             fullWindowSize:true,
             ctrlPressed:false  
-        }   
-    };     
+        }    
+    };      
      
 
     componentDidMount(){
@@ -129,21 +135,29 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
     
      
     onCtrlBPress = (e) => {
+        if(this.props.clone)
+           return;
+
         if(e.keyCode == 66){
             if(this.state.ctrlPressed)
                this.setState({collapsed:!this.state.collapsed});
         }  
     }; 
 
-
+ 
 
     componentDidUpdate(){
-        requestAnimationFrame(this.collapse);
-    };
-   
+        if(!this.props.clone){
+            requestAnimationFrame(this.collapse);
+        }
+    }; 
+     
 
     
     collapse = () => {
+        if(this.props.clone)
+           return; 
+
         let width : number = this.props.currentleftPanelWidth;
         let collapsed : boolean = this.state.collapsed;
         let leftPanelWidth : number = this.props.leftPanelWidth;
@@ -164,20 +178,22 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
             this.props.dispatch({type:"currentleftPanelWidth",load:newWidth}); 
         } 
     };  
- 
+  
 
  
     onNewProjectClick = (e:any) => {
         this.props.dispatch({type:"addProject", load:generateEmptyProject()});
+        this.props.dispatch({type:"openNewProjectAreaPopup",load:false});
     };
        
     
         
     onNewAreaClick = (e:any) => {   
         this.props.dispatch({type:"addArea", load:generateEmptyArea()});
+        this.props.dispatch({type:"openNewProjectAreaPopup",load:false}); 
     };
      
- 
+    
  
     render(){     
 
@@ -186,18 +202,17 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         return  <div      
                     id="leftpanel"
                     className="scroll"
-                    style={{
-                        display: "flex",   
-                        flexDirection: "column", 
-                        width: this.props.currentleftPanelWidth, 
-                        overflowX: "hidden", 
-                        height: "100%",
-                        position: "relative", 
-                        backgroundColor: "rgb(248, 248, 248)"  
+                    style={{ 
+                        display:"flex",    
+                        flexDirection:"column", 
+                        width:this.props.clone ? `${0}px` : `${this.props.currentleftPanelWidth}px`, 
+                        overflowX:"hidden", 
+                        height:`${window.innerHeight}px`,     
+                        position:"relative", 
+                        backgroundColor:"rgb(248, 248, 248)"  
                     }}
-                >   
- 
-                    <ResizableHandle  
+                >       
+                    <ResizableHandle   
                         onDrag={(e,d) => {
                             this.props.dispatch({
                                 type:"leftPanelWidth",
@@ -245,8 +260,8 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                         id="areas"
                         style={{
                             paddingLeft: "20px",
-                            paddingRight: "20px", 
-                            paddingBottom: "120px"  
+                            paddingRight: "20px",  
+                            marginBottom:"150px" 
                         }}
                     >
                         <AreasList  
@@ -266,21 +281,21 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                           onNewProjectClick={this.onNewProjectClick}
                           onNewAreaClick={this.onNewAreaClick}
                         />
-                    }  
+                    }   
  
                     <div style={{   
-                        width:`${this.props.currentleftPanelWidth}px`, 
+                        width:this.props.clone ? `${0}px` : `${this.props.currentleftPanelWidth}px`, 
                         display:"flex",  
                         alignItems:"center",  
                         position:"fixed",    
                         overflowX: "hidden",
                         justifyContent:"space-between",  
-                        bottom:"0px",  
+                        bottom:"0px",   
                         height:"60px",
                         backgroundColor:"rgb(248, 248, 248)",
                         borderTop:"1px solid rgba(100, 100, 100, 0.2)"
                     }}>         
-
+ 
                         <div  
                             onClick = {() => {
                                 if(!this.props.openNewProjectAreaPopup)

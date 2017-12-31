@@ -6,7 +6,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
     
        let newState = undefined;
    
-       switch(action.type){  
+       switch(action.type){   
    
            case "openSearch": 
                newState = {
@@ -74,7 +74,14 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                    openNewProjectAreaPopup:action.load
                }; 
                break;
-   
+ 
+           case "showRightClickMenu":
+               newState = {
+                   ...state,
+                   showRightClickMenu : action.load,
+               };  
+               break;     
+               
    
            case "openRightClickMenu":
                newState = {

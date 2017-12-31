@@ -30,6 +30,7 @@ import { arrayMove } from '../../sortable-hoc/utils';
 
 interface ProjectHeadingProps{
     heading : Heading,
+    rootRef : HTMLElement, 
     onChange : (heading_id:string, newValue:string) => void,
     onArchive : (heading_id:string) => void,
     onMove : (heading_id:string) => void,  
@@ -122,6 +123,8 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                     background:"rgba(0,0,0,0)",
                     borderRadius:"10px"
                 }}    
+                scrollableContainer={this.props.rootRef}
+                useLayerForClickAway={false}  
                 open={this.state.open}
                 onRequestClose={() => this.setState({open:false})}
                 origin={{vertical: "center", horizontal: "middle"}}  

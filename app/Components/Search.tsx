@@ -35,13 +35,15 @@ import {
     daysLeftMark, generateTagElement, 
     attachDispatchToProps, chooseIcon, 
     stringToLength,  
-    isItem
+    isItem,
+    byNotDeleted
 } from '../utils';
 import { Todo, removeTodo, updateTodo, generateId, ObjectType, Area, Project, Heading } from '../database';
 import { Store } from '../App';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { getAreaLink } from './Area/AreaLink';
 import { getProjectLink } from './Project/ProjectLink';
+import { allPass } from 'ramda';
 
   
 interface keyworded{ object : any, keywords : string[] } 
@@ -53,7 +55,13 @@ let getTodoLink = (todo : Todo, index : number, dispatch : Function) : JSX.Eleme
                 <div   
                     className="toggleFocus"  
                     onClick = {() => {
-                        dispatch({ type:"selectedCategory", load:todo.category });
+
+                        if(todo.checked && todo.completed){ 
+                            dispatch({type:"selectedCategory",load:"logbook"});
+                        }else{         
+                            dispatch({type:"selectedCategory",load:todo.category});
+                        } 
+ 
                         dispatch({ type:"selectedTodoId", load:todo._id });
                     }}    
                     id = {todo._id}       
@@ -68,8 +76,9 @@ let getTodoLink = (todo : Todo, index : number, dispatch : Function) : JSX.Eleme
                         alignItems: "center" 
                     }} 
                 >             
-                            <div>{chooseIcon({width:"20px", height:"20px"}, todo.category)}</div>
-                            
+                        <div>
+                            {chooseIcon({width:"20px", height:"20px"}, todo.category)}
+                        </div>  
                         <div    
                             id = {todo._id}   
                             style={{  
@@ -81,16 +90,12 @@ let getTodoLink = (todo : Todo, index : number, dispatch : Function) : JSX.Eleme
                                 whiteSpace: "nowrap",
                                 cursor: "default",
                                 WebkitUserSelect: "none" 
-                            }}
+                            }}  
                         > 
-                        
-                            { stringToLength(todo.title, 25) }
-
-                        </div>          
-
-                            
+                            {stringToLength(todo.title, 25)}
+                        </div>    
                 </div> 
-            </div>  
+            </div>   
 
 } 
 
@@ -98,15 +103,16 @@ let getTodoLink = (todo : Todo, index : number, dispatch : Function) : JSX.Eleme
 
 
 let combineSearchableObjects = (props:QuickSearchProps) : any[] => {
+
+    let filters = [byNotDeleted];
      
-    let todos = props.todos;
-    let projects = props.projects;
-    let areas = props.areas;
- 
+    let todos : Todo[] = props.todos.filter(allPass(filters));
+    let projects : Project[] = props.projects.filter(allPass(filters));
+    let areas : Area[] = props.areas.filter(allPass(filters));
+       
     let objects = [].concat.apply([], [todos, projects, areas])
 
     return objects;
- 
 }
 
 
@@ -122,7 +128,6 @@ let areaToKeywords = (a:Area) : string[] => {
     let tags : string[] = a.attachedTags; 
   
     return [].concat.apply([], [ name, tags, description ]);
-     
 } 
 
 
@@ -145,7 +150,6 @@ let projectToKeywords = (p:Project) : string[] => {
     let tags : string[] = p.attachedTags; 
 
     return [].concat.apply([], [ name, description, layout, tags ]);
- 
 }
 
 
@@ -160,7 +164,6 @@ let todoToKeywords = (t:Todo) : string[] => {
     let checklist : string[] = t.checklist.map( c => c.text ).filter( s => s.length>0 );
 
     return [].concat.apply([], [ title, note, tags, checklist ]);
-
 }
 
  
@@ -185,7 +188,6 @@ let objectToKeywords = (object : any) : string[] => {
 
         default:
             return [];  
-
     }
 } 
  
@@ -230,7 +232,6 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
             value:'',
             suggestions:[] 
         };
-  
     } 
 
 
@@ -242,7 +243,7 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
 
         let rect = this.ref.getBoundingClientRect();
         let x = e.pageX;
-        let y = e.pageY; 
+        let y = e.pageY;  
          
         let inside : boolean = insideTargetArea(this.ref, x, y);
         if(!inside)
@@ -337,14 +338,19 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
   
         switch(object.type){
             case "todo": 
-                return getTodoLink(object, index, this.props.dispatch)
+                return getTodoLink(
+                    object, index, this.props.dispatch
+                );   
             case "project":
-                return getProjectLink({width:"12px", height:"12px"}, object, index, this.props.dispatch);
-            case "area": 
-                return getAreaLink({width:"20px", height:"20px"}, object, index, this.props.dispatch);
+                return getProjectLink(
+                    object, this.props.todos, this.props.dispatch, index
+                );
+            case "area":   
+                return getAreaLink( 
+                    object, this.props.todos, this.props.projects, index, this.props.dispatch
+                );
         }
-    
-    }
+    } 
     
     
 
@@ -423,8 +429,5 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
             
         </div>
         </div>
-        
     }
-
-
 }

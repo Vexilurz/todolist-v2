@@ -90,6 +90,7 @@ interface UpcomingProps{
     selectedCategory:string, 
     todos:Todo[],
     projects:Project[],
+    areas:Area[], 
     selectedTag:string,
     tags:string[],
     rootRef:HTMLElement 
@@ -192,6 +193,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 day={object.date.getDate()}
                 dayName={getDayName(object.date)}
                 todos={object.todos}
+                areas={this.props.areas}
                 projects={object.projects}  
                 dispatch={this.props.dispatch}
                 selectedTodoId={this.props.selectedTodoId}
@@ -264,6 +266,7 @@ interface CalendarDayProps{
     day:number, 
     dayName:string,
     projects:Project[],
+    areas:Area[], 
     todos:Todo[],
     dispatch:Function, 
     selectedTodoId:string,
@@ -354,7 +357,9 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                     }}>    
                         {
                             this.props.projects.map((p:Project, index:number) : JSX.Element => 
-                                getProjectLink({width:"15px", height:"15px"}, p, index, this.props.dispatch)
+                                getProjectLink(
+                                    p, this.props.todos,  this.props.dispatch, index
+                                ) 
                             )    
                         }     
                     </div> 
@@ -378,6 +383,8 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             selectedTodoId={this.props.selectedTodoId} 
                             selectedCategory={"upcoming"}
                             selectedTag={this.props.selectedTag}  
+                            areas={this.props.areas}
+                            projects={this.props.projects}
                             rootRef={this.props.rootRef}
                             todos={this.props.todos}  
                             tags={this.props.tags} 

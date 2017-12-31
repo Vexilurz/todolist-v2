@@ -38,7 +38,7 @@ import { TextField } from 'material-ui';
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
     insideTargetArea, daysRemaining, todoChanged, 
-    daysLeftMark, generateTagElement, uppercase 
+    daysLeftMark, generateTagElement, uppercase, generateEmptyTodo 
 } from '../../utils';
 import { Todo, removeTodo, updateTodo, generateId } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
@@ -57,7 +57,7 @@ export interface TodoInputState{
     title : string,  
     note : string, 
     checked : boolean,
-    completed:Date,
+    completed : Date,
     reminder : Date,
     deadline : Date,
     deleted : Date,
@@ -69,6 +69,7 @@ export interface TodoInputState{
     showTagsSelection : boolean,
     showChecklist : boolean,  
     showDeadlineCalendar : boolean,
+    justUpdated : boolean 
 }   
     
 
@@ -80,7 +81,8 @@ export interface TodoInputProps{
     tags : string[], 
     todo : Todo,  
     rootRef : HTMLElement,  
-    id : string
+    id : string, 
+    creation? : boolean
 }    
   
   
@@ -128,66 +130,151 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             showDateCalendar : false,  
             showTagsSelection : false, 
             showChecklist : checklist.length>0,  
-            showDeadlineCalendar : false
-        }      
-    }   
- 
-    componentDidMount(){  
-        if(isEmpty(this.state.title)){ 
-           this.preventDragOfThisItem();
-           this.setState({open:true}); 
-           //if(this.inputRef){ 
-           //   this.inputRef.focus();  
-           //} 
-        }   
-        
-        /*else if(this.props.selectedTodoId===this.props.todo._id){
-            console.log("selected",this.props.todo);  
-            let rect = this.inputRef.getBoundingClientRect();
-            this.props.rootRef.scrollTop=rect.top;  
-            this.inputRef.focus();  
-         }*/       
-          
-        window.addEventListener("click",this.onOutsideClick);  
-    }       
-      
-    componentWillReceiveProps(nextProps:TodoInputProps){
-        if(nextProps.todo!==this.props.todo){  
-           this.setState(this.stateFromTodo(this.state,nextProps.todo));  
-        }
-    } 
-     
-    componentWillUnmount(){
-        window.removeEventListener("click", this.onOutsideClick);
+            showDeadlineCalendar : false,
+            justUpdated : false
+        }       
     }
-    
-    componentDidUpdate(prevProps:TodoInputProps,prevState){
-        if(isEmpty(this.state.title) || this.state.open){
-           this.preventDragOfThisItem();
-        }else{
-           this.enableDragOfThisItem()
-        }
-    }
+
  
-    onWindowEnterPress = (e) => {
-        if(e.keyCode == 13){
-           this.collapse(); 
+    onFieldsContainerClick = (e) => {  
+        this.preventDragOfThisItem();
+        if(!this.state.open){ 
+            this.setState(
+                {open:true}, 
+                () => this.props.dispatch({
+                   type:"selectedTodoId", 
+                   load:this.props.todo._id
+                }) 
+            );  
         }  
-    }   
+    }  
+ 
 
     onOutsideClick = (e) => {
         if(this.ref===null || this.ref===undefined)
            return; 
 
+        if(!this.state.open)
+           return;    
+
         let x = e.pageX;
         let y = e.pageY; 
 
         let inside = insideTargetArea(this.ref,x,y);
-    
+     
         if(!inside){   
-            this.collapse();
-        }
+
+            if(this.props.creation){
+                 
+                let todo : Todo = this.todoFromState();  
+                if(this.state.title.length===0 || todoChanged(this.props.todo,todo))
+                   this.addTodoFromInput(todo);
+
+                let emptyTodo = generateEmptyTodo("emptyTodo", this.props.selectedCategory, 0);
+                this.setState({  
+                    ...this.stateFromTodo(this.state,emptyTodo),
+                    showDateCalendar : false,   
+                    showTagsSelection : false, 
+                    showChecklist : false,  
+                    showDeadlineCalendar : false,
+                    open:false,
+                    justUpdated:false 
+                });    
+
+            }else{
+
+                let todo : Todo = this.todoFromState();  
+                if(this.state.title.length===0 || todoChanged(this.props.todo,todo))
+                   this.addTodoFromInput(todo);
+                this.setState({open:false}, () => this.props.dispatch({type:"selectedTodoId", load:null})); 
+
+            } 
+        }  
+    }  
+
+
+
+    onWindowEnterPress = (e) => {
+        if(e.keyCode == 13){
+
+            if(this.props.creation && this.state.open){
+
+                if(this.state.title.length===0){
+                    let emptyTodo = generateEmptyTodo("emptyTodo", this.props.selectedCategory, 0);
+                    this.setState(
+                        {
+                            ...this.stateFromTodo(this.state,emptyTodo),
+                            showDateCalendar : false,  
+                            showTagsSelection : false, 
+                            showChecklist : false,  
+                            showDeadlineCalendar : false,
+                            open:false,
+                            justUpdated:false 
+                        }, 
+                        () => this.props.dispatch({type:"selectedTodoId", load:null})
+                    );   
+                }else{    
+                    this.setState({
+                        justUpdated:true 
+                    });    
+                    let todo : Todo = this.todoFromState();  
+                    if(this.state.title.length===0 || todoChanged(this.props.todo,todo))
+                       this.addTodoFromInput(todo);
+                } 
+            }else{
+
+                let todo : Todo = this.todoFromState();  
+                if(this.state.title.length===0 || todoChanged(this.props.todo,todo))
+                   this.addTodoFromInput(todo);
+                this.setState({open:false}, () => this.props.dispatch({type:"selectedTodoId", load:null})); 
+            }
+
+        }  
     }    
+      
+    
+     
+    componentDidUpdate(prevProps:TodoInputProps,prevState){
+
+        if(isEmpty(this.state.title) || this.state.open){  
+           this.preventDragOfThisItem();
+        }else{
+           this.enableDragOfThisItem(); 
+        } 
+
+        if(this.state.justUpdated && this.props.creation){  
+            let emptyTodo = generateEmptyTodo("emptyTodo", this.props.selectedCategory, 0);
+            this.setState({
+                ...this.stateFromTodo(this.state,emptyTodo),
+                open:true,
+                justUpdated:false, 
+                showDateCalendar:false,   
+                showTagsSelection:false, 
+                showChecklist:false,   
+                showDeadlineCalendar:false
+            });  
+
+           if(this.inputRef){
+              this.inputRef.focus();  
+           } 
+        }
+    }
+
+
+
+    componentWillReceiveProps(nextProps:TodoInputProps){
+        if(nextProps.todo!==this.props.todo){  
+           this.setState(this.stateFromTodo(this.state,nextProps.todo));  
+        }
+    } 
+
+    componentDidMount(){  
+        window.addEventListener("click",this.onOutsideClick);  
+    }    
+
+    componentWillUnmount(){
+        window.removeEventListener("click",this.onOutsideClick);
+    }
  
     stateFromTodo = (state:TodoInputState,todo:Todo) : TodoInputState => ({   
         ...state,
@@ -232,30 +319,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            this.ref["preventDrag"] = true; 
     } 
 
-    onFieldsContainerClick = (e) => {   
- 
-        this.props.dispatch({type:"selectedTodoId", load:this.props.todo._id});
-        
-        this.preventDragOfThisItem();
- 
-        if(!this.state.open)
-            this.setState({open:true});  
-    } 
-    
-    collapse = () => {
-        if(this.state.open){
-            let todo : Todo = this.todoFromState();  
-
-            if(this.state.title.length===0 || todoChanged(this.props.todo,todo))
-               this.addTodoFromInput(todo);
-           
-            this.props.dispatch({type:"selectedTodoId", load:null});
-            this.setState({open:false}); 
-        }
-    }
-
-    addTodoFromInput = (todo:Todo) : void => {
-        console.log("addTodoFromInput"); 
+    addTodoFromInput = (todo:Todo) : void => { 
 
         if(this.state.title.length===0){
             this.props.dispatch({type:"updateTodo", load:{...todo, deleted:new Date()}});
@@ -297,20 +361,22 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         } 
     } 
 
+    
     onRightClickMenu = (e) => {
         if(!this.state.open){ 
             this.props.dispatch({
                 type:"openRightClickMenu",  
-                load:{ 
-                    showRightClickMenu:true,
-                    rightClickedTodoId:this.props.todo._id, 
-                    rightClickMenuX:e.clientX-this.props.rootRef.offsetLeft, 
-                    rightClickMenuY:e.clientY-this.props.rootRef.offsetTop+this.props.rootRef.scrollTop //?
-                }
-            });   
-        }
+                load:{  
+                  showRightClickMenu:true,
+                  rightClickedTodoId:this.props.todo._id, 
+                  rightClickMenuX:e.clientX,//-this.props.rootRef.offsetLeft,  
+                  rightClickMenuY:e.clientY//+this.props.rootRef.scrollTop-this.props.rootRef.offsetTop
+                } 
+            });      
+        }    
     }  
- 
+
+    
     onRemoveSelectedCategoryLabel = () => {
         if(
             this.props.selectedCategory!==this.state.category &&
@@ -432,11 +498,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                     this.props.dispatch({type:"updateTodo", load:{...todo,deleted:undefined}});                
                                     this.props.dispatch({type:"selectedTodoId", load:null});
                                 }}  
-                                style={{
-                                    display: "flex",
-                                    cursor: "pointer",
-                                    alignItems: "center",
-                                    height: "14px"
+                                style={{ 
+                                    display:"flex",
+                                    cursor:"pointer",
+                                    alignItems:"center",
+                                    height:"14px"
                                 }} 
                             > 
                                 <Restore style={{width:"20px", height:"20px"}}/> 
@@ -472,7 +538,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                 ref={e => {this.inputRef=e;}}
                                 hintText="New To-Do"   
                                 id={this.props.todo._id}
-                                defaultValue={this.state.title} 
+                                value={this.state.title} 
                                 fullWidth={true}   
                                 onChange={this.onTitleChange}
                                 inputStyle={{ 
@@ -502,7 +568,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                             }}>       
                                 <TextField  
                                     id={ `${this.props.todo._id}note` }
-                                    defaultValue={this.state.note} 
+                                    value={this.state.note} 
                                     hintText="Notes"
                                     fullWidth={true}  
                                     hintStyle={{ 

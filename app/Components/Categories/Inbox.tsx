@@ -4,20 +4,24 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { ipcRenderer } from 'electron';
 import { Component } from "react";  
-import { Todo, generateId } from '../../database';
+import { Todo, generateId, Project, Area } from '../../database';
 import { TodosList } from '.././TodosList';
 import { ContainerHeader } from '.././ContainerHeader';
-import { byTags, byCategory, byNotCompleted, byNotDeleted, getTagsFromItems, generateEmptyTodo, attachEmptyTodo } from '../../utils';
+import { byTags, byCategory, byNotCompleted, byNotDeleted, getTagsFromItems, generateEmptyTodo, attachEmptyTodo, byNotAttachedToProjectFilter, byNotAttachedToAreaFilter } from '../../utils';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { compose, filter, allPass, prepend } from 'ramda';
+import { compose, filter, allPass, prepend, contains } from 'ramda';
+import { TodoInput } from '../TodoInput/TodoInput';
+import { isString } from 'util';
 
  
  
-interface InboxProps{
+interface InboxProps{ 
     dispatch:Function,
     selectedTodoId:string, 
     selectedTag:string,
     selectedCategory:string, 
+    areas:Area[],
+    projects:Project[],  
     rootRef:HTMLElement,
     todos:Todo[],
     tags:string[]
@@ -39,40 +43,24 @@ export class Inbox extends Component<InboxProps, InboxState>{
 
         this.state={empty:false};
 
-    }  
+    }   
 
-
-    shouldComponentUpdate(nextProps:InboxProps,nextState:InboxState){
-
-        let should = false;
-
-        if(this.props.selectedTodoId!==nextProps.selectedTodoId)
-           should = true;
-           
-        if(this.props.selectedTag!==nextProps.selectedTag)
-           should = true; 
-
-        if(this.props.rootRef!==nextProps.rootRef)
-           should = true;
-
-        if(this.props.todos!==nextProps.todos)
-           should = true;
-
-        if(this.props.tags!==nextProps.tags)
-           should = true;
-
-        return should; 
-        
-    }
  
 
-    render(){
+    render(){ 
+
+
+        let empty = generateEmptyTodo("emptyTodo","inbox",0);
+
+
+       
+          
 
         return <div>  
             <ContainerHeader  
                 selectedCategory={"inbox"} 
                 dispatch={this.props.dispatch}  
-                tags={[]} 
+                tags={[]}  
                 showTags={false} 
                 selectedTag={this.props.selectedTag} 
             /> 
@@ -87,14 +75,29 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 className="unselectable" 
                 id="todos" 
                 style={{marginBottom:"100px", marginTop:"50px"}} 
-            >   
-                <TodosList   
+            >    
+                 <TodoInput   
+                    id={empty._id}
+                    key={empty._id} 
+                    dispatch={this.props.dispatch}  
+                    selectedCategory={"inbox"} 
+                    selectedTodoId={this.props.selectedTodoId}
+                    tags={this.props.tags} 
+                    rootRef={this.props.rootRef}  
+                    todo={empty}
+                    creation={true}
+                /> 
+                <TodosList    
                     filters={[  
+                        byNotAttachedToAreaFilter(this.props.areas), 
+                        byNotAttachedToProjectFilter(this.props.projects), 
                         byTags(this.props.selectedTag),
                         byCategory("inbox"),
                         byNotCompleted,  
                         byNotDeleted 
                     ]}      
+                    areas={this.props.areas}
+                    projects={this.props.projects}  
                     selectedTodoId={this.props.selectedTodoId}
                     isEmpty={(empty:boolean) => this.setState({empty})}
                     dispatch={this.props.dispatch}    
@@ -105,9 +108,6 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     tags={this.props.tags} 
                 /> 
             </div>
-
         </div>
-
     }
-
-}
+} 

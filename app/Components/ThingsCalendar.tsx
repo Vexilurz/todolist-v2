@@ -84,6 +84,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
         return <Popover 
             open={this.props.open}
             scrollableContainer={this.props.rootRef}
+            useLayerForClickAway={false} 
             anchorEl={this.props.anchorEl}
             style={{
                 backgroundColor:"rgba(0,0,0,0)",
@@ -91,7 +92,6 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                 borderRadius:"20px",  
                 transform:`scale(0.8,0.8)` 
             }}   
-            useLayerForClickAway={false} 
             onRequestClose={() => this.props.close()}
             anchorOrigin={this.props.origin} 
             targetOrigin={this.props.point}
@@ -505,7 +505,7 @@ export class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCa
         document.body.addEventListener("click", this.onOutsideClick);
     }
 
-
+ 
     componentWillUnmount(){
         document.body.removeEventListener("click", this.onOutsideClick);
     } 

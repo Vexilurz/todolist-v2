@@ -338,15 +338,15 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                        margin: "5px",
                        borderRadius: "5px",
                        zIndex: 30000, 
-                       width: "250px",    
-                       position: "absolute",
+                       width: "250px",      
+                       position: "fixed",
                        backgroundColor: "rgba(238,237,239,1)",
                        left: this.props.rightClickMenuX+"px",
                        top: this.props.rightClickMenuY+"px"  
                     }}         
                 >       
-                    <div    
-                        onClick = {(e) => {
+                    <div      
+                        onClick = {(e) =>  {
                             e.stopPropagation();
                             e.preventDefault(); 
                         }}  
@@ -358,13 +358,15 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
                         <RightClickMenuItem 
                             title={"When..."} 
+                            dispatch={this.props.dispatch}
                             onClick={this.onWhen}
                             disabled={!canWhen}
                             icon={null}
                         />
 
-                        <RightClickMenuItem 
+                        <RightClickMenuItem  
                             title={"Move..."}
+                            dispatch={this.props.dispatch}
                             onClick = {this.onMove}
                             disabled = {!canMove}
                             icon = {null}
@@ -372,6 +374,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
                         <RightClickMenuItem 
                             title={"Complete"} 
+                            dispatch={this.props.dispatch}
                             onClick = {this.onComplete}
                             disabled = {!canComplete}
                             icon = {null}
@@ -379,6 +382,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
                         <RightClickMenuItem 
                             title = {"Shortcuts"}
+                            dispatch={this.props.dispatch}
                             onClick = {this.onShortcuts}
                             disabled = {!canShortcuts}
                             icon={null}
@@ -393,6 +397,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                            
                         <RightClickMenuItem 
                             title={"Repeat..."} 
+                            dispatch={this.props.dispatch}
                             onClick = {this.onRepeat}
                             disabled={!canRepeat}
                             icon={null} 
@@ -401,6 +406,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
                         <RightClickMenuItem 
                             title={"Duplicate To-Do"}
+                            dispatch={this.props.dispatch}
                             onClick = {this.onDuplicate}
                             disabled = {!canDuplicate}
                             icon={null}
@@ -409,6 +415,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
                         <RightClickMenuItem 
                             title={"Convert to Project"}
+                            dispatch={this.props.dispatch}
                             onClick = {this.onConvertToProject}
                             disabled = {!canConvert}
                             icon={null}
@@ -417,6 +424,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
                         <RightClickMenuItem 
                             title={"Delete To-Do"}
+                            dispatch={this.props.dispatch}
                             onClick = {this.onDeleteToDo}
                             disabled = {!canDelete}
                             icon={null}
@@ -431,6 +439,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
                         <RightClickMenuItem 
                             title={"Remove From Project/Area"}
+                            dispatch={this.props.dispatch}
                             onClick = {this.onRemoveFromProjectArea}
                             disabled = {!canRemoveFromProjectArea}
                             icon={null} 
@@ -445,6 +454,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
                         <RightClickMenuItem 
                             title={"Share"}
+                            dispatch={this.props.dispatch}
                             onClick = {this.onShare}
                             disabled = {!canShare}
                             icon={null} 
@@ -461,6 +471,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 interface RightClickMenuItemProps{
     title:string, 
     onClick:(e) => void,
+    dispatch:Function, 
     disabled:boolean,
     icon:JSX.Element 
 } 
@@ -471,15 +482,22 @@ export class RightClickMenuItem extends Component<RightClickMenuItemProps,RightC
 
     constructor(props){
         super(props);
-    }
+    }  
 
 
     render(){ 
 
          let disabledColor = "rgba(0,0,0,0.2)";
-
+         
          return <div  
-                    onClick = {(e) => !this.props.disabled ? this.props.onClick(e) : null} 
+                    onClick = {
+                        (e) =>  {
+                            if(!this.props.disabled){
+                                this.props.onClick(e);
+                                this.props.dispatch({type:"showRightClickMenu",load:false});
+                            }
+                        }
+                    } 
                     className="rightclickmenuitem"
                     style={{
                         display: "flex",

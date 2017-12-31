@@ -6,10 +6,10 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo } from "../../utils"; 
+import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, generateEmptyTodo } from "../../utils"; 
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo } from '../../database';
+import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area } from '../../database';
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
@@ -30,6 +30,7 @@ import { byTags, byCategory } from '../../utils';
 import { TodosList } from '.././TodosList';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { allPass, compose } from 'ramda';
+import { TodoInput } from '../TodoInput/TodoInput';
 
   
 
@@ -41,13 +42,15 @@ interface SomedayProps{
     selectedTag:string,
     rootRef:HTMLElement,
     todos:Todo[],
+    areas:Area[],   
+    projects:Project[], 
     tags:string[]
 } 
 
 
 interface SomedayState{
     empty:boolean
-} 
+}  
 
 
 export class Someday extends Component<SomedayProps, SomedayState>{
@@ -71,7 +74,8 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                 ])  
             )
         )(this.props.todos); 
-     
+
+        let empty = generateEmptyTodo("emptyTodo","someday",0);   
          
         return <div>
              <ContainerHeader 
@@ -97,7 +101,18 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         marginBottom: "100px", 
                         marginTop:"50px" 
                     }} 
-                >    
+                >     
+                    <TodoInput   
+                        id={empty._id}
+                        key={empty._id} 
+                        dispatch={this.props.dispatch}  
+                        selectedCategory={"someday"}     
+                        selectedTodoId={this.props.selectedTodoId}
+                        tags={this.props.tags} 
+                        rootRef={this.props.rootRef}  
+                        todo={empty}
+                        creation={true}
+                    /> 
                     <TodosList 
                         filters={[ 
                             byTags(this.props.selectedTag),
@@ -105,6 +120,8 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                             byNotCompleted, 
                             byNotDeleted 
                         ]}      
+                        areas={this.props.areas}
+                        projects={this.props.projects}
                         selectedTodoId={this.props.selectedTodoId} 
                         isEmpty={(empty:boolean) => this.setState({empty})} 
                         dispatch={this.props.dispatch}   

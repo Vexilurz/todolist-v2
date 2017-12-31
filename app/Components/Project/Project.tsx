@@ -22,7 +22,7 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
-import { Todo, Project, Heading, LayoutItem } from '../../database'; 
+import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
 import { uppercase, debounce } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeader } from './ProjectHeader';
@@ -33,6 +33,7 @@ import { adjust, remove } from 'ramda';
 
 interface ProjectComponentProps{
     projects:Project[], 
+    areas:Area[], 
     selectedCategory:string, 
     selectedProjectId:string, 
     selectedTodoId:string, 
@@ -60,7 +61,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         this.state={
             project : undefined
         }
- 
     }  
  
 
@@ -72,15 +72,13 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         );
 
         this.setState({project});
-        
     }
 
- 
+  
  
     componentDidMount(){
 
         this.selectProject(this.props); 
-
     }
 
 
@@ -99,7 +97,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
         if(selectProject)     
            this.selectProject(nextProps);    
-        
     }
  
 
@@ -123,7 +120,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
 
         return shouldUpdate; 
- 
     }
   
 
@@ -133,7 +129,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         let type = "updateProject"; 
         let load = { ...selectedProject, ...updatedProps };
         this.props.dispatch({ type, load });
-
     } 
 
 
@@ -141,7 +136,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     updateProjectName = debounce((value:string) : void => {
 
         this.updateProject(this.state.project, {name:value});
- 
     }, 200)  
      
     
@@ -149,7 +143,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     updateProjectDescription = debounce((value:string) : void => {
    
         this.updateProject(this.state.project, {description:value});
-  
     }, 200)
 
     
@@ -175,7 +168,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             this.state.project, 
             {layout:adjust(() => heading, idx, layout)}
         );
-  
     },200)
   
 
@@ -183,7 +175,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     updateLayout = (layout:LayoutItem[]) => {
         
         this.updateProject(this.state.project, {layout});
-
     }  
 
  
@@ -191,7 +182,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     archiveHeading = (heading_id:string) => {
 
         this.removeHeading(heading_id); 
-
     }
 
 
@@ -215,9 +205,12 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         }  
  
         this.updateProject(this.state.project, {layout:remove(idx,1,layout)});
- 
     }
-  
+    
+
+    updateProjectDeadline = (value:Date) => {
+        this.updateProject(this.state.project, {deadline:value});
+    }
 
  
     render(){   
@@ -225,12 +218,14 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         return  !this.state.project ? null :
                 <div>  
                     <div>    
-                        <ProjectHeader
+                        <ProjectHeader 
+                            rootRef={this.props.rootRef}
                             name={this.state.project.name}
                             description={this.state.project.description}
                             created={this.state.project.created as any}  
                             deadline={this.state.project.deadline as any} 
                             completed={this.state.project.completed as any} 
+                            updateProjectDeadline={this.updateProjectDeadline}
                             updateProjectName={this.updateProjectName}
                             updateProjectDescription={this.updateProjectDescription} 
                             dispatch={this.props.dispatch} 
@@ -253,7 +248,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         />
                     </div>   
                 </div>
-
     }
-
 } 
+ 

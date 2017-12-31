@@ -33,26 +33,27 @@ interface LeftPanelMenuItemProps{
     onClick : (e) => void, 
     icon:JSX.Element,
     selected:boolean,
+    category:Category, 
     title:string,
     showCounter:boolean, 
     counter:number,
     hot?:number  
 }
- 
+  
  
 
-interface LeftPanelMenuItemState{}
+interface LeftPanelMenuItemState{
+    highlight:boolean 
+}
 
 
 
 class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuItemState>{
 
     constructor(props){
-
         super(props);
-
+        this.state = {highlight:false};
     }
-
 
     render(){ 
 
@@ -60,24 +61,39 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
         let style = {    
             justifyContent: "space-between" as any,
             display: "flex",
-            height: "25px", 
-            alignItems: "center" as any,
-            padding: "5px",
-            cursor: "pointer" 
+            height: "25px",  
+            borderRadius: !this.state.highlight ? "0px" : "5px", 
+            backgroundColor: !this.state.highlight ? "" : 
+                              this.props.category==="trash" ? "rgba(200,0,0,0.3)" : 
+                              "rgba(0,200,0,0.3)", 
+            alignItems: "center" as any, 
+            padding: "5px",  
+            cursor: "pointer"  
         }; 
         let selected = this.props.selected;  
-        
-        return <div 
+        //TODO change duplicate id in parent  
+        return <div  
+            onMouseOver={(e) => {
+              if(e.buttons == 1 || e.buttons == 3){
+                this.setState({highlight:true}); 
+              } 
+            }} 
+            onMouseOut={(e) => { 
+                this.setState({highlight:false});
+            }}  
             className={this.props.selected ? `` : `leftpanelmenuitem`}  
-            onClick={this.props.onClick} 
+            onClick={this.props.onClick}  
+            id={this.props.category}    
             style={selected ? merge(style,selectedStyle) : style}
         >     
-            <div style={{   
+            <div 
+            id={this.props.category}  
+            style={{         
                 display:"flex",
                 alignItems:"center", 
                 height:"100%"
             }}>  
-                <div style={{ 
+                <div style={{  
                     paddingRight:"5px",
                     height:"100%", 
                     display:"flex", 
@@ -205,24 +221,32 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 paddingTop:"50px",
                 paddingBottom:"10px"  
             }}>
-
+ 
             <Separator />
         
             <LeftPanelMenuItem
-                onClick={() => this.props.dispatch({type:"selectedCategory",load:"inbox"})}
+                onClick={() => {
+                    this.props.dispatch({type:"selectedCategory", load:"inbox"});
+                    this.props.dispatch({type:"selectedTag", load:"All"});
+                }}
                 icon={<Inbox style={{ color:"dodgerblue" }} />}
                 title={"Inbox"}
+                category={"inbox"}
                 selected={this.props.selectedCategory==="inbox"}
                 showCounter={true}
                 counter={this.props.inbox} 
             />  
-
+ 
             <Separator />
 
             <LeftPanelMenuItem
-                onClick={() => this.props.dispatch({type:"selectedCategory",load:"today"})} 
+                onClick={() => {
+                    this.props.dispatch({type:"selectedCategory", load:"today"});
+                    this.props.dispatch({type:"selectedTag", load:"All"});
+                }} 
                 icon={<Star style={{color:"gold"}}/>}
                 title={"Today"}
+                category={"today"}
                 showCounter={true}
                 selected={this.props.selectedCategory==="today"}
                 counter={this.props.today}
@@ -230,16 +254,24 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             /> 
 
             <LeftPanelMenuItem
-                onClick={() => this.props.dispatch({type:"selectedCategory", load:"next"})} 
+                onClick={() => {
+                    this.props.dispatch({type:"selectedCategory", load:"next"});
+                    this.props.dispatch({type:"selectedTag", load:"All"});
+                }} 
                 icon={<Layers style={{color:"darkgreen"}}/>}
                 title={"Next"}
+                category={"next"}
                 selected={this.props.selectedCategory==="next"}
                 showCounter={false}
-                counter={0}
+                counter={0} 
             /> 
 
             <LeftPanelMenuItem
-                onClick={() => this.props.dispatch({type:"selectedCategory",load:"upcoming"})}
+                onClick={() => {
+                    this.props.dispatch({type:"selectedCategory", load:"upcoming"});
+                    this.props.dispatch({type:"selectedTag", load:"All"}); 
+                }}
+                category={"upcoming"}
                 icon={<Calendar style={{color:"crimson"}}/>}
                 selected={this.props.selectedCategory==="upcoming"}
                 title={"Upcoming"}
@@ -248,7 +280,11 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             />  
 
             <LeftPanelMenuItem
-                onClick={() => this.props.dispatch({type:"selectedCategory", load:"someday"})} 
+                onClick={() => {
+                    this.props.dispatch({type:"selectedCategory", load:"someday"});
+                    this.props.dispatch({type:"selectedTag", load:"All"}); 
+                }} 
+                category={"someday"}
                 icon={<BusinessCase style={{color:"burlywood"}}/>}
                 title={"Someday"}
                 selected={this.props.selectedCategory==="someday"}
@@ -258,12 +294,16 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
             <Separator />    
 
-            {
+            { 
                 this.props.logbook===0 ? null :
-                <LeftPanelMenuItem
-                    onClick={() => this.props.dispatch({type:"selectedCategory",load:"logbook"})} 
+                <LeftPanelMenuItem 
+                    onClick={() => {
+                        this.props.dispatch({type:"selectedCategory", load:"logbook"});
+                        this.props.dispatch({type:"selectedTag", load:"All"});
+                    }}   
                     icon={<Logbook style={{color:"limegreen"}}/>}
                     title={"Logbook"}
+                    category={"logbook"}
                     selected={this.props.selectedCategory==="logbook"}
                     showCounter={false}
                     counter={0}
@@ -272,14 +312,18 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             {
                 this.props.trash===0 ? null :    
                 <LeftPanelMenuItem
-                    onClick={() => this.props.dispatch({type:"selectedCategory",load:"trash"})} 
+                    onClick={() => {
+                        this.props.dispatch({type:"selectedCategory", load:"trash"});
+                        this.props.dispatch({type:"selectedTag", load:"All"});
+                    }}  
                     icon={<Trash style={{color:"darkgray"}}/>}
                     title={"Trash"}  
+                    category={"trash"}
                     selected={this.props.selectedCategory==="trash"}
                     showCounter={false} 
                     counter={0}
                 />
-            }   
+            }    
             </div>
         </div>     
     }

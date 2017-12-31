@@ -41,6 +41,7 @@ import { Category } from '../MainContainer';
 
 interface AreaBodyProps{ 
     area:Area, 
+    areas:Area[], 
     projects:Project[],
     selectedTodoId:string, 
     todos:Todo[],
@@ -151,8 +152,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 return this.getTodoElement(value, index);
           
             case "project":    
-                
-                return getProjectLink({width:"15px",height:"15px"}, value, index, this.props.dispatch);
+            
+                return getProjectLink(value, this.props.todos, this.props.dispatch, index);
 
             default: 
 
@@ -249,6 +250,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                     filters={[ ]}   
                     selectedTodoId={this.props.selectedTodoId} 
                     isEmpty={(empty:boolean) => {}}
+                    projects={this.props.projects}
+                    areas={this.props.areas} 
                     dispatch={this.props.dispatch}    
                     selectedCategory={"area"}  
                     selectedTag={this.props.selectedTag}  
@@ -266,4 +269,4 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
 
 
 
- 
+  

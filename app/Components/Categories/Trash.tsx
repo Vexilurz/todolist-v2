@@ -110,7 +110,7 @@ export class Trash extends Component<TrashProps,TrashState>{
 
 
 
-    getDeletedProjectElement = (value:Project, index:number) : JSX.Element => {
+    getDeletedProjectElement = (value:Project,  index:number) : JSX.Element => {
         return <div 
             key={`deletedProject-${index}`} 
             style={{
@@ -119,28 +119,20 @@ export class Trash extends Component<TrashProps,TrashState>{
                 alignItems:"center"
             }}
         > 
-           
-            <div 
-                onClick={(e) => this.restoreProject(value)} 
-                style={{
-                    paddingRight:"5px",
-                    cursor:"pointer",     
-                    display:"flex",  
-                    position:"relative", 
-                    alignItems:"center"
-                }}       
-            > 
-                <Restore style={{width:"20px", height:"20px"}}/> 
-            </div>  
-  
             <div style={{width:"100%"}}>
-                { getProjectLink({width:"12px", height:"12px"}, value, index, () => {}) }
+                { 
+                    getProjectLink(
+                        value, 
+                        this.props.todos,  
+                        this.props.dispatch, 
+                        index
+                    ) 
+                }   
             </div>  
-  
-        </div>   
+        </div>    
     }
 
-  
+   
 
     getDeletedAreaElement = (value:Area, index:number) : JSX.Element => { 
         return <div 
@@ -151,21 +143,16 @@ export class Trash extends Component<TrashProps,TrashState>{
                 alignItems:"center"
             }}
         >  
-            <div 
-                onClick={(e) => this.restoreArea(value)} 
-                style={{
-                    paddingRight:"5px",
-                    cursor:"pointer",
-                    display:"flex",  
-                    position:"relative",
-                    alignItems:"center" 
-                }}     
-            > 
-                <Restore style={{width:"20px", height:"20px"}}/> 
-            </div>   
- 
             <div style={{width:"100%"}}>
-                { getAreaLink({width:"20px",height:"20px"}, value, index, () => {}) }
+                { 
+                    getAreaLink(
+                      value, 
+                      this.props.todos, 
+                      this.props.projects, 
+                      index, 
+                      this.props.dispatch
+                    ) 
+                }
             </div>  
         </div>   
     } 
@@ -181,21 +168,7 @@ export class Trash extends Component<TrashProps,TrashState>{
                 display:"flex", 
                 alignItems:"center"
             }}   
-         > 
-            <div  
-                onClick={(e) => this.restoreTodo(value)} 
-                style={{
-                    paddingRight:"5px",
-                    paddingBottom: "8px", 
-                    display:"flex",  
-                    cursor:"pointer", 
-                    position:"relative",
-                    alignItems:"center" 
-                }} 
-            > 
-                <Restore style={{width:"20px", height:"20px"}}/> 
-            </div>  
-
+         >  
             <div style={{width:"100%"}}>
                 <TodoInput   
                     id={value._id} 
@@ -209,63 +182,10 @@ export class Trash extends Component<TrashProps,TrashState>{
                 />   
             </div>   
          </div>  
-
-    } 
-         
-      
-
-    restoreTodo = (t:Todo) : void => {
-        this.props.dispatch({type:"updateTodo", load:{...t,deleted:undefined}});
-    } 
-
-
-
-    restoreProject = (p:Project) : void => { 
-
-        let relatedTodosIds : string[] = p.layout.filter(isString);
-
-        let selectedTodos : Todo[] = this.props.todos.filter(
-            (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
-        );   
-           
-        this.props.dispatch({
-            type:"updateTodos", 
-            load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))
-        })
-
-        this.props.dispatch({type:"updateProject", load:{...p,deleted:undefined}});
-
-    }
  
-     
-
-    restoreArea = (a:Area) : void => { 
-
-        let relatedTodosIds : string[] = a.attachedTodosIds;
-
-        let relatedProjectsIds : string[] = a.attachedProjectsIds;
-
-        let selectedProjects : Project[] = this.props.projects.filter(
-            (p:Project) : boolean => contains(p._id)(relatedProjectsIds)
-        );    
-
-        let selectedTodos : Todo[] = this.props.todos.filter(
-            (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
-        );   
-        
-        this.props.dispatch({
-            type:"updateTodos", 
-            load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))
-        })
-
-        this.props.dispatch({
-            type:"updateProjects", 
-            load:selectedProjects.map((p:Project) => ({...p,deleted:undefined}))
-        })
-
-        this.props.dispatch({type:"updateArea", load:{...a,deleted:undefined}});
-    }
-    
+    }  
+          
+      
     
 
     render(){  
@@ -320,6 +240,8 @@ export class Trash extends Component<TrashProps,TrashState>{
                 <TodosList    
                     filters={[ ]}     
                     disabled={true} 
+                    areas={this.props.areas}
+                    projects={this.props.projects} 
                     selectedTodoId={this.props.selectedTodoId}
                     isEmpty={(empty:boolean) => {}}
                     dispatch={this.props.dispatch}    

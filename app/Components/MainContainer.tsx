@@ -41,9 +41,9 @@ export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" |
 interface MainContainerState{ 
     fullWindowSize:boolean
 }
+ 
 
-
-let convertDates = ([todos, projects, areas]) => [ 
+export let convertDates = ([todos, projects, areas]) => [ 
     todos.map((t:Todo) => ({
         ...t, 
         reminder : t.reminder ? new Date(t.reminder) : undefined,  
@@ -66,9 +66,9 @@ let convertDates = ([todos, projects, areas]) => [
         deleted : a.deleted ? new Date(a.deleted) : undefined
     }))
 ];  
- 
   
-let createHeading = (e, props:Store) : void => {
+  
+export let createHeading = (e, props:Store) : void => {
     
         if(props.selectedCategory!=="project"){
             throw new Error(
@@ -80,7 +80,7 @@ let createHeading = (e, props:Store) : void => {
         let id : string = props.selectedProjectId;
 
         if(isNil(id))
-        throw new Error(`selectedProjectId undefined ${id}. createHeading.`);
+           throw new Error(`selectedProjectId undefined ${id}. createHeading.`);
 
         
         let project = props.projects.find( (p:Project) => p._id===id );
@@ -139,7 +139,6 @@ let createHeading = (e, props:Store) : void => {
         let load = {...project, layout:[heading,...project.layout]};
         
         props.dispatch({ type:"updateProject", load });
-        
 }
 
 
@@ -177,9 +176,9 @@ let createNewTodo = (e, props:Store, rootRef:HTMLElement) : void => {
 
             if(isNil(project)){ 
                 throw new Error( 
-                `Project with selectedProjectId does not exist.
-                ${props.selectedProjectId} ${JSON.stringify(project)}. 
-                createNewTodo.`
+                    `Project with selectedProjectId does not exist.
+                    ${props.selectedProjectId} ${JSON.stringify(project)}. 
+                    createNewTodo.`
                 )   
             }     
 
@@ -245,9 +244,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
         clonedStore.windowId = undefined;
 
         ipcRenderer.send("cloneWindow", clonedStore);
-    
     }
-
+ 
 
 
     onError = (e) => console.log(e);
@@ -268,6 +266,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
     
 
     fetchData = () => { 
+        if(this.props.clone)
+           return; 
 
         Promise.all([ 
             getTodos(this.onError)(true,this.limit),
@@ -285,64 +285,62 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         areas
                     }
                 })  
-            }
-        )  
-
+            } 
+        ) 
     } 
  
     
     componentDidMount(){
 
-        destroyEverything()
-        .then(() => { 
-             
-            initDB();
+        /* 
+            destroyEverything()
+            .then(() => { 
+                
+                initDB();
 
-            let fakeData = generateRandomDatabase({
-                todos : 40,  
-                projects : 35,  
-                areas : 12 
-            });   
-    
-            let todos = fakeData.todos;
-            let projects = fakeData.projects; 
-            let areas = fakeData.areas; 
-            
-            Promise.all([
-                addTodos(this.onError,todos),    
-                addProjects(this.onError,projects), 
-                addAreas(this.onError,areas) 
-            ])
-            .then(() => this.fetchData())    
-        })  
-
+                let fakeData = generateRandomDatabase({
+                    todos : 40,  
+                    projects : 35,  
+                    areas : 12 
+                });   
         
+                let todos = fakeData.todos;
+                let projects = fakeData.projects; 
+                let areas = fakeData.areas; 
+                
+                Promise.all([
+                    addTodos(this.onError,todos),    
+                    addProjects(this.onError,projects), 
+                    addAreas(this.onError,areas) 
+                ])
+                .then(() => this.fetchData())    
+            })
+        */  
+
+        this.fetchData(); 
         window.addEventListener("resize", this.updateWidth);
         window.addEventListener("click", this.closeRightClickMenu); 
 
         //update separate windows 
         ipcRenderer.removeAllListeners("action");  
         ipcRenderer.on("action", (event, action) => this.props.dispatch(action));
-    
     }      
-    
+     
  
 
     componentWillUnmount(){
 
         window.removeEventListener("resize", this.updateWidth);
         window.removeEventListener("click", this.closeRightClickMenu);
-
     }  
       
-    
+      
 
     componentWillReceiveProps(nextProps){
 
         if(this.props.selectedCategory!==nextProps.selectedCategory)
            if(this.rootRef)   
               this.rootRef.scrollTop=0; 
-
     }
   
  
@@ -353,11 +351,14 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     className="scroll"  
                     id="maincontainer"  
                     style={{ 
-                        width:`${window.innerWidth-this.props.currentleftPanelWidth}px`,
+                        width:this.props.clone ?  
+                              `${window.innerWidth}px` :   
+                              `${window.innerWidth-this.props.currentleftPanelWidth}px`,
+                        height:`${window.innerHeight}px`,     
                         position:"relative",  
                         display:"flex",   
                         backgroundColor:"rgba(209, 209, 209, 0.1)", 
-                        overflow:"scroll",  
+                        overflow:"scroll",      
                         flexDirection:"column"  
                     }}  
                 >     
@@ -402,6 +403,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedCategory={this.props.selectedCategory}
                                 selectedTag={this.props.selectedTag} 
                                 rootRef={this.rootRef}
+                                areas={this.props.areas}
+                                projects={this.props.projects}
                                 todos={this.props.todos}
                                 tags={this.props.tags}
                             />,   
@@ -411,6 +414,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedCategory={this.props.selectedCategory}
                                 selectedTag={this.props.selectedTag}
+                                areas={this.props.areas}
+                                projects={this.props.projects}
                                 rootRef={this.rootRef}
                                 todos={this.props.todos}
                                 tags={this.props.tags}
@@ -420,6 +425,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedCategory={this.props.selectedCategory}
+                                areas={this.props.areas}
+                                projects={this.props.projects}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
                                 todos={this.props.todos}
@@ -431,6 +438,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedCategory={this.props.selectedCategory}
                                 todos={this.props.todos}
+                                areas={this.props.areas}
                                 projects={this.props.projects}
                                 selectedTag={this.props.selectedTag}
                                 tags={this.props.tags} 
@@ -441,7 +449,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedCategory={this.props.selectedCategory}
-                                todos={this.props.todos}
+                                todos={this.props.todos} 
+                                areas={this.props.areas}
                                 projects={this.props.projects}
                                 selectedTag={this.props.selectedTag}
                                 tags={this.props.tags} 
@@ -454,6 +463,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedCategory={this.props.selectedCategory}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
+                                areas={this.props.areas}
+                                projects={this.props.projects}
                                 todos={this.props.todos}
                                 tags={this.props.tags}
                             />,    
@@ -489,6 +500,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedTodoId={this.props.selectedTodoId} 
                                 todos={this.props.todos}
                                 projects={this.props.projects}  
+                                areas={this.props.areas}
                                 rootRef={this.rootRef}
                                 tags={this.props.tags} 
                             />,    
@@ -498,13 +510,13 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedCategory={this.props.selectedCategory}
                                 selectedAreaId={this.props.selectedAreaId}
                                 selectedTag={this.props.selectedTag}
-                                dispatch={this.props.dispatch}    
+                                dispatch={this.props.dispatch}     
                                 projects={this.props.projects}
                                 todos={this.props.todos}
                                 selectedTodoId={this.props.selectedTodoId} 
                                 tags={this.props.tags}
                                 rootRef={this.rootRef}
-                            />  
+                            />   
                         }[this.props.selectedCategory]
                     }
                 </div>   

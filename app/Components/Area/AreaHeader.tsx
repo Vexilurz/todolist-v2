@@ -162,8 +162,8 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
         })
  
         this.props.dispatch({type:"updateArea", load:{...area,deleted:new Date()}});   
- 
-         
+        
+        this.props.dispatch({type:"selectedCategory",load:"inbox"});
     }
  
  

@@ -2,7 +2,7 @@ import './../assets/styles.css';
 import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { Todo, generateId } from '../database';
+import { Todo, generateId, Project, Area } from '../database';
 import { Component } from 'react';
 import { 
     insideTargetArea, 
@@ -10,7 +10,9 @@ import {
     makeChildrensVisible, 
     generateDropStyle, 
     getTagsFromItems,  
-    generateEmptyTodo
+    generateEmptyTodo,
+    isString,
+    isCategory
 } from '../utils';  
 import { RightClickMenu } from './RightClickMenu';
 import SortableContainer from '../sortable-hoc/sortableContainer';
@@ -20,15 +22,16 @@ import {arrayMove} from '../sortable-hoc/utils';
 import {  byTags, byCategory } from '../utils';
 import { SortableList } from './SortableList';
 import { TodoInput } from './TodoInput/TodoInput';
-import { allPass, isNil, prepend, isEmpty } from 'ramda';
+import { allPass, isNil, prepend, isEmpty, compose, map, assoc, contains, remove } from 'ramda';
 import { Category } from './MainContainer';
-
 
 
 interface TodosListProps{
     dispatch:Function,
     filters:( (t:Todo) => boolean )[],
     selectedTodoId:string, 
+    projects:Project[],
+    areas:Area[],
     selectedCategory:Category,
     isEmpty:(empty:boolean) => void,
     selectedTag:string,  
@@ -38,7 +41,6 @@ interface TodosListProps{
     disabled?:boolean     
 }    
 
-
   
 interface TodosListState{
     todos:Todo[],
@@ -46,42 +48,41 @@ interface TodosListState{
     helper:HTMLElement,
     showPlaceholder:boolean 
 }
-  
-       
+      
    
 export class TodosList extends Component<TodosListProps, TodosListState>{
 
-
-     constructor(props){ 
+    constructor(props){ 
         super(props);
-        this.state={todos:[], currentIndex:0, helper:null, showPlaceholder:false}; 
-     }  
-         
-
-     componentDidMount(){
+        this.state={
+            todos:[], 
+            currentIndex:0, 
+            helper:null, 
+            showPlaceholder:false
+        };  
+    }   
+        
+    componentDidMount(){
 
         let todos = this.props 
                         .todos
                         .filter(allPass(this.props.filters)) 
                         .sort((a:Todo,b:Todo) => a.priority-b.priority);
-
-        //if(typeof this.props.attachEmptyTodo==="function"){
-        //   todos = this.props.attachEmptyTodo(todos); 
-        //}                  
-
+                        
         if(typeof this.props.isEmpty==="function"){  
            this.props.isEmpty(todos.length===0);  
         }
         
         this.setState({todos});  
-              
-     }  
+    }  
 
 
 
-     componentWillReceiveProps(nextProps:TodosListProps, nextState:TodosListState){
-
-        if(
+    componentWillReceiveProps(nextProps:TodosListProps, nextState:TodosListState){
+     
+        if(    
+            this.props.areas!==nextProps.areas ||
+            this.props.projects!==nextProps.projects || 
             this.props.todos!==nextProps.todos ||  
             this.props.selectedTag!==nextProps.selectedTag 
         ){  
@@ -91,43 +92,48 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                         .sort((a:Todo,b:Todo) => a.priority-b.priority);
                 
             if(typeof nextProps.isEmpty==="function"){ 
-                nextProps.isEmpty(todos.length===0);  
+               nextProps.isEmpty(todos.length===0);  
             }      
              
             this.setState({todos});    
         }  
- 
-     }
+    }
  
   
 
-     shouldComponentUpdate(nextProps:TodosListProps, nextState:TodosListState){
+    shouldComponentUpdate(nextProps:TodosListProps, nextState:TodosListState){
         let should = false; 
 
         if(this.props.todos!==nextProps.todos) 
            should=true;   
- 
+  
+        if(this.props.projects!==nextProps.projects) 
+           should=true;   
+
+        if(this.props.areas!==nextProps.areas) 
+           should=true;   
+
         if(this.props.selectedTag!==nextProps.selectedTag)
            should=true;   
 
         if(this.state.todos!==nextState.todos)
-           should=true;   
+           should=true;    
  
         if(this.state.currentIndex!==nextState.currentIndex)
            should=true;   
 
         if(this.state.helper!==nextState.helper)
-           should=true;    
+           should=true;     
        
         if(this.state.showPlaceholder!==nextState.showPlaceholder)
            should=true;        
             
         return should;
-     }  
+    }  
     
 
      
-     getTodoElement = (value:Todo, index:number) => {
+    getTodoElement = (value:Todo, index:number) => {
        
         return  <div style={{position:"relative"}}> 
                     <TodoInput   
@@ -141,12 +147,11 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                         todo={value}
                     />     
                 </div> 
-
-     }
+    }
        
 
  
-     shouldCancelStart = (e) => {
+    shouldCancelStart = (e) => {
  
         if(this.props.disabled)
            return true;
@@ -159,12 +164,11 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
          
 
         return false; 
-
-     } 
+    } 
      
       
 
-     shouldCancelAnimation = (e) => {
+    shouldCancelAnimation = (e) => {
  
         if(this.props.disabled)
            return true;
@@ -177,12 +181,11 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         let x = e.pageX;
 
         return x < rect.left;   
-
-     }   
+    }   
 
  
 
-     onSortStart = ({node, index, collection}, e, helper) => { 
+    onSortStart = ({node, index, collection}, e, helper) => { 
 
         this.setState({showPlaceholder:true});
          
@@ -195,11 +198,11 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         el.style.opacity='0'; 
         
         helper.appendChild(el);  
-     }
+    }
  
      
  
-     onSortMove = (e, helper : HTMLElement, newIndex:number) => {
+    onSortMove = (e, helper : HTMLElement, newIndex:number) => {
         let x = e.clientX; 
         let y = e.clientY+this.props.rootRef.scrollTop;   
 
@@ -217,89 +220,229 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             nested.style.visibility="hidden";
             nested.style.opacity='0';  
         } 
-     }
-  
- 
+    }
 
-     onSortEnd = ({oldIndex, newIndex, collection}, e) => { 
-          
-        if(oldIndex===newIndex)
+   
+    isAttachedToArea = (t:Todo) : Area => {
+        let areas = this.props.areas;
+        for(let i=0; i<areas.length; i++){
+            if(contains(t._id,areas[i].attachedTodosIds))
+               return areas[i];
+        }
+        return undefined;
+    }
+
+    
+    isAttachedToProject = (t:Todo) : Project => {
+        let projects = this.props.projects;
+        for(let i=0; i<projects.length; i++){
+            let attachedTodosIds = projects[i].layout.filter(isString);
+            if(contains(t._id,attachedTodosIds))
+               return projects[i];
+        }
+        return undefined; 
+    }  
+
+
+
+
+
+
+
+
+
+
+
+
+    removeTodoFromArea = (fromArea:Area, todo:Todo) : void => {
+        
+        let idx : number = fromArea.attachedTodosIds.findIndex( 
+            (id:string) => id===todo._id 
+        );  
+    
+        if(idx===-1)
            return; 
 
+        fromArea.attachedTodosIds = remove(idx, 1, fromArea.attachedTodosIds); 
+        this.props.dispatch({type:"updateArea", load:fromArea});  
+    }  
+
+
+    removeTodoFromProject = (fromProject:Project, todo:Todo) : void => {
+        
+        let idx = fromProject.layout.findIndex((id:string) => id===todo._id);  
+    
+        if(idx===-1)
+           return; 
+
+        fromProject.layout = remove(idx, 1, fromProject.layout); 
+        this.props.dispatch({type:"updateProject", load:fromProject});  
+    }
+    
+
+    dropTodoOnProject = (projectTarget:Project,draggedTodo:Todo) : void => {
+        console.log(`Drop on project ${projectTarget.name}`);
+
+        let relatedProject : Project = this.isAttachedToProject(draggedTodo); 
+        //what if attached to more than one project ?
+        let relatedArea : Area = this.isAttachedToArea(draggedTodo); 
+        //what if attached to more than one area ?
+  
+        if(relatedProject){ 
+           this.removeTodoFromProject(relatedProject,draggedTodo);
+        }
+
+        if(relatedArea){
+           this.removeTodoFromArea(relatedArea,draggedTodo);
+        }
+              
+        this.props.dispatch({ 
+            type:"attachTodoToProject", 
+            load:{ 
+              projectId:projectTarget._id,
+              todoId:draggedTodo._id
+            } 
+        });
+    }  
+
+
+    dropTodoOnArea = (areaTarget:Area, draggedTodo:Todo) : void => {
+        console.log(`Drop on area ${areaTarget.name}`);
+
+        let relatedProject : Project = this.isAttachedToProject(draggedTodo); 
+        //what if attached to more than one project ?
+        let relatedArea : Area = this.isAttachedToArea(draggedTodo); 
+        //what if attached to more than one area ?
+  
+        if(relatedProject){ 
+           this.removeTodoFromProject(relatedProject,draggedTodo);
+        }
+
+        if(relatedArea){
+           this.removeTodoFromArea(relatedArea,draggedTodo);
+        }
+
+        this.props.dispatch({
+            type:"attachTodoToArea",
+            load:{
+                areaId:areaTarget._id,
+                todoId:draggedTodo._id
+            } 
+        })  
+    } 
+
+
+    onDrop = (e,draggedTodo:Todo) => {
+        let el = document.elementFromPoint(e.clientX, e.clientY);
+        let id = el.id || el.parentElement.id;
+
+        let projectTarget : Project = this.props.projects.find( (p:Project) => p._id===id );
+        let areaTarget : Area = this.props.areas.find( (a:Area) => a._id===id );
+     
+        if(projectTarget){
+
+            this.dropTodoOnProject(projectTarget,draggedTodo);
+
+        }else if(areaTarget){ 
+
+            this.dropTodoOnArea(areaTarget,draggedTodo);
+
+        }else{ 
+        
+            let nodes = [].slice.call(e.path);
+            
+            for(let i=0; i<nodes.length; i++){
+
+                if(isCategory(nodes[i].id)){
+                    console.log(`Category ${nodes[i].id}`);  
+                     
+                    switch(nodes[i].id){ 
+                       case "inbox":
+                         this.props.dispatch({
+                             type:"updateTodo",
+                             load:{...draggedTodo, category:"inbox"}
+                         });
+                         break;
+                       case "today":
+                         this.props.dispatch({
+                             type:"updateTodo",
+                             load:{...draggedTodo, category:"today"}
+                         });
+                         break;
+                       case "next":
+                         this.props.dispatch({
+                            type:"updateTodo",
+                            load:{...draggedTodo, category:"next"}
+                         });
+                         break;
+                       case "someday":
+                         this.props.dispatch({
+                             type:"updateTodo",
+                             load:{...draggedTodo, category:"someday"}
+                         });
+                         break;
+                       case "trash":
+                         this.props.dispatch({
+                            type:"updateTodo",
+                            load:{...draggedTodo, deleted:new Date()}
+                         }); 
+                         break; 
+                       case "logbook":
+                         this.props.dispatch({
+                            type:"updateTodo",
+                            load:{...draggedTodo, checked:true, completed:new Date()}
+                         }); 
+                         break; 
+                    }    
+                }
+            } 
+        } 
+    }
+
+
+    onSortEnd = ({oldIndex, newIndex, collection}, e) => { 
         this.setState({showPlaceholder:false});
-          
+
         let x = e.clientX; 
         let y = e.clientY+this.props.rootRef.scrollTop;  
         let draggedTodo = this.state.todos[oldIndex];
 
-        if(isEmpty(draggedTodo.title))
+        if(isEmpty(draggedTodo.title)) 
            return;
  
         let leftpanel = document.getElementById("leftpanel");
 
         if(insideTargetArea(leftpanel,x,y)){   
 
-            let el = document.elementFromPoint(e.clientX, e.clientY);
-            let id = el.id || el.parentElement.id;
-            if(id){ 
-                this.props.dispatch({
-                  type:"attachTodoToProject", 
-                  load:{projectId:id,todoId:draggedTodo._id}
-                });
-            } 
-        }else{      
-            let items = this.state.todos;  
-
-            if(items.length<=2)
+            this.onDrop(e,draggedTodo); 
+           
+        }else{     
+            if(oldIndex===newIndex)
                return; 
+                      
+            this.changeOrder(oldIndex,newIndex); 
+        }   
+    }  
 
-            let todo : Todo = {...items[oldIndex]};
+     
+
+    changeOrder = (oldIndex,newIndex) => {
+        let items = [...this.state.todos];  
+        let updated = compose(
+           (items:Todo[]) => items.map((item:Todo,index:number) => assoc("priority",index,item)), 
+           (items) => arrayMove(items,oldIndex,newIndex)
+        )(items);  
+        this.props.dispatch({type:"updateTodos", load:updated});
+    }
  
-            if(newIndex===0){
-                console.log("newIndex===0")
-                let first = items[newIndex];
-                let newPriority = first.priority/2;
-                todo.priority = newPriority;
-                this.props.dispatch({type:"updateTodo",load:todo});
-            }else if(newIndex===items.length-1){
-                let last = items[newIndex];
-                let newPriority = last.priority+1;
-                todo.priority = newPriority; 
-                this.props.dispatch({type:"updateTodo",load:todo});
-            }else{
-                let itemBefore = items[newIndex];
-                let itemAfter = newIndex>oldIndex ? items[newIndex+1] : items[newIndex-1];
-                let newPriority = (itemBefore.priority + itemAfter.priority)/2;
-                todo.priority = newPriority;
-                this.props.dispatch({type:"updateTodo",load:todo});
-            }    
-        } 
-     }
- 
+
         
-     render(){   
-        let empty = generateEmptyTodo(
-            generateId(),
-            this.props.selectedCategory,
-            0
-        ) 
- 
+    render(){    
+         
         return <div style={{
             WebkitUserSelect:"none", 
             position:"relative"
-        }}>  
-
-            <TodoInput   
-                id={empty._id}
-                key={empty._id} 
-                dispatch={this.props.dispatch}  
-                selectedCategory={this.props.selectedCategory} 
-                selectedTodoId={this.props.selectedTodoId}
-                tags={this.props.tags} 
-                rootRef={this.props.rootRef}  
-                todo={empty}
-            /> 
-              
+        }}>   
             <Placeholder   
                 helper={this.state.helper}
                 currentIndex={this.state.currentIndex}
@@ -320,19 +463,16 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 lock={false}
             />  
             <RightClickMenu {...{} as any}/> 
-         </div> 
-             
-     }   
- } 
+        </div> 
+    }   
+}  
  
- 
-
 
 interface PlaceholderProps{
     helper:HTMLElement, 
     currentIndex:number,
     show:boolean 
-}
+}  
  
 interface PlaceholderState{} 
 
@@ -349,19 +489,17 @@ class Placeholder extends Component<PlaceholderProps,PlaceholderState>{
         let rect = this.props.helper.getBoundingClientRect();
          
         let offset = this.props.currentIndex*rect.height;
- 
+        
         return !this.props.show ? null : 
-        <div style={{   
-            backgroundColor:"rgba(205,221,253,0.5)",
-            zIndex:100,     
-            //transition:this.props.show ? "transform 0.2s ease-in-out" : "", 
-            height:"30px", 
-            borderRadius:"5px",     
-            width:"100%",    
-            position:"absolute",  
-            transform:`translateY(${offset}px)`
-        }}>   
-        </div>
+                <div style={{   
+                    backgroundColor:"rgba(205,221,253,0.5)",
+                    zIndex:100,      
+                    height:"30px", 
+                    borderRadius:"5px",     
+                    width:"100%",    
+                    position:"absolute",  
+                    transform:`translateY(${offset}px)`
+                }}>   
+                </div>
     } 
- 
 } 

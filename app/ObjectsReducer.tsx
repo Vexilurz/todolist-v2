@@ -83,12 +83,13 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
             (action:{type:string}) : boolean => "addTodo"===action.type,
 
             (action:{type:string, load:Todo}) : Store => {
+
                 
                 if(action.load.type!=="todo")
                    throw new Error(`Load is not of type Todo. ${JSON.stringify(action.load)} addTodo. objectsReducer.`);
  
                 addTodo(onError, action.load);
-                
+
                 return {
                     ...state, 
                     todos:[action.load,...state.todos],
@@ -186,11 +187,31 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 let idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
                 
                 if(idx===-1){ 
-                    addTodo(onError, action.load);
+                    let todo = {...action.load, _id:generateId()};
+
+                    addTodo(onError, todo);
+
+                    if(todo.category==="project"){
+
+                        let projects = state.projects;
+
+                        let idx = state.projects.findIndex( (p:Project) => p._id===state.selectedProjectId );
+
+                        let project : Project = {...state.projects[idx]};     
+                        project.layout = [todo._id, ...project.layout];
+
+                        updateProject(project._id,project,onError);
+
+                        return { 
+                            ...state,
+                            todos:[todo,...state.todos],
+                            projects:adjust(() => project, idx, state.projects)
+                        }
+                    }
                     
                     return {
-                        ...state, 
-                        todos:[action.load,...state.todos],
+                        ...state,  
+                        todos:[todo,...state.todos],
                     };  
                 }
 
@@ -207,7 +228,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                     ...state, 
                     todos:adjust(() => action.load, idx, state.todos)
                 }; 
-
             }
         ],
 

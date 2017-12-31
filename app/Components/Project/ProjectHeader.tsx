@@ -28,15 +28,18 @@ import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
+import { DeadlineCalendar } from '../ThingsCalendar';
 
 
 
 interface ProjectHeaderProps{
+    rootRef:HTMLElement, 
     name:string, 
     description:string,
     created:Date,
-    deadline:Date,
-    completed:Date,
+    deadline:Date, 
+    completed:Date,  
+    updateProjectDeadline:(value:Date) => void,
     updateProjectName:(value:string) => void,
     updateProjectDescription:(value:string) => void,
     dispatch:Function  
@@ -47,7 +50,8 @@ interface ProjectHeaderProps{
 interface ProjectHeaderState{
     projectMenuPopoverAnchor:HTMLElement,
     name:string,
-    description:string  
+    description:string,
+    showDeadlineCalendar:boolean   
 }
   
   
@@ -63,7 +67,8 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         this.state = {
             projectMenuPopoverAnchor:null,
             name:this.props.name,
-            description:this.props.description  
+            description:this.props.description,
+            showDeadlineCalendar:false   
         }
  
     }   
@@ -76,7 +81,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
            this.setState({projectMenuPopoverAnchor:this.projectMenuPopoverAnchor});
  
     }
-    
+     
    
 
     componentWillReceiveProps(nextProps:ProjectHeaderProps, nextState:ProjectHeaderState){
@@ -103,6 +108,10 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         if(this.state.projectMenuPopoverAnchor!==nextState.projectMenuPopoverAnchor)
            should = true;
 
+        if(this.state.showDeadlineCalendar!==nextState.showDeadlineCalendar)
+           should=true; 
+           
+
         if(this.props.name!==nextProps.name)
             should = true;
         if(this.props.description!==nextProps.description)
@@ -123,7 +132,6 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
   
 
         return should;    
-
     }
     
     
@@ -132,27 +140,62 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         this.setState({name:value}, () => this.props.updateProjectName(value));
     }
  
-
+ 
 
     updateProjectDescription = (newValue : string) => {    
         this.setState({description:newValue}, () => this.props.updateProjectDescription(newValue));
     }
  
+    openMenu = (e) => this.props.dispatch({type:"showProjectMenuPopover", load:true});
+    
+    closeDeadlineCalendar = (e) => {
+        this.setState({showDeadlineCalendar:false}); 
+    }
+
+    onDeadlineCalendarClear = (e) => {
+        this.setState({showDeadlineCalendar:false});  
+    }
+
+    onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
+        let remaining = daysRemaining(day);
+            
+        if(remaining>=0){
+           this.props.updateProjectDeadline(day); 
+           this.setState({showDeadlineCalendar:false});  
+        }
+    };   
  
-
-    openMenu = (e) => this.props.dispatch({type:"showProjectMenuPopover", load:true})
-   
-
-
     render(){ 
      
-        let days = dateDiffInDays(this.props.created,this.props.deadline);    
+        let days = this.props.deadline ? dateDiffInDays(this.props.created,this.props.deadline) : 365; //TODO   
 
-        let remaining = daysRemaining(this.props.deadline);     
+        let remaining = daysRemaining(this.props.deadline);      
       
         return <div>  
-
-            <ProjectMenuPopover {...{anchorEl:this.state.projectMenuPopoverAnchor} as any} />  
+         
+            <ProjectMenuPopover 
+                {...{
+                    anchorEl:this.state.projectMenuPopoverAnchor,
+                    rootRef:this.props.rootRef,  
+                    openDeadlineCalendar:() => {
+                        this.setState({showDeadlineCalendar:true})
+                    }     
+                } as any}  
+            />   
+            
+            {     
+                !this.state.showDeadlineCalendar ? null : 
+                <DeadlineCalendar  
+                    close = {this.closeDeadlineCalendar}
+                    onDayClick = {this.onDeadlineCalendarDayClick} 
+                    open = {this.state.showDeadlineCalendar}  
+                    origin = {{vertical: "top", horizontal: "left"}} 
+                    point = {{vertical: "top", horizontal: "right"}} 
+                    anchorEl = {this.projectMenuPopoverAnchor} 
+                    onClear = {this.onDeadlineCalendarClear}
+                    rootRef = {this.props.rootRef}
+                /> 
+            } 
               
             <div style={{display:"flex", alignItems: "center"}}>
 

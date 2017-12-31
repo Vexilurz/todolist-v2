@@ -136,10 +136,10 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
                  paddingTop: "3px" 
              }}>    
                  <div style={{  
-                     color: "aliceblue",
-                     fontFamily: "sans-serif", 
-                     fontSize: "15px"
-                 }}>
+                    color: "aliceblue",
+                    fontFamily: "sans-serif", 
+                    fontSize: "15px"
+                 }}> 
                      New Area
                  </div>
                  <p style={{
@@ -158,6 +158,5 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
           
          </div>   
      </Popover> 
-     }
- 
- }
+    } 
+}

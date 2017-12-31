@@ -72,7 +72,6 @@ let shouldUpdateChecklist = (
         }
     }
 
-    console.log("shouldUpdateChecklist",should); 
     
     return should;
 }

@@ -65,7 +65,7 @@ export class SortableList extends Component<SortableListProps, SortableListState
         </ul> 
         
     }    
-
+ 
 
     shouldComponentUpdate(nextProps:SortableListProps){
         let should = false;
@@ -77,7 +77,7 @@ export class SortableList extends Component<SortableListProps, SortableListState
             should=true;
 
         return should;  
-    }
+    } 
 
         
     getSortableContainer = () => {

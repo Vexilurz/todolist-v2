@@ -17,7 +17,7 @@ import { createStore, combineReducers } from "redux";
 import { Provider, connect } from "react-redux";
 import './assets/fonts/index.css'; 
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
-import { MainContainer, Category } from './Components/MainContainer';
+import { MainContainer, Category, convertDates } from './Components/MainContainer';
 import { Project, Area, Todo, removeProject, generateId, addProject, removeArea, updateProject, addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, removeProjects, updateAreas, updateProjects, addTodos } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
@@ -49,13 +49,13 @@ export class App extends Component<any,any>{
  
         let {type,load} = this.props.initialLoad;
 
-        switch(type){
-
-            case "clone":
+        switch(type){ 
+             
+            case "clone": 
                this.props.dispatch({type:"newStore", load});
                this.props.dispatch({type:"clone", load:true});
                break; 
-            case "reload":
+            case "reload": 
                this.props.dispatch({type:"windowId", load});
                break;
             case "open":
@@ -90,7 +90,7 @@ export class App extends Component<any,any>{
 
     }            
             
-};           
+};            
   
  
 
@@ -122,7 +122,7 @@ export interface Store{
     selectedAreaId : string,
     showProjectMenuPopover : boolean,
     openNewProjectAreaPopup : boolean,
-    showRightClickMenu : boolean,
+    showRightClickMenu : boolean, 
     rightClickedTodoId : string,
     rightClickMenuX : number,
     rightClickMenuY : number,
@@ -188,22 +188,26 @@ export let defaultStoreItems : Store = {
 let reducer = (reducers) => (state:Store, action) => {
 
     let newState = undefined;
- 
+  
     if(action.type==="newStore"){
 
-       return {...action.load}  
-
+       let [todos,projects,areas] = convertDates([
+            action.load.todos, 
+            action.load.projects, 
+            action.load.areas
+       ]); 
+          
+       return {...action.load,todos,projects,areas}; 
     }
-
+ 
     for(let i=0; i<reducers.length; i++){
-
+    
         newState = reducers[i](state, action);
 
         if(newState)
            return newState; 
-
-    }
- 
+    } 
+  
     return state; 
 };
  

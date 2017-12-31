@@ -24,69 +24,138 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
-import { uppercase, debounce, stringToLength, daysRemaining, daysLeftMark, chooseIcon } from '../../utils';
+import { uppercase, debounce, stringToLength, daysRemaining, daysLeftMark, chooseIcon, dateDiffInDays } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import PieChart from 'react-minimal-pie-chart';
- 
-  
+import Restore from 'material-ui/svg-icons/content/undo';
+import { isString } from 'util';
+import { contains } from 'ramda';
+   
 
-export let getProjectLink = (iconSize, value:Project, index:number, dispatch:Function) : JSX.Element => { 
-       
-        return  <div 
-            key={`${value._id}-${index}`}   
-            style={{position:"relative", padding:"5px"}} 
-        >  
+
+
+
+
+
+
+export let getProjectLink = (p:Project, todos:Todo[],  dispatch:Function, index:number) : JSX.Element => { 
+        
+        let days = dateDiffInDays(p.created,p.deadline);      
+        let remaining = daysRemaining(p.deadline);   
+        
+        let restoreProject = (p:Project) : void => { 
+            
+            let relatedTodosIds : string[] = p.layout.filter(isString);
+    
+            let selectedTodos : Todo[] = todos.filter(
+                (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
+            );   
+            dispatch({
+                type:"updateTodos", 
+                load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))
+            })
+            dispatch({type:"updateProject", load:{...p,deleted:undefined}});
+        }
+             
+         
+        return <li  
+            onClick={() => {
+                if(p.deleted) 
+                   return;   
+                dispatch({type:"selectedCategory",load:"project"});
+                dispatch({type:"selectedProjectId",load:p._id});
+            }}    
+            style={{width:"100%"}} 
+            key={index} 
+        >   
             <div   
-                className="toggleFocus"    
-                onClick = {() => {
-                    dispatch({ type:"selectedCategory", load:"project" });
-                    dispatch({ type:"selectedProjectId", load:value._id });
-                }}
-                id = {value._id}       
-                style={{     
-                    marginLeft:"4px",
-                    marginRight:"4px", 
-                    padding:"5px", 
-                    position:"relative", 
-                    height:"20px",
+                id = {p._id}        
+                className="leftpanelmenuitem" 
+                style={{    
+                    height:"25px",  
+                    padding:"6px", 
                     width:"95%",
                     display:"flex",
-                    alignItems: "center" 
+                    alignItems:"center" 
                 }}
-            >             
-                        { chooseIcon(iconSize, "project") }
-                        
-                    <div    
-                        id = {value._id}   
-                        style={{  
-                            paddingLeft:"5px",
-                            fontFamily: "sans-serif",
-                            fontWeight: 600, 
-                            color: "rgba(0, 0, 0, 1)",
-                            fontSize: "18px", 
-                            whiteSpace: "nowrap",
-                            cursor: "default",
-                            WebkitUserSelect: "none" 
-                        }}
-                    > 
+            >     
+                    { 
+                        !p.deleted ? null : 
+                        <div       
+                            onClick={(e) => restoreProject(p)}  
+                            style={{ 
+                                display:"flex", 
+                                cursor:"pointer",
+                                alignItems:"center",
+                                height:"14px",
+                                paddingLeft:"20px",
+                                paddingRight:"5px"  
+                            }} 
+                        >  
+                            <Restore style={{width:"20px", height:"20px"}}/> 
+                        </div>  
+                    }   
                     
-                        { stringToLength(value.name, 25) }
-
-                    </div>          
-    
-                    {   true ? null :  
-                        <div style={{position:"absolute", right:"5px",  WebkitUserSelect: "none"}}>
-                            
-                            { daysLeftMark(false, value.deadline, false) }
-                        
+                    <div style={{    
+                        width: "18px",
+                        height: "18px",
+                        position: "relative",
+                        borderRadius: "100px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        border: "1px solid rgb(108, 135, 222)",
+                        boxSizing: "border-box" 
+                    }}> 
+                        <div style={{
+                            width: "18px",
+                            height: "18px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            position: "relative" 
+                        }}>  
+                            <PieChart 
+                                animate={false}    
+                                totalValue={days}
+                                data={[{    
+                                    value:p.completed ? days : (days-remaining), 
+                                    key:1,  
+                                    color:"rgb(108, 135, 222)" 
+                                }]}    
+                                style={{  
+                                    color: "rgb(108, 135, 222)",
+                                    width: "12px",
+                                    height: "12px",
+                                    position: "absolute",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center"  
+                                }}
+                            />     
                         </div>
-                    }
-                        
-            </div> 
-        </div>   
-    }   
-     
+                    </div> 
+
+                    <div   
+                        id = {p._id}   
+                        style={{   
+                            fontFamily: "sans-serif",
+                            fontSize: "15px",    
+                            cursor: "default",
+                            paddingLeft: "5px", 
+                            WebkitUserSelect: "none",
+                            fontWeight: "bolder", 
+                            color: "rgba(0, 0, 0, 0.8)" 
+                        }}
+                    >   
+                        { p.name.length==0 ? "New Project" : p.name } 
+                    </div>     
+ 
+            </div>
+        </li>  
+}     
+      

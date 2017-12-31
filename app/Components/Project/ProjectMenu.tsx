@@ -28,11 +28,13 @@ import { arrayMove } from '../../sortable-hoc/utils';
 import { Store } from '../../App';
 import { isString } from 'util';
 import { contains } from 'ramda';
- 
+import { createHeading } from '../MainContainer';
  
 
 interface ProjectMenuPopoverProps extends Store{
     anchorEl : HTMLElement 
+    rootRef:HTMLElement,
+    openDeadlineCalendar:Function  
 }    
  
 
@@ -48,28 +50,9 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
     }  
 
 
- 
-    //onWhen = (e) => { }
-    
-    //onAddTags = (e) => { }
-
-    onRepeat = (e) => { 
-        this.closeMenu() 
-    }
-
-    onAddDeadline = (e) => { 
-        this.closeMenu() 
-    }
-
-    onMove = (e) => { 
-        this.closeMenu() 
-    }
-
-    onShare = (e) => { 
-        this.closeMenu()  
-    }
-
-
+    closeMenu = () => {
+        this.props.dispatch({type:"showProjectMenuPopover", load:false});
+    }  
 
     updateProject = (selectedProject:Project, updatedProps) : void => { 
         
@@ -77,40 +60,62 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
     
         let load = { ...selectedProject, ...updatedProps };
 
-        this.props.dispatch({ type, load });
+        this.props.dispatch({type, load});
+    }   
+  
+    onRepeat = (e) => { 
+        this.closeMenu(); 
+    }
 
+    onMove = (e) => { 
+        this.closeMenu(); 
+    }
+
+    onShare = (e) => { 
+        this.closeMenu(); 
+    } 
+
+    onAddDeadline = (e) => { 
+        this.closeMenu(); 
+        this.props.openDeadlineCalendar();  
+    }   
+
+    onDuplicate = (e) => {   
+        let projectId : string = this.props.selectedProjectId;
+        
+        let idx = this.props.projects.findIndex( (p:Project) => p._id===projectId );
+
+        if(idx===-1){ 
+            throw new Error(`Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`);
+        }  
+
+        let duplicate = {... this.props.projects[idx], _id:generateId()};
+        delete duplicate["_rev"]; 
+        
+        this.props.dispatch({type:"addProject", load:duplicate}); 
+
+        this.closeMenu(); 
     }
 
 
-
-    onComplete = (e) => {  
+    onComplete = (e) => {   
 
         let projectId : string = this.props.selectedProjectId;
 
         let idx = this.props.projects.findIndex( (p:Project) => p._id===projectId );
 
-        if(idx===-1){
-
+        if(idx===-1){ 
            throw new Error(`Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`);
-
         }  
 
         let project : Project = { ...this.props.projects[idx] };
 
         this.updateProject(project, {completed:new Date()});
 
- 
+        this.closeMenu(); 
     } 
+
    
-
-
-    onDuplicate = (e) => { 
-        
-        //newProject
-    }
-
-
-
     onDelete = (e) => {   
 
         let project = this.props.projects.find( (p:Project) => p._id===this.props.selectedProjectId )
@@ -130,22 +135,22 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         );   
             
         this.props.dispatch({
-            type:"updateTodos", 
+            type:"updateTodos",   
             load:selectedTodos.map((t:Todo) => ({...t,deleted:new Date()}))
         })
- 
+  
         this.props.dispatch({type:"updateProject", load:{...project,deleted:new Date()}});
+        this.props.dispatch({type:"selectedCategory",load:"inbox"});
+         
+        this.closeMenu() 
+    }  
 
-    } 
- 
 
- 
-    closeMenu = () => this.props.dispatch({
-        type:"showProjectMenuPopover",
-        load:false
-    }) 
-
-        
+    onAddHeading = (e) => {
+        createHeading(e, this.props); 
+        this.closeMenu(); 
+    }  
+   
 
     render(){  
             
@@ -156,9 +161,11 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                 marginTop:"20px", 
                 backgroundColor:"rgba(0,0,0,0)",
                 background:"rgba(0,0,0,0)",
-                borderRadius:"10px"
+                borderRadius:"10px" 
             }}   
             open={this.props.showProjectMenuPopover}
+            scrollableContainer={this.props.rootRef}
+            useLayerForClickAway={false} 
             anchorEl={this.props.anchorEl}  
             onRequestClose={this.closeMenu}  
             anchorOrigin={{vertical: "center", horizontal: "middle"}} 
@@ -237,6 +244,22 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                         <Flag style={{color:"rgb(69, 95, 145)"}}/> 
                         <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
                             Add deadline 
+                        </div>     
+                    </div>
+
+
+                    <div  
+                        onClick={this.onAddHeading} 
+                        className={"tagItem"} style={{
+                            display:"flex", 
+                            height:"auto",
+                            alignItems:"center",
+                            padding:"5px"
+                        }} 
+                    >  
+                        <ThreeDots style={{color:"rgb(69, 95, 145)"}}/> 
+                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                            Add heading 
                         </div>     
                     </div>
  
@@ -325,6 +348,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             Share
                         </div>     
                     </div>
+
+                    
  
             </div> 
         </Popover> 

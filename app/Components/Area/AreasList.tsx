@@ -15,7 +15,7 @@ import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
 import { stringToLength, byNotCompleted, byNotDeleted, daysRemaining, dateDiffInDays } from '../../utils';
 import { SortableList } from '../SortableList';
 import PieChart from 'react-minimal-pie-chart';
-import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains } from 'ramda';
+import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains, assoc } from 'ramda';
 
 
 interface AreasListProps{   
@@ -74,15 +74,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                detached.push(projects[i]);
         }  
 
-        
-        let pairs = toPairs(table);
-        let detachedIds : string[] = detached.map( p => p._id );
-        for(let i=0; i<pairs.length; i++){
-            let ids = pairs[i][1].map( p => p._id );
-            if(!isEmpty(intersection(ids,detachedIds))){
-                //throw new Error(`Somehow they intersect ${JSON.stringify(table)} ${JSON.stringify(detached)}`);    
-            } 
-        }
 
         return {table,detached};
 
@@ -153,16 +144,19 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
  
     getAreaElement = (a : Area, index : number) : JSX.Element => {
-        return <li className="area" key={index}> 
+        return <li 
+            className="area" 
+            key={index} 
+        >   
             <div style={{
                 outline:"none", 
                 width:"100%",
                 height:"20px" 
-            }}> 
+            }}>  
             </div>  
             <div     
                 onClick = {(e) => this.selectArea(a)}
-                id = {a._id}   
+                id = {a._id} 
                 className="leftpanelmenuitem"  
                 style={{  
                     height:"25px",
@@ -208,12 +202,12 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         
         let remaining = daysRemaining(p.deadline);  
  
-        return <li key={index}>  
+        return <li key={index}>   
             <div  
                 onClick = {(e) => this.selectProject(p)} 
-                id = {p._id}        
+                id = {p._id}
                 className="leftpanelmenuitem" 
-                style={{   
+                style={{    
                     height:"25px",
                     paddingLeft:"4px", 
                     width:"95%",
@@ -249,13 +243,13 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                                     color:"rgba(159, 159, 159, 1)" 
                                 }]}    
                                 style={{ 
-                                    color: "rgba(159, 159, 159, 1)",
-                                    width: "12px",
-                                    height: "12px",
-                                    position: "absolute",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center"  
+                                    color:"rgba(159, 159, 159, 1)",
+                                    width:"12px",
+                                    height:"12px",
+                                    position:"absolute",
+                                    display:"flex",
+                                    alignItems:"center",
+                                    justifyContent:"center"  
                                 }}
                             />     
                         </div>
@@ -394,13 +388,11 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             `);    
         }
  
- 
         fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
         this.props.dispatch({type:"updateArea", load:fromArea});  
-
     }
 
-
+ 
   
     moveToClosestArea = (fromArea:Area, closestArea:Area, selectedProject:Project) : void => {
  
@@ -421,68 +413,26 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
            `);  
         } 
  
-
         fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
         closestArea.attachedProjectsIds = [selectedProject._id,...closestArea.attachedProjectsIds];
 
         this.props.dispatch({type:"updateAreas", load:[fromArea,closestArea]});  
-
     }
   
-    
 
-    changeProjectPriorityInsideArea = (layout:(Project | Area | Separator)[], oldIndex:number, newIndex:number) : void => { 
-        let project = {...layout[oldIndex]} as Project; 
-        let item = layout[newIndex] as Project;
-        let newPriority = item.priority; 
- 
-        if(newIndex>oldIndex){
-            let after = layout[newIndex+1] as Project;  
-            if(after.type==="project"){
-               project.priority = (newPriority + after.priority)/2;
-            }else{
-              project.priority = (newPriority + 1);
+
+    changeProjectsOrder = (listAfter:(Project | Area | Separator)[]) : void => {
+        let projects = listAfter.filter( i => i.type==="project" ) as Project[];
+        projects = projects.map((item:Project,index:number) => assoc("priority",index,item));
+
+        for(let i=0; i<projects.length; i++){
+            if(projects[i].type!=="project"){
+                throw new Error(`Item is not a project ${JSON.stringify(projects[i])}`)
             }
-        }else{ 
-            let before = layout[newIndex-1] as Project;
-            if(before.type==="project"){
-               project.priority = (newPriority + before.priority)/2; 
-            }else{
-               project.priority = (newPriority - 1);
-            }
-        }   
-        
-        this.props.dispatch({type:"updateProject", load:project});
+        }  
+
+        this.props.dispatch({type:"updateProjects", load:projects});  
     }
-
-
-
-    changeProjectPriority = (layout, oldIndex:number, newIndex:number) : void => { 
-        let project = {...layout[oldIndex]} as Project; 
-        let item = layout[newIndex] as Project;
-        let newPriority = item.priority; 
- 
-        if(newIndex>oldIndex){
-            let after = layout[newIndex+1] as Project;
-            after = after ? after : {} as any;  
-            if(after.type==="project"){
-               project.priority = (newPriority + after.priority)/2;
-            }else{
-              project.priority = (newPriority + 1);
-            }
-        }else{ 
-            let before = layout[newIndex-1] as Project;
-            before = before ? before : {} as any; 
-            if(before.type==="project"){ 
-               project.priority = (newPriority + before.priority)/2; 
-            }else{
-               project.priority = (newPriority - 1);
-            }
-        }    
-         
-        this.props.dispatch({type:"updateProject", load:project});
-    }
-      
 
 
     onSortEnd = ({oldIndex, newIndex, collection}, e) : void => { 
@@ -514,15 +464,15 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             this.removeFromArea(fromArea, selectedProject); 
         }else if(detachedBefore && detachedAfter){
 
-            this.changeProjectPriority(layout, oldIndex, newIndex);
+            this.changeProjectsOrder(listAfter); 
         }else if(!detachedBefore && !detachedAfter){
-
+ 
             if(fromArea._id!==closestArea._id){
 
                 this.moveToClosestArea(fromArea, closestArea, selectedProject);  
             }else if(fromArea._id===closestArea._id){
 
-                this.changeProjectPriorityInsideArea(layout, oldIndex, newIndex);
+                this.changeProjectsOrder(listAfter);
             }
         } 
     } 
@@ -534,8 +484,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let layout = this.generateLayout(this.props,{table,detached}); 
         let container = document.getElementById("areas");
 
-        for(let i=0; i<detached.length; i++)
-            console.log("detached",detached[i]);   
    
         return  <div  
             style={{

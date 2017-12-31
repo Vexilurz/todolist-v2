@@ -123,20 +123,19 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
             <div> 
                 <AreaBody 
                     area={this.state.area} 
-                    projects={this.props.projects}
                     selectedTodoId={this.props.selectedTodoId}
                     selectedCategory={this.props.selectedCategory}
                     todos={this.props.todos} 
                     tags={this.props.tags}
                     selectedTag={this.props.selectedTag}
-                    rootRef={this.props.rootRef}
+                    areas={this.props.areas}
+                    projects={this.props.projects}
+                    rootRef={this.props.rootRef} 
                     dispatch={this.props.dispatch}
                 />
             </div>  
-        </div>
-
+        </div> 
     }
-
 } 
 
 

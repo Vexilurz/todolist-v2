@@ -24,7 +24,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem } from '../../database';
-import { uppercase, debounce, byNotDeleted } from '../../utils';
+import { uppercase, debounce, byNotDeleted, generateEmptyTodo } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeading } from './ProjectHeading';  
 import { SortableList, Data } from '../SortableList';
@@ -179,7 +179,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                             </div> 
 
             case "heading":    
-              
+               
                     return  <div   
                                 key={`${value["_id"]}-heading`} 
                                 style={{ 
@@ -190,6 +190,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                             > 
                                 <ProjectHeading  
                                     heading={value as Heading}
+                                    rootRef={this.props.rootRef} 
                                     onChange={this.props.updateHeading}
                                     onArchive={this.props.archiveHeading}
                                     onMove={this.props.moveHeading} 
@@ -197,7 +198,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                                 />
                             </div> 
 
-            default:
+            default: 
 
                 return null
 
@@ -246,11 +247,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
  
         let changed = arrayMove(items, data.oldIndex, data.newIndex); 
  
-        if(equals(items,changed))
-           console.log("did not changed")
- 
-        this.props.updateLayout(changed);      
-  
+        this.props.updateLayout(changed);    
     } 
   
  
@@ -273,9 +270,25 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     .selectItems(
                         this.props.layout, 
                         this.props.todos
-                    )  
-                    
+                    );
+                      
+        let empty = generateEmptyTodo("emptyTodo","project",0);
+                     
         return <div>  
+
+            <div>  
+                <TodoInput   
+                    id={empty._id}
+                    key={empty._id} 
+                    dispatch={this.props.dispatch}  
+                    selectedCategory={"project"}  
+                    selectedTodoId={this.props.selectedTodoId}
+                    tags={this.props.tags} 
+                    rootRef={this.props.rootRef}  
+                    todo={empty}
+                    creation={true}
+                />  
+            </div>    
             <SortableList 
                 getElement={this.getElement}
                 items={items}

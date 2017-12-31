@@ -9,7 +9,7 @@ import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags'; 
 import { Transition } from 'react-transition-group';
 import { TodosList } from '../../Components/TodosList';
-import { Todo, Project } from '../../database';
+import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '.././ContainerHeader';
 import { compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems } from '../../utils';
 import { allPass, compose } from 'ramda';
@@ -21,15 +21,16 @@ interface LogbookProps{
     selectedCategory:string, 
     selectedTodoId:string, 
     projects:Project[],
+    areas:Area[],  
     selectedTag:string,
     tags:string[],
     rootRef:HTMLElement 
 }
  
-
-interface LogbookState{
+         
+interface LogbookState{ 
     groups:(Todo | Project)[][]
-} 
+}  
 
 
 export class Logbook extends Component<LogbookProps,LogbookState>{
@@ -39,9 +40,8 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
         this.state={
             groups:null 
         }
-    } 
+    }  
     
- 
 
     init = (props:LogbookProps) => {
         let groups : (Todo | Project)[][] = this.groupByMonth(props);
@@ -49,13 +49,11 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
     } 
 
 
-
     componentDidMount(){
         this.init(this.props);
     }
-
-
-
+ 
+    
     componentWillReceiveProps(nextProps:LogbookProps){
         if(this.props.todos!==nextProps.todos)
            this.init(nextProps);
@@ -65,7 +63,6 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
            this.init(nextProps);
     } 
 
-    
 
     shouldComponentUpdate(nextProps:LogbookProps, nextState:LogbookState){
 
@@ -173,12 +170,14 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                     isEmpty={(empty:boolean) => {}} 
                     selectedTodoId={this.props.selectedTodoId}
                     dispatch={this.props.dispatch}     
-                    selectedCategory={"logbook"} 
+                    selectedCategory={"logbook"}  
+                    areas={this.props.areas}
+                    projects={this.props.projects}
                     selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}
                     todos={todos}  
                     tags={this.props.tags} 
-                />  
+                />   
             </div>          
 
         </div> 

@@ -8,11 +8,11 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo 
+    chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, generateEmptyTodo 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo } from '../../database';
+import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area } from '../../database';
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
@@ -34,19 +34,22 @@ import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { byTags, byCategory } from '../../utils';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { compose, allPass } from 'ramda';
+import { TodoInput } from '../TodoInput/TodoInput';
  
  
 
-interface TodayProps{ 
+interface TodayProps{  
     dispatch:Function,
     selectedTodoId:string,
     selectedCategory:string, 
+    areas:Area[],
+    projects:Project[],
     selectedTag:string,
     rootRef:HTMLElement,
     todos:Todo[], 
     tags:string[]
 } 
-
+   
 
  
 interface TodayState{
@@ -81,7 +84,8 @@ export class Today extends Component<TodayProps,TodayState>{
             )
         )(this.props.todos);
 
- 
+        let empty = generateEmptyTodo("emptyTodo", "today", 0);  
+
         return <div style={{disaply:"flex", flexDirection:"column"}}> 
             <div style={{width: "100%"}}> 
         
@@ -119,19 +123,26 @@ export class Today extends Component<TodayProps,TodayState>{
                         show={true}  
                     />  
   
-                {    
-                    this.state.emptyToday ? null :   
+                {       
                     <div   
                         className="unselectable" 
                         id="todos" 
-                        style={{
-                            marginBottom: "50px", 
-                            marginTop:"20px"
-                        }} 
-                    >  
+                        style={{marginBottom: "50px", marginTop:"20px"}} 
+                    >         
+                        <TodoInput   
+                            id={empty._id}
+                            key={empty._id} 
+                            dispatch={this.props.dispatch}  
+                            selectedCategory={"today"} 
+                            selectedTodoId={this.props.selectedTodoId}
+                            tags={this.props.tags} 
+                            rootRef={this.props.rootRef}  
+                            todo={empty}
+                            creation={true}
+                        /> 
                         <TodosList    
                             filters={[ 
-                                byTags(this.props.selectedTag),
+                                byTags(this.props.selectedTag), 
                                 byCategory("today"),
                                 byNotCompleted, 
                                 byNotDeleted 
@@ -140,6 +151,8 @@ export class Today extends Component<TodayProps,TodayState>{
                             isEmpty={(empty:boolean) => this.setState({emptyToday:empty})}   
                             dispatch={this.props.dispatch}   
                             selectedCategory={"today"}
+                            areas={this.props.areas}
+                            projects={this.props.projects}
                             selectedTag={this.props.selectedTag}  
                             rootRef={this.props.rootRef}
                             todos={this.props.todos} 
@@ -148,9 +161,9 @@ export class Today extends Component<TodayProps,TodayState>{
                     </div>  
                 }    
                 {  
-                     this.state.emptyEvening ? null :                
-                    <div> 
-                        <div style={{
+                    this.state.emptyEvening ? null :                
+                    <div style={{paddingTop:"20px"}}>  
+                        <div style={{  
                             display: "flex",
                             color: "rgba(0,0,0,0.8)",
                             fontWeight: "bold",
@@ -188,6 +201,8 @@ export class Today extends Component<TodayProps,TodayState>{
                                 isEmpty={(empty:boolean) => this.setState({emptyEvening:empty})} 
                                 dispatch={this.props.dispatch}    
                                 selectedCategory={"evening"} 
+                                areas={this.props.areas}
+                                projects={this.props.projects}
                                 selectedTag={this.props.selectedTag}  
                                 rootRef={this.props.rootRef}
                                 todos={this.props.todos}  
