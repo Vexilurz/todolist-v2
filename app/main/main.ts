@@ -11,8 +11,8 @@ export let listeners;
 export let updater;
  
  
-let mainWindowWidth : number = 60;
-let mainWindowHeight : number = 70; 
+let mainWindowWidth : number = 100;//60;
+let mainWindowHeight : number = 100;//70; 
  
  
 class AppUpdater {
@@ -36,7 +36,7 @@ let onReady = () => {
     let width = mainWindowWidth*(workingArea.width/100); 
     let height = mainWindowHeight*(workingArea.height/100); 
 
-    width = width <= 800 ? width : 800; 
+    //width = width <= 800 ? width : 800; 
     
     preventAnnoyingErrorPopups();     
      
@@ -56,10 +56,10 @@ let onReady = () => {
                 load:mainWindow.id
             }
         ); 
-  
-        //mainWindow.webContents.openDevTools();   
+   
+        mainWindow.webContents.openDevTools();   
     
-    });      
+    });     
 }            
   
 

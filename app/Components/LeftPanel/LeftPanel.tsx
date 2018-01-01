@@ -110,11 +110,10 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
             ctrlPressed:false  
         }    
     };      
-     
+       
 
     componentDidMount(){
         window.addEventListener("keydown", this.onCtrlBPress);
-
         window.addEventListener("keydown", this.onCtrlDown);
         window.addEventListener("keyup", this.onCtrlUp);
     };  

@@ -7,8 +7,8 @@ let uniqid = require("uniqid");
 const {shell} = require('electron');  
 
 
-let clonedWindowWidth : number = 30;
-let clonedWindowHeight : number = 80;
+let clonedWindowWidth : number = 100;//30;
+let clonedWindowHeight : number = 100;//80;
  
  
 let remove = (array:any[], idx:number) : any[] => {
@@ -60,7 +60,7 @@ export class Listeners{
                     loadApp(newWindow)     
                     .then(() => {        
                         newWindow.webContents.send("loaded", {type:"clone",load:storeWithId}); 
-                        //newWindow.webContents.openDevTools();    
+                        newWindow.webContents.openDevTools();    
                     });      
 
                 } 
