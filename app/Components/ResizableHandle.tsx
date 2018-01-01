@@ -35,16 +35,15 @@ export class ResizableHandle extends Component<ResizableHandleProps,{}>{
                     onStop={this.props.onDrag}    
                 >   
                     <div style={{  
-                        right:0,
-                        top:0, 
-                        zIndex:20000,
-                        cursor:"e-resize",    
-                        position:"absolute",  
-                        backgroundColor:"rgba(0,0,0,0)",   
-                        height:"100%",  
-                        width:"5px",    
-                        fontSize:"18px",   
-                        color:"rgba(0,0,0,0)"
+                       touchAction: "none",
+                       zIndex: 20000, 
+                       cursor: "e-resize",
+                       position: "relative",
+                       backgroundColor: "rgba(0, 0, 0, 0)",
+                       height: "100%",
+                       width: "5px",
+                       fontSize: "18px",
+                       color: "rgba(0, 0, 0, 0)"
                     }}>      
                     </div> 
                 </DraggableCore>

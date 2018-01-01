@@ -117,22 +117,21 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         window.addEventListener("keydown", this.onCtrlDown);
         window.addEventListener("keyup", this.onCtrlUp);
     };  
-           
-     
+         
+
     componentWillUnmount(){
         window.removeEventListener("keydown", this.onCtrlBPress);
-
         window.removeEventListener("keydown", this.onCtrlDown); 
         window.removeEventListener("keyup", this.onCtrlUp); 
     }; 
 
-     
+
     onCtrlDown = (e) => e.keyCode == 17 ? this.setState({ctrlPressed:true}) : null;
 
 
     onCtrlUp = (e) => e.keyCode == 17 ? this.setState({ctrlPressed:false}) : null;
     
-     
+
     onCtrlBPress = (e) => {
         if(this.props.clone)
            return;
@@ -143,7 +142,6 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         }  
     }; 
 
- 
 
     componentDidUpdate(){
         if(!this.props.clone){
@@ -152,7 +150,6 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
     }; 
      
 
-    
     collapse = () => {
         if(this.props.clone)
            return; 
@@ -164,10 +161,10 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         let factor = null;  
         
         if(width>0 && collapsed){
-            factor = -this.deltaX;
+           factor = -this.deltaX;
         }else if(width<this.props.leftPanelWidth && !collapsed){
-            factor = this.deltaX;
-        }
+           factor = this.deltaX;
+        } 
 
         let newWidth = width+factor < 0 ? 0 :
                        width+factor > leftPanelWidth ? leftPanelWidth :
@@ -178,167 +175,128 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         } 
     };  
   
-
  
     onNewProjectClick = (e:any) => {
-        this.props.dispatch({type:"addProject", load:generateEmptyProject()});
+        let project = generateEmptyProject();
+        this.props.dispatch({type:"addProject", load:project});
+        this.props.dispatch({type:"selectedProjectId", load:project._id});
         this.props.dispatch({type:"openNewProjectAreaPopup",load:false});
+        this.props.dispatch({type:"selectedCategory", load:"project"});
     };
-       
-    
-        
+
+         
     onNewAreaClick = (e:any) => {   
-        this.props.dispatch({type:"addArea", load:generateEmptyArea()});
+        let area = generateEmptyArea();
+        this.props.dispatch({type:"addArea", load:area});
+        this.props.dispatch({type:"selectedAreaId", load:area._id});
         this.props.dispatch({type:"openNewProjectAreaPopup",load:false}); 
+        this.props.dispatch({type:"selectedCategory", load:"area"});
     };
-     
-    
+
+
+    onResizableHandleDrag = (e,d) => {
+        this.props.dispatch({
+            type:"leftPanelWidth",
+            load:this.props.currentleftPanelWidth+d.deltaX
+        })
+        this.props.dispatch({
+            type:"currentleftPanelWidth",
+            load:this.props.currentleftPanelWidth+d.deltaX
+        }) 
+    }
+      
+
+    openNewProjectAreaPopup = () => {
+        if(!this.props.openNewProjectAreaPopup)
+            this.props.dispatch({type:"openNewProjectAreaPopup",load:true})
+    } 
+
  
-    render(){     
+    render(){      
 
         let {inbox,today,hot,trash,logbook} : ItemsAmount = calculateAmount(this.props);
+
+        let getWidth = () => this.props.clone ? `${0}px` : `${this.props.currentleftPanelWidth}px`;
                    
-        return  <div      
-                    id="leftpanel"
-                    className="scroll"
-                    style={{ 
-                        display:"flex",    
-                        flexDirection:"column", 
-                        width:this.props.clone ? `${0}px` : `${this.props.currentleftPanelWidth}px`, 
-                        overflowX:"hidden", 
-                        height:`${window.innerHeight}px`,     
-                        position:"relative", 
-                        backgroundColor:"rgb(248, 248, 248)"  
-                    }}
-                >       
-                    <ResizableHandle   
-                        onDrag={(e,d) => {
-                            this.props.dispatch({
-                                type:"leftPanelWidth",
-                                load:this.props.currentleftPanelWidth+d.deltaX
-                            })
-                            this.props.dispatch({
-                                type:"currentleftPanelWidth",
-                                load:this.props.currentleftPanelWidth+d.deltaX
-                            }) 
-                        }}  
-                    />  
-
-                    <div style={{
-                        position:"relative", 
-                        display:"flex", 
-                        alignItems:"center",
-                        justifyContent:"center", 
-                        paddingTop:"15px" 
-                    }}>   
-                        <div style={{    
-                            marginLeft:"15px",
-                            marginRight:"15px", 
-                            position:"relative",
-                            width:"100%" 
-                        }}>  
-                            <QuickSearch {...{} as any}/>
-                        </div>
-                    </div>   
-                    
-  
-                    <div>  
-                        <LeftPanelMenu   
-                            dispatch={this.props.dispatch} 
-                            selectedCategory={this.props.selectedCategory}
-                            inbox={inbox} 
-                            today={today} 
-                            hot={hot} 
-                            trash={trash}
-                            logbook={logbook}
-                        />    
-                    </div>
-
-  
-                    <div  
-                        id="areas"
-                        style={{
-                            paddingLeft: "20px",
-                            paddingRight: "20px",  
-                            marginBottom:"150px" 
+        return  <div style={{
+            display: "flex",
+            flexDirection: "row-reverse"
+        }}>
+                    <ResizableHandle onDrag={this.onResizableHandleDrag}/>  
+                    <div      
+                        id="leftpanel"
+                        className="scroll"
+                        style={{ 
+                            display:"flex",    
+                            flexDirection:"column", 
+                            width:getWidth(), 
+                            overflowX:"hidden", 
+                            height:`${window.innerHeight}px`,     
+                            position:"relative", 
+                            backgroundColor:"rgb(248, 248, 248)"  
                         }}
-                    >
-                        <AreasList  
-                          dispatch={this.props.dispatch}   
-                          areas={this.props.areas}
-                          projects={this.props.projects} 
-                        />
-                    </div> 
-
-  
-                    { 
-                        !this.props.openNewProjectAreaPopup ? null :
-                        <NewProjectAreaPopup 
-                          anchor={this.newProjectAnchor}
-                          open={this.props.openNewProjectAreaPopup}
-                          close={() => this.props.dispatch({type:"openNewProjectAreaPopup",load:false})} 
-                          onNewProjectClick={this.onNewProjectClick}
-                          onNewAreaClick={this.onNewAreaClick}
-                        />
-                    }   
- 
-                    <div style={{   
-                        width:this.props.clone ? `${0}px` : `${this.props.currentleftPanelWidth}px`, 
-                        display:"flex",  
-                        alignItems:"center",  
-                        position:"fixed",    
-                        overflowX: "hidden",
-                        justifyContent:"space-between",  
-                        bottom:"0px",   
-                        height:"60px",
-                        backgroundColor:"rgb(248, 248, 248)",
-                        borderTop:"1px solid rgba(100, 100, 100, 0.2)"
-                    }}>         
- 
-                        <div  
-                            onClick = {() => {
-                                if(!this.props.openNewProjectAreaPopup)
-                                    this.props.dispatch({type:"openNewProjectAreaPopup",load:true})
-                            }}
-                            style={{display: "flex", padding: "5px", alignItems: "center", cursor: "pointer"}}
-                        >     
-                            <div 
-                                style={{display: "flex", alignItems: "center", justifyContent: "center"}}
-                                ref = {(e) => {this.newProjectAnchor=e}} 
-                            >
-                                <Plus    
-                                    style = {{     
-                                        color:"rgb(79, 79, 79)",
-                                        width:"25px",
-                                        height:"25px",
-                                        paddingLeft: "5px",
-                                        paddingRight: "5px"     
-                                    }}
-                                />
-                            </div>  
-                            <div style={{
-                                color: "rgba(100, 100, 100, 1)",
-                                fontSize: "15px",
-                                cursor: "pointer",
-                                WebkitUserSelect: "none" 
-                            }}>   
-                                New List 
-                            </div>    
+                    >       
+                        <div style={{
+                            position:"relative", 
+                            display:"flex", 
+                            alignItems:"center",
+                            justifyContent:"center", 
+                            paddingTop:"15px" 
+                        }}>   
+                            <div style={{    
+                                marginLeft:"15px",
+                                marginRight:"15px", 
+                                position:"relative",
+                                width:"100%" 
+                            }}>  
+                                <QuickSearch {...{} as any}/>
+                            </div>
                         </div>   
-
-                        <div>     
-                            <IconButton    
-                            onClick = {() => {}}  
-                            iconStyle={{  
-                                color:"rgba(100, 100, 100, 1)",
-                                width:"25px", 
-                                height:"25px"   
-                            }}>        
-                                <Adjustments /> 
-                            </IconButton>  
+                        <div>  
+                            <LeftPanelMenu   
+                                dispatch={this.props.dispatch} 
+                                selectedCategory={this.props.selectedCategory}
+                                inbox={inbox} 
+                                today={today} 
+                                hot={hot} 
+                                trash={trash}
+                                logbook={logbook}
+                            />    
+                        </div>
+                        <div  
+                            id="areas"
+                            style={{
+                                paddingLeft: "20px",
+                                paddingRight: "20px",  
+                                marginBottom:"150px" 
+                            }}
+                        > 
+                            <AreasList  
+                                dispatch={this.props.dispatch}   
+                                areas={this.props.areas}
+                                selectedProjectId={this.props.selectedProjectId}
+                                selectedAreaId={this.props.selectedAreaId}
+                                selectedCategory={this.props.selectedCategory}
+                                projects={this.props.projects} 
+                            />
                         </div> 
-                    </div> 
-                    
+
+                        <LeftPanelFooter 
+                            width={getWidth()}
+                            openNewProjectAreaPopup={this.openNewProjectAreaPopup}
+                            setNewProjectAnchor={(e) => {this.newProjectAnchor=e}}
+                        /> 
+                       
+                        <NewProjectAreaPopup   
+                            anchor={this.newProjectAnchor}
+                            open={this.props.openNewProjectAreaPopup}
+                            close={() => this.props.dispatch({type:"openNewProjectAreaPopup",load:false})} 
+                            onNewProjectClick={this.onNewProjectClick}
+                            onNewAreaClick={this.onNewAreaClick}
+                        />
+  
+                        
+                </div>   
                 </div>   
         };    
 };  
@@ -348,5 +306,79 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
 
 
+
+
+
+interface LeftPanelFooterProps{
+    width:string,
+    openNewProjectAreaPopup:(e:any) => void,
+    setNewProjectAnchor:(e:any) => void,
+}
+
+
+class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
+  
+    constructor(props){
+        super(props); 
+    }
+
+
+    render(){
+        return <div style={{    
+            width:this.props.width,  
+            display:"flex",  
+            alignItems:"center",  
+            position:"fixed",    
+            overflowX: "hidden",
+            justifyContent:"space-between",  
+            bottom:"0px",   
+            height:"60px",
+            backgroundColor:"rgb(248, 248, 248)",
+            borderTop:"1px solid rgba(100, 100, 100, 0.2)"
+        }}>         
+
+            <div  
+                onClick = {this.props.openNewProjectAreaPopup}
+                style={{display: "flex", padding: "5px", alignItems: "center", cursor: "pointer"}}
+            >     
+                <div 
+                    style={{display: "flex", alignItems: "center", justifyContent: "center"}}
+                    ref = {this.props.setNewProjectAnchor}
+                >
+                    <Plus    
+                        style = {{     
+                            color:"rgb(79, 79, 79)",
+                            width:"25px",
+                            height:"25px",
+                            paddingLeft: "5px",
+                            paddingRight: "5px"     
+                        }}
+                    />
+                </div>  
+                <div style={{
+                    color: "rgba(100, 100, 100, 1)",
+                    fontSize: "15px",
+                    cursor: "pointer",
+                    WebkitUserSelect: "none" 
+                }}>   
+                    New List 
+                </div>    
+            </div>   
+
+            <div>     
+                <IconButton    
+                onClick = {() => {}}  
+                iconStyle={{  
+                    color:"rgba(100, 100, 100, 1)",
+                    width:"25px", 
+                    height:"25px"   
+                }}>        
+                    <Adjustments /> 
+                </IconButton>  
+            </div> 
+        </div> 
+    }
+
+}
 
 

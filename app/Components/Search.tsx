@@ -36,7 +36,7 @@ import {
     attachDispatchToProps, chooseIcon, 
     stringToLength,  
     isItem,
-    byNotDeleted
+    byNotDeleted 
 } from '../utils';
 import { Todo, removeTodo, updateTodo, generateId, ObjectType, Area, Project, Heading } from '../database';
 import { Store } from '../App';
@@ -50,54 +50,51 @@ interface keyworded{ object : any, keywords : string[] }
 
 
 let getTodoLink = (todo : Todo, index : number, dispatch : Function) : JSX.Element => {
-    
-     return <div key={`${todo._id}-${index}`} style={{position:"relative", padding:"5px"}}>  
-                <div   
-                    className="toggleFocus"  
-                    onClick = {() => {
 
-                        if(todo.checked && todo.completed){ 
-                            dispatch({type:"selectedCategory",load:"logbook"});
-                        }else{         
-                            dispatch({type:"selectedCategory",load:todo.category});
-                        } 
- 
-                        dispatch({ type:"selectedTodoId", load:todo._id });
-                    }}    
+     let onTodoLinkClick = () => { 
+         dispatch({ type:"selectedTodoId",load:todo._id });
+         dispatch({ type:"searched",load:true }); 
+         
+         if(todo.checked && todo.completed){ 
+            dispatch({type:"selectedCategory",load:"logbook"});
+         }else{         
+            dispatch({type:"selectedCategory",load:todo.category});
+         }    
+     } 
+    
+     return <div key={`${todo._id}-${index}`} style={{position:"relative"}}>  
+                <div   
+                    className="leftpanelmenuitem" 
+                    onClick = {onTodoLinkClick}    
                     id = {todo._id}       
                     style={{     
-                        marginLeft:"4px",
-                        marginRight:"4px", 
-                        padding:"5px", 
-                        position:"relative", 
-                        height:"20px",
-                        width:"95%",
-                        display:"flex",
-                        alignItems: "center" 
-                    }} 
+                        padding:"6px",
+                        position:"relative",
+                        height:"25px",
+                        display:"flex", 
+                        alignItems:"center"
+                    }}   
                 >             
-                        <div>
+                        <div style={{height:"20px"}}> 
                             {chooseIcon({width:"20px", height:"20px"}, todo.category)}
                         </div>  
                         <div    
                             id = {todo._id}   
-                            style={{  
-                                paddingLeft:"5px",
-                                fontFamily: "sans-serif",
-                                fontWeight: 600, 
-                                color: "rgba(0, 0, 0, 1)",
-                                fontSize: "18px", 
-                                whiteSpace: "nowrap",
+                            style = {{  
+                                fontSize: "15px",
                                 cursor: "default",
-                                WebkitUserSelect: "none" 
+                                paddingLeft: "5px",
+                                WebkitUserSelect: "none",
+                                fontWeight: "bolder",
+                                color: "rgba(0, 0, 0, 0.8)"
                             }}  
-                        > 
+                        >  
                             {stringToLength(todo.title, 25)}
                         </div>    
                 </div> 
             </div>   
 
-} 
+}  
 
 
 
@@ -237,7 +234,6 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
 
 
     onOutsideClick = (e) => {
-        
         if(this.ref===null || this.ref===undefined)
             return; 
 
@@ -247,40 +243,33 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
          
         let inside : boolean = insideTargetArea(this.ref, x, y);
         if(!inside)
-            this.setState({value:'', suggestions:[]}) 
+            this.setState({value:'', suggestions:[]}); 
     }  
   
      
 
     componentDidMount(){ 
-
         this.init(this.props); 
-
         window.addEventListener("click", this.onOutsideClick)
     }      
         
 
      
     componentWillUnmount(){
-
         window.removeEventListener("click", this.onOutsideClick);
     } 
     
 
 
     shouldComponentUpdate(nextProps:QuickSearchProps,nextState:QuickSearchState){
-
         return this.state.value!==nextState.value; 
     }
     
     
 
     init = (props) => {
-
         let objects = combineSearchableObjects(props);
-
         let objectsWithKeywords = attachKeywordsToObjects(objects);
-        
         this.setState({objectsWithKeywords}); 
     }
  
@@ -312,16 +301,14 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
 
         let suggestions = this.state.objectsWithKeywords.filter(k => {
 
-                for(let i=0; i<k.keywords.length; i++){ 
-                    
-                    let value = e.target.value.toLowerCase();
-                    let word = k.keywords[i].toLowerCase().slice(0, value.length);
+            for(let i=0; i<k.keywords.length; i++){ 
+                
+                let value = e.target.value.toLowerCase();
+                let word = k.keywords[i].toLowerCase().slice(0, value.length);
 
-                    if(value===word)
-                       return true;
-
-                }
-
+                if(value===word)
+                    return true;
+            }
         });   
 
         this.setState({value:e.target.value, suggestions});
@@ -365,23 +352,23 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
                 backgroundColor: "rgba(238,237,239,1)"
             }}
         >   
-        <div style={{position:"relative", padding:"10px"}}>    
+        <div style={{position:"relative"}}>    
             <div style={{
-                backgroundColor: "rgb(217, 218, 221)",
+                backgroundColor: "rgb(217, 218, 221)", 
                 borderRadius: "5px",
                 display: "flex",  
                 alignItems: "center"
             }}>  
                 <div style={{
-                    padding: "5px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center"
+                    padding:"5px",
+                    display:"flex",
+                    alignItems:"center",
+                    justifyContent:"center"
                 }}>
                     <Search style={{   
-                        color: "rgb(100, 100, 100)",
-                        height: "20px",
-                        width: "20px"
+                        color:"rgb(100, 100, 100)",
+                        height:"20px",
+                        width:"20px"
                     }}/>   
                 </div>  
                   

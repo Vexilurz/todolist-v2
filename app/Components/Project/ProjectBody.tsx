@@ -74,6 +74,7 @@ let layoutOrderChanged = (before:LayoutItem[], after:LayoutItem[]) : boolean => 
 
 interface ProjectBodyProps{
     layout:LayoutItem[], 
+    searched:boolean, 
     updateLayout:(layout:LayoutItem[]) => void,
     updateHeading:(heading_id:string, newValue:string) => void,
     archiveHeading:(heading_id:string) => void,
@@ -170,6 +171,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                                     id={value["_id"]} 
                                     key={value["_id"]} 
                                     dispatch={this.props.dispatch}   
+                                    searched={this.props.searched}
                                     tags={this.props.tags} 
                                     selectedTodoId={this.props.selectedTodoId} 
                                     selectedCategory={"project"}
@@ -281,6 +283,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     id={empty._id}
                     key={empty._id} 
                     dispatch={this.props.dispatch}  
+                    searched={this.props.searched}
                     selectedCategory={"project"}  
                     selectedTodoId={this.props.selectedTodoId}
                     tags={this.props.tags} 

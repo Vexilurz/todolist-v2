@@ -88,6 +88,7 @@ interface UpcomingProps{
     dispatch:Function,
     selectedTodoId:string,
     selectedCategory:string, 
+    searched:boolean, 
     todos:Todo[],
     projects:Project[],
     areas:Area[], 
@@ -190,7 +191,8 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         return <div key={idx}>
             <CalendarDay 
                 idx={idx} 
-                day={object.date.getDate()}
+                day={object.date.getDate()} 
+                searched={this.props.searched}
                 dayName={getDayName(object.date)}
                 todos={object.todos}
                 areas={this.props.areas}
@@ -267,6 +269,7 @@ interface CalendarDayProps{
     dayName:string,
     projects:Project[],
     areas:Area[], 
+    searched:boolean, 
     todos:Todo[],
     dispatch:Function, 
     selectedTodoId:string,
@@ -381,6 +384,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             isEmpty={(empty:boolean) => {}} 
                             dispatch={this.props.dispatch}     
                             selectedTodoId={this.props.selectedTodoId} 
+                            searched={this.props.searched} 
                             selectedCategory={"upcoming"}
                             selectedTag={this.props.selectedTag}  
                             areas={this.props.areas}

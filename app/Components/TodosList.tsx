@@ -19,7 +19,7 @@ import SortableContainer from '../sortable-hoc/sortableContainer';
 import SortableElement from '../sortable-hoc/sortableElement';
 import SortableHandle from '../sortable-hoc/sortableHandle';
 import {arrayMove} from '../sortable-hoc/utils';
-import {  byTags, byCategory } from '../utils';
+import {  byTags, byCategory } from '../utils'; 
 import { SortableList } from './SortableList';
 import { TodoInput } from './TodoInput/TodoInput';
 import { allPass, isNil, prepend, isEmpty, compose, map, assoc, contains, remove } from 'ramda';
@@ -30,6 +30,7 @@ interface TodosListProps{
     dispatch:Function,
     filters:( (t:Todo) => boolean )[],
     selectedTodoId:string, 
+    searched:boolean, 
     projects:Project[],
     areas:Area[],
     selectedCategory:Category,
@@ -143,6 +144,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                         selectedCategory={this.props.selectedCategory} 
                         selectedTodoId={this.props.selectedTodoId}
                         tags={this.props.tags} 
+                        searched={this.props.searched}
                         rootRef={this.props.rootRef}  
                         todo={value}
                     />     

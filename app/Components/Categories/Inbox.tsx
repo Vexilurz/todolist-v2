@@ -19,6 +19,7 @@ interface InboxProps{
     dispatch:Function,
     selectedTodoId:string, 
     selectedTag:string,
+    searched:boolean, 
     selectedCategory:string, 
     areas:Area[],
     projects:Project[],  
@@ -71,7 +72,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 show={this.state.empty}
             />  
  
-            <div   
+            <div    
                 className="unselectable" 
                 id="todos" 
                 style={{marginBottom:"100px", marginTop:"50px"}} 
@@ -79,6 +80,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                  <TodoInput   
                     id={empty._id}
                     key={empty._id} 
+                    searched={this.props.searched}
                     dispatch={this.props.dispatch}  
                     selectedCategory={"inbox"} 
                     selectedTodoId={this.props.selectedTodoId}
@@ -96,6 +98,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                         byNotCompleted,  
                         byNotDeleted 
                     ]}      
+                    searched={this.props.searched}
                     areas={this.props.areas}
                     projects={this.props.projects}  
                     selectedTodoId={this.props.selectedTodoId}

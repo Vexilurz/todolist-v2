@@ -43,6 +43,7 @@ interface TodayProps{
     selectedTodoId:string,
     selectedCategory:string, 
     areas:Area[],
+    searched:boolean, 
     projects:Project[],
     selectedTag:string,
     rootRef:HTMLElement,
@@ -137,6 +138,7 @@ export class Today extends Component<TodayProps,TodayState>{
                             selectedTodoId={this.props.selectedTodoId}
                             tags={this.props.tags} 
                             rootRef={this.props.rootRef}  
+                            searched={this.props.searched}
                             todo={empty}
                             creation={true}
                         /> 
@@ -147,6 +149,7 @@ export class Today extends Component<TodayProps,TodayState>{
                                 byNotCompleted, 
                                 byNotDeleted 
                             ]}   
+                            searched={this.props.searched}
                             selectedTodoId={this.props.selectedTodoId}
                             isEmpty={(empty:boolean) => this.setState({emptyToday:empty})}   
                             dispatch={this.props.dispatch}   
@@ -196,7 +199,7 @@ export class Today extends Component<TodayProps,TodayState>{
                                     byNotCompleted,  
                                     byNotDeleted    
                                 ]}   
-                                //attachEmptyTodo={attachEmptyTodo("evening")}
+                                searched={this.props.searched}
                                 selectedTodoId={this.props.selectedTodoId} 
                                 isEmpty={(empty:boolean) => this.setState({emptyEvening:empty})} 
                                 dispatch={this.props.dispatch}    

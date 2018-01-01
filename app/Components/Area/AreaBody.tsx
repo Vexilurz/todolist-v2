@@ -46,6 +46,7 @@ interface AreaBodyProps{
     selectedTodoId:string, 
     todos:Todo[],
     tags:string[],
+    searched:boolean, 
     selectedCategory:Category, 
     selectedTag:string, 
     rootRef:HTMLElement,
@@ -134,6 +135,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 selectedCategory={this.props.selectedCategory}
                 selectedTodoId={this.props.selectedTodoId}
                 dispatch={this.props.dispatch}    
+                searched={this.props.searched}
                 tags={this.props.tags} 
                 rootRef={this.props.rootRef} 
                 todo={value as Todo}
@@ -250,6 +252,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                     filters={[ ]}   
                     selectedTodoId={this.props.selectedTodoId} 
                     isEmpty={(empty:boolean) => {}}
+                    searched={this.props.searched}
                     projects={this.props.projects}
                     areas={this.props.areas} 
                     dispatch={this.props.dispatch}    

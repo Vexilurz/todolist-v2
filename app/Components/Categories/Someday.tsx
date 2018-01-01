@@ -6,9 +6,13 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, generateEmptyTodo } from "../../utils"; 
+import { 
+    attachDispatchToProps, uppercase, insideTargetArea, chooseIcon,
+    byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, 
+    generateEmptyTodo 
+} from "../../utils";  
 import { connect } from "react-redux";
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
+import OverlappingWindows from 'material-ui/svg-icons/image/filter-none'; 
 import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area } from '../../database';
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
@@ -23,7 +27,7 @@ import ShareIcon from 'material-ui/svg-icons/social/share';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import { TextField } from 'material-ui';
+import { TextField } from 'material-ui'; 
 import AutosizeInput from 'react-input-autosize';
 import { ContainerHeader } from '.././ContainerHeader';
 import { byTags, byCategory } from '../../utils';
@@ -40,6 +44,7 @@ interface SomedayProps{
     selectedCategory:string, 
     selectedTodoId:string,
     selectedTag:string,
+    searched:boolean, 
     rootRef:HTMLElement,
     todos:Todo[],
     areas:Area[],   
@@ -107,6 +112,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         key={empty._id} 
                         dispatch={this.props.dispatch}  
                         selectedCategory={"someday"}     
+                        searched={this.props.searched}
                         selectedTodoId={this.props.selectedTodoId}
                         tags={this.props.tags} 
                         rootRef={this.props.rootRef}  
@@ -120,6 +126,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                             byNotCompleted, 
                             byNotDeleted 
                         ]}      
+                        searched={this.props.searched}
                         areas={this.props.areas}
                         projects={this.props.projects}
                         selectedTodoId={this.props.selectedTodoId} 

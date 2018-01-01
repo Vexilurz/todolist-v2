@@ -16,17 +16,21 @@ import { stringToLength, byNotCompleted, byNotDeleted, daysRemaining, dateDiffIn
 import { SortableList } from '../SortableList';
 import PieChart from 'react-minimal-pie-chart';
 import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains, assoc } from 'ramda';
+import { Category } from '../MainContainer';
 
 
 interface AreasListProps{   
     dispatch:Function,
+    selectedProjectId:string,
+    selectedAreaId:string, 
+    selectedCategory:Category, 
     areas:Area[],
     projects:Project[]    
 }  
 
 interface AreasListState{}  
 
-interface Separator{ type:string };
+interface Separator{ type:string }; 
  
 type LayoutItem = Project | Area | Separator;  
 
@@ -76,7 +80,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 
         return {table,detached};
-
     }
          
     
@@ -144,133 +147,26 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
  
     getAreaElement = (a : Area, index : number) : JSX.Element => {
-        return <li 
-            className="area" 
-            key={index} 
-        >   
-            <div style={{
-                outline:"none", 
-                width:"100%",
-                height:"20px" 
-            }}>  
-            </div>  
-            <div     
-                onClick = {(e) => this.selectArea(a)}
-                id = {a._id} 
-                className="leftpanelmenuitem"  
-                style={{  
-                    height:"25px",
-                    width:"95%",
-                    display:"flex", 
-                    alignItems: "center" 
-                }}
-            >      
-                <IconButton  
-                    style={{
-                        width:"26px", height:"26px", padding: "0px",
-                        display: "flex", alignItems: "center", justifyContent: "center"
-                    }}    
-                    iconStyle={{ color:"rgba(109,109,109,0.7)", width:"26px", height:"26px" }}  
-                >   
-                    <NewAreaIcon /> 
-                </IconButton> 
-                
-                <div style={{
-                    fontFamily: "sans-serif",
-                    fontSize: "15px",    
-                    cursor: "default",
-                    paddingLeft: "5px", 
-                    WebkitUserSelect: "none",
-                    fontWeight: "bolder", 
-                    color: "rgba(0, 0, 0, 0.8)" 
-                }}>    
-                    {
-                        a.name.length===0 ? 
-                        "New Area" : 
-                        stringToLength(a.name,18) 
-                    }   
-                </div>  
-            </div>
-        </li>
+        return <AreaElement 
+            area={a}
+            index={index}
+            selectArea={this.selectArea}
+            selectedAreaId={this.props.selectedAreaId}
+            selectedCategory={this.props.selectedCategory}
+        />
     }
  
-
+    
 
     getProjectElement = (p:Project, index:number) : JSX.Element => {
 
-        let days = dateDiffInDays(p.created,p.deadline);    
-        
-        let remaining = daysRemaining(p.deadline);  
- 
-        return <li key={index}>   
-            <div  
-                onClick = {(e) => this.selectProject(p)} 
-                id = {p._id}
-                className="leftpanelmenuitem" 
-                style={{    
-                    height:"25px",
-                    paddingLeft:"4px", 
-                    width:"95%",
-                    display:"flex",
-                    alignItems:"center" 
-                }}
-            >     
-                    <div style={{    
-                        width: "18px",
-                        height: "18px",
-                        position: "relative",
-                        borderRadius: "100px",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        border: "1px solid rgb(170, 170, 170)",
-                        boxSizing: "border-box" 
-                    }}> 
-                        <div style={{
-                            width: "18px",
-                            height: "18px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            position: "relative" 
-                        }}>  
-                            <PieChart 
-                                animate={false}    
-                                totalValue={days}
-                                data={[{    
-                                    value:p.completed ? days : (days-remaining), 
-                                    key:1,  
-                                    color:"rgba(159, 159, 159, 1)" 
-                                }]}    
-                                style={{ 
-                                    color:"rgba(159, 159, 159, 1)",
-                                    width:"12px",
-                                    height:"12px",
-                                    position:"absolute",
-                                    display:"flex",
-                                    alignItems:"center",
-                                    justifyContent:"center"  
-                                }}
-                            />     
-                        </div>
-                    </div> 
- 
-                    <div   
-                        id = {p._id}   
-                        style={{  
-                            paddingLeft:"5px",
-                            fontFamily: "sans-serif",
-                            fontSize:"15px",  
-                            whiteSpace: "nowrap",
-                            cursor: "default",
-                            WebkitUserSelect: "none" 
-                        }}
-                    >   
-                        { p.name.length==0 ? "New Project" : stringToLength(p.name,15) } 
-                    </div>    
- 
-            </div>
-        </li> 
+        return <ProjectElement 
+            project={p}
+            index={index}
+            selectProject={this.selectProject}
+            selectedProjectId={this.props.selectedProjectId}
+            selectedCategory={this.props.selectedCategory}
+        />
     }
     
 
@@ -519,6 +415,214 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 
 
+
+interface AreaElementProps{
+    area:Area,
+    index:number,
+    selectArea:Function,
+    selectedAreaId:string,
+    selectedCategory:Category
+} 
+
+interface AreaElementState{
+    highlight:boolean
+}
+
+ 
+
+class AreaElement extends Component<AreaElementProps,AreaElementState>{
+
+    constructor(props){
+        super(props);
+        this.state={
+            highlight:false
+        }; 
+    }  
+
+ 
+    render(){      
+           
+        let selected = this.props.area._id===this.props.selectedAreaId && this.props.selectedCategory==="area";
+                  
+        return <li 
+            className={"area"} 
+            key={this.props.index} 
+            onMouseOver={(e) => {
+                if(e.buttons == 1 || e.buttons == 3){
+                    this.setState({highlight:true}); 
+                } 
+            }} 
+            onMouseOut={(e) => { 
+                this.setState({highlight:false});
+            }}  
+        >   
+            <div style={{outline:"none",width:"100%",height:"20px"}}></div>  
+            <div     
+                onClick = {(e) => this.props.selectArea(this.props.area)}
+                id = {this.props.area._id} 
+                className={selected ? "" : "leftpanelmenuitem"}  
+                style={{  
+                    borderRadius: this.state.highlight || selected ? "5px" : "0px", 
+                    backgroundColor: this.state.highlight ? "rgba(0,200,0,0.3)" :
+                                     selected ? "rgba(228,230,233,1)" : 
+                                     "",  
+                    height:"25px",
+                    width:"95%",
+                    display:"flex",  
+                    alignItems: "center" 
+                }}
+            >      
+                <IconButton  
+                    style={{
+                        width:"26px", height:"26px", padding: "0px",
+                        display: "flex", alignItems: "center", justifyContent: "center"
+                    }}    
+                    iconStyle={{ color:"rgba(109,109,109,0.7)", width:"26px", height:"26px" }}  
+                >   
+                    <NewAreaIcon /> 
+                </IconButton> 
+                
+                <div style={{
+                    fontFamily: "sans-serif",
+                    fontSize: "15px",    
+                    cursor: "default",
+                    paddingLeft: "5px", 
+                    WebkitUserSelect: "none",
+                    fontWeight: "bolder", 
+                    color: "rgba(0, 0, 0, 0.8)" 
+                }}>    
+                    {
+                        this.props.area.name.length===0 ? 
+                        "New Area" : 
+                        stringToLength(this.props.area.name,18) 
+                    }   
+                </div>  
+            </div>
+        </li>
+    }
+}
+
+
+
+
+interface ProjectElementProps{
+    project:Project,
+    index:number,
+    selectProject:Function,
+    selectedProjectId:string,
+    selectedCategory:Category
+}
+
+interface ProjectElementState{
+    highlight:boolean
+}
+ 
+class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
+
+    constructor(props){
+        super(props);
+        this.state={
+            highlight:false
+        }; 
+    }  
+
+ 
+
+    render(){
+
+        let days = dateDiffInDays(this.props.project.created,this.props.project.deadline);   
+        let remaining = daysRemaining(this.props.project.deadline);  
+        let selected = this.props.project._id===this.props.selectedProjectId && this.props.selectedCategory==="project";
+
+
+        return <li
+            key={this.props.index}
+            onMouseOver={(e) => {
+                if(e.buttons == 1 || e.buttons == 3){
+                    this.setState({highlight:true}); 
+                } 
+            }} 
+            onMouseOut={(e) => { 
+                this.setState({highlight:false});
+            }}  
+        >    
+            <div  
+                onClick = {(e) => this.props.selectProject(this.props.project)} 
+                id = {this.props.project._id}
+                className={selected ? "" : "leftpanelmenuitem"} 
+                style={{     
+                    borderRadius: this.state.highlight || selected ? "5px" : "0px", 
+                    backgroundColor: this.state.highlight ? "rgba(0,200,0,0.3)" :
+                                     selected ? "rgba(228,230,233,1)" : 
+                                     "",  
+                    height:"25px",  
+                    paddingLeft:"4px", 
+                    width:"95%",
+                    display:"flex",
+                    alignItems:"center" 
+                }} 
+            >     
+                    <div style={{    
+                        width: "18px",
+                        height: "18px",
+                        position: "relative",
+                        borderRadius: "100px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        border: "1px solid rgb(170, 170, 170)",
+                        boxSizing: "border-box" 
+                    }}> 
+                        <div style={{
+                            width: "18px",
+                            height: "18px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            position: "relative" 
+                        }}>  
+                            <PieChart 
+                                animate={false}    
+                                totalValue={days}
+                                data={[{    
+                                    value:this.props.project.completed ? days : (days-remaining), 
+                                    key:1,  
+                                    color:"rgba(159, 159, 159, 1)" 
+                                }]}    
+                                style={{ 
+                                    color:"rgba(159, 159, 159, 1)",
+                                    width:"12px",
+                                    height:"12px",
+                                    position:"absolute",
+                                    display:"flex",
+                                    alignItems:"center",
+                                    justifyContent:"center"  
+                                }}
+                            />     
+                        </div>
+                    </div> 
+ 
+                    <div   
+                        id = {this.props.project._id}   
+                        style={{  
+                            paddingLeft:"5px",
+                            fontFamily: "sans-serif",
+                            fontSize:"15px",  
+                            whiteSpace: "nowrap",
+                            cursor: "default",
+                            WebkitUserSelect: "none" 
+                        }}
+                    >   
+                        { 
+                            this.props.project.name.length==0 ? 
+                            "New Project" : 
+                            stringToLength(this.props.project.name,15) 
+                        } 
+                    </div>   
+            </div>
+        </li> 
+    }
+}
 
 
 

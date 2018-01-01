@@ -6,8 +6,14 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
     
        let newState = undefined;
    
-       switch(action.type){   
-   
+       switch(action.type){ 
+           case "searched": 
+                newState = {
+                    ...state, 
+                    searched:action.load 
+                }; 
+                break; 
+
            case "openSearch": 
                newState = {
                    ...state, 

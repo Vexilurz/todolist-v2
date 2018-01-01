@@ -18,6 +18,7 @@ import { allPass, compose } from 'ramda';
 interface LogbookProps{
     dispatch:Function,
     todos:Todo[],
+    searched:boolean, 
     selectedCategory:string, 
     selectedTodoId:string, 
     projects:Project[],
@@ -170,6 +171,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                     isEmpty={(empty:boolean) => {}} 
                     selectedTodoId={this.props.selectedTodoId}
                     dispatch={this.props.dispatch}     
+                    searched={this.props.searched}
                     selectedCategory={"logbook"}  
                     areas={this.props.areas}
                     projects={this.props.projects}
@@ -229,7 +231,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
         <div>
             <ContainerHeader 
                 selectedCategory={"logbook"} 
-                dispatch={this.props.dispatch} 
+                dispatch={this.props.dispatch}  
                 tags={tags} 
                 showTags={true} 
                 selectedTag={this.props.selectedTag}

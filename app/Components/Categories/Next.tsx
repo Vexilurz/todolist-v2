@@ -41,6 +41,7 @@ import { TodoInput } from '../TodoInput/TodoInput';
 interface NextProps{
     dispatch:Function, 
     selectedTodoId:string,
+    searched:boolean, 
     selectedCategory:string, 
     selectedTag:string,
     rootRef:HTMLElement,
@@ -183,13 +184,13 @@ export class Next extends Component<NextProps, NextState>{
               ...table.todos
             ]) 
         );    
-        
+         
         let emptyTodo = generateEmptyTodo("emptyTodo", "next", 0);  
 
         return  <div>
                     <ContainerHeader 
                         selectedCategory={"next"}  
-                        dispatch={this.props.dispatch} 
+                        dispatch={this.props.dispatch}  
                         tags={tags} 
                         selectedTag={this.props.selectedTag}
                         showTags={true} 
@@ -207,6 +208,7 @@ export class Next extends Component<NextProps, NextState>{
                             selectedCategory={"next"}  
                             selectedTodoId={this.props.selectedTodoId}
                             tags={this.props.tags} 
+                            searched={this.props.searched}
                             rootRef={this.props.rootRef}  
                             todo={emptyTodo}
                             creation={true}
@@ -219,6 +221,7 @@ export class Next extends Component<NextProps, NextState>{
                             areas={this.props.areas}
                             projects={this.props.projects}
                             selectedCategory={"next"} 
+                            searched={this.props.searched}
                             selectedTag={this.props.selectedTag}  
                             rootRef={this.props.rootRef}
                             todos={table.detached}  
@@ -228,6 +231,7 @@ export class Next extends Component<NextProps, NextState>{
                     <NextProjectsList 
                         dispatch={this.props.dispatch}
                         selectedTag={this.props.selectedTag}
+                        searched={this.props.searched}
                         selectedTodoId={this.props.selectedTodoId} 
                         rootRef={this.props.rootRef}
                         todos={this.props.todos}
@@ -239,6 +243,7 @@ export class Next extends Component<NextProps, NextState>{
                     <NextAreasList   
                         dispatch={this.props.dispatch}
                         selectedTag={this.props.selectedTag} 
+                        searched={this.props.searched}
                         selectedTodoId={this.props.selectedTodoId}
                         rootRef={this.props.rootRef}
                         todos={this.props.todos}
@@ -271,6 +276,7 @@ let byContainsItems = (area:Area) : boolean => {
 interface NextProjectsListProps{
     dispatch:Function,
     selectedTag:string, 
+    searched:boolean, 
     selectedTodoId:string, 
     todos:Todo[], 
     rootRef:HTMLElement,
@@ -309,6 +315,7 @@ class NextProjectsList extends Component<NextProjectsListProps, NextProjectsList
                             <ExpandableTodosList
                                 dispatch={this.props.dispatch}   
                                 selectedTag={this.props.selectedTag} 
+                                searched={this.props.searched}
                                 selectedTodoId={this.props.selectedTodoId} 
                                 rootRef={this.props.rootRef}
                                 todos={this.props.table[p._id] as Todo[]} 
@@ -334,6 +341,7 @@ class NextProjectsList extends Component<NextProjectsListProps, NextProjectsList
 interface NextAreasListProps{
     dispatch:Function,
     selectedTag:string, 
+    searched:boolean, 
     selectedTodoId:string, 
     rootRef:HTMLElement,
     tags:string[],
@@ -372,6 +380,7 @@ class NextAreasList extends Component<NextAreasListProps,NextAreasListState>{
   
                                 <ExpandableTodosList
                                     dispatch={this.props.dispatch}   
+                                    searched={this.props.searched}
                                     selectedTag={this.props.selectedTag}  
                                     rootRef={this.props.rootRef}
                                     selectedTodoId={this.props.selectedTodoId} 
@@ -395,6 +404,7 @@ class NextAreasList extends Component<NextAreasListProps,NextAreasListState>{
 
 interface ExpandableTodosListProps{
     dispatch:Function,   
+    searched:boolean, 
     selectedTag:string, 
     selectedTodoId:string, 
     areas:Area[],
@@ -457,6 +467,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                         dispatch={this.props.dispatch}     
                         selectedCategory={"next"} 
                         areas={this.props.areas}
+                        searched={this.props.searched}
                         projects={this.props.projects}
                         selectedTodoId={this.props.selectedTodoId} 
                         selectedTag={this.props.selectedTag}  

@@ -39,7 +39,7 @@ import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
     insideTargetArea, daysRemaining, todoChanged, 
     daysLeftMark, generateTagElement, uppercase, generateEmptyTodo 
-} from '../../utils';
+} from '../../utils'; 
 import { Todo, removeTodo, updateTodo, generateId } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
@@ -71,13 +71,14 @@ export interface TodoInputState{
     showDeadlineCalendar : boolean,
     justUpdated : boolean 
 }   
-    
+     
 
     
 export interface TodoInputProps{ 
-    dispatch : Function, 
+    dispatch : Function,  
     selectedCategory : Category,
     selectedTodoId : string, 
+    searched : boolean, 
     tags : string[], 
     todo : Todo,  
     rootRef : HTMLElement,  
@@ -136,17 +137,17 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }
 
  
-    onFieldsContainerClick = (e) => {  
+    onFieldsContainerClick = () => {   
         this.preventDragOfThisItem();
         if(!this.state.open){ 
             this.setState(
-                {open:true}, 
+                {open:true},  
                 () => this.props.dispatch({
                    type:"selectedTodoId", 
                    load:this.props.todo._id
                 }) 
-            );  
-        }  
+            );   
+        }   
     }  
  
 
@@ -261,7 +262,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }
 
 
-
     componentWillReceiveProps(nextProps:TodoInputProps){
         if(nextProps.todo!==this.props.todo){  
            this.setState(this.stateFromTodo(this.state,nextProps.todo));  
@@ -269,8 +269,31 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     } 
 
     componentDidMount(){  
-        window.addEventListener("click",this.onOutsideClick);  
-    }    
+        if(this.props.selectedTodoId===this.props.todo._id){  
+            
+            this.setState( 
+                {open:true}, 
+                () => {
+                    setTimeout(() => window.addEventListener("click",this.onOutsideClick), 10);
+                    if(this.props.searched){ 
+                        if(this.props.rootRef && this.ref){  
+                           let rect = this.ref.getBoundingClientRect(); 
+                           let target = rect.top + rect.height/2;
+
+                           if(target>window.innerHeight/2){
+                              let factor = target - window.innerHeight/2;  
+                              this.props.rootRef.scrollTop = factor;  
+                           }  
+                        }
+                        this.props.dispatch({type:"searched", load:false}); 
+                    } 
+                }
+            ) 
+ 
+        }else{ 
+           window.addEventListener("click",this.onOutsideClick);
+        }
+    }     
 
     componentWillUnmount(){
         window.removeEventListener("click",this.onOutsideClick);
@@ -787,10 +810,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 </div> 
             }         
             </div>   
-        }    
+        }     
         </div>
         </div> 
-        
     } 
 }   
   

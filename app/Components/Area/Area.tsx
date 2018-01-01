@@ -17,6 +17,7 @@ interface AreaComponentProps{
     selectedCategory:Category, 
     selectedAreaId:string,
     selectedTodoId:string, 
+    searched:boolean, 
     selectedTag:string, 
     dispatch:Function,  
     projects:Project[],
@@ -97,11 +98,11 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
 
 
 
-    updateAreaName = debounce((value:string) : void => { 
+    updateAreaName = (value:string) : void => { 
 
         this.updateArea(this.state.area, {name:value});
     
-    },200)
+    } 
   
  
  
@@ -127,6 +128,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                     selectedCategory={this.props.selectedCategory}
                     todos={this.props.todos} 
                     tags={this.props.tags}
+                    searched={this.props.searched}
                     selectedTag={this.props.selectedTag}
                     areas={this.props.areas}
                     projects={this.props.projects}

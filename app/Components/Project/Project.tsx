@@ -34,6 +34,7 @@ import { adjust, remove } from 'ramda';
 interface ProjectComponentProps{
     projects:Project[], 
     areas:Area[], 
+    searched:boolean, 
     selectedCategory:string, 
     selectedProjectId:string, 
     selectedTodoId:string, 
@@ -131,19 +132,19 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         this.props.dispatch({ type, load });
     } 
 
+ 
 
-
-    updateProjectName = debounce((value:string) : void => {
+    updateProjectName = (value:string) : void => {
 
         this.updateProject(this.state.project, {name:value});
-    }, 200)  
+    }
      
     
 
-    updateProjectDescription = debounce((value:string) : void => {
+    updateProjectDescription = (value:string) : void => {
    
         this.updateProject(this.state.project, {description:value});
-    }, 200)
+    }
 
     
       
@@ -168,7 +169,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             this.state.project, 
             {layout:adjust(() => heading, idx, layout)}
         );
-    },200)
+    },20)
   
 
 
@@ -239,6 +240,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             updateHeading={this.updateHeading}
                             archiveHeading={this.archiveHeading}
                             selectedTodoId={this.props.selectedTodoId} 
+                            searched={this.props.searched}
                             moveHeading={this.moveHeading} 
                             removeHeading={this.removeHeading}
                             todos={this.props.todos} 
