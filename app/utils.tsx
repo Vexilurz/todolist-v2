@@ -36,7 +36,7 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
-import { getTodos, queryToTodos, Todo, updateTodo, generateId, Project, Area, removeTodos, removeProjects, removeAreas, updateProjects, updateTodos, updateAreas, Heading } from './database';
+import { getTodos, queryToTodos, Todo, updateTodo, generateId, Project, Area, removeTodos, removeProjects, removeAreas, updateProjects, updateTodos, updateAreas, Heading, LayoutItem } from './database';
 import { Category } from './Components/MainContainer';
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 let moment = require("moment");
@@ -126,6 +126,46 @@ let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {
     return remainder;
     
 }
+
+
+export let layoutOrderChanged = (before:LayoutItem[], after:LayoutItem[]) : boolean => {
+    
+        if(before.length!==after.length)
+           return true;
+    
+        for(let i=0; i<before.length; i++){
+            let beforeItem : LayoutItem = before[i];
+            let afterItem : LayoutItem = after[i];
+    
+            if(isNil(beforeItem)){
+               throw new Error(`beforeItem isNil ${beforeItem}. layoutOrderChanged.`); 
+            }
+
+            if(isNil(afterItem)){
+               throw new Error(`afterItem isNil ${afterItem}. layoutOrderChanged.`); 
+            }
+
+
+            if(typeof beforeItem !== typeof afterItem)
+               return true;
+    
+            if(typeof beforeItem === "string"){
+    
+                if(beforeItem !== afterItem)
+                   return true;
+                else 
+                   continue;
+            }else if(beforeItem.type==="heading"){
+     
+                if(beforeItem["_id"] !== afterItem["_id"])
+                   return true;
+                else  
+                   continue;   
+            }
+        }
+        return false;   
+    }
+    
         
  
         

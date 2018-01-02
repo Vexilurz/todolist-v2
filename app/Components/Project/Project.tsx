@@ -46,154 +46,68 @@ interface ProjectComponentProps{
   
 
 
-interface ProjectComponentState{
-    project:Project 
-}  
+interface ProjectComponentState{}  
  
  
  
 export class ProjectComponent extends Component<ProjectComponentProps,ProjectComponentState>{
 
-
     constructor(props){
-
         super(props);
-
-        this.state={
-            project : undefined
-        }
     }  
  
-
-
-    selectProject = (props) => {
-
-        let project = props.projects.find( 
-            (p:Project) => props.selectedProjectId===p._id
-        );
-
-        this.setState({project});
-    }
-
-  
- 
-    componentDidMount(){
-
-        this.selectProject(this.props); 
-    }
-
-
-
-    componentWillReceiveProps(nextProps:ProjectComponentProps, nextState:ProjectComponentState){
- 
-        let selectProject = false;
-
-
-        if(nextProps.projects!==this.props.projects)
-           selectProject = true;
-             
-        if(nextProps.selectedProjectId!==this.props.selectedProjectId)   
-           selectProject = true;
-         
-
-        if(selectProject)     
-           this.selectProject(nextProps);    
-    }
- 
-
- 
     shouldComponentUpdate(nextProps:ProjectComponentProps, nextState:ProjectComponentState){
-
-        let shouldUpdate = false;
-        
-        
-        if(nextProps.projects!==this.props.projects)
-           shouldUpdate = true;
-         
-        if(nextProps.todos!==this.props.todos)
-           shouldUpdate = true;      
-           
-        if(nextProps.selectedProjectId!==this.props.selectedProjectId)   
-           shouldUpdate = true;
-        
-        if(nextState.project!==this.state.project)
-           shouldUpdate = true;   
-
-
-        return shouldUpdate; 
+        return true;
     }
   
-
- 
     updateProject = (selectedProject:Project, updatedProps) : void => { 
-
         let type = "updateProject"; 
         let load = { ...selectedProject, ...updatedProps };
         this.props.dispatch({ type, load });
     } 
 
- 
-
-    updateProjectName = (value:string) : void => {
-
-        this.updateProject(this.state.project, {name:value});
-    }
+    updateProjectName = (selectedProject:Project) => debounce(
+        (value:string) : void => {
+            this.updateProject(selectedProject, {name:value});
+        },
+        50
+    )
      
-    
-
-    updateProjectDescription = (value:string) : void => {
-   
-        this.updateProject(this.state.project, {description:value});
-    }
-
-    
-      
-    updateHeading = (heading_id:string, newValue:string) => { 
+    updateProjectDescription = (selectedProject:Project) => debounce(
+        (value:string) : void => {
+            this.updateProject(selectedProject, {description:value});
+        },
+        50
+    )
  
-        let layout = this.state.project.layout;
-        let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
+    updateHeading = (selectedProject:Project) => debounce(
+        (heading_id:string, newValue:string) => { 
+            let layout = selectedProject.layout;
+            let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
 
-        if(idx===-1){
-           throw new Error(`
-                Item does not exist. 
-                ${heading_id}.
-                updateHeading. 
-                ${JSON.stringify(layout)}
-           `);  
-        } 
- 
-        let heading : Heading = {...layout[idx] as Heading} ;
-        heading.title=newValue;
-
-        this.updateProject(
-            this.state.project, 
-            {layout:adjust(() => heading, idx, layout)}
-        );
-    }
-
+            if(idx===-1){
+                throw new Error(`
+                        Item does not exist. 
+                        ${heading_id}.
+                        updateHeading. 
+                        ${JSON.stringify(layout)}
+                `);  
+            } 
+            
+            let heading : Heading = {...layout[idx] as Heading} ;
+            heading.title=newValue;
+            let updatedLayout = adjust(() => heading, idx, layout);
+            this.updateProject(selectedProject,{layout:updatedLayout});
+        },
+        50
+    ) 
     
-
-    updateLayout = (layout:LayoutItem[]) => {
-        
-        this.updateProject(this.state.project, {layout});
+    updateLayout = (selectedProject:Project) => (layout:LayoutItem[]) => {
+        this.updateProject(selectedProject, {layout});
     }  
 
- 
-    
-    archiveHeading = (heading_id:string) => {
-
-        this.removeHeading(heading_id); 
-    }
-
-
-
-    moveHeading = (heading_id:string) => {}
-
- 
-
-    removeHeading = (heading_id:string) => {
-
-        let layout = this.state.project.layout;
+    removeHeading = (selectedProject:Project) => (heading_id:string) => {
+        let layout = selectedProject.layout;
         let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
 
         if(idx===-1){ 
@@ -205,53 +119,62 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
            `)   
         }  
  
-        this.updateProject(this.state.project, {layout:remove(idx,1,layout)});
+        this.updateProject(selectedProject, {layout:remove(idx,1,layout)});
     }
     
-
-    updateProjectDeadline = (value:Date) => {
-        this.updateProject(this.state.project, {deadline:value});
+    updateProjectDeadline = (selectedProject:Project) => (value:Date) => {
+        this.updateProject(selectedProject, {deadline:value});
     }
 
+    archiveHeading = (selectedProject:Project) => (heading_id:string) => {
+        this.removeHeading(selectedProject)(heading_id); 
+    }
+        
+    moveHeading = (heading_id:string) => {}
  
     render(){   
- 
-        return  !this.state.project ? null :
+        let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
+
+        return  !project ? null :
                 <div>  
                     <div>    
                         <ProjectHeader 
                             rootRef={this.props.rootRef}
-                            name={this.state.project.name}
-                            description={this.state.project.description}
-                            created={this.state.project.created as any}  
-                            deadline={this.state.project.deadline as any} 
-                            completed={this.state.project.completed as any} 
-                            updateProjectDeadline={this.updateProjectDeadline}
-                            updateProjectName={this.updateProjectName}
-                            updateProjectDescription={this.updateProjectDescription} 
+                            name={project.name}
+                            description={project.description}
+                            created={project.created as any}  
+                            deadline={project.deadline as any} 
+                            completed={project.completed as any} 
+
+                            updateProjectDeadline={this.updateProjectDeadline(project)}
+                            updateProjectName={this.updateProjectName(project)}
+                            updateProjectDescription={this.updateProjectDescription(project)} 
+
                             dispatch={this.props.dispatch} 
                         />       
                     </div> 
   
                     <div> 
                         <ProjectBody   
-                            layout={this.state.project.layout}
-                            updateLayout={this.updateLayout}
-                            areas={this.props.areas} 
+                            layout={project.layout}
+
+                            updateLayout={this.updateLayout(project)}
+                            removeHeading={this.removeHeading(project)}
+                            updateHeading={this.updateHeading(project)}
+                            archiveHeading={this.archiveHeading(project)}
+
+                            moveHeading={this.moveHeading} 
+                            areas={this.props.areas}   
                             projects={this.props.projects}
-                            updateHeading={this.updateHeading}
-                            archiveHeading={this.archiveHeading}
                             selectedTodoId={this.props.selectedTodoId} 
                             searched={this.props.searched}
-                            moveHeading={this.moveHeading} 
-                            removeHeading={this.removeHeading}
                             todos={this.props.todos} 
                             tags={this.props.tags}
                             rootRef={this.props.rootRef}
                             dispatch={this.props.dispatch} 
                         />
                     </div>   
-                </div>
+                </div> 
     }
 } 
  

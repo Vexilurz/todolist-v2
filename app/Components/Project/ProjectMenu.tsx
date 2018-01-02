@@ -48,7 +48,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
     constructor(props){ 
         super(props); 
     }  
-
+ 
 
     closeMenu = () => {
         this.props.dispatch({type:"showProjectMenuPopover", load:false});
@@ -111,8 +111,9 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         let project : Project = { ...this.props.projects[idx] };
 
         this.updateProject(project, {completed:new Date()});
-
-        this.closeMenu(); 
+        this.props.dispatch({type:"selectedCategory",load:"inbox"});
+        
+        this.closeMenu() 
     } 
 
    

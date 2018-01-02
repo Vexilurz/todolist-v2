@@ -108,15 +108,6 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
         </div>
 
 
-
-
-
-
-
-
-
-
-
         <div>
 
             <Popover 

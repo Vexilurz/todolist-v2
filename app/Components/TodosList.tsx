@@ -494,10 +494,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         }
 
 
-        return <div style={{
-            WebkitUserSelect:"none", 
-            position:"relative"
-        }}>   
+        return <div style={{WebkitUserSelect:"none",position:"relative"}}>   
             <Placeholder   
                 offset={placeholderOffset}
                 height={30}

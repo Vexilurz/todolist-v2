@@ -24,7 +24,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
-import { uppercase, debounce, byNotDeleted, generateEmptyTodo, byNotCompleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible } from '../../utils';
+import { uppercase, debounce, byNotDeleted, generateEmptyTodo, byNotCompleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, layoutOrderChanged } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeading } from './ProjectHeading';  
 import { SortableList, Data } from '../SortableList';
@@ -36,34 +36,6 @@ import { onDrop, Placeholder } from '../TodosList';
 
  
 
-let layoutOrderChanged = (before:LayoutItem[], after:LayoutItem[]) : boolean => {
-
-    if(before.length!==after.length)
-       return true;
-
-    for(let i=0; i<before.length; i++){
-        let beforeItem : LayoutItem = before[i];
-        let afterItem : LayoutItem = after[i];
-
-        if(typeof beforeItem !== typeof afterItem)
-           return true;
-
-        if(typeof beforeItem === "string"){
-
-            if(beforeItem !== afterItem)
-               return true;
-            else 
-               continue;
-        }else if(beforeItem.type==="heading"){
- 
-            if(beforeItem["_id"] !== afterItem["_id"])
-               return true;
-            else  
-               continue;   
-        }
-    }
-    return false;   
-}
 
  
 
@@ -119,10 +91,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     }   
 
     componentDidMount(){
-        let items = this.selectItems(
-            this.props.layout, 
-            this.props.todos
-        ); 
+        let items = this.selectItems(this.props.layout,this.props.todos); 
         this.setState({items});
     }
 
@@ -131,14 +100,11 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             layoutOrderChanged(nextProps.layout,this.props.layout) ||
             this.props.todos!==nextProps.todos
         ){ 
-            let items = this
-            .selectItems(
-                nextProps.layout, 
-                nextProps.todos
-            );
+            let items = this.selectItems(nextProps.layout, nextProps.todos);
             this.setState({items});
         } 
     }
+
 
     selectItems = (layout:LayoutItem[], todos:Todo[]) : (Todo | Heading)[] => { 
  
@@ -150,29 +116,28 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             let item : LayoutItem = layout[i];
  
             if(item===undefined || item===null){
-               continue; 
-            } 
+               throw new Error(`Layout item undefined ${layout}. selectItems.`);  
+            };
+
             if(typeof item === "string"){
                let todo : Todo = filteredTodos.find( (t:Todo) => t._id===item );
- 
-               if(todo!==undefined && todo!==null){
-                    if(todo.type==="todo"){ 
-                       items.push(todo); 
-                    }
-               }  
+               
+               if(todo){
+                  items.push(todo); 
+               }
             }else if(item.type==="heading"){
                 items.push(item);
             }
         }
         return items; 
-    }
+    } 
 
 
     getElement = (value:Heading | Todo, index:number) : JSX.Element => { 
         
         switch(value.type){ 
             case "todo":
-                    return  <div  
+                    return  <div   
                         key = {`${value["_id"]}-todo`}  
                         style={{position:"relative"}}
                     >  
@@ -207,6 +172,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 return null;
         }
     }
+
     
     shouldCancelStart = (e) => {
         let nodes = [].slice.call(e.path);
@@ -216,6 +182,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         }
         return false; 
     }
+
        
     shouldCancelAnimation = (e) => {
         if(!this.props.rootRef)
@@ -225,14 +192,24 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         return x < rect.left;   
     }  
 
-    changeOrder = (oldIndex,newIndex) => { 
-        let items = this.state.items.map(i => i.type==="todo" ? i._id : i) as any;
+
+    changeOrder = (oldIndex:number,newIndex:number) => { 
+        if(oldIndex===newIndex)
+           return; 
+
+        let items = this.selectItems(this.props.layout,this.props.todos);  
+        items = items.map(i => i.type==="todo" ? i._id : i) as any;
         let changed = arrayMove(items, oldIndex, newIndex); 
         this.props.updateLayout(changed);    
     }  
-
+    
+    showPlaceholder = () => this.setState({showPlaceholder:true});
+    
+    hidePlaceholder = () => this.setState({showPlaceholder:false});
+    
     onSortStart = ({node, index, collection}, e, helper) => { 
-        this.setState({showPlaceholder:true});
+        this.showPlaceholder();
+
         let item = this.state.items[index];
 
         if(item.type==="todo"){
@@ -247,6 +224,40 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
            helper.appendChild(el);  
         }
     }
+
+    onSortEnd = ({oldIndex, newIndex, collection}, e) => { 
+        this.hidePlaceholder();
+
+        let x = e.clientX; 
+        let y = e.clientY+this.props.rootRef.scrollTop;  
+        let items = this.state.items;   
+        let draggedItem : (Todo | Heading) = items[oldIndex];
+        let leftpanel = document.getElementById("leftpanel");
+
+        if(draggedItem.type==="heading"){
+            
+            this.changeOrder(oldIndex,newIndex); 
+
+        }else if(draggedItem.type==="todo"){
+
+            if(isEmpty(draggedItem.title)) 
+               return;
+  
+            if(insideTargetArea(leftpanel,x,y)){   
+               onDrop(
+                    e, 
+                    draggedItem as Todo,
+                    this.props.dispatch,
+                    this.props.areas,
+                    this.props.projects, 
+               )  
+            }else{   
+
+               this.changeOrder(oldIndex,newIndex); 
+            }   
+        }
+    }  
+
          
     onSortMove = (e, helper : HTMLElement, newIndex:number, oldIndex:number) => {
         let x = e.clientX; 
@@ -272,71 +283,37 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         }
     }
 
-    onSortEnd = ({oldIndex, newIndex, collection}, e) => { 
-        this.setState({showPlaceholder:false});
 
-        let x = e.clientX; 
-        let y = e.clientY+this.props.rootRef.scrollTop;  
-        let items = this.state.items;   
-        let draggedItem : (Todo | Heading) = items[oldIndex];
-        let leftpanel = document.getElementById("leftpanel");
+    calculatePlaceholderOffset = () : number => {
+        let placeholderOffset = 0; 
+        
+        if(this.state.helper){ 
+           let rect = this.state.helper.getBoundingClientRect();
+           let headingHeight = 46;  
+           let todoHeight = 40; 
 
+           for(let i=0; i<this.state.currentIndex; i++){
+               let item = this.state.items[i];
+               if(item){
+                 if(item.type==="todo"){
+                    placeholderOffset+=todoHeight;
+                 }else if(item.type==="heading"){
+                    placeholderOffset+=headingHeight;  
+                 } 
+               } 
+           }
+        } 
 
-        if(draggedItem.type==="heading"){
-            if(oldIndex===newIndex)
-               return; 
-                
-            this.changeOrder(oldIndex,newIndex); 
-
-        }else if(draggedItem.type==="todo"){
-
-            if(isEmpty(draggedItem.title)) 
-               return;
-  
-            if(insideTargetArea(leftpanel,x,y)){   
-                onDrop(
-                    e, 
-                    draggedItem as Todo,
-                    this.props.dispatch,
-                    this.props.areas,
-                    this.props.projects, 
-                )  
-            }else{     
-                if(oldIndex===newIndex)
-                   return; 
-                this.changeOrder(oldIndex,newIndex); 
-            }   
-        }
-    }  
+        return placeholderOffset;
+    }
 
 
     render(){  
         let empty = generateEmptyTodo("emptyTodo","project",0);
-        let placeholderOffset = 0;
-        let placeholderHeight = 0;
-        
-        if(this.state.helper){
-            let rect = this.state.helper.getBoundingClientRect();
-            let headingHeight = 45;  
-            let todoHeight = 40; 
-
-            for(let i=0; i<this.state.currentIndex; i++){
-                let item = this.state.items[i];
-                if(item){
-                   if(item.type==="todo")
-                      placeholderOffset+=todoHeight;
-                   else if(item.type==="heading")
-                      placeholderOffset+=headingHeight;   
-                }
-            }
-
-            placeholderHeight = rect.height;
-        } 
-            
-        return <div style={{
-            WebkitUserSelect:"none", 
-            position:"relative"
-        }}>  
+        let placeholderOffset = this.calculatePlaceholderOffset();
+        let placeholderHeight = 30;
+         
+        return <div style={{WebkitUserSelect:"none", position:"relative"}}>  
             <div>  
                 <TodoInput   
                     id={empty._id}
@@ -352,7 +329,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 />   
             </div>   
             <Placeholder    
-                height={placeholderHeight}
+                height={placeholderHeight} 
                 offset={placeholderOffset}
                 show={this.state.showPlaceholder}
             />    
