@@ -446,11 +446,12 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
  
     onDeadlineCalendarClear = (e:any) : void => this.setState({deadline:null}); 
     
-    onCalendarDayClick = (day:Date,modifiers:Object,e:any) => 
+    onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         this.setState({
             attachedDate:day,
             category:daysRemaining(day)===0 ? "today" : this.state.category
         });   
+    }
         
     onCalendarSomedayClick = (e) => this.setState({category:"someday", attachedDate:null});
 
@@ -481,7 +482,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             }}  
         >     
    
-        <div   
+        <div    
             onClick={(e) => {e.stopPropagation();}}
             ref={(e) => { this.ref=e; }} 
             style={{           
@@ -490,10 +491,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     width:"100%",        
                     boxShadow:this.state.open ? "rgba(156, 156, 156, 0.3) 0px 0px 20px" : "", 
                     borderRadius:"5px", 
-                    marginBottom:this.state.open ? "90px" : "10px", 
+                    marginBottom:"10px", 
                     transform:`translateY(${this.state.open ? 0 : 0}px)`    
             }} 
-        >      
+        >       
                 <div
                     className={this.state.open ? "" : "tasklist"}
                     style={{   
@@ -625,10 +626,19 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                     !this.state.showChecklist ? null : 
                                     <Checklist 
                                         checklist={this.state.checklist}  
-                                        updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})} 
+                                        updateChecklist={
+                                            (checklist:ChecklistItem[]) => this.setState(
+                                                {checklist}, 
+                                                () => {
+                                                    let todo : Todo = this.todoFromState();  
+                                                    if(this.state.title.length===0 || todoChanged(this.props.todo,todo))
+                                                    this.addTodoFromInput(todo);
+                                                }
+                                            )  
+                                        } 
                                     />
                                 }  
-                                { 
+                                {  
                                     this.state.attachedTags.length===0 ? null :
                                     <TodoTags 
                                         tags={this.state.attachedTags}

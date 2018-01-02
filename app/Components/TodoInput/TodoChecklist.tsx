@@ -44,6 +44,7 @@ import { Category } from '.././MainContainer';
 import { Todo, removeTodo, updateTodo, generateId } from '../../database';
 import { SortableList } from '../SortableList';
 import { replace, adjust, append, prepend, isEmpty } from 'ramda';
+import { Placeholder } from '../TodosList';
 
 
 let shouldUpdateChecklist = (
@@ -91,18 +92,36 @@ interface ChecklistProps{
     updateChecklist : (checklist:ChecklistItem[]) => void   
 }
 
-interface ChecklistState{} 
+interface ChecklistState{
+    currentIndex:number, 
+    helper:HTMLElement,
+    showPlaceholder:boolean 
+} 
 
   
  
 export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
+    ref:HTMLElement; 
+    inputRef:HTMLElement;
+
     constructor(props){
         super(props); 
+        this.state={
+          currentIndex:0, 
+          helper:null,
+          showPlaceholder:false 
+        }
     }
   
-    shouldComponentUpdate(nextProps:ChecklistProps){
-        return shouldUpdateChecklist(nextProps.checklist, this.props.checklist);
+    shouldComponentUpdate(nextProps:ChecklistProps, nextState:ChecklistState){
+        if(nextState!==this.state){
+           return true; 
+        }
+         
+        let checklistChanged = shouldUpdateChecklist(nextProps.checklist, this.props.checklist);
+
+        return checklistChanged;  
     } 
  
     onChecklistItemChange = (key:string, event, newText:string) => {  
@@ -134,10 +153,31 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
             this.props.updateChecklist(checklist);  
         }
-    }
-  
+    } 
+
+    onSortMove = (e, helper : HTMLElement, newIndex:number) => {
+        this.setState({
+            currentIndex:newIndex,
+            helper
+        }); 
+    } 
+
+    onSortStart = ({node, index, collection}, e, helper) => { 
+        if(this.ref){
+            this.setState({
+                showPlaceholder:true,
+                currentIndex:index,
+                helper
+            });
+        } 
+    }  
+    
     onSortEnd = ({oldIndex, newIndex, collection}, e) => {
-        
+        this.setState({showPlaceholder:false}); 
+
+        if(oldIndex===newIndex)
+           return;
+             
         let updateIndex = (el:ChecklistItem,idx:number) => {
             el.idx=idx;
             return el; 
@@ -163,13 +203,11 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
             
         return <li style={{width:"100%"}}>  
             <div 
-            //className="toggleFocus"
                  style={{   
                     transition: "opacity 0.4s ease-in-out", 
                     opacity:1,
                     width:"100%", 
                     fontSize:"16px",
-                    //border:"1px solid rgba(150,150,150,0.1)",
                     borderRadius:"5px",
                     alignItems:"center", 
                     display:"flex",   
@@ -247,7 +285,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
     onBlankEnterPress = (event) => { 
         if(event.which == 13 || event.keyCode == 13){
             event.stopPropagation();
-
+ 
             if(event.target.value==='')
                return;  
                  
@@ -261,27 +299,47 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
             let checklist = append(newItem)(this.props.checklist);
             this.props.updateChecklist(checklist); 
         }     
+    } 
+
+    componentDidMount(){
+        if(this.inputRef){
+           this.inputRef.focus();  
+        } 
+    }
+    
+    componentDidUpdate(){
+        if(this.inputRef){
+           this.inputRef.focus();  
+        }  
     }
 
     render(){  
  
-        return <div 
-            style={{marginTop:"5px",marginBottom:"15px"}}
+        return <div  
+            ref={e => {this.ref=e;}}
+            style={{marginTop:"5px",marginBottom:"15px", position:"relative"}}
             onClick={(e) => {e.stopPropagation();}}  
         >     
+            <div style={{width:"100%"}}>
+                <Placeholder     
+                    offset={this.state.currentIndex*28}
+                    height={28} 
+                    show={this.state.showPlaceholder}
+                /> 
+            </div>
             <SortableList  
                 getElement={this.getCheckListItem}
                 items={this.props.checklist}      
-                container={document.body}
+                container={document.body}  
                 shouldCancelStart={() => false}
-                shouldCancelAnimation={() => false}
-                onSortEnd={this.onSortEnd} 
-                onSortMove = {(e, helper : HTMLElement) => { }}
-                onSortStart={({node, index, collection}, e, helper) => { }}
+                shouldCancelAnimation={() => false} 
+                onSortEnd={this.onSortEnd}  
+                onSortMove = {this.onSortMove}
+                onSortStart={this.onSortStart}
                 lockToContainerEdges={true}
                 distance={0} 
-                useDragHandle={true}  
-                lock={true} 
+                useDragHandle={true}   
+                lock={true}  
             />
             {   
                 <div
@@ -290,7 +348,6 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                         opacity:1,
                         width:"100%", 
                         fontSize:"16px",
-                        //border:"1px solid rgba(150,150,150,0.1)",
                         borderRadius:"5px",
                         alignItems:"center", 
                         display:"flex",   
@@ -323,7 +380,8 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                                 alignItems:"center"
                             }}  
                         >    
-                            <TextField       
+                            <TextField     
+                                ref={e => {this.inputRef=e;}}  
                                 id={generateId()} 
                                 key={generateId()}
                                 fullWidth={true}   
@@ -334,7 +392,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                                     color:"rgba(0,0,0,1)",    
                                     fontSize:"16px",
                                     textDecoration:"none"
-                                }}    
+                                }} 
                                 underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}}  
                                 underlineStyle={{borderColor:"rgba(0,0,0,0)"}}   
                                 onBlur={this.onBlankBlur}  
