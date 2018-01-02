@@ -98,10 +98,10 @@ let fakeTodo = (tags:string[]) : Todo => {
         deadline : randomDate(new Date(), new Date()["addDays"](50)),
         created : randomDate(new Date(), new Date()["addDays"](50)),
         deleted : Math.random() < 0.5 ? new Date() : undefined,
-        attachedDate : randomDate(new Date(), new Date()["addDays"](50)), 
+        attachedDate : Math.random() < 0.5 ? randomDate(new Date(), new Date()["addDays"](50)) : undefined, 
         completed : checked ? randomDate(new Date(), new Date()["addDays"](50)) : null,
         checked 
-    });  
+    });   
       
 }
     

@@ -25,7 +25,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize'; 
 import { Todo, Project, Heading, Area } from '../../database';
-import { uppercase, debounce, daysRemaining } from '../../utils';
+import { uppercase, debounce } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';

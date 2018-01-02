@@ -148,7 +148,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     
       
-    updateHeading = debounce((heading_id:string, newValue:string) => { 
+    updateHeading = (heading_id:string, newValue:string) => { 
  
         let layout = this.state.project.layout;
         let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
@@ -169,9 +169,9 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             this.state.project, 
             {layout:adjust(() => heading, idx, layout)}
         );
-    },20)
-  
+    }
 
+    
 
     updateLayout = (layout:LayoutItem[]) => {
         
@@ -237,6 +237,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         <ProjectBody   
                             layout={this.state.project.layout}
                             updateLayout={this.updateLayout}
+                            areas={this.props.areas} 
+                            projects={this.props.projects}
                             updateHeading={this.updateHeading}
                             archiveHeading={this.archiveHeading}
                             selectedTodoId={this.props.selectedTodoId} 

@@ -8,7 +8,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
-    byDeleted, dateDiffInDays, hotFilter, byNotAttachedToProjectFilter, byNotAttachedToAreaFilter 
+    byDeleted, dateDiffInDays, byNotAttachedToProjectFilter, byNotAttachedToAreaFilter, isDate, daysRemaining 
 } from "../../utils"; 
 import { Provider, connect } from "react-redux";
 import Menu from 'material-ui/Menu';
@@ -56,6 +56,20 @@ interface ItemsAmount{
 }
 
  
+let hotFilter = (todo:Todo) : boolean => {
+
+    if(isNil(todo))
+        throw new Error(`Todo is undefined ${JSON.stringify(todo)}. hotFilter`);
+        
+    if(isNil(todo.deadline))
+        return false;
+           
+    if(!isDate(todo.deadline))
+        throw new Error(`Deadline is not date. ${JSON.stringify(todo.deadline)} hotFilter`);
+      
+    return daysRemaining(todo.deadline)<=0;  
+}  
+
 
 let calculateAmount = (props:Store) : ItemsAmount => {
 
@@ -75,7 +89,7 @@ let calculateAmount = (props:Store) : ItemsAmount => {
 
     let logbookFilters = [byCompleted, byNotDeleted]; 
     
-    let hotFilters = [todayFilter, byNotCompleted, byNotDeleted, hotFilter];
+    let hotFilters = [byNotCompleted, byNotDeleted, hotFilter];
         
     return {      
         inbox:props.todos.filter( (t:Todo) => allPass(inboxFilters)(t) ).length,

@@ -31,7 +31,7 @@ let uniqid = require("uniqid");
 import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
 import {  
-    insideTargetArea, daysRemaining, todoChanged, 
+    insideTargetArea, todoChanged, 
     daysLeftMark, generateTagElement, 
     attachDispatchToProps, chooseIcon, 
     stringToLength,  
@@ -49,17 +49,19 @@ import { allPass } from 'ramda';
 interface keyworded{ object : any, keywords : string[] } 
 
 
-let getTodoLink = (todo : Todo, index : number, dispatch : Function) : JSX.Element => {
+let getTodoLink = (todo : Todo, index : number, dispatch : Function, clear:Function) : JSX.Element => {
 
      let onTodoLinkClick = () => { 
          dispatch({ type:"selectedTodoId",load:todo._id });
          dispatch({ type:"searched",load:true }); 
-         
-         if(todo.checked && todo.completed){ 
+         dispatch({ type:"updateTodo",load:{...todo}});
+          
+         if(todo.checked && todo.completed){  
             dispatch({type:"selectedCategory",load:"logbook"});
          }else{         
             dispatch({type:"selectedCategory",load:todo.category});
          }    
+         clear();
      } 
     
      return <div key={`${todo._id}-${index}`} style={{position:"relative"}}>  
@@ -323,18 +325,24 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
         if(!isItem(object))
             throw new Error(`object is not of type Item. ${JSON.stringify(object)}. suggestionToComponent.`);
   
+        let clear = () => this.setState({value:'', suggestions:[]});    
+        let dispatchAndClear = (action) => {
+            this.props.dispatch(action);
+            clear();
+        }; 
+
         switch(object.type){
-            case "todo": 
+            case "todo":  
                 return getTodoLink(
-                    object, index, this.props.dispatch
+                    object, index, this.props.dispatch, clear
                 );   
             case "project":
                 return getProjectLink(
-                    object, this.props.todos, this.props.dispatch, index
+                    object, this.props.todos, dispatchAndClear, index
                 );
-            case "area":   
+            case "area":    
                 return getAreaLink( 
-                    object, this.props.todos, this.props.projects, index, this.props.dispatch
+                    object, this.props.todos, this.props.projects, index, dispatchAndClear
                 );
         }
     } 

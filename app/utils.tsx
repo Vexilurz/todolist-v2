@@ -492,28 +492,9 @@ export let byNotCompleted = (item:Project | Todo) : boolean => {
     return !item.completed;
  
 }   
- 
+  
 
-export let hotFilter = (todo:Todo) : boolean => {
 
-    if(isNil(todo))
-       throw new Error(`Todo is undefined ${JSON.stringify(todo)}. hotFilter`);
-     
-    if(!todo.deadline)
-        return false;
-     
-    if(!todo.attachedDate)
-        return false;         
-     
-    /*  
-    if(!isDate(todo.deadline))
-        throw new Error(`Deadline is not date. ${JSON.stringify(todo.deadline)} hotFilter`);
-     
-    if(!isDate(todo.attachedDate))
-        throw new Error(`attachedDate is not date. ${JSON.stringify(todo.attachedDate)} hotFilter`);
-    */
-    return dateDiffInDays(todo.deadline, todo.attachedDate)===0;  
-} 
 
 
 export let byCompleted = (item:Project | Todo) : boolean => { 
@@ -1007,13 +988,12 @@ export let daysLeftMark = (hide:boolean, deadline:Date, showFlag:boolean)  => {
     if(isNil(deadline))
        throw new Error(`deadline undefined. ${deadline}. daysLeftMark.`);
  
-    if( !isDate(deadline) )    
+    if(!isDate(deadline) )    
         throw new Error(`deadline not a Date. ${deadline}. daysLeftMark.`);
-
 
     let daysLeft = daysRemaining(deadline);      
 
-    let flagColor = (daysLeft === 1 || daysLeft === 0) ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
+    let flagColor = daysLeft <= 1  ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
        
     let style : any = { 
         display: "flex",
@@ -1061,6 +1041,8 @@ export let daysLeftMark = (hide:boolean, deadline:Date, showFlag:boolean)  => {
 
  
 export let isToday = (date : Date) => {
+    if(isNil(date))
+       return false; 
     
     if(!isDate(date))  
         throw new Error(`date is not a Date. ${date}. isToday.`);
@@ -1118,20 +1100,25 @@ export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:
 
 
 export let daysRemaining = (date:Date) : number => {
+    if(isNil(date)){
+        throw new Error(`Date is Nil. daysRemaining.`);
+     }
 
     return dateDiffInDays(new Date(), date); 
 } 
  
    
 
-export let dateDiffInDays = (a : Date, b : Date) : number  => {
+export let dateDiffInDays = (A : Date, B : Date) : number  => {
 
-    if(isNil(a) || isNil(b)){
-       return 999;  //TODO
+    if(isNil(A) || isNil(B)){
+       throw new Error(`Date is Nil. dateDiffInDays.`);
     }
 
-    let A = typeof a === "string" ? new Date(a) : a;
-    let B = typeof b === "string" ? new Date(b) : b;
+    if(!isDate(A) || !isDate(B)){
+        throw new Error(`Not a date. dateDiffInDays.`); 
+    } 
+
    
     let _MS_PER_DAY = 1000 * 60 * 60 * 24;
 

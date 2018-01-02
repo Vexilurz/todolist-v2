@@ -38,9 +38,7 @@ export class App extends Component<any,any>{
 
     constructor(props){  
   
-        super(props);   
-
-
+        super(props);  
     }
 
 

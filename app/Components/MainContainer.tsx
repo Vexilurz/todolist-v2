@@ -299,9 +299,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
             let fakeData = generateRandomDatabase({ 
                 todos : 140,  
-                projects : 5,  
-                areas : 2  
-            });    
+                projects : 10,  
+                areas : 5 
+            });     
     
             let todos = fakeData.todos;
             let projects = fakeData.projects; 
@@ -359,13 +359,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         overflow:"scroll",      
                         flexDirection:"column"  
                     }}  
-                >     
-  
-                  
+                >  
                 <div style={{display: "flex", padding: "10px"}}>   
-
                     <div className="no-drag" style={{position: "fixed", top: 0, right: 0}}>  
- 
                             <IconButton 
                                 iconStyle={{
                                     color:"rgba(100,100,100,0.6)",
@@ -378,17 +374,17 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             >
                                 <Refresh />  
                             </IconButton>  
-
+                        {    
+                            this.props.clone ? null :
                             <IconButton    
                                 onClick={this.openNewWindow}   
                                 className="no-drag"  
                                 iconStyle={{color:"rgba(100,100,100,0.6)",width:"18px",height:"18px"}}
                             >     
                                 <OverlappingWindows />
-                            </IconButton>  
-
-                    </div>   
- 
+                            </IconButton> 
+                        } 
+                    </div>  
                 </div>    
 
 

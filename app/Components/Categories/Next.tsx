@@ -33,7 +33,7 @@ import { Tags } from '../Tags';
 import { getProjectLink } from '../Project/ProjectLink';
 import { getAreaLink } from '../Area/AreaLink';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { uniq, allPass, isEmpty } from 'ramda';
+import { uniq, allPass, isEmpty, isNil } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
  
  
@@ -72,7 +72,7 @@ export class Next extends Component<NextProps, NextState>{
     }
   
     groupObjects = () : Table => { 
-
+    
         let table : Table = { 
             projects : [],
             areas : [],
@@ -89,8 +89,8 @@ export class Next extends Component<NextProps, NextState>{
 
             let filters = [
                 byTags(this.props.selectedTag),
-                byNotCompleted, 
-                byNotDeleted
+                byNotCompleted,  
+                byNotDeleted  
             ]; 
 
             if(allPass(filters)(project)){
@@ -126,11 +126,12 @@ export class Next extends Component<NextProps, NextState>{
                throw new Error(`todo is not of type Todo ${JSON.stringify(todo)}. groupObjects.`); 
 
             let filters = [
-                (t:Todo) => t.category!=="inbox",  
+                byCategory("next"),
+                (t:Todo) => isNil(t.attachedDate),
                 byTags(this.props.selectedTag), 
                 byNotCompleted, 
                 byNotDeleted
-            ];
+            ];  
 
             if(!allPass(filters)(todo))
                 continue;  

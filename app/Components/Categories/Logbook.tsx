@@ -13,6 +13,7 @@ import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '.././ContainerHeader';
 import { compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems } from '../../utils';
 import { allPass, compose } from 'ramda';
+import { getProjectLink } from '../Project/ProjectLink';
      
 
 interface LogbookProps{
@@ -66,23 +67,9 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
 
     shouldComponentUpdate(nextProps:LogbookProps, nextState:LogbookState){
-
-        if(this.state.groups!==nextState.groups)
-            return true;
-        
-             
-        if(this.props.selectedCategory!==nextProps.selectedCategory)
-            return true;
-        if(this.props.todos!==nextProps.todos)
-            return true;
-        if(this.props.projects!==nextProps.projects) 
-            return true;
-        if(this.props.selectedTag!==nextProps.selectedTag)
-            return true;
-
+        return true;
     }
  
-
 
     groupByMonth = (props:LogbookProps) : (Todo | Project)[][] => {  
  
@@ -143,7 +130,6 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
     }
 
 
-
     getComponent = (month:string, todos:Todo[], projects:Project[]) : JSX.Element => {
 
         return <div 
@@ -180,13 +166,20 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                     todos={todos}  
                     tags={this.props.tags} 
                 />   
-            </div>          
+            </div> 
 
+            <div>
+            {
+                projects.map(
+                    (p:Project, index:number) => {
+                        return getProjectLink(p,this.props.todos,this.props.dispatch,index);
+                    }
+                )
+            }
+            </div>       
         </div> 
-
     }
   
-
 
     groupsToComponents = (groups : any[][]) : JSX.Element[] => {
 
@@ -208,11 +201,9 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
             elements.push(this.getComponent(month,todos,projects));
         }
 
-
         return elements; 
     }
 
- 
 
     render(){ 
  
@@ -228,26 +219,21 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
         
 
         return !this.state.groups ? null :
-        <div>
-            <ContainerHeader 
-                selectedCategory={"logbook"} 
-                dispatch={this.props.dispatch}  
-                tags={tags} 
-                showTags={true} 
-                selectedTag={this.props.selectedTag}
-            />
-   
-            <div style={{ 
-                display:"flex", 
-                flexDirection:"column",  
-                width:"100%"
-            }}> 
-             
-                { this.groupsToComponents(this.state.groups) }
-
-            </div>
-        </div>
-
+                <div>
+                    <ContainerHeader 
+                        selectedCategory={"logbook"} 
+                        dispatch={this.props.dispatch}  
+                        tags={tags} 
+                        showTags={true} 
+                        selectedTag={this.props.selectedTag}
+                    />
+                    <div style={{ 
+                        display:"flex", 
+                        flexDirection:"column",  
+                        width:"100%"
+                    }}> 
+                        { this.groupsToComponents(this.state.groups) }
+                    </div>
+                </div>
     }
-
 } 

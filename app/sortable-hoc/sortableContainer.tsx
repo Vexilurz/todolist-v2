@@ -169,10 +169,11 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
     componentWillUnmount() {
       for (const key in this.events) {
         if (this.events.hasOwnProperty(key)) {
-          events[key].forEach(eventName =>
-            this.container.removeEventListener(eventName, this.events[key])
-          );
-        }
+          events[key].forEach(eventName => {
+            if(this.container)
+               this.container.removeEventListener(eventName, this.events[key])
+          });
+        } 
       }
     }
 
@@ -429,7 +430,7 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
  
       this.autoscroll(e);
 
-      if (onSortMove) onSortMove(e, this.helper, this.newIndex);
+      if (onSortMove) onSortMove(e, this.helper, this.newIndex, this.index);
     };
  
     handleSortEnd = e => {

@@ -18,12 +18,222 @@ import { RightClickMenu } from './RightClickMenu';
 import SortableContainer from '../sortable-hoc/sortableContainer';
 import SortableElement from '../sortable-hoc/sortableElement';
 import SortableHandle from '../sortable-hoc/sortableHandle';
-import {arrayMove} from '../sortable-hoc/utils';
-import {  byTags, byCategory } from '../utils'; 
+import { arrayMove } from '../sortable-hoc/utils';
+import { byTags, byCategory } from '../utils'; 
 import { SortableList } from './SortableList';
 import { TodoInput } from './TodoInput/TodoInput';
 import { allPass, isNil, prepend, isEmpty, compose, map, assoc, contains, remove } from 'ramda';
 import { Category } from './MainContainer';
+
+
+let findRelatedAreas = (areas:Area[], t:Todo) : Area[] => {
+    return areas.filter((a:Area) : boolean => {
+        if(contains(t._id,a.attachedTodosIds))
+           return true;
+        return false;
+    })
+} 
+
+
+let findRelatedProjects = (projects:Project[], t:Todo) : Project[] => {
+    return projects.filter((p:Project) : boolean => {  
+        let attachedTodosIds = p.layout.filter(isString);
+        if(contains(t._id,attachedTodosIds))
+           return true;
+        return false;    
+    }) 
+}  
+
+
+let removeTodoFromAreas = (dispatch:Function, areas:Area[], todo:Todo) : void => {
+
+    let load = areas.map((fromArea:Area) : Area => {
+        let idx : number = fromArea.attachedTodosIds.findIndex((id:string) => id===todo._id);  
+        if(idx===-1){
+           throw new Error(`attachedTodosIds does not include todo id. removeTodoFromAreas.`); 
+        }
+        fromArea.attachedTodosIds = remove(idx, 1, fromArea.attachedTodosIds); 
+        console.log(`${todo.title} removed from ${fromArea.name}`);
+        return fromArea; 
+    })
+
+    dispatch({type:"updateAreas", load});   
+}  
+
+ 
+let removeTodoFromProjects = (dispatch:Function, projects:Project[], todo:Todo) : void => {
+
+    let load = projects.map((fromProject:Project) : Project => {
+        let idx : number = fromProject.layout.findIndex((id:string) => id===todo._id);  
+        if(idx===-1){
+           throw new Error(`Project layout does not include todo id. removeTodoFromProjects.`); 
+        }
+        fromProject.layout = remove(idx, 1, fromProject.layout); 
+        console.log(`${todo.title} removed from ${fromProject.name}`);
+        return fromProject; 
+    })
+ 
+    dispatch({type:"updateProjects", load});
+}
+
+
+let dropTodoOnProject = (
+    dispatch:Function, 
+    areas:Area[],
+    projects:Project[], 
+    projectTarget:Project,
+    draggedTodo:Todo
+) : void => {
+    console.log(`Drop on project ${projectTarget.name}`);
+
+    let relatedProjects : Project[] = findRelatedProjects(projects,draggedTodo); 
+    let relatedAreas : Area[] = findRelatedAreas(areas,draggedTodo); 
+
+    for(let i=0; i<relatedProjects.length; i++)
+        if(relatedProjects[i]._id===projectTarget._id)
+           return; 
+ 
+    removeTodoFromProjects(dispatch,relatedProjects,draggedTodo);
+    removeTodoFromAreas(dispatch,relatedAreas,draggedTodo);
+
+    dispatch({ 
+        type:"attachTodoToProject", 
+        load:{ 
+          projectId:projectTarget._id,
+          todoId:draggedTodo._id
+        } 
+    });
+}  
+
+
+
+let dropTodoOnArea = (
+    dispatch:Function,   
+    areas:Area[],
+    projects:Project[], 
+    areaTarget:Area, 
+    draggedTodo:Todo 
+) : void => {
+    console.log(`Drop on area ${areaTarget.name}`);
+
+    let relatedProjects : Project[] = findRelatedProjects(projects,draggedTodo); 
+    let relatedAreas : Area[] = findRelatedAreas(areas,draggedTodo); 
+
+    for(let i=0; i<relatedAreas.length; i++)
+        if(relatedAreas[i]._id===areaTarget._id)
+           return; 
+
+    removeTodoFromProjects(dispatch,relatedProjects,draggedTodo);
+    removeTodoFromAreas(dispatch,relatedAreas,draggedTodo);
+
+    dispatch({ 
+        type:"attachTodoToArea",
+        load:{
+            areaId:areaTarget._id,
+            todoId:draggedTodo._id
+        } 
+    })  
+} 
+ 
+
+
+
+
+
+
+export let onDrop = (
+    e,
+    draggedTodo:Todo,
+    dispatch:Function,
+    areas:Area[],
+    projects:Project[], 
+) => {
+    let el = document.elementFromPoint(e.clientX, e.clientY);
+    let id = el.id || el.parentElement.id;
+
+    let projectTarget : Project = projects.find( (p:Project) => p._id===id );
+    let areaTarget : Area = areas.find( (a:Area) => a._id===id );
+ 
+    if(projectTarget){
+
+        dropTodoOnProject(
+           dispatch,
+           areas,
+           projects, 
+           projectTarget,
+           draggedTodo
+        );
+
+    }else if(areaTarget){ 
+
+        dropTodoOnArea(
+           dispatch,
+           areas,
+           projects, 
+           areaTarget,
+           draggedTodo
+        ); 
+
+    }else{ 
+    
+        let nodes = [].slice.call(e.path);
+        
+        for(let i=0; i<nodes.length; i++){
+
+            if(isCategory(nodes[i].id)){
+                 
+                switch(nodes[i].id){ 
+                   case "inbox":
+                     dispatch({
+                         type:"updateTodo",
+                         load:{...draggedTodo, category:"inbox"}
+                     });
+                     break;
+                   case "today":
+                     dispatch({
+                         type:"updateTodo",
+                         load:{...draggedTodo, category:"today"}
+                     });
+                     break;
+                   case "next":
+                     dispatch({
+                        type:"updateTodo",
+                        load:{...draggedTodo, category:"next"}
+                     });
+                     break;
+                   case "someday":
+                     dispatch({
+                         type:"updateTodo",
+                         load:{...draggedTodo, category:"someday"}
+                     });
+                     break;
+                   case "trash":
+                     dispatch({
+                        type:"updateTodo",
+                        load:{...draggedTodo, deleted:new Date()}
+                     }); 
+                     break; 
+                   case "logbook":
+                     dispatch({
+                        type:"updateTodo",
+                        load:{...draggedTodo, checked:true, completed:new Date()}
+                     }); 
+                     break; 
+                }    
+            }
+        } 
+    } 
+}
+
+
+
+
+
+
+
+
+
+
 
 
 interface TodosListProps{
@@ -208,7 +418,8 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         let x = e.clientX; 
         let y = e.clientY+this.props.rootRef.scrollTop;   
 
-        this.setState({currentIndex:newIndex,helper}); 
+        if(newIndex!==this.state.currentIndex)
+           this.setState({currentIndex:newIndex,helper});   
 
         let leftpanel = document.getElementById("leftpanel");
         let nested = document.getElementById("nested");
@@ -225,181 +436,10 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
     }
 
    
-    isAttachedToArea = (t:Todo) : Area => {
-        let areas = this.props.areas;
-        for(let i=0; i<areas.length; i++){
-            if(contains(t._id,areas[i].attachedTodosIds))
-               return areas[i];
-        }
-        return undefined;
-    }
-
-    
-    isAttachedToProject = (t:Todo) : Project => {
-        let projects = this.props.projects;
-        for(let i=0; i<projects.length; i++){
-            let attachedTodosIds = projects[i].layout.filter(isString);
-            if(contains(t._id,attachedTodosIds))
-               return projects[i];
-        }
-        return undefined; 
-    }  
-
-
-
-
-
-
-
-
-
-
-
-
-    removeTodoFromArea = (fromArea:Area, todo:Todo) : void => {
-        
-        let idx : number = fromArea.attachedTodosIds.findIndex( 
-            (id:string) => id===todo._id 
-        );  
-    
-        if(idx===-1)
-           return; 
-
-        fromArea.attachedTodosIds = remove(idx, 1, fromArea.attachedTodosIds); 
-        this.props.dispatch({type:"updateArea", load:fromArea});  
-    }  
-
-
-    removeTodoFromProject = (fromProject:Project, todo:Todo) : void => {
-        
-        let idx = fromProject.layout.findIndex((id:string) => id===todo._id);  
-    
-        if(idx===-1)
-           return; 
-
-        fromProject.layout = remove(idx, 1, fromProject.layout); 
-        this.props.dispatch({type:"updateProject", load:fromProject});  
-    }
-    
-
-    dropTodoOnProject = (projectTarget:Project,draggedTodo:Todo) : void => {
-        console.log(`Drop on project ${projectTarget.name}`);
-
-        let relatedProject : Project = this.isAttachedToProject(draggedTodo); 
-        //what if attached to more than one project ?
-        let relatedArea : Area = this.isAttachedToArea(draggedTodo); 
-        //what if attached to more than one area ?
+ 
   
-        if(relatedProject){ 
-           this.removeTodoFromProject(relatedProject,draggedTodo);
-        }
 
-        if(relatedArea){
-           this.removeTodoFromArea(relatedArea,draggedTodo);
-        }
-              
-        this.props.dispatch({ 
-            type:"attachTodoToProject", 
-            load:{ 
-              projectId:projectTarget._id,
-              todoId:draggedTodo._id
-            } 
-        });
-    }  
-
-
-    dropTodoOnArea = (areaTarget:Area, draggedTodo:Todo) : void => {
-        console.log(`Drop on area ${areaTarget.name}`);
-
-        let relatedProject : Project = this.isAttachedToProject(draggedTodo); 
-        //what if attached to more than one project ?
-        let relatedArea : Area = this.isAttachedToArea(draggedTodo); 
-        //what if attached to more than one area ?
-  
-        if(relatedProject){ 
-           this.removeTodoFromProject(relatedProject,draggedTodo);
-        }
-
-        if(relatedArea){
-           this.removeTodoFromArea(relatedArea,draggedTodo);
-        }
-
-        this.props.dispatch({
-            type:"attachTodoToArea",
-            load:{
-                areaId:areaTarget._id,
-                todoId:draggedTodo._id
-            } 
-        })  
-    } 
-
-
-    onDrop = (e,draggedTodo:Todo) => {
-        let el = document.elementFromPoint(e.clientX, e.clientY);
-        let id = el.id || el.parentElement.id;
-
-        let projectTarget : Project = this.props.projects.find( (p:Project) => p._id===id );
-        let areaTarget : Area = this.props.areas.find( (a:Area) => a._id===id );
-     
-        if(projectTarget){
-
-            this.dropTodoOnProject(projectTarget,draggedTodo);
-
-        }else if(areaTarget){ 
-
-            this.dropTodoOnArea(areaTarget,draggedTodo);
-
-        }else{ 
-        
-            let nodes = [].slice.call(e.path);
-            
-            for(let i=0; i<nodes.length; i++){
-
-                if(isCategory(nodes[i].id)){
-                    console.log(`Category ${nodes[i].id}`);  
-                     
-                    switch(nodes[i].id){ 
-                       case "inbox":
-                         this.props.dispatch({
-                             type:"updateTodo",
-                             load:{...draggedTodo, category:"inbox"}
-                         });
-                         break;
-                       case "today":
-                         this.props.dispatch({
-                             type:"updateTodo",
-                             load:{...draggedTodo, category:"today"}
-                         });
-                         break;
-                       case "next":
-                         this.props.dispatch({
-                            type:"updateTodo",
-                            load:{...draggedTodo, category:"next"}
-                         });
-                         break;
-                       case "someday":
-                         this.props.dispatch({
-                             type:"updateTodo",
-                             load:{...draggedTodo, category:"someday"}
-                         });
-                         break;
-                       case "trash":
-                         this.props.dispatch({
-                            type:"updateTodo",
-                            load:{...draggedTodo, deleted:new Date()}
-                         }); 
-                         break; 
-                       case "logbook":
-                         this.props.dispatch({
-                            type:"updateTodo",
-                            load:{...draggedTodo, checked:true, completed:new Date()}
-                         }); 
-                         break; 
-                    }    
-                }
-            } 
-        } 
-    }
+    
 
 
     onSortEnd = ({oldIndex, newIndex, collection}, e) => { 
@@ -416,7 +456,13 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
         if(insideTargetArea(leftpanel,x,y)){   
 
-            this.onDrop(e,draggedTodo); 
+            onDrop(
+                e, 
+                draggedTodo,
+                this.props.dispatch,
+                this.props.areas,
+                this.props.projects, 
+            ) 
            
         }else{     
             if(oldIndex===newIndex)
@@ -440,14 +486,21 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
         
     render(){    
-         
+        let placeholderOffset = 0;
+        
+        if(this.state.helper){
+            let rect = this.state.helper.getBoundingClientRect();
+            placeholderOffset = this.state.currentIndex*rect.height;
+        }
+
+
         return <div style={{
             WebkitUserSelect:"none", 
             position:"relative"
         }}>   
             <Placeholder   
-                helper={this.state.helper}
-                currentIndex={this.state.currentIndex}
+                offset={placeholderOffset}
+                height={30}
                 show={this.state.showPlaceholder}
             /> 
             <SortableList   
@@ -471,37 +524,31 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
  
 
 interface PlaceholderProps{
-    helper:HTMLElement, 
-    currentIndex:number,
+    offset:number,
+    height:number,
     show:boolean 
 }  
  
 interface PlaceholderState{} 
 
-class Placeholder extends Component<PlaceholderProps,PlaceholderState>{
+export class Placeholder extends Component<PlaceholderProps,PlaceholderState>{
 
     constructor(props){
         super(props);
     }  
 
-    render(){       
-        if(!this.props.helper) 
-            return null; 
+    render(){        
  
-        let rect = this.props.helper.getBoundingClientRect();
-         
-        let offset = this.props.currentIndex*rect.height;
-        
         return !this.props.show ? null : 
                 <div style={{   
                     backgroundColor:"rgba(205,221,253,0.5)",
-                    zIndex:100,      
-                    height:"30px", 
+                    zIndex:100,     
+                    height:`${this.props.height}px`, 
                     borderRadius:"5px",     
                     width:"100%",    
                     position:"absolute",  
-                    transform:`translateY(${offset}px)`
+                    transform:`translateY(${this.props.offset}px)`
                 }}>   
-                </div>
+                </div> 
     } 
-} 
+}   

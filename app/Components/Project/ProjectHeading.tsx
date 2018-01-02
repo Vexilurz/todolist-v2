@@ -60,13 +60,17 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
 
     render(){
         return <div>
-
-        <div  
+        <div   
             className="projectHeading" 
-            style={{display:"flex", alignItems:"center", justifyContent: "space-between"}} 
-        >     
-            <div style={{ width:"100%", paddingLeft:"10px" }}> 
-                <div style={{display:"flex"}}>  
+            style={{
+                display:"flex",
+                height:"30px",
+                alignItems:"center",
+                justifyContent:"space-between"
+            }} 
+        >      
+            <div style={{width:"100%", paddingLeft:"10px"}}>  
+                <div style={{display:"flex"}}>   
                     <TextField   
                         hintText = "Heading"     
                         id = {this.props.heading.key} 
@@ -75,7 +79,7 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                         onChange = {(event, newValue:string) => this.props.onChange(this.props.heading._id, newValue)}
                         inputStyle = {{fontWeight:600, color:"rgba(10,110,205,1)", fontSize:"16px"}}  
                         hintStyle = {{top:"3px", left:0, width:"100%", height:"100%"}}   
-                        style = {{height:"28px"}}      
+                        style = {{height:"30px"}}      
                         underlineFocusStyle = {{borderColor:"rgba(0,0,0,0)"}}    
                         underlineStyle = {{borderColor:"rgba(0,0,0,0)"}}  
                     /> 
@@ -87,16 +91,16 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                 style={{
                     marginLeft: "5px", 
                     marginRight: "5px", 
-                    width: "32px",
-                    height: "32px",
+                    width: "30px",
+                    height: "30px",
                     cursor: "pointer"
                 }}
                 ref={ (e) => { this.actionsAnchor=e; } }
             > 
                 <ThreeDots style={{  
                     color:"dodgerblue",
-                    width:"32px", 
-                    height:"32px",
+                    width:"30px", 
+                    height:"30px",
                     cursor: "pointer" 
                 }} />
             </div> 
@@ -131,10 +135,6 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                 anchorEl={this.actionsAnchor} 
                 point={{vertical: "top", horizontal: "middle"}} 
             >   
-
-
-
-
                 <div    
                     className={"darkscroll"}
                     style={{  
@@ -147,11 +147,6 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                         cursor:"pointer" 
                     }} 
                 >    
-
-
-
-
-
                     <div  
                         onClick={() => this.props.onArchive(this.props.heading._id) as any} 
                         className={"tagItem"} style={{
@@ -168,10 +163,6 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                     </div>
                     
 
-
-
-
-
                     <div  
                         onClick={() => this.props.onMove(this.props.heading._id) as any} 
                         className={"tagItem"} style={{
@@ -187,12 +178,6 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                         </div>     
                     </div> 
 
-
-
-
- 
-
-
                     <div   
                         onClick={() => this.props.onRemove(this.props.heading._id)  as any} 
                         className={"tagItem"} style={{
@@ -207,19 +192,9 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                             Remove 
                         </div>     
                     </div>
-
-
-
-
                 </div> 
-
-
-
             </Popover> 
-
         </div>    
-
         </div>
     }
-
 }

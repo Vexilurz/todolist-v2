@@ -33,7 +33,7 @@ import Checked from 'material-ui/svg-icons/navigation/check';
 import PieChart from 'react-minimal-pie-chart';
 import Restore from 'material-ui/svg-icons/content/undo';
 import { isString } from 'util';
-import { contains } from 'ramda';
+import { contains, isNil } from 'ramda';
    
 
 
@@ -44,8 +44,8 @@ import { contains } from 'ramda';
 
 export let getProjectLink = (p:Project, todos:Todo[],  dispatch:Function, index:number) : JSX.Element => { 
         
-        let days = dateDiffInDays(p.created,p.deadline);      
-        let remaining = daysRemaining(p.deadline);   
+        let days = !isNil(p.deadline) ? dateDiffInDays(p.created,p.deadline) : 0;      
+        let remaining = !isNil(p.deadline) ? daysRemaining(p.deadline) : 0;   
         
         let restoreProject = (p:Project) : void => { 
             

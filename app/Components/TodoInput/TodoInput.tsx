@@ -268,30 +268,37 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         }
     } 
 
+    animateScroll = (elem:HTMLElement,inc:number,to:number) => {
+
+        if(elem.scrollTop+inc>=to){
+           elem.scrollTop=to; 
+        }else{
+           elem.scrollTop+=inc;
+           requestAnimationFrame(() => this.animateScroll(elem,inc,to)); 
+        }
+    }
+
+
     componentDidMount(){  
         if(this.props.selectedTodoId===this.props.todo._id){  
-            
-            this.setState( 
+           this.setState( 
                 {open:true}, 
                 () => {
                     setTimeout(() => window.addEventListener("click",this.onOutsideClick), 10);
-                    if(this.props.searched){ 
+                    if(this.props.searched){  
                         if(this.props.rootRef && this.ref){  
+                           let rootRef = document.getElementById("maincontainer");
+                           rootRef.scrollTop = 0;
                            let rect = this.ref.getBoundingClientRect(); 
-                           let target = rect.top + rect.height/2;
-
-                           if(target>window.innerHeight/2){
-                              let factor = target - window.innerHeight/2;  
-                              this.props.rootRef.scrollTop = factor;  
-                           }  
-                        }
+                           let a = (rect.top + rect.height/2) - rootRef.scrollTop - window.innerHeight/2;
+                           this.animateScroll(rootRef, 150, rootRef.scrollTop + a); 
+                        }  
                         this.props.dispatch({type:"searched", load:false}); 
-                    } 
-                }
-            ) 
- 
+                    }   
+                } 
+           ) 
         }else{ 
-           window.addEventListener("click",this.onOutsideClick);
+           window.addEventListener("click", this.onOutsideClick);
         }
     }     
 

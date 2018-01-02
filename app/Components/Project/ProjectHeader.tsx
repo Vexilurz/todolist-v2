@@ -29,6 +29,7 @@ import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import { DeadlineCalendar } from '../ThingsCalendar';
+import { isNil } from 'ramda';
 
 
 
@@ -167,9 +168,9 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
  
     render(){ 
      
-        let days = this.props.deadline ? dateDiffInDays(this.props.created,this.props.deadline) : 365; //TODO   
+        let days = !isNil(this.props.deadline) ? dateDiffInDays(this.props.created,this.props.deadline) : 0; 
 
-        let remaining = daysRemaining(this.props.deadline);      
+        let remaining = !isNil(this.props.deadline) ? daysRemaining(this.props.deadline) : 0;      
       
         return <div>  
          
@@ -258,7 +259,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         placeholder="New Project"  
                         onChange={(e) => this.updateProjectName(e.target.value)} 
                     />  
-                </div>  
+                </div>   
 
                 <div    
                     onClick={this.openMenu}  

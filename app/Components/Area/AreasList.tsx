@@ -40,7 +40,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     constructor(props){
         
         super(props); 
- 
     }
 
 
@@ -115,23 +114,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             layout.push(detached[i]);
  
         return layout;
-
     } 
  
-
-
-    shouldComponentUpdate(nextProps:AreasListProps){ 
-
-        let should = false;
-
-        if(this.props.areas!==nextProps.areas)
-            should = true;
-        if(this.props.projects!==nextProps.projects)
-            should = true;
-            
-        return should; 
-    }
-
 
 
     selectArea = (a:Area) => {
@@ -142,14 +126,14 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     selectProject = (p:Project) => {
         this.props.dispatch({type:"selectedProjectId",load:p._id});
-    }
+    } 
           
 
  
     getAreaElement = (a : Area, index : number) : JSX.Element => {
         return <AreaElement 
             area={a}
-            index={index}
+            index={index} 
             selectArea={this.selectArea}
             selectedAreaId={this.props.selectedAreaId}
             selectedCategory={this.props.selectedCategory}
@@ -388,7 +372,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 position:"relative" 
             }} 
         >   
-           <SortableList 
+            <SortableList 
                 getElement={this.getElement}
                 items={layout}    
                 container={container} 
