@@ -24,7 +24,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
-import { uppercase, debounce, stringToLength, daysLeftMark, byNotCompleted, byNotDeleted } from '../../utils';
+import { uppercase, debounce, stringToLength, daysLeftMark, byNotCompleted, byNotDeleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';
@@ -32,9 +32,10 @@ import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import PieChart from 'react-minimal-pie-chart';
 import { getProjectLink } from '../Project/ProjectLink';
-import { allPass } from 'ramda';
-import { TodosList } from '../TodosList';
+import { allPass, isNil } from 'ramda';
+import { TodosList, Placeholder } from '../TodosList';
 import { Category } from '../MainContainer';
+import { changeProjectsOrder, removeFromArea, attachToArea } from './AreasList';
 
 
  
@@ -55,78 +56,66 @@ interface AreaBodyProps{
  
  
    
-interface AreaBodyState{} 
+interface AreaBodyState{
+    showPlaceholder:boolean,
+    currentIndex:number,
+    selectedProjects:Project[]
+} 
  
  
  
 export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
- 
-     
+
+    ref:HTMLElement; 
 
     constructor(props){
- 
         super(props);
-
-        this.state = {};
-         
+        this.state = {
+            showPlaceholder:false,
+            currentIndex:0,
+            selectedProjects:this.selectProjects(this.props)
+                                 .sort(( a:Project, b:Project ) => a.priority-b.priority)
+        } 
     }
     
- 
-
     shouldComponentUpdate(nextProps:AreaBodyProps, nextState:AreaBodyState){ 
-        
-        let should = false; 
-        
-        if(nextProps.area!==this.props.area) 
-           should = true;
-
-        if(nextProps.projects!==this.props.projects)
-           should = true;
-
-        if(nextProps.todos!==this.props.todos)
-           should = true;  
-
-        if(nextProps.tags!==this.props.tags)  
-           should = true;
-
-
-        return should;    
-    
+        return true;  
     }     
+
+    componentDidMount(){
+        let selectedProjects = this.selectProjects(this.props)
+                                   .sort(( a:Project, b:Project ) => a.priority-b.priority);
+        this.setState({selectedProjects});
+    } 
+
+    componentWillReceiveProps(nextProps:AreaBodyProps,nextState:AreaBodyState){
+        let selectedProjects = this.selectProjects(nextProps)
+                                   .sort(( a:Project, b:Project ) => a.priority-b.priority);
+        this.setState({selectedProjects});
+    }
  
-
-
     selectTodos = (props:AreaBodyProps) : Todo[] => { 
- 
         let todosIds : string[] = props.area.attachedTodosIds;
         let filters = [
             byNotCompleted,
             byNotDeleted,
             (t:Todo) => todosIds.indexOf(t._id)!==-1
-        ]
+        ];
 
         return props.todos.filter( allPass(filters) );
-        
     }
 
-
-
     selectProjects = (props:AreaBodyProps) : Project[] => { 
-
         let projectsIds : string[] = props.area.attachedProjectsIds;
         let filters = [
             byNotCompleted,
             byNotDeleted,
             (p:Project) => projectsIds.indexOf(p._id)!==-1
-        ]
+        ];
  
-
         return props.projects.filter( allPass(filters) );
-          
     }
          
-
-
     getTodoElement = (value:Todo, index:number) : JSX.Element => { 
         return  <div style={{position:"relative"}}> 
             <TodoInput   
@@ -139,92 +128,127 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 tags={this.props.tags} 
                 rootRef={this.props.rootRef} 
                 todo={value as Todo}
-            />     
+            />      
         </div> 
     }
-
- 
 
     getElement = (value:any, index:number) : JSX.Element => { 
           
         switch(value.type){   
-
             case "todo":
-
                 return this.getTodoElement(value, index);
-          
             case "project":    
-            
                 return getProjectLink(value, this.props.todos, this.props.dispatch, index);
-
             default: 
-
                 return null; 
-
-        } 
-
+        }  
     }
-    
- 
 
     shouldCancelStart = (e) => {
-        
         let nodes = [].slice.call(e.path);
-
         for(let i=0; i<nodes.length; i++){
             if(nodes[i].preventDrag)
                 return true;
         }
-
         return false; 
-
     } 
-                 
-                    
-        
+       
     shouldCancelAnimation = (e) => {
-
         if(!this.props.rootRef)
             return true;
-
         let rect = this.props.rootRef.getBoundingClientRect();    
-    
         let x = e.pageX;
-
         return x < rect.left;   
-
     }  
-    
 
+    onSortEnd = ({oldIndex, newIndex, collection}, e) => {
 
-    onSortEnd = ( data : Data, e : any ) => {
-   
-    } 
+        this.setState({showPlaceholder:false}); 
+      
+        let x = e.clientX+this.props.rootRef.scrollLeft; 
+        let y = e.clientY+this.props.rootRef.scrollTop;  
+        let leftpanel = document.getElementById("leftpanel");
+        let target = this.state.selectedProjects[oldIndex];
 
+        if(isNil(target)){
+           throw new Error(`target isNil. onSortEnd. AreaBody.`);
+        } 
+
+        if(target.type!=="project"){ 
+           throw new Error(`target is not a project. ${JSON.stringify(target)}. onSortEnd. AreaBody.`);
+        }    
  
+        if(insideTargetArea(leftpanel,x,y)){   
 
-    onSortMove = ( e : any, helper : HTMLElement ) => {
+            let el = document.elementFromPoint(e.clientX, e.clientY);
+            let id = el.id || el.parentElement.id;
+            let areaTarget : Area = this.props.areas.find( (a:Area) => a._id===id );
+         
+            if(!isNil(areaTarget)){
+                if(areaTarget.type==="area" && areaTarget._id!==this.props.area._id){
+                    removeFromArea(this.props.dispatch, this.props.area, {...target});
+                    attachToArea(this.props.dispatch, areaTarget, {...target}); 
+                }    
+            }
 
+        }else{     
+            if(oldIndex===newIndex)
+               return; 
+            let updated = arrayMove([...this.state.selectedProjects], oldIndex, newIndex);
+            changeProjectsOrder(this.props.dispatch,updated);
+        } 
+    }   
+
+    onSortStart = ({node, index, collection}, e, helper) => { 
+
+        this.setState({showPlaceholder:true});
+
+        let helperRect = helper.getBoundingClientRect();
+        let offset = e.clientX - helperRect.left;
+        let el = generateDropStyle("nested"); 
+        el.style.left=`${offset}px`;  
+        el.style.visibility="hidden";
+        el.style.opacity='0'; 
+        helper.appendChild(el);  
     }
+ 
+    onSortMove = (e, helper : HTMLElement, newIndex:number) => {
+        if(!this.props.rootRef)
+           return;
 
+        let x = e.clientX+this.props.rootRef.scrollLeft;  
+        let y = e.clientY+this.props.rootRef.scrollTop;   
 
+        if(newIndex!==this.state.currentIndex && this.ref){
+           this.setState({currentIndex:newIndex});   
+        }
 
-    onSortStart = ( data : Data, e : any, helper : HTMLElement) => {
-          
-    }
+        let container = document.getElementById("areas");
+        let nested = document.getElementById("nested");
 
-    
+        if(insideTargetArea(container,x,y)){
+            hideChildrens(helper);  
+            nested.style.visibility=""; 
+            nested.style.opacity='1';    
+        }else{ 
+            makeChildrensVisible(helper);  
+            nested.style.visibility="hidden";
+            nested.style.opacity='0';  
+        } 
+    } 
     
     render(){
- 
-        let selectedProjects = this.selectProjects(this.props).sort(( a:Project, b:Project ) => a.priority-b.priority); 
-        let selectedTodos = this.selectTodos(this.props).sort(( a:Todo, b:Todo ) => a.priority-b.priority); 
-            
-        return <div>   
-            <div style={{paddingTop:"20px", paddingBottom:"20px"}}> 
+       
+        return <div ref={(e) => { this.ref=e; }}>    
+            <div style={{ paddingTop:"20px", paddingBottom:"20px" }}> 
+                <Placeholder    
+                    offset={this.state.currentIndex*37}
+                    height={37}
+                    show={this.state.showPlaceholder}
+                /> 
                 <SortableList
                     getElement={this.getElement}
-                    items={selectedProjects}
+                    items={this.state.selectedProjects}
                     container={this.props.rootRef ? this.props.rootRef : document.body}
                     shouldCancelStart={this.shouldCancelStart} 
                     shouldCancelAnimation={this.shouldCancelAnimation}
@@ -238,31 +262,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                     useDragHandle={false}
                     lock={false} 
                 /> 
-            </div>      
- 
-            <div   
-                className="unselectable" 
-                id="todos" 
-                style={{
-                    paddingTop:"20px", 
-                    paddingBottom:"20px"
-                }} 
-            >  
-                <TodosList    
-                    filters={[ ]}   
-                    selectedTodoId={this.props.selectedTodoId} 
-                    isEmpty={(empty:boolean) => {}}
-                    searched={this.props.searched}
-                    projects={this.props.projects}
-                    areas={this.props.areas} 
-                    dispatch={this.props.dispatch}    
-                    selectedCategory={"area"}  
-                    selectedTag={this.props.selectedTag}  
-                    rootRef={this.props.rootRef}
-                    todos={selectedTodos}  
-                    tags={this.props.tags} 
-                /> 
-            </div>
+            </div> 
         </div>
     }
 } 

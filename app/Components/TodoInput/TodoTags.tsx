@@ -119,7 +119,9 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
                         }}
                     >    
                         { 
-                            this.props.tags.map(
+                            this.props.tags
+                            .sort((a:string,b:string) : number => a.localeCompare(b))
+                            .map(
                                 (tag:string) => {
 
                                     return <div   
@@ -185,7 +187,9 @@ export class TodoTags extends Component<TodoTagsProps,{}>{
                 flexWrap:"wrap"
             }}
         >{      
-            this.props.tags.map(
+            this.props.tags
+            .sort((a:string,b:string) : number => a.localeCompare(b))
+            .map( 
                 (tag:string, index:number) => 
                 <div  
                     key={`${tag}-${index}`} 

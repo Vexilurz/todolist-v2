@@ -10,7 +10,7 @@ import {
     getTagsFromItems, defaultTags, removeDeletedProjects, 
     removeDeletedAreas, removeDeletedTodos, Item, ItemWithPriority 
 } from './utils';
-import { adjust, cond, equals, all, clone } from 'ramda';
+import { adjust, cond, equals, all, clone, isEmpty } from 'ramda';
 
 
 
@@ -186,10 +186,10 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
                 let idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
                 
-                if(idx===-1){ 
+                if(idx===-1 && !isEmpty(action.load.title)){  
                     let todo = {...action.load, _id:generateId()};
 
-                    addTodo(onError, todo);
+                    addTodo(onError, todo); 
 
                     if(todo.category==="project"){
 

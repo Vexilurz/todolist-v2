@@ -31,6 +31,7 @@ import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import { ProjectMenuPopover } from '../Project/ProjectMenu';
 import { contains } from 'ramda';
+import { TagsPopup } from '../TodoInput/TodoTags';
 
 
 
@@ -39,8 +40,11 @@ interface AreaHeaderProps{
     selectedAreaId:string,
     areas:Area[],
     projects:Project[],
+    tags:string[],
+    rootRef:HTMLElement, 
     todos:Todo[], 
     updateAreaName:(value:string) => void,
+    attachTagToArea:(tag:string) => void, 
     dispatch:Function  
 } 
   
@@ -49,6 +53,7 @@ interface AreaHeaderProps{
 interface AreaHeaderState{
     menuAnchor:HTMLElement,
     openMenu:boolean,
+    showTagsPopup:boolean,
     name:string   
 }  
    
@@ -66,9 +71,9 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
         this.state = {
             menuAnchor:null,
             openMenu:false,
+            showTagsPopup:false, 
             name:this.props.name   
         }; 
-   
     }  
 
 
@@ -85,7 +90,10 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
 
         if(this.state.name!==nextState.name)
            should = true; 
-             
+           
+        if(this.state.showTagsPopup!==nextState.showTagsPopup)
+           should = true;  
+
         if(nextProps.name!==this.props.name)
            should = true;
 
@@ -93,41 +101,39 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
            should = true;
           
         return should;    
-
     }  
 
 
 
     componentDidMount(){ 
-
         if(this.menuAnchor)
            this.setState({menuAnchor:this.menuAnchor});
-
     }
 
 
 
     openMenu = () => {
-
         this.setState({openMenu:true});
-
     }
  
 
 
     closeMenu = () => { 
-
         this.setState({openMenu:false});
-
     } 
  
     
 
-    onAddTags = () => {}
+    onAddTags = () => {
+        this.closeMenu(); 
+        this.setState({showTagsPopup:true})
+    }
  
 
 
     onDeleteArea = () => {
+
+        this.closeMenu(); 
 
         let area = this.props.areas.find( (a:Area) => a._id===this.props.selectedAreaId ); 
 
@@ -169,25 +175,18 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
  
   
     updateAreaName = (event) => { 
-
         this.setState(
             {name:event.target.value},  
             () => this.props.updateAreaName(this.state.name) 
         ); 
-    
     }
   
     
      
     render(){ 
-     
-    
-     return <div>  
 
-
+     return <div> 
             <div style={{display:"flex", alignItems: "center"}}>
-
- 
                 <div style={{    
                        width: "30px",
                        height: "30px",
@@ -198,15 +197,12 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
                        boxSizing: "border-box",
                        marginRight: "10px"
                 }}> 
-                    <NewAreaIcon style={{
+                    <NewAreaIcon style={{ 
                         color:"lightblue", 
                         width: "30px",
                         height: "30px"
                     }}/>    
                 </div> 
-                
-
-
                 <div>
                     <AutosizeInput
                         type="text"
@@ -227,9 +223,6 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
                         onChange={this.updateAreaName} 
                     />  
                 </div>   
-
-
-
                 <div    
                     onClick={this.openMenu}  
                     style={{ 
@@ -239,18 +232,28 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
                         height: "32px",
                         cursor: "pointer"
                     }}  
-                    ref={ (e) => { this.menuAnchor=e; } }
+                    ref={ (e) => { this.menuAnchor=e; } }  
                 >
                         <ThreeDots style={{  
                             color:"rgb(179, 179, 179)",
                             width:"32px", 
-                            height:"32px",
+                            height:"32px", 
                             cursor: "pointer" 
                         }} />
-                </div> 
-
-
-
+                </div>  
+                {
+                    !this.state.showTagsPopup ? null : 
+                    <TagsPopup   
+                        tags = {this.props.tags} 
+                        attachTag = {this.props.attachTagToArea} 
+                        rootRef = {this.props.rootRef}
+                        close = {() => this.setState({showTagsPopup:false})}
+                        open = {this.state.showTagsPopup}    
+                        anchorEl = {this.menuAnchor} 
+                        origin = {{vertical:"top", horizontal:"left"}} 
+                        point = {{vertical:"top", horizontal:"right"}} 
+                    />
+                }
                 <AreaMenu
                     open={this.state.openMenu}
                     close={this.closeMenu}
@@ -258,13 +261,9 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
                     onDeleteArea={this.onDeleteArea}
                     anchorEl={this.state.menuAnchor}  
                 />
-                    
-
-
             </div>
         </div> 
     }
-
 }
  
 
@@ -319,7 +318,8 @@ export class AreaMenu extends Component<AreaMenuProps,AreaMenuState>{
             >      
                     <div   
                         onClick={this.props.onAddTags as any} 
-                        className={"tagItem"} style={{
+                        className={"tagItem"} 
+                        style={{ 
                             display:"flex", 
                             height:"auto",
                             alignItems:"center",

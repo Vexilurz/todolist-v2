@@ -1038,13 +1038,11 @@ export let daysLeftMark = (hide:boolean, deadline:Date, showFlag:boolean)  => {
     let style : any = { 
         display: "flex",
         alignItems: "center",
-        justifyContent:"flex-end", 
         color:flagColor,
         fontSize:"13px", 
-        fontWeight:"900",  
-        textAlign: "center",
-        width: "240px",  
-        fontFamily: "sans-serif"
+        whiteSpace:"nowrap", 
+        fontWeight:"600",  
+        textAlign: "center"
     };   
 
     let iconStyle = {
@@ -1060,15 +1058,12 @@ export let daysLeftMark = (hide:boolean, deadline:Date, showFlag:boolean)  => {
     if(daysLeft < 0){
 
        attachedText = " days ago";
-
     }else if(daysLeft === 1){
 
        attachedText = " day left"; 
-
     }else{ 
-
+ 
        attachedText = " days left";
-
     }
 
     return <p style={style}>

@@ -38,7 +38,7 @@ import { TextField } from 'material-ui';
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
     insideTargetArea, daysRemaining, todoChanged, 
-    daysLeftMark, generateTagElement, uppercase, generateEmptyTodo 
+    daysLeftMark, generateTagElement, uppercase, generateEmptyTodo, isToday, getMonthName, stringToLength 
 } from '../../utils'; 
 import { Todo, removeTodo, updateTodo, generateId } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
@@ -48,7 +48,7 @@ import { TodoInputLabel } from './TodoInputLabel';
 import { uniq, isEmpty, contains } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
 let moment = require("moment"); 
-
+import AutosizeInput from 'react-input-autosize'; 
 
 
 export interface TodoInputState{
@@ -65,9 +65,10 @@ export interface TodoInputState{
     attachedTags : string[],
     tag : string, 
     checklist : ChecklistItem[],
+    showAdditionalTags : boolean, 
     showDateCalendar : boolean,  
     showTagsSelection : boolean,
-    showChecklist : boolean,  
+    showChecklist : boolean,   
     showDeadlineCalendar : boolean,
     justUpdated : boolean 
 }   
@@ -128,6 +129,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             attachedTags, 
             checklist,
             
+            showAdditionalTags : false, 
             showDateCalendar : false,  
             showTagsSelection : false, 
             showChecklist : checklist.length>0,  
@@ -137,18 +139,36 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }
 
  
-    onFieldsContainerClick = () => {   
+    onFieldsContainerClick = () => {     
         this.preventDragOfThisItem();
         if(!this.state.open){ 
-            this.setState(
-                {open:true},  
-                () => this.props.dispatch({
-                   type:"selectedTodoId", 
-                   load:this.props.todo._id
-                }) 
+            this.setState(   
+                {
+                    open:true,
+                    showAdditionalTags:false
+                },  
+                () => { 
+                    this.props.dispatch({
+                      type:"selectedTodoId", 
+                      load:this.props.todo._id
+                    })   
+                }
             );   
         }   
     }  
+
+
+    addTodo = () => {
+        let todo : Todo = this.todoFromState();  
+        
+        if(todoChanged(this.props.todo,todo)){
+            if(isEmpty(todo.title) && !isEmpty(this.props.todo.title)){
+                this.props.dispatch({type:"updateTodo", load:{...this.props.todo, deleted:new Date()}});  
+            }else if(!isEmpty(todo.title)){ 
+                this.props.dispatch({type:"updateTodo", load:todo});  
+            }   
+        }
+    } 
  
 
     onOutsideClick = (e) => {
@@ -167,10 +187,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
             if(this.props.creation){
                  
-                let todo : Todo = this.todoFromState();  
-                if(this.state.title.length===0 || todoChanged(this.props.todo,todo))
-                   this.addTodoFromInput(todo);
-
+                this.addTodo();
                 let emptyTodo = generateEmptyTodo("emptyTodo", this.props.selectedCategory, 0);
                 this.setState({  
                     ...this.stateFromTodo(this.state,emptyTodo),
@@ -184,11 +201,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
             }else{
 
-                let todo : Todo = this.todoFromState();  
-                if(this.state.title.length===0 || todoChanged(this.props.todo,todo))
-                   this.addTodoFromInput(todo);
+                this.addTodo();
                 this.setState({open:false}, () => this.props.dispatch({type:"selectedTodoId", load:null})); 
-
             } 
         }  
     }  
@@ -196,11 +210,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
     onWindowEnterPress = (e) => {
-        if(e.keyCode == 13){
-
+        if(e.keyCode === 13){
             if(this.props.creation && this.state.open){
-
-                if(this.state.title.length===0){
+                if(isEmpty(this.state.title)){ 
                     let emptyTodo = generateEmptyTodo("emptyTodo", this.props.selectedCategory, 0);
                     this.setState(
                         {
@@ -215,21 +227,13 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         () => this.props.dispatch({type:"selectedTodoId", load:null})
                     );   
                 }else{    
-                    this.setState({
-                        justUpdated:true 
-                    });    
-                    let todo : Todo = this.todoFromState();  
-                    if(this.state.title.length===0 || todoChanged(this.props.todo,todo))
-                       this.addTodoFromInput(todo);
+                    this.setState({justUpdated:true});    
+                    this.addTodo();
                 } 
-            }else{
-
-                let todo : Todo = this.todoFromState();  
-                if(this.state.title.length===0 || todoChanged(this.props.todo,todo))
-                   this.addTodoFromInput(todo);
+            }else if(this.state.open){
+                this.addTodo();
                 this.setState({open:false}, () => this.props.dispatch({type:"selectedTodoId", load:null})); 
             }
-
         }  
     }    
       
@@ -269,7 +273,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     } 
 
     animateScroll = (elem:HTMLElement,inc:number,to:number) => {
-
         if(elem.scrollTop+inc>=to){
            elem.scrollTop=to; 
         }else{
@@ -278,27 +281,32 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         }
     }
 
+    scrollTo = () => {
+
+        if(this.props.rootRef && this.ref){  
+            let rootRef = document.getElementById("maincontainer");
+            rootRef.scrollTop = 0;
+            let rect = this.ref.getBoundingClientRect(); 
+            let a = (rect.top + rect.height/2) - rootRef.scrollTop - window.innerHeight/2;
+            this.animateScroll(rootRef, 150, rootRef.scrollTop + a); 
+         }  
+         this.props.dispatch({type:"searched", load:false}); 
+    }
+
 
     componentDidMount(){  
         if(this.props.selectedTodoId===this.props.todo._id){  
-           this.setState( 
+            this.setState( 
                 {open:true}, 
                 () => {
                     setTimeout(() => window.addEventListener("click",this.onOutsideClick), 10);
                     if(this.props.searched){  
-                        if(this.props.rootRef && this.ref){  
-                           let rootRef = document.getElementById("maincontainer");
-                           rootRef.scrollTop = 0;
-                           let rect = this.ref.getBoundingClientRect(); 
-                           let a = (rect.top + rect.height/2) - rootRef.scrollTop - window.innerHeight/2;
-                           this.animateScroll(rootRef, 150, rootRef.scrollTop + a); 
-                        }  
-                        this.props.dispatch({type:"searched", load:false}); 
+                        this.scrollTo()
                     }   
                 } 
-           ) 
+            ) 
         }else{ 
-           window.addEventListener("click", this.onOutsideClick);
+            window.addEventListener("click", this.onOutsideClick);
         }
     }     
 
@@ -340,39 +348,33 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }) 
 
     enableDragOfThisItem = () => {
-        if(this.ref)
+        if(this.ref){
            this.ref["preventDrag"] = false; 
+        }
     }
     
     preventDragOfThisItem = () => {
-        if(this.ref)
+        if(this.ref){
            this.ref["preventDrag"] = true; 
+        }
     } 
 
-    addTodoFromInput = (todo:Todo) : void => { 
-
-        if(this.state.title.length===0){
-            this.props.dispatch({type:"updateTodo", load:{...todo, deleted:new Date()}});
-        }else{  
-            this.props.dispatch({type:"updateTodo", load:todo});  
-        }     
-    }  
 
     onAttachTag = (tag) => {
         
         if(tag.length===0) 
            return;
  
-        this.setState({
-            tag:'', 
-            attachedTags:uniq([...this.state.attachedTags, tag])
-        });
+        this.setState({tag:'', attachedTags:uniq([...this.state.attachedTags, tag])});
     } 
+
 
     onNoteChange = (event,newValue:string) : void => this.setState({note:newValue});
 
-    onTitleChange = (event,newValue:string) : void => this.setState({title:newValue});
-      
+
+    onTitleChange = (event) : void => this.setState({title:event.target.value});
+
+
     onCheckBoxClick = (e) => {  
         if(!this.state.open){
             let checked : boolean = !this.state.checked; 
@@ -381,12 +383,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     checked:checked, 
                     completed:checked ? new Date() : null
                 }, 
-                () => {
-                    let todo : Todo = this.todoFromState();   
-    
-                    if(this.state.title.length===0 || todoChanged(this.props.todo,todo))
-                       this.addTodoFromInput(todo);
-                } 
+                () => this.addTodo()
             );  
         } 
     } 
@@ -399,8 +396,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 load:{  
                   showRightClickMenu:true,
                   rightClickedTodoId:this.props.todo._id, 
-                  rightClickMenuX:e.clientX,//-this.props.rootRef.offsetLeft,  
-                  rightClickMenuY:e.clientY//+this.props.rootRef.scrollTop-this.props.rootRef.offsetTop
+                  rightClickMenuX:e.clientX,
+                  rightClickMenuY:e.clientY
                 } 
             });      
         }    
@@ -451,8 +448,21 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             attachedDate:day,
             category:daysRemaining(day)===0 ? "today" : this.state.category
         });   
-    }
-        
+    };
+
+    onRemoveAttachedDateLabel = () => {
+        if(
+            daysRemaining(this.state.attachedDate)===0 &&  
+            (this.state.category==="today" || this.state.category==="evening") &&
+            this.props.selectedCategory!=="today" &&
+            this.props.selectedCategory!=="evening"
+        ){
+            this.setState({attachedDate:null, category:this.props.selectedCategory});
+        }else{
+            this.setState({attachedDate:null});  
+        }
+    };
+
     onCalendarSomedayClick = (e) => this.setState({category:"someday", attachedDate:null});
 
     onCalendarTodayClick = (e) => this.setState({category:"today", attachedDate:new Date()}); 
@@ -468,193 +478,256 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     })
  
     render(){  
-        
-        return  <div  
+        return  <div   
             id={this.props.id}   
             onKeyDown={this.onWindowEnterPress}
             onContextMenu={this.onRightClickMenu}
             style={{    
-                    width:"100%",         
-                    display:"flex",    
-                    position:"relative", 
-                    alignItems:"center",   
-                    justifyContent:"center"
+                width:"100%",         
+                display:"flex",    
+                position:"relative", 
+                alignItems:"center",   
+                justifyContent:"center"
             }}  
-        >     
-   
+        >    
         <div    
             onClick={(e) => {e.stopPropagation();}}
             ref={(e) => { this.ref=e; }} 
             style={{           
-                    transition: "box-shadow 0.2s ease-in-out, max-height 0.2s ease-in-out, transform 0.2s ease-in-out", 
+                    transition: "box-shadow 0.2s ease-in-out, max-height 0.2s ease-in-out", 
                     maxHeight:this.state.open ? "1000px" : "30px",
                     width:"100%",        
                     boxShadow:this.state.open ? "rgba(156, 156, 156, 0.3) 0px 0px 20px" : "", 
                     borderRadius:"5px", 
-                    marginBottom:"10px", 
-                    transform:`translateY(${this.state.open ? 0 : 0}px)`    
+                    marginBottom:"10px" 
             }} 
         >       
-                <div
-                    className={this.state.open ? "" : "tasklist"}
-                    style={{   
-                            paddingLeft:"20px", 
-                            paddingRight:"20px",  
-                            transition: "max-height 0.2s ease-in-out", 
-                            maxHeight:this.state.open ? "1000px" : "30px",
-                            paddingTop:this.state.open?"20px":"0px",
-                            paddingBottom:this.state.open?"20px":"0px",
-                            caretColor:"cornflowerblue",
-                            display:"flex"  
-                    }} 
-                >          
-                    <div style={{
-                            display:"flex",
-                            marginLeft:"5px",
-                            marginRight:"5px",
-                            marginTop:"8px",
-                            alignItems:"flex-start",
-                            width:"40px",
-                            justifyContent:"space-between" 
-                    }}> 
-                        { 
-                            !this.state.deleted ? null : 
-                            this.state.open ? null :
-                            <div       
-                                onClick={(e) => { 
-                                    if(this.state.title.length===0)
-                                       return;   
-                                        
+            <div
+                className={this.state.open ? "" : "tasklist"}
+                style={{   
+                    paddingLeft:"20px", 
+                    paddingRight:"20px",   
+                    transition: "max-height 0.2s ease-in-out", 
+                    maxHeight:this.state.open ? "1000px" : "30px",
+                    paddingTop:this.state.open?"20px":"0px",
+                    paddingBottom:this.state.open?"20px":"0px",
+                    caretColor:"cornflowerblue",
+                    display:"flex"  
+                }}  
+            >     
+                <div 
+                    style={{     
+                        display:"flex",
+                        flexDirection:"column", 
+                        width:"100%"  
+                    }}     
+                    onClick={this.onFieldsContainerClick}
+                >       
+                    <div style={{display:"flex", alignItems:"center", position:"relative"}}> 
+                    <div style={{width:"100%", display:"flex", alignItems:"center"}}> 
+                        {    
+                            !this.state.deleted ? null :  
+                            this.state.open ? null :  
+                            <div           
+                                onClick={(e) => {
                                     let todo : Todo = this.todoFromState();  
                                     this.props.dispatch({type:"updateTodo", load:{...todo,deleted:undefined}});                
                                     this.props.dispatch({type:"selectedTodoId", load:null});
                                 }}  
-                                style={{ 
+                                style={{  
                                     display:"flex",
-                                    cursor:"pointer",
+                                    cursor:"pointer", 
                                     alignItems:"center",
                                     height:"14px"
                                 }} 
                             > 
                                 <Restore style={{width:"20px", height:"20px"}}/> 
                             </div> 
-                        }  
-
-                        <div  
-                            onClick = {this.onCheckBoxClick} 
-                            style={{  
-                                width:"14px", 
-                                borderRadius:"3px",  
-                                backgroundColor:this.state.checked ? "rgb(32, 86, 184)" : "",
-                                border:this.state.checked ? "" : "1px solid rgba(100,100,100,0.5)",
-                                height:"14px",
-                                boxSizing:"border-box",
-                                display:"flex",
-                                alignItems:"center"  
-                        }}>   
-                            { this.state.checked ? <Checked style={{color:"white"}}/> : null }
-                        </div> 
-                    </div>    
-                    <div 
-                        style={{     
-                            display:"flex",
-                            flexDirection:"column",
-                            width:"90%", 
-                            overflow:"hidden" 
-                        }}    
-                        onClick={this.onFieldsContainerClick}
-                    >    
-                        <div style={{display:"flex"}}>
-                            <TextField   
+                        } 
+                        <div style={{paddingLeft:"5px", paddingRight:"5px"}}> 
+                            <div  
+                                onClick = {this.onCheckBoxClick}  
+                                style={{  
+                                    width:"14px",  
+                                    borderRadius:"3px",  
+                                    backgroundColor:this.state.checked ? "rgb(32, 86, 184)" : "",
+                                    border:this.state.checked ? "" : "1px solid rgba(100,100,100,0.5)",
+                                    height:"14px",
+                                    boxSizing:"border-box",
+                                    display:"flex",
+                                    alignItems:"center"    
+                                }} 
+                            >      
+                                { this.state.checked ? <Checked style={{color:"white"}}/> : null }
+                            </div> 
+                        </div>
+                        {
+                            !this.state.attachedDate ? null :
+                            this.state.open ? null :
+                            <DueDate  
+                                month={getMonthName(this.state.attachedDate)} 
+                                date={this.state.attachedDate}
+                                day={this.state.attachedDate.getDay()+1} 
+                            />       
+                        } 
+                        <div style={{maxWidth : this.state.open ? "100%" : "50%"}}>    
+                            <AutosizeInput   
                                 ref={e => {this.inputRef=e;}}
-                                hintText="New To-Do"   
-                                id={this.props.todo._id}
-                                value={this.state.title} 
-                                fullWidth={true}   
-                                onChange={this.onTitleChange}
-                                inputStyle={{ 
+                                type="text"
+                                name="form-field-name" 
+                                minWidth={"100px"} 
+                                style={{display: "flex", alignItems: "center"}}
+                                inputStyle={{    
                                     color:"black", 
-                                    fontSize:"16px",
+                                    fontSize:"16px", 
+                                    cursor:"default",  
+                                    boxSizing:"content-box", 
+                                    backgroundColor:"rgba(0,0,0,0)",
+                                    border:"none",
+                                    outline:"none"  
+                                }}       
+                                value={this.state.title}  
+                                placeholder="New To-Do" 
+                                onChange={this.onTitleChange} 
+                            />   
+                        </div> 
+                        {
+                            isEmpty(this.state.attachedTags) ? null :  
+                            this.state.open ? null : 
+                            <div   
+                                onMouseOver={(e) => this.setState({showAdditionalTags:true})}
+                                onMouseOut={(e) => this.setState({showAdditionalTags:false})} 
+                                onMouseDown={(e) => this.setState({showAdditionalTags:false})} 
+                                style={{ 
+                                    paddingLeft:"5px",   
+                                    paddingRight:"5px", 
+                                    display: "flex",   
+                                    position:"relative",
+                                    alignItems: "center"
+                                }} 
+                                key={this.state.attachedTags[0]}
+                            >
+                                {   
+                                    this.state.attachedTags.length<=1 ? null : 
+                                    <div style={{ 
+                                        position: "absolute",
+                                        right: "40px",
+                                        display: "flex",
+                                        bottom: "30px",  
+                                        pointerEvents:"none",  
+                                        background:"white",  
+                                        flexWrap: "wrap",
+                                        padding: "10px",   
+                                        width: "200px",
+                                        border: "1px solid rgba(100,100,100,0.2)",
+                                        borderRadius: "10px",
+                                        transition: "opacity 0.2s ease-in-out",
+                                        opacity: this.state.showAdditionalTags ? 1 : 0
+                                    }}>      
+                                        {   
+                                            this.state.attachedTags
+                                            .slice(1,this.state.attachedTags.length)
+                                            .map((tag:string) =>  
+                                                    <div 
+                                                        key={tag} 
+                                                        style={{padding:"5px"}}
+                                                    > 
+                                                        <TransparentTag tag={tag}/>
+                                                    </div>
+                                            ) 
+                                        }             
+                                    </div> 
+                                }
+                                <TransparentTag 
+                                    tag={
+                                        this.state.attachedTags.length>1 ? 
+                                        `${this.state.attachedTags[0]}...` :
+                                        this.state.attachedTags[0]
+                                    } 
+                                />
+                            </div>   
+                        }  
+                    </div> 
+                        {   
+                            !this.state.deadline ? null :  
+                            <div style={{
+                                display:"flex",
+                                cursor:"default",
+                                alignItems:"center",
+                                height:"100%",
+                                position:"absolute",
+                                top:"0px", 
+                                right:"0px"   
+                            }}>
+                               {daysLeftMark(this.state.open, this.state.deadline, false)}
+                            </div>  
+                        }   
+                    </div> 
+                    { 
+                        !this.state.open ? null :
+                        <div style={{
+                            transition:"opacity 0.2s ease-in-out",
+                            opacity:this.state.open ? 1 : 0,
+                            paddingLeft:"25px",
+                            paddingRight:"25px"  
+                        }}>       
+                            <TextField  
+                                id={ `${this.props.todo._id}note` }
+                                value={this.state.note} 
+                                hintText="Notes"
+                                fullWidth={true}  
+                                hintStyle={{ 
+                                    top: "3px",  
+                                    left: 0,  
+                                    width:"100%", 
+                                    height:"100%"
+                                }}     
+                                onChange={this.onNoteChange}
+                                style={{
+                                    height:"28px",  
+                                    marginBottom:"15px", 
+                                    marginTop:"15px",
                                     cursor:"default"
                                 }}    
-                                hintStyle={{top:"3px", left:0, width:"100%", height:"100%"}}   
-                                style={{height:"28px"}}      
-                                underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}}    
-                                underlineStyle={{borderColor:"rgba(0,0,0,0)"}}  
-                            />   
-                            {   
-                                !this.state.deadline ? null :
-                                daysLeftMark(
-                                    this.state.open, 
-                                    this.state.deadline, 
-                                    false
-                                ) 
+                                inputStyle={{
+                                    fontFamily:"sans-serif",
+                                    fontSize:"14px"   
+                                }} 
+                                underlineFocusStyle={{borderColor: "rgba(0,0,0,0)"}} 
+                                underlineStyle={{borderColor: "rgba(0,0,0,0)"}}   
+                            />  
+                            {    
+                                !this.state.showChecklist ? null : 
+                                <Checklist 
+                                    checklist={this.state.checklist}  
+                                    updateChecklist={
+                                        (checklist:ChecklistItem[]) => this.setState(
+                                            {checklist}, 
+                                            () => this.addTodo()
+                                        )   
+                                    } 
+                                />
+                            }  
+                            {  
+                                this.state.attachedTags.length===0 ? null :
+                                <TodoTags tags={this.state.attachedTags}/>
                             }
                         </div>  
-                        { 
-                            !this.state.open ? null :
-                            <div style={{
-                                transition:"opacity 0.2s ease-in-out",
-                                opacity:this.state.open ? 1 : 0
-                            }}>       
-                                <TextField  
-                                    id={ `${this.props.todo._id}note` }
-                                    value={this.state.note} 
-                                    hintText="Notes"
-                                    fullWidth={true}  
-                                    hintStyle={{ 
-                                        top: "3px",  
-                                        left: 0,  
-                                        width:"100%", 
-                                        height:"100%"
-                                    }}     
-                                    onChange={this.onNoteChange}
-                                    style={{
-                                        height:"28px",  
-                                        marginBottom:"15px", 
-                                        marginTop:"15px",
-                                        cursor:"default"
-                                    }}    
-                                    inputStyle={{
-                                        fontFamily:"sans-serif",
-                                        fontSize:"14px"   
-                                    }} 
-                                    underlineFocusStyle={{borderColor: "rgba(0,0,0,0)"}} 
-                                    underlineStyle={{borderColor: "rgba(0,0,0,0)"}}   
-                                />  
-                                {    
-                                    !this.state.showChecklist ? null : 
-                                    <Checklist 
-                                        checklist={this.state.checklist}  
-                                        updateChecklist={
-                                            (checklist:ChecklistItem[]) => this.setState(
-                                                {checklist}, 
-                                                () => {
-                                                    let todo : Todo = this.todoFromState();  
-                                                    if(this.state.title.length===0 || todoChanged(this.props.todo,todo))
-                                                    this.addTodoFromInput(todo);
-                                                }
-                                            )  
-                                        } 
-                                    />
-                                }  
-                                {  
-                                    this.state.attachedTags.length===0 ? null :
-                                    <TodoTags 
-                                        tags={this.state.attachedTags}
-                                    />
-                                }
-                            </div>  
-                        }  
+                    }  
                     </div>   
                 </div>    
 
         { 
             !this.state.open ? null :  
-            <div style={{display:"flex", flexDirection:"column"}}> 
+            <div style={{
+                display:"flex", 
+                flexDirection:"column", 
+                paddingLeft:"10px", 
+                paddingRight:"10px"
+            }}>   
                 {   
                     !contains(this.state.category)(["evening","today","someday"]) ? null :
-                    <div style={{
+                    <div style={{ 
                         transition:"opacity 0.4s ease-in-out",
                         opacity:this.state.open ? 1 : 0,
                         paddingLeft:"5px"  
@@ -665,9 +738,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                             content={ 
                                 <div style={{marginLeft:"15px"}}>
                                     { 
-                                        this.state.category==="evening" ? "This Evening" :
-                                        this.state.category==="today" ? "Today" :
-                                        "Someday"
+                                     this.state.category==="evening" ? "This Evening" :
+                                     this.state.category==="today" ? "Today" :
+                                     "Someday"
                                     }   
                                 </div>   
                             }  
@@ -681,13 +754,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         opacity:this.state.open ? 1 : 0
                     }}>    
                         <TodoInputLabel 
-                            onRemove={() => this.setState({attachedDate:null})}
+                            onRemove={this.onRemoveAttachedDateLabel}
                             category={"upcoming"}
                             content={ 
                                 <div style={{marginLeft:"15px", color:"black"}}>
-                                    When : {
-                                        moment(this.state.attachedDate, 'ddd DD-MMM-YYYY, hh:mm A').format('MMMM D hh:mm A')
-                                    } 
+                                    When : {moment(this.state.attachedDate).format('MMMM D')} 
                                 </div>    
                             }  
                         />    
@@ -695,7 +766,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 } 
                 { 
                     !this.state.deadline ? null :
- 
                     <div style={{
                         transition : "opacity 0.4s ease-in-out",
                         opacity : this.state.open ? 1 : 0
@@ -722,7 +792,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 bottom: 0, 
                 padding: "5px", 
                 right: 0,
-                zIndex:30001   
+                zIndex:30001    
             }}>   
 
                 <DateCalendar 
@@ -824,7 +894,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     >     
                         <Flag />  
                     </IconButton> 
-                </div> 
+                </div>  
             }         
             </div>   
         }     
@@ -836,3 +906,78 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
  
 
  
+interface TransparentTagProps{
+    tag:string 
+}
+
+class TransparentTag extends Component<any,any>{
+    render(){
+        return <div  
+            style={{  
+                height:"20px",
+                borderRadius:"5px",
+                display:'flex',
+                alignItems:"center",
+                justifyContent:"center", 
+                border:"1px solid rgba(200,200,200,1)"
+            }}
+        >  
+            <div style={{ 
+                color:"rgba(200,200,200,1)", 
+                cursor:"default",
+                padding:"5px", 
+                WebkitUserSelect:"none"
+            }}> 
+                {this.props.tag} 
+            </div>  
+        </div>    
+    }
+} 
+
+
+interface DueDateProps{
+    date:Date,
+    month:string,
+    day:number
+}
+ 
+class DueDate extends Component<DueDateProps,any>{
+    render(){   
+        return daysRemaining(this.props.date)===0 ?    
+        <Star style={{    
+            width:"18px",  
+            height:"18px",
+            marginLeft:"3px",
+            color:"gold", 
+            cursor:"default",
+            marginRight:"5px" 
+        }}/>  
+        : 
+        <div style={{ 
+            backgroundColor:"rgb(235, 235, 235)",
+            cursor:"default", 
+            WebkitUserSelect:"none", 
+            display:"flex",
+            alignItems:"center", 
+            justifyContent:"center", 
+            paddingLeft:"5px",
+            paddingRight:"5px", 
+            borderRadius:"10px",
+            color:"rgb(100,100,100)",
+            fontWeight:"bold",
+            height:"20px" 
+        }}>   
+            <div style={{ 
+                display:"flex",
+                padding:"5px",
+                alignItems:"center", 
+                fontSize:"12px"
+            }}>    
+            <div style={{paddingRight:"5px"}}>
+                {this.props.month}
+            </div> 
+            <div>{this.props.day}</div>
+            </div> 
+        </div> 
+    }
+} 

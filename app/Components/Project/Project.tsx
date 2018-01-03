@@ -23,16 +23,17 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
-import { uppercase, debounce } from '../../utils';
+import { uppercase, debounce, byNotDeleted, byNotCompleted, byTags } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
-import { adjust, remove } from 'ramda';
+import { adjust, remove, allPass, uniq } from 'ramda';
 
 
 
 interface ProjectComponentProps{
     projects:Project[], 
+    selectedTag:string, 
     areas:Area[], 
     searched:boolean, 
     selectedCategory:string, 
@@ -116,7 +117,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 ${heading_id}.
                 archiveHeading.
                 ${JSON.stringify(layout)}
-           `)   
+           `)    
         }  
  
         this.updateProject(selectedProject, {layout:remove(idx,1,layout)});
@@ -126,49 +127,87 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         this.updateProject(selectedProject, {deadline:value});
     }
 
+    attachTagToProject = (selectedProject:Project) => (tag:string) => {
+        let attachedTags = uniq([tag, ...selectedProject.attachedTags]);    
+        this.updateProject(selectedProject, {attachedTags}); 
+    } 
+
     archiveHeading = (selectedProject:Project) => (heading_id:string) => {
         this.removeHeading(selectedProject)(heading_id); 
     }
         
     moveHeading = (heading_id:string) => {}
+
+
+
+    selectItems = (layout:LayoutItem[], todos:Todo[]) : (Todo | Heading)[] => { 
+        let items = [];
+        let filters = [byNotDeleted, byNotCompleted];
+        let filteredTodos:Todo[] = todos.filter(allPass(filters));
+    
+        for(let i=0; i<layout.length; i++){ 
+            let item : LayoutItem = layout[i]; 
+ 
+            if(item===undefined || item===null){
+               throw new Error(`Layout item undefined ${layout}. selectItems.`);  
+            };
+ 
+            if(typeof item === "string"){
+                let todo : Todo = filteredTodos.find( (t:Todo) => t._id===item );
+                
+                if(todo){
+                   items.push(todo); 
+                } 
+            }else if(item.type==="heading"){
+                items.push(item);
+            }
+        }
+        return items; 
+    }  
+    
+    
  
     render(){   
         let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
+        let items = this.selectItems(project.layout,this.props.todos);
 
+        let toProjectHeader = items.filter( (i) => i.type==="todo" ) as Todo[];
+        let toProjectBody = items.filter((i) => i.type==="todo" ? byTags(this.props.selectedTag)(i as Todo) : true);
+ 
         return  !project ? null :
                 <div>  
                     <div>    
                         <ProjectHeader 
                             rootRef={this.props.rootRef}
-                            name={project.name}
+                            name={project.name} 
+                            attachTagToProject={this.attachTagToProject(project)}
+                            tags={this.props.tags}
                             description={project.description}
                             created={project.created as any}  
                             deadline={project.deadline as any} 
                             completed={project.completed as any} 
-
+                            selectedTag={this.props.selectedTag}    
                             updateProjectDeadline={this.updateProjectDeadline(project)}
                             updateProjectName={this.updateProjectName(project)}
                             updateProjectDescription={this.updateProjectDescription(project)} 
-
+                            todos={toProjectHeader}
                             dispatch={this.props.dispatch} 
-                        />       
+                        />        
                     </div> 
   
-                    <div> 
-                        <ProjectBody   
-                            layout={project.layout}
-
+                    <div>  
+                        <ProjectBody    
+                            items={toProjectBody}
                             updateLayout={this.updateLayout(project)}
                             removeHeading={this.removeHeading(project)}
                             updateHeading={this.updateHeading(project)}
                             archiveHeading={this.archiveHeading(project)}
-
                             moveHeading={this.moveHeading} 
                             areas={this.props.areas}   
                             projects={this.props.projects}
                             selectedTodoId={this.props.selectedTodoId} 
                             searched={this.props.searched}
-                            todos={this.props.todos} 
+                            todos={this.props.todos}  
                             tags={this.props.tags}
                             rootRef={this.props.rootRef}
                             dispatch={this.props.dispatch} 

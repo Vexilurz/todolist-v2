@@ -194,16 +194,16 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         let project = generateEmptyProject();
         this.props.dispatch({type:"addProject", load:project});
         this.props.dispatch({type:"selectedProjectId", load:project._id});
-        this.props.dispatch({type:"openNewProjectAreaPopup",load:false});
+        this.props.dispatch({type:"openNewProjectAreaPopup", load:false});
         this.props.dispatch({type:"selectedCategory", load:"project"});
     };
-
+ 
          
     onNewAreaClick = (e:any) => {   
         let area = generateEmptyArea();
         this.props.dispatch({type:"addArea", load:area});
         this.props.dispatch({type:"selectedAreaId", load:area._id});
-        this.props.dispatch({type:"openNewProjectAreaPopup",load:false}); 
+        this.props.dispatch({type:"openNewProjectAreaPopup", load:false}); 
         this.props.dispatch({type:"selectedCategory", load:"area"});
     };
 

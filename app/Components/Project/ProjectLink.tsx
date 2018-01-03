@@ -78,6 +78,7 @@ export let getProjectLink = (p:Project, todos:Todo[],  dispatch:Function, index:
                 style={{    
                     height:"25px",  
                     padding:"6px", 
+                    overflowX: "hidden",
                     width:"95%",
                     display:"flex",
                     alignItems:"center" 
@@ -151,8 +152,8 @@ export let getProjectLink = (p:Project, todos:Todo[],  dispatch:Function, index:
                             fontWeight: "bolder", 
                             color: "rgba(0, 0, 0, 0.8)" 
                         }}
-                    >   
-                        { p.name.length==0 ? "New Project" : p.name } 
+                    >    
+                        { p.name.length==0 ? "New Project" : stringToLength(p.name,25) } 
                     </div>     
  
             </div>

@@ -40,13 +40,13 @@ import { onDrop, Placeholder } from '../TodosList';
  
 
 interface ProjectBodyProps{
-    layout:LayoutItem[], 
-    searched:boolean, 
+    items:(Heading|Todo)[], 
     updateLayout:(layout:LayoutItem[]) => void,
     updateHeading:(heading_id:string, newValue:string) => void,
     archiveHeading:(heading_id:string) => void,
     moveHeading:(heading_id:string) => void,  
     removeHeading:(heading_id:string) => void,
+    searched:boolean,
     areas:Area[],
     projects:Project[], 
     selectedTodoId:string, 
@@ -61,7 +61,6 @@ interface ProjectBodyProps{
 interface ProjectBodyState{
     showPlaceholder:boolean,
     currentIndex:number,
-    items:(Heading|Todo)[], 
     helper:HTMLElement 
 } 
 
@@ -74,64 +73,17 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     constructor(props){
 
         super(props);
- 
+        
         this.state={
             showPlaceholder:false,
             currentIndex:0,
-            helper:null,
-            items:this.selectItems(
-                this.props.layout, 
-                this.props.todos
-            )
+            helper:null
         }; 
     } 
   
     shouldComponentUpdate(nextProps:ProjectBodyProps, nextState:ProjectBodyState){ 
         return true; 
     }   
-
-    componentDidMount(){
-        let items = this.selectItems(this.props.layout,this.props.todos); 
-        this.setState({items});
-    }
-
-    componentWillReceiveProps(nextProps:ProjectBodyProps){
-        if(
-            layoutOrderChanged(nextProps.layout,this.props.layout) ||
-            this.props.todos!==nextProps.todos
-        ){ 
-            let items = this.selectItems(nextProps.layout, nextProps.todos);
-            this.setState({items});
-        } 
-    }
-
-
-    selectItems = (layout:LayoutItem[], todos:Todo[]) : (Todo | Heading)[] => { 
- 
-        let items = [];
-        let filters = [byNotDeleted, byNotCompleted];
-        let filteredTodos:Todo[] = todos.filter(allPass(filters));
-    
-        for(let i=0; i<layout.length; i++){ 
-            let item : LayoutItem = layout[i];
- 
-            if(item===undefined || item===null){
-               throw new Error(`Layout item undefined ${layout}. selectItems.`);  
-            };
-
-            if(typeof item === "string"){
-               let todo : Todo = filteredTodos.find( (t:Todo) => t._id===item );
-               
-               if(todo){
-                  items.push(todo); 
-               }
-            }else if(item.type==="heading"){
-                items.push(item);
-            }
-        }
-        return items; 
-    } 
-
 
     getElement = (value:Heading | Todo, index:number) : JSX.Element => { 
         
@@ -173,7 +125,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         }
     }
 
-    
     shouldCancelStart = (e) => {
         let nodes = [].slice.call(e.path);
         for(let i=0; i<nodes.length; i++){
@@ -183,7 +134,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         return false; 
     }
 
-       
     shouldCancelAnimation = (e) => {
         if(!this.props.rootRef)
             return true;
@@ -192,12 +142,11 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         return x < rect.left;   
     }  
 
-
     changeOrder = (oldIndex:number,newIndex:number) => { 
         if(oldIndex===newIndex)
            return; 
 
-        let items = this.selectItems(this.props.layout,this.props.todos);  
+        let items = this.props.items;  
         items = items.map(i => i.type==="todo" ? i._id : i) as any;
         let changed = arrayMove(items, oldIndex, newIndex); 
         this.props.updateLayout(changed);    
@@ -210,7 +159,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     onSortStart = ({node, index, collection}, e, helper) => { 
         this.showPlaceholder();
 
-        let item = this.state.items[index];
+        let item = this.props.items[index];
 
         if(item.type==="todo"){
            let helperRect = helper.getBoundingClientRect();
@@ -230,7 +179,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         let x = e.clientX; 
         let y = e.clientY+this.props.rootRef.scrollTop;  
-        let items = this.state.items;   
+        let items = this.props.items;   
         let draggedItem : (Todo | Heading) = items[oldIndex];
         let leftpanel = document.getElementById("leftpanel");
 
@@ -266,7 +215,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         if(newIndex!==this.state.currentIndex)
            this.setState({currentIndex:newIndex,helper}); 
             
-        if(this.state.items[oldIndex].type==="todo"){
+        if(this.props.items[oldIndex].type==="todo"){
              
             let leftpanel = document.getElementById("leftpanel");
             let nested = document.getElementById("nested");
@@ -293,7 +242,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
            let todoHeight = 40; 
 
            for(let i=0; i<this.state.currentIndex; i++){
-               let item = this.state.items[i];
+               let item = this.props.items[i];
                if(item){
                  if(item.type==="todo"){
                     placeholderOffset+=todoHeight;
@@ -332,10 +281,10 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 height={placeholderHeight} 
                 offset={placeholderOffset}
                 show={this.state.showPlaceholder}
-            />    
+            />     
             <SortableList 
                 getElement={this.getElement}
-                items={this.state.items}
+                items={this.props.items}
                 shouldCancelStart={this.shouldCancelStart}
                 shouldCancelAnimation={this.shouldCancelAnimation}  
                 container={this.props.rootRef ? this.props.rootRef : document.body}

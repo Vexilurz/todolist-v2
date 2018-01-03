@@ -145,8 +145,8 @@ export let onDrop = (
     e,
     draggedTodo:Todo,
     dispatch:Function,
-    areas:Area[],
-    projects:Project[], 
+    areas:Area[], 
+    projects:Project[],  
 ) => {
     let el = document.elementFromPoint(e.clientX, e.clientY);
     let id = el.id || el.parentElement.id;
@@ -487,7 +487,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         
     render(){    
         let placeholderOffset = 0;
-        
+
         if(this.state.helper){
             let rect = this.state.helper.getBoundingClientRect();
             placeholderOffset = this.state.currentIndex*rect.height;

@@ -219,9 +219,7 @@ let createNewTodo = (e, props:Store, rootRef:HTMLElement) : void => {
 export class MainContainer extends Component<Store,MainContainerState>{
 
     rootRef:HTMLElement; 
-
     limit:number;
-
 
     constructor(props){
 
@@ -232,9 +230,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         this.state = {   
             fullWindowSize:true 
         }
-
     }   
-    
     
 
     openNewWindow = () => { 
@@ -299,10 +295,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
             let fakeData = generateRandomDatabase({ 
                 todos : 140,  
-                projects : 10,  
+                projects : 38,  
                 areas : 5 
             });     
-    
+            
             let todos = fakeData.todos;
             let projects = fakeData.projects; 
             let areas = fakeData.areas; 
@@ -497,6 +493,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                            
                             project : <ProjectComponent 
                                 dispatch={this.props.dispatch} 
+                                selectedTag={this.props.selectedTag} 
                                 selectedCategory={this.props.selectedCategory}
                                 searched={this.props.searched}
                                 selectedProjectId={this.props.selectedProjectId}

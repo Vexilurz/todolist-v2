@@ -10,10 +10,11 @@ import { AreaHeader } from './AreaHeader';
 import { AreaBody } from './AreaBody';
 import { debounce } from '../../utils';
 import { Category } from '../MainContainer';
+import { uniq } from 'ramda';
   
  
 interface AreaComponentProps{
-    areas:Area[], 
+    areas:Area[],  
     selectedCategory:Category, 
     selectedAreaId:string,
     selectedTodoId:string, 
@@ -28,102 +29,64 @@ interface AreaComponentProps{
   
  
  
-interface AreaComponentState{
-    area:Area 
-}
+interface AreaComponentState{}
  
  
-
 export class AreaComponent extends Component<AreaComponentProps,AreaComponentState>{
      
 
     constructor(props){ 
 
         super(props); 
-         
-        this.state = {
-            area:undefined
-        };
-
     }
  
-
- 
-    selectArea = (props:AreaComponentProps) : void => {
-
-        let area = props.areas.find( 
-            (a:Area) => props.selectedAreaId===a._id
-        );
- 
-        this.setState({area});
-        
-    }  
-
-
- 
-    componentDidMount(){
-        
-        this.selectArea(this.props); 
-
-    }
-
-  
-
-    componentWillReceiveProps(nextProps:AreaComponentProps){
-        
-        let selectArea = false;
-
-        if(nextProps.areas!==this.props.areas)
-           selectArea = true;
-            
-        if(nextProps.selectedAreaId!==this.props.selectedAreaId)   
-           selectArea = true;
-          
-        if(selectArea)      
-           this.selectArea(nextProps);    
-            
-    }
-
-
 
     updateArea = (selectedArea:Area, updatedProps) : void => { 
-         
         let type = "updateArea"; 
-     
         let load = { ...selectedArea, ...updatedProps };
-
         this.props.dispatch({ type, load });
-
     }
 
 
 
-    updateAreaName = (value:string) : void => { 
-
-        this.updateArea(this.state.area, {name:value});
-    
-    } 
+    updateAreaName = (area:Area) => debounce(
+        (value:string) : void => { 
+            this.updateArea(area, {name:value});
+        },
+        50
+    ) 
   
- 
+
+    attachTagToArea = (area:Area) => (tag:string) => {
+        let attachedTags = uniq([tag, ...area.attachedTags]); 
+        this.updateArea(area, {attachedTags})
+    } 
+    
  
     render(){
-
-        return !this.state.area ? null :
+        let area = this.props.areas.find( 
+            (a:Area) => this.props.selectedAreaId===a._id
+        );
+ 
+        return !area ? null :
         <div>  
             <div>
                 <AreaHeader
-                    name={this.state.area.name}  
-                    areas={this.props.areas}  
+                    name={area.name}  
+                    tags={this.props.tags}
+                    rootRef={this.props.rootRef}
+                    areas={this.props.areas}    
+                    attachTagToArea={this.attachTagToArea(area)}
                     projects={this.props.projects}
                     todos={this.props.todos} 
                     selectedAreaId={this.props.selectedAreaId}
-                    updateAreaName={this.updateAreaName}
-                    dispatch={this.props.dispatch} 
-                />  
+                    updateAreaName={this.updateAreaName(area)}
+                    dispatch={this.props.dispatch}  
+                />   
             </div> 
             <div> 
                 <AreaBody 
-                    area={this.state.area} 
+                    area={area} 
                     selectedTodoId={this.props.selectedTodoId}
                     selectedCategory={this.props.selectedCategory}
                     todos={this.props.todos} 

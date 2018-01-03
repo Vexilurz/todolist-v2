@@ -75,9 +75,9 @@ export class Tags extends Component<TagsProps,{}>{
          return !this.props.show ? null :
                 <div style={{ display: 'flex', flexWrap: 'wrap' }}>  
                     {    
-                        prepend("All",this.props.tags)
+                        ["All",...this.props.tags.sort((a:string,b:string) : number => a.localeCompare(b))]
                         .map((tag:string) =>  
-                            <div key={tag} style={{padding:"4px"}}>
+                            <div key={tag} style={{padding:"4px"}}> 
                                 <div className="chip"      
                                     onClick={() => this.props.selectTag(tag)} 
                                     style={{

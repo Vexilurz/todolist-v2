@@ -254,25 +254,25 @@ export class Next extends Component<NextProps, NextState>{
                         table={table}
                     />  
                 </div> 
-
     }
-
 }  
 
 
-let byHaveTodos = (project:Project) : boolean => {
+
+let byHaveTodos = (table) => (project:Project) : boolean => {
     let todosIds : string[] = project.layout.filter(isString) as string[]; 
-    return !isEmpty(todosIds); 
+    return !isEmpty(todosIds) && !isEmpty(table[project._id]); 
 }
 
 
-let byContainsItems = (area:Area) : boolean => {
+
+let byContainsItems = (table) => (area:Area) : boolean => {
     let todosIds : string[] = area.attachedTodosIds;
     let projectsIds : string[] = area.attachedProjectsIds;
-
-    return !isEmpty(todosIds) || !isEmpty(projectsIds);
-}  
+    return !isEmpty(todosIds) || !isEmpty(table[area._id]);
+}   
    
+
  
 interface NextProjectsListProps{
     dispatch:Function,
@@ -299,7 +299,12 @@ class NextProjectsList extends Component<NextProjectsListProps, NextProjectsList
  
         return  <div style={{paddingTop:"10px", paddingBottom:"10px"}}> 
             {     
-                this.props.table.projects.filter(byHaveTodos).map(
+                this
+                .props
+                .table
+                .projects
+                .filter(byHaveTodos(this.props.table))
+                .map(
                     (p:Project, index:number) : JSX.Element => {
 
                         return <div key={`project-${index}`}>
@@ -364,7 +369,11 @@ class NextAreasList extends Component<NextAreasListProps,NextAreasListState>{
     render(){ 
         return <div style={{paddingTop:"10px", paddingBottom:"10px"}}> 
                 {  
-                    this.props.table.areas.filter(byContainsItems).map(
+                    this.props
+                    .table
+                    .areas
+                    .filter(byContainsItems(this.props.table))
+                    .map(
                         (a:Area, index:number) : JSX.Element => { 
                             return <div key={`area${index}`}>
                                 <div>  
@@ -442,14 +451,19 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
             should = true;
         if(this.props.todos!==nextProps.todos)
             should = true;
+        if(this.props.areas!==nextProps.areas)
+            should = true;
+        if(this.props.projects!==nextProps.projects)
+            should = true;    
         if(this.props.tags!==nextProps.tags)
             should = true;
- 
+        if(this.props.searched!==nextProps.searched)
+            should = true;
+            
 
         if(this.state.expanded!==nextState.expanded)
             should = true;    
   
-
         return should; 
     }
 
@@ -506,7 +520,5 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                 }
             </div>
         </div>
- 
     }
-
 } 

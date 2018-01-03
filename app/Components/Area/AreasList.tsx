@@ -15,8 +15,74 @@ import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
 import { stringToLength, byNotCompleted, byNotDeleted, daysRemaining, dateDiffInDays } from '../../utils';
 import { SortableList } from '../SortableList';
 import PieChart from 'react-minimal-pie-chart';
-import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains, assoc } from 'ramda';
+import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains, assoc, isNil } from 'ramda';
 import { Category } from '../MainContainer';
+
+
+export let changeProjectsOrder = (dispatch:Function, listAfter:(Project | Area | Separator)[]) : void => {
+    let projects = listAfter.filter( i => i.type==="project" ) as Project[];
+    projects = projects.map((item:Project,index:number) => assoc("priority",index,item));
+
+    for(let i=0; i<projects.length; i++){
+        if(projects[i].type!=="project"){
+            throw new Error(`Item is not a project ${JSON.stringify(projects[i])}`)
+        }
+    }  
+
+    dispatch({type:"updateProjects", load:projects});  
+}
+
+
+
+export let attachToArea = (dispatch:Function, closestArea:Area, selectedProject:Project) : void => {
+    
+    if(!closestArea) 
+        throw new Error(`closestArea undefined. attachToArea.`);
+
+    if(closestArea.type!=="area")  
+        throw new Error(`closestArea is not of type Area. ${JSON.stringify(closestArea)}. attachToArea.`);    
+
+    closestArea.attachedProjectsIds = [selectedProject._id,...closestArea.attachedProjectsIds];
+    dispatch({type:"updateArea", load:closestArea});  
+}  
+    
+     
+
+export let removeFromArea = (dispatch:Function, fromArea:Area, selectedProject:Project) : void => {
+
+    let idx = fromArea.attachedProjectsIds.findIndex( 
+        (id:string) => id===selectedProject._id 
+    );  
+
+    if(idx===-1){
+        throw new Error(`
+            selectedProject is not attached to fromArea.
+            ${JSON.stringify(selectedProject)} 
+            ${JSON.stringify(fromArea)}
+        `)
+    }
+
+    if(selectedProject.type!=="project"){  
+        throw new Error(`
+            selectedProject is not of type project. 
+            ${JSON.stringify(selectedProject)}. 
+            removeFromArea.
+        `);  
+    }   
+
+    if(fromArea.type!=="area"){  
+        throw new Error(`
+            fromArea is not of type Area. 
+            ${JSON.stringify(fromArea)}. 
+            removeFromArea.
+        `);    
+    }
+
+    fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
+    dispatch({type:"updateArea", load:fromArea});  
+}
+
+
 
 
 interface AreasListProps{   
@@ -117,18 +183,15 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     } 
  
 
-
     selectArea = (a:Area) => {
         this.props.dispatch({type:"selectedAreaId",load:a._id}); 
     }
-
 
 
     selectProject = (p:Project) => {
         this.props.dispatch({type:"selectedProjectId",load:p._id});
     } 
           
-
  
     getAreaElement = (a : Area, index : number) : JSX.Element => {
         return <AreaElement 
@@ -140,10 +203,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         />
     }
  
-    
 
     getProjectElement = (p:Project, index:number) : JSX.Element => {
-
         return <ProjectElement 
             project={p}
             index={index}
@@ -152,8 +213,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             selectedCategory={this.props.selectedCategory}
         />
     }
-    
-
+     
 
     getElement = (value : LayoutItem, index : number) : JSX.Element => {
 
@@ -223,57 +283,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
   
 
 
-    attachToArea = (closestArea:Area, selectedProject:Project) : void => {
-
-        if(!closestArea) 
-            throw new Error(`closestArea undefined. attachToArea.`);
-
-        if(closestArea.type!=="area")  
-           throw new Error(`closestArea is not of type Area. ${JSON.stringify(closestArea)}. attachToArea.`);    
-
-        closestArea.attachedProjectsIds = [selectedProject._id,...closestArea.attachedProjectsIds];
-        this.props.dispatch({type:"updateArea", load:closestArea});  
-         
-    }  
-
-
-
-    removeFromArea = (fromArea:Area, selectedProject:Project) : void => {
-
-        let idx = fromArea.attachedProjectsIds.findIndex( 
-            (id:string) => id===selectedProject._id 
-        );  
- 
-        if(idx===-1){
-           throw new Error(`
-                selectedProject is not attached to fromArea.
-                ${JSON.stringify(selectedProject)} 
-                ${JSON.stringify(fromArea)}
-           `)
-        }
-
-        if(selectedProject.type!=="project"){  
-            throw new Error(`
-                selectedProject is not of type project. 
-                ${JSON.stringify(selectedProject)}. 
-                removeFromArea.
-            `);  
-        }   
-
-        if(fromArea.type!=="area"){  
-            throw new Error(`
-                fromArea is not of type Area. 
-                ${JSON.stringify(fromArea)}. 
-                removeFromArea.
-            `);    
-        }
- 
-        fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
-        this.props.dispatch({type:"updateArea", load:fromArea});  
-    }
-
- 
-  
     moveToClosestArea = (fromArea:Area, closestArea:Area, selectedProject:Project) : void => {
  
         if(fromArea.type!=="area")  
@@ -300,21 +309,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     }
   
 
-
-    changeProjectsOrder = (listAfter:(Project | Area | Separator)[]) : void => {
-        let projects = listAfter.filter( i => i.type==="project" ) as Project[];
-        projects = projects.map((item:Project,index:number) => assoc("priority",index,item));
-
-        for(let i=0; i<projects.length; i++){
-            if(projects[i].type!=="project"){
-                throw new Error(`Item is not a project ${JSON.stringify(projects[i])}`)
-            }
-        }  
-
-        this.props.dispatch({type:"updateProjects", load:projects});  
-    }
-
-
     onSortEnd = ({oldIndex, newIndex, collection}, e) : void => { 
 
         if(oldIndex===newIndex)
@@ -338,13 +332,13 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
          
         if(detachedBefore && !detachedAfter){
 
-            this.attachToArea(closestArea, selectedProject);
+            attachToArea(this.props.dispatch, closestArea, selectedProject);
         }else if(!detachedBefore && detachedAfter){
 
-            this.removeFromArea(fromArea, selectedProject); 
+            removeFromArea(this.props.dispatch, fromArea, selectedProject); 
         }else if(detachedBefore && detachedAfter){
-
-            this.changeProjectsOrder(listAfter); 
+ 
+            changeProjectsOrder(this.props.dispatch,listAfter); 
         }else if(!detachedBefore && !detachedAfter){
  
             if(fromArea._id!==closestArea._id){
@@ -352,7 +346,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 this.moveToClosestArea(fromArea, closestArea, selectedProject);  
             }else if(fromArea._id===closestArea._id){
 
-                this.changeProjectsOrder(listAfter);
+                changeProjectsOrder(this.props.dispatch,listAfter);
             }
         } 
     } 
@@ -477,8 +471,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                 }}>    
                     {
                         this.props.area.name.length===0 ? 
-                        "New Area" : 
-                        stringToLength(this.props.area.name,18) 
+                        "New Area" : stringToLength(this.props.area.name,20) 
                     }   
                 </div>  
             </div>
@@ -510,19 +503,18 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         }; 
     }  
 
- 
+    
 
     render(){
-
-        let days = dateDiffInDays(this.props.project.created,this.props.project.deadline);   
-        let remaining = daysRemaining(this.props.project.deadline);  
+        let days = !isNil(this.props.project.deadline) ? dateDiffInDays(this.props.project.created,this.props.project.deadline) : 0;      
+        let remaining = !isNil(this.props.project.deadline) ? daysRemaining(this.props.project.deadline) : 0;  
         let selected = this.props.project._id===this.props.selectedProjectId && this.props.selectedCategory==="project";
 
 
         return <li
             key={this.props.index}
             onMouseOver={(e) => {
-                if(e.buttons == 1 || e.buttons == 3){
+                if(e.buttons == 1 || e.buttons == 3){ 
                     this.setState({highlight:true}); 
                 } 
             }} 
@@ -599,8 +591,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     >   
                         { 
                             this.props.project.name.length==0 ? 
-                            "New Project" : 
-                            stringToLength(this.props.project.name,15) 
+                            "New Project" : stringToLength(this.props.project.name,15) 
                         } 
                     </div>   
             </div>

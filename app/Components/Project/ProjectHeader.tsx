@@ -23,26 +23,32 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize'; 
 import { Todo, Project, Heading } from '../../database';
-import { uppercase, debounce, daysRemaining, dateDiffInDays } from '../../utils';
+import { uppercase, debounce, daysRemaining, dateDiffInDays, getTagsFromItems, byCategory, byNotCompleted, byNotDeleted } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import { DeadlineCalendar } from '../ThingsCalendar';
-import { isNil } from 'ramda';
+import { isNil, compose, allPass } from 'ramda';
+import { Tags } from '../Tags';
+import { TagsPopup } from '../TodoInput/TodoTags';
 
 
 
 interface ProjectHeaderProps{
     rootRef:HTMLElement, 
     name:string, 
+    selectedTag:string,
+    todos:Todo[],  
     description:string,
     created:Date,
     deadline:Date, 
     completed:Date,  
+    tags:string[], 
     updateProjectDeadline:(value:Date) => void,
     updateProjectName:(value:string) => void,
     updateProjectDescription:(value:string) => void,
+    attachTagToProject:(tag:string) => void,
     dispatch:Function  
 }
     
@@ -50,12 +56,13 @@ interface ProjectHeaderProps{
   
 interface ProjectHeaderState{
     projectMenuPopoverAnchor:HTMLElement,
-    name:string,
+    name:string, 
     description:string,
+    showTagsPopup:boolean,
     showDeadlineCalendar:boolean   
 }
   
-  
+    
 
 export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderState>{
 
@@ -69,9 +76,9 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             projectMenuPopoverAnchor:null,
             name:this.props.name,
             description:this.props.description,
-            showDeadlineCalendar:false   
+            showDeadlineCalendar:false,
+            showTagsPopup:false    
         }
- 
     }   
  
  
@@ -107,16 +114,25 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         let should = false; 
  
         if(this.state.projectMenuPopoverAnchor!==nextState.projectMenuPopoverAnchor)
-           should = true;
+            should = true;
 
         if(this.state.showDeadlineCalendar!==nextState.showDeadlineCalendar)
-           should=true; 
-           
+            should=true; 
+
+        if(this.state.showTagsPopup!==nextState.showTagsPopup)
+            should=true; 
+            
+        if(this.props.selectedTag!==nextProps.selectedTag)
+            should = true;
+        if(this.props.todos!==nextProps.todos)
+            should = true;     
+ 
 
         if(this.props.name!==nextProps.name)
             should = true;
         if(this.props.description!==nextProps.description)
             should = true;   
+
 
         if(this.state.name!==nextState.name)
             should = true; 
@@ -140,7 +156,6 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
     updateProjectName = (value : string) => {
         this.setState({name:value}, () => this.props.updateProjectName(value));
     }
- 
  
 
     updateProjectDescription = (newValue : string) => {    
@@ -171,32 +186,53 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         let days = !isNil(this.props.deadline) ? dateDiffInDays(this.props.created,this.props.deadline) : 0; 
 
         let remaining = !isNil(this.props.deadline) ? daysRemaining(this.props.deadline) : 0;      
-      
+
+        let tags = getTagsFromItems(this.props.todos); 
+         
         return <div>  
          
             <ProjectMenuPopover 
-                {...{
-                    anchorEl:this.state.projectMenuPopoverAnchor,
-                    rootRef:this.props.rootRef,  
-                    openDeadlineCalendar:() => {
-                        this.setState({showDeadlineCalendar:true})
-                    }     
-                } as any}  
+                {
+                 ...{
+                        anchorEl:this.state.projectMenuPopoverAnchor,
+                        rootRef:this.props.rootRef,  
+                        openDeadlineCalendar:() => {
+                            this.setState({showDeadlineCalendar:true})
+                        },    
+                        openTagsPopup:() => { 
+                            this.setState({showTagsPopup:true}) 
+                        }    
+                    } as any  
+                }     
             />   
-            
-            {     
+             
+            {      
                 !this.state.showDeadlineCalendar ? null : 
                 <DeadlineCalendar  
                     close = {this.closeDeadlineCalendar}
                     onDayClick = {this.onDeadlineCalendarDayClick} 
                     open = {this.state.showDeadlineCalendar}  
-                    origin = {{vertical: "top", horizontal: "left"}} 
-                    point = {{vertical: "top", horizontal: "right"}} 
+                    origin = {{vertical:"top", horizontal:"left"}} 
+                    point = {{vertical:"top", horizontal:"right"}} 
                     anchorEl = {this.projectMenuPopoverAnchor} 
                     onClear = {this.onDeadlineCalendarClear}
                     rootRef = {this.props.rootRef}
                 /> 
             } 
+
+            {
+                !this.state.showTagsPopup ? null : 
+                <TagsPopup    
+                    tags = {this.props.tags} 
+                    attachTag = {this.props.attachTagToProject} 
+                    close = {() => this.setState({showTagsPopup:false})}
+                    open = {this.state.showTagsPopup}    
+                    anchorEl = {this.projectMenuPopoverAnchor} 
+                    origin = {{vertical:"top", horizontal:"left"}} 
+                    point = {{vertical:"top", horizontal:"right"}} 
+                    rootRef = {this.props.rootRef}
+                />
+            }
               
             <div style={{display:"flex", alignItems: "center"}}>
 
@@ -278,27 +314,35 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                             height:"32px",
                             cursor: "pointer" 
                         }} />
-                </div> 
-    
+                </div>   
             </div> 
             <div style={{paddingTop:"10px"}}>                
                 <TextField      
-                    id = {"project_notes"} 
+                    id = {"project_notes"}  
                     hintText = "Notes"      
                     hintStyle={{top:"12px"}}
                     value = {this.state.description}    
                     multiLine = {true}  
                     fullWidth = {true}   
                     onChange = {(event, newValue:string) => this.updateProjectDescription(newValue)} 
-                    rows = {3}   
+                    rows = {1}    
                     inputStyle = {{color:"rgba(100,100,100,0.7)", fontSize:"15px"}}   
                     underlineFocusStyle = {{borderColor: "rgba(0,0,0,0)"}}    
                     underlineStyle = {{borderColor: "rgba(0,0,0,0)"}}   
                 />  
             </div>
-        </div> 
-    }
+ 
+            <div style={{paddingTop:"20px", paddingBottom:"40px"}}>  
+                <Tags  
+                    selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
+                    tags={tags} 
+                    selectedTag={this.props.selectedTag}
+                    show={true}  
+                /> 
+            </div> 
 
+        </div> 
+    } 
 }
  
 

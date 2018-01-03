@@ -127,7 +127,7 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
              alignItems: "flex-start", 
              padding:"7px"
          }}> 
-             <NewAreaIcon style={{color:"lightblue", width:"34px"}}/>
+             <NewAreaIcon style={{color:"lightblue", width:"54px"}}/> 
              <div style={{
                  display: "flex",
                  flexDirection: "column",

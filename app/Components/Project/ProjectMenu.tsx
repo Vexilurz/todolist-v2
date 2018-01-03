@@ -34,7 +34,8 @@ import { createHeading } from '../MainContainer';
 interface ProjectMenuPopoverProps extends Store{
     anchorEl : HTMLElement 
     rootRef:HTMLElement,
-    openDeadlineCalendar:Function  
+    openDeadlineCalendar:Function,
+    openTagsPopup:Function   
 }    
  
 
@@ -85,8 +86,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         
         let idx = this.props.projects.findIndex( (p:Project) => p._id===projectId );
 
-        if(idx===-1){ 
-            throw new Error(`Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`);
+        if(idx===-1){  
+           throw new Error(`Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`);
         }  
 
         let duplicate = {... this.props.projects[idx], _id:generateId()};
@@ -115,7 +116,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         
         this.closeMenu() 
     } 
-
+   //openTagsPopup
    
     onDelete = (e) => {   
 
@@ -152,7 +153,11 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         this.closeMenu(); 
     }  
    
-
+    onAddTags = (e) => {
+        this.props.openTagsPopup();
+        this.closeMenu(); 
+    }
+ 
     render(){  
             
         return !this.props.showProjectMenuPopover ? null :
@@ -214,23 +219,23 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             </div>     
                         </div>
                     */}
+                     
                     
-                    {/*
-                        <div   
-                            onClick={this.onAddTags} 
-                            className={"tagItem"} style={{
-                                display:"flex", 
-                                height:"auto",
-                                alignItems:"center",
-                                padding:"5px"
-                            }}
-                        >  
-                            <TriangleLabel style={{color:"rgb(69, 95, 145)"}}/> 
-                            <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                                Add tags  
-                            </div>     
-                        </div>
-                    */}
+                    <div    
+                        onClick={this.onAddTags}  
+                        className={"tagItem"} style={{
+                            display:"flex", 
+                            height:"auto",
+                            alignItems:"center",
+                            padding:"5px"
+                        }}
+                    >  
+                        <TriangleLabel style={{color:"rgb(69, 95, 145)"}}/> 
+                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                            Add tags  
+                        </div>     
+                    </div>
+                    
                     
  
                     <div  
