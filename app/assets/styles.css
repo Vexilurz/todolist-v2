@@ -10,6 +10,10 @@ body{
   margin : 0; 
 } 
 
+*::-webkit-input-placeholder {
+  color: rgba(0, 0, 0, 0.4);
+} 
+   
 input::-webkit-clear-button {  
   -webkit-appearance: none !important;  
   margin: 0 !important;  

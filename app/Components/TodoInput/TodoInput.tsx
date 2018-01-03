@@ -519,7 +519,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     style={{     
                         display:"flex",
                         flexDirection:"column", 
-                        width:"100%"  
+                        width:"100%", 
+                        padding:"2px"  
                     }}     
                     onClick={this.onFieldsContainerClick}
                 >       
@@ -647,19 +648,20 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                 />
                             </div>   
                         }  
-                    </div> 
-                        {   
+                    </div>  
+                        {    
                             !this.state.deadline ? null :  
                             <div style={{
                                 display:"flex",
                                 cursor:"default",
+                                zIndex: 1000,   
                                 alignItems:"center",
                                 height:"100%",
                                 position:"absolute",
                                 top:"0px", 
                                 right:"0px"   
-                            }}>
-                               {daysLeftMark(this.state.open, this.state.deadline, false)}
+                            }}> 
+                                {daysLeftMark(this.state.open, this.state.deadline, false)}
                             </div>  
                         }   
                     </div> 
@@ -915,15 +917,16 @@ class TransparentTag extends Component<any,any>{
         return <div  
             style={{  
                 height:"20px",
-                borderRadius:"5px",
+                borderRadius:"15px",
                 display:'flex',
                 alignItems:"center",
-                justifyContent:"center", 
-                border:"1px solid rgba(200,200,200,1)"
+                justifyContent:"center",  
+                border:"1px solid rgba(200,200,200,0.5)"
             }}
         >  
             <div style={{ 
                 color:"rgba(200,200,200,1)", 
+                fontSize:"13px", 
                 cursor:"default",
                 padding:"5px", 
                 WebkitUserSelect:"none"
@@ -944,40 +947,46 @@ interface DueDateProps{
 class DueDate extends Component<DueDateProps,any>{
     render(){   
         return daysRemaining(this.props.date)===0 ?    
-        <Star style={{    
-            width:"18px",  
-            height:"18px",
-            marginLeft:"3px",
-            color:"gold", 
-            cursor:"default",
-            marginRight:"5px" 
-        }}/>  
+        <Star  
+            style={{    
+                width:"18px",  
+                height:"18px",
+                marginLeft:"3px",
+                color:"gold", 
+                cursor:"default",
+                marginRight:"5px" 
+            }}
+        />  
         : 
-        <div style={{ 
-            backgroundColor:"rgb(235, 235, 235)",
-            cursor:"default", 
-            WebkitUserSelect:"none", 
-            display:"flex",
-            alignItems:"center", 
-            justifyContent:"center", 
-            paddingLeft:"5px",
-            paddingRight:"5px", 
-            borderRadius:"10px",
-            color:"rgb(100,100,100)",
-            fontWeight:"bold",
-            height:"20px" 
-        }}>   
-            <div style={{ 
+        <div style={{paddingRight:"5px"}}>
+            <div style={{  
+                backgroundColor:"rgb(235, 235, 235)",
+                cursor:"default", 
+                WebkitUserSelect:"none", 
                 display:"flex",
-                padding:"5px",
                 alignItems:"center", 
-                fontSize:"12px"
+                justifyContent:"center", 
+                paddingLeft:"5px",
+                paddingRight:"5px", 
+                borderRadius:"15px",
+                color:"rgb(100,100,100)",
+                fontWeight:"bold",
+                height:"20px" 
             }}>    
-            <div style={{paddingRight:"5px"}}>
-                {this.props.month}
-            </div> 
-            <div>{this.props.day}</div>
-            </div> 
+                <div style={{ 
+                    display:"flex",   
+                    padding:"5px",
+                    alignItems:"center", 
+                    fontSize:"12px"
+                }}>      
+                    <div style={{paddingRight:"5px"}}>
+                        {this.props.month.slice(0,3)+'.'}
+                    </div> 
+                    <div>  
+                        {this.props.day}
+                    </div>
+                </div> 
+            </div>
         </div> 
     }
 } 
