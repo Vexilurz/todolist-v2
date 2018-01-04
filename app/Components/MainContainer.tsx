@@ -41,31 +41,68 @@ export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" |
 interface MainContainerState{ 
     fullWindowSize:boolean
 }
- 
+  
 
 export let convertDates = ([todos, projects, areas]) => [ 
     todos.map((t:Todo) => ({
         ...t, 
-        reminder : t.reminder ? new Date(t.reminder) : undefined,  
-        deadline : t.deadline ? new Date(t.deadline) : undefined, 
-        created : t.created ? new Date(t.created) : undefined, 
-        deleted : t.deleted ? new Date(t.deleted) : undefined, 
-        attachedDate : t.attachedDate ? new Date(t.attachedDate) : undefined, 
-        completed : t.completed ? new Date(t.completed) : undefined,  
+        reminder : !t.reminder ? undefined : 
+                    typeof t.reminder==="string" ? new Date(t.reminder) : 
+                    t.reminder,
+
+        deadline : !t.deadline ? undefined : 
+                    typeof t.deadline==="string" ? new Date(t.deadline) : 
+                    t.deadline,
+        
+        created : !t.created ? undefined : 
+                   typeof t.created==="string" ? new Date(t.created) : 
+                   t.created,
+        
+        deleted : !t.deleted ? undefined : 
+                   typeof t.deleted==="string" ? new Date(t.deleted) : 
+                   t.deleted,
+        
+        attachedDate : !t.attachedDate ? undefined : 
+                        typeof t.attachedDate==="string" ? new Date(t.attachedDate) : 
+                        t.attachedDate,
+        
+        completed : !t.completed ? undefined : 
+                    typeof t.completed==="string" ? new Date(t.completed) : 
+                    t.completed
     })),
+
+
     projects.map((p:Project) => ({
         ...p,
-        created : p.created ? new Date(p.created) : undefined,  
-        deadline : p.deadline ? new Date(p.deadline) : undefined, 
-        deleted : p.deleted ? new Date(p.deleted) : undefined, 
-        completed : p.completed ? new Date(p.completed) : undefined,
+        created : !p.created ? undefined : 
+                   typeof p.created==="string" ? new Date(p.created) : 
+                   p.created,
+
+        deadline : !p.deadline ? undefined : 
+                    typeof p.deadline==="string" ? new Date(p.deadline) : 
+                    p.deadline,
+
+        deleted : !p.deleted ? undefined : 
+                   typeof p.deleted==="string" ? new Date(p.deleted) : 
+                   p.deleted,
+
+        completed : !p.completed ? undefined : 
+                     typeof p.completed==="string" ? new Date(p.completed) : 
+                     p.completed  
+        
     })),
     areas.map((a:Area) => ({
         ...a, 
-        created : a.created ? new Date(a.created) : undefined,  
-        deleted : a.deleted ? new Date(a.deleted) : undefined
-    }))
+        created : !a.created ? undefined : 
+                   typeof a.created==="string" ? new Date(a.created) : 
+                   a.created,
+
+        deleted : !a.deleted ? undefined : 
+                   typeof a.deleted==="string" ? new Date(a.deleted) : 
+                   a.deleted,
+    }))     
 ];  
+
   
   
 export let createHeading = (e, props:Store) : void => {
@@ -145,72 +182,71 @@ export let createHeading = (e, props:Store) : void => {
 
 let createNewTodo = (e, props:Store, rootRef:HTMLElement) : void => {   
     
-        let allowedTodoCreation : Category[] = [
-            "inbox",
-            "today", 
-            "someday",
-            "next", 
-            "project", 
-            "area"
-        ] 
+    let allowedTodoCreation : Category[] = [
+        "inbox",
+        "today", 
+        "someday",
+        "next", 
+        "project", 
+        "area"
+    ] 
 
-        if(!contains(props.selectedCategory, allowedTodoCreation))
-            return; 
-    
+    if(!contains(props.selectedCategory, allowedTodoCreation))
+        return; 
 
-        let id : string = generateId();
-        let priority : number = 0;
 
-        if(!isEmpty(props.todos)){
-            let first : Todo = props.todos[0];
-            priority = first.priority - 1; 
-        } 
+    let id : string = generateId();
+    let priority : number = 0;
 
-        let todo : Todo = generateEmptyTodo(id,props.selectedCategory,priority);   
+    if(!isEmpty(props.todos)){
+        let first : Todo = props.todos[0];
+        priority = first.priority - 1; 
+    } 
 
-        props.dispatch({type:"addTodo", load:todo});
+    let todo : Todo = generateEmptyTodo(id,props.selectedCategory,priority);   
 
-        if(props.selectedCategory==="project"){ 
-            
-            let project : Project = props.projects.find( (p:Project) => p._id===props.selectedProjectId );
+    props.dispatch({type:"addTodo", load:todo});
 
-            if(isNil(project)){ 
-                throw new Error( 
-                    `Project with selectedProjectId does not exist.
-                    ${props.selectedProjectId} ${JSON.stringify(project)}. 
-                    createNewTodo.`
-                )   
-            }     
+    if(props.selectedCategory==="project"){ 
+        
+        let project : Project = props.projects.find( (p:Project) => p._id===props.selectedProjectId );
 
-            props.dispatch({ 
-                type:"attachTodoToProject", 
-                load:{ projectId:project._id, todoId:todo._id } 
-            });    
+        if(isNil(project)){ 
+            throw new Error( 
+                `Project with selectedProjectId does not exist.
+                ${props.selectedProjectId} ${JSON.stringify(project)}. 
+                createNewTodo.`
+            )   
+        }     
 
-        }else if(props.selectedCategory==="area"){
+        props.dispatch({ 
+            type:"attachTodoToProject", 
+            load:{ projectId:project._id, todoId:todo._id } 
+        });    
 
-            let area : Area = props.areas.find( (a:Area) => a._id===props.selectedAreaId );
-            
-            if(isNil(area)){  
-                throw new Error(  
-                    `Area with selectedAreaId does not exist.
-                    ${props.selectedAreaId}. 
-                    ${JSON.stringify(area)}. 
-                    createNewTodo.`  
-                )   
-            }  
+    }else if(props.selectedCategory==="area"){
 
-            props.dispatch({ 
-                type:"attachTodoToArea", 
-                load:{ areaId:area._id, todoId:todo._id }      
-            });  
+        let area : Area = props.areas.find( (a:Area) => a._id===props.selectedAreaId );
+        
+        if(isNil(area)){  
+            throw new Error(  
+                `Area with selectedAreaId does not exist.
+                ${props.selectedAreaId}. 
+                ${JSON.stringify(area)}. 
+                createNewTodo.`  
+            )   
+        }  
 
-        }    
+        props.dispatch({ 
+            type:"attachTodoToArea", 
+            load:{ areaId:area._id, todoId:todo._id }      
+        });  
 
-        if(rootRef){ 
-           rootRef.scrollTop = 0; 
-        }
-
+    }    
+ 
+    if(rootRef){ 
+        rootRef.scrollTop = 0; 
+    }
 } 
 
 
@@ -230,19 +266,16 @@ export class MainContainer extends Component<Store,MainContainerState>{
         this.state = {   
             fullWindowSize:true 
         }
-    }   
+    }    
     
 
     openNewWindow = () => { 
-        
         let clonedStore = {...this.props};
-
         clonedStore.windowId = undefined;
-
         ipcRenderer.send("cloneWindow", clonedStore);
     }
  
-
+ 
 
     onError = (e) => console.log(e);
 
@@ -287,31 +320,32 @@ export class MainContainer extends Component<Store,MainContainerState>{
     
     componentDidMount(){
 
-      
-        destroyEverything()
-        .then(() => { 
-            
-            initDB();
+        if(!this.props.clone){
+            destroyEverything()
+            .then(() => { 
+                 
+                initDB();
 
-            let fakeData = generateRandomDatabase({ 
-                todos : 140,  
-                projects : 38,  
-                areas : 5 
-            });     
-            
-            let todos = fakeData.todos;
-            let projects = fakeData.projects; 
-            let areas = fakeData.areas; 
-            
-            Promise.all([
-                addTodos(this.onError,todos),    
-                addProjects(this.onError,projects), 
-                addAreas(this.onError,areas) 
-            ]) 
-            .then(() => this.fetchData())    
-        })
+                let fakeData = generateRandomDatabase({ 
+                    todos : 140,  
+                    projects : 38,  
+                    areas : 5 
+                });     
+                
+                let todos = fakeData.todos;
+                let projects = fakeData.projects; 
+                let areas = fakeData.areas; 
+                
+                Promise.all([
+                    addTodos(this.onError,todos),    
+                    addProjects(this.onError,projects), 
+                    addAreas(this.onError,areas) 
+                ]) 
+                .then(() => this.fetchData())    
+            }) 
+        }   
        
-
+        
         window.addEventListener("resize", this.updateWidth);
         window.addEventListener("click", this.closeRightClickMenu); 
 

@@ -9,11 +9,9 @@ import { autoUpdater } from "electron-updater";
 export let mainWindow;   
 export let listeners; 
 export let updater;
- 
- 
+  
 let mainWindowWidth : number = 100;//60;
 let mainWindowHeight : number = 100;//70; 
- 
  
 class AppUpdater {
     constructor() {
@@ -24,11 +22,7 @@ class AppUpdater {
     } 
 } 
 
-
- 
-
 let preventAnnoyingErrorPopups = () => dialog.showErrorBox = (title, content) => {};
- 
  
 let onReady = () => {  
     let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
@@ -37,38 +31,31 @@ let onReady = () => {
     let height = mainWindowHeight*(workingArea.height/100); 
 
     //width = width <= 800 ? width : 800; 
+    console.log("process.env", process.env);
     
     preventAnnoyingErrorPopups();     
      
     mainWindow = initWindow({width,height,transparent:false});          
         
     listeners = new Listeners(mainWindow);
-
-    updater = new AppUpdater(); 
-   
+    
     loadApp(mainWindow)    
-    .then(() => {    
-
+    .then(() => {   
         mainWindow.webContents.send(
-            "loaded",  
+            "loaded",   
             {
                 type:"open",
                 load:mainWindow.id
             }
         ); 
-   
         mainWindow.webContents.openDevTools();   
-    
     });     
 }            
   
-
 process.on("unchaughtException" as any,(error) => console.log(error)); 
   
-
 app.on('ready', onReady);  
  
-
 app.on(     
   'window-all-closed', 
    () => {

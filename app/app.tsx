@@ -22,6 +22,7 @@ import { Project, Area, Todo, removeProject, generateId, addProject, removeArea,
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
 import { TodoInputPopup } from './Components/TodoInput/TodoInputPopup';
+import { cond } from 'ramda';
 injectTapEventPlugin(); 
       
 
@@ -45,23 +46,31 @@ export class App extends Component<any,any>{
 
  
     componentDidMount(){
- 
-        let {type,load} = this.props.initialLoad;
 
-        switch(type){ 
-             
-            case "clone": 
-               this.props.dispatch({type:"newStore", load});
-               this.props.dispatch({type:"clone", load:true});
-               break; 
-            case "reload": 
-               this.props.dispatch({type:"windowId", load});
-               break;
-            case "open":
-               this.props.dispatch({type:"windowId", load});
-               break;
+        cond([
+            [
+                (action:{type:string}) : boolean => "open"===action.type,  
+                (action:{type:string, load:string}) : void => { 
+                    this.props.dispatch({type:"windowId", load:action.load});
+                }
+            ], 
+            [
+                (action:{type:string}) : boolean => "clone"===action.type,  
+                (action:{type:string, load:Store}) : void => { 
+                    this.props.dispatch({type:"newStore", load:action.load});
+                    this.props.dispatch({type:"clone", load:true});
+                }
+            ], 
 
-        }
+
+            
+            [ 
+                (action:{type:string}) : boolean => "reload"===action.type,  
+                (action:{type:string, load:string}) : void => { 
+                    this.props.dispatch({type:"windowId", load:action.load});
+                }
+            ]
+        ])(this.props.initialLoad)
 
     }   
  
@@ -80,7 +89,7 @@ export class App extends Component<any,any>{
                 <div style={{display:"flex", width:"inherit", height:"inherit"}}>  
                  
                     <LeftPanel {...{} as any}  /> 
-
+ 
                     <MainContainer {...{} as any} />  
  
                 </div> 
@@ -141,53 +150,29 @@ export interface Store{
 
 export let defaultStoreItems : Store = {
     windowId:null, 
-
     searched:false, 
-     
     selectedCategory : "inbox",
-
     openSearch : false, 
-    
     dragged : null, 
-
     selectedTodoId : null,
-
     openTodoInputPopup : false, 
- 
     selectedTag : "All",
-
     leftPanelWidth : window.innerWidth/3.7,
- 
     currentleftPanelWidth : window.innerWidth/3.7,
-    
     selectedProjectId : null,
-
     selectedAreaId : null,
- 
     showProjectMenuPopover : false,
-
     closeAllItems : undefined,
-
     openRightClickMenu : undefined,
-     
     openNewProjectAreaPopup : false,
-
     showRightClickMenu : false,
-
     rightClickedTodoId : null,
-
     rightClickMenuX : 0,
-
     rightClickMenuY : 0,
-    
     projects:[],
-
     areas:[],  
-
     clone : false,
-
     todos:[], 
- 
     tags:[...defaultTags]
 };    
     
@@ -204,7 +189,7 @@ let reducer = (reducers) => (state:Store, action) => {
             action.load.projects, 
             action.load.areas
        ]); 
-          
+
        return {...action.load,todos,projects,areas}; 
     }
  
@@ -212,22 +197,16 @@ let reducer = (reducers) => (state:Store, action) => {
     
         newState = reducers[i](state, action);
 
-        if(newState)
-           return newState; 
+        if(newState){
+           return newState
+        }
     } 
   
     return state; 
-};
+} 
  
-
-
-let applicationReducer = reducer([
-    applicationStateReducer,
-    applicationObjectsReducer
-]); 
+let applicationReducer = reducer([applicationStateReducer, applicationObjectsReducer]); 
   
-
- 
 export let store = createStore(applicationReducer, defaultStoreItems); 
   
 

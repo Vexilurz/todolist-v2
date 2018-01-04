@@ -48,25 +48,21 @@ export class Listeners{
                     let width = clonedWindowWidth*(workingArea.width/100);  
                     let height = clonedWindowHeight*(workingArea.height/100); 
  
-
                     let newWindow = initWindow({width, height, transparent:false}); 
                     
                     this.spawnedWindows.push(newWindow);
 
-                    this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed() );
+                    this.spawnedWindows = this.spawnedWindows.filter(w => !w.isDestroyed());
                     
-                    let storeWithId = {...store, ...{ windowId:newWindow.id }};
+                    let storeWithId = {...store, windowId:newWindow.id};
  
                     loadApp(newWindow)     
                     .then(() => {        
                         newWindow.webContents.send("loaded", {type:"clone",load:storeWithId}); 
                         newWindow.webContents.openDevTools();    
-                    });      
-
-                } 
-            }, 
-            
-            
+                    }); 
+                }   
+            },  
             {  
                 name : "reload", 
                 callback : (event, id:number) => { 
@@ -86,12 +82,9 @@ export class Listeners{
                             "loaded",
                             {type:"reload",load:browserWindow.id}
                         )
-                    );  
- 
+                    );   
                 }     
-            }, 
-
-
+            },  
             {
                 name : "action",
                 callback : (event, action : any, id : number) => {
@@ -106,32 +99,20 @@ export class Listeners{
                         if(windows[i].id===id)
                            continue;     
                         
-                        windows[i].webContents.send("action", {...action,...{kind:"external"}});
-
-                    }
-
-                }
+                        windows[i].webContents.send("action", {...action, kind:"external"});
+                    }  
+                } 
             }
-
-      ];    
+        ];    
       
-
-      this.startToListenOnAllChannels(); 
-
-
-    }; 
+        this.startToListenOnAllChannels(); 
+    } 
  
-
-
-
 
     registerListener(listener : RegisteredListener) : void{
 
         this.registeredListeners.push(listener);
-
-    };  
-
-
+    }  
 
 
     unregisterListener(name : string) : void{
@@ -144,21 +125,18 @@ export class Listeners{
         this.registeredListeners = remove(this.registeredListeners, idx); 
 
         ipcMain.removeAllListeners(name); 
-
-    }; 
+    } 
   
-
-
  
-    startToListenOnAllChannels = () => 
+    startToListenOnAllChannels = () => {
         this.registeredListeners.map(({name,callback}) => ipcMain.on(name, callback));  
+    }
     
-
-    stopToListenOnAllChannels = () => 
+ 
+    stopToListenOnAllChannels = () => {
         this.registeredListeners.map(({name,callback}) => ipcMain.removeAllListeners(name));  
-    
-
-};         
+    }
+}         
 
 
 

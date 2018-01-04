@@ -21,9 +21,9 @@ module.exports = {
     module: {
         rules: [ 
           {   
-            test: /\.(css|scss)$/,   
-            use: [ 'style-loader', 'css-loader']
-          },  
+            test:/\.(css|scss)$/,   
+            use:[ 'style-loader', 'css-loader']
+          },   
           {  
             test:/\.(ts|tsx)?$/,  
             exclude: path.resolve(__dirname,'node_modules'), 
@@ -31,15 +31,21 @@ module.exports = {
           },     
           {     
             test:/\.js$/,       
-            exclude: path.resolve(__dirname,'node_modules'), 
-            loader: 'babel-loader', 
-            query: {presets: ['es2015']}  
+            exclude:path.resolve(__dirname,'node_modules'), 
+            loader:'babel-loader', 
+            query:{presets: ['es2015']}  
           }    
         ]    
     },
   
     devtool: 'sourcemap', 
- 
+
+    plugins:[ 
+        new webpack.DefinePlugin({
+          'process.env':{'NODE_ENV':JSON.stringify('development')} 
+        }), 
+    ], 
+
     target: "electron",      
  
     node: { 

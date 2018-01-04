@@ -8,9 +8,9 @@ import {
 } from './database';
 import { 
     getTagsFromItems, defaultTags, removeDeletedProjects, 
-    removeDeletedAreas, removeDeletedTodos, Item, ItemWithPriority 
+    removeDeletedAreas, removeDeletedTodos, Item, ItemWithPriority, byNotDeleted 
 } from './utils';
-import { adjust, cond, equals, all, clone, isEmpty } from 'ramda';
+import { adjust, cond, equals, all, clone, isEmpty, contains, not } from 'ramda';
 
 
 
@@ -18,25 +18,22 @@ let onError = (e) => {
     console.log(e); 
 }
 
-let priorityChanged = (before : ItemWithPriority[], after : ItemWithPriority[]) : boolean => {
-    
-    for(let i=0; i<before.length; i++){
-        if(before[i].priority!==after[i].priority)
-           return true; 
-        else 
-           continue;     
-    }
- 
-    return false; 
-}
  
 
 export let applicationObjectsReducer = (state:Store, action) : Store => { 
 
     let newState : Store = undefined;
+    let shouldAffectDatabase : boolean = action.kind!=="external";
+    let shouldUpdateOtherInstances : boolean = action.kind!=="external";
 
-    newState = cond([
-        [
+    console.log(`applicationObjectsReducer ${JSON.stringify(action)}`);
+    console.log(`shouldAffectDatabase ${shouldAffectDatabase}`);
+    console.log(`shouldUpdateOtherInstances ${shouldUpdateOtherInstances}`);
+    
+
+             
+    newState = cond([  
+        [ 
             (action:{type:string}) : boolean => "setAllTypes"===action.type,  
 
             (action:{
@@ -59,23 +56,34 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
         ], 
 
         [
-            (action:{type:string}) : boolean => "removeDeleted"===action.type, 
+            (action:{type:string, kind:string}) : boolean => "removeDeleted"===action.type, 
 
-            (action:{type:string}) : Store => {
-                let todos = removeDeletedTodos(state.todos);
-                let projects = removeDeletedProjects(state.projects);
-                let areas = removeDeletedAreas(state.areas);
+            (action:{type:string, kind:string}) : Store => {
 
+                let todos;
+                let projects;
+                let areas;
+ 
+                if(shouldAffectDatabase){
+                    todos = removeDeletedTodos(state.todos);
+                    projects = removeDeletedProjects(state.projects);
+                    areas = removeDeletedAreas(state.areas); 
+                }else{
+                    todos = state.todos.filter(byNotDeleted);
+                    projects = state.projects.filter(byNotDeleted); 
+                    areas = state.areas.filter(byNotDeleted); 
+                }
+ 
                 return {  
                     ...state,
                     todos,
                     projects,
                     areas,
-                    tags :  [ 
-                        ...defaultTags,
-                        ...getTagsFromItems([...todos, ...projects, ...areas])
+                    tags:[ 
+                      ...defaultTags,
+                      ...getTagsFromItems([...todos, ...projects, ...areas])
                     ]
-                }
+                } 
             }
         ], 
 
@@ -85,10 +93,13 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
             (action:{type:string, load:Todo}) : Store => {
 
                 
-                if(action.load.type!=="todo")
+                if(action.load.type!=="todo"){
                    throw new Error(`Load is not of type Todo. ${JSON.stringify(action.load)} addTodo. objectsReducer.`);
- 
-                addTodo(onError, action.load);
+                }    
+
+                if(shouldAffectDatabase){     
+                   addTodo(onError, action.load)
+                }
 
                 return {
                     ...state, 
@@ -103,11 +114,14 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
             (action:{type:string, load:Project}) : Store => {
                 
-                if(action.load.type!=="project")
+                if(action.load.type!=="project"){
                    throw new Error(`Load is not of type Project. ${JSON.stringify(action.load)} addProject. objectsReducer.`);
- 
-                addProject(onError,action.load);
+                }
 
+                if(shouldAffectDatabase){   
+                   addProject(onError,action.load)
+                }
+ 
                 return {
                     ...state,  
                     projects:[action.load,...state.projects]
@@ -121,11 +135,14 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
             (action:{type:string, load:Area}) : Store => {
                 
-                if(action.load.type!=="area")
+                if(action.load.type!=="area"){ 
                    throw new Error(`Load is not of type Area. ${JSON.stringify(action.load)} addArea. objectsReducer.`);
- 
-                addArea(onError,action.load);
+                }    
 
+                if(shouldAffectDatabase){   
+                   addArea(onError,action.load)
+                } 
+ 
                 return {
                     ...state,  
                     areas:[action.load,...state.areas]
@@ -141,22 +158,24 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
                 let idx = state.projects.findIndex( (p:Project) => p._id===action.load.projectId );
 
-                if(idx===-1) 
-                   throw new Error("Attempt to update non existing object. attachTodoToProject. objectsReducer.");   
+                if(idx===-1){ 
+                   throw new Error("Attempt to update non existing object. attachTodoToProject. objectsReducer.");  
+                }   
     
                 let project : Project = {...state.projects[idx]};  
                 project.layout = [action.load.todoId, ...project.layout];
     
-                updateProject(project._id,project,onError);
+                if(shouldAffectDatabase){
+                   updateProject(project._id,project,onError);
+                }
 
                 return {
                     ...state,
                     projects:adjust(() => project, idx, state.projects)
                 }
-
             }
         ],
-
+ 
         [
             (action:{type:string}) => "attachTodoToArea"===action.type,
 
@@ -164,13 +183,16 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
                 let idx = state.areas.findIndex( (a:Area) => a._id===action.load.areaId );
 
-                if(idx===-1) 
-                   throw new Error("Attempt to update non existing object. attachTodoToArea. objectsReducer.");  
+                if(idx===-1){ 
+                   throw new Error("Attempt to update non existing object. attachTodoToArea. objectsReducer."); 
+                } 
     
                 let area = {...state.areas[idx]};
                 area.attachedTodosIds = [action.load.todoId, ...area.attachedTodosIds];
     
-                updateArea(area._id,area,onError);
+                if(shouldAffectDatabase){
+                   updateArea(area._id,area,onError);
+                }
 
                 return {     
                     ...state,  
@@ -187,7 +209,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                     dragged:action.load
                 }
             }
-        ],
+        ], 
 
         [ 
             (action:{type:string}) => "updateTodo"===action.type,
@@ -199,7 +221,9 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 if(idx===-1 && !isEmpty(action.load.title)){  
                     let todo = {...action.load, _id:generateId()};
 
-                    addTodo(onError, todo); 
+                    if(shouldAffectDatabase){
+                       addTodo(onError, todo)
+                    } 
 
                     if(todo.category==="project"){
 
@@ -210,7 +234,9 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                         let project : Project = {...state.projects[idx]};     
                         project.layout = [todo._id, ...project.layout];
 
-                        updateProject(project._id,project,onError);
+                        if(shouldAffectDatabase){
+                           updateProject(project._id,project,onError)
+                        }
 
                         return { 
                             ...state,
@@ -230,10 +256,12 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                       Load is not of type Todo. ${JSON.stringify(action.load)} 
                       updateTodo. objectsReducer.
                    `);
-                }  
-  
-                updateTodo(action.load._id, action.load, onError);
-    
+                }
+                
+                if(shouldAffectDatabase){
+                   updateTodo(action.load._id, action.load, onError)
+                }
+                 
                 return { 
                     ...state, 
                     todos:adjust(() => action.load, idx, state.todos)
@@ -248,14 +276,18 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
                 let idx = state.projects.findIndex((p:Project) => action.load._id===p._id);
                 
-                if(idx===-1)
+                if(idx===-1){
                    throw new Error("Attempt to update non existing object. updateProject. objectsReducer.");
-    
-                if(action.load.type!=="project")
+                }
+                      
+                if(action.load.type!=="project"){
                    throw new Error(`Load is not of type Project. ${JSON.stringify(action.load)} updateProject. objectsReducer.`);
- 
-                updateProject(action.load._id, action.load, onError);   
-    
+                }
+                
+                if(shouldAffectDatabase){
+                   updateProject(action.load._id, action.load, onError);   
+                }
+                 
                 return { 
                     ...state, 
                     projects:adjust(() => action.load, idx, state.projects)
@@ -270,15 +302,19 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
                 let idx = state.areas.findIndex((a:Area) => action.load._id===a._id);
                 
-                if(idx===-1) 
+                if(idx===-1){ 
                    throw new Error("Attempt to update non existing object. updateArea. objectsReducer.");
-         
-                if(action.load.type!=="area")  
+                }
+
+                if(action.load.type!=="area"){  
                    throw new Error(`Load is not of type Area. ${JSON.stringify(action.load)} updateArea. objectsReducer.`);
-    
-                updateArea(action.load._id, action.load, onError);
-        
-                return { 
+                }
+
+                if(shouldAffectDatabase){   
+                   updateArea(action.load._id, action.load, onError)
+                }
+
+                return {   
                     ...state, 
                     areas:adjust(() => action.load, idx, state.areas)
                 };  
@@ -291,17 +327,16 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
  
             (action:{type:string, load:Todo[]}) : Store => {
 
-                let changed = action.load.map( (t:Todo) => t._id );
-                let fixed = state.todos.filter( (t:Todo) => changed.indexOf(t._id)===-1 )  
-     
-                updateTodos(action.load,onError);
-    
-                return {    
-                    ...state,  
-                    todos:[...fixed,...action.load] 
-                };
+                let changed : string[] = action.load.map( (t:Todo) => t._id );
+                let fixed : Todo[] = state.todos.filter( (t:Todo) => not(contains(t._id)(changed)) )  
+                let todos = [...fixed,...action.load];
 
-            }
+                if(shouldAffectDatabase){ 
+                   updateTodos(action.load,onError)
+                }
+    
+                return {...state, todos};
+            } 
         ],
 
         [ 
@@ -311,8 +346,10 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
  
                 let changed = action.load.map( (p:Project) => p._id );
                 let fixed = state.projects.filter( (p:Project) => changed.indexOf(p._id)===-1 );  
-     
-                updateProjects(action.load,onError);
+                
+                if(shouldAffectDatabase){
+                   updateProjects(action.load,onError)
+                }
     
                 return {    
                     ...state,  
@@ -330,7 +367,9 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 let changed = action.load.map( (a:Area) => a._id );
                 let fixed = state.areas.filter( (a:Area) => changed.indexOf(a._id)===-1 )  
     
-                updateAreas(action.load,onError);
+                if(shouldAffectDatabase){
+                   updateAreas(action.load,onError)
+                } 
     
                 return {     
                     ...state,  
@@ -345,8 +384,10 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
  
             (action:{type:string, load:Todo[]}) : Store => {
  
-                addTodos(onError, action.load);
-                 
+                if(shouldAffectDatabase){ 
+                   addTodos(onError,action.load)
+                } 
+                   
                 return {
                     ...state,  
                     todos:[...action.load,...state.todos]
@@ -360,7 +401,9 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
  
             (action:{type:string, load:Project[]}) : Store => {
  
-                addProjects(onError, action.load);
+                if(shouldAffectDatabase){
+                   addProjects(onError, action.load);
+                }
                 
                 return {
                     ...state,  
@@ -375,7 +418,9 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
  
             (action:{type:string, load:Area[]}) : Store => {
 
-                addAreas(onError, action.load);
+                if(shouldAffectDatabase){
+                   addAreas(onError, action.load);
+                }
                 
                 return {
                     ...state,   
@@ -383,25 +428,15 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 }; 
 
             }
-        ],
+        ], 
 
     ])(action);
 
-
-
-    if(newState){ 
-
-       if(action.kind!=="external"){ 
-
-          ipcRenderer.send("action", action, state.windowId); 
-           
-       }
-     
-    }   
- 
-
     
 
+    if(newState && shouldUpdateOtherInstances){ 
+       ipcRenderer.send("action", action, state.windowId) 
+    }    
+ 
     return newState; 
-   
 }     
