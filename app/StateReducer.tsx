@@ -7,6 +7,14 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
        let newState = undefined;
    
        switch(action.type){ 
+            
+            case "openTodoInputPopup": 
+                newState = { 
+                    ...state, 
+                    openTodoInputPopup:action.load 
+                }; 
+                break; 
+
            case "searched": 
                 newState = {
                     ...state, 

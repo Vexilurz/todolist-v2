@@ -1004,9 +1004,9 @@ export let addDays = (date:Date, days:number) => {
  
 
 
-export let daysLeftMark = (hide:boolean, deadline:Date, showFlag:boolean)  => {
+export let daysLeftMark = (hide:boolean, deadline:Date, showFlag:boolean, fontSize=13)  => {
  
-    if(hide)  
+    if(hide)   
        return null; 
      
     if(isNil(deadline))
@@ -1023,7 +1023,7 @@ export let daysLeftMark = (hide:boolean, deadline:Date, showFlag:boolean)  => {
         display: "flex",
         alignItems: "center",
         color:flagColor,
-        fontSize:"13px", 
+        fontSize:`${fontSize}px`, 
         whiteSpace:"nowrap", 
         fontWeight:"600",  
         textAlign: "center"

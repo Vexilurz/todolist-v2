@@ -89,6 +89,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
             style={{
                 backgroundColor:"rgba(0,0,0,0)",
                 background:"rgba(0,0,0,0)",  
+                zIndex:40005,
                 borderRadius:"20px",  
                 transform:`scale(0.8,0.8)` 
             }}   
@@ -535,6 +536,7 @@ export class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCa
             style={{
                 backgroundColor:"rgba(0,0,0,0)",
                 background:"rgba(0,0,0,0)",  
+                zIndex:40005, 
                 borderRadius:"20px",  
                 transform:`scale(0.8,0.8)`
             }}   

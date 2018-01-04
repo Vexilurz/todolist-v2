@@ -283,7 +283,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 
         return null;
     }   
-
+ 
 
 
     isDetached = (index, layout) : boolean => {
@@ -326,7 +326,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     onSortMove = (e, helper : HTMLElement) => {} 
 
-    onSortEnd = ({oldIndex, newIndex, collection}, e) : void => { 
+    onSortEnd = ({oldIndex, newIndex, collection}, e) : void => {  
         if(oldIndex===newIndex || isEmpty(this.state.layout))
            return;  
 
@@ -336,27 +336,20 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let closestArea : Area = this.findClosestArea(newIndex, listAfter);
         let detachedBefore = this.isDetached(oldIndex, this.state.layout);
         let detachedAfter = this.isDetached(newIndex, listAfter);
-         
+           
         if(detachedBefore && !detachedAfter){ 
 
             attachToArea(this.props.dispatch, closestArea, selectedProject);
         }else if(!detachedBefore && detachedAfter){
 
             removeFromArea(this.props.dispatch, fromArea, selectedProject); 
-        }else if(detachedBefore && detachedAfter){
- 
-            changeProjectsOrder(this.props.dispatch,listAfter); 
-        }else if(!detachedBefore && !detachedAfter){
- 
-            if(fromArea._id!==closestArea._id){
+        }else if(!detachedBefore && !detachedAfter && fromArea._id!==closestArea._id){
 
-                this.moveToClosestArea(fromArea, closestArea, selectedProject);  
-            }else if(fromArea._id===closestArea._id){
-
-                changeProjectsOrder(this.props.dispatch,listAfter);
-            }
+            this.moveToClosestArea(fromArea, closestArea, selectedProject);
         } 
-    }
+        
+        changeProjectsOrder(this.props.dispatch,listAfter);
+    } 
       
       
     render(){ 

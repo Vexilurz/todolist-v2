@@ -52,148 +52,95 @@ import AutosizeInput from 'react-input-autosize';
 import { isString } from 'util';
 import { Store } from '../../app';
 import { TodoInput, Checkbox } from './TodoInput';
-
+import Inbox from 'material-ui/svg-icons/content/inbox';
  
 
 
-interface TodoInputPopupProps extends Store{
-     
-} 
+interface TodoInputPopupProps extends Store{} 
  
-interface TodoInputPopupState{}
+interface TodoInputPopupState{
+    ctrlPressed:boolean
+}
 
 @connect((store,props) => store, attachDispatchToProps) 
 export class TodoInputPopup extends Component<TodoInputPopupProps,TodoInputPopupState>{
 
+    ref:HTMLElement; 
+
+    constructor(props){
+       super(props);
+       this.state = {
+          ctrlPressed:false
+       }
+    } 
+    
+    componentDidMount(){
+        window.addEventListener("keydown", this.onCtrlXPress);
+        window.addEventListener("keydown", this.onCtrlDown);
+        window.addEventListener("keyup", this.onCtrlUp);
+    };  
+          
+
+    componentWillUnmount(){
+        window.removeEventListener("keydown", this.onCtrlXPress);
+        window.removeEventListener("keydown", this.onCtrlDown); 
+        window.removeEventListener("keyup", this.onCtrlUp); 
+    };  
+
+
+    onCtrlDown = (e) => e.keyCode == 17 ? this.setState({ctrlPressed:true}) : null;
+
+
+    onCtrlUp = (e) => e.keyCode == 17 ? this.setState({ctrlPressed:false}) : null;
+    
+
+    onCtrlXPress = (e) => { 
+        if(e.keyCode === 88){
+            if(this.state.ctrlPressed){  
+               this.props.dispatch({type:"openTodoInputPopup", load:!this.props.openTodoInputPopup});
+            }
+        }  
+    }
+
+     
     render(){
-        let empty = generateEmptyTodo("emptyTodo","inbox",0);
 
         return <Popover 
             useLayerForClickAway={false} 
-            open={true}
+            open={this.props.openTodoInputPopup}
             anchorEl={document.body}
-            style={{
-              backgroundColor:"rgba(0,0,0,0)",
-              background:"rgba(0,0,0,0)",  
-              borderRadius:"20px"
+            style={{  
+                backgroundColor:"rgba(0,0,0,0)",
+                background:"rgba(0,0,0,0)",  
+                borderRadius:"20px",
+                zIndex:40000 
             }}     
-            onRequestClose={() => {}}
+            onRequestClose={() => this.props.dispatch({type:"openTodoInputPopup", load:false})}
             anchorOrigin={{vertical:"center", horizontal:"middle"}} 
             targetOrigin={{vertical:"center", horizontal:"middle"}} 
+            zDepth={5}    
         >   
             <div style={{
-                display:"flex", 
+                display:"flex",  
                 alignItems:"center", 
                 justifyContent:"center", 
                 flexDirection:"column"
             }}>  
                 <div style={{  
                     minWidth:`${window.innerWidth/2}px`, 
-                    backgroundColor: "white"
+                    backgroundColor: "white" 
                 }}> 
                     <AlwaysOpenedTodoInput
-                        id={empty._id}
                         dispatch={this.props.dispatch}  
-                        selectedCategory={"inbox"} 
-                        selectedTodoId={this.props.selectedTodoId}
-                        tags={this.props.tags} 
-                        rootRef={document.body}   
-                        todo={empty} 
+                        tags={this.props.tags}  
                     /> 
                 </div>  
-                 
-                <div style={{
-                    backgroundColor:"rgb(234, 235, 239)",
-                    display:"flex",
-                    justifyContent:"space-between",
-                    width:"100%"
-                }}>   
-                    <div>Inbox</div>  
-                        <div style={{  
-                            display:"flex",  
-                            alignItems: "center", 
-                            justifyContent: "flex-end",
-                            padding: "5px" 
-                        }}>
-                            <div style={{padding:"2px"}}>
-                                <div    
-                                    onClick={() => {}} 
-                                    style={{       
-                                        width:"90px",
-                                        display:"flex",
-                                        alignItems:"center",
-                                        cursor:"pointer", 
-                                        justifyContent:"center",
-                                        borderRadius:"5px",
-                                        height:"25px",   
-                                        backgroundColor:"rgba(179,182,189,1)"  
-                                    }}  
-                                > 
-                                    <div style={{color:"white", fontSize:"16px"}}>      
-                                        Cancel 
-                                    </div>  
-                                </div>   
-                            </div> 
-                            <div style={{padding:"2px"}}>
-                                <div     
-                                    onClick={() => {}}
-                                    style={{     
-                                        width:"90px",
-                                        display:"flex",
-                                        alignItems:"center",
-                                        cursor:"pointer",
-                                        justifyContent:"center",
-                                        borderRadius:"5px",
-                                        height:"25px",  
-                                        backgroundColor:"rgba(81, 144, 247, 1)"  
-                                    }}
-                                >  
-                                    <div style={{color:"white", fontSize:"16px"}}>  
-                                        Save
-                                    </div>   
-                                </div> 
-                            </div>
-                        </div>
-                </div>
-
             </div>    
         </Popover>
     }
 
 } 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ 
 
 interface AlwaysOpenedTodoInputState{
     category : Category,
@@ -219,12 +166,7 @@ interface AlwaysOpenedTodoInputState{
     
 interface  AlwaysOpenedTodoInputProps{ 
     dispatch : Function,  
-    selectedCategory : Category,
-    selectedTodoId : string, 
-    tags : string[],  
-    todo : Todo,  
-    rootRef : HTMLElement,  
-    id : string
+    tags : string[]
 }    
   
    
@@ -235,66 +177,55 @@ class  AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,Always
     tags:HTMLElement;
     ref:HTMLElement; 
     inputRef:HTMLElement; 
- 
+    
     constructor(props){
 
         super(props);  
 
-        let {
-            category, 
-            title,  
-            note, 
-            checked,
-            completed,
-            reminder,
-            deadline,
-            deleted,
-            attachedDate, 
-            attachedTags, 
-            checklist 
-        } = this.props.todo;
-
         this.state={   
             tag : '',
-            category, 
-            title,
-            note,  
-            checked, 
-            completed,
-            reminder, 
-            deadline, 
-            deleted, 
-            attachedDate, 
-            attachedTags, 
-            checklist,
-            
+            category : 'inbox', 
+            title : '',
+            note : '',  
+            checked : false, 
+            completed : undefined,
+            reminder : undefined, 
+            deadline : undefined, 
+            deleted : undefined, 
+            attachedDate : undefined, 
+            attachedTags : [], 
+            checklist : [], 
             showAdditionalTags : false, 
             showDateCalendar : false,  
             showTagsSelection : false, 
-            showChecklist : checklist.length>0,  
+            showChecklist : false,  
             showDeadlineCalendar : false
         }       
     }
 
-    addTodo = () => {
-        let todo : Todo = this.todoFromState();  
-        
-        if(todoChanged(this.props.todo,todo)){
-            if(isEmpty(todo.title) && !isEmpty(this.props.todo.title)){
-               this.props.dispatch({type:"updateTodo", load:{...this.props.todo, deleted:new Date()}});  
-            }else if(!isEmpty(todo.title)){ 
-               this.props.dispatch({type:"updateTodo", load:todo});  
-            }   
-        }
-    } 
- 
 
     componentDidMount(){  
-        if(this.inputRef)
+        if(this.inputRef){
            this.inputRef.focus();  
-    }   
-     
+        }
+    }    
+
+
+    closeParentContainer = () => this.props.dispatch({type:"openTodoInputPopup", load:false}); 
+
+
+    onSave = () => {
+        let todo : Todo = this.todoFromState();  
+        if(!isEmpty(todo.title)){ 
+            this.props.dispatch({type:"updateTodo", load:todo});  
+        }   
+        this.closeParentContainer();
+    } 
     
+
+    onCancel = () => this.closeParentContainer();
+
+
     stateFromTodo = (state,todo:Todo) => ({   
         ...state,
         category:todo.category, 
@@ -311,53 +242,48 @@ class  AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,Always
     }) 
 
 
-
     todoFromState = () : Todo => ({
-        _id : this.props.todo._id,
+        _id : generateId(),
         category : this.state.category, 
         type : "todo",
         title : this.state.title,
-        priority : this.props.todo.priority,
+        priority : 0,
         note : this.state.note,  
         checklist : this.state.checklist,
         reminder : this.state.reminder,  
-        deadline : this.state.deadline,
-        created : this.props.todo.created,
+        deadline : this.state.deadline, 
+        created : new Date(),
         deleted : this.state.deleted, 
         attachedDate : this.state.attachedDate,  
         attachedTags : this.state.attachedTags, 
         completed : this.state.completed, 
         checked : this.state.checked
     }) 
+    
 
-
-
-    onAttachTag = (tag) => {
+    onAttachTag = (tag) => { 
         if(tag.length===0) 
            return;
- 
         this.setState({tag:'', attachedTags:uniq([...this.state.attachedTags, tag])});
-    } 
+    }  
 
+    
     onNoteChange = (event,newValue:string) : void => this.setState({note:newValue});
 
     onTitleChange = (event) : void => this.setState({title:event.target.value});
 
-    onCheckBoxClick = () => {} 
+    onCheckBoxClick = () => {  
+        let checked : boolean = !this.state.checked; 
+        this.setState({checked:checked, completed:checked ? new Date() : null});
+    } 
 
     onRemoveSelectedCategoryLabel = () => {
-        if(
-            this.props.selectedCategory!==this.state.category &&
-            (this.state.category==="today" || this.state.category==="evening")
-        ){
-            this.setState({category:this.props.selectedCategory,attachedDate:null});   
-        }else if( 
-            this.props.selectedCategory!==this.state.category &&
-            this.state.category==="someday"
-        ){
-            this.setState({category:this.props.selectedCategory});    
+        if(this.state.category==="today" || this.state.category==="evening"){
+            this.setState({category:'inbox',attachedDate:null});   
+        }else if(this.state.category==="someday"){
+            this.setState({category:'inbox'});    
         }
-    }   
+    }    
 
     onChecklistButtonClick = (e) => this.setState({showChecklist:true}) 
       
@@ -383,12 +309,10 @@ class  AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,Always
     onRemoveAttachedDateLabel = () => {
         if(
             daysRemaining(this.state.attachedDate)===0 &&  
-            (this.state.category==="today" || this.state.category==="evening") &&
-            this.props.selectedCategory!=="today" &&
-            this.props.selectedCategory!=="evening"
-        ){
-            this.setState({attachedDate:null, category:this.props.selectedCategory});
-        }else{
+            (this.state.category==="today" || this.state.category==="evening") 
+        ){ 
+            this.setState({attachedDate:null, category:'inbox'}); 
+        }else{ 
             this.setState({attachedDate:null});  
         }
     }
@@ -401,7 +325,7 @@ class  AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,Always
     }
 
     onCalendarClear = (e) => this.setState({  
-        category:this.props.todo.category as Category,
+        category:'inbox',
         attachedDate:null, 
         reminder:null 
     })
@@ -415,20 +339,18 @@ class  AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,Always
     onCalendarThisEveningClick = (e) => this.setState({category:"evening", attachedDate:new Date()}) 
 
     onCalendarAddReminderClick = (reminder:Date) : void => this.setState({reminder, attachedDate:reminder})
-
     
-
     render(){  
-        return  <div   
-            id={this.props.id}   
+        return  <div    
             style={{    
                 width:"100%",         
                 display:"flex",    
                 position:"relative", 
-                alignItems:"center",   
+                alignItems:"center", 
+                flexDirection:"column",   
                 justifyContent:"center"
             }}   
-        >    
+        >     
         <div    
             onClick={(e) => {e.stopPropagation();}}
             ref={(e) => { this.ref=e; }} 
@@ -510,7 +432,7 @@ class  AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,Always
                             paddingRight:"25px"  
                         }}>       
                             <TextField  
-                                id={ `${this.props.todo._id}note` }
+                                id={ `always-note` }
                                 value={this.state.note} 
                                 hintText="Notes"
                                 fullWidth={true}  
@@ -537,16 +459,11 @@ class  AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,Always
                                 !this.state.showChecklist ? null : 
                                 <div> 
                                     <Checklist 
-                                        checklist={this.state.checklist}  
-                                        updateChecklist={
-                                            (checklist:ChecklistItem[]) => this.setState(
-                                                {checklist}, 
-                                                () => this.addTodo()
-                                            )   
-                                        } 
+                                     checklist={this.state.checklist}  
+                                     updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})} 
                                     /> 
-                                </div>
-                            }  
+                                </div> 
+                            }   
                             {  
                                 this.state.attachedTags.length===0 ? null :
                                 <TodoTags tags={this.state.attachedTags}/>
@@ -637,7 +554,7 @@ class  AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,Always
                     origin = {{vertical: "center", horizontal: "right"}} 
                     point = {{vertical: "center", horizontal: "right"}}  
                     anchorEl={this.calendar}
-                    rootRef = {this.props.rootRef}
+                    rootRef = {document.body}
                     reminder={this.state.reminder} 
                     attachedDate={this.state.attachedDate}
                     onDayClick = {this.onCalendarDayClick}
@@ -646,9 +563,9 @@ class  AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,Always
                     onThisEveningClick = {this.onCalendarThisEveningClick}
                     onAddReminderClick = {this.onCalendarAddReminderClick}
                     onClear = {this.onCalendarClear}
-                /> 
+                />  
 
-                <TagsPopup  
+                <TagsPopup   
                     tags = {this.props.tags}
                     attachTag = {this.onAttachTag}
                     close = {this.closeTagsSelection}
@@ -656,10 +573,10 @@ class  AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,Always
                     anchorEl = {this.tags} 
                     origin = {{vertical: "center", horizontal: "right"}} 
                     point = {{vertical: "center", horizontal: "right"}}
-                    rootRef = {this.props.rootRef}
+                    rootRef = {document.body} 
                 />
 
-                <DeadlineCalendar  
+                <DeadlineCalendar   
                     close={this.closeDeadlineCalendar}
                     onDayClick={this.onDeadlineCalendarDayClick}
                     open={this.state.showDeadlineCalendar}
@@ -667,9 +584,8 @@ class  AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,Always
                     point = {{vertical: "center", horizontal: "right"}} 
                     anchorEl = {this.deadline}
                     onClear={this.onDeadlineCalendarClear}
-                    rootRef = {this.props.rootRef}
+                    rootRef = {document.body}
                 />
-
             {     
                 <div ref={(e) => { this.calendar=e; }}>  
                     <IconButton 
@@ -735,7 +651,84 @@ class  AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,Always
             </div>   
         }     
         </div>
+            <div style={{
+                backgroundColor:"rgb(234, 235, 239)",
+                display:"flex",
+                justifyContent:"space-between",
+                width:"100%"
+            }}>   
+                    <div style={{
+                        display:"flex",
+                        alignItems:"center",
+                        justifyContent:"center",
+                        width:"90px",
+                        fontSize:"14px",
+                        fontWeight:"bold",
+                        color:"rgba(100,100,100,1)",
+                        cursor:"default"   
+                    }}> 
+                        <div style={{
+                            paddingRight:"5px", 
+                            WebkitUserSelect:"none"
+                        }}>  
+                            Inbox
+                        </div>
+                        <Inbox   
+                            style={{
+                                width:"18px",
+                                height:"18px",
+                                color:"rgba(100,100,100,1)", 
+                                cursor:"default"
+                            }} 
+                        /> 
+                    </div>  
+                    <div style={{  
+                        display:"flex",  
+                        alignItems: "center", 
+                        justifyContent: "flex-end",
+                        padding: "5px" 
+                    }}>
+                        <div style={{padding:"2px"}}>
+                            <div    
+                                onClick={() => this.onCancel()} 
+                                style={{       
+                                    width:"90px",
+                                    display:"flex",
+                                    alignItems:"center",
+                                    cursor:"pointer", 
+                                    justifyContent:"center",
+                                    borderRadius:"5px",
+                                    height:"25px",   
+                                    backgroundColor:"rgba(179,182,189,1)"  
+                                }}  
+                            > 
+                                <div style={{color:"white", fontSize:"16px"}}>      
+                                    Cancel 
+                                </div>  
+                            </div>   
+                        </div> 
+                        <div style={{padding:"2px"}}>
+                            <div     
+                                onClick={() => this.onSave()}
+                                style={{     
+                                    width:"90px",
+                                    display:"flex",
+                                    alignItems:"center",
+                                    cursor:"pointer",
+                                    justifyContent:"center",
+                                    borderRadius:"5px",
+                                    height:"25px",  
+                                    backgroundColor:"rgba(81, 144, 247, 1)"  
+                                }}
+                            >  
+                                <div style={{color:"white", fontSize:"16px"}}>  
+                                    Save
+                                </div>   
+                            </div> 
+                        </div>
+                    </div>
+            </div>
         </div> 
     } 
-}   
+}    
   

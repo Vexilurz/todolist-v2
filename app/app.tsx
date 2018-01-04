@@ -114,6 +114,7 @@ export interface Store{
     openSearch : boolean, 
     searched : boolean, 
     selectedTag : string, 
+    openTodoInputPopup : boolean, 
     leftPanelWidth : number,
     currentleftPanelWidth : number,
     closeAllItems : any,
@@ -146,10 +147,12 @@ export let defaultStoreItems : Store = {
     selectedCategory : "inbox",
 
     openSearch : false, 
-
+    
     dragged : null, 
 
     selectedTodoId : null,
+
+    openTodoInputPopup : false, 
  
     selectedTag : "All",
 

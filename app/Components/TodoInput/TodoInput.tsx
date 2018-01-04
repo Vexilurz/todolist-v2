@@ -528,8 +528,29 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         this.props.dispatch({type:"updateTodo", load:{...todo,deleted:undefined}});                
         this.props.dispatch({type:"selectedTodoId", load:null}); 
     }
+
+
+    getRelatedProjectName = () : string => { 
+        let {todo, projects} = this.props;
+
+        let related : Project = projects.find(
+            (project:Project) : boolean => contains(todo._id, project.layout.filter(isString))
+        );
+
+        if(related){
+           return related.name; 
+        }else{ 
+           return undefined;  
+        }; 
+    } 
   
     render(){  
+
+        let relatedProjectName = this.getRelatedProjectName();
+        let padding = this.state.open ? "20px" :
+                      isNil(relatedProjectName) || this.props.selectedCategory==="project" ? "0px" : 
+                      "5px";  
+ 
         return  <div   
             id={this.props.id}   
             onKeyDown={this.onWindowEnterPress}
@@ -562,9 +583,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     paddingRight:"20px",   
                     transition: "max-height 0.2s ease-in-out", 
                     maxHeight:this.state.open ? "1000px" : "30px",
-                    paddingTop:this.state.open?"20px":"5px",
-                    paddingBottom:this.state.open?"20px":"5px",
-                    caretColor:"cornflowerblue",
+                    paddingTop:padding,
+                    paddingBottom:padding,
+                    caretColor:"cornflowerblue",  
                     display:"flex"
                 }}    
                 onClick={this.onFieldsContainerClick} 
@@ -624,8 +645,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                             {
                                 this.state.open ? null : 
                                 <RelatedProjectLabel 
-                                    todo={this.props.todo}
-                                    projects={this.props.projects}
+                                    name={relatedProjectName}
                                     selectedCategory={this.props.selectedCategory}
                                 />
                             }   
@@ -971,7 +991,7 @@ class DueDate extends Component<DueDateProps,any>{
                 }}>      
                     <div style={{paddingRight:"5px"}}>
                         {this.props.month.slice(0,3)+'.'}
-                    </div> 
+                    </div>  
                     <div>  
                         {this.props.day}
                     </div>
@@ -985,8 +1005,7 @@ class DueDate extends Component<DueDateProps,any>{
 
 
 interface RelatedProjectLabelProps{
-    todo:Todo,
-    projects:Project[],
+    name:string,
     selectedCategory:Category 
 } 
  
@@ -994,28 +1013,13 @@ interface RelatedProjectLabelState{}
 
 class RelatedProjectLabel extends Component<RelatedProjectLabelProps,RelatedProjectLabelState>{
 
-    getRelatedProjectName = () : string => { 
-        let {todo, projects} = this.props;
-
-        let related : Project = projects.find(
-            (project:Project) : boolean => contains(todo._id, project.layout.filter(isString))
-        );
-
-        if(related){
-           return related.name; 
-        }else{ 
-           return undefined;  
-        }; 
-    } 
- 
+    
     render(){
 
         if(this.props.selectedCategory==="project")
            return null;
 
-        let name = this.getRelatedProjectName();  
-        
-        if(isNil(name)){
+        if(isNil(this.props.name)){
            return null;
         }    
 
@@ -1027,7 +1031,7 @@ class RelatedProjectLabel extends Component<RelatedProjectLabelProps,RelatedProj
               color:"rgba(0,0,0,0.6)"
             }}   
         > 
-            {stringToLength(name,15)}
+            {stringToLength(this.props.name,15)}
         </div>   
     }
 }

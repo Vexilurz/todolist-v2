@@ -169,9 +169,9 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         };
         
 
-        this.props.dispatch({ type:"removeTodo", load:todo._id });
-        this.props.dispatch({ type:"addTodos", load:todos });
-        this.props.dispatch({ type:"addProject", load:converted });
+        this.props.dispatch({type:"removeTodo", load:todo._id});
+        this.props.dispatch({type:"addTodos", load:todos});
+        this.props.dispatch({type:"addProject", load:converted});
     }
  
       

@@ -85,6 +85,7 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
             return <Popover  
                 open={this.props.open}
                 style={{
+                    zIndex:40005,
                     background:"rgba(39, 43, 53, 0)", 
                     backgroundColor:"rgb(39, 43, 53, 0)"
                 }}

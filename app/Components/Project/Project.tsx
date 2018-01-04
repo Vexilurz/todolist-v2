@@ -53,19 +53,18 @@ interface ProjectComponentState{}
  
 export class ProjectComponent extends Component<ProjectComponentProps,ProjectComponentState>{
 
+
     constructor(props){
         super(props);
     }  
  
-    shouldComponentUpdate(nextProps:ProjectComponentProps, nextState:ProjectComponentState){
-        return true;
-    }
-  
+
     updateProject = (selectedProject:Project, updatedProps) : void => { 
         let type = "updateProject"; 
         let load = { ...selectedProject, ...updatedProps };
         this.props.dispatch({ type, load });
     } 
+
 
     updateProjectName = (selectedProject:Project) => debounce(
         (value:string) : void => {
@@ -73,6 +72,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         },
         50
     )
+
      
     updateProjectDescription = (selectedProject:Project) => debounce(
         (value:string) : void => {
@@ -80,6 +80,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         },
         50
     )
+
  
     updateHeading = (selectedProject:Project) => debounce(
         (heading_id:string, newValue:string) => { 
@@ -102,10 +103,12 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         },
         50
     ) 
+
     
     updateLayout = (selectedProject:Project) => (layout:LayoutItem[]) => {
         this.updateProject(selectedProject, {layout});
     }  
+
 
     removeHeading = (selectedProject:Project) => (heading_id:string) => {
         let layout = selectedProject.layout;
@@ -122,22 +125,25 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
  
         this.updateProject(selectedProject, {layout:remove(idx,1,layout)});
     }
+
     
     updateProjectDeadline = (selectedProject:Project) => (value:Date) => {
         this.updateProject(selectedProject, {deadline:value});
     }
+
 
     attachTagToProject = (selectedProject:Project) => (tag:string) => {
         let attachedTags = uniq([tag, ...selectedProject.attachedTags]);    
         this.updateProject(selectedProject, {attachedTags}); 
     } 
 
+
     archiveHeading = (selectedProject:Project) => (heading_id:string) => {
         this.removeHeading(selectedProject)(heading_id); 
     }
-        
+      
+    
     moveHeading = (heading_id:string) => {}
-
 
 
     selectItems = (layout:LayoutItem[], todos:Todo[]) : (Todo | Heading)[] => { 
@@ -163,8 +169,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             }
         }
         return items; 
-    }  
-    
+    }   
     
  
     render(){   

@@ -23,7 +23,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize'; 
 import { Todo, Project, Heading } from '../../database';
-import { uppercase, debounce, daysRemaining, dateDiffInDays, getTagsFromItems, byCategory, byNotCompleted, byNotDeleted } from '../../utils';
+import { uppercase, debounce, daysRemaining, dateDiffInDays, getTagsFromItems, byCategory, byNotCompleted, byNotDeleted, daysLeftMark, getMonthName } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
@@ -32,8 +32,7 @@ import { DeadlineCalendar } from '../ThingsCalendar';
 import { isNil, compose, allPass } from 'ramda';
 import { Tags } from '../Tags';
 import { TagsPopup } from '../TodoInput/TodoTags';
-
-
+let moment = require("moment");  
 
 interface ProjectHeaderProps{
     rootRef:HTMLElement, 
@@ -85,72 +84,27 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
 
     componentDidMount(){
 
-        if(this.projectMenuPopoverAnchor)
+        if(this.projectMenuPopoverAnchor){
            this.setState({projectMenuPopoverAnchor:this.projectMenuPopoverAnchor});
- 
+        }
     }
      
    
 
     componentWillReceiveProps(nextProps:ProjectHeaderProps, nextState:ProjectHeaderState){
 
-        if(this.props.name!==nextProps.name)
-           this.setState({name:nextProps.name});
+        if(this.props.name!==nextProps.name){
+           this.setState({name:nextProps.name})
+        }
 
-
-        if(this.props.description!==nextProps.description)
-           this.setState({description:nextProps.description});
+        if(this.props.description!==nextProps.description){
+           this.setState({description:nextProps.description})
+        }
            
- 
-        if(!this.state.projectMenuPopoverAnchor && !!this.projectMenuPopoverAnchor)
-            this.setState({projectMenuPopoverAnchor:this.projectMenuPopoverAnchor});
-  
+        if(!this.state.projectMenuPopoverAnchor && !!this.projectMenuPopoverAnchor){
+            this.setState({projectMenuPopoverAnchor:this.projectMenuPopoverAnchor})
+        }
     }    
-    
-      
- 
-    shouldComponentUpdate(nextProps:ProjectHeaderProps, nextState:ProjectHeaderState){
-
-        let should = false; 
- 
-        if(this.state.projectMenuPopoverAnchor!==nextState.projectMenuPopoverAnchor)
-            should = true;
-
-        if(this.state.showDeadlineCalendar!==nextState.showDeadlineCalendar)
-            should=true; 
-
-        if(this.state.showTagsPopup!==nextState.showTagsPopup)
-            should=true; 
-            
-        if(this.props.selectedTag!==nextProps.selectedTag)
-            should = true;
-        if(this.props.todos!==nextProps.todos)
-            should = true;     
- 
-
-        if(this.props.name!==nextProps.name)
-            should = true;
-        if(this.props.description!==nextProps.description)
-            should = true;   
-
-
-        if(this.state.name!==nextState.name)
-            should = true; 
-            
-        if(this.state.description!==nextState.description)
-            should = true;      
-
-        if(this.props.created!==nextProps.created)
-            should = true;
-        if(this.props.deadline!==nextProps.deadline)
-            should = true;
-        if(this.props.completed!==nextProps.completed)
-            should = true;
-  
-
-        return should;    
-    }
-    
     
 
     updateProjectName = (value : string) => {
@@ -316,7 +270,36 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         }} />
                 </div>   
             </div> 
-            <div style={{paddingTop:"10px"}}>                
+
+            {            
+                <div style={{
+                    paddingTop:'15px', 
+                    cursor:"default",
+                    WebkitUserSelect:"none", 
+                    display:"flex",  
+                    alignItems:"center",  
+                    height:"30px"
+                }}> 
+                    <div style={{paddingRight:"5px", paddingTop:"5px"}}> 
+                        <Flag   
+                            style={{   
+                                color:"black",   
+                                cursor:"default",  
+                                width:"20px",   
+                                height:"20px"
+                            }}
+                        />   
+                    </div>   
+                    <div style={{color:"black", fontSize:"15px", fontWeight:"bold", paddingRight:"20px"}}>
+                        {`Deadline: ${getMonthName(this.props.deadline).slice(0,3)}. ${this.props.deadline.getDay()+1}`} 
+                    </div>     
+                    <div>
+                        {daysLeftMark(false, this.props.deadline, false, 15)}
+                    </div>   
+                </div> 
+            }  
+
+            <div>                
                 <TextField      
                     id = {"project_notes"}  
                     hintText = "Notes"      
@@ -327,9 +310,9 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     onChange = {(event, newValue:string) => this.updateProjectDescription(newValue)} 
                     rows = {1}    
                     inputStyle = {{color:"rgba(100,100,100,0.7)", fontSize:"15px"}}   
-                    underlineFocusStyle = {{borderColor: "rgba(0,0,0,0)"}}    
-                    underlineStyle = {{borderColor: "rgba(0,0,0,0)"}}   
-                />  
+                    underlineFocusStyle = {{borderColor:"rgba(0,0,0,0)"}}    
+                    underlineStyle = {{borderColor:"rgba(0,0,0,0)"}}   
+                />   
             </div>
  
             <div style={{paddingTop:"20px", paddingBottom:"40px"}}>  

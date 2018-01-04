@@ -495,19 +495,20 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         
     render(){    
         let placeholderOffset = 0;
+        let placeholderHeight = 0;
 
         if(this.state.helper){
             let rect = this.state.helper.getBoundingClientRect();
             placeholderOffset = this.state.currentIndex*rect.height;
+            placeholderHeight = rect.height;
         }
-
 
         return <div style={{WebkitUserSelect:"none",position:"relative"}}>   
             <Placeholder   
-                offset={placeholderOffset}
-                height={40} 
+                offset={placeholderOffset} 
+                height={placeholderHeight}  
                 show={this.state.showPlaceholder}
-            /> 
+            />  
             <SortableList   
                 getElement={this.getTodoElement}
                 container={this.props.rootRef} 
