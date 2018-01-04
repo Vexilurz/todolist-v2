@@ -21,6 +21,7 @@ import { MainContainer, Category, convertDates } from './Components/MainContaine
 import { Project, Area, Todo, removeProject, generateId, addProject, removeArea, updateProject, addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, removeProjects, updateAreas, updateProjects, addTodos } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
+import { TodoInputPopup } from './Components/TodoInput/TodoInputPopup';
 injectTapEventPlugin(); 
       
 
@@ -77,19 +78,19 @@ export class App extends Component<any,any>{
                 zIndex:2001,  
             }}>  
                 <div style={{display:"flex", width:"inherit", height:"inherit"}}>  
- 
+                 
                     <LeftPanel {...{} as any}  /> 
 
                     <MainContainer {...{} as any} />  
  
                 </div> 
-            </div>         
-        );   
-
-    }            
-            
+ 
+                <TodoInputPopup {...{} as any} />
+            </div>          
+        );  
+    }        
 };            
-  
+   
  
 
 ipcRenderer.on( 
@@ -117,6 +118,7 @@ export interface Store{
     currentleftPanelWidth : number,
     closeAllItems : any,
     openRightClickMenu : any, 
+    dragged:string,
     selectedProjectId : string,
     selectedAreaId : string,
     showProjectMenuPopover : boolean,
@@ -134,7 +136,7 @@ export interface Store{
     dispatch?:Function
 } 
 
-  
+   
 
 export let defaultStoreItems : Store = {
     windowId:null, 
@@ -144,6 +146,8 @@ export let defaultStoreItems : Store = {
     selectedCategory : "inbox",
 
     openSearch : false, 
+
+    dragged : null, 
 
     selectedTodoId : null,
  

@@ -268,6 +268,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                         </div>   
                         <div>  
                             <LeftPanelMenu   
+                                dragged={this.props.dragged}
                                 dispatch={this.props.dispatch} 
                                 selectedCategory={this.props.selectedCategory}
                                 inbox={inbox} 
@@ -286,6 +287,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             }}
                         > 
                             <AreasList  
+                                dragged={this.props.dragged} 
                                 dispatch={this.props.dispatch}   
                                 areas={this.props.areas}
                                 selectedProjectId={this.props.selectedProjectId}

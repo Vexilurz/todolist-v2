@@ -26,7 +26,7 @@ let priorityChanged = (before : ItemWithPriority[], after : ItemWithPriority[]) 
         else 
            continue;     
     }
-
+ 
     return false; 
 }
  
@@ -178,6 +178,16 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 } 
             }
         ],  
+
+        [
+            (action:{type:string}) => "dragged"===action.type,
+            (action:{type:string,load:string}) : Store => {
+                return {  
+                    ...state,
+                    dragged:action.load
+                }
+            }
+        ],
 
         [ 
             (action:{type:string}) => "updateTodo"===action.type,

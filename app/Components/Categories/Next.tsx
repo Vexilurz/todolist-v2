@@ -207,6 +207,7 @@ export class Next extends Component<NextProps, NextState>{
                             key={emptyTodo._id}  
                             dispatch={this.props.dispatch}  
                             selectedCategory={"next"}  
+                            projects={this.props.projects} 
                             selectedTodoId={this.props.selectedTodoId}
                             tags={this.props.tags} 
                             searched={this.props.searched}

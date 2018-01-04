@@ -174,6 +174,7 @@ export class Trash extends Component<TrashProps,TrashState>{
                 <TodoInput   
                     id={value._id} 
                     key = {value._id} 
+                    projects={this.props.projects}   
                     selectedCategory={this.props.selectedCategory}
                     selectedTodoId={this.props.selectedTodoId} 
                     dispatch={this.props.dispatch}   

@@ -85,6 +85,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     selectedCategory={"inbox"} 
                     selectedTodoId={this.props.selectedTodoId}
                     tags={this.props.tags} 
+                    projects={this.props.projects}
                     rootRef={this.props.rootRef}  
                     todo={empty}
                     creation={true}

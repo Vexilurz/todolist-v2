@@ -115,6 +115,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         searched={this.props.searched}
                         selectedTodoId={this.props.selectedTodoId}
                         tags={this.props.tags} 
+                        projects={this.props.projects}  
                         rootRef={this.props.rootRef}  
                         todo={empty}
                         creation={true}

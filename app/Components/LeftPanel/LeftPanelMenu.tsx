@@ -32,6 +32,7 @@ import { Category } from '../MainContainer';
 interface LeftPanelMenuItemProps{
     onClick : (e) => void, 
     icon:JSX.Element,
+    dragged:string, 
     selected:boolean,
     category:Category, 
     title:string,
@@ -39,7 +40,7 @@ interface LeftPanelMenuItemProps{
     counter:number,
     hot?:number  
 }
-  
+   
  
 
 interface LeftPanelMenuItemState{
@@ -53,9 +54,34 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
     constructor(props){
         super(props);
         this.state = {highlight:false};
+    } 
+
+
+    onMouseOver = (e) => {
+        if(e.buttons == 1 || e.buttons == 3){
+            if(this.props.category==="upcoming")
+               return;
+ 
+            if(
+                this.props.dragged==="todo" ||
+                (
+                    this.props.dragged==="project" && 
+                    this.props.category==="trash"
+                ) 
+            ){ 
+                this.setState({highlight:true}); 
+            }
+        }   
     }
 
-    render(){ 
+
+    onMouseOut = (e) => {  
+        if(this.state.highlight)
+           this.setState({highlight:false});
+    }
+
+
+    render(){  
 
         let selectedStyle = { borderRadius: "5px", backgroundColor: "rgba(228,230,233,1)" };
         let style = {    
@@ -70,24 +96,16 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
             padding: "5px",  
             cursor: "pointer"  
         }; 
-        let selected = this.props.selected;  
-        //TODO change duplicate id in parent  
+        let selected = this.props.selected;   
         return <div  
-            onMouseOver={(e) => {
-              if(e.buttons == 1 || e.buttons == 3){
-                this.setState({highlight:true}); 
-              } 
-            }} 
-            onMouseOut={(e) => { 
-                this.setState({highlight:false});
-            }}  
+            onMouseOver={this.onMouseOver} 
+            onMouseOut={this.onMouseOut}  
             className={this.props.selected ? `` : `leftpanelmenuitem`}  
             onClick={this.props.onClick}  
             id={this.props.category}    
             style={selected ? merge(style,selectedStyle) : style}
         >     
-            <div 
-            id={this.props.category}  
+            <div  
             style={{         
                 display:"flex",
                 alignItems:"center", 
@@ -165,7 +183,7 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
                     </div>
                 }
                 </div> 
-            }
+            } 
         </div> 
         
         
@@ -184,6 +202,7 @@ export class Separator extends Component<{},{}>{
 
 
 interface LeftPanelMenuProps{
+    dragged:string, 
     dispatch:Function,
     selectedCategory:Category,
     inbox:number,
@@ -229,6 +248,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                     this.props.dispatch({type:"selectedCategory", load:"inbox"});
                     this.props.dispatch({type:"selectedTag", load:"All"});
                 }}
+                dragged={this.props.dragged}
                 icon={<Inbox style={{ color:"dodgerblue" }} />}
                 title={"Inbox"}
                 category={"inbox"}
@@ -244,6 +264,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                     this.props.dispatch({type:"selectedCategory", load:"today"});
                     this.props.dispatch({type:"selectedTag", load:"All"});
                 }} 
+                dragged={this.props.dragged}
                 icon={<Star style={{color:"gold"}}/>}
                 title={"Today"}
                 category={"today"}
@@ -258,6 +279,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                     this.props.dispatch({type:"selectedCategory", load:"next"});
                     this.props.dispatch({type:"selectedTag", load:"All"});
                 }} 
+                dragged={this.props.dragged}
                 icon={<Layers style={{color:"darkgreen"}}/>}
                 title={"Next"}
                 category={"next"}
@@ -271,6 +293,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                     this.props.dispatch({type:"selectedCategory", load:"upcoming"});
                     this.props.dispatch({type:"selectedTag", load:"All"}); 
                 }}
+                dragged={this.props.dragged}
                 category={"upcoming"}
                 icon={<Calendar style={{color:"crimson"}}/>}
                 selected={this.props.selectedCategory==="upcoming"}
@@ -284,6 +307,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                     this.props.dispatch({type:"selectedCategory", load:"someday"});
                     this.props.dispatch({type:"selectedTag", load:"All"}); 
                 }} 
+                dragged={this.props.dragged}
                 category={"someday"}
                 icon={<BusinessCase style={{color:"burlywood"}}/>}
                 title={"Someday"}
@@ -301,6 +325,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                         this.props.dispatch({type:"selectedCategory", load:"logbook"});
                         this.props.dispatch({type:"selectedTag", load:"All"});
                     }}   
+                    dragged={this.props.dragged}
                     icon={<Logbook style={{color:"limegreen"}}/>}
                     title={"Logbook"}
                     category={"logbook"}
@@ -316,6 +341,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                         this.props.dispatch({type:"selectedCategory", load:"trash"});
                         this.props.dispatch({type:"selectedTag", load:"All"});
                     }}  
+                    dragged={this.props.dragged}
                     icon={<Trash style={{color:"darkgray"}}/>}
                     title={"Trash"}  
                     category={"trash"}

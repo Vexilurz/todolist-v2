@@ -87,6 +87,7 @@ export let removeFromArea = (dispatch:Function, fromArea:Area, selectedProject:P
 
 interface AreasListProps{   
     dispatch:Function,
+    dragged:string, 
     selectedProjectId:string,
     selectedAreaId:string, 
     selectedCategory:Category, 
@@ -94,7 +95,9 @@ interface AreasListProps{
     projects:Project[]    
 }  
 
-interface AreasListState{}  
+interface AreasListState{
+    layout : (Project | Area | Separator)[]   
+} 
 
 interface Separator{ type:string }; 
  
@@ -104,11 +107,26 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 
     constructor(props){
-        
         super(props); 
+        this.state = {layout : []};
+    } 
+
+
+    init = (props:AreasListProps) => {
+        let {table,detached} = this.groupProjectsByArea(props);
+        let layout = this.generateLayout(props,{table,detached}); 
+        this.setState({layout}); 
     }
+ 
+    componentDidMount(){   
+        this.init(this.props);
+    } 
 
-
+    componentWillReceiveProps(nextProps:AreasListProps){
+        this.init(nextProps);  
+    }
+ 
+    
     groupProjectsByArea = (props:AreasListProps) : {
         table : { [key: string]: Project[]; }, 
         detached:Project[]  
@@ -197,6 +215,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         return <AreaElement 
             area={a}
             index={index} 
+            dragged={this.props.dragged}
             selectArea={this.selectArea}
             selectedAreaId={this.props.selectedAreaId}
             selectedCategory={this.props.selectedCategory}
@@ -208,6 +227,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         return <ProjectElement 
             project={p}
             index={index}
+            dragged={this.props.dragged} 
             selectProject={this.selectProject}
             selectedProjectId={this.props.selectedProjectId}
             selectedCategory={this.props.selectedCategory}
@@ -232,10 +252,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 return separator;
  
             default:
-                return null;      
-
+                return null;   
         }
-
     }
 
 
@@ -249,12 +267,10 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             if(nodes[i].id==="separator")
                 return true;
             else if(nodes[i].className==="area")
-                return true;    
-
+                return true; 
         }
   
         return false; 
-
     } 
  
 
@@ -266,7 +282,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                return {...layout[i]};     
                 
         return null;
-
     }   
 
 
@@ -278,7 +293,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                return true;     
               
         return false;
-
     }
   
 
@@ -300,7 +314,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
               ${JSON.stringify(selectedProject)} 
               ${JSON.stringify(fromArea)}
            `);  
-        } 
+        }  
  
         fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
         closestArea.attachedProjectsIds = [selectedProject._id,...closestArea.attachedProjectsIds];
@@ -308,29 +322,22 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         this.props.dispatch({type:"updateAreas", load:[fromArea,closestArea]});  
     }
   
+    onSortStart = ({node, index, collection}, e, helper) => {}
+
+    onSortMove = (e, helper : HTMLElement) => {} 
 
     onSortEnd = ({oldIndex, newIndex, collection}, e) : void => { 
+        if(oldIndex===newIndex || isEmpty(this.state.layout))
+           return;  
 
-        if(oldIndex===newIndex)
-           return; 
-
-        if(this.props.areas.length===0)
-           return; 
-
-        if(this.props.projects.length===0)
-           return;   
-
-        let {table,detached} = this.groupProjectsByArea(this.props);
-        let layout = this.generateLayout(this.props,{table,detached});    
-
-        let selectedProject : Project = {...layout[oldIndex] as Project}; 
+        let selectedProject : Project = {...this.state.layout[oldIndex] as Project}; 
         let fromArea : Area = this.props.areas.find((a:Area) => a.attachedProjectsIds.indexOf(selectedProject._id)!==-1);
-        let listAfter = arrayMove([...layout], oldIndex, newIndex);
+        let listAfter = arrayMove([...this.state.layout], oldIndex, newIndex);
         let closestArea : Area = this.findClosestArea(newIndex, listAfter);
-        let detachedBefore = this.isDetached(oldIndex, layout);
+        let detachedBefore = this.isDetached(oldIndex, this.state.layout);
         let detachedAfter = this.isDetached(newIndex, listAfter);
          
-        if(detachedBefore && !detachedAfter){
+        if(detachedBefore && !detachedAfter){ 
 
             attachToArea(this.props.dispatch, closestArea, selectedProject);
         }else if(!detachedBefore && detachedAfter){
@@ -349,16 +356,12 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 changeProjectsOrder(this.props.dispatch,listAfter);
             }
         } 
-    } 
-   
- 
+    }
+      
       
     render(){ 
-        let {table,detached} = this.groupProjectsByArea(this.props);
-        let layout = this.generateLayout(this.props,{table,detached}); 
         let container = document.getElementById("areas");
 
-   
         return  <div  
             style={{
                 display:"flex",
@@ -368,14 +371,14 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         >   
             <SortableList 
                 getElement={this.getElement}
-                items={layout}    
+                items={this.state.layout}    
                 container={container} 
                 shouldCancelStart={this.shouldCancelStart}
                 shouldCancelAnimation={() => false}
-   
+    
                 onSortEnd={this.onSortEnd} 
-                onSortMove = {(e, helper : HTMLElement) => {} }
-                onSortStart={({node, index, collection}, e, helper) => {}}
+                onSortMove = {this.onSortMove}
+                onSortStart={this.onSortStart}
     
                 lockToContainerEdges={true}
                 distance={5}   
@@ -396,6 +399,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 interface AreaElementProps{
     area:Area,
+    dragged:string, 
     index:number,
     selectArea:Function,
     selectedAreaId:string,
@@ -427,11 +431,18 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
             key={this.props.index} 
             onMouseOver={(e) => {
                 if(e.buttons == 1 || e.buttons == 3){
-                    this.setState({highlight:true}); 
+                    if(
+                       this.props.dragged==="project" ||
+                       this.props.dragged==="todo"
+                    ){   
+                      this.setState({highlight:true}); 
+                    } 
                 } 
             }} 
-            onMouseOut={(e) => { 
-                this.setState({highlight:false});
+            onMouseOut={(e) => {  
+                if(this.state.highlight){
+                   this.setState({highlight:false});
+                }
             }}  
         >   
             <div style={{outline:"none",width:"100%",height:"20px"}}></div>  
@@ -485,6 +496,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
 interface ProjectElementProps{
     project:Project,
     index:number,
+    dragged:string,
     selectProject:Function,
     selectedProjectId:string,
     selectedCategory:Category
@@ -513,13 +525,16 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
 
         return <li
             key={this.props.index}
-            onMouseOver={(e) => {
-                if(e.buttons == 1 || e.buttons == 3){ 
-                    this.setState({highlight:true}); 
+            onMouseOver={(e) => { 
+                if(e.buttons === 1 || e.buttons === 3){ 
+                    if(this.props.dragged==="todo"){
+                       this.setState({highlight:true}); 
+                    }  
                 } 
             }} 
             onMouseOut={(e) => { 
-                this.setState({highlight:false});
+                if(this.state.highlight)
+                   this.setState({highlight:false});
             }}  
         >    
             <div  

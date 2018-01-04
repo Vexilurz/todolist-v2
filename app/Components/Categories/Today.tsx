@@ -135,6 +135,7 @@ export class Today extends Component<TodayProps,TodayState>{
                             key={empty._id} 
                             dispatch={this.props.dispatch}  
                             selectedCategory={"today"} 
+                            projects={this.props.projects} 
                             selectedTodoId={this.props.selectedTodoId}
                             tags={this.props.tags} 
                             rootRef={this.props.rootRef}  

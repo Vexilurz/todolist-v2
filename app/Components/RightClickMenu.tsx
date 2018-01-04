@@ -196,7 +196,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
               ${this.props.selectedProjectId}. 
               removeFromProject .
            `); 
-        } 
+        }  
 
         let layout : LayoutItem[] = [...project.layout]; 
         let idx : number = layout.findIndex((i:LayoutItem) => i===this.props.rightClickedTodoId);

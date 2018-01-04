@@ -30,7 +30,7 @@ import { ProjectHeading } from './ProjectHeading';
 import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
-import { equals, allPass, isEmpty } from 'ramda';
+import { equals, allPass, isEmpty, isNil } from 'ramda';
 import { onDrop, Placeholder } from '../TodosList';
 
 
@@ -96,6 +96,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                         <TodoInput    
                             id={value["_id"]} 
                             key={value["_id"]} 
+                            projects={this.props.projects}
                             dispatch={this.props.dispatch}   
                             searched={this.props.searched}
                             tags={this.props.tags} 
@@ -141,7 +142,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let x = e.pageX;
         return x < rect.left;   
     }  
-
+ 
     changeOrder = (oldIndex:number,newIndex:number) => { 
         if(oldIndex===newIndex)
            return; 
@@ -158,8 +159,13 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     
     onSortStart = ({node, index, collection}, e, helper) => { 
         this.showPlaceholder();
-
         let item = this.props.items[index];
+
+        if(isNil(item)){
+            throw new Error(`item undefined. ${index}. onSortStart. ProjectBody.`);
+        }
+ 
+        this.props.dispatch({type:"dragged",load:item.type});
 
         if(item.type==="todo"){
            let helperRect = helper.getBoundingClientRect();
@@ -174,9 +180,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         }
     }
 
-    onSortEnd = ({oldIndex, newIndex, collection}, e) => { 
+    onSortEnd = ({oldIndex, newIndex, collection}, e) => {  
         this.hidePlaceholder();
-
+        this.props.dispatch({type:"dragged",load:null});
         let x = e.clientX; 
         let y = e.clientY+this.props.rootRef.scrollTop;  
         let items = this.props.items;   
@@ -216,7 +222,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
            this.setState({currentIndex:newIndex,helper}); 
             
         if(this.props.items[oldIndex].type==="todo"){
-             
+              
             let leftpanel = document.getElementById("leftpanel");
             let nested = document.getElementById("nested");
 
@@ -269,6 +275,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     key={empty._id} 
                     dispatch={this.props.dispatch}    
                     searched={this.props.searched}
+                    projects={this.props.projects} 
                     selectedCategory={"project"}   
                     selectedTodoId={this.props.selectedTodoId}
                     tags={this.props.tags} 

@@ -202,7 +202,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
             
         return <li style={{width:"100%"}}>  
-            <div 
+            <div   
                  style={{   
                     transition: "opacity 0.4s ease-in-out", 
                     opacity:1,

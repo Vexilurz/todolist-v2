@@ -388,10 +388,8 @@ export let getTagsFromItems = (items:Item[]) : string[] => {
 }
 
 
-
 export let attachDispatchToProps = (dispatch:Function,props) => ({...props, dispatch});
  
-
 
 export let debounce = (fun, mil=50) => {
     let timer; 
@@ -401,9 +399,8 @@ export let debounce = (fun, mil=50) => {
             fun(...load); 
         }, mil); 
     };  
-}; 
+} 
  
-
 
 export let stringToLength = (s : string, length : number) : string => {
 
@@ -414,14 +411,8 @@ export let stringToLength = (s : string, length : number) : string => {
        throw new Error(`length is not a number ${length}. stringToLength.`);
 
     return s.substring(0, length) + "...";
-
-}; 
-   
-
-
-
-
-
+}  
+    
 
 export let uppercase = (str:string) : string => { 
 
@@ -432,14 +423,9 @@ export let uppercase = (str:string) : string => {
        return str; 
 
     return str.substring(0,1).toUpperCase() + str.substring(1,str.length);
-
-};
+}
  
-
-   
-
-
-
+ 
 export let wrapMuiThemeDark = (component) => { 
  
     return <MuiThemeProvider muiTheme={getMuiTheme(darkBaseTheme)}>
@@ -450,8 +436,6 @@ export let wrapMuiThemeDark = (component) => {
 
 }
   
- 
-
 
 export let wrapMuiThemeLight = (component) =>  {
 

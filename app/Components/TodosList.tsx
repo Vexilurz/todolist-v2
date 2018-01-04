@@ -181,44 +181,43 @@ export let onDrop = (
         for(let i=0; i<nodes.length; i++){
 
             if(isCategory(nodes[i].id)){
-                 
                 switch(nodes[i].id){ 
                    case "inbox":
-                     dispatch({
-                         type:"updateTodo",
-                         load:{...draggedTodo, category:"inbox"}
-                     });
-                     break;
+                        dispatch({
+                            type:"updateTodo",
+                            load:{...draggedTodo, category:"inbox"}
+                        });
+                        break;
                    case "today":
-                     dispatch({
-                         type:"updateTodo",
-                         load:{...draggedTodo, category:"today"}
-                     });
-                     break;
+                        dispatch({
+                            type:"updateTodo",
+                            load:{...draggedTodo, category:"today"}
+                        });
+                        break;
                    case "next":
-                     dispatch({
-                        type:"updateTodo",
-                        load:{...draggedTodo, category:"next"}
-                     });
-                     break;
+                        dispatch({
+                            type:"updateTodo",
+                            load:{...draggedTodo, category:"next"}
+                        });
+                        break;
                    case "someday":
-                     dispatch({
-                         type:"updateTodo",
-                         load:{...draggedTodo, category:"someday"}
-                     });
-                     break;
+                        dispatch({
+                            type:"updateTodo",
+                            load:{...draggedTodo, category:"someday"}
+                        });
+                        break;
                    case "trash":
-                     dispatch({
-                        type:"updateTodo",
-                        load:{...draggedTodo, deleted:new Date()}
-                     }); 
-                     break; 
+                        dispatch({
+                            type:"updateTodo",
+                            load:{...draggedTodo, deleted:new Date()}
+                        });  
+                        break; 
                    case "logbook":
-                     dispatch({
-                        type:"updateTodo",
-                        load:{...draggedTodo, checked:true, completed:new Date()}
-                     }); 
-                     break; 
+                        dispatch({
+                            type:"updateTodo",
+                            load:{...draggedTodo, checked:true, completed:new Date()}
+                        }); 
+                        break; 
                 }    
             }
         } 
@@ -349,7 +348,8 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         return  <div style={{position:"relative"}}> 
                     <TodoInput   
                         id={value._id}
-                        key={value._id} 
+                        key={value._id}
+                        projects={this.props.projects}  
                         dispatch={this.props.dispatch}  
                         selectedCategory={this.props.selectedCategory} 
                         selectedTodoId={this.props.selectedTodoId}
@@ -393,13 +393,21 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         let x = e.pageX;
 
         return x < rect.left;   
-    }   
+    } 
+
 
  
 
     onSortStart = ({node, index, collection}, e, helper) => { 
 
         this.setState({showPlaceholder:true});
+        let draggedTodo = this.state.todos[index];
+        
+        if(isNil(draggedTodo)){
+           throw new Error(`draggedTodo undefined. ${index}. onSortStart. TodosList.`);
+        }
+
+        this.props.dispatch({type:"dragged",load:draggedTodo.type});
          
         let helperRect = helper.getBoundingClientRect();
         let offset = e.clientX - helperRect.left;
@@ -412,6 +420,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         helper.appendChild(el);  
     }
  
+
      
  
     onSortMove = (e, helper : HTMLElement, newIndex:number) => {
@@ -435,12 +444,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         } 
     }
 
-   
- 
-  
 
     
-
+    
 
     onSortEnd = ({oldIndex, newIndex, collection}, e) => { 
         this.setState({showPlaceholder:false});
@@ -451,7 +457,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
         if(isEmpty(draggedTodo.title)) 
            return;
- 
+  
+        this.props.dispatch({type:"dragged",load:null}); 
+
         let leftpanel = document.getElementById("leftpanel");
 
         if(insideTargetArea(leftpanel,x,y)){   
@@ -497,14 +505,14 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         return <div style={{WebkitUserSelect:"none",position:"relative"}}>   
             <Placeholder   
                 offset={placeholderOffset}
-                height={30}
+                height={40} 
                 show={this.state.showPlaceholder}
             /> 
             <SortableList   
                 getElement={this.getTodoElement}
                 container={this.props.rootRef} 
-                items={this.state.todos}  
-                shouldCancelStart={this.shouldCancelStart}  
+                items={this.state.todos}   
+                shouldCancelStart={this.shouldCancelStart}   
                 shouldCancelAnimation={this.shouldCancelAnimation}
                 onSortEnd={this.onSortEnd}    
                 onSortMove={this.onSortMove}  

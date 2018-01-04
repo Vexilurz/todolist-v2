@@ -123,7 +123,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 key = {value["_id"]} 
                 selectedCategory={this.props.selectedCategory}
                 selectedTodoId={this.props.selectedTodoId}
-                dispatch={this.props.dispatch}    
+                dispatch={this.props.dispatch}      
+                projects={this.props.projects}
                 searched={this.props.searched}
                 tags={this.props.tags} 
                 rootRef={this.props.rootRef} 
@@ -164,7 +165,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
     onSortEnd = ({oldIndex, newIndex, collection}, e) => {
 
         this.setState({showPlaceholder:false}); 
-      
+        this.props.dispatch({type:"dragged",load:null}); 
+
         let x = e.clientX+this.props.rootRef.scrollLeft; 
         let y = e.clientY+this.props.rootRef.scrollTop;  
         let leftpanel = document.getElementById("leftpanel");
@@ -202,6 +204,13 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
     onSortStart = ({node, index, collection}, e, helper) => { 
 
         this.setState({showPlaceholder:true});
+        let item = this.state.selectedProjects[index];
+
+        if(isNil(item)){ 
+            throw new Error(`selectedProject undefined. ${index}. onSortStart. AreaBody.`);
+        }
+ 
+        this.props.dispatch({type:"dragged",load:item.type});
 
         let helperRect = helper.getBoundingClientRect();
         let offset = e.clientX - helperRect.left;
