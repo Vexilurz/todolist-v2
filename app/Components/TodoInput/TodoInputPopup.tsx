@@ -38,7 +38,9 @@ import { TextField } from 'material-ui';
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
     insideTargetArea, daysRemaining, todoChanged, 
-    daysLeftMark, generateTagElement, uppercase, generateEmptyTodo, isToday, getMonthName, stringToLength, attachDispatchToProps 
+    daysLeftMark, generateTagElement, uppercase, 
+    generateEmptyTodo, isToday, getMonthName, stringToLength, 
+    attachDispatchToProps 
 } from '../../utils'; 
 import { Todo, removeTodo, updateTodo, generateId, Project } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
@@ -49,7 +51,7 @@ import { uniq, isEmpty, contains, isNil } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
 let moment = require("moment"); 
 import AutosizeInput from 'react-input-autosize'; 
-import { isString } from 'util';
+import { isString } from 'util'; 
 import { Store } from '../../app';
 import { TodoInput, Checkbox } from './TodoInput';
 import Inbox from 'material-ui/svg-icons/content/inbox';

@@ -39,7 +39,7 @@ import {
     byNotDeleted 
 } from '../utils';
 import { Todo, removeTodo, updateTodo, generateId, ObjectType, Area, Project, Heading } from '../database';
-import { Store, isDev } from '../App';
+import { Store, isDev } from '../app'; 
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { getAreaLink } from './Area/AreaLink';
 import { getProjectLink } from './Project/ProjectLink';

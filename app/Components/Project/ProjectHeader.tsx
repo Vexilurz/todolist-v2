@@ -23,7 +23,10 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize'; 
 import { Todo, Project, Heading } from '../../database';
-import { uppercase, debounce, daysRemaining, dateDiffInDays, getTagsFromItems, byCategory, byNotCompleted, byNotDeleted, daysLeftMark, getMonthName } from '../../utils';
+import { 
+    uppercase, debounce, daysRemaining, dateDiffInDays, getTagsFromItems, 
+    byCategory, byNotCompleted, byNotDeleted, daysLeftMark, getMonthName 
+} from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';

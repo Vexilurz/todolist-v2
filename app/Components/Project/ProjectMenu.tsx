@@ -25,8 +25,8 @@ import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, generateId, addProject, removeProject } from '../../database';
 import { uppercase, debounce, attachDispatchToProps } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
-import { Store, isDev } from '../../App';
-import { isString } from 'util';
+import { Store, isDev } from '../../app';
+import { isString } from 'util'; 
 import { contains } from 'ramda';
 import { createHeading } from '../MainContainer';
  

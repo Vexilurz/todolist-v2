@@ -24,7 +24,10 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
-import { uppercase, debounce, stringToLength, daysRemaining, daysLeftMark, chooseIcon, dateDiffInDays } from '../../utils';
+import { 
+    uppercase, debounce, stringToLength, daysRemaining, 
+    daysLeftMark, chooseIcon, dateDiffInDays  
+} from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';

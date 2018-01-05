@@ -6,7 +6,10 @@ import { Component } from "react";
 import { Todo, generateId, Project, Area } from '../../database';
 import { TodosList } from '.././TodosList';
 import { ContainerHeader } from '.././ContainerHeader';
-import { byTags, byCategory, byNotCompleted, byNotDeleted, getTagsFromItems, generateEmptyTodo, attachEmptyTodo, byNotAttachedToProjectFilter, byNotAttachedToAreaFilter } from '../../utils';
+import { 
+    byTags, byCategory, byNotCompleted, byNotDeleted, getTagsFromItems, 
+    generateEmptyTodo, attachEmptyTodo, byNotAttachedToProjectFilter, byNotAttachedToAreaFilter 
+} from '../../utils';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { compose, filter, allPass, prepend, contains } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';

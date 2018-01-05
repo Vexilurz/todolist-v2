@@ -23,7 +23,7 @@ import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
 import { TodoInputPopup } from './Components/TodoInput/TodoInputPopup';
 import { cond } from 'ramda';
-injectTapEventPlugin(); 
+ 
   
 export let isDev = () => true; 
 
@@ -99,14 +99,14 @@ export class App extends Component<any,any>{
             </div>          
         );  
     }        
-};            
+};              
    
- 
+  
 
 ipcRenderer.on( 
     'loaded',     
     (event, {type, load} : {type:string,load:any}) => { 
-
+        injectTapEventPlugin();
         ReactDOM.render(  
             <Provider store={store}> 
                 <App initialLoad={{type,load}}/>
@@ -175,7 +175,7 @@ export let defaultStoreItems : Store = {
     clone : false,
     todos:[], 
     tags:[...defaultTags]
-};    
+};     
     
  
 

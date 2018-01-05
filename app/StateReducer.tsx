@@ -1,4 +1,4 @@
-import { Store } from "./App";
+import { Store } from "./app";
 
 
  

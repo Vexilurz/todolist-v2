@@ -13,8 +13,9 @@ import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects, 
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, 
-    removeProject, destroyEverything, addArea, addProject, generateId, addTodos, addProjects, addAreas, Heading, LayoutItem } from '.././database';
-import { Store, isDev } from '.././App'; 
+    removeProject, destroyEverything, addArea, addProject, generateId, addTodos, 
+    addProjects, addAreas, Heading, LayoutItem } from '.././database';
+import { Store, isDev } from '.././app';   
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import { AreaComponent } from './Area/Area';
 import { ProjectComponent } from './Project/Project';

@@ -18,7 +18,7 @@ import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Repeat from 'material-ui/svg-icons/av/repeat';
-import { Store } from '../../App';
+import { Store } from '../../app';
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Duplicate from 'material-ui/svg-icons/content/content-copy';
 import ShareIcon from 'material-ui/svg-icons/social/share';

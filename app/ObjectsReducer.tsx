@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron'; 
-import { Store, isDev } from './App';
-import { 
+import { Store, isDev } from './app';
+import {  
     Project, Area, Todo, removeProject, generateId, addProject, 
     removeArea, updateProject, addTodo, updateArea, updateTodo, 
     addArea, removeTodo, removeAreas, removeTodos, removeProjects, 

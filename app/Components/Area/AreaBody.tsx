@@ -6,7 +6,7 @@ import { Provider } from "react-redux";
 import { Transition } from 'react-transition-group';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
-import { Component } from "react"; 
+import { Component } from "react";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Popover from 'material-ui/Popover';
@@ -23,7 +23,10 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
-import { uppercase, debounce, stringToLength, daysLeftMark, byNotCompleted, byNotDeleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible } from '../../utils';
+import { 
+    uppercase, debounce, stringToLength, daysLeftMark, byNotCompleted, 
+    byNotDeleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible 
+} from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';

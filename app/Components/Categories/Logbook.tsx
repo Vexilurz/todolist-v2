@@ -10,7 +10,10 @@ import { Transition } from 'react-transition-group';
 import { TodosList } from '../../Components/TodosList';
 import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '.././ContainerHeader';
-import { compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems } from '../../utils';
+import { 
+    compareByDate, getMonthName, byTags, 
+    byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems 
+} from '../../utils';
 import { allPass, compose } from 'ramda';
 import { getProjectLink } from '../Project/ProjectLink';
      

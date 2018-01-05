@@ -11,11 +11,11 @@ import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
 import Popover from 'material-ui/Popover';
 import { attachDispatchToProps, insideTargetArea } from '../utils';
 import { Todo, removeTodo, addTodo, generateId, Project, Area, LayoutItem } from '../database';
-import { Store, isDev } from '../App';
+import { Store, isDev } from '../app';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { Category } from './MainContainer';
 import { remove } from 'ramda';
-let uniqid = require("uniqid");   
+let uniqid = require("uniqid");    
  
  
    

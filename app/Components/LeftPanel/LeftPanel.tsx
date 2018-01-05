@@ -36,7 +36,7 @@ import Clear from 'material-ui/svg-icons/content/clear';
 import Remove from 'material-ui/svg-icons/content/remove'; 
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import FullScreen from 'material-ui/svg-icons/image/crop-square';
-import { Store, isDev } from '../../App';
+import { Store, isDev } from '../../app';
 import { Data } from './../SortableList';
 import { AreasList } from './../Area/AreasList';
 import { ResizableHandle } from './../ResizableHandle';
