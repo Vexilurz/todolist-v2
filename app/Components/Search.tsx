@@ -39,7 +39,7 @@ import {
     byNotDeleted 
 } from '../utils';
 import { Todo, removeTodo, updateTodo, generateId, ObjectType, Area, Project, Heading } from '../database';
-import { Store } from '../App';
+import { Store, isDev } from '../App';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { getAreaLink } from './Area/AreaLink';
 import { getProjectLink } from './Project/ProjectLink';
@@ -322,8 +322,11 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
 
         let object = suggestion.object;
 
-        if(!isItem(object))
-            throw new Error(`object is not of type Item. ${JSON.stringify(object)}. suggestionToComponent.`);
+        if(!isItem(object)){
+            if(isDev()){ 
+               throw new Error(`object is not of type Item. ${JSON.stringify(object)}. suggestionToComponent.`);
+            }
+        }
   
         let clear = () => this.setState({value:'', suggestions:[]});    
         let dispatchAndClear = (action) => {
@@ -347,7 +350,7 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
         }
     } 
     
-    
+     
 
     render(){ 
         return <div 

@@ -2,10 +2,10 @@
   "name": "tasklist",
   "version": "1.0.0",
   "description": "tasklist",
-  "main": "dist/main.js",
-  "scripts": {
+  "main": "dist/main.js", 
+  "scripts": { 
     "start": "electron .",
-    "pack": "build --win",
+    "pack": "build --win",  
     "build": "start webpack -w --config webpack.config.main.js && webpack -w --config webpack.config.renderer.js",
     "production": "start webpack -w --config webpack.config.main.prod.js && webpack -w --config webpack.config.renderer.prod.js"
   },

@@ -5,7 +5,6 @@ import * as ReactDOM from 'react-dom';
 import { Provider } from "react-redux";
 import { Transition } from 'react-transition-group';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
-import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { connect } from "react-redux";
@@ -36,6 +35,7 @@ import { allPass, isNil } from 'ramda';
 import { TodosList, Placeholder } from '../TodosList';
 import { Category } from '../MainContainer';
 import { changeProjectsOrder, removeFromArea, attachToArea } from './AreasList';
+import { isDev } from '../../app';
 
 
  
@@ -173,11 +173,15 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         let target = this.state.selectedProjects[oldIndex];
 
         if(isNil(target)){
-           throw new Error(`target isNil. onSortEnd. AreaBody.`);
+           if(isDev()){ 
+              throw new Error(`target isNil. onSortEnd. AreaBody.`);
+           }
         } 
 
         if(target.type!=="project"){ 
-           throw new Error(`target is not a project. ${JSON.stringify(target)}. onSortEnd. AreaBody.`);
+           if(isDev()){ 
+              throw new Error(`target is not a project. ${JSON.stringify(target)}. onSortEnd. AreaBody.`);
+           }
         }    
  
         if(insideTargetArea(leftpanel,x,y)){   
@@ -207,7 +211,9 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         let item = this.state.selectedProjects[index];
 
         if(isNil(item)){ 
-            throw new Error(`selectedProject undefined. ${index}. onSortStart. AreaBody.`);
+           if(isDev()){   
+              throw new Error(`selectedProject undefined. ${index}. onSortStart. AreaBody.`);
+           }
         }
  
         this.props.dispatch({type:"dragged",load:item.type});

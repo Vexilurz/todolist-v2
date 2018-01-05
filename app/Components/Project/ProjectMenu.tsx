@@ -25,7 +25,7 @@ import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, generateId, addProject, removeProject } from '../../database';
 import { uppercase, debounce, attachDispatchToProps } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
-import { Store } from '../../App';
+import { Store, isDev } from '../../App';
 import { isString } from 'util';
 import { contains } from 'ramda';
 import { createHeading } from '../MainContainer';
@@ -87,7 +87,9 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         let idx = this.props.projects.findIndex( (p:Project) => p._id===projectId );
 
         if(idx===-1){  
-           throw new Error(`Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`);
+          if(isDev()){ 
+             throw new Error(`Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`);
+          }
         }  
 
         let duplicate = {... this.props.projects[idx], _id:generateId()};
@@ -100,13 +102,15 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
 
 
     onComplete = (e) => {   
-
+ 
         let projectId : string = this.props.selectedProjectId;
 
         let idx = this.props.projects.findIndex( (p:Project) => p._id===projectId );
 
         if(idx===-1){ 
-           throw new Error(`Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`);
+           if(isDev()){ 
+              throw new Error(`Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`);
+           }
         }  
 
         let project : Project = { ...this.props.projects[idx] };
@@ -123,11 +127,13 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         let project = this.props.projects.find( (p:Project) => p._id===this.props.selectedProjectId )
 
         if(!project){
-            throw new Error(`
-                project with id selectedProjectId does not exist.
-                ${JSON.stringify(this.props.projects)}
-                ${JSON.stringify(this.props.selectedProjectId)}
-            `); 
+            if(isDev()){ 
+                throw new Error(`
+                    project with id selectedProjectId does not exist.
+                    ${JSON.stringify(this.props.projects)}
+                    ${JSON.stringify(this.props.selectedProjectId)}
+                `); 
+            }
         } 
 
         let relatedTodosIds : string[] = project.layout.filter(isString);

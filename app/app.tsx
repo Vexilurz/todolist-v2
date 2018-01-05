@@ -24,7 +24,8 @@ import { applicationObjectsReducer } from './ObjectsReducer';
 import { TodoInputPopup } from './Components/TodoInput/TodoInputPopup';
 import { cond } from 'ramda';
 injectTapEventPlugin(); 
-      
+  
+export let isDev = () => true; 
 
 
 (() => {     

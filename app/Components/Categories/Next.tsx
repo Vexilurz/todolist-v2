@@ -3,7 +3,6 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';  
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
-import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { 
@@ -18,7 +17,7 @@ import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Repeat from 'material-ui/svg-icons/av/repeat';
-import { Store } from '../../App';
+import { Store, isDev } from '../../App';
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Duplicate from 'material-ui/svg-icons/content/content-copy';
 import ShareIcon from 'material-ui/svg-icons/social/share';
@@ -36,7 +35,7 @@ import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { uniq, allPass, isEmpty, isNil } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
  
- 
+  
 
 interface NextProps{
     dispatch:Function, 
@@ -84,8 +83,11 @@ export class Next extends Component<NextProps, NextState>{
         for(let i=0;  i<this.props.projects.length; i++){
             let project : Project = this.props.projects[i]; 
 
-            if(project.type!=="project") 
-               throw new Error(`project is not of type Project ${JSON.stringify(project)}. groupObjects.`); 
+            if(project.type!=="project"){ 
+               if(isDev()){ 
+                  throw new Error(`project is not of type Project ${JSON.stringify(project)}. groupObjects.`);
+               } 
+            } 
 
             let filters = [
                 byTags(this.props.selectedTag),
@@ -104,7 +106,9 @@ export class Next extends Component<NextProps, NextState>{
             let area : Area = this.props.areas[i]; 
 
             if(area.type!=="area"){ 
-               throw new Error(`area is not of type Area ${JSON.stringify(area)}. groupObjects.`); 
+               if(isDev()){  
+                  throw new Error(`area is not of type Area ${JSON.stringify(area)}. groupObjects.`); 
+               }
             }
  
             let filters = [
@@ -122,8 +126,11 @@ export class Next extends Component<NextProps, NextState>{
         for(let i = 0; i<this.props.todos.length; i++){
             let todo : Todo = this.props.todos[i]; 
 
-            if(todo.type!=="todo") 
-               throw new Error(`todo is not of type Todo ${JSON.stringify(todo)}. groupObjects.`); 
+            if(todo.type!=="todo"){ 
+               if(isDev()){  
+                  throw new Error(`todo is not of type Todo ${JSON.stringify(todo)}. groupObjects.`); 
+               }
+            }
 
             let filters = [
                 byCategory("next"),

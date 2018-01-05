@@ -1,7 +1,6 @@
 import '../../assets/styles.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
-import { ipcRenderer } from 'electron';
 import IconMenu from 'material-ui/IconMenu';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 

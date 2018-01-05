@@ -2,7 +2,6 @@ import '../../assets/styles.css';
 import '../../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';  
-import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
 import SortableContainer from '../../sortable-hoc/sortableContainer';
 import SortableElement from '../../sortable-hoc/sortableElement';
@@ -17,6 +16,7 @@ import { SortableList } from '../SortableList';
 import PieChart from 'react-minimal-pie-chart';
 import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains, assoc, isNil } from 'ramda';
 import { Category } from '../MainContainer';
+import { isDev } from '../../app';
 
 
 export let changeProjectsOrder = (dispatch:Function, listAfter:(Project | Area | Separator)[]) : void => {
@@ -25,7 +25,9 @@ export let changeProjectsOrder = (dispatch:Function, listAfter:(Project | Area |
 
     for(let i=0; i<projects.length; i++){
         if(projects[i].type!=="project"){
-            throw new Error(`Item is not a project ${JSON.stringify(projects[i])}`)
+            if(isDev()){ 
+               throw new Error(`Item is not a project ${JSON.stringify(projects[i])}`)
+            }
         }
     }  
 
@@ -36,11 +38,17 @@ export let changeProjectsOrder = (dispatch:Function, listAfter:(Project | Area |
 
 export let attachToArea = (dispatch:Function, closestArea:Area, selectedProject:Project) : void => {
     
-    if(!closestArea) 
-        throw new Error(`closestArea undefined. attachToArea.`);
-
-    if(closestArea.type!=="area")  
-        throw new Error(`closestArea is not of type Area. ${JSON.stringify(closestArea)}. attachToArea.`);    
+    if(!closestArea){ 
+        if(isDev()){ 
+            throw new Error(`closestArea undefined. attachToArea.`);
+        }
+    } 
+     
+    if(closestArea.type!=="area"){  
+       if(isDev()){ 
+            throw new Error(`closestArea is not of type Area. ${JSON.stringify(closestArea)}. attachToArea.`); 
+       }   
+    } 
 
     closestArea.attachedProjectsIds = [selectedProject._id,...closestArea.attachedProjectsIds];
     dispatch({type:"updateArea", load:closestArea});  
@@ -55,27 +63,33 @@ export let removeFromArea = (dispatch:Function, fromArea:Area, selectedProject:P
     );  
 
     if(idx===-1){
-        throw new Error(`
-            selectedProject is not attached to fromArea.
-            ${JSON.stringify(selectedProject)} 
-            ${JSON.stringify(fromArea)}
-        `)
+        if(isDev()){ 
+           throw new Error(`
+              selectedProject is not attached to fromArea.
+              ${JSON.stringify(selectedProject)} 
+              ${JSON.stringify(fromArea)}
+           `)
+        }
     }
-
+ 
     if(selectedProject.type!=="project"){  
-        throw new Error(`
-            selectedProject is not of type project. 
-            ${JSON.stringify(selectedProject)}. 
-            removeFromArea.
-        `);  
+        if(isDev()){  
+           throw new Error(`
+              selectedProject is not of type project. 
+              ${JSON.stringify(selectedProject)}. 
+              removeFromArea.
+           `);  
+        }
     }   
 
     if(fromArea.type!=="area"){  
-        throw new Error(`
-            fromArea is not of type Area. 
-            ${JSON.stringify(fromArea)}. 
-            removeFromArea.
-        `);    
+        if(isDev()){ 
+           throw new Error(`
+              fromArea is not of type Area. 
+              ${JSON.stringify(fromArea)}. 
+              removeFromArea.
+           `);    
+        } 
     }
 
     fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
@@ -299,22 +313,30 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     moveToClosestArea = (fromArea:Area, closestArea:Area, selectedProject:Project) : void => {
  
-        if(fromArea.type!=="area")  
-           throw new Error(`fromArea is not of type Area. ${JSON.stringify(fromArea)}. moveToClosestArea.`);    
+        if(fromArea.type!=="area"){  
+           if(isDev()){ 
+              throw new Error(`fromArea is not of type Area. ${JSON.stringify(fromArea)}. moveToClosestArea.`);    
+           }
+        }
 
-        if(closestArea.type!=="area")  
-           throw new Error(`closestArea is not of type Area. ${JSON.stringify(closestArea)}. moveToClosestArea.`);    
+        if(closestArea.type!=="area"){  
+           if(isDev()){  
+              throw new Error(`closestArea is not of type Area. ${JSON.stringify(closestArea)}. moveToClosestArea.`);  
+           }
+        }  
 
   
         let idx : number = fromArea.attachedProjectsIds.findIndex( (id:string) => id===selectedProject._id );
         
         if(idx===-1){
-           throw new Error(`
-              selectedProject is not attached to fromArea.
-              ${JSON.stringify(selectedProject)} 
-              ${JSON.stringify(fromArea)}
-           `);  
-        }  
+           if(isDev()){ 
+              throw new Error(`
+                selectedProject is not attached to fromArea.
+                ${JSON.stringify(selectedProject)} 
+                ${JSON.stringify(fromArea)}
+              `); 
+           }  
+        }   
  
         fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
         closestArea.attachedProjectsIds = [selectedProject._id,...closestArea.attachedProjectsIds];

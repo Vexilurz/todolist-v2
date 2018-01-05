@@ -42,14 +42,14 @@ module.exports = {
 
     plugins:[ 
         new webpack.DefinePlugin({
-          'process.env':{'NODE_ENV':JSON.stringify('development')} 
+          'process.env.NODE_ENV':JSON.stringify('development')
         }), 
     ], 
 
     target: "electron",      
  
     node: { 
-        __dirname: false,
+        __dirname: false, 
         __filename: false
     }       
 };

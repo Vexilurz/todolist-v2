@@ -32,6 +32,7 @@ import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
 import { equals, allPass, isEmpty, isNil } from 'ramda';
 import { onDrop, Placeholder } from '../TodosList';
+import { isDev } from '../../app';
 
 
  
@@ -162,7 +163,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let item = this.props.items[index];
 
         if(isNil(item)){
-            throw new Error(`item undefined. ${index}. onSortStart. ProjectBody.`);
+            if(isDev()){  
+               throw new Error(`item undefined. ${index}. onSortStart. ProjectBody.`);
+            }
         }
  
         this.props.dispatch({type:"dragged",load:item.type});

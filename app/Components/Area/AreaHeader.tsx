@@ -6,7 +6,6 @@ import * as ReactDOM from 'react-dom';
 import { Provider } from "react-redux";
 import { Transition } from 'react-transition-group';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
-import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { connect } from "react-redux";
@@ -32,6 +31,7 @@ import Checked from 'material-ui/svg-icons/navigation/check';
 import { ProjectMenuPopover } from '../Project/ProjectMenu';
 import { contains } from 'ramda';
 import { TagsPopup } from '../TodoInput/TodoTags';
+import { isDev } from '../../app';
 
 
 
@@ -133,16 +133,18 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
 
     onDeleteArea = () => {
 
-        this.closeMenu(); 
+        this.closeMenu();  
 
         let area = this.props.areas.find( (a:Area) => a._id===this.props.selectedAreaId ); 
 
         if(!area){
-           throw new Error(`
-              Area with selectedAreaId does not exist. 
-              ${JSON.stringify(this.props.areas)}.
-              ${this.props.selectedAreaId}.
-           `); 
+            if(isDev()){ 
+                throw new Error(`
+                    Area with selectedAreaId does not exist. 
+                    ${JSON.stringify(this.props.areas)}.
+                    ${this.props.selectedAreaId}.
+                `); 
+            }
         }  
 
         let relatedTodosIds : string[] = area.attachedTodosIds;

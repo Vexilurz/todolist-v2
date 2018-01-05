@@ -11,7 +11,7 @@ import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
 import Popover from 'material-ui/Popover';
 import { attachDispatchToProps, insideTargetArea } from '../utils';
 import { Todo, removeTodo, addTodo, generateId, Project, Area, LayoutItem } from '../database';
-import { Store } from '../App';
+import { Store, isDev } from '../App';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { Category } from './MainContainer';
 import { remove } from 'ramda';
@@ -78,11 +78,13 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         let todo : Todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId );
         
         if(!todo){
-           throw new Error(`
-                Todo with id rightClickedTodoId does not exist. 
-                onDeleteToDo.
-                ${JSON.stringify(todo)}
-           `);
+            if(isDev()){ 
+                throw new Error(`
+                    Todo with id rightClickedTodoId does not exist. 
+                    onDeleteToDo.
+                    ${JSON.stringify(todo)}
+                `);
+            }
         }   
 
   
@@ -109,12 +111,14 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         let todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId ); 
 
         if(!todo){  
-            throw new Error(`
-                todo undefined. 
-                ${JSON.stringify(todo)} 
-                ${this.props.rightClickedTodoId}. 
-                onComplete.
-            `);  
+            if(isDev()){ 
+                throw new Error(`
+                    todo undefined. 
+                    ${JSON.stringify(todo)} 
+                    ${this.props.rightClickedTodoId}. 
+                    onComplete.
+                `);  
+            }
         } 
          
         this.props.dispatch({ 
@@ -128,8 +132,11 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
     onConvertToProject = (e) => { 
         let todo : Todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId); 
 
-        if(!todo) 
-           throw new Error(`todo undefined. ${todo} ${this.props.rightClickedTodoId}. onConvertToProject.`);  
+        if(!todo){ 
+           if(isDev()){ 
+              throw new Error(`todo undefined. ${todo} ${this.props.rightClickedTodoId}. onConvertToProject.`); 
+           }
+        } 
       
         let todos = todo.checklist.map( 
             (c : ChecklistItem) : Todo => ({ 
@@ -181,33 +188,39 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         let project : Project = this.props.projects.find((p:Project) => p._id===this.props.selectedProjectId);
         
         if(!project){ 
-            throw new Error(`
-                project undefined. 
-                ${JSON.stringify(project)} 
-                ${this.props.selectedProjectId}. 
-                removeFromProject.
-            `);
+            if(isDev()){ 
+                throw new Error(`
+                    project undefined. 
+                    ${JSON.stringify(project)} 
+                    ${this.props.selectedProjectId}. 
+                    removeFromProject.
+                `);
+            }
         } 
 
         if(project.type!=="project"){
-           throw new Error(`
-              project is not of type Project. 
-              ${JSON.stringify(project)} 
-              ${this.props.selectedProjectId}. 
-              removeFromProject .
-           `); 
+            if(isDev()){ 
+                throw new Error(`
+                    project is not of type Project. 
+                    ${JSON.stringify(project)} 
+                    ${this.props.selectedProjectId}. 
+                    removeFromProject .
+                `); 
+            }
         }  
 
         let layout : LayoutItem[] = [...project.layout]; 
         let idx : number = layout.findIndex((i:LayoutItem) => i===this.props.rightClickedTodoId);
              
         if(idx===-1){
-           throw new Error(  
-              `rightClickedTodo is not attached to project. 
-              ${JSON.stringify(project)}. 
-              ${this.props.rightClickedTodoId}. 
-               removeFromProject.`
-           ) 
+            if(isDev()){ 
+                throw new Error(  
+                    `rightClickedTodo is not attached to project. 
+                    ${JSON.stringify(project)}. 
+                    ${this.props.rightClickedTodoId}. 
+                    removeFromProject.`
+                ) 
+            }
         }  
  
         this.props.dispatch({type:"updateProject", load:{...project, layout:remove(idx,1,layout)}});
@@ -221,32 +234,38 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         let area : Area = this.props.areas.find((a:Area) => a._id===this.props.selectedAreaId);
         
         if(!area){ 
-            throw new Error(`
-              area undefined. 
-              ${JSON.stringify(area)} 
-              ${this.props.selectedAreaId}. 
-              removeFromArea.
-            `);
+            if(isDev()){ 
+                throw new Error(`
+                    area undefined. 
+                    ${JSON.stringify(area)} 
+                    ${this.props.selectedAreaId}. 
+                    removeFromArea.
+                `);
+            }
         }  
  
         if(area.type!=="area"){
-            throw new Error(`
-              area is not of type Area. 
-              ${JSON.stringify(area)} 
-              ${this.props.selectedAreaId}. 
-              removeFromArea. 
-            `);   
+            if(isDev()){ 
+                throw new Error(`
+                    area is not of type Area. 
+                    ${JSON.stringify(area)} 
+                    ${this.props.selectedAreaId}. 
+                    removeFromArea. 
+                `); 
+            }  
         } 
  
         let idx : number = area.attachedTodosIds.indexOf(this.props.rightClickedTodoId);
 
-        if(idx===-1){
-            throw new Error(  
-               `rightClickedTodo is not attached to area. 
-               ${JSON.stringify(area)}. 
-               ${this.props.rightClickedTodoId}.
-               removeFromArea.` 
-            )
+        if(idx===-1){ 
+            if(isDev()){ 
+                throw new Error(  
+                    `rightClickedTodo is not attached to area. 
+                    ${JSON.stringify(area)}. 
+                    ${this.props.rightClickedTodoId}.
+                    removeFromArea.` 
+                )
+            }
         }   
 
         this.props.dispatch({

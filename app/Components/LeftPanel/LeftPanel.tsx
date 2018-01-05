@@ -1,7 +1,6 @@
 import '../../assets/styles.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
-import { ipcRenderer } from 'electron';
 import IconMenu from 'material-ui/IconMenu'; 
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
@@ -37,7 +36,7 @@ import Clear from 'material-ui/svg-icons/content/clear';
 import Remove from 'material-ui/svg-icons/content/remove'; 
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import FullScreen from 'material-ui/svg-icons/image/crop-square';
-import { Store } from '../../App';
+import { Store, isDev } from '../../App';
 import { Data } from './../SortableList';
 import { AreasList } from './../Area/AreasList';
 import { ResizableHandle } from './../ResizableHandle';
@@ -58,14 +57,20 @@ interface ItemsAmount{
  
 let hotFilter = (todo:Todo) : boolean => {
 
-    if(isNil(todo))
-        throw new Error(`Todo is undefined ${JSON.stringify(todo)}. hotFilter`);
+    if(isNil(todo)){
+        if(isDev()){ 
+           throw new Error(`Todo is undefined ${JSON.stringify(todo)}. hotFilter`);
+        }
+    }
         
     if(isNil(todo.deadline))
         return false;
            
-    if(!isDate(todo.deadline))
-        throw new Error(`Deadline is not date. ${JSON.stringify(todo.deadline)} hotFilter`);
+    if(!isDate(todo.deadline)){ 
+        if(isDev()){ 
+           throw new Error(`Deadline is not date. ${JSON.stringify(todo.deadline)} hotFilter`);
+        }
+    }
       
     return daysRemaining(todo.deadline)<=0;  
 }  

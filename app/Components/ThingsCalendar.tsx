@@ -19,6 +19,7 @@ import Clear from 'material-ui/svg-icons/content/clear';
 import { insideTargetArea } from '../utils';
 import { isNil } from 'ramda';
 import { isDate } from 'util';
+import { isDev } from '../app';
  
 
 interface DateCalendarProps{ 
@@ -372,9 +373,11 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                                     let hours : number = Number(time.split(':')[0]); 
                                     let minutes : number = Number(time.split(':')[1]); 
 
-                                    if(!isDate(this.props.attachedDate))
-                                       throw new Error(`attachedDate is not of type Date. ${this.props.attachedDate}. Done.`); 
-                                       
+                                    if(!isDate(this.props.attachedDate)){
+                                        if(isDev()){ 
+                                            throw new Error(`attachedDate is not of type Date. ${this.props.attachedDate}. Done.`); 
+                                        }
+                                    } 
                                     let date = new Date(this.props.attachedDate.getTime());
                                     date.setHours(hours);
                                     date.setMinutes(minutes);

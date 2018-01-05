@@ -7,14 +7,14 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, debounce, byTags, byCategory, generateEmptyTodo 
+    chooseIcon, debounce, byTags, byCategory, generateEmptyTodo, isArray 
 } from "../utils";  
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects, 
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, 
     removeProject, destroyEverything, addArea, addProject, generateId, addTodos, addProjects, addAreas, Heading, LayoutItem } from '.././database';
-import { Store } from '.././App'; 
+import { Store, isDev } from '.././App'; 
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import { AreaComponent } from './Area/Area';
 import { ProjectComponent } from './Project/Project';
@@ -28,7 +28,7 @@ import { Inbox } from './Categories/Inbox';
 import { QuickSearch } from './Search';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { generateRandomDatabase } from '../generateRandomObjects';
-import { isEmpty, last, isNil, contains } from 'ramda';
+import { isEmpty, last, isNil, contains, all } from 'ramda';
 import { isString } from 'util';
 
 
@@ -41,92 +41,137 @@ export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" |
 interface MainContainerState{ 
     fullWindowSize:boolean
 }
-  
+
+
+let transformLoadDates = (load) : any => {
+
+    if(isNil(load)){
+       return load;
+    }
+
+    if(load.type==="todo"){
+                        
+        return convertTodoDates(load);
+    }else if(load.type==="project"){
+
+        return convertProjectDates(load);
+    }else if(load.type==="area"){
+
+        return convertAreaDates(load); 
+    }else if(isArray(load)){
+
+        if(all((a:Area) => a.type==="area", load)){
+            return load.map(convertAreaDates);
+        }else if(all((p:Project) => p.type==="project", load)){
+            return load.map(convertProjectDates);
+        }else if(all((t:Todo) => t.type==="todo", load)){
+            return load.map(convertTodoDates);
+        }   
+    } 
+
+    return load;
+}
+
+
+let convertTodoDates = (t:Todo) : Todo => ({
+    ...t, 
+    reminder : !t.reminder ? undefined :  
+                typeof t.reminder==="string" ? new Date(t.reminder) : 
+                t.reminder,
+
+    deadline : !t.deadline ? undefined : 
+                typeof t.deadline==="string" ? new Date(t.deadline) : 
+                t.deadline,
+    
+    created : !t.created ? undefined : 
+               typeof t.created==="string" ? new Date(t.created) : 
+               t.created,
+    
+    deleted : !t.deleted ? undefined : 
+               typeof t.deleted==="string" ? new Date(t.deleted) : 
+               t.deleted,
+    
+    attachedDate : !t.attachedDate ? undefined : 
+                    typeof t.attachedDate==="string" ? new Date(t.attachedDate) : 
+                    t.attachedDate,
+    
+    completed : !t.completed ? undefined : 
+                typeof t.completed==="string" ? new Date(t.completed) : 
+                t.completed
+});
+
+
+
+let convertProjectDates = (p:Project) : Project => ({
+    ...p,
+    created : !p.created ? undefined : 
+               typeof p.created==="string" ? new Date(p.created) : 
+               p.created,
+
+    deadline : !p.deadline ? undefined : 
+                typeof p.deadline==="string" ? new Date(p.deadline) : 
+                p.deadline,
+
+    deleted : !p.deleted ? undefined : 
+               typeof p.deleted==="string" ? new Date(p.deleted) : 
+               p.deleted,
+
+    completed : !p.completed ? undefined : 
+                 typeof p.completed==="string" ? new Date(p.completed) : 
+                 p.completed  
+});
+
+
+
+let convertAreaDates = (a:Area) : Area => ({
+    ...a, 
+    created : !a.created ? undefined : 
+               typeof a.created==="string" ? new Date(a.created) : 
+               a.created,
+
+    deleted : !a.deleted ? undefined : 
+               typeof a.deleted==="string" ? new Date(a.deleted) : 
+               a.deleted,
+});
+
 
 export let convertDates = ([todos, projects, areas]) => [ 
-    todos.map((t:Todo) => ({
-        ...t, 
-        reminder : !t.reminder ? undefined : 
-                    typeof t.reminder==="string" ? new Date(t.reminder) : 
-                    t.reminder,
-
-        deadline : !t.deadline ? undefined : 
-                    typeof t.deadline==="string" ? new Date(t.deadline) : 
-                    t.deadline,
-        
-        created : !t.created ? undefined : 
-                   typeof t.created==="string" ? new Date(t.created) : 
-                   t.created,
-        
-        deleted : !t.deleted ? undefined : 
-                   typeof t.deleted==="string" ? new Date(t.deleted) : 
-                   t.deleted,
-        
-        attachedDate : !t.attachedDate ? undefined : 
-                        typeof t.attachedDate==="string" ? new Date(t.attachedDate) : 
-                        t.attachedDate,
-        
-        completed : !t.completed ? undefined : 
-                    typeof t.completed==="string" ? new Date(t.completed) : 
-                    t.completed
-    })),
-
-
-    projects.map((p:Project) => ({
-        ...p,
-        created : !p.created ? undefined : 
-                   typeof p.created==="string" ? new Date(p.created) : 
-                   p.created,
-
-        deadline : !p.deadline ? undefined : 
-                    typeof p.deadline==="string" ? new Date(p.deadline) : 
-                    p.deadline,
-
-        deleted : !p.deleted ? undefined : 
-                   typeof p.deleted==="string" ? new Date(p.deleted) : 
-                   p.deleted,
-
-        completed : !p.completed ? undefined : 
-                     typeof p.completed==="string" ? new Date(p.completed) : 
-                     p.completed  
-        
-    })),
-    areas.map((a:Area) => ({
-        ...a, 
-        created : !a.created ? undefined : 
-                   typeof a.created==="string" ? new Date(a.created) : 
-                   a.created,
-
-        deleted : !a.deleted ? undefined : 
-                   typeof a.deleted==="string" ? new Date(a.deleted) : 
-                   a.deleted,
-    }))     
+    todos.map(convertTodoDates),
+    projects.map(convertProjectDates),
+    areas.map(convertAreaDates)     
 ];  
-
+ 
   
   
 export let createHeading = (e, props:Store) : void => {
     
         if(props.selectedCategory!=="project"){
-            throw new Error(
-                `Attempt to create heading outside of project template. ${props.selectedCategory}. 
-                createHeading`
-            );
+            if(isDev()){ 
+                throw new Error(
+                    `Attempt to create heading outside of project template. ${props.selectedCategory}. 
+                    createHeading`
+                );
+            } 
         }  
 
         let id : string = props.selectedProjectId;
 
-        if(isNil(id))
-           throw new Error(`selectedProjectId undefined ${id}. createHeading.`);
+        if(isNil(id)){
+           if(isDev()){ 
+              throw new Error(`selectedProjectId undefined ${id}. createHeading.`);
+           }
+        }
 
         
         let project = props.projects.find( (p:Project) => p._id===id );
 
         if(!project){  
-            throw new Error(
-                `this.props.selectedProjectId ${props.selectedProjectId} do not correspond to existing project.
-                ${JSON.stringify(props.projects)}. createHeading`
-            );     
+            if(isDev()){ 
+                throw new Error(
+                    `this.props.selectedProjectId ${props.selectedProjectId} do not correspond to existing project.
+                    ${JSON.stringify(props.projects)}. createHeading`
+                );   
+            }   
         }
 
         let priority = 0;
@@ -138,13 +183,16 @@ export let createHeading = (e, props:Store) : void => {
 
                 let todo = props.todos.find( (t:Todo) => t._id===item );
 
-                if(todo.type!=="todo") 
-                    throw new Error(`
-                        todo is not of type Todo. 
-                        todo : ${JSON.stringify(todo)}. 
-                        item : ${JSON.stringify(item)}. 
-                        createHeading.
-                    `); 
+                if(todo.type!=="todo"){ 
+                    if(isDev()){ 
+                        throw new Error(`
+                            todo is not of type Todo. 
+                            todo : ${JSON.stringify(todo)}. 
+                            item : ${JSON.stringify(item)}. 
+                            createHeading.
+                        `); 
+                    } 
+                }
 
                 priority = todo.priority + 1; 
                 
@@ -152,14 +200,18 @@ export let createHeading = (e, props:Store) : void => {
 
                 let heading : Heading = item; 
 
-                if(heading.type!=="heading") 
-                    throw new Error(`heading is not of type Heading. ${JSON.stringify(heading)} createHeading `);
+                if(heading.type!=="heading"){ 
+                    if(isDev()){ 
+                       throw new Error(`heading is not of type Heading. ${JSON.stringify(heading)} createHeading `);
+                    }
+                } 
 
                 priority = heading.priority + 1;
 
             }else{
-
-                throw new Error(`Selected item is not of type LayoutItem. ${JSON.stringify(item)}. createHeading.`); 
+                if(isDev()){ 
+                   throw new Error(`Selected item is not of type LayoutItem. ${JSON.stringify(item)}. createHeading.`); 
+                }
 
             }
         }
@@ -212,11 +264,13 @@ let createNewTodo = (e, props:Store, rootRef:HTMLElement) : void => {
         let project : Project = props.projects.find( (p:Project) => p._id===props.selectedProjectId );
 
         if(isNil(project)){ 
-            throw new Error( 
-                `Project with selectedProjectId does not exist.
-                ${props.selectedProjectId} ${JSON.stringify(project)}. 
-                createNewTodo.`
-            )   
+            if(isDev()){ 
+                throw new Error( 
+                    `Project with selectedProjectId does not exist.
+                    ${props.selectedProjectId} ${JSON.stringify(project)}. 
+                    createNewTodo.`
+                )  
+            } 
         }     
 
         props.dispatch({ 
@@ -229,12 +283,14 @@ let createNewTodo = (e, props:Store, rootRef:HTMLElement) : void => {
         let area : Area = props.areas.find( (a:Area) => a._id===props.selectedAreaId );
         
         if(isNil(area)){  
-            throw new Error(  
-                `Area with selectedAreaId does not exist.
-                ${props.selectedAreaId}. 
-                ${JSON.stringify(area)}. 
-                createNewTodo.`  
-            )   
+            if(isDev()){ 
+                throw new Error(  
+                    `Area with selectedAreaId does not exist.
+                    ${props.selectedAreaId}. 
+                    ${JSON.stringify(area)}. 
+                    createNewTodo.`  
+                )   
+            }
         }  
 
         props.dispatch({ 
@@ -316,11 +372,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
             } 
         ) 
     } 
- 
+     
     
     componentDidMount(){
 
         if(!this.props.clone){
+
             destroyEverything()
             .then(() => { 
                  
@@ -342,16 +399,22 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     addAreas(this.onError,areas) 
                 ]) 
                 .then(() => this.fetchData())    
-            }) 
+            })
+             
         }   
        
         
         window.addEventListener("resize", this.updateWidth);
         window.addEventListener("click", this.closeRightClickMenu); 
 
-        //update separate windows 
+        //update separate windows  
         ipcRenderer.removeAllListeners("action");  
-        ipcRenderer.on("action", (event, action) => this.props.dispatch(action));
+        ipcRenderer.on(
+            "action", 
+            (event, action) => { 
+                this.props.dispatch({type:action.type,load:transformLoadDates(action.load)});  
+            }
+        ); 
     }      
      
     

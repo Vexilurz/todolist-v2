@@ -24,6 +24,7 @@ import { SortableList } from './SortableList';
 import { TodoInput } from './TodoInput/TodoInput';
 import { allPass, isNil, prepend, isEmpty, compose, map, assoc, contains, remove } from 'ramda';
 import { Category } from './MainContainer';
+import { isDev } from '../app';
 
 
 let findRelatedAreas = (areas:Area[], t:Todo) : Area[] => {
@@ -50,7 +51,9 @@ let removeTodoFromAreas = (dispatch:Function, areas:Area[], todo:Todo) : void =>
     let load = areas.map((fromArea:Area) : Area => {
         let idx : number = fromArea.attachedTodosIds.findIndex((id:string) => id===todo._id);  
         if(idx===-1){
-           throw new Error(`attachedTodosIds does not include todo id. removeTodoFromAreas.`); 
+            if(isDev()){ 
+               throw new Error(`attachedTodosIds does not include todo id. removeTodoFromAreas.`); 
+            }
         }
         fromArea.attachedTodosIds = remove(idx, 1, fromArea.attachedTodosIds); 
         console.log(`${todo.title} removed from ${fromArea.name}`);
@@ -66,7 +69,9 @@ let removeTodoFromProjects = (dispatch:Function, projects:Project[], todo:Todo) 
     let load = projects.map((fromProject:Project) : Project => {
         let idx : number = fromProject.layout.findIndex((id:string) => id===todo._id);  
         if(idx===-1){
-           throw new Error(`Project layout does not include todo id. removeTodoFromProjects.`); 
+            if(isDev()){ 
+               throw new Error(`Project layout does not include todo id. removeTodoFromProjects.`); 
+            }
         }
         fromProject.layout = remove(idx, 1, fromProject.layout); 
         console.log(`${todo.title} removed from ${fromProject.name}`);
@@ -404,8 +409,10 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         let draggedTodo = this.state.todos[index];
         
         if(isNil(draggedTodo)){
-           throw new Error(`draggedTodo undefined. ${index}. onSortStart. TodosList.`);
-        }
+           if(isDev()){ 
+              throw new Error(`draggedTodo undefined. ${index}. onSortStart. TodosList.`);
+           }
+        } 
 
         this.props.dispatch({type:"dragged",load:draggedTodo.type});
          

@@ -28,6 +28,7 @@ import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
 import { adjust, remove, allPass, uniq } from 'ramda';
+import { isDev } from '../../app';
 
 
 
@@ -88,12 +89,14 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
 
             if(idx===-1){
-                throw new Error(`
-                        Item does not exist. 
-                        ${heading_id}.
-                        updateHeading. 
-                        ${JSON.stringify(layout)}
-                `);  
+                if(isDev()){ 
+                    throw new Error(`
+                            Item does not exist. 
+                            ${heading_id}.
+                            updateHeading. 
+                            ${JSON.stringify(layout)}
+                    `);
+                }  
             } 
             
             let heading : Heading = {...layout[idx] as Heading} ;
@@ -115,12 +118,14 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
 
         if(idx===-1){ 
-           throw new Error(`
-                Item does not exist. 
-                ${heading_id}.
-                archiveHeading.
-                ${JSON.stringify(layout)}
-           `)    
+            if(isDev()){ 
+                throw new Error(`
+                    Item does not exist. 
+                    ${heading_id}.
+                    archiveHeading.
+                    ${JSON.stringify(layout)}
+                `)    
+            }
         }  
  
         this.updateProject(selectedProject, {layout:remove(idx,1,layout)});
@@ -155,9 +160,11 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             let item : LayoutItem = layout[i]; 
  
             if(item===undefined || item===null){
-               throw new Error(`Layout item undefined ${layout}. selectItems.`);  
+                if(isDev()){ 
+                   throw new Error(`Layout item undefined ${layout}. selectItems.`);  
+                }
             };
- 
+  
             if(typeof item === "string"){
                 let todo : Todo = filteredTodos.find( (t:Todo) => t._id===item );
                 

@@ -2,7 +2,6 @@ import '../../assets/styles.css';
 import '../../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';  
-import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
 import SortableContainer from '../../sortable-hoc/sortableContainer';
 import SortableElement from '../../sortable-hoc/sortableElement';
