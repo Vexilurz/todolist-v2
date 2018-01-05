@@ -360,6 +360,7 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
                 borderRadius: "5px",
                 position: "absolute",
                 width: "100%",
+                WebkitUserSelect:"none", 
                 backgroundColor: "rgba(238,237,239,1)"
             }}
         >   

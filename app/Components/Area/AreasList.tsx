@@ -385,6 +385,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             style={{
                 display:"flex",
                 flexDirection:"column",
+                WebkitUserSelect:"none",
                 position:"relative" 
             }} 
         >   
@@ -446,6 +447,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
         let selected = this.props.area._id===this.props.selectedAreaId && this.props.selectedCategory==="area";
                   
         return <li 
+            style={{WebkitUserSelect:"none"}}
             className={"area"} 
             key={this.props.index} 
             onMouseOver={(e) => {
@@ -543,6 +545,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
 
 
         return <li
+            style={{WebkitUserSelect:"none"}}
             key={this.props.index}
             onMouseOver={(e) => { 
                 if(e.buttons === 1 || e.buttons === 3){ 

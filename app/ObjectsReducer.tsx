@@ -218,11 +218,11 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 let idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
                 
                 if(idx===-1 && !isEmpty(action.load.title)){  
-                    let todo = {...action.load, _id:generateId()};
+                    let todo = action.load; 
 
-                    if(shouldAffectDatabase){
+                    if(shouldAffectDatabase){ 
                        addTodo(onError, todo)
-                    } 
+                    }  
 
                     if(todo.category==="project"){
 
@@ -334,13 +334,15 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
             (action:{type:string}) => "updateTodos"===action.type,
  
             (action:{type:string, load:Todo[]}) : Store => {
-
-                let changed : string[] = action.load.map( (t:Todo) => t._id );
-                let fixed : Todo[] = state.todos.filter( (t:Todo) => not(contains(t._id)(changed)) )  
-                let todos = [...fixed,...action.load];
+                let changedTodos = action.load; 
+                let changedIds : string[] = changedTodos.map((t:Todo) => t._id);
+                let notChangedTodos : Todo[] = state.todos.filter((todo:Todo) => not(contains(todo._id)(changedIds)));
+                
+                let todos = [...changedTodos,...notChangedTodos];
+                debugger;   
 
                 if(shouldAffectDatabase){ 
-                   updateTodos(action.load,onError)
+                   updateTodos(action.load,onError) 
                 }
     
                 return {...state, todos}

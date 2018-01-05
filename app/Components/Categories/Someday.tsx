@@ -81,7 +81,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
 
         let empty = generateEmptyTodo("emptyTodo","someday",0);   
          
-        return <div>
+        return <div  style={{WebkitUserSelect:"none"}}>
              <ContainerHeader 
                 selectedCategory={"someday"} 
                 dispatch={this.props.dispatch} 

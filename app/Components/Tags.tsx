@@ -73,7 +73,11 @@ export class Tags extends Component<TagsProps,{}>{
   
       render(){
          return !this.props.show ? null :
-                <div style={{ display: 'flex', flexWrap: 'wrap' }}>  
+                <div style={{  
+                    display:'flex', 
+                    flexWrap:'wrap',
+                    WebkitUserSelect:"none" 
+                }}>  
                     {    
                         ["All",...this.props.tags.sort((a:string,b:string) : number => a.localeCompare(b))]
                         .map((tag:string) =>  

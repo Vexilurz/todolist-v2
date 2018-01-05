@@ -36,6 +36,7 @@ export class ResizableHandle extends Component<ResizableHandleProps,{}>{
                 >   
                     <div style={{  
                        touchAction: "none",
+                       WebkitUserSelect:"none",
                        zIndex: 20000, 
                        cursor: "e-resize",
                        position: "relative",

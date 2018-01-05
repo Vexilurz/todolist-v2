@@ -40,7 +40,7 @@ import {
     insideTargetArea, daysRemaining, todoChanged, 
     daysLeftMark, generateTagElement, uppercase, generateEmptyTodo, isToday, getMonthName, stringToLength 
 } from '../../utils'; 
-import { Todo, removeTodo, updateTodo, generateId, Project } from '../../database';
+import { Todo, removeTodo, updateTodo, Project, generateId } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopup, TodoTags } from './TodoTags';
@@ -190,8 +190,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             if(this.props.creation){
                  
                 this.addTodo();
-                let emptyTodo = generateEmptyTodo("emptyTodo", this.props.selectedCategory, 0);
-                this.setState({  
+                let emptyTodo = generateEmptyTodo(generateId(), this.props.selectedCategory, 0);
+                this.setState({   
                     ...this.stateFromTodo(this.state,emptyTodo),
                     showDateCalendar : false,   
                     showTagsSelection : false, 
@@ -215,7 +215,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         if(e.keyCode === 13){
             if(this.props.creation && this.state.open){
                 if(isEmpty(this.state.title)){ 
-                    let emptyTodo = generateEmptyTodo("emptyTodo", this.props.selectedCategory, 0);
+                    let emptyTodo = generateEmptyTodo(generateId(), this.props.selectedCategory, 0);
                     this.setState(
                         {
                             ...this.stateFromTodo(this.state,emptyTodo),
@@ -250,7 +250,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         } 
 
         if(this.state.justUpdated && this.props.creation){  
-            let emptyTodo = generateEmptyTodo("emptyTodo", this.props.selectedCategory, 0);
+            let emptyTodo = generateEmptyTodo(generateId(), this.props.selectedCategory, 0);
             this.setState({
                 ...this.stateFromTodo(this.state,emptyTodo),
                 open:true,
@@ -550,13 +550,14 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                       isNil(relatedProjectName) || this.props.selectedCategory==="project" ? "0px" : 
                       "5px";  
  
-        return  <div   
+        return  <div    
             id={this.props.id}   
             onKeyDown={this.onWindowEnterPress}
             onContextMenu={this.onRightClickMenu}
             style={{    
                 width:"100%",         
                 display:"flex",    
+                WebkitUserSelect:"none",
                 position:"relative", 
                 alignItems:"center",   
                 justifyContent:"center"

@@ -86,7 +86,11 @@ export class Today extends Component<TodayProps,TodayState>{
 
         let empty = generateEmptyTodo("emptyTodo", "today", 0);  
 
-        return <div style={{disaply:"flex", flexDirection:"column"}}> 
+        return <div style={{
+            disaply:"flex", 
+            flexDirection:"column",
+            WebkitUserSelect:"none" 
+        }}> 
             <div style={{width: "100%"}}> 
                     <div style={{  
                         display:"flex", 

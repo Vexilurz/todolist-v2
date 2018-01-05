@@ -3,7 +3,7 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react";  
-import { Todo, generateId, Project, Area } from '../../database';
+import { Todo, Project, Area } from '../../database';
 import { TodosList } from '.././TodosList';
 import { ContainerHeader } from '.././ContainerHeader';
 import { 
@@ -49,7 +49,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
 
         let empty = generateEmptyTodo("emptyTodo","inbox",0);
 
-        return <div>  
+        return <div style={{WebkitUserSelect:"none"}}>  
             <ContainerHeader  
                 selectedCategory={"inbox"} 
                 dispatch={this.props.dispatch}  

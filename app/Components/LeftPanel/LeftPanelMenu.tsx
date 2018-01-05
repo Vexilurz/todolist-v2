@@ -233,6 +233,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
         return <div style={{
             display:"flex",
             flexDirection:"column",
+            WebkitUserSelect:"none",
             width:"100%"
         }}>
             <div style={{ 

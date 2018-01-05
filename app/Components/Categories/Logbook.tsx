@@ -152,7 +152,12 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
         return <div 
             key={month} 
-            style={{position:"relative", display:"flex", flexDirection:"column"}}
+            style={{
+                position:"relative", 
+                display:"flex", 
+                flexDirection:"column", 
+                WebkitUserSelect:"none"
+            }}
         >
             <div 
                 style={{

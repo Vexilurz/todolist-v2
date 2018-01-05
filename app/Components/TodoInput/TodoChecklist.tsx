@@ -204,6 +204,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         return <li style={{width:"100%"}}>  
             <div   
                  style={{   
+                    WebkitUserSelect:"none",
                     transition: "opacity 0.4s ease-in-out", 
                     opacity:1,
                     width:"100%", 
@@ -317,7 +318,12 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
  
         return <div  
             ref={e => {this.ref=e;}}
-            style={{marginTop:"5px",marginBottom:"15px", position:"relative"}}
+            style={{
+                marginTop:"5px",
+                marginBottom:"15px", 
+                position:"relative",
+                WebkitUserSelect:"none" 
+            }}
             onClick={(e) => {e.stopPropagation();}}  
         >     
             <div style={{width:"100%"}}>

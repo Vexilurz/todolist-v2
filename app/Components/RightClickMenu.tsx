@@ -357,6 +357,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                        margin: "5px",
                        borderRadius: "5px",
                        zIndex: 30000, 
+                       WebkitUserSelect:"none", 
                        width: "250px",      
                        position: "fixed",
                        backgroundColor: "rgba(238,237,239,1)",

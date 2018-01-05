@@ -96,13 +96,17 @@ export class Trash extends Component<TrashProps,TrashState>{
 
     onOk = (e) => this.setState( 
         {showPopup:false}, 
-        () => this.props.dispatch({type:"removeDeleted"})
-    ) 
+        () => {
+            this.props.dispatch({type:"removeDeleted"});  
+            this.props.dispatch({type:"selectedCategory", load:"inbox"});
+            this.props.dispatch({type:"selectedTag", load:"All"}); 
+        }
+    )  
 
 
     getDeletedProjectElement = (value:Project,  index:number) : JSX.Element => {
         return <div 
-            key={`deletedProject-${index}`} 
+            key={`deletedProject-${index}`}  
             style={{
                position:"relative", 
                display:"flex", 
@@ -185,7 +189,7 @@ export class Trash extends Component<TrashProps,TrashState>{
             ...this.props.areas
         ]); 
  
-        return <div> 
+        return <div style={{WebkitUserSelect:"none"}}> 
             <div> 
                 <ContainerHeader  
                     selectedCategory={"trash"}  

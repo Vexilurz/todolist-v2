@@ -32,7 +32,7 @@ export class ContainerHeader extends Component<ContainerHeaderProps,ContainerHea
 
     render(){
        
-        return <div>
+        return <div style={{WebkitUserSelect:"none"}}>
             <div style={{ width: "100%"}}> 
             <div style={{
                 display:"flex", 

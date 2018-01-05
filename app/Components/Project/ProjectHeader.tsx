@@ -274,8 +274,9 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                 </div>   
             </div> 
 
-            {            
-                <div style={{
+            {     
+                isNil(this.props.deadline) ? null :        
+                <div style={{ 
                     paddingTop:'15px', 
                     cursor:"default",
                     WebkitUserSelect:"none", 
@@ -284,18 +285,16 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     height:"30px"
                 }}> 
                     <div style={{paddingRight:"5px", paddingTop:"5px"}}> 
-                        <Flag   
-                            style={{   
-                                color:"black",   
-                                cursor:"default",  
-                                width:"20px",   
-                                height:"20px"
-                            }}
-                        />   
+                        <Flag style={{        
+                            color:"black",   
+                            cursor:"default",  
+                            width:"20px",   
+                            height:"20px"
+                        }}/>   
                     </div>   
                     <div style={{color:"black", fontSize:"15px", fontWeight:"bold", paddingRight:"20px"}}>
                         {`Deadline: ${getMonthName(this.props.deadline).slice(0,3)}. ${this.props.deadline.getDay()+1}`} 
-                    </div>     
+                    </div> 
                     <div>
                         {daysLeftMark(false, this.props.deadline, false, 15)}
                     </div>   

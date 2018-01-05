@@ -199,7 +199,7 @@ export class Next extends Component<NextProps, NextState>{
          
         let emptyTodo = generateEmptyTodo("emptyTodo", "next", 0);  
 
-        return  <div>
+        return  <div  style={{WebkitUserSelect:"none"}}>
                     <ContainerHeader 
                         selectedCategory={"next"}  
                         dispatch={this.props.dispatch}  
@@ -309,7 +309,11 @@ class NextProjectsList extends Component<NextProjectsListProps, NextProjectsList
 
     render(){ 
  
-        return  <div style={{paddingTop:"10px", paddingBottom:"10px"}}> 
+        return  <div style={{ 
+            paddingTop:"10px", 
+            paddingBottom:"10px",
+            WebkitUserSelect:"none" 
+        }}> 
             {     
                 this
                 .props
@@ -379,7 +383,11 @@ class NextAreasList extends Component<NextAreasListProps,NextAreasListState>{
   
  
     render(){ 
-        return <div style={{paddingTop:"10px", paddingBottom:"10px"}}> 
+        return <div style={{
+            paddingTop:"10px", 
+            paddingBottom:"10px",
+            WebkitUserSelect:"none" 
+        }}> 
                 {  
                     this.props
                     .table

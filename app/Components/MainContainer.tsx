@@ -29,7 +29,7 @@ import { Inbox } from './Categories/Inbox';
 import { QuickSearch } from './Search';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { generateRandomDatabase } from '../generateRandomObjects';
-import { isEmpty, last, isNil, contains, all, not } from 'ramda';
+import { isEmpty, last, isNil, contains, all, not, assoc } from 'ramda';
 import { isString } from 'util';
 
 
@@ -405,10 +405,17 @@ export class MainContainer extends Component<Store,MainContainerState>{
         ipcRenderer.removeAllListeners("action");  
         ipcRenderer.on(
             "action", 
-            (event, action) => { 
-                this.props.dispatch({type:action.type,load:transformLoadDates(action.load)});  
+            (event, action:{type:string, kind:string, load:any}) => {  
+
+                this.props.dispatch(
+                    assoc(
+                        "load",
+                        transformLoadDates(action.load), 
+                        action
+                    )
+                );      
             }
-        ); 
+        );  
     }      
      
     

@@ -172,7 +172,7 @@ interface  AlwaysOpenedTodoInputProps{
 }    
   
    
-class  AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysOpenedTodoInputState>{
+class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysOpenedTodoInputState>{
     
     calendar:HTMLElement; 
     deadline:HTMLElement;

@@ -200,7 +200,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         idx:number
     ) : JSX.Element => {
 
-        return <div key={idx}>
+        return <div  style={{WebkitUserSelect:"none"}} key={idx}>
             <CalendarDay 
                 idx={idx} 
                 day={object.date.getDate()} 
@@ -233,7 +233,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         )([...this.props.todos, ...this.props.projects]); 
 
 
-        return <div> 
+        return <div style={{WebkitUserSelect:"none"}}> 
                 <ContainerHeader 
                     selectedCategory={"upcoming"} 
                     dispatch={this.props.dispatch}  

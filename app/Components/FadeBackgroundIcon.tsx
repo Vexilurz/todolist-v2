@@ -13,7 +13,7 @@ import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { 
     queryToTodos, getTodos, updateTodo, Todo, 
-    removeTodo, generateId, addTodo 
+    removeTodo, addTodo 
 } from '../database';
 import Popover from 'material-ui/Popover'; 
 import TrashIcon from 'material-ui/svg-icons/action/delete';
@@ -54,7 +54,8 @@ export let chooseFadeIcon = (container:HTMLElement, selectedCategory:Category) =
         fill: "currentcolor", 
         height: "170px",
         width: "170px", 
-        userSelect: "none"
+        userSelect: "none",
+        WebkitUserSelect:"none"
     };
 
 

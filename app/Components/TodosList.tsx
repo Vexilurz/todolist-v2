@@ -2,7 +2,7 @@ import './../assets/styles.css';
 import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { Todo, generateId, Project, Area } from '../database';
+import { Todo, Project, Area } from '../database';
 import { Component } from 'react';
 import { 
     insideTargetArea, 
@@ -492,12 +492,14 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
      
 
     changeOrder = (oldIndex,newIndex) => {
-        let items = [...this.state.todos];  
-        let updated = compose(
-           (items:Todo[]) => items.map((item:Todo,index:number) => assoc("priority",index,item)), 
-           (items) => arrayMove(items,oldIndex,newIndex)
-        )(items);  
-        this.props.dispatch({type:"updateTodos", load:updated});
+        let load = arrayMove([...this.state.todos],oldIndex,newIndex);
+        
+        for(let i=0; i<load.length; i++){ 
+            let todo : Todo = load[i]; 
+            todo.priority = i;   
+        }
+        
+        this.props.dispatch({type:"updateTodos", load});
     }
  
 

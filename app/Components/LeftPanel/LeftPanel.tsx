@@ -31,7 +31,7 @@ import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books'; 
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { generateId, addProject, Project, Area, addArea, Todo } from '../../database';
+import { addProject, Project, Area, addArea, Todo } from '../../database';
 import Clear from 'material-ui/svg-icons/content/clear';
 import Remove from 'material-ui/svg-icons/content/remove'; 
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
@@ -247,6 +247,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                         style={{ 
                             display:"flex",    
                             flexDirection:"column", 
+                            WebkitUserSelect:"none",
                             width:getWidth(), 
                             overflowX:"hidden", 
                             height:`${window.innerHeight}px`,     
@@ -258,6 +259,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             position:"relative", 
                             display:"flex", 
                             alignItems:"center",
+                            WebkitUserSelect:"none",
                             justifyContent:"center", 
                             paddingTop:"15px" 
                         }}>   
@@ -285,6 +287,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                         <div   
                             id="areas"
                             style={{
+                                WebkitUserSelect:"none",
                                 paddingLeft: "20px",
                                 paddingRight: "20px",  
                                 marginBottom:"150px" 
