@@ -138,21 +138,23 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let {table,detached} = this.groupProjectsByArea(props);
 
         if(isDev()){
+
             assert(
                isArrayOfProjects(detached), 
-              `detached is not an array of projects. AreasList. ${JSON.stringify(detached)}.`
-            ) 
+               `detached is not an array of projects. AreasList. ${JSON.stringify(detached)}.`
+            );   
+
             assert(
-               all((a:Area) => isArrayOfProjects(table[a._id]))(props.areas), 
+               all((a:Area) => isArrayOfProjects(table[a._id]), props.areas.filter(byNotDeleted)), 
                `Not all table cells are arrays of projects. AreasList. ${JSON.stringify(table)}`
-            ); 
-        }
+            );
+        } 
  
         let layout = this.generateLayout(props,{table,detached}); 
 
         this.setState({layout});  
-    }
- 
+    }   
+  
     componentDidMount(){   
         this.init(this.props);
     } 
@@ -269,22 +271,17 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     }
      
 
-    getElement = (value : LayoutItem, index : number) : JSX.Element => {
+    getElement = (value : LayoutItem, index : number) : JSX.Element => { 
 
         let separator = <div id="separator" style={{outline: "none", width:"100%",height:"30px"}}></div>;
 
- 
         switch(value.type){
-
             case "area":
                 return this.getAreaElement(value as any,index);
-
             case "project":
                 return this.getProjectElement(value as any,index);
- 
             case "separator":
                 return separator;
- 
             default:
                 return null;   
         }
@@ -305,7 +302,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
   
         return false; 
     } 
-  
+    
 
 
     moveToClosestArea = (fromArea:Area, closestArea:Area, selectedProject:Project) : void => {

@@ -613,8 +613,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                     <DueDate    
                                         month={getMonthName(this.state.attachedDate)} 
                                         date={this.state.attachedDate}
-                                        day={this.state.attachedDate.getDay()+1} 
-                                    />       
+                                        day={this.state.attachedDate.getDate()} 
+                                    />         
                                 }  
                                 <AutosizeInput     
                                     ref={e => {this.inputRef=e;}}
@@ -953,7 +953,7 @@ interface DueDateProps{
     day:number
 }
  
-class DueDate extends Component<DueDateProps,any>{
+class DueDate extends Component<DueDateProps,{}>{
     render(){   
         return daysRemaining(this.props.date)===0 ?    
         <Star  

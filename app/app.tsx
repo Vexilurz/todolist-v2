@@ -34,19 +34,25 @@ export let isDev = () => true;
     document.body.appendChild(app);   
 })();  
  
-
+ 
+interface AppProps extends Store{
+    initialLoad:{type:string,load:any}
+}
 
 @connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
-export class App extends Component<any,any>{
+export class App extends Component<AppProps,{}>{
 
     constructor(props){  
-  
-        super(props);  
+        super(props);   
     }
 
-
- 
     componentDidMount(){
+ 
+        if(isDev()){
+           console.log("DEVELOPMENT"); 
+        }else{
+           console.log("PRODUCTION");  
+        }
 
         cond([
             [
@@ -61,10 +67,7 @@ export class App extends Component<any,any>{
                     this.props.dispatch({type:"newStore", load:action.load});
                     this.props.dispatch({type:"clone", load:true});
                 }
-            ], 
-
-
-            
+            ],  
             [ 
                 (action:{type:string}) : boolean => "reload"===action.type,  
                 (action:{type:string, load:string}) : void => { 
@@ -72,7 +75,6 @@ export class App extends Component<any,any>{
                 }
             ]
         ])(this.props.initialLoad)
-
     }   
  
 
@@ -84,7 +86,7 @@ export class App extends Component<any,any>{
                 backgroundColor:"white",
                 width:"100%",
                 height:"100%", 
-                scroll:"none",
+                scroll:"none", 
                 zIndex:2001,  
             }}>  
                 <div style={{display:"flex", width:"inherit", height:"inherit"}}>  
@@ -94,7 +96,7 @@ export class App extends Component<any,any>{
                     <MainContainer {...{} as any} />  
  
                 </div> 
- 
+  
                 <TodoInputPopup {...{} as any} />
             </div>          
         );  
@@ -108,8 +110,8 @@ ipcRenderer.on(
     (event, {type, load} : {type:string,load:any}) => { 
         injectTapEventPlugin();
         ReactDOM.render(  
-            <Provider store={store}> 
-                <App initialLoad={{type,load}}/>
+            <Provider store={store}>   
+                <App {...{initialLoad:{type,load}} as any} />
             </Provider>,
             document.getElementById('application')
         )  

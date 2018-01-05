@@ -84,7 +84,9 @@ export let isTodo = (todo:Todo) : boolean => {
     return all((prop:string) => todo.hasOwnProperty(prop), todoProps) && todo.type==="todo";
 }
 
-export let isArrayOfTodos = (array:any[]) : boolean => all( isTodo, array );
+export let isArrayOfTodos = (array:any[]) : boolean => {
+    return all((todo:Todo) => isTodo(todo), array );
+}
 
 export let isProject = (project:Project) : boolean => {
     if(isNil(project)){
@@ -96,8 +98,10 @@ export let isProject = (project:Project) : boolean => {
  
     return all((prop:string) => project.hasOwnProperty(prop), projectProps) && project.type==="project";
 }
-
-export let isArrayOfProjects = (array:any[]) : boolean => all( isProject, array );
+ 
+export let isArrayOfProjects = (array:any[]) : boolean => {
+   return all((project:Project) => isProject(project), array );
+}; 
 
 export let isArea = (area:Area) : boolean => {
     if(isNil(area)){
@@ -109,9 +113,11 @@ export let isArea = (area:Area) : boolean => {
     
     return all((prop:string) => area.hasOwnProperty(prop), areaProps) && area.type==="area";
 }
-   
+     
   
-export let isArrayOfAreas = (array:any[]) : boolean => all( isArea, array );
+export let isArrayOfAreas = (array:any[]) : boolean => {
+    return all((area:Area) => isArea(area), array );
+}
 
 
 export let isArrayOfStrings = (array:any[]) : boolean => {
@@ -120,7 +126,7 @@ export let isArrayOfStrings = (array:any[]) : boolean => {
 
     for(let i=0; i<array.length; i++){
         if(!isString(array[i]))
-           return false;  
+           return false;   
     }
 
     return true; 

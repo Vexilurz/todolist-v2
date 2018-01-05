@@ -22,10 +22,8 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
     let shouldAffectDatabase : boolean = action.kind!=="external";
     let shouldUpdateOtherInstances : boolean = action.kind!=="external";
 
-    console.log(`applicationObjectsReducer ${JSON.stringify(action)}`);
     console.log(`shouldUpdateOtherInstances ${shouldUpdateOtherInstances}`);
  
-             
     newState = cond([  
         [ 
             (action:{type:string}) : boolean => "setAllTypes"===action.type,  

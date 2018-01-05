@@ -29,7 +29,7 @@ import { Inbox } from './Categories/Inbox';
 import { QuickSearch } from './Search';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { generateRandomDatabase } from '../generateRandomObjects';
-import { isEmpty, last, isNil, contains, all } from 'ramda';
+import { isEmpty, last, isNil, contains, all, not } from 'ramda';
 import { isString } from 'util';
 
 
@@ -449,7 +449,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 >  
                 <div style={{display: "flex", padding: "10px"}}>   
                     <div className="no-drag" style={{position: "fixed", top: 0, right: 0}}>  
-                            <IconButton 
+                        {
+                            not(isDev()) ? null :
+                            <IconButton  
                                 iconStyle={{
                                     color:"rgba(100,100,100,0.6)",
                                     opacity:0,
@@ -457,10 +459,13 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     height:"18px" 
                                 }} 
                                 className="no-drag" 
-                                onTouchTap={() => ipcRenderer.send("reload", this.props.windowId)}
+                                onTouchTap={() => {
+                                    ipcRenderer.send("reload", this.props.windowId);
+                                }}
                             >
                                 <Refresh />  
                             </IconButton>  
+                        }
                         {     
                             this.props.clone ? null :
                             <IconButton    

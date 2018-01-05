@@ -22,10 +22,13 @@ import {
     byNotCompleted,
     byNotDeleted,
     getTagsFromItems,
+    assert,
+    isDate,
 } from '../../utils';  
 import { getProjectLink } from '../Project/ProjectLink';
-import { allPass, uniq, isNil, compose, not, last } from 'ramda';
+import { allPass, uniq, isNil, compose, not, last, isEmpty } from 'ramda';
   
+
 type Item = Project | Todo;
  
 
@@ -99,59 +102,75 @@ interface UpcomingProps{
  
 
 interface UpcomingState{
-    objects : {date:Date, todos:Todo[], projects:Project[]}[]
+    objects : {date:Date, todos:Todo[], projects:Project[]}[],
+    enter : number
 }
 
 
 
 export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
+    n:number;
+
     constructor(props){
         super(props);
-        this.state={ objects:[] }; 
+        this.n = 15; 
+        this.state = {objects:[], enter:1}; 
     }  
- 
+    
     onError = (e) => console.log(e);
 
-    componentDidMount(){   
-        let objects = this.generateCalendarObjects(10);
-        this.setState({objects}); 
-    }   
-
-    onEnter = ({ previousPosition, currentPosition }) => {
-        let objects = this.generateCalendarObjects(10);
-        this.setState({objects});  
+    getObjects = (props:UpcomingProps,n:number) : {
+        date: Date;
+        todos: Todo[];
+        projects: Project[];
+    }[] => { 
+        let objectsByDate = objectsToHashTableByDate(props);
+        let range = getDatesRange(new Date(), n, true, true); 
+        let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
+        return objects;
     }
-
-    updateCalendarObjects = () => {
-        let n = this.state.objects.length;
-        this.setState({objects:this.generateCalendarObjects(n)}); 
-    }
-   
+    
+    componentDidMount(){
+        this.setState({objects:this.getObjects(this.props,this.n)}); 
+    }  
+    
     componentWillReceiveProps(nextProps:UpcomingProps){
         if(
             nextProps.projects!==this.props.projects ||
             nextProps.todos!==this.props.todos ||
-            nextProps.areas!==this.props.areas ||
-            nextProps.selectedTag!==this.props.selectedTag
+            nextProps.areas!==this.props.areas 
         ){
-            this.updateCalendarObjects(); 
-        }
-    }   
- 
-    generateCalendarObjects = (n:number) : { date : Date, todos:Todo[], projects:Project[] }[] => {
-        let range : Date[] = [];
+
+            this.setState({objects:this.getObjects(nextProps,this.n * this.state.enter)});
+
+        }else if(nextProps.selectedTag!==this.props.selectedTag){
+
+            this.setState({objects:this.getObjects(nextProps,this.n), enter:1}); 
+
+        }  
+    } 
+
+    onEnter = ({ previousPosition, currentPosition }) => { 
         let objectsByDate = objectsToHashTableByDate(this.props);
-        
-        let objects = [...this.state.objects];
-        let lastObject = last(objects);
+        let from = last(this.state.objects);
+
+        assert(isDate(from.date), `from.date is not Date. ${JSON.stringify(from)}. onEnter.`);
+
+        let range = getDatesRange(from.date, this.n, false, true);
+        let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
  
-        if(objects.length===0){
-            range = getDatesRange( new Date(), n, true, true); 
-        }else{  
-            range = getDatesRange( objects[ objects.length - 1 ].date, n, false, true);
-        }
- 
+        this.setState({objects:[...this.state.objects,...objects], enter:this.state.enter+1});
+    } 
+     
+
+    generateCalendarObjectsFromRange = ( 
+        range:Date[], 
+        objectsByDate:objectsByDate   
+    ) : {date:Date, todos:Todo[], projects:Project[]}[] => {
+
+        let objects = [];
+
         for(let i = 0; i<range.length; i++){
 
             let object = {
@@ -161,7 +180,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             }
  
             let key : string = keyFromDate(range[i]);
-
             let entry : Item[] = objectsByDate[key];
  
             if(isNil(entry)){ 
@@ -173,10 +191,10 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             }
         } 
          
-        return objects;
+        return objects; 
     }
 
-    
+
     objectToComponent = (
         object : { date : Date, todos:Todo[], projects:Project[] }, 
         idx:number
@@ -196,11 +214,11 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 selectedTag={this.props.selectedTag}
                 rootRef={this.props.rootRef}
                 tags={this.props.tags}
-             /> 
+            /> 
         </div>
-    }
+    } 
 
-
+ 
     render(){ 
         
         let tags = compose(

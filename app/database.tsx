@@ -129,15 +129,18 @@ export let generateId = () => uniqid() + new Date().toJSON();
   
 
 function queryToObjects<T>(query:Query<T>){
+    let docs = [];
 
     if(isNil(query)){
       if(isDev()){ 
         throw new Error(`query undefined ${JSON.stringify(query)}. queryToObjects.`);
+      }else{
+        return docs; 
       }
-    }
+    } 
  
     let rows : any[] = query.rows;
-    let docs = [];
+    
 
     if(rows.length===0)
        return []; 
