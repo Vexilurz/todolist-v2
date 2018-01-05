@@ -23,11 +23,11 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
-import { uppercase, debounce, byNotDeleted, byNotCompleted, byTags } from '../../utils';
+import { uppercase, debounce, byNotDeleted, byNotCompleted, byTags, assert, isProject, isTodo } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
-import { adjust, remove, allPass, uniq } from 'ramda';
+import { adjust, remove, allPass, uniq, isNil, not } from 'ramda';
 import { isDev } from '../../app';
 
 
@@ -63,6 +63,12 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     updateProject = (selectedProject:Project, updatedProps) : void => { 
         let type = "updateProject"; 
         let load = { ...selectedProject, ...updatedProps };
+
+        assert(
+           isProject(load), 
+          `load is not a project. ${JSON.stringify(load)}. updateProject. ProjectComponent.`
+        );  
+ 
         this.props.dispatch({ type, load });
     } 
 
@@ -88,25 +94,22 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             let layout = selectedProject.layout;
             let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
 
-            if(idx===-1){
-                if(isDev()){ 
-                    throw new Error(`
-                            Item does not exist. 
-                            ${heading_id}.
-                            updateHeading. 
-                            ${JSON.stringify(layout)}
-                    `);
-                }  
-            } 
-            
-            let heading : Heading = {...layout[idx] as Heading} ;
+            assert(
+                idx!==-1, 
+                `Item does not exist. 
+                ${heading_id}.
+                updateHeading. 
+                ${JSON.stringify(layout)}`
+            ) 
+
+            let heading : Heading = {...layout[idx] as Heading};
             heading.title=newValue;
             let updatedLayout = adjust(() => heading, idx, layout);
             this.updateProject(selectedProject,{layout:updatedLayout});
         },
         50
     ) 
-
+    
     
     updateLayout = (selectedProject:Project) => (layout:LayoutItem[]) => {
         this.updateProject(selectedProject, {layout});
@@ -117,17 +120,16 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         let layout = selectedProject.layout;
         let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
 
-        if(idx===-1){ 
-            if(isDev()){ 
-                throw new Error(`
-                    Item does not exist. 
-                    ${heading_id}.
-                    archiveHeading.
-                    ${JSON.stringify(layout)}
-                `)    
-            }
-        }  
- 
+        assert(
+            idx!==-1, 
+            `Item does not exist. 
+            ${heading_id}.
+            archiveHeading.
+            ${JSON.stringify(layout)}
+            `
+        ) 
+
+     
         this.updateProject(selectedProject, {layout:remove(idx,1,layout)});
     }
 
@@ -147,9 +149,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         this.removeHeading(selectedProject)(heading_id); 
     }
       
-    
     moveHeading = (heading_id:string) => {}
-
 
     selectItems = (layout:LayoutItem[], todos:Todo[]) : (Todo | Heading)[] => { 
         let items = [];
@@ -158,18 +158,14 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     
         for(let i=0; i<layout.length; i++){ 
             let item : LayoutItem = layout[i]; 
+            
+            assert(not(isNil(item)), `Layout item is Nil ${JSON.stringify(layout)}`);
  
-            if(item===undefined || item===null){
-                if(isDev()){ 
-                   throw new Error(`Layout item undefined ${layout}. selectItems.`);  
-                }
-            };
-  
             if(typeof item === "string"){
                 let todo : Todo = filteredTodos.find( (t:Todo) => t._id===item );
                 
-                if(todo){
-                   items.push(todo); 
+                if(todo){ 
+                   items.push(todo);  
                 } 
             }else if(item.type==="heading"){
                 items.push(item);
@@ -183,11 +179,11 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
         let items = this.selectItems(project.layout,this.props.todos);
 
-        let toProjectHeader = items.filter( (i) => i.type==="todo" ) as Todo[];
-        let toProjectBody = items.filter((i) => i.type==="todo" ? byTags(this.props.selectedTag)(i as Todo) : true);
- 
-        return  !project ? null :
-                <div>  
+        let toProjectHeader = items.filter( isTodo ) as Todo[];
+        let toProjectBody = items.filter((i:Todo) => isTodo(i) ? byTags(this.props.selectedTag)(i) : true);
+        
+        return  isNil(project) ? null :
+                <div>   
                     <div>    
                         <ProjectHeader 
                             rootRef={this.props.rootRef}
@@ -205,8 +201,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             todos={toProjectHeader}
                             dispatch={this.props.dispatch} 
                         />        
-                    </div> 
-  
+                    </div>  
                     <div>  
                         <ProjectBody    
                             items={toProjectBody}

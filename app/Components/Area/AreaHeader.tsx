@@ -24,7 +24,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize'; 
 import { Todo, Project, Heading, Area } from '../../database';
-import { uppercase, debounce } from '../../utils';
+import { uppercase, debounce, assert, isArea } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
@@ -63,7 +63,6 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
 
     menuAnchor:HTMLElement;  
   
-
     constructor(props){ 
          
         super(props);
@@ -76,76 +75,37 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
         }; 
     }  
 
-
-
-    shouldComponentUpdate(nextProps, nextState){
-        
-        let should = false;  
-
-        if(this.state.menuAnchor!==nextState.menuAnchor)
-           should = true;
-
-        if(this.state.openMenu!==nextState.openMenu)
-           should = true;
-
-        if(this.state.name!==nextState.name)
-           should = true; 
-           
-        if(this.state.showTagsPopup!==nextState.showTagsPopup)
-           should = true;  
-
-        if(nextProps.name!==this.props.name)
-           should = true;
-
-        if(nextProps.selectedAreaId!==this.props.selectedAreaId)
-           should = true;
-          
-        return should;    
-    }  
-
-
-
     componentDidMount(){ 
-        if(this.menuAnchor)
+        if(this.menuAnchor){
            this.setState({menuAnchor:this.menuAnchor});
+        }
     }
-
-
 
     openMenu = () => {
         this.setState({openMenu:true});
     }
  
-
-
     closeMenu = () => { 
         this.setState({openMenu:false});
     } 
  
-    
-
     onAddTags = () => {
         this.closeMenu(); 
         this.setState({showTagsPopup:true})
     }
  
-
-
     onDeleteArea = () => {
-
         this.closeMenu();  
 
         let area = this.props.areas.find( (a:Area) => a._id===this.props.selectedAreaId ); 
 
-        if(!area){
-            if(isDev()){ 
-                throw new Error(`
-                    Area with selectedAreaId does not exist. 
-                    ${JSON.stringify(this.props.areas)}.
-                    ${this.props.selectedAreaId}.
-                `); 
-            }
-        }  
+        assert(
+            isArea(area), 
+            `Area with selectedAreaId does not exist or not an area. 
+             ${JSON.stringify(area)}.
+             ${JSON.stringify(this.props.areas)}.
+             ${this.props.selectedAreaId}.` 
+        ) 
 
         let relatedTodosIds : string[] = area.attachedTodosIds;
            
@@ -162,12 +122,12 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
         this.props.dispatch({
             type:"updateTodos", 
             load:selectedTodos.map((t:Todo) => ({...t,deleted:new Date()}))
-        })
+        });
 
         this.props.dispatch({
             type:"updateProjects", 
             load:selectedProjects.map((p:Project) => ({...p,deleted:new Date()}))
-        })
+        });
  
         this.props.dispatch({type:"updateArea", load:{...area,deleted:new Date()}});   
         
@@ -183,8 +143,6 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
         ); 
     }
   
-    
-     
     render(){ 
 
      return <div> 
@@ -235,13 +193,13 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
                         cursor: "pointer"
                     }}  
                     ref={ (e) => { this.menuAnchor=e; } }  
-                >
-                        <ThreeDots style={{  
-                            color:"rgb(179, 179, 179)",
-                            width:"32px", 
-                            height:"32px", 
-                            cursor: "pointer" 
-                        }} />
+                > 
+                    <ThreeDots style={{  
+                        color:"rgb(179, 179, 179)",
+                        width:"32px", 
+                        height:"32px", 
+                        cursor: "pointer" 
+                    }}/>
                 </div>  
                 {
                     !this.state.showTagsPopup ? null : 
@@ -254,7 +212,7 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
                         anchorEl = {this.menuAnchor} 
                         origin = {{vertical:"top", horizontal:"left"}} 
                         point = {{vertical:"top", horizontal:"right"}} 
-                    />
+                    /> 
                 }
                 <AreaMenu
                     open={this.state.openMenu}
@@ -268,9 +226,7 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
     }
 }
  
-
  
-
 
 interface AreaMenuProps{
     open : boolean,
@@ -281,18 +237,14 @@ interface AreaMenuProps{
 }    
  
 interface AreaMenuState{}
-
-   
+ 
 export class AreaMenu extends Component<AreaMenuProps,AreaMenuState>{
  
     constructor(props){ 
         super(props); 
-    }  
-
-
+    }   
 
     render(){  
-          
         return <Popover 
             className="nocolor"
             style={{
@@ -333,16 +285,12 @@ export class AreaMenu extends Component<AreaMenuProps,AreaMenuState>{
                             Add tags  
                         </div>     
                     </div>
-                
-
                     <div style={{
                         border:"1px solid rgba(200,200,200,0.1)",
                         marginTop: "5px",
                         marginBottom: "5px"
                     }}>
                     </div> 
-                 
- 
                     <div    
                         onClick={this.props.onDeleteArea as any} 
                         className={"tagItem"} style={{
@@ -357,7 +305,6 @@ export class AreaMenu extends Component<AreaMenuProps,AreaMenuState>{
                             Delete Area
                         </div>     
                     </div>
-
             </div> 
         </Popover> 
     } 

@@ -11,11 +11,12 @@ import { TodosList } from '../../Components/TodosList';
 import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '.././ContainerHeader';
 import { 
-    compareByDate, getMonthName, byTags, 
-    byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems 
+    compareByDate, getMonthName, byTags, isTodo, isProject, 
+    byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems, assert, isArrayOfStrings 
 } from '../../utils';
-import { allPass, compose } from 'ramda';
+import { allPass, compose, or } from 'ramda';
 import { getProjectLink } from '../Project/ProjectLink';
+import { isDev } from '../../app';
      
 
 interface LogbookProps{
@@ -34,7 +35,7 @@ interface LogbookProps{
          
 interface LogbookState{ 
     groups:(Todo | Project)[][]
-}  
+}   
 
 
 export class Logbook extends Component<LogbookProps,LogbookState>{
@@ -49,6 +50,23 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
     init = (props:LogbookProps) => {
         let groups : (Todo | Project)[][] = this.groupByMonth(props);
+
+        if(isDev()){
+           for(let i=0; i<groups.length; i++){
+               let group : (Todo | Project)[] = groups[i];
+               for(let j=0; j<group.length; j++){
+                    assert(
+                       or(isProject(group[j] as Project),isTodo(group[j] as Todo)), 
+                       `item have incorrect type 
+                        ${JSON.stringify(group[j])}. 
+                        ${JSON.stringify(group)}. 
+                        init.Logbook.`
+                    );  
+               }
+           } 
+        }
+
+
         this.setState({groups});
     } 
 
@@ -59,19 +77,17 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
  
     
     componentWillReceiveProps(nextProps:LogbookProps){
-        if(this.props.todos!==nextProps.todos)
+        if(this.props.todos!==nextProps.todos){
            this.init(nextProps);
-        if(this.props.projects!==nextProps.projects) 
+        }
+        if(this.props.projects!==nextProps.projects){ 
            this.init(nextProps);
-        if(this.props.selectedTag!==nextProps.selectedTag)
+        }
+        if(this.props.selectedTag!==nextProps.selectedTag){
            this.init(nextProps);
+        }
     } 
 
-
-    shouldComponentUpdate(nextProps:LogbookProps, nextState:LogbookState){
-        return true;
-    }
- 
 
     groupByMonth = (props:LogbookProps) : (Todo | Project)[][] => {  
  
@@ -138,7 +154,6 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
             key={month} 
             style={{position:"relative", display:"flex", flexDirection:"column"}}
         >
-        
             <div 
                 style={{
                     WebkitUserSelect: "none", 
@@ -187,7 +202,6 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
         let elements = [];
 
-   
         for(let i=0; i<groups.length; i++){
 
             let group : any[] = groups[i];
@@ -196,15 +210,14 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                continue; 
 
             let todos : Todo[] = group.filter( (item:Todo) => item.type==="todo" );
-            let projects : Project[] = group.filter( (item:Project) => item.type==="project" );
-
+            let projects : Project[] = group.filter( (item:Project) => item.type==="project" ); 
             let month : string = getMonthName(new Date(group[0].completed));
 
             elements.push(this.getComponent(month,todos,projects));
         }
 
         return elements; 
-    }
+    } 
 
 
     render(){ 
@@ -218,8 +231,11 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                 ])  
             )
         )([...this.props.todos, ...this.props.projects]);
-        
 
+        if(isDev()){
+           assert(isArrayOfStrings(tags), `tags is not a string array ${JSON.stringify(tags)}. Logbook. render.`) 
+        } 
+  
         return !this.state.groups ? null :
                 <div>
                     <ContainerHeader 

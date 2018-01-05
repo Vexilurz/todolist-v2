@@ -12,7 +12,8 @@ import {
     getTagsFromItems,  
     generateEmptyTodo,
     isString,
-    isCategory
+    isCategory,
+    assert
 } from '../utils';  
 import { RightClickMenu } from './RightClickMenu';
 import SortableContainer from '../sortable-hoc/sortableContainer';
@@ -25,6 +26,7 @@ import { TodoInput } from './TodoInput/TodoInput';
 import { allPass, isNil, prepend, isEmpty, compose, map, assoc, contains, remove } from 'ramda';
 import { Category } from './MainContainer';
 import { isDev } from '../app';
+import { calculateAmount } from './LeftPanel/LeftPanel';
 
 
 let findRelatedAreas = (areas:Area[], t:Todo) : Area[] => {
@@ -505,10 +507,29 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         let placeholderHeight = 0;
 
         if(this.state.helper){
-            let rect = this.state.helper.getBoundingClientRect();
-            placeholderOffset = this.state.currentIndex*rect.height;
-            placeholderHeight = rect.height;
-        }
+           let rect = this.state.helper.getBoundingClientRect();
+           placeholderOffset = this.state.currentIndex*rect.height;
+           placeholderHeight = rect.height;
+        }  
+ 
+        if(isDev()){
+            let amount = calculateAmount(this.props.areas,this.props.projects,this.props.todos);
+            if(this.props.selectedCategory==="inbox"){
+
+               assert(
+                amount.inbox===this.state.todos.length, 
+                `Incorrect amount. TodosList. Inbox. ${JSON.stringify(this.state.todos)}`
+               );   
+ 
+            }else if(this.props.selectedCategory==="trash"){
+
+                assert(
+                 amount.trash===this.state.todos.length, 
+                 `Incorrect amount. TodosList. Trash. ${JSON.stringify(this.state.todos)}`
+                );  
+            } 
+        } 
+
 
         return <div style={{WebkitUserSelect:"none",position:"relative"}}>   
             <Placeholder   

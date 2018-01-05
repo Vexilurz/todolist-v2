@@ -56,8 +56,10 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
          open={this.props.open}
          anchorEl={this.props.anchor}
          onRequestClose={() => this.props.close()}
+         scrollableContainer={document.body}
+         useLayerForClickAway={false} 
          anchorOrigin={{   
-             vertical: "top",
+             vertical: "top", 
              horizontal: "left"
          }}  
          targetOrigin={{      

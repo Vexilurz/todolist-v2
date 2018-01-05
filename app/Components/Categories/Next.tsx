@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byTags, 
-    byNotCompleted, byNotDeleted, byCategory, getTagsFromItems, isString, attachEmptyTodo, generateEmptyTodo 
+    byNotCompleted, byNotDeleted, byCategory, getTagsFromItems, isString, attachEmptyTodo, generateEmptyTodo, isProject, assert, isArea, isTodo, isArrayOfStrings 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -65,13 +65,62 @@ interface Table{
  
  
 export class Next extends Component<NextProps, NextState>{
-
+    projectsFilters : ((p:Project) => boolean)[];
+    areasFilters : ((a:Area) => boolean)[];
+    todosFilters : ((t:Todo) => boolean)[];
+ 
     constructor(props){
         super(props);
+        this.projectsFilters = [byNotCompleted, byNotDeleted]; 
+        this.areasFilters = [byNotDeleted];
+        this.todosFilters = [
+            byCategory("next"),
+            (t:Todo) => isNil(t.attachedDate),
+            byNotCompleted, 
+            byNotDeleted
+        ];  
     }
+
+
+    collectProjects = (table:Table) : Table => {
+        for(let i=0;  i<this.props.projects.length; i++){
+            let project : Project = this.props.projects[i]; 
+
+            assert(
+              isProject(project), 
+              `project is not of type Project. ${JSON.stringify(project)}. groupObjects. next.`
+            );  
+  
+            if(allPass([byTags(this.props.selectedTag), ...this.projectsFilters])(project)){
+               table[project._id] = [];
+               table.projects.push(project);  
+            }
+        };
+
+        return table;
+    } 
+
+
+    collectAreas = (table:Table) : Table => {
+        for(let i=0; i<this.props.areas.length; i++){
+            let area : Area = this.props.areas[i]; 
+
+            assert(
+              isArea(area), 
+              `area is not of type Area. ${JSON.stringify(area)}. groupObjects. next.`
+            );   
+            
+            if(allPass([byTags(this.props.selectedTag), ...this.areasFilters])(area)){
+               table[area._id] = [];
+               table.areas.push(area);
+            }
+        };
+
+        return table;
+    }
+ 
   
     groupObjects = () : Table => { 
-    
         let table : Table = { 
             projects : [],
             areas : [],
@@ -79,71 +128,18 @@ export class Next extends Component<NextProps, NextState>{
             detached : []   
         };  
  
+        table = this.collectProjects(table);
+        table = this.collectAreas(table);
 
-        for(let i=0;  i<this.props.projects.length; i++){
-            let project : Project = this.props.projects[i]; 
-
-            if(project.type!=="project"){ 
-               if(isDev()){ 
-                  throw new Error(`project is not of type Project ${JSON.stringify(project)}. groupObjects.`);
-               } 
-            } 
-
-            let filters = [
-                byTags(this.props.selectedTag),
-                byNotCompleted,  
-                byNotDeleted  
-            ]; 
-
-            if(allPass(filters)(project)){
-               table[project._id] = [];
-               table.projects.push(project); 
-            }
-        };
-
-
-        for(let i=0;  i<this.props.areas.length; i++){
-            let area : Area = this.props.areas[i]; 
-
-            if(area.type!=="area"){ 
-               if(isDev()){  
-                  throw new Error(`area is not of type Area ${JSON.stringify(area)}. groupObjects.`); 
-               }
-            }
- 
-            let filters = [
-                byTags(this.props.selectedTag),
-                byNotDeleted   
-            ];
-
-            if(allPass(filters)(area)){
-               table[area._id] = [];
-               table.areas.push(area);
-            }
-        };
-
-        
         for(let i = 0; i<this.props.todos.length; i++){
             let todo : Todo = this.props.todos[i]; 
 
-            if(todo.type!=="todo"){ 
-               if(isDev()){  
-                  throw new Error(`todo is not of type Todo ${JSON.stringify(todo)}. groupObjects.`); 
-               }
-            }
+            assert(isTodo(todo),`todo is not of type Todo. ${JSON.stringify(todo)}. groupObjects. next.`);
 
-            let filters = [
-                byCategory("next"),
-                (t:Todo) => isNil(t.attachedDate),
-                byTags(this.props.selectedTag), 
-                byNotCompleted, 
-                byNotDeleted
-            ];  
-
-            if(!allPass(filters)(todo))
+            if(!allPass([byTags(this.props.selectedTag), ...this.todosFilters])(todo))
                 continue;  
-             
-            table.todos.push(todo);     
+              
+            table.todos.push(todo);  
 
             let attached = false;
 
@@ -177,21 +173,29 @@ export class Next extends Component<NextProps, NextState>{
     } 
 
 
+
+    getNextTags = () : string[] => {
+        let {areas, projects, todos} = this.props;
+
+        return uniq(   
+            getTagsFromItems([  
+              ...projects.filter(allPass(this.projectsFilters)),
+              ...areas.filter(allPass(this.areasFilters)),
+              ...todos.filter(allPass(this.todosFilters))   
+            ]) 
+        );   
+    }
+
+
     render(){ 
 
         let table = this.groupObjects();
 
-        let empty = table.projects.length===0 &&  
-                    table.areas.length===0 &&  
-                    table.todos.length===0;
- 
-        let tags = uniq(   
-            getTagsFromItems([  
-              ...table.projects,
-              ...table.areas,
-              ...table.todos
-            ]) 
-        );    
+        let empty = table.projects.length===0 && table.areas.length===0 && table.todos.length===0;
+         
+        let tags = this.getNextTags();
+        
+        assert(isArrayOfStrings(tags), `tags is not an array of strings. ${JSON.stringify(tags)}. render. next.`);
          
         let emptyTodo = generateEmptyTodo("emptyTodo", "next", 0);  
 

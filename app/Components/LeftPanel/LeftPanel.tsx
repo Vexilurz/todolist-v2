@@ -73,16 +73,16 @@ let hotFilter = (todo:Todo) : boolean => {
     }
       
     return daysRemaining(todo.deadline)<=0;  
-}  
+}   
 
 
-let calculateAmount = (props:Store) : ItemsAmount => {
+export let calculateAmount = (areas:Area[], projects:Project[], todos:Todo[]) : ItemsAmount => {
 
-    let todayFilter = (i) => byCategory("today")(i) || byCategory("evening")(i);
- 
+    let todayFilter = (i) => byCategory("today")(i) || byCategory("evening")(i); 
+  
     let inboxFilters = [ 
-        byNotAttachedToAreaFilter(props.areas), 
-        byNotAttachedToProjectFilter(props.projects), 
+        byNotAttachedToAreaFilter(areas), 
+        byNotAttachedToProjectFilter(projects), 
         byCategory("inbox"),
         byNotCompleted, 
         byNotDeleted 
@@ -95,14 +95,14 @@ let calculateAmount = (props:Store) : ItemsAmount => {
     let logbookFilters = [byCompleted, byNotDeleted]; 
     
     let hotFilters = [byNotCompleted, byNotDeleted, hotFilter];
-        
+          
     return {      
-        inbox:props.todos.filter( (t:Todo) => allPass(inboxFilters)(t) ).length,
-        today:props.todos.filter( (t:Todo) => allPass(todayFilters)(t) ).length,
-        hot:props.todos.filter( (t:Todo) => allPass(hotFilters)(t) ).length,
-        trash:props.todos.filter( (t:Todo) => allPass(trashFilters)(t) ).length, 
-        logbook:props.todos.filter( (t:Todo) => allPass(logbookFilters)(t) ).length
-    }  
+       inbox:todos.filter((t:Todo) => allPass(inboxFilters)(t)).length,
+       today:todos.filter((t:Todo) => allPass(todayFilters)(t)).length,
+       hot:todos.filter((t:Todo) => allPass(hotFilters)(t)).length,
+       trash:todos.filter((t:Todo) => allPass(trashFilters)(t)).length, 
+       logbook:todos.filter((t:Todo) => allPass(logbookFilters)(t)).length
+    }   
 } 
  
 
@@ -128,8 +128,8 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
             fullWindowSize:true,
             ctrlPressed:false  
         }    
-    };      
-       
+    };   
+    
 
     componentDidMount(){
         window.addEventListener("keydown", this.onCtrlBPress);
@@ -226,22 +226,21 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
       
 
     openNewProjectAreaPopup = () => {
-        if(!this.props.openNewProjectAreaPopup)
+        if(!this.props.openNewProjectAreaPopup){
             this.props.dispatch({type:"openNewProjectAreaPopup",load:true})
+        } 
     } 
 
- 
+  
     render(){      
-
-        let {inbox,today,hot,trash,logbook} : ItemsAmount = calculateAmount(this.props);
+        let {areas,projects,todos} = this.props;
+ 
+        let {inbox,today,hot,trash,logbook} : ItemsAmount = calculateAmount(areas,projects,todos);
 
         let getWidth = () => this.props.clone ? `${0}px` : `${this.props.currentleftPanelWidth}px`;
                    
-        return  <div style={{
-            display: "flex",
-            flexDirection: "row-reverse"
-        }}>
-                    <ResizableHandle onDrag={this.onResizableHandleDrag}/>  
+        return  <div style={{display: "flex",flexDirection: "row-reverse"}}>
+                <ResizableHandle onDrag={this.onResizableHandleDrag}/>  
                     <div      
                         id="leftpanel"
                         className="scroll"
@@ -269,7 +268,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                                 width:"100%" 
                             }}>  
                                 <QuickSearch {...{} as any}/>
-                            </div>
+                            </div> 
                         </div>   
                         <div>  
                             <LeftPanelMenu   
@@ -283,7 +282,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                                 logbook={logbook}
                             />    
                         </div>
-                        <div  
+                        <div   
                             id="areas"
                             style={{
                                 paddingLeft: "20px",
@@ -315,19 +314,11 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             onNewProjectClick={this.onNewProjectClick}
                             onNewAreaClick={this.onNewAreaClick}
                         />
-  
-                        
                 </div>   
                 </div>   
-        };    
+    };    
 };  
  
-
-
-
-
-
-
 
 
 interface LeftPanelFooterProps{
@@ -335,6 +326,7 @@ interface LeftPanelFooterProps{
     openNewProjectAreaPopup:(e:any) => void,
     setNewProjectAnchor:(e:any) => void,
 }
+
 
 
 class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
@@ -399,7 +391,6 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
             </div> 
         </div> 
     }
-
 }
 
 

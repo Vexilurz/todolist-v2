@@ -76,29 +76,29 @@ export class Today extends Component<TodayProps,TodayState>{
         let tags = compose(
             getTagsFromItems,
             (todos) => todos.filter(
-                allPass([ 
-                    (t:Todo) => byCategory("today")(t) || byCategory("evening")(t),
-                    byNotCompleted,  
-                    byNotDeleted  
-                ])   
-            )
+              allPass([ 
+                (t:Todo) => byCategory("today")(t) || byCategory("evening")(t),
+                 byNotCompleted,  
+                 byNotDeleted  
+              ])    
+            ) 
         )(this.props.todos);
 
         let empty = generateEmptyTodo("emptyTodo", "today", 0);  
 
         return <div style={{disaply:"flex", flexDirection:"column"}}> 
             <div style={{width: "100%"}}> 
-        
-                    <div style={{ 
+                    <div style={{  
                         display:"flex", 
                         position:"relative",
                         alignItems:"center",
                         marginBottom:"20px"
                     }}>   
-                        <div>{chooseIcon({width:"50px",height:"50px"}, "today")}</div>
-
+                        <div>
+                            {chooseIcon({width:"50px",height:"50px"}, "today")}
+                        </div> 
                         <div style={{  
-                            fontFamily: "sans-serif",  
+                            fontFamily: "sans-serif",   
                             fontSize: "xx-large",
                             fontWeight: 600,
                             paddingLeft: "10px", 
@@ -107,22 +107,18 @@ export class Today extends Component<TodayProps,TodayState>{
                         }}>   
                             {uppercase("today")} 
                         </div> 
-                     
                     </div> 
-
                     <FadeBackgroundIcon    
                         container={this.props.rootRef} 
                         selectedCategory={"today"}  
                         show={this.state.emptyEvening && this.state.emptyToday}
-                    />           
- 
+                    />  
                     <Tags  
                         selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
                         tags={tags} 
                         selectedTag={this.props.selectedTag}
                         show={true}  
                     />  
-  
                 {       
                     <div   
                         className="unselectable" 
@@ -163,8 +159,7 @@ export class Today extends Component<TodayProps,TodayState>{
                         />  
                     </div>  
                 }    
-                {  
-                    //this.state.emptyEvening ? null :                
+                {                
                     <div style={{paddingTop:"20px"}}>  
                         <div style={{  
                             display: "flex",
@@ -193,11 +188,11 @@ export class Today extends Component<TodayProps,TodayState>{
                             style={{marginBottom: "50px", marginTop:"20px"}}   
                         >   
                             <TodosList     
-                                filters={[ 
-                                    byTags(this.props.selectedTag),
-                                    byCategory("evening"),
-                                    byNotCompleted,  
-                                    byNotDeleted    
+                                filters={[  
+                                   byTags(this.props.selectedTag),
+                                   byCategory("evening"),
+                                   byNotCompleted,  
+                                   byNotDeleted    
                                 ]}   
                                 searched={this.props.searched}
                                 selectedTodoId={this.props.selectedTodoId} 

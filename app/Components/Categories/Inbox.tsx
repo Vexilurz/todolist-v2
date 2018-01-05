@@ -41,23 +41,13 @@ interface InboxState{
 export class Inbox extends Component<InboxProps, InboxState>{
 
     constructor(props){
-
         super(props);
-
         this.state={empty:false};
-
     }   
-
- 
 
     render(){ 
 
-
         let empty = generateEmptyTodo("emptyTodo","inbox",0);
-
-
-       
-          
 
         return <div>  
             <ContainerHeader  
@@ -73,7 +63,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 selectedCategory={"inbox"}  
                 show={this.state.empty}
             />  
- 
+  
             <div    
                 className="unselectable" 
                 id="todos" 

@@ -42,7 +42,7 @@ import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 let moment = require("moment");
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { TodoInput } from './Components/TodoInput/TodoInput';
-import { contains, isNil, all, prepend } from 'ramda';
+import { contains, isNil, all, prepend, not } from 'ramda';
 import { isDev } from './app';
  
 
@@ -71,6 +71,67 @@ export let isCategory = (category : Category) : boolean => {
     return yes; 
 }  
 
+
+export let isTodo = (todo:Todo) : boolean => {
+    if(isNil(todo)){
+        return false;
+    } 
+
+    let todoProps = ["_id", "attachedDate", "attachedTags", "category", "checked", "checklist",
+    "completed", "created", "deadline", "deleted", "note", "priority", "reminder", 
+    "title","type"];
+
+    return all((prop:string) => todo.hasOwnProperty(prop), todoProps) && todo.type==="todo";
+}
+
+export let isArrayOfTodos = (array:any[]) : boolean => all( isTodo, array );
+
+export let isProject = (project:Project) : boolean => {
+    if(isNil(project)){
+        return false;
+    }
+
+    let projectProps = ['_id','attachedTags','completed','created','deadline',
+    'deleted','description','layout','name','priority','type'];  
+ 
+    return all((prop:string) => project.hasOwnProperty(prop), projectProps) && project.type==="project";
+}
+
+export let isArrayOfProjects = (array:any[]) : boolean => all( isProject, array );
+
+export let isArea = (area:Area) : boolean => {
+    if(isNil(area)){
+        return false; 
+    }
+
+    let areaProps = ["_id","attachedTags","attachedProjectsIds","attachedTodosIds",
+    "created","deleted","description","name","priority","type"];
+    
+    return all((prop:string) => area.hasOwnProperty(prop), areaProps) && area.type==="area";
+}
+   
+  
+export let isArrayOfAreas = (array:any[]) : boolean => all( isArea, array );
+
+
+export let isArrayOfStrings = (array:any[]) : boolean => {
+    if(!isArray(array))
+       return false;
+
+    for(let i=0; i<array.length; i++){
+        if(!isString(array[i]))
+           return false;  
+    }
+
+    return true; 
+}
+ 
+export let assert = (condition:boolean , error:string) : void => {
+
+    if(not(condition) && isDev()){ 
+       throw new Error(error);
+    }  
+} 
 
 
 export let keyFromDate = (date:Date) : string => {

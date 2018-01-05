@@ -25,7 +25,7 @@ import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
 import { 
     uppercase, debounce, stringToLength, daysLeftMark, byNotCompleted, 
-    byNotDeleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible 
+    byNotDeleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, assert, isArrayOfProjects, isProject 
 } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { SortableList, Data } from '../SortableList';
@@ -34,7 +34,7 @@ import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import PieChart from 'react-minimal-pie-chart';
 import { getProjectLink } from '../Project/ProjectLink';
-import { allPass, isNil } from 'ramda';
+import { allPass, isNil, not } from 'ramda';
 import { TodosList, Placeholder } from '../TodosList';
 import { Category } from '../MainContainer';
 import { changeProjectsOrder, removeFromArea, attachToArea } from './AreasList';
@@ -81,10 +81,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         } 
     }
     
-    shouldComponentUpdate(nextProps:AreaBodyProps, nextState:AreaBodyState){ 
-        return true;  
-    }     
-
+    
     componentDidMount(){
         let selectedProjects = this.selectProjects(this.props)
                                    .sort(( a:Project, b:Project ) => a.priority-b.priority);
@@ -116,7 +113,14 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
             (p:Project) => projectsIds.indexOf(p._id)!==-1
         ];
  
-        return props.projects.filter( allPass(filters) );
+        let selected = props.projects.filter( allPass(filters) );
+
+        assert(
+            isArrayOfProjects(selected), 
+            `selected is not an array of projects. selectProjects. AreaBody. ${JSON.stringify(selected)}`
+        );
+ 
+        return selected;
     }
          
     getTodoElement = (value:Todo, index:number) : JSX.Element => { 
@@ -134,7 +138,9 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 todo={value as Todo}
             />      
         </div> 
-    }
+    } 
+
+
 
     getElement = (value:any, index:number) : JSX.Element => { 
           
@@ -148,6 +154,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         }  
     }
 
+
+
     shouldCancelStart = (e) => {
         let nodes = [].slice.call(e.path);
         for(let i=0; i<nodes.length; i++){
@@ -156,6 +164,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         }
         return false; 
     } 
+
+
        
     shouldCancelAnimation = (e) => {
         if(!this.props.rootRef)
@@ -164,6 +174,28 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         let x = e.pageX;
         return x < rect.left;   
     }  
+    
+
+
+    onSortStart = ({node, index, collection}, e, helper) => { 
+
+        this.setState({showPlaceholder:true});
+        let item = this.state.selectedProjects[index];
+
+        assert(isProject(item), `item is not a project. ${JSON.stringify(item)}. onSortStart. AreaBody.`);
+        
+        this.props.dispatch({type:"dragged",load:item.type});
+
+        let helperRect = helper.getBoundingClientRect();
+        let offset = e.clientX - helperRect.left;
+        let el = generateDropStyle("nested"); 
+        el.style.left = `${offset}px`;  
+        el.style.visibility = "hidden";
+        el.style.opacity = '0'; 
+        helper.appendChild(el);   
+    }
+
+
 
     onSortEnd = ({oldIndex, newIndex, collection}, e) => {
 
@@ -175,17 +207,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         let leftpanel = document.getElementById("leftpanel");
         let target = this.state.selectedProjects[oldIndex];
 
-        if(isNil(target)){
-           if(isDev()){ 
-              throw new Error(`target isNil. onSortEnd. AreaBody.`);
-           }
-        } 
-
-        if(target.type!=="project"){ 
-           if(isDev()){ 
-              throw new Error(`target is not a project. ${JSON.stringify(target)}. onSortEnd. AreaBody.`);
-           }
-        }    
+        assert(isProject(target), `itarget is not a project. ${JSON.stringify(target)}. onSortEnd. AreaBody.`);
+        assert(not(isNil(leftpanel)), `leftpanel is Nil. onSortEnd. AreaBody.`);
  
         if(insideTargetArea(leftpanel,x,y)){   
 
@@ -199,7 +222,6 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                     attachToArea(this.props.dispatch, areaTarget, {...target}); 
                 }    
             }
-
         }else{     
             if(oldIndex===newIndex)
                return; 
@@ -208,31 +230,11 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         } 
     }   
 
-    onSortStart = ({node, index, collection}, e, helper) => { 
-
-        this.setState({showPlaceholder:true});
-        let item = this.state.selectedProjects[index];
-
-        if(isNil(item)){ 
-           if(isDev()){   
-              throw new Error(`selectedProject undefined. ${index}. onSortStart. AreaBody.`);
-           }
-        }
- 
-        this.props.dispatch({type:"dragged",load:item.type});
-
-        let helperRect = helper.getBoundingClientRect();
-        let offset = e.clientX - helperRect.left;
-        let el = generateDropStyle("nested"); 
-        el.style.left=`${offset}px`;  
-        el.style.visibility="hidden";
-        el.style.opacity='0'; 
-        helper.appendChild(el);  
-    }
+   
  
     onSortMove = (e, helper : HTMLElement, newIndex:number) => {
         if(!this.props.rootRef)
-           return;
+           return; 
 
         let x = e.clientX+this.props.rootRef.scrollLeft;  
         let y = e.clientY+this.props.rootRef.scrollTop;   
@@ -255,15 +257,16 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         } 
     } 
     
-    render(){
+    render(){ 
+        let placeholderHeight = 37;
        
         return <div ref={(e) => { this.ref=e; }}>    
             <div style={{ paddingTop:"20px", paddingBottom:"20px" }}> 
                 <Placeholder    
-                    offset={this.state.currentIndex*37}
-                    height={37}
+                    offset={this.state.currentIndex*placeholderHeight}
+                    height={placeholderHeight}
                     show={this.state.showPlaceholder}
-                /> 
+                />  
                 <SortableList
                     getElement={this.getElement}
                     items={this.state.selectedProjects}

@@ -301,8 +301,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }
 
 
-
-
+    
     componentDidMount(){  
         if(this.props.selectedTodoId===this.props.todo._id){  
             this.setState( 

@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, debounce, byTags, byCategory, generateEmptyTodo, isArray 
+    chooseIcon, debounce, byTags, byCategory, generateEmptyTodo, isArray, isTodo, isProject, isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos 
 } from "../utils";  
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -47,30 +47,24 @@ interface MainContainerState{
 let transformLoadDates = (load) : any => {
 
     if(isNil(load)){
-       return load;
-    }
-
-    if(load.type==="todo"){
-                        
-        return convertTodoDates(load);
-    }else if(load.type==="project"){
-
+       return load; 
+    }else if(isTodo(load)){
+       return convertTodoDates(load);
+    }else if(isProject(load)){
         return convertProjectDates(load);
-    }else if(load.type==="area"){
-
+    }else if(isArea(load)){
         return convertAreaDates(load); 
     }else if(isArray(load)){
-
-        if(all((a:Area) => a.type==="area", load)){
+        if(isArrayOfAreas(load)){
             return load.map(convertAreaDates);
-        }else if(all((p:Project) => p.type==="project", load)){
+        }else if(isArrayOfProjects(load)){
             return load.map(convertProjectDates);
-        }else if(all((t:Todo) => t.type==="todo", load)){
+        }else if(isArrayOfTodos(load)){
             return load.map(convertTodoDates);
         }   
     } 
 
-    return load;
+    return load; 
 }
 
 
@@ -175,7 +169,7 @@ export let createHeading = (e, props:Store) : void => {
             }   
         }
 
-        let priority = 0;
+        let priority = 0; 
 
         if(!isEmpty(project.layout)){
             let item : LayoutItem = last(project.layout);
@@ -213,7 +207,6 @@ export let createHeading = (e, props:Store) : void => {
                 if(isDev()){ 
                    throw new Error(`Selected item is not of type LayoutItem. ${JSON.stringify(item)}. createHeading.`); 
                 }
-
             }
         }
 
@@ -221,7 +214,7 @@ export let createHeading = (e, props:Store) : void => {
         let heading : Heading = {
             type : "heading", 
             priority,
-            title : '',  
+            title : '',   
             _id : generateId(), 
             key : generateId()
         }; 
@@ -408,7 +401,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         window.addEventListener("resize", this.updateWidth);
         window.addEventListener("click", this.closeRightClickMenu); 
 
-        //update separate windows  
+        //update separate windows   
         ipcRenderer.removeAllListeners("action");  
         ipcRenderer.on(
             "action", 
@@ -421,7 +414,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
     
 
     componentWillUnmount(){
-
         window.removeEventListener("resize", this.updateWidth);
         window.removeEventListener("click", this.closeRightClickMenu);
     }  
@@ -429,12 +421,13 @@ export class MainContainer extends Component<Store,MainContainerState>{
       
 
     componentWillReceiveProps(nextProps){
-
-        if(this.props.selectedCategory!==nextProps.selectedCategory)
-           if(this.rootRef)   
-              this.rootRef.scrollTop=0; 
+        if(this.props.selectedCategory!==nextProps.selectedCategory){
+           if(this.rootRef){   
+              this.rootRef.scrollTop=0;
+           } 
+        }
     }
-  
+   
  
     
     render(){  
@@ -468,7 +461,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             >
                                 <Refresh />  
                             </IconButton>  
-                        {    
+                        {     
                             this.props.clone ? null :
                             <IconButton    
                                 onClick={this.openNewWindow}   

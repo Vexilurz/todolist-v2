@@ -58,8 +58,10 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
 
     onMouseOver = (e) => {
         if(e.buttons == 1 || e.buttons == 3){
-            if(this.props.category==="upcoming")
-               return;
+
+            if(this.props.category==="upcoming"){
+               return
+            }
  
             if(
                 this.props.dragged==="todo" ||
@@ -68,21 +70,23 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
                     this.props.category==="trash"
                 ) 
             ){ 
-                this.setState({highlight:true}); 
+                this.setState({highlight:true}) 
             }
         }   
     }
 
 
     onMouseOut = (e) => {  
-        if(this.state.highlight)
-           this.setState({highlight:false});
+        if(this.state.highlight){
+           this.setState({highlight:false})
+        }
     }
 
 
     render(){  
 
         let selectedStyle = { borderRadius: "5px", backgroundColor: "rgba(228,230,233,1)" };
+
         let style = {    
             justifyContent: "space-between" as any,
             display: "flex",
@@ -95,7 +99,9 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
             padding: "5px",  
             cursor: "pointer"  
         }; 
+
         let selected = this.props.selected;   
+
         return <div  
             onMouseOver={this.onMouseOver} 
             onMouseOut={this.onMouseOut}  
@@ -105,11 +111,12 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
             style={selected ? merge(style,selectedStyle) : style}
         >     
             <div  
-            style={{         
-                display:"flex",
-                alignItems:"center", 
-                height:"100%"
-            }}>  
+                style={{         
+                    display:"flex",
+                    alignItems:"center", 
+                    height:"100%"
+                }}
+            >   
                 <div style={{  
                     paddingRight:"5px",
                     height:"100%", 
@@ -184,10 +191,7 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
                 </div> 
             } 
         </div> 
-        
-        
     }
- 
 }
  
 
@@ -220,9 +224,7 @@ interface LeftPanelMenuState{}
 export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuState>{
 
     constructor(props){
-
         super(props);
-
     }
     
 
@@ -353,7 +355,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
         </div>     
     }
 }  
-
+ 
  
 
 

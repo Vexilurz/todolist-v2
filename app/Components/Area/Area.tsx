@@ -7,9 +7,9 @@ import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
 import { Area, Project, Todo } from '../../database'; 
 import { AreaHeader } from './AreaHeader';
 import { AreaBody } from './AreaBody';
-import { debounce } from '../../utils';
+import { debounce, assert, isArea } from '../../utils';
 import { Category } from '../MainContainer';
-import { uniq } from 'ramda';
+import { uniq, isNil } from 'ramda';
   
  
 interface AreaComponentProps{
@@ -35,7 +35,6 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
      
 
     constructor(props){ 
-
         super(props); 
     }
  
@@ -43,9 +42,11 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
     updateArea = (selectedArea:Area, updatedProps) : void => { 
         let type = "updateArea"; 
         let load = { ...selectedArea, ...updatedProps };
+
+        assert(isArea(load), `Load is not an Area. ${JSON.stringify(load)}`);
+
         this.props.dispatch({ type, load });
     }
-
 
 
     updateAreaName = (area:Area) => debounce(
@@ -63,13 +64,11 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
     
  
     render(){
-        let area = this.props.areas.find( 
-            (a:Area) => this.props.selectedAreaId===a._id
-        );
+        let area = this.props.areas.find((a:Area) => this.props.selectedAreaId===a._id);
  
-        return !area ? null :
+        return isNil(area) ? null :
         <div>  
-            <div>
+            <div> 
                 <AreaHeader
                     name={area.name}  
                     tags={this.props.tags}
