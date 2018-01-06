@@ -83,6 +83,36 @@ export class Next extends Component<NextProps, NextState>{
         ];  
     }
 
+    shouldComponentUpdate(nextProps:NextProps,nextState:NextState){
+
+        let should = false;
+
+        if(this.props.selectedTodoId!==nextProps.selectedTodoId)
+            should = true;
+        if(this.props.searched!==nextProps.searched)
+            should = true;
+        if(this.props.selectedProjectId!==nextProps.selectedProjectId)
+            should = true;
+        if(this.props.selectedAreaId!==nextProps.selectedAreaId)
+            should = true;
+        if(this.props.selectedCategory!==nextProps.selectedCategory)
+            should = true;
+        if(this.props.selectedTag!==nextProps.selectedTag)
+            should = true;
+        if(this.props.rootRef!==nextProps.rootRef)
+            should = true;
+        if(this.props.areas!==nextProps.areas)
+            should = true;
+        if(this.props.projects!==nextProps.projects)
+            should = true;
+        if(this.props.todos!==nextProps.todos)
+            should = true;
+        if(this.props.tags!==nextProps.tags)
+            should = true;
+
+        return should;
+    }
+ 
 
     collectProjects = (table:Table) : Table => {
         for(let i=0;  i<this.props.projects.length; i++){
@@ -480,34 +510,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
         this.state = {
             expanded : false,
         }
-    }
-
-
-    shouldComponentUpdate(nextProps:ExpandableTodosListProps,nextState:ExpandableTodosListState){
-        let should = false;
-
-        if(this.props.selectedTag!==nextProps.selectedTag) 
-            should = true;
-        if(this.props.rootRef!==nextProps.rootRef)
-            should = true;
-        if(this.props.todos!==nextProps.todos)
-            should = true;
-        if(this.props.areas!==nextProps.areas)
-            should = true;
-        if(this.props.projects!==nextProps.projects)
-            should = true;    
-        if(this.props.tags!==nextProps.tags)
-            should = true;
-        if(this.props.searched!==nextProps.searched)
-            should = true;
-            
-
-        if(this.state.expanded!==nextState.expanded)
-            should = true;    
-  
-        return should; 
-    }
-
+    } 
 
     render(){ 
 
