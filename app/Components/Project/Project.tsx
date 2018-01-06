@@ -49,7 +49,11 @@ interface ProjectComponentProps{
   
 
 
-interface ProjectComponentState{}  
+interface ProjectComponentState{
+    toProjectHeader : Todo[],  
+    toProjectBody : (Heading | Todo)[],
+    project : Project
+}   
  
  
  
@@ -57,20 +61,58 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
 
     constructor(props){
-        super(props);
-    }  
+        super(props); 
+
+        let {toProjectHeader, toProjectBody, project} = this.getItems(this.props);
  
+        this.state = {toProjectHeader, toProjectBody, project}; 
+    }   
+
+    getItems = (props:ProjectComponentProps) => {
+        let project = props.projects.find((p:Project) => props.selectedProjectId===p._id);
+        let items = this.selectItems(project.layout,props.todos);
+
+        let toProjectHeader = items.filter( isTodo ) as Todo[];
+        let toProjectBody = items.filter((i:Todo) => isTodo(i) ? byTags(props.selectedTag)(i) : true);
+        
+        return {
+            toProjectHeader,
+            toProjectBody,
+            project
+        }
+    }
+
+    componentDidMount(){
+        let { toProjectHeader, toProjectBody, project } = this.getItems(this.props);
+        this.setState({toProjectHeader, toProjectBody, project}); 
+    }   
+ 
+    componentWillReceiveProps(nextProps:ProjectComponentProps,nextState:ProjectComponentState){
+        if(
+            nextProps.projects!==this.props.projects ||
+
+            nextProps.selectedProjectId!==this.props.selectedProjectId ||
+
+            nextProps.selectedTag !== this.props.selectedTag || 
+
+            nextProps.todos!==this.props.todos 
+        ){
+            let { toProjectHeader, toProjectBody, project } = this.getItems(nextProps);
+            this.setState({toProjectHeader,toProjectBody, project}); 
+        }
+    } 
+    
 
     updateProject = (selectedProject:Project, updatedProps) : void => { 
-        let type = "updateProject"; 
+        let type = "updateProject";  
         let load = { ...selectedProject, ...updatedProps };
-
+        
         assert(
            isProject(load), 
           `load is not a project. ${JSON.stringify(load)}. updateProject. ProjectComponent.`
         );  
  
-        this.props.dispatch({ type, load });
+        this.props.dispatch({type, load}); 
     } 
 
 
@@ -130,7 +172,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             `
         ) 
 
-     
         this.updateProject(selectedProject, {layout:remove(idx,1,layout)});
     }
 
@@ -177,41 +218,37 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     
  
     render(){   
-        let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
-        let items = this.selectItems(project.layout,this.props.todos);
-
-        let toProjectHeader = items.filter( isTodo ) as Todo[];
-        let toProjectBody = items.filter((i:Todo) => isTodo(i) ? byTags(this.props.selectedTag)(i) : true);
-        
-        return  isNil(project) ? null :
+         
+        return  isNil(this.state.project) ? null :
                 <div>   
                     <div>    
                         <ProjectHeader 
                             rootRef={this.props.rootRef}
-                            name={project.name} 
-                            attachTagToProject={this.attachTagToProject(project)}
+                            name={this.state.project.name} 
+                            attachTagToProject={this.attachTagToProject(this.state.project)}
                             tags={this.props.tags}
-                            description={project.description}
-                            created={project.created as any}  
-                            deadline={project.deadline as any} 
-                            completed={project.completed as any} 
+                            description={this.state.project.description}
+                            created={this.state.project.created as any}  
+                            deadline={this.state.project.deadline as any} 
+                            completed={this.state.project.completed as any} 
                             selectedTag={this.props.selectedTag}    
-                            updateProjectDeadline={this.updateProjectDeadline(project)}
-                            updateProjectName={this.updateProjectName(project)}
-                            updateProjectDescription={this.updateProjectDescription(project)} 
-                            todos={toProjectHeader}
+                            updateProjectDeadline={this.updateProjectDeadline(this.state.project)}
+                            updateProjectName={this.updateProjectName(this.state.project)}
+                            updateProjectDescription={this.updateProjectDescription(this.state.project)} 
+                            todos={this.state.toProjectHeader}
                             dispatch={this.props.dispatch} 
                         />        
                     </div>  
                     <div>  
                         <ProjectBody    
-                            items={toProjectBody}
-                            updateLayout={this.updateLayout(project)}
-                            removeHeading={this.removeHeading(project)}
-                            updateHeading={this.updateHeading(project)}
-                            archiveHeading={this.archiveHeading(project)}
-                            moveHeading={this.moveHeading} 
-                            areas={this.props.areas}   
+                            items={this.state.toProjectBody}
+                            updateLayout={this.updateLayout(this.state.project)}
+                            removeHeading={this.removeHeading(this.state.project)}
+                            updateHeading={this.updateHeading(this.state.project)}
+                            archiveHeading={this.archiveHeading(this.state.project)}
+                            moveHeading={this.moveHeading}   
+                            selectedTag={this.props.selectedTag}    
+                            areas={this.props.areas}     
                             selectedProjectId={this.props.selectedProjectId}
                             selectedAreaId={this.props.selectedAreaId}  
                             projects={this.props.projects}
@@ -221,8 +258,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             tags={this.props.tags}
                             rootRef={this.props.rootRef}
                             dispatch={this.props.dispatch} 
-                        />
-                    </div>   
+                        />  
+                    </div>    
                 </div> 
     }
 } 

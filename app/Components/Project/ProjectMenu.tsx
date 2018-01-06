@@ -23,12 +23,41 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui'; 
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, generateId, addProject, removeProject } from '../../database';
-import { uppercase, debounce, attachDispatchToProps } from '../../utils';
+import { uppercase, debounce, attachDispatchToProps, assert } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { Store, isDev } from '../../app';
 import { isString } from 'util'; 
-import { contains } from 'ramda';
+import { contains, not, isNil } from 'ramda';
 import { createHeading } from '../MainContainer';
+
+ 
+
+
+export let deleteProject = (dispatch:Function, project:Project, todos:Todo[]) => {
+    
+    assert(
+        not(isNil(project)), 
+        `project with id selectedProjectId does not exist.
+        ${JSON.stringify(project)}
+        deleteProject`
+    )
+    
+    let relatedTodosIds : string[] = project.layout.filter(isString);
+    
+    let selectedTodos : Todo[] = todos.filter(
+        (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
+    );   
+        
+    dispatch({
+        type:"updateTodos",   
+        load:selectedTodos.map((t:Todo) => ({...t,deleted:new Date()}))
+    })
+
+    dispatch({type:"updateProject", load:{...project,deleted:new Date()}});
+}
+
+
+
  
 
 interface ProjectMenuPopoverProps extends Store{
@@ -120,39 +149,15 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         
         this.closeMenu() 
     } 
-   //openTagsPopup
+  
    
     onDelete = (e) => {   
-
-        let project = this.props.projects.find( (p:Project) => p._id===this.props.selectedProjectId )
-
-        if(!project){
-            if(isDev()){ 
-                throw new Error(`
-                    project with id selectedProjectId does not exist.
-                    ${JSON.stringify(this.props.projects)}
-                    ${JSON.stringify(this.props.selectedProjectId)}
-                `); 
-            }
-        } 
-
-        let relatedTodosIds : string[] = project.layout.filter(isString);
-        
-        let selectedTodos : Todo[] = this.props.todos.filter(
-            (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
-        );   
-            
-        this.props.dispatch({
-            type:"updateTodos",   
-            load:selectedTodos.map((t:Todo) => ({...t,deleted:new Date()}))
-        })
-  
-        this.props.dispatch({type:"updateProject", load:{...project,deleted:new Date()}});
-        this.props.dispatch({type:"selectedCategory",load:"inbox"});
-         
-        this.closeMenu() 
-    }  
-
+        let project = this.props.projects.find((p:Project) => p._id===this.props.selectedProjectId);
+        deleteProject(this.props.dispatch, project, this.props.todos); 
+        this.props.dispatch({type:"selectedCategory", load:"inbox"});
+        this.closeMenu();           
+    }   
+ 
 
     onAddHeading = (e) => {
         createHeading(e, this.props); 

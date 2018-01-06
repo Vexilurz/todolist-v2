@@ -357,12 +357,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let detachedBefore = isDetached(oldIndex, this.state.layout);
         let detachedAfter = isDetached(newIndex, listAfter);
 
-        if(isDev()){ 
-            assert(isArea(fromArea),`fromArea is not of type Area. ${JSON.stringify(fromArea)}. moveToClosestArea.`);
-            assert(isArea(closestArea),`closestArea is not of type Area. ${JSON.stringify(closestArea)}. moveToClosestArea.`);
-            assert(isProject(selectedProject),`selectedProject is not of type Project. ${JSON.stringify(selectedProject)}. onSortEnd.`);
-        } 
-
         if(detachedBefore && !detachedAfter){ 
 
             attachToArea(this.props.dispatch, closestArea, selectedProject);
@@ -372,11 +366,11 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         }else if(!detachedBefore && !detachedAfter && fromArea._id!==closestArea._id){
 
             this.moveToClosestArea(fromArea, closestArea, selectedProject);
-        } 
+        }  
         
         changeProjectsOrder(this.props.dispatch,listAfter);
     } 
-      
+       
       
     render(){ 
         let container = document.getElementById("areas");
@@ -543,7 +537,6 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         let remaining = !isNil(this.props.project.deadline) ? daysRemaining(this.props.project.deadline) : 0;  
         let selected = this.props.project._id===this.props.selectedProjectId && this.props.selectedCategory==="project";
 
-
         return <li
             style={{WebkitUserSelect:"none"}}
             key={this.props.index}
@@ -552,11 +545,12 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     if(this.props.dragged==="todo"){
                        this.setState({highlight:true}); 
                     }  
-                } 
+                }  
             }} 
             onMouseOut={(e) => { 
-                if(this.state.highlight)
+                if(this.state.highlight){
                    this.setState({highlight:false});
+                }
             }}  
         >    
             <div  

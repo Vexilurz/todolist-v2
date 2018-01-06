@@ -109,8 +109,8 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                     }} 
                 >     
                     <TodoInput   
-                        id={empty._id}
-                        key={empty._id} 
+                        id={empty._id} 
+                        key={"someday-todo-creation-form"} 
                         dispatch={this.props.dispatch}  
                         selectedCategory={"someday"}     
                         searched={this.props.searched}

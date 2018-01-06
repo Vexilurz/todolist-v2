@@ -21,7 +21,16 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                     searched:action.load 
                 }; 
                 break; 
+             
+                
+            case "dragged": 
+                newState = {  
+                    ...state,
+                    dragged:action.load
+                }
+                break;   
 
+             
            case "openSearch": 
                newState = {
                    ...state, 

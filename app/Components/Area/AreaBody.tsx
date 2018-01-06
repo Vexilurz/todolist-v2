@@ -25,7 +25,7 @@ import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
 import { 
     uppercase, debounce, stringToLength, daysLeftMark, byNotCompleted, 
-    byNotDeleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, assert, isArrayOfProjects, isProject 
+    byNotDeleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, assert, isArrayOfProjects, isProject, isCategory 
 } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { SortableList, Data } from '../SortableList';
@@ -39,6 +39,7 @@ import { TodosList, Placeholder } from '../TodosList';
 import { Category } from '../MainContainer';
 import { changeProjectsOrder, removeFromArea, attachToArea } from './AreasList';
 import { isDev } from '../../app';
+import { deleteProject } from '../Project/ProjectMenu';
 
 
  
@@ -83,6 +84,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         } 
     }
     
+
     
     componentDidMount(){
         let selectedProjects = this.selectProjects(this.props)
@@ -90,12 +92,50 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         this.setState({selectedProjects});
     } 
 
+
+
     componentWillReceiveProps(nextProps:AreaBodyProps,nextState:AreaBodyState){
-        let selectedProjects = this.selectProjects(nextProps)
-                                   .sort(( a:Project, b:Project ) => a.priority-b.priority);
-        this.setState({selectedProjects});
+        let should = false;
+
+        if(nextProps.area!==this.props.area)
+            should = true;
+
+        if(nextProps.areas!==this.props.areas)
+            should = true;
+        
+        if(nextProps.projects!==this.props.projects)
+            should = true;
+        
+        if(nextProps.selectedAreaId!==this.props.selectedAreaId)
+            should = true;
+        
+        if(nextProps.selectedProjectId!==this.props.selectedProjectId)
+            should = true;
+        
+        if(nextProps.todos!==this.props.todos)
+            should = true;
+        
+        if(nextProps.tags!==this.props.tags)
+            should = true;
+        
+        if(nextProps.searched!==this.props.searched)
+            should = true;
+        
+        if(nextProps.selectedCategory!==this.props.selectedCategory)
+            should = true;
+        
+        if(nextProps.selectedTag!==this.props.selectedTag) 
+            should = true;
+         
+        if(should){
+            let selectedProjects = this.selectProjects(nextProps)
+                                    .sort((a:Project, b:Project) => a.priority-b.priority);
+            this.setState({selectedProjects});  
+        }
     }
  
+
+
     selectTodos = (props:AreaBodyProps) : Todo[] => { 
         let todosIds : string[] = props.area.attachedTodosIds;
         let filters = [
@@ -190,7 +230,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         assert(isProject(item), `item is not a project. ${JSON.stringify(item)}. onSortStart. AreaBody.`);
         
         this.props.dispatch({type:"dragged",load:item.type});
-
+ 
         let helperRect = helper.getBoundingClientRect();
         let offset = e.clientX - helperRect.left;
         let el = generateDropStyle("nested"); 
@@ -198,7 +238,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         el.style.visibility = "hidden";
         el.style.opacity = '0'; 
         helper.appendChild(el);   
-    }
+    }   
 
 
 
@@ -227,6 +267,15 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                     attachToArea(this.props.dispatch, areaTarget, {...target}); 
                 }    
             }
+
+            let nodes = [].slice.call(e.path);
+        
+            for(let i=0; i<nodes.length; i++){
+                if(nodes[i].id==="trash"){ 
+                   deleteProject(this.props.dispatch, target, this.props.todos);
+                }    
+            }   
+
         }else{     
             if(oldIndex===newIndex)
                return; 

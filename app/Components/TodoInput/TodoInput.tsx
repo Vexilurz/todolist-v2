@@ -70,11 +70,9 @@ export interface TodoInputState{
     showDateCalendar : boolean,  
     showTagsSelection : boolean,
     showChecklist : boolean,   
-    showDeadlineCalendar : boolean,
-    justUpdated : boolean 
+    showDeadlineCalendar : boolean
 }   
-     
-
+  
     
 export interface TodoInputProps{ 
     dispatch : Function,  
@@ -133,25 +131,108 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             attachedDate, 
             attachedTags, 
             checklist,
-            
             showAdditionalTags : false, 
             showDateCalendar : false,  
             showTagsSelection : false, 
             showChecklist : checklist.length>0,  
-            showDeadlineCalendar : false,
-            justUpdated : false
+            showDeadlineCalendar : false
         }       
     }
 
+    componentDidMount(){  
+        if(this.props.selectedTodoId===this.props.todo._id){   
+            this.setState(   
+              {open:true}, 
+               () => {
+                    setTimeout(() => window.addEventListener("click",this.onOutsideClick), 10);
+                    if(this.props.searched){   
+                       this.scrollTo();  
+                    }    
+                }  
+            )   
+        }else{ 
+            window.addEventListener("click", this.onOutsideClick);
+        }
+    }       
+
+
+    componentDidUpdate(prevProps:TodoInputProps,prevState:TodoInputState){
+        if(isEmpty(this.state.title) || this.state.open){  
+           this.preventDragOfThisItem();
+        }else{
+           this.enableDragOfThisItem(); 
+        }  
+    }  
+
+
+    resetCreationForm = () => {
+        let emptyTodo = generateEmptyTodo(generateId(), this.props.selectedCategory, 0);
+        let newState = {
+            ...this.stateFromTodo(this.state,emptyTodo),
+            open:true, 
+            showDateCalendar:false,     
+            showTagsSelection:false, 
+            showAdditionalTags:false, 
+            showChecklist:false,   
+            showDeadlineCalendar:false 
+        };
+        this.setState(newState);     
+    }   
  
+
     onFieldsContainerClick = () => {     
         this.preventDragOfThisItem();
         if(!this.state.open){ 
-            this.setState(   
-                {open:true,showAdditionalTags:false}
-            );   
+            this.setState({open:true,showAdditionalTags:false});   
         }   
-    }  
+    } 
+     
+
+    onWindowEnterPress = (e) => { 
+        if(e.keyCode===13){  
+            if(this.props.creation && this.state.open){
+               this.addTodo();
+               this.resetCreationForm(); 
+            }else if(this.state.open){
+               this.updateTodo();
+               this.setState({open:false}, () => this.props.dispatch({type:"selectedTodoId", load:null})); 
+            }   
+        }   
+    }      
+    
+
+    onOutsideClick = (e) => {
+        if(this.ref===null || this.ref===undefined)
+           return; 
+
+        if(!this.state.open) 
+           return;    
+
+        let x = e.pageX;
+        let y = e.pageY; 
+
+        let inside = insideTargetArea(this.ref,x,y);
+     
+        if(!inside){   
+            if(this.props.creation){
+                this.addTodo();
+            }else{
+                this.updateTodo();
+            } 
+            this.setState(
+                {open:false}, 
+                () => this.props.dispatch({type:"selectedTodoId", load:null})
+            ); 
+        }  
+    }    
+    
+       
+    componentWillReceiveProps(nextProps:TodoInputProps,nextState){
+        if(nextProps.todo!==this.props.todo){  
+           this.setState(this.stateFromTodo(this.state,nextProps.todo));  
+        }
+    }    
+
 
     updateTodo = () => {
         let todo : Todo = this.todoFromState();  
@@ -160,21 +241,18 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            this.props.dispatch({type:"updateTodo", load:todo});  
         } 
     }
- 
-
 
     addTodo = () => {
         let todo : Todo = this.todoFromState();  
 
         if(!isEmpty(todo.title)){
 
-            let priority : number = 0;
-
-            if(!isEmpty(this.props.todos)){
-                let first : Todo = this.props.todos[0];
-                priority = first.priority - 1; 
+            let todos = [...this.props.todos].sort((a:Todo,b:Todo) => a.priority-b.priority);
+            
+            if(!isEmpty(todos)){ 
+                todo.priority = todos[0].priority - 1;
             }  
-
+  
             this.props.dispatch({type:"addTodo", load:todo}); 
 
             if(this.props.selectedCategory==="project"){ 
@@ -184,171 +262,21 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     load:{ projectId:this.props.selectedProjectId, todoId:todo._id }
                 });    
             }else if(this.props.selectedCategory==="area"){
-
+            
                 this.props.dispatch({
                     type:"attachTodoToArea", 
                     load:{ areaId:this.props.selectedAreaId, todoId:todo._id }
                 });  
-            }  
-        }
-    } 
-
-    
-
-    onOutsideClick = (e) => {
-        if(this.ref===null || this.ref===undefined)
-           return; 
-
-        if(!this.state.open)
-           return;    
-
-        let x = e.pageX;
-        let y = e.pageY; 
-
-        let inside = insideTargetArea(this.ref,x,y);
-     
-        if(!inside){   
-
-            if(this.props.creation){
-                 
-                this.addTodo();
-                let emptyTodo = generateEmptyTodo(generateId(), this.props.selectedCategory, 0);
-                this.setState({   
-                    ...this.stateFromTodo(this.state,emptyTodo),
-                    showDateCalendar : false,   
-                    showTagsSelection : false, 
-                    showChecklist : false,  
-                    showDeadlineCalendar : false,
-                    open:false,
-                    justUpdated:false 
-                });    
-
-            }else{
-
-                this.updateTodo();
-                this.setState({open:false}, () => this.props.dispatch({type:"selectedTodoId", load:null})); 
-            } 
-        }  
-    }  
-
-
-
-    onWindowEnterPress = (e) => {
-        if(e.keyCode === 13){
-            if(this.props.creation && this.state.open){
-
-                if(isEmpty(this.state.title)){ 
-                    let emptyTodo = generateEmptyTodo(generateId(), this.props.selectedCategory, 0);
-                    this.setState(
-                        {
-                            ...this.stateFromTodo(this.state,emptyTodo),
-                            showDateCalendar : false,  
-                            showTagsSelection : false, 
-                            showChecklist : false,  
-                            showDeadlineCalendar : false,
-                            open:false,
-                            justUpdated:false 
-                        }, 
-                        () => this.props.dispatch({type:"selectedTodoId", load:null})
-                    );   
-                }else{    
-                    this.setState({justUpdated:true});    
-                    this.addTodo();
-                } 
-
-            }else if(this.state.open){
-                this.updateTodo();
-                this.setState({open:false}, () => this.props.dispatch({type:"selectedTodoId", load:null})); 
             }
-        }  
-    }    
-      
-    
-     
-    componentDidUpdate(prevProps:TodoInputProps,prevState){
-
-        if(isEmpty(this.state.title) || this.state.open){  
-           this.preventDragOfThisItem();
-        }else{
-           this.enableDragOfThisItem(); 
-        } 
-
-        if(this.state.justUpdated && this.props.creation){  
-            let emptyTodo = generateEmptyTodo(generateId(), this.props.selectedCategory, 0);
-            this.setState({
-                ...this.stateFromTodo(this.state,emptyTodo),
-                open:true,
-                justUpdated:false, 
-                showDateCalendar:false,   
-                showTagsSelection:false, 
-                showChecklist:false,   
-                showDeadlineCalendar:false
-            });  
-
-           if(this.inputRef){
-              this.inputRef.focus();  
-           } 
         }
-    }
-
-
-
-    componentWillReceiveProps(nextProps:TodoInputProps){
-        if(nextProps.todo!==this.props.todo){  
-           this.setState(this.stateFromTodo(this.state,nextProps.todo));  
-        }
-    } 
-
-
-
-    animateScroll = (elem:HTMLElement,inc:number,to:number) => {
-        if(elem.scrollTop+inc>=to){
-           elem.scrollTop=to; 
-        }else{
-           elem.scrollTop+=inc;
-           requestAnimationFrame(() => this.animateScroll(elem,inc,to)); 
-        }
-    }
-
-
-    scrollTo = () => {
-
-        if(this.props.rootRef && this.ref){  
-            let rootRef = document.getElementById("maincontainer");
-            rootRef.scrollTop = 0;
-            let rect = this.ref.getBoundingClientRect(); 
-            let a = (rect.top + rect.height/2) - rootRef.scrollTop - window.innerHeight/2;
-            this.animateScroll(rootRef, 150, rootRef.scrollTop + a); 
-         }  
-         this.props.dispatch({type:"searched", load:false}); 
-    }
-
-    
-    componentDidMount(){  
-        if(this.props.selectedTodoId===this.props.todo._id){  
-            this.setState( 
-                {open:true}, 
-                () => {
-                    setTimeout(() => window.addEventListener("click",this.onOutsideClick), 10);
-                    if(this.props.searched){  
-                       this.scrollTo()
-                    }   
-                } 
-            ) 
-        }else{ 
-            window.addEventListener("click", this.onOutsideClick);
-        }
-    }   
-    
-    
+    }  
 
 
     componentWillUnmount(){
         window.removeEventListener("click",this.onOutsideClick);
     }
+
  
-
-
     stateFromTodo = (state:TodoInputState,todo:Todo) : TodoInputState => ({   
         ...state,
         category:todo.category, 
@@ -363,7 +291,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         attachedTags:todo.attachedTags, 
         checklist:todo.checklist  
     }) 
-
 
 
     todoFromState = () : Todo => ({
@@ -385,6 +312,27 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }) 
 
 
+    animateScroll = (elem:HTMLElement,inc:number,to:number) => {
+        if(elem.scrollTop+inc>=to){
+           elem.scrollTop=to; 
+        }else{
+           elem.scrollTop+=inc;
+           requestAnimationFrame(() => this.animateScroll(elem,inc,to)); 
+        }
+    }
+
+    
+    scrollTo = () => {
+        if(this.props.rootRef && this.ref){  
+            let rootRef = document.getElementById("maincontainer");
+            rootRef.scrollTop = 0;
+            let rect = this.ref.getBoundingClientRect(); 
+            let a = (rect.top + rect.height/2) - rootRef.scrollTop - window.innerHeight/2;
+            this.animateScroll(rootRef, 150, rootRef.scrollTop + a); 
+         }  
+         this.props.dispatch({type:"searched", load:false}); 
+    }
+
 
     enableDragOfThisItem = () => {
         if(this.ref){
@@ -392,14 +340,12 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         }
     }
 
-
     
     preventDragOfThisItem = () => {
         if(this.ref){
            this.ref["preventDrag"] = true; 
         }
     } 
-
 
 
     onAttachTag = (tag) => {
@@ -411,27 +357,24 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     } 
 
 
-
     onNoteChange = (event,newValue:string) : void => this.setState({note:newValue});
 
 
+    onTitleChange = (event) : void => this.setState({title:event.target.value}, () => console.log(this.state.title));
+     
 
-    onTitleChange = (event) : void => this.setState({title:event.target.value});
- 
-
-
-    onCheckBoxClick = () => {  
-        if(!this.state.open){ 
+    onCheckBoxClick = () => {   
+        if(!this.state.open && !this.props.creation){ 
             let checked : boolean = !this.state.checked; 
             this.setState( 
                 { 
-                    checked:checked, 
-                    completed:checked ? new Date() : null
-                }
+                  checked:checked, 
+                  completed:checked ? new Date() : null
+                },  
+                () => this.updateTodo()
             );  
         } 
     } 
-
 
     
     onRightClickMenu = (e) => {

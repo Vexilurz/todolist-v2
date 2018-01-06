@@ -36,32 +36,47 @@ import {
     attachDispatchToProps, chooseIcon, 
     stringToLength,  
     isItem,
-    byNotDeleted 
+    byNotDeleted, 
+    findAttachedArea,
+    findAttachedProject 
 } from '../utils';
 import { Todo, removeTodo, updateTodo, generateId, ObjectType, Area, Project, Heading } from '../database';
 import { Store, isDev } from '../app'; 
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { getAreaLink } from './Area/AreaLink';
 import { getProjectLink } from './Project/ProjectLink';
-import { allPass } from 'ramda';
+import { allPass, isNil } from 'ramda';
 
   
 interface keyworded{ object : any, keywords : string[] } 
 
-
-let getTodoLink = (todo : Todo, index : number, dispatch : Function, clear:Function) : JSX.Element => {
+   
+let getTodoLink = (
+    todo:Todo, areas:Area[], projects:Project[], 
+    index : number, dispatch : Function, clear:Function
+) : JSX.Element => {  
 
      let onTodoLinkClick = () => { 
-         dispatch({ type:"selectedTodoId",load:todo._id });
-         dispatch({ type:"searched",load:true }); 
-         dispatch({ type:"updateTodo",load:{...todo}});
-          
-         if(todo.checked && todo.completed){  
-            dispatch({type:"selectedCategory",load:"logbook"});
-         }else{         
-            dispatch({type:"selectedCategory",load:todo.category});
-         }    
-         clear();
+        let attachedProject = findAttachedProject(projects)(todo);
+
+        dispatch({type:"selectedTodoId", load:todo._id});
+        dispatch({type:"searched", load:true}); 
+        dispatch({type:"updateTodo", load:{...todo}}); 
+                       
+        if(todo.checked && todo.completed){   
+
+           dispatch({type:"selectedCategory", load:"logbook"});
+        }else if(!isNil(attachedProject)){
+
+           dispatch({type:"selectedProjectId", load:attachedProject._id});
+           dispatch({type:"selectedCategory", load:"project"});
+        }else{
+ 
+           dispatch({type:"selectedCategory", load:todo.category});
+        }
+
+        dispatch({type:"selectedTag", load:"All"});
+        clear();
      } 
     
      return <div key={`${todo._id}-${index}`} style={{position:"relative"}}>  
@@ -69,7 +84,7 @@ let getTodoLink = (todo : Todo, index : number, dispatch : Function, clear:Funct
                     className="leftpanelmenuitem" 
                     onClick = {onTodoLinkClick}    
                     id = {todo._id}       
-                    style={{     
+                    style={{      
                         padding:"6px",
                         position:"relative",
                         height:"25px",
@@ -333,11 +348,16 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
             this.props.dispatch(action);
             clear();
         }; 
-
+ 
         switch(object.type){
             case "todo":  
                 return getTodoLink(
-                    object, index, this.props.dispatch, clear
+                    object, 
+                    this.props.areas,
+                    this.props.projects, 
+                    index, 
+                    this.props.dispatch, 
+                    clear
                 );   
             case "project":
                 return getProjectLink(

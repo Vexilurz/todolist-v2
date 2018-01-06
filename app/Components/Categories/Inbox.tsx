@@ -71,9 +71,9 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 id="todos" 
                 style={{marginBottom:"100px", marginTop:"50px"}} 
             >    
-                 <TodoInput   
-                    id={empty._id}
-                    key={empty._id} 
+                 <TodoInput    
+                    id={empty._id} 
+                    key={"inbox-todo-creation-form"}  
                     searched={this.props.searched}
                     dispatch={this.props.dispatch}  
                     selectedCategory={"inbox"} 

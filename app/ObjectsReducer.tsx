@@ -163,17 +163,16 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
         ], 
 
         [
-            (action:{type:string}) : boolean =>"addArea"===action.type,
+            (action:{type:string}) : boolean => "addArea"===action.type,
 
             (action:{type:string, load:Area}) : Store => {
                 
-                if(action.load.type!=="area"){ 
-                    if(isDev()){ 
-                       throw new Error(`Load is not of type Area. ${JSON.stringify(action.load)} addArea. objectsReducer.`);
-                    }    
-                }
+                assert(
+                  action.load.type==="area",
+                  `Load is not of type Area. ${JSON.stringify(action.load)} addArea. objectsReducer.`
+                )   
 
-                if(shouldAffectDatabase){   
+                if(shouldAffectDatabase){    
                    addArea(onError,action.load)
                 } 
  
@@ -181,7 +180,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                     ...state,  
                     areas:[action.load,...state.areas]
                 } 
-            }
+            }    
         ],
 
         [
@@ -235,18 +234,8 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                     ...state,  
                     areas:adjust(() => area, idx, state.areas)
                 } 
-            }
+            } 
         ],  
-
-        [
-            (action:{type:string}) => "dragged"===action.type,
-            (action:{type:string,load:string}) : Store => {
-                return {  
-                    ...state,
-                    dragged:action.load
-                }
-            }
-        ], 
 
         [ 
             (action:{type:string}) => "updateProject"===action.type,

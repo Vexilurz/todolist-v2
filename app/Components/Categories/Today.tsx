@@ -133,7 +133,7 @@ export class Today extends Component<TodayProps,TodayState>{
                     >         
                         <TodoInput   
                             id={empty._id}
-                            key={empty._id} 
+                            key={"today-todo-creation-form"} 
                             dispatch={this.props.dispatch}  
                             selectedProjectId={this.props.selectedProjectId}
                             selectedAreaId={this.props.selectedAreaId} 

@@ -2,7 +2,7 @@ import './../assets/styles.css';
 import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';   
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 import IconButton from 'material-ui/IconButton';  
 import { Component } from "react"; 
 import { 
@@ -46,25 +46,43 @@ interface MainContainerState{
 
 let transformLoadDates = (load) : any => {
 
-    if(isNil(load)){
-       return load; 
-    }else if(isTodo(load)){
-       return convertTodoDates(load);
+    let converted = load;
+
+    if(isTodo(load)){
+        converted = convertTodoDates(load);
     }else if(isProject(load)){
-        return convertProjectDates(load);
+        converted = convertProjectDates(load);
     }else if(isArea(load)){
-        return convertAreaDates(load); 
+        converted = convertAreaDates(load); 
     }else if(isArray(load)){
         if(isArrayOfAreas(load)){
-            return load.map(convertAreaDates);
+            converted = load.map(convertAreaDates);
         }else if(isArrayOfProjects(load)){
-            return load.map(convertProjectDates);
+            converted = load.map(convertProjectDates);
         }else if(isArrayOfTodos(load)){
-            return load.map(convertTodoDates);
+            converted = load.map(convertTodoDates);
         }   
-    } 
+    }    
 
-    return load; 
+    if(!isNil(load.todos)){
+        if(isArrayOfTodos(load.todos)){
+           load.todos = load.todos.map(convertTodoDates);
+        } 
+    }
+
+    if(!isNil(load.projects)){
+        if(isArrayOfProjects(load.projects)){
+           load.projects = load.projects.map(convertProjectDates);
+        }
+    }
+
+    if(!isNil(load.areas)){
+        if(isArrayOfAreas(load.areas)){
+           load.areas = load.areas.map(convertAreaDates);
+        } 
+    }
+ 
+    return  converted;  
 }
 
 
@@ -241,6 +259,34 @@ export class MainContainer extends Component<Store,MainContainerState>{
         this.state = {   
             fullWindowSize:true 
         }
+        
+           
+        if(this.props.windowId===1){  
+            
+            destroyEverything()   
+            .then(() => {  
+                console.log("DESTROY!!!");  
+                initDB();
+
+                let fakeData = generateRandomDatabase({ 
+                    todos : 140,  
+                    projects : 38,  
+                    areas : 5 
+                });     
+                 
+                let todos = fakeData.todos;
+                let projects = fakeData.projects; 
+                let areas = fakeData.areas; 
+                
+                Promise.all([
+                    addTodos(this.onError,todos),    
+                    addProjects(this.onError,projects), 
+                    addAreas(this.onError,areas) 
+                ]) 
+                .then(() => this.fetchData())    
+            })
+            //this.fetchData();   
+        }    
     }    
     
 
@@ -294,51 +340,21 @@ export class MainContainer extends Component<Store,MainContainerState>{
      
     
     componentDidMount(){
-
-        if(!this.props.clone){
-
-            destroyEverything()
-            .then(() => { 
-                 
-                initDB();
-
-                let fakeData = generateRandomDatabase({ 
-                    todos : 140,  
-                    projects : 38,  
-                    areas : 5 
-                });     
-                
-                let todos = fakeData.todos;
-                let projects = fakeData.projects; 
-                let areas = fakeData.areas; 
-                
-                Promise.all([
-                    addTodos(this.onError,todos),    
-                    addProjects(this.onError,projects), 
-                    addAreas(this.onError,areas) 
-                ]) 
-                .then(() => this.fetchData())    
-            })
-             
-        }   
-       
         
         window.addEventListener("resize", this.updateWidth);
         window.addEventListener("click", this.closeRightClickMenu); 
 
         //update separate windows   
-        ipcRenderer.removeAllListeners("action");  
+        ipcRenderer.removeAllListeners("action");   
         ipcRenderer.on(
             "action", 
-            (event, action:{type:string, kind:string, load:any}) => {  
+            (event, action:{type:string, kind:string, load:any}) => { 
 
-                this.props.dispatch(
-                    assoc(
-                        "load",
-                        transformLoadDates(action.load), 
-                        action
-                    )
-                );      
+                if(action.type==="setAllTypes" && !this.props.clone){
+                   return; 
+                } 
+
+                this.props.dispatch(assoc("load", transformLoadDates(action.load), action));      
             }
         );  
     }      

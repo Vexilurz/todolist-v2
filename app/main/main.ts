@@ -9,7 +9,9 @@ import { autoUpdater } from "electron-updater";
 export let mainWindow;   
 export let listeners; 
 export let updater;
-  
+
+
+
 let mainWindowWidth : number = 100;//60;
 let mainWindowHeight : number = 100;//70; 
  
@@ -36,7 +38,7 @@ let onReady = () => {
     preventAnnoyingErrorPopups();     
      
     mainWindow = initWindow({width,height,transparent:false});          
-        
+     
     listeners = new Listeners(mainWindow);
     
     loadApp(mainWindow)    

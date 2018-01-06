@@ -233,8 +233,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
   
     render(){      
-        let {areas,projects,todos} = this.props;
- 
+        let {areas,projects,todos} = this.props; 
         let {inbox,today,hot,trash,logbook} : ItemsAmount = calculateAmount(areas,projects,todos);
 
         let getWidth = () => this.props.clone ? `${0}px` : `${this.props.currentleftPanelWidth}px`;

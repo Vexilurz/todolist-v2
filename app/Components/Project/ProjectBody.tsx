@@ -48,6 +48,7 @@ interface ProjectBodyProps{
     moveHeading:(heading_id:string) => void,  
     removeHeading:(heading_id:string) => void,
     searched:boolean,
+    selectedTag:string,
     areas:Area[],
     projects:Project[], 
     selectedProjectId:string,
@@ -71,23 +72,40 @@ interface ProjectBodyState{
  
 export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
-     
-
     constructor(props){
-
         super(props);
-        
         this.state={
             showPlaceholder:false,
             currentIndex:0,
             helper:null
         }; 
-    } 
-  
-    shouldComponentUpdate(nextProps:ProjectBodyProps, nextState:ProjectBodyState){ 
-        return true; 
-    }   
+    }  
 
+    shouldComponentUpdate(nextProps:ProjectBodyProps,nextState:ProjectBodyState){
+        let should = false;
+
+        if(layoutOrderChanged(this.props.items,nextProps.items)){
+           should = true;  
+        }
+
+        if(this.props.searched!==nextProps.searched)
+           should = true; 
+        if(this.props.areas!==nextProps.areas)
+           should = true; 
+        if(this.props.selectedProjectId!==nextProps.selectedProjectId)
+           should = true; 
+        if(this.props.selectedTodoId!==nextProps.selectedTodoId)
+           should = true; 
+        if(this.props.todos!==nextProps.todos)
+           should = true; 
+        if(this.props.tags!==nextProps.tags)
+           should = true; 
+        if(this.props.selectedTag!==nextProps.selectedTag)
+           should = true;  
+
+        return should;     
+    }
+  
     getElement = (value:Heading | Todo, index:number) : JSX.Element => { 
         
         switch(value.type){ 
@@ -178,10 +196,10 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         if(item.type==="todo"){
            let helperRect = helper.getBoundingClientRect();
            let offset = e.clientX - helperRect.left;
-
+        
            let el = generateDropStyle("nested"); 
            el.style.left=`${offset}px`;  
-           el.style.visibility="hidden";
+           el.style.visibility="hidden"; 
            el.style.opacity='0'; 
                 
            helper.appendChild(el);  
@@ -278,9 +296,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
          
         return <div style={{WebkitUserSelect:"none", position:"relative"}}>  
             <div>  
-                <TodoInput   
+                <TodoInput    
                     id={empty._id}
-                    key={empty._id} 
+                    key={"project-todo-creation-form"} 
                     dispatch={this.props.dispatch}    
                     searched={this.props.searched}
                     projects={this.props.projects} 

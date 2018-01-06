@@ -22,9 +22,11 @@ import { Project, Area, Todo, removeProject, addProject, removeArea, updateProje
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
 import { TodoInputPopup } from './Components/TodoInput/TodoInputPopup';
-import { cond } from 'ramda';
+import { cond, assoc } from 'ramda';
  
-  
+injectTapEventPlugin();
+
+
 export let isDev = () => true; 
 
 
@@ -45,7 +47,7 @@ export class App extends Component<AppProps,{}>{
     constructor(props){  
         super(props);   
     }
-
+    
     componentDidMount(){
  
         if(isDev()){
@@ -64,15 +66,17 @@ export class App extends Component<AppProps,{}>{
             [
                 (action:{type:string}) : boolean => "clone"===action.type,  
                 (action:{type:string, load:Store}) : void => { 
-                    this.props.dispatch({type:"newStore", load:action.load});
-                    this.props.dispatch({type:"clone", load:true});
-                }
+                    this.props.dispatch({
+                        type:"newStore", 
+                        load:assoc("clone", true, action.load)
+                    }); 
+                } 
             ],  
             [ 
                 (action:{type:string}) : boolean => "reload"===action.type,  
                 (action:{type:string, load:string}) : void => { 
                     this.props.dispatch({type:"windowId", load:action.load});
-                }
+                }   
             ]
         ])(this.props.initialLoad)
     }   
@@ -80,20 +84,26 @@ export class App extends Component<AppProps,{}>{
 
 
     render(){     
+        let action = this.props.initialLoad;
+        let windowId = null;
+
+        if(action.type==="open"){
+           windowId=action.load; 
+        } 
 
         return wrapMuiThemeLight(
             <div style={{
                 backgroundColor:"white",
                 width:"100%",
                 height:"100%", 
-                scroll:"none", 
+                scroll:"none",  
                 zIndex:2001,  
             }}>  
                 <div style={{display:"flex", width:"inherit", height:"inherit"}}>  
                  
                     <LeftPanel {...{} as any}  /> 
- 
-                    <MainContainer {...{} as any} />  
+  
+                    <MainContainer {...{windowId} as any} />  
  
                 </div> 
   
@@ -108,7 +118,7 @@ export class App extends Component<AppProps,{}>{
 ipcRenderer.on( 
     'loaded',     
     (event, {type, load} : {type:string,load:any}) => { 
-        injectTapEventPlugin();
+        
         ReactDOM.render(  
             <Provider store={store}>   
                 <App {...{initialLoad:{type,load}} as any} />

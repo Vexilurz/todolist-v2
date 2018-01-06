@@ -217,7 +217,7 @@ export class Next extends Component<NextProps, NextState>{
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
                         <TodoInput   
                             id={emptyTodo._id}
-                            key={emptyTodo._id}  
+                            key={"next-todo-creation-form"} 
                             dispatch={this.props.dispatch}  
                             selectedCategory={"next"}  
                             projects={this.props.projects} 

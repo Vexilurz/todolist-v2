@@ -274,8 +274,11 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
     constructor(props){ 
         super(props);
         this.state={
-            todos:[], 
-            currentIndex:0, 
+            todos:this.props 
+                      .todos
+                      .filter(allPass(this.props.filters)) 
+                      .sort((a:Todo,b:Todo) => a.priority-b.priority), 
+            currentIndex:0,     
             helper:null, 
             showPlaceholder:false
         };  
@@ -316,7 +319,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
              
             this.setState({todos});    
         }  
-    }
+    } 
  
   
 
@@ -485,7 +488,6 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 this.props.areas,
                 this.props.projects, 
             ) 
-           
         }else{     
             if(oldIndex===newIndex)
                return; 
@@ -523,17 +525,18 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             let amount = calculateAmount(this.props.areas,this.props.projects,this.props.todos);
             if(this.props.selectedCategory==="inbox"){
 
-               assert(
-                amount.inbox===this.state.todos.length, 
-                `Incorrect amount. TodosList. Inbox. ${JSON.stringify(this.state.todos)}`
-               );   
- 
+                assert(
+                    amount.inbox===this.state.todos.length, 
+                    `Incorrect amount ${amount.inbox}. TodosList. 
+                    Inbox. ${JSON.stringify(this.state.todos)}`
+                );     
             }else if(this.props.selectedCategory==="trash"){
 
                 assert(
-                 amount.trash===this.state.todos.length, 
-                 `Incorrect amount. TodosList. Trash. ${JSON.stringify(this.state.todos)}`
-                );  
+                    amount.trash===this.state.todos.length, 
+                    `Incorrect amount. TodosList. 
+                    Trash. ${JSON.stringify(this.state.todos)}` 
+                );   
             } 
         } 
 
@@ -575,7 +578,7 @@ interface PlaceholderState{}
 export class Placeholder extends Component<PlaceholderProps,PlaceholderState>{
 
     constructor(props){
-        super(props);
+        super(props); 
     }  
 
     render(){        
@@ -592,4 +595,4 @@ export class Placeholder extends Component<PlaceholderProps,PlaceholderState>{
                 }}>   
                 </div> 
     } 
-}   
+}    

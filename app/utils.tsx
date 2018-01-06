@@ -67,7 +67,7 @@ export let isCategory = (category : Category) : boolean => {
     ]; 
 
     let yes = contains(category,categories);
-
+ 
     return yes; 
 }  
 
@@ -77,41 +77,31 @@ export let isTodo = (todo:Todo) : boolean => {
         return false;
     } 
 
-    let todoProps = ["_id", "attachedDate", "attachedTags", "category", "checked", "checklist",
-    "completed", "created", "deadline", "deleted", "note", "priority", "reminder", 
-    "title","type"];
-
-    return all((prop:string) => todo.hasOwnProperty(prop), todoProps) && todo.type==="todo";
+    return todo.type==="todo";
 }
 
 export let isArrayOfTodos = (array:any[]) : boolean => {
     return all((todo:Todo) => isTodo(todo), array );
-}
+} 
 
 export let isProject = (project:Project) : boolean => {
     if(isNil(project)){
         return false;
     }
 
-    let projectProps = ['_id','attachedTags','completed','created','deadline',
-    'deleted','description','layout','name','priority','type'];  
- 
-    return all((prop:string) => project.hasOwnProperty(prop), projectProps) && project.type==="project";
-}
+    return project.type==="project"; 
+} 
  
 export let isArrayOfProjects = (array:any[]) : boolean => {
    return all((project:Project) => isProject(project), array );
 }; 
-
+ 
 export let isArea = (area:Area) : boolean => {
     if(isNil(area)){
         return false; 
     }
 
-    let areaProps = ["_id","attachedTags","attachedProjectsIds","attachedTodosIds",
-    "created","deleted","description","name","priority","type"];
-    
-    return all((prop:string) => area.hasOwnProperty(prop), areaProps) && area.type==="area";
+    return area.type==="area"; 
 }
      
   
@@ -209,49 +199,28 @@ let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {
     return remainder;
     
 }
-
-
-export let layoutOrderChanged = (before:LayoutItem[], after:LayoutItem[]) : boolean => {
+ 
+ 
+export let layoutOrderChanged = (before:(Heading|Todo)[], after:(Heading|Todo)[]) : boolean => {
     
-        if(before.length!==after.length)
+        if(before.length!==after.length) 
            return true;
     
         for(let i=0; i<before.length; i++){
-            let beforeItem : LayoutItem = before[i];
-            let afterItem : LayoutItem = after[i];
+            let beforeItem : Heading|Todo = before[i];
+            let afterItem : Heading|Todo = after[i];
     
-            if(isNil(beforeItem)){
-               if(isDev()){ 
-                  throw new Error(`beforeItem isNil ${beforeItem}. layoutOrderChanged.`); 
-               }
-            }
-
-            if(isNil(afterItem)){
-               if(isDev()){ 
-                  throw new Error(`afterItem isNil ${afterItem}. layoutOrderChanged.`); 
-               }
-            }
-
-
-            if(typeof beforeItem !== typeof afterItem)
-               return true;
-    
-            if(typeof beforeItem === "string"){
-    
-                if(beforeItem !== afterItem)
-                   return true;
-                else 
-                   continue;
-            }else if(beforeItem.type==="heading"){
-     
-                if(beforeItem["_id"] !== afterItem["_id"])
-                   return true;
-                else  
-                   continue;   
+            assert(!isNil(beforeItem),`beforeItem isNil ${beforeItem}. layoutOrderChanged.`);
+            assert(!isNil(afterItem), `afterItem isNil ${afterItem}. layoutOrderChanged.`);
+           
+            if(beforeItem._id !== afterItem._id){
+                return true;
+            }else{  
+                continue;   
             }
         }
         return false;   
-    }
+}
     
         
  
@@ -1084,6 +1053,28 @@ export let attachEmptyTodo = (selectedCategory:Category) => (todos:Todo[]) => {
     return prepend(emptyTodo)(todos);
 }
   
+
+
+export let findAttachedArea = (areas:Area[]) => (t:Todo) : Area => {
+    for(let i=0; i<areas.length; i++)
+        if(contains(t._id)(areas[i].attachedTodosIds))
+           return areas[i];
+
+    return undefined;             
+}; 
+ 
+
+export let findAttachedProject = (projects:Project[]) => (t:Todo) : Project => {
+    for(let i=0; i<projects.length; i++){
+        let attachedTodosIds = projects[i].layout.filter(isString) as string[];
+         
+        if(contains(t._id)(attachedTodosIds))
+           return projects[i];
+    } 
+
+    return undefined;     
+};  
+
 
 
 
