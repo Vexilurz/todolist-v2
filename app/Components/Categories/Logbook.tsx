@@ -48,6 +48,38 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
             groups:null 
         }
     }  
+
+    shouldComponentUpdate(nextProps:LogbookProps,nextState:LogbookState){
+        let should = false;
+
+        if(nextState.groups!==this.state.groups){ 
+           should = true;
+        }  
+
+
+        if(nextProps.todos!==this.props.todos)
+            should = true; 
+        if(nextProps.searched!==this.props.searched)
+            should = true;
+        if(nextProps.selectedAreaId!==this.props.selectedAreaId)
+            should = true;
+        if(nextProps.selectedProjectId!==this.props.selectedProjectId)
+            should = true;
+        if(nextProps.selectedCategory!==this.props.selectedCategory)
+            should = true;
+        if(nextProps.selectedTodoId!==this.props.selectedTodoId)
+            should = true;
+        if(nextProps.projects!==this.props.projects)
+            should = true;
+        if(nextProps.areas!==this.props.areas)  
+            should = true;
+        if(nextProps.selectedTag!==this.props.selectedTag)
+            should = true;
+        if(nextProps.tags!==this.props.tags)
+            should = true;
+        
+        return should;
+    } 
     
 
     init = (props:LogbookProps) => {
@@ -152,8 +184,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
     getComponent = (month:string, todos:Todo[], projects:Project[]) : JSX.Element => {
 
-        return <div 
-            key={month} 
+        return <div  
             style={{
                 position:"relative", 
                 display:"flex", 
@@ -207,28 +238,6 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
     }
   
 
-    groupsToComponents = (groups : any[][]) : JSX.Element[] => {
-
-        let elements = [];
-
-        for(let i=0; i<groups.length; i++){
-
-            let group : any[] = groups[i];
-
-            if(group.length===0)
-               continue; 
-
-            let todos : Todo[] = group.filter( (item:Todo) => item.type==="todo" );
-            let projects : Project[] = group.filter( (item:Project) => item.type==="project" ); 
-            let month : string = getMonthName(new Date(group[0].completed));
-
-            elements.push(this.getComponent(month,todos,projects));
-        }
-
-        return elements; 
-    } 
-
-
     render(){ 
  
         let tags = compose(
@@ -254,13 +263,21 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                         showTags={true} 
                         selectedTag={this.props.selectedTag}
                     />
-                    <div style={{ 
-                        display:"flex", 
-                        flexDirection:"column",  
-                        width:"100%"
-                    }}> 
-                        { this.groupsToComponents(this.state.groups) }
+                    <div style={{display:"flex", flexDirection:"column", width:"100%"}}> 
+                    {   
+                        this.state.groups.map( 
+                         (group:any[], index:number) : JSX.Element => {
+                              let todos:Todo[] = group.filter((item:Todo) => item.type==="todo");
+                              let projects:Project[] = group.filter((item:Project) => item.type==="project"); 
+                              let month:string = getMonthName(new Date(group[0].completed));
+
+                              return <div key={index}>
+                                {this.getComponent(month, todos, projects)}
+                              </div> 
+                          } 
+                        )  
+                    }
                     </div>
                 </div>
-    }
+    } 
 } 
