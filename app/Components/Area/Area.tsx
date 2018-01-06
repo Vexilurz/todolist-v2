@@ -20,6 +20,7 @@ interface AreaComponentProps{
     searched:boolean, 
     selectedTag:string, 
     dispatch:Function,  
+    selectedProjectId:string, 
     projects:Project[],
     todos:Todo[],
     tags:string[],
@@ -88,7 +89,9 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                     selectedTodoId={this.props.selectedTodoId}
                     selectedCategory={this.props.selectedCategory}
                     todos={this.props.todos} 
-                    tags={this.props.tags}
+                    tags={this.props.tags} 
+                    selectedAreaId={this.props.selectedAreaId}
+                    selectedProjectId={this.props.selectedProjectId}
                     searched={this.props.searched}
                     selectedTag={this.props.selectedTag}
                     areas={this.props.areas}

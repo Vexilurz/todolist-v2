@@ -133,8 +133,12 @@ export class TodoInputPopup extends Component<TodoInputPopupProps,TodoInputPopup
                     backgroundColor: "white" 
                 }}> 
                     <AlwaysOpenedTodoInput
-                        dispatch={this.props.dispatch}  
+                        dispatch={this.props.dispatch}   
                         tags={this.props.tags}  
+                        todos={this.props.todos} 
+                        selectedCategory={this.props.selectedCategory}
+                        selectedProjectId={this.props.selectedProjectId}
+                        selectedAreaId={this.props.selectedAreaId} 
                     /> 
                 </div>  
             </div>    
@@ -167,10 +171,14 @@ interface AlwaysOpenedTodoInputState{
 
     
 interface  AlwaysOpenedTodoInputProps{ 
-    dispatch : Function,  
-    tags : string[]
+    dispatch:Function,  
+    todos:Todo[], 
+    selectedCategory:Category,
+    selectedProjectId:string,
+    selectedAreaId:string, 
+    tags:string[]
 }    
-  
+   
    
 class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysOpenedTodoInputState>{
     
@@ -216,11 +224,33 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
     closeParentContainer = () => this.props.dispatch({type:"openTodoInputPopup", load:false}); 
 
 
-    onSave = () => {
+    addTodo = () => {
         let todo : Todo = this.todoFromState();  
-        if(!isEmpty(todo.title)){ 
-            this.props.dispatch({type:"updateTodo", load:todo});  
-        }   
+
+        if(!isEmpty(todo.title)){
+
+            let priority : number = 0;
+
+            if(!isEmpty(this.props.todos)){
+                let first : Todo = this.props.todos[0];
+                priority = first.priority - 1; 
+            }  
+
+            this.props.dispatch({type:"addTodo", load:todo}); 
+
+            if(this.props.selectedCategory==="project"){ 
+
+                this.props.dispatch({type:"attachTodoToProject", load:{ projectId:this.props.selectedProjectId, todoId:todo._id }});    
+            }else if(this.props.selectedCategory==="area"){
+
+                this.props.dispatch({type:"attachTodoToArea", load:{ areaId:this.props.selectedAreaId, todoId:todo._id }});  
+            }  
+        }
+    } 
+
+
+    onSave = () => {
+        this.addTodo(); 
         this.closeParentContainer();
     } 
     

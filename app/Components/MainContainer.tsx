@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, debounce, byTags, byCategory, generateEmptyTodo, isArray, isTodo, isProject, isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos 
+    chooseIcon, debounce, byTags, byCategory, generateEmptyTodo, isArray, isTodo, isProject, isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos, assert 
 } from "../utils";  
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -226,81 +226,6 @@ export let createHeading = (e, props:Store) : void => {
 
 
 
-let createNewTodo = (e, props:Store, rootRef:HTMLElement) : void => {   
-    
-    let allowedTodoCreation : Category[] = [
-        "inbox",
-        "today", 
-        "someday",
-        "next", 
-        "project", 
-        "area"
-    ] 
-
-    if(!contains(props.selectedCategory, allowedTodoCreation))
-        return; 
-
-
-    let id : string = generateId();
-    let priority : number = 0;
-
-    if(!isEmpty(props.todos)){
-        let first : Todo = props.todos[0];
-        priority = first.priority - 1; 
-    } 
-
-    let todo : Todo = generateEmptyTodo(id,props.selectedCategory,priority);   
-
-    props.dispatch({type:"addTodo", load:todo});
-
-    if(props.selectedCategory==="project"){ 
-        
-        let project : Project = props.projects.find( (p:Project) => p._id===props.selectedProjectId );
-
-        if(isNil(project)){ 
-            if(isDev()){ 
-                throw new Error( 
-                    `Project with selectedProjectId does not exist.
-                    ${props.selectedProjectId} ${JSON.stringify(project)}. 
-                    createNewTodo.`
-                )  
-            } 
-        }     
-
-        props.dispatch({ 
-            type:"attachTodoToProject", 
-            load:{ projectId:project._id, todoId:todo._id } 
-        });    
-
-    }else if(props.selectedCategory==="area"){
-
-        let area : Area = props.areas.find( (a:Area) => a._id===props.selectedAreaId );
-        
-        if(isNil(area)){  
-            if(isDev()){ 
-                throw new Error(  
-                    `Area with selectedAreaId does not exist.
-                    ${props.selectedAreaId}. 
-                    ${JSON.stringify(area)}. 
-                    createNewTodo.`  
-                )   
-            }
-        }  
-
-        props.dispatch({ 
-            type:"attachTodoToArea", 
-            load:{ areaId:area._id, todoId:todo._id }      
-        });  
-
-    }    
- 
-    if(rootRef){ 
-        rootRef.scrollTop = 0; 
-    }
-} 
-
-
-
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
 export class MainContainer extends Component<Store,MainContainerState>{
 
@@ -496,6 +421,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedCategory={this.props.selectedCategory}
                                 selectedTag={this.props.selectedTag} 
                                 searched={this.props.searched}
+                                selectedProjectId={this.props.selectedProjectId}
+                                selectedAreaId={this.props.selectedAreaId} 
                                 rootRef={this.rootRef}
                                 areas={this.props.areas}
                                 projects={this.props.projects}
@@ -507,6 +434,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
                                 searched={this.props.searched}
+                                selectedProjectId={this.props.selectedProjectId}
+                                selectedAreaId={this.props.selectedAreaId} 
                                 selectedCategory={this.props.selectedCategory}
                                 selectedTag={this.props.selectedTag}
                                 areas={this.props.areas}
@@ -522,6 +451,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 searched={this.props.searched}
                                 selectedCategory={this.props.selectedCategory}
                                 areas={this.props.areas}
+                                selectedProjectId={this.props.selectedProjectId}
+                                selectedAreaId={this.props.selectedAreaId} 
                                 projects={this.props.projects}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
@@ -536,6 +467,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 searched={this.props.searched}
                                 todos={this.props.todos}
                                 areas={this.props.areas}
+                                selectedAreaId={this.props.selectedAreaId}
+                                selectedProjectId={this.props.selectedProjectId}
                                 projects={this.props.projects}
                                 selectedTag={this.props.selectedTag}
                                 tags={this.props.tags} 
@@ -548,6 +481,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedCategory={this.props.selectedCategory}
                                 searched={this.props.searched}
                                 todos={this.props.todos} 
+                                selectedAreaId={this.props.selectedAreaId}
+                                selectedProjectId={this.props.selectedProjectId}
                                 areas={this.props.areas}
                                 projects={this.props.projects}
                                 selectedTag={this.props.selectedTag}
@@ -557,6 +492,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
                             someday: <Someday 
                                 dispatch={this.props.dispatch}
+                                selectedProjectId={this.props.selectedProjectId}
+                                selectedAreaId={this.props.selectedAreaId} 
                                 searched={this.props.searched}
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedCategory={this.props.selectedCategory}
@@ -575,6 +512,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedCategory={this.props.selectedCategory}
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
+                                selectedProjectId={this.props.selectedProjectId}
+                                selectedAreaId={this.props.selectedAreaId} 
                                 areas={this.props.areas}
                                 projects={this.props.projects} 
                                 todos={this.props.todos}
@@ -589,32 +528,36 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedTag={this.props.selectedTag}
                                 selectedTodoId={this.props.selectedTodoId} 
                                 todos={this.props.todos}
+                                selectedProjectId={this.props.selectedProjectId}
+                                selectedAreaId={this.props.selectedAreaId} 
                                 projects={this.props.projects}
                                 areas={this.props.areas}
                                 rootRef={this.rootRef}      
                             />,
-                           
+                            
                             project : <ProjectComponent 
                                 dispatch={this.props.dispatch} 
-                                selectedTag={this.props.selectedTag} 
+                                selectedTag={this.props.selectedTag}  
                                 selectedCategory={this.props.selectedCategory}
                                 searched={this.props.searched}
                                 selectedProjectId={this.props.selectedProjectId}
                                 selectedTodoId={this.props.selectedTodoId} 
-                                todos={this.props.todos}
+                                todos={this.props.todos} 
+                                selectedAreaId={this.props.selectedAreaId} 
                                 projects={this.props.projects}  
                                 areas={this.props.areas}
                                 rootRef={this.rootRef}
                                 tags={this.props.tags} 
                             />,    
-
+ 
                             area : <AreaComponent  
                                 areas={this.props.areas}
                                 selectedCategory={this.props.selectedCategory}
                                 selectedAreaId={this.props.selectedAreaId}
                                 searched={this.props.searched}
                                 selectedTag={this.props.selectedTag}
-                                dispatch={this.props.dispatch}     
+                                dispatch={this.props.dispatch}      
+                                selectedProjectId={this.props.selectedProjectId}
                                 projects={this.props.projects}
                                 todos={this.props.todos}
                                 selectedTodoId={this.props.selectedTodoId} 

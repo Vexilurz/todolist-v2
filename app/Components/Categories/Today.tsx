@@ -11,7 +11,7 @@ import {
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area } from '../../database';
+import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area, generateId } from '../../database';
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
@@ -40,7 +40,9 @@ import { TodoInput } from '../TodoInput/TodoInput';
 interface TodayProps{  
     dispatch:Function,
     selectedTodoId:string,
-    selectedCategory:string, 
+    selectedProjectId:string, 
+    selectedAreaId:string, 
+    selectedCategory:string,  
     areas:Area[],
     searched:boolean, 
     projects:Project[],
@@ -83,8 +85,8 @@ export class Today extends Component<TodayProps,TodayState>{
               ])    
             ) 
         )(this.props.todos);
-
-        let empty = generateEmptyTodo("emptyTodo", "today", 0);  
+        
+        let empty = generateEmptyTodo(generateId(), "today", 0);  
 
         return <div style={{
             disaply:"flex", 
@@ -133,6 +135,9 @@ export class Today extends Component<TodayProps,TodayState>{
                             id={empty._id}
                             key={empty._id} 
                             dispatch={this.props.dispatch}  
+                            selectedProjectId={this.props.selectedProjectId}
+                            selectedAreaId={this.props.selectedAreaId} 
+                            todos={this.props.todos}
                             selectedCategory={"today"} 
                             projects={this.props.projects} 
                             selectedTodoId={this.props.selectedTodoId}
@@ -155,6 +160,8 @@ export class Today extends Component<TodayProps,TodayState>{
                             dispatch={this.props.dispatch}   
                             selectedCategory={"today"}
                             areas={this.props.areas}
+                            selectedAreaId={this.props.selectedAreaId}
+                            selectedProjectId={this.props.selectedProjectId}
                             projects={this.props.projects}
                             selectedTag={this.props.selectedTag}  
                             rootRef={this.props.rootRef}
@@ -204,6 +211,8 @@ export class Today extends Component<TodayProps,TodayState>{
                                 dispatch={this.props.dispatch}    
                                 selectedCategory={"evening"} 
                                 areas={this.props.areas}
+                                selectedAreaId={this.props.selectedAreaId}
+                                selectedProjectId={this.props.selectedProjectId}
                                 projects={this.props.projects}
                                 selectedTag={this.props.selectedTag}  
                                 rootRef={this.props.rootRef}

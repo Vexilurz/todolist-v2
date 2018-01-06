@@ -11,7 +11,7 @@ import {
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area, LayoutItem } from '../../database';
+import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area, LayoutItem, generateId } from '../../database';
 import Popover from 'material-ui/Popover';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
@@ -40,7 +40,9 @@ import { TodoInput } from '../TodoInput/TodoInput';
 interface NextProps{
     dispatch:Function, 
     selectedTodoId:string,
-    searched:boolean, 
+    searched:boolean,  
+    selectedProjectId:string, 
+    selectedAreaId:string,
     selectedCategory:string, 
     selectedTag:string,
     rootRef:HTMLElement,
@@ -197,7 +199,7 @@ export class Next extends Component<NextProps, NextState>{
         
         assert(isArrayOfStrings(tags), `tags is not an array of strings. ${JSON.stringify(tags)}. render. next.`);
          
-        let emptyTodo = generateEmptyTodo("emptyTodo", "next", 0);  
+        let emptyTodo = generateEmptyTodo(generateId(), "next", 0);  
 
         return  <div  style={{WebkitUserSelect:"none"}}>
                     <ContainerHeader 
@@ -219,6 +221,9 @@ export class Next extends Component<NextProps, NextState>{
                             dispatch={this.props.dispatch}  
                             selectedCategory={"next"}  
                             projects={this.props.projects} 
+                            selectedProjectId={this.props.selectedProjectId}
+                            selectedAreaId={this.props.selectedAreaId} 
+                            todos={this.props.todos}
                             selectedTodoId={this.props.selectedTodoId}
                             tags={this.props.tags} 
                             searched={this.props.searched}
@@ -234,6 +239,8 @@ export class Next extends Component<NextProps, NextState>{
                             areas={this.props.areas}
                             projects={this.props.projects}
                             selectedCategory={"next"} 
+                            selectedAreaId={this.props.selectedAreaId}
+                            selectedProjectId={this.props.selectedProjectId}
                             searched={this.props.searched}
                             selectedTag={this.props.selectedTag}  
                             rootRef={this.props.rootRef}
@@ -247,6 +254,8 @@ export class Next extends Component<NextProps, NextState>{
                         searched={this.props.searched}
                         selectedTodoId={this.props.selectedTodoId} 
                         rootRef={this.props.rootRef}
+                        selectedAreaId={this.props.selectedAreaId}
+                        selectedProjectId={this.props.selectedProjectId}
                         todos={this.props.todos}
                         areas={this.props.areas}
                         projects={this.props.projects}
@@ -260,6 +269,8 @@ export class Next extends Component<NextProps, NextState>{
                         selectedTodoId={this.props.selectedTodoId}
                         rootRef={this.props.rootRef}
                         todos={this.props.todos}
+                        selectedAreaId={this.props.selectedAreaId}
+                        selectedProjectId={this.props.selectedProjectId}
                         areas={this.props.areas}
                         projects={this.props.projects} 
                         tags={this.props.tags}
@@ -294,6 +305,8 @@ interface NextProjectsListProps{
     todos:Todo[], 
     rootRef:HTMLElement,
     tags:string[],
+    selectedAreaId:string,
+    selectedProjectId:string, 
     table:Table,
     areas:Area[],
     projects:Project[] 
@@ -338,6 +351,8 @@ class NextProjectsList extends Component<NextProjectsListProps, NextProjectsList
                                 dispatch={this.props.dispatch}   
                                 selectedTag={this.props.selectedTag} 
                                 searched={this.props.searched}
+                                selectedAreaId={this.props.selectedAreaId}
+                                selectedProjectId={this.props.selectedProjectId}
                                 selectedTodoId={this.props.selectedTodoId} 
                                 rootRef={this.props.rootRef}
                                 todos={this.props.table[p._id] as Todo[]} 
@@ -349,7 +364,7 @@ class NextProjectsList extends Component<NextProjectsListProps, NextProjectsList
                         </div>
 
                     }
-                )
+                ) 
             } 
         </div>
 
@@ -366,6 +381,8 @@ interface NextAreasListProps{
     searched:boolean, 
     selectedTodoId:string, 
     rootRef:HTMLElement,
+    selectedAreaId:string,
+    selectedProjectId:string, 
     tags:string[],
     todos:Todo[],
     projects:Project[],
@@ -407,12 +424,14 @@ class NextAreasList extends Component<NextAreasListProps,NextAreasListState>{
                                     )       
                                   }  
                                 </div>  
-  
+   
                                 <ExpandableTodosList
                                     dispatch={this.props.dispatch}   
                                     searched={this.props.searched}
                                     selectedTag={this.props.selectedTag}  
                                     rootRef={this.props.rootRef}
+                                    selectedAreaId={this.props.selectedAreaId}
+                                    selectedProjectId={this.props.selectedProjectId}
                                     selectedTodoId={this.props.selectedTodoId} 
                                     todos={this.props.table[a._id] as Todo[]} 
                                     tags={this.props.tags} 
@@ -435,6 +454,8 @@ class NextAreasList extends Component<NextAreasListProps,NextAreasListState>{
 interface ExpandableTodosListProps{
     dispatch:Function,   
     searched:boolean, 
+    selectedAreaId:string,
+    selectedProjectId:string, 
     selectedTag:string, 
     selectedTodoId:string, 
     areas:Area[],
@@ -502,7 +523,9 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                         dispatch={this.props.dispatch}     
                         selectedCategory={"next"} 
                         areas={this.props.areas}
-                        searched={this.props.searched}
+                        searched={this.props.searched} 
+                        selectedAreaId={this.props.selectedAreaId}
+                        selectedProjectId={this.props.selectedProjectId}
                         projects={this.props.projects}
                         selectedTodoId={this.props.selectedTodoId} 
                         selectedTag={this.props.selectedTag}  

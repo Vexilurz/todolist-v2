@@ -48,6 +48,8 @@ interface AreaBodyProps{
     areas:Area[], 
     projects:Project[],
     selectedTodoId:string, 
+    selectedAreaId:string,
+    selectedProjectId:string, 
     todos:Todo[],
     tags:string[],
     searched:boolean, 
@@ -129,9 +131,12 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 id={value["_id"]} 
                 key = {value["_id"]} 
                 selectedCategory={this.props.selectedCategory}
-                selectedTodoId={this.props.selectedTodoId}
+                selectedTodoId={this.props.selectedTodoId} 
                 dispatch={this.props.dispatch}      
                 projects={this.props.projects}
+                todos={this.props.todos}
+                selectedAreaId={this.props.selectedAreaId}
+                selectedProjectId={this.props.selectedProjectId}
                 searched={this.props.searched}
                 tags={this.props.tags} 
                 rootRef={this.props.rootRef} 

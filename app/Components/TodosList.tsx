@@ -242,7 +242,7 @@ export let onDrop = (
 
 
 
-interface TodosListProps{
+interface TodosListProps{ 
     dispatch:Function,
     filters:( (t:Todo) => boolean )[],
     selectedTodoId:string, 
@@ -252,12 +252,14 @@ interface TodosListProps{
     selectedCategory:Category,
     isEmpty:(empty:boolean) => void,
     selectedTag:string,  
+    selectedProjectId:string,
+    selectedAreaId:string,  
     rootRef:HTMLElement,   
     todos:Todo[],  
     tags:string[], 
     disabled?:boolean     
 }    
-
+   
   
 interface TodosListState{
     todos:Todo[],
@@ -358,6 +360,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                         key={value._id}
                         projects={this.props.projects}  
                         dispatch={this.props.dispatch}  
+                        selectedProjectId={this.props.selectedProjectId}
+                        selectedAreaId={this.props.selectedAreaId} 
+                        todos={this.props.todos}
                         selectedCategory={this.props.selectedCategory} 
                         selectedTodoId={this.props.selectedTodoId}
                         tags={this.props.tags} 

@@ -8,9 +8,9 @@ import {
 } from './database';
 import { 
     getTagsFromItems, defaultTags, removeDeletedProjects, 
-    removeDeletedAreas, removeDeletedTodos, Item, ItemWithPriority, byNotDeleted 
+    removeDeletedAreas, removeDeletedTodos, Item, ItemWithPriority, byNotDeleted, isTodo, assert 
 } from './utils';
-import { adjust, cond, equals, all, clone, isEmpty, contains, not } from 'ramda';
+import { adjust, cond, equals, all, clone, isEmpty, contains, not, remove } from 'ramda';
 
 let onError = (e) => {
     console.log(e); 
@@ -84,13 +84,15 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
             (action:{type:string, load:Todo}) : Store => {
 
-                
-                if(action.load.type!=="todo"){
-                    if(isDev()){ 
-                       throw new Error(`Load is not of type Todo. ${JSON.stringify(action.load)} addTodo. objectsReducer.`);
-                    }    
-                }
+                assert(
+                    isTodo(action.load), 
+                    `Load is not of type Todo. ${JSON.stringify(action.load)}. addTodo. objectsReducer.`
+                )
 
+                if(isEmpty(action.load.title)){
+                   return {...state}; 
+                }
+ 
                 if(shouldAffectDatabase){     
                    addTodo(onError, action.load)
                 }
@@ -99,8 +101,44 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                     ...state, 
                     todos:[action.load,...state.todos],
                 } 
-            }
+            } 
         ], 
+
+
+        [ 
+            (action:{type:string}) => "updateTodo"===action.type,
+
+            (action:{type:string, load:Todo}) : Store => {
+
+                let idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
+
+                assert(idx!==-1, `Attempt to update non existing Todo. ${JSON.stringify(action.load)}.`);
+                assert(
+                    isTodo(action.load), 
+                    `Load is not of type Todo. ${JSON.stringify(action.load)}. updateTodo. objectsReducer.`
+                )
+
+                if(isEmpty(action.load.title)){
+                    if(shouldAffectDatabase){
+                       removeTodo(action.load._id)
+                    } 
+                    return { 
+                      ...state, 
+                      todos:remove(idx, 1, state.todos)
+                    }  
+                } 
+
+                if(shouldAffectDatabase){
+                   updateTodo(action.load._id, action.load, onError)
+                }
+                 
+                return { 
+                    ...state, 
+                    todos:adjust(() => action.load, idx, state.todos)
+                } 
+            }
+        ],
+
 
         [
             (action:{type:string}) : boolean => "addProject"===action.type,
@@ -211,66 +249,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
         ], 
 
         [ 
-            (action:{type:string}) => "updateTodo"===action.type,
-
-            (action:{type:string, load:Todo}) : Store => {
-
-                let idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
-                
-                if(idx===-1 && !isEmpty(action.load.title)){  
-                    let todo = action.load; 
-
-                    if(shouldAffectDatabase){ 
-                       addTodo(onError, todo)
-                    }  
-
-                    if(todo.category==="project"){
-
-                        let projects = state.projects;
-
-                        let idx = state.projects.findIndex( (p:Project) => p._id===state.selectedProjectId );
-
-                        let project : Project = {...state.projects[idx]};     
-                        project.layout = [todo._id, ...project.layout];
-
-                        if(shouldAffectDatabase){
-                           updateProject(project._id,project,onError)
-                        }
-
-                        return { 
-                            ...state,
-                            todos:[todo,...state.todos],
-                            projects:adjust(() => project, idx, state.projects)
-                        }
-                    }
-                    
-                    return {
-                        ...state,  
-                        todos:[todo,...state.todos],
-                    }  
-                }
-
-                if(action.load.type!=="todo"){
-                    if(isDev()){ 
-                        throw new Error(`
-                            Load is not of type Todo. ${JSON.stringify(action.load)} 
-                            updateTodo. objectsReducer.
-                        `);
-                    }
-                }
-                
-                if(shouldAffectDatabase){
-                   updateTodo(action.load._id, action.load, onError)
-                }
-                 
-                return { 
-                    ...state, 
-                    todos:adjust(() => action.load, idx, state.todos)
-                } 
-            }
-        ],
-
-        [ 
             (action:{type:string}) => "updateProject"===action.type,
 
             (action:{type:string, load:Project}) : Store => {
@@ -324,7 +302,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 }
 
                 return {   
-                    ...state, 
+                    ...state,  
                     areas:adjust(() => action.load, idx, state.areas)
                 }
             } 
@@ -339,7 +317,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 let notChangedTodos : Todo[] = state.todos.filter((todo:Todo) => not(contains(todo._id)(changedIds)));
                 
                 let todos = [...changedTodos,...notChangedTodos];
-                debugger;   
 
                 if(shouldAffectDatabase){ 
                    updateTodos(action.load,onError) 

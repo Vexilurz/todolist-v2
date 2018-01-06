@@ -23,7 +23,9 @@ interface LogbookProps{
     dispatch:Function,
     todos:Todo[],
     searched:boolean, 
-    selectedCategory:string, 
+    selectedAreaId:string,
+    selectedProjectId:string, 
+    selectedCategory:string,   
     selectedTodoId:string, 
     projects:Project[],
     areas:Area[],  
@@ -179,6 +181,8 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                     isEmpty={(empty:boolean) => {}} 
                     selectedTodoId={this.props.selectedTodoId}
                     dispatch={this.props.dispatch}     
+                    selectedAreaId={this.props.selectedAreaId}
+                    selectedProjectId={this.props.selectedProjectId}
                     searched={this.props.searched}
                     selectedCategory={"logbook"}  
                     areas={this.props.areas}

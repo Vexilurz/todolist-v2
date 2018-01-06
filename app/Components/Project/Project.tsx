@@ -39,6 +39,7 @@ interface ProjectComponentProps{
     searched:boolean, 
     selectedCategory:string, 
     selectedProjectId:string, 
+    selectedAreaId:string, 
     selectedTodoId:string, 
     todos:Todo[],
     tags:string[],
@@ -211,6 +212,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             archiveHeading={this.archiveHeading(project)}
                             moveHeading={this.moveHeading} 
                             areas={this.props.areas}   
+                            selectedProjectId={this.props.selectedProjectId}
+                            selectedAreaId={this.props.selectedAreaId}  
                             projects={this.props.projects}
                             selectedTodoId={this.props.selectedTodoId} 
                             searched={this.props.searched}

@@ -93,6 +93,8 @@ interface UpcomingProps{
     searched:boolean, 
     todos:Todo[],
     projects:Project[],
+    selectedAreaId:string,
+    selectedProjectId:string, 
     areas:Area[], 
     selectedTag:string,
     tags:string[],
@@ -209,12 +211,14 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 todos={object.todos}
                 areas={this.props.areas}
                 projects={object.projects}  
+                selectedAreaId={this.props.selectedAreaId}
+                selectedProjectId={this.props.selectedProjectId}
                 dispatch={this.props.dispatch}
                 selectedTodoId={this.props.selectedTodoId}
                 selectedTag={this.props.selectedTag}
                 rootRef={this.props.rootRef}
                 tags={this.props.tags}
-            /> 
+            />  
         </div>
     } 
 
@@ -267,6 +271,8 @@ interface CalendarDayProps{
     todos:Todo[],
     dispatch:Function, 
     selectedTodoId:string,
+    selectedAreaId:string,
+    selectedProjectId:string, 
     selectedTag:string,
     rootRef:HTMLElement,
     tags:string[]
@@ -365,6 +371,8 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             selectedTodoId={this.props.selectedTodoId} 
                             searched={this.props.searched} 
                             selectedCategory={"upcoming"}
+                            selectedAreaId={this.props.selectedAreaId}
+                            selectedProjectId={this.props.selectedProjectId}
                             selectedTag={this.props.selectedTag}  
                             areas={this.props.areas}
                             projects={this.props.projects}

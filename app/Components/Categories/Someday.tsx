@@ -12,7 +12,7 @@ import {
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none'; 
-import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area } from '../../database';
+import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area, generateId } from '../../database';
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
@@ -41,6 +41,8 @@ import { TodoInput } from '../TodoInput/TodoInput';
 interface SomedayProps{
     dispatch:Function,
     selectedCategory:string, 
+    selectedProjectId:string, 
+    selectedAreaId:string, 
     selectedTodoId:string,
     selectedTag:string,
     searched:boolean, 
@@ -77,9 +79,9 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                     byNotDeleted 
                 ])  
             )
-        )(this.props.todos); 
+        )(this.props.todos);  
 
-        let empty = generateEmptyTodo("emptyTodo","someday",0);   
+        let empty = generateEmptyTodo(generateId(),"someday",0);   
          
         return <div  style={{WebkitUserSelect:"none"}}>
              <ContainerHeader 
@@ -112,6 +114,9 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         dispatch={this.props.dispatch}  
                         selectedCategory={"someday"}     
                         searched={this.props.searched}
+                        selectedProjectId={this.props.selectedProjectId}
+                        selectedAreaId={this.props.selectedAreaId} 
+                        todos={this.props.todos} 
                         selectedTodoId={this.props.selectedTodoId}
                         tags={this.props.tags} 
                         projects={this.props.projects}  
@@ -128,6 +133,8 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         ]}      
                         searched={this.props.searched}
                         areas={this.props.areas}
+                        selectedAreaId={this.props.selectedAreaId}
+                        selectedProjectId={this.props.selectedProjectId}
                         projects={this.props.projects}
                         selectedTodoId={this.props.selectedTodoId} 
                         isEmpty={(empty:boolean) => this.setState({empty})} 

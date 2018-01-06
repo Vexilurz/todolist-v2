@@ -26,6 +26,8 @@ interface TrashProps{
     dispatch:Function,
     selectedCategory:Category,  
     tags:string[],
+    selectedProjectId:string,
+    selectedAreaId:string, 
     searched:boolean, 
     selectedTodoId:string,  
     selectedTag:string,
@@ -169,6 +171,9 @@ export class Trash extends Component<TrashProps,TrashState>{
                     selectedTodoId={this.props.selectedTodoId} 
                     dispatch={this.props.dispatch}   
                     tags={this.props.tags} 
+                    selectedProjectId={this.props.selectedProjectId}
+                    selectedAreaId={this.props.selectedAreaId} 
+                    todos={this.props.todos} 
                     searched={this.props.searched}
                     rootRef={this.props.rootRef} 
                     todo={value}
@@ -234,6 +239,8 @@ export class Trash extends Component<TrashProps,TrashState>{
                     projects={this.props.projects} 
                     selectedTodoId={this.props.selectedTodoId}
                     isEmpty={(empty:boolean) => {}}
+                    selectedAreaId={this.props.selectedAreaId}
+                    selectedProjectId={this.props.selectedProjectId}
                     dispatch={this.props.dispatch}    
                     selectedCategory={"trash"}    
                     selectedTag={this.props.selectedTag}  

@@ -3,7 +3,7 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react";  
-import { Todo, Project, Area } from '../../database';
+import { Todo, Project, Area, generateId } from '../../database';
 import { TodosList } from '.././TodosList';
 import { ContainerHeader } from '.././ContainerHeader';
 import { 
@@ -20,6 +20,8 @@ import { isString } from 'util';
 interface InboxProps{ 
     dispatch:Function,
     selectedTodoId:string, 
+    selectedProjectId:string,
+    selectedAreaId:string,  
     selectedTag:string,
     searched:boolean, 
     selectedCategory:string, 
@@ -47,7 +49,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
 
     render(){ 
 
-        let empty = generateEmptyTodo("emptyTodo","inbox",0);
+        let empty = generateEmptyTodo(generateId(),"inbox",0);
 
         return <div style={{WebkitUserSelect:"none"}}>  
             <ContainerHeader  
@@ -75,6 +77,9 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     searched={this.props.searched}
                     dispatch={this.props.dispatch}  
                     selectedCategory={"inbox"} 
+                    selectedProjectId={this.props.selectedProjectId}
+                    selectedAreaId={this.props.selectedAreaId} 
+                    todos={this.props.todos} 
                     selectedTodoId={this.props.selectedTodoId}
                     tags={this.props.tags} 
                     projects={this.props.projects}
@@ -90,7 +95,9 @@ export class Inbox extends Component<InboxProps, InboxState>{
                         byCategory("inbox"),
                         byNotCompleted,  
                         byNotDeleted 
-                    ]}      
+                    ]}       
+                    selectedAreaId={this.props.selectedAreaId}
+                    selectedProjectId={this.props.selectedProjectId}
                     searched={this.props.searched}
                     areas={this.props.areas}
                     projects={this.props.projects}  

@@ -23,7 +23,7 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
-import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
+import { Todo, Project, Heading, LayoutItem, Area, generateId } from '../../database';
 import { uppercase, debounce, byNotDeleted, generateEmptyTodo, byNotCompleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, layoutOrderChanged } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeading } from './ProjectHeading';  
@@ -50,6 +50,8 @@ interface ProjectBodyProps{
     searched:boolean,
     areas:Area[],
     projects:Project[], 
+    selectedProjectId:string,
+    selectedAreaId:string,  
     selectedTodoId:string, 
     todos:Todo[], 
     tags:string[],
@@ -99,6 +101,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                             key={value["_id"]} 
                             projects={this.props.projects}
                             dispatch={this.props.dispatch}   
+                            selectedProjectId={this.props.selectedProjectId}
+                            selectedAreaId={this.props.selectedAreaId} 
+                            todos={this.props.todos}
                             searched={this.props.searched}
                             tags={this.props.tags} 
                             selectedTodoId={this.props.selectedTodoId} 
@@ -267,7 +272,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
 
     render(){  
-        let empty = generateEmptyTodo("emptyTodo","project",0);
+        let empty = generateEmptyTodo(generateId(),"project",0);
         let placeholderOffset = this.calculatePlaceholderOffset();
         let placeholderHeight = 30;
          
@@ -279,6 +284,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     dispatch={this.props.dispatch}    
                     searched={this.props.searched}
                     projects={this.props.projects} 
+                    selectedProjectId={this.props.selectedProjectId}
+                    selectedAreaId={this.props.selectedAreaId} 
+                    todos={this.props.todos}
                     selectedCategory={"project"}   
                     selectedTodoId={this.props.selectedTodoId}
                     tags={this.props.tags} 
