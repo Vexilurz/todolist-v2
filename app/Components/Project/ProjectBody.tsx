@@ -42,7 +42,7 @@ import { isDev } from '../../app';
 
 interface ProjectBodyProps{
     items:(Heading|Todo)[], 
-    updateLayout:(layout:LayoutItem[]) => void,
+    updateLayoutOrder:(layout:LayoutItem[]) => void,
     updateHeading:(heading_id:string, newValue:string) => void,
     archiveHeading:(heading_id:string) => void,
     moveHeading:(heading_id:string) => void,  
@@ -174,7 +174,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let items = this.props.items;  
         items = items.map(i => i.type==="todo" ? i._id : i) as any;
         let changed = arrayMove(items, oldIndex, newIndex); 
-        this.props.updateLayout(changed);    
+        this.props.updateLayoutOrder(changed);    
     }  
     
     showPlaceholder = () => this.setState({showPlaceholder:true});

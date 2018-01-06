@@ -486,7 +486,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     })
  
     onRestoreButtonClick = () => {
-        this.setState({deleted:undefined}, () => this.props.dispatch({type:"selectedTodoId", load:null}))   
+        this.setState(
+            {deleted:undefined}, 
+            () => this.updateTodo()  
+        )    
     }
 
     getRelatedProjectName = () : string => { 

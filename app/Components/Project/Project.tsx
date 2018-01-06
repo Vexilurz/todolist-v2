@@ -153,11 +153,36 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         50
     ) 
     
-    
-    updateLayout = (selectedProject:Project) => (layout:LayoutItem[]) => {
-        this.updateProject(selectedProject, {layout});
-    }  
+     
+    updateLayoutOrder = (selectedProject:Project) => (layout:LayoutItem[]) => {
+        let previousLayout = [...selectedProject.layout]; 
+        let allLayoutItemsPresent : boolean = previousLayout.length===layout.length;
 
+        if(allLayoutItemsPresent){
+            this.updateProject(selectedProject, {layout}); 
+        }else{
+            let fixed = previousLayout.filter(
+                (item:LayoutItem) => -1===layout.findIndex((updated:LayoutItem) => 
+                    typeof item==="string" ? 
+                    item===updated : 
+                    item["_id"]===updated["_id"]
+                )
+            );  
+
+            let newLayout : LayoutItem[] = [...fixed,...layout];
+               
+            assert(
+                newLayout.length===selectedProject.layout.length, 
+                `Updated layout has incorrect length.
+                ${JSON.stringify(newLayout)}.
+                ${JSON.stringify(selectedProject.layout)}.
+                updateLayoutOrder.` 
+            );   
+
+            this.updateProject(selectedProject, {layout:newLayout});
+        }
+    }  
+     
 
     removeHeading = (selectedProject:Project) => (heading_id:string) => {
         let layout = selectedProject.layout;
@@ -171,7 +196,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             ${JSON.stringify(layout)}
             `
         ) 
-
         this.updateProject(selectedProject, {layout:remove(idx,1,layout)});
     }
 
@@ -242,7 +266,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                     <div>  
                         <ProjectBody    
                             items={this.state.toProjectBody}
-                            updateLayout={this.updateLayout(this.state.project)}
+                            updateLayoutOrder={this.updateLayoutOrder(this.state.project)}
                             removeHeading={this.removeHeading(this.state.project)}
                             updateHeading={this.updateHeading(this.state.project)}
                             archiveHeading={this.archiveHeading(this.state.project)}
