@@ -261,31 +261,36 @@ export class MainContainer extends Component<Store,MainContainerState>{
         }
         
             
-        if(this.props.windowId===1){  
+        if(this.props.windowId===1){
             
-            destroyEverything()   
-            .then(() => {  
-                console.log("DESTROY!!!");  
-                initDB();
+            
+            if(isDev()){
+                destroyEverything()   
+                .then(() => {  
+                    initDB();
 
-                let fakeData = generateRandomDatabase({ 
-                    todos : 140,  
-                    projects : 38,  
-                    areas : 5 
-                });     
-                 
-                let todos = fakeData.todos;
-                let projects = fakeData.projects; 
-                let areas = fakeData.areas; 
-                
-                Promise.all([
-                    addTodos(this.onError,todos),    
-                    addProjects(this.onError,projects), 
-                    addAreas(this.onError,areas) 
-                ]) 
-                .then(() => this.fetchData())    
-            })
-            //this.fetchData();   
+                    let fakeData = generateRandomDatabase({ 
+                        todos : 140,  
+                        projects : 38,  
+                        areas : 5 
+                    });     
+                    
+                    let todos = fakeData.todos;
+                    let projects = fakeData.projects; 
+                    let areas = fakeData.areas; 
+                    
+                    Promise.all([
+                        addTodos(this.onError,todos),    
+                        addProjects(this.onError,projects), 
+                        addAreas(this.onError,areas)  
+                    ]) 
+                    .then(() => this.fetchData())    
+                });  
+            }else{
+                this.fetchData();
+            }
+
+
         }    
     }    
     
@@ -340,7 +345,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
      
     
     componentDidMount(){
-        
+         
         window.addEventListener("resize", this.updateWidth);
         window.addEventListener("click", this.closeRightClickMenu); 
 
@@ -424,11 +429,16 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 <OverlappingWindows />
                             </IconButton> 
                         } 
-                    </div>  
+                    </div>   
                 </div>     
  
-
-                <div style={{padding:"60px", minWidth:"500px"}}>
+                <div style={{ 
+                    paddingleft:"60px",
+                    paddingRight:"60px",
+                    paddingBottom:"60px",
+                    paddingTop:"10px",
+                    minWidth:"500px"
+                }}>
                     {    
                         {   
                             inbox:<Inbox 

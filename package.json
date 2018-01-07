@@ -38,6 +38,7 @@
     "webpack": "^2.7.0"
   },
   "dependencies": {
+    "calculate-size": "^1.1.1",
     "electron-log": "^2.2.13",
     "electron-updater": "^2.17.6",
     "file-loader": "^0.11.2",
@@ -72,7 +73,6 @@
     "redux": "^3.7.2",
     "remote": "^0.2.6",
     "rimraf": "^2.6.1",
-    "string-pixel-width": "^1.4.0",
     "typeface-roboto": "^0.0.45",
     "uniqid": "^4.1.1",
     "url": "^0.11.0",

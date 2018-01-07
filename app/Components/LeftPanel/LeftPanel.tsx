@@ -295,8 +295,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             id="areas"
                             style={{
                                 WebkitUserSelect:"none",
-                                paddingLeft: "20px",
-                                paddingRight: "20px",  
+                                paddingLeft: "20px", 
                                 marginBottom:"150px" 
                             }}
                         > 

@@ -17,7 +17,6 @@ import PieChart from 'react-minimal-pie-chart';
 import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains, assoc, isNil, not, all } from 'ramda';
 import { Category } from '../MainContainer';
 import { isDev } from '../../app';
-const pixelWidth = require('string-pixel-width');
 
 export let changeProjectsOrder = (dispatch:Function, listAfter:(Project | Area | Separator)[]) : void => {
     let projects = listAfter.filter( i => i.type==="project" ) as Project[];
@@ -429,8 +428,9 @@ interface AreaElementProps{
 } 
 
 interface AreaElementState{
-    highlight:boolean 
-}
+    highlight:boolean,
+    measure:HTMLElement 
+} 
 
  
 
@@ -439,27 +439,31 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
     constructor(props){
         super(props);
         this.state={
-            highlight:false
+            highlight:false,
+            measure : null
         }; 
     }  
-
+ 
  
     render(){      
            
         let selected = this.props.area._id===this.props.selectedAreaId && this.props.selectedCategory==="area";
         let fontSize = 15; 
-        let stringLength = this.props.area.name.length;
-        let stringWidth = pixelWidth(this.props.area.name, {font: 'open sans', size: fontSize, bold: true});
+        let stringLength = 25;
+ 
+        if(this.props.leftPanelRef){ 
+           if(this.state.measure){
+              let box = this.props.leftPanelRef.getBoundingClientRect();
+              let textBox = this.state.measure.getBoundingClientRect();
+              let length = this.props.area.name.length;
+              if(length>0){  
+                 stringLength = box.width/(textBox.width/length);
+                 stringLength -= 10; 
+              }  
+           } 
+        } 
+  
 
-        if(this.props.leftPanelRef){
-            let box = this.props.leftPanelRef.getBoundingClientRect();
-            if(stringLength>box.width){
-               let length = isEmpty(this.props.area.name) ? 1 : this.props.area.name.length;     
-               let ratio = stringWidth / length;
-               stringLength = Math.round(box.width/ratio);
-            }
-        }   
-        
         return <li 
             style={{WebkitUserSelect:"none"}} 
             className={"area"}  
@@ -491,13 +495,12 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                                      selected ? "rgba(228,230,233,1)" : 
                                      "",  
                     height:"25px",
-                    width:"95%",
                     display:"flex",  
                     alignItems: "center" 
                 }}
             >      
                 <IconButton  
-                    style={{
+                    style={{ 
                         width:"26px", height:"26px", padding: "0px",
                         display: "flex", alignItems: "center", justifyContent: "center"
                     }}    
@@ -505,6 +508,11 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                 >   
                     <NewAreaIcon /> 
                 </IconButton> 
+
+                <MeasureTextWidth  
+                    text={this.props.area.name}
+                    setMeasure={(el) => this.setState({measure:el})}
+                />
                 
                 <div style={{
                     fontFamily: "sans-serif",
@@ -539,43 +547,43 @@ interface ProjectElementProps{
     selectedCategory:Category
 }
 
-interface ProjectElementState{
-    highlight:boolean
-}
+interface ProjectElementState{ 
+    highlight:boolean,
+    measure:HTMLElement 
+} 
  
 class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
  
     constructor(props){
         super(props);
-
         this.state={
-            highlight:false
+            highlight:false,
+            measure : null
         }; 
     }  
 
-    
 
     render(){
         let days = !isNil(this.props.project.deadline) ? dateDiffInDays(this.props.project.created,this.props.project.deadline) : 0;      
         let remaining = !isNil(this.props.project.deadline) ? daysRemaining(this.props.project.deadline) : 0;  
         let selected = this.props.project._id===this.props.selectedProjectId && this.props.selectedCategory==="project";
       
-      
         let fontSize = 15; 
-        let stringLength = this.props.project.name.length;
-        let stringWidth = pixelWidth(this.props.project.name, {font: 'open sans', size: fontSize});
-
-        if(this.props.leftPanelRef){
-            let box = this.props.leftPanelRef.getBoundingClientRect();
-            if(stringLength>box.width){
-               let length = isEmpty(this.props.project.name) ? 1 : this.props.project.name.length;     
-               let ratio = stringWidth / length;
-               stringLength = Math.round(box.width/ratio);
-            }
-        }   
-         
-
-        return <li
+        let stringLength = 25;
+ 
+        if(this.props.leftPanelRef){ 
+           if(this.state.measure){
+              let box = this.props.leftPanelRef.getBoundingClientRect();
+              let textBox = this.state.measure.getBoundingClientRect();
+              let length = this.props.project.name.length;
+              if(length>0){
+                stringLength = box.width/(textBox.width/length);
+                stringLength -= 10; 
+              }  
+           } 
+        }      
+          
+        return <li  
             style={{WebkitUserSelect:"none"}}  
             key={this.props.index}
             onMouseOver={(e) => { 
@@ -602,7 +610,6 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                                      "",  
                     height:"25px",  
                     paddingLeft:"4px", 
-                    width:"95%",
                     display:"flex",
                     alignItems:"center" 
                 }} 
@@ -642,10 +649,15 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                                     display:"flex",
                                     alignItems:"center",
                                     justifyContent:"center"  
-                                }}
-                            />     
+                                }}  
+                            />       
                         </div>
                     </div> 
+ 
+                    <MeasureTextWidth  
+                      text={this.props.project.name}
+                      setMeasure={(el) => this.setState({measure:el})}
+                    />
  
                     <div   
                         id = {this.props.project._id}   
@@ -671,4 +683,42 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
 
 
 
+interface MeasureTextWidthProps{
+    text:string,
+    setMeasure:(e:HTMLElement) => void
+}
 
+class MeasureTextWidth extends Component<MeasureTextWidthProps,{}>{
+    ref:HTMLElement;
+
+    constructor(props){
+        super(props);
+    } 
+
+    componentDidMount(){
+        if(this.ref){
+           this.props.setMeasure(this.ref);
+        } 
+    } 
+
+    shouldComponentUpdate(nextProps:MeasureTextWidthProps){
+        return nextProps.text!==this.props.text;
+    } 
+
+    render(){ 
+        return <div
+        ref={e => {this.ref=e;}}
+        id={this.props.text}  
+        style={{      
+          position:"absolute",
+          visibility:"hidden",
+          height:"auto",
+          width:"auto", 
+          whiteSpace:"nowrap"  
+        }}
+      > 
+          {this.props.text}
+      </div>
+    }
+
+}

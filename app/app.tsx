@@ -87,10 +87,13 @@ export class App extends Component<AppProps,{}>{
         let action = this.props.initialLoad;
         let windowId = null;
 
-        if(action.type==="open"){
+        if(
+            action.type==="open" || 
+            action.type==="reload"
+        ){
            windowId=action.load; 
-        } 
-
+        }
+        
         return wrapMuiThemeLight(
             <div style={{
                 backgroundColor:"white",
