@@ -433,7 +433,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 </div>     
  
                 <div style={{ 
-                    paddingleft:"60px",
+                    paddingLeft:"60px", 
                     paddingRight:"60px",
                     paddingBottom:"60px",
                     paddingTop:"10px",

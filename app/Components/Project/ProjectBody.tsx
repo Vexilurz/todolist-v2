@@ -33,6 +33,7 @@ import { RightClickMenu } from '../RightClickMenu';
 import { equals, allPass, isEmpty, isNil } from 'ramda';
 import { onDrop, Placeholder } from '../TodosList';
 import { isDev } from '../../app';
+import { SortableElement } from '../../sortable/CustomSortableElement';
 
 
  
@@ -317,21 +318,34 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 height={placeholderHeight} 
                 offset={placeholderOffset}
                 show={this.state.showPlaceholder}
-            />     
+            />    
+
+            {/*<div style={{display:"flex", flexDirection:"column"}}>
+            {this.props.items.map(
+                (item) => <div key = {`${item["_id"]}`} >
+                    <SortableElement  
+                        getElement={this.getElement as any}
+                        item={item}
+                        onDrag={(x,y) => console.log(x,y)}
+                    />
+                </div>
+            )} 
+            </div>*/}  
+            
             <SortableList 
                 getElement={this.getElement}
                 items={this.props.items}
                 shouldCancelStart={this.shouldCancelStart}
                 shouldCancelAnimation={this.shouldCancelAnimation}  
                 container={this.props.rootRef ? this.props.rootRef : document.body}
-                onSortEnd={this.onSortEnd}
+                onSortEnd={this.onSortEnd} 
                 onSortMove={this.onSortMove as any}
                 onSortStart={this.onSortStart}
                 lockToContainerEdges={false}
                 distance={5}
                 useDragHandle={false} 
                 lock={false} 
-            /> 
+            />
             <RightClickMenu {...{} as any}/> 
         </div> 
     }
