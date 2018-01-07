@@ -383,7 +383,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         return  <div ref={(e) => { this.rootRef=e }}
                     className="scroll"  
                     id="maincontainer"  
-                    style={{ 
+                    style={{   
                         width:this.props.clone ?  
                               `${window.innerWidth}px` :   
                               `${window.innerWidth-this.props.currentleftPanelWidth}px`,
@@ -392,10 +392,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         display:"flex",   
                         backgroundColor:"rgba(209, 209, 209, 0.1)", 
                         overflow:"scroll",      
-                        flexDirection:"column"  
+                        flexDirection:"column"   
                     }}  
                 >  
-                <div style={{display: "flex", padding: "10px"}}>   
+                <div style={{display: "flex", padding: "10px", minWidth:"500px"}}>   
                     <div className="no-drag" style={{position: "fixed", top: 0, right: 0}}>  
                         {
                             not(isDev()) ? null :
@@ -425,11 +425,11 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             </IconButton> 
                         } 
                     </div>  
-                </div>    
+                </div>     
+ 
 
-
-                <div style={{padding:"60px"}}>
-                    {   
+                <div style={{padding:"60px", minWidth:"500px"}}>
+                    {    
                         {   
                             inbox:<Inbox 
                                 dispatch={this.props.dispatch}
@@ -442,7 +442,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 rootRef={this.rootRef}
                                 areas={this.props.areas}
                                 projects={this.props.projects}
-                                todos={this.props.todos}
+                                todos={this.props.todos} 
                                 tags={this.props.tags}
                             />,   
           

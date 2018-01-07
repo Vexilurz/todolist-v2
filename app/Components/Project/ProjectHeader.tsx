@@ -32,7 +32,7 @@ import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import { DeadlineCalendar } from '../ThingsCalendar';
-import { isNil, compose, allPass } from 'ramda';
+import { isNil, compose, allPass, isEmpty } from 'ramda';
 import { Tags } from '../Tags';
 import { TagsPopup } from '../TodoInput/TodoTags';
 let moment = require("moment");  
@@ -69,7 +69,8 @@ interface ProjectHeaderState{
 export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderState>{
 
     projectMenuPopoverAnchor:HTMLElement;  
-  
+    inputRef:HTMLElement;  
+
     constructor(props){ 
          
         super(props);
@@ -83,10 +84,13 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         }
     }   
  
+   
+
+    componentDidMount(){ 
+        if(this.inputRef && isEmpty(this.state.name)){
+           this.inputRef.focus();  
+        } 
  
-
-    componentDidMount(){
-
         if(this.projectMenuPopoverAnchor){
            this.setState({projectMenuPopoverAnchor:this.projectMenuPopoverAnchor});
         }
@@ -147,7 +151,6 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         let tags = getTagsFromItems(this.props.todos); 
          
         return <div>  
-         
             <ProjectMenuPopover 
                 {
                  ...{
@@ -162,7 +165,6 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     } as any  
                 }     
             />   
-             
             {      
                 !this.state.showDeadlineCalendar ? null : 
                 <DeadlineCalendar  
@@ -176,7 +178,6 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     rootRef = {this.props.rootRef}
                 /> 
             } 
-
             {
                 !this.state.showTagsPopup ? null : 
                 <TagsPopup    
@@ -190,9 +191,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     rootRef = {this.props.rootRef}
                 />
             }
-              
             <div style={{display:"flex", alignItems: "center"}}>
-
                 <div style={{    
                     width: "30px",
                     height: "30px",
@@ -232,9 +231,9 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         />     
                     </div>
                 </div> 
-                
                 <div>
                     <AutosizeInput
+                        ref={e => {this.inputRef=e;}}
                         type="text"
                         name="form-field-name" 
                         minWidth={"170px"}
@@ -253,7 +252,6 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         onChange={(e) => this.updateProjectName(e.target.value)} 
                     />  
                 </div>   
-
                 <div    
                     onClick={this.openMenu}  
                     style={{ 
@@ -273,7 +271,6 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         }} />
                 </div>   
             </div> 
-
             {     
                 isNil(this.props.deadline) ? null :        
                 <div style={{ 
@@ -293,14 +290,13 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         }}/>   
                     </div>   
                     <div style={{color:"black", fontSize:"15px", fontWeight:"bold", paddingRight:"20px"}}>
-                        {`Deadline: ${getMonthName(this.props.deadline).slice(0,3)}. ${this.props.deadline.getDay()+1}`} 
+                        {`Deadline: ${getMonthName(this.props.deadline).slice(0,3)}. ${this.props.deadline.getDate()}`} 
                     </div> 
-                    <div>
+                    <div> 
                         {daysLeftMark(false, this.props.deadline, false, 15)}
                     </div>   
                 </div> 
             }  
-
             <div>                
                 <TextField      
                     id = {"project_notes"}  
@@ -316,7 +312,6 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     underlineStyle = {{borderColor:"rgba(0,0,0,0)"}}   
                 />   
             </div>
- 
             <div style={{paddingTop:"20px", paddingBottom:"40px"}}>  
                 <Tags  
                     selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
@@ -325,7 +320,6 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     show={true}  
                 /> 
             </div> 
-
         </div> 
     } 
 }

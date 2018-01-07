@@ -49,37 +49,29 @@ let findRelatedProjects = (projects:Project[], t:Todo) : Project[] => {
 
 
 let removeTodoFromAreas = (dispatch:Function, areas:Area[], todo:Todo) : void => {
-
+    
     let load = areas.map((fromArea:Area) : Area => {
         let idx : number = fromArea.attachedTodosIds.findIndex((id:string) => id===todo._id);  
-        if(idx===-1){
-            if(isDev()){ 
-               throw new Error(`attachedTodosIds does not include todo id. removeTodoFromAreas.`); 
-            }
-        }
-        fromArea.attachedTodosIds = remove(idx, 1, fromArea.attachedTodosIds); 
-        console.log(`${todo.title} removed from ${fromArea.name}`);
+        if(idx!==-1){
+           fromArea.attachedTodosIds = remove(idx, 1, fromArea.attachedTodosIds); 
+           console.log(`${todo.title} removed from ${fromArea.name}`);
+        }  
         return fromArea; 
     })
-
     dispatch({type:"updateAreas", load});   
-}  
+}      
 
  
 let removeTodoFromProjects = (dispatch:Function, projects:Project[], todo:Todo) : void => {
 
     let load = projects.map((fromProject:Project) : Project => {
         let idx : number = fromProject.layout.findIndex((id:string) => id===todo._id);  
-        if(idx===-1){
-            if(isDev()){ 
-               throw new Error(`Project layout does not include todo id. removeTodoFromProjects.`); 
-            }
+        if(idx!==-1){
+           fromProject.layout = remove(idx, 1, fromProject.layout); 
+           console.log(`${todo.title} removed from ${fromProject.name}`);
         }
-        fromProject.layout = remove(idx, 1, fromProject.layout); 
-        console.log(`${todo.title} removed from ${fromProject.name}`);
         return fromProject; 
-    })
- 
+    }) 
     dispatch({type:"updateProjects", load});
 }
 
@@ -186,43 +178,81 @@ export let onDrop = (
         let nodes = [].slice.call(e.path);
         
         for(let i=0; i<nodes.length; i++){
-
             if(isCategory(nodes[i].id)){
                 switch(nodes[i].id){ 
                    case "inbox":
-                        dispatch({
+                        removeTodoFromProjects(dispatch,projects,draggedTodo);
+                        removeTodoFromAreas(dispatch,areas,draggedTodo);
+                        dispatch({ 
                             type:"updateTodo",
-                            load:{...draggedTodo, category:"inbox"}
+                            load:{
+                                ...draggedTodo, 
+                                category:"inbox", 
+                                attachedDate:undefined,
+                                deadline:undefined, 
+                                deleted:undefined,
+                                completed:undefined,
+                                checked:false 
+                            }  
                         });
                         break;
                    case "today":
                         dispatch({
                             type:"updateTodo",
-                            load:{...draggedTodo, category:"today"}
+                            load:{
+                                ...draggedTodo, 
+                                category:"today",
+                                attachedDate:new Date(),
+                                deleted:undefined,
+                                completed:undefined,
+                                checked:false
+                            } 
                         });
                         break;
                    case "next":
                         dispatch({
                             type:"updateTodo",
-                            load:{...draggedTodo, category:"next"}
+                            load:{
+                                ...draggedTodo, 
+                                category:"next",
+                                attachedDate:undefined,
+                                deleted:undefined,
+                                completed:undefined,
+                                checked:false 
+                            }
                         });
                         break;
                    case "someday":
                         dispatch({
                             type:"updateTodo",
-                            load:{...draggedTodo, category:"someday"}
+                            load:{
+                                ...draggedTodo, 
+                                category:"someday",
+                                attachedDate:undefined,
+                                deleted:undefined,
+                                completed:undefined,
+                                checked:false 
+                            }
                         });
                         break;
                    case "trash":
                         dispatch({
                             type:"updateTodo",
-                            load:{...draggedTodo, deleted:new Date()}
+                            load:{
+                                ...draggedTodo, 
+                                deleted:new Date()
+                            }
                         });  
                         break; 
                    case "logbook":
                         dispatch({
                             type:"updateTodo",
-                            load:{...draggedTodo, checked:true, completed:new Date()}
+                            load:{
+                                ...draggedTodo, 
+                                checked:true, 
+                                completed:new Date(),
+                                deleted:undefined
+                            } 
                         }); 
                         break; 
                 }    
@@ -230,13 +260,6 @@ export let onDrop = (
         } 
     } 
 }
-
-
-
-
-
-
-
 
 
 
@@ -442,15 +465,15 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
  
     onSortMove = (e, helper : HTMLElement, newIndex:number) => {
         let x = e.clientX; 
-        let y = e.clientY+this.props.rootRef.scrollTop;   
-
+        let y = e.clientY; 
+        
         if(newIndex!==this.state.currentIndex)
            this.setState({currentIndex:newIndex,helper});   
 
         let leftpanel = document.getElementById("leftpanel");
         let nested = document.getElementById("nested");
 
-        if(insideTargetArea(leftpanel,x,y)){
+        if(insideTargetArea(leftpanel,x,y)){ 
             hideChildrens(helper);  
             nested.style.visibility=""; 
             nested.style.opacity='1';    
@@ -469,7 +492,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         this.setState({showPlaceholder:false});
 
         let x = e.clientX; 
-        let y = e.clientY+this.props.rootRef.scrollTop;  
+        let y = e.clientY;  
         let draggedTodo = this.state.todos[oldIndex];
 
         if(isEmpty(draggedTodo.title)) 
@@ -480,10 +503,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         let leftpanel = document.getElementById("leftpanel");
 
         if(insideTargetArea(leftpanel,x,y)){   
-
             onDrop(
                 e, 
-                draggedTodo,
+                draggedTodo, 
                 this.props.dispatch,
                 this.props.areas,
                 this.props.projects, 

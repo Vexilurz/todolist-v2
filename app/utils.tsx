@@ -1078,22 +1078,30 @@ export let findAttachedProject = (projects:Project[]) => (t:Todo) : Project => {
 
 
 
-export let byNotAttachedToAreaFilter = (areas:Area[]) => (t:Todo) : boolean => {
+export let byAttachedToArea = (areas:Area[]) => (t:Todo) : boolean => {
     for(let i=0; i<areas.length; i++)
         if(contains(t._id)(areas[i].attachedTodosIds))
-           return false;
-    return true;             
+           return true;
+    return false;             
 }; 
 
 
-export let byNotAttachedToProjectFilter = (projects:Project[]) => (t:Todo) : boolean => {
+export let byAttachedToProject = (projects:Project[]) => (t:Todo) : boolean => {
+
     for(let i=0; i<projects.length; i++){
         let attachedTodosIds = projects[i].layout.filter(isString) as string[];
+
+        assert(
+          isArrayOfStrings(attachedTodosIds), 
+         `attachedTodosIds is not an array of strings ${JSON.stringify(attachedTodosIds)}.`
+        ); 
          
-        if(contains(t._id)(attachedTodosIds))
-           return false;
-    } 
-    return true;     
+        if(contains(t._id)(attachedTodosIds)){
+           return true;
+        }
+    }   
+
+    return false;     
 };  
 
 
@@ -1273,21 +1281,16 @@ export let daysLeftMark = (hide:boolean, deadline:Date, showFlag:boolean, fontSi
                { Math.abs(daysLeft) }{ attachedText }
            </p>  
 
-}   
+} 
+
 
 
  
 export let isToday = (date : Date) => {
     if(isNil(date))
        return false; 
-    
-    if(!isDate(date)){  
-        if(isDev()){ 
-           throw new Error(`date is not a Date. ${date}. isToday.`);
-        }
-    }
-    
-    return dateDiffInDays(new Date(), date)===0;
+  
+    return daysRemaining(date)===0;
 }    
 
 

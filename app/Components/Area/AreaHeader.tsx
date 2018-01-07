@@ -29,7 +29,7 @@ import { arrayMove } from '../../sortable-hoc/utils';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import { ProjectMenuPopover } from '../Project/ProjectMenu';
-import { contains } from 'ramda';
+import { contains, isEmpty } from 'ramda';
 import { TagsPopup } from '../TodoInput/TodoTags';
 import { isDev } from '../../app';
 
@@ -62,6 +62,7 @@ interface AreaHeaderState{
 export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
 
     menuAnchor:HTMLElement;  
+    inputRef:HTMLElement;  
   
     constructor(props){ 
          
@@ -75,7 +76,11 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
         }; 
     }  
 
-    componentDidMount(){ 
+    componentDidMount(){
+        if(this.inputRef && isEmpty(this.state.name)){
+           this.inputRef.focus();  
+        }
+
         if(this.menuAnchor){
            this.setState({menuAnchor:this.menuAnchor});
         }
@@ -145,8 +150,8 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
   
     render(){ 
 
-     return <div> 
-            <div style={{display:"flex", alignItems: "center"}}>
+     return <div>  
+            <div style={{display:"flex", alignItems:"center"}}>
                 <div style={{    
                        width: "30px",
                        height: "30px",
@@ -164,7 +169,8 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
                     }}/>    
                 </div> 
                 <div>
-                    <AutosizeInput
+                    <AutosizeInput 
+                        ref={e => {this.inputRef=e;}}
                         type="text"
                         name="form-field-name" 
                         minWidth={"170px"}

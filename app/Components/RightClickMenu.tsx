@@ -14,7 +14,7 @@ import { Todo, removeTodo, addTodo, generateId, Project, Area, LayoutItem } from
 import { Store, isDev } from '../app';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { Category } from './MainContainer';
-import { remove } from 'ramda';
+import { remove, isNil } from 'ramda';
 let uniqid = require("uniqid");    
  
  
@@ -326,21 +326,18 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
            return null; 
 
         let projectSelected = this.props.selectedCategory==="project" && !!this.props.selectedProjectId;
- 
-        let areaSelected = this.props.selectedCategory==="area" && !!this.props.selectedAreaId;                       
-             
+        let areaSelected = this.props.selectedCategory==="area" && !!this.props.selectedAreaId;                          
         let canWhen = false; 
-        let canMove = false; 
-        let canComplete = !todo.deleted;
+        let canMove = false;  
+        let canComplete = isNil(todo.deleted) && isNil(todo.completed);
         let canShortcuts = false; 
         let canRepeat = false;
-        let canDuplicate = !todo.deleted;
-        let canConvert = !todo.deleted;
-        let canDelete = !todo.deleted; 
-        let canRemoveFromProjectArea = !todo.deleted && (projectSelected || areaSelected);
+        let canDuplicate = isNil(todo.deleted); 
+        let canConvert = isNil(todo.deleted);
+        let canDelete = isNil(todo.deleted); 
+        let canRemoveFromProjectArea = isNil(todo.deleted) && (projectSelected || areaSelected);
         let canShare = false; 
 
- 
         return  !this.props.showRightClickMenu ? null:
                 <div  
                     ref={(e) => { this.ref=e; }}   

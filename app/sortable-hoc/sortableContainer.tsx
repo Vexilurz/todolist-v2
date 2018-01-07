@@ -392,7 +392,7 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
             eventName,
             this.handleSortEnd,
             false
-          ));
+          )); 
 
         this.setState({
           sorting: true,
@@ -416,19 +416,16 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
  
            if(!shouldCancelAnimation(e)){
                this.animateNodes();
+               this.autoscroll(e);
            }
 
-      }else{
+      }else{ 
       
           this.animateNodes();
+          this.autoscroll(e);
       
       } 
 
-
-     
-         
- 
-      this.autoscroll(e);
 
       if (onSortMove) onSortMove(e, this.helper, this.newIndex, this.index);
     };

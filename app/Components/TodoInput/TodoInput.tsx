@@ -38,7 +38,7 @@ import { TextField } from 'material-ui';
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
     insideTargetArea, daysRemaining, todoChanged, 
-    daysLeftMark, generateTagElement, uppercase, generateEmptyTodo, isToday, getMonthName, stringToLength 
+    daysLeftMark, generateTagElement, uppercase, generateEmptyTodo, isToday, getMonthName, stringToLength, debounce 
 } from '../../utils'; 
 import { Todo, removeTodo, updateTodo, Project, generateId } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
@@ -140,6 +140,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }
 
     componentDidMount(){  
+       
         if(this.props.selectedTodoId===this.props.todo._id){   
             this.setState(   
               {open:true}, 
@@ -157,6 +158,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
     componentDidUpdate(prevProps:TodoInputProps,prevState:TodoInputState){
+        if(this.inputRef && isEmpty(this.state.title) && this.state.open){
+           this.inputRef.focus();  
+        } 
+
         if(isEmpty(this.state.title) || this.state.open){  
            this.preventDragOfThisItem();
         }else{
@@ -363,7 +368,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onTitleChange = (event) : void => this.setState({title:event.target.value}, () => console.log(this.state.title));
      
 
-    onCheckBoxClick = () => {   
+    onCheckBoxClick = debounce(() => {   
         if(!this.state.open && !this.props.creation){ 
             let checked : boolean = !this.state.checked; 
             this.setState( 
@@ -374,7 +379,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 () => this.updateTodo()
             );  
         } 
-    } 
+    },50) 
 
     
     onRightClickMenu = (e) => {
@@ -483,15 +488,15 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         category:this.props.todo.category as Category,
         attachedDate:null, 
         reminder:null 
-    })
+    }) 
  
-    onRestoreButtonClick = () => {
-        this.setState(
+    onRestoreButtonClick = debounce(() => {
+        this.setState( 
             {deleted:undefined}, 
             () => this.updateTodo()  
         )    
-    }
-
+    },50)
+ 
     getRelatedProjectName = () : string => { 
         let {todo, projects} = this.props;
 

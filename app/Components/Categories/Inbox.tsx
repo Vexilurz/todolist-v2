@@ -8,10 +8,10 @@ import { TodosList } from '.././TodosList';
 import { ContainerHeader } from '.././ContainerHeader';
 import { 
     byTags, byCategory, byNotCompleted, byNotDeleted, getTagsFromItems, 
-    generateEmptyTodo, attachEmptyTodo, byNotAttachedToProjectFilter, byNotAttachedToAreaFilter 
-} from '../../utils';
+    generateEmptyTodo, attachEmptyTodo, byAttachedToProject, byAttachedToArea 
+} from '../../utils'; 
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { compose, filter, allPass, prepend, contains } from 'ramda';
+import { compose, filter, allPass, prepend, contains, not } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { isString } from 'util';
 
@@ -88,9 +88,9 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     creation={true}
                 /> 
                 <TodosList    
-                    filters={[  
-                        byNotAttachedToAreaFilter(this.props.areas), 
-                        byNotAttachedToProjectFilter(this.props.projects), 
+                    filters={[   
+                        (todo:Todo) => not(byAttachedToArea(this.props.areas)(todo)), 
+                        (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
                         byTags(this.props.selectedTag),
                         byCategory("inbox"),
                         byNotCompleted,  

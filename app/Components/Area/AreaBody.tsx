@@ -290,8 +290,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         if(!this.props.rootRef)
            return; 
 
-        let x = e.clientX+this.props.rootRef.scrollLeft;  
-        let y = e.clientY+this.props.rootRef.scrollTop;   
+        let x = e.clientX;   
+        let y = e.clientY;   
 
         if(newIndex!==this.state.currentIndex && this.ref){
            this.setState({currentIndex:newIndex});   

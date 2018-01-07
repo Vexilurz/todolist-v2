@@ -7,8 +7,8 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
-    byDeleted, dateDiffInDays, byNotAttachedToProjectFilter, byNotAttachedToAreaFilter, isDate, daysRemaining 
-} from "../../utils"; 
+    byDeleted, dateDiffInDays, byAttachedToProject, byAttachedToArea, isDate, daysRemaining 
+} from "../../utils";  
 import { Provider, connect } from "react-redux";
 import Menu from 'material-ui/Menu';
 import Star from 'material-ui/svg-icons/toggle/star';
@@ -42,7 +42,7 @@ import { AreasList } from './../Area/AreasList';
 import { ResizableHandle } from './../ResizableHandle';
 import { LeftPanelMenu } from './LeftPanelMenu';
 import { NewProjectAreaPopup } from './NewProjectAreaPopup';
-import { allPass, isNil } from 'ramda';
+import { allPass, isNil, not } from 'ramda';
 import { QuickSearch } from '../Search';
  
  
@@ -72,7 +72,7 @@ let hotFilter = (todo:Todo) : boolean => {
         }
     }
       
-    return daysRemaining(todo.deadline)<=0;  
+    return daysRemaining(todo.deadline)<=0;   
 }   
 
 
@@ -81,9 +81,9 @@ export let calculateAmount = (areas:Area[], projects:Project[], todos:Todo[]) : 
     let todayFilter = (i) => byCategory("today")(i) || byCategory("evening")(i); 
   
     let inboxFilters = [ 
-        byNotAttachedToAreaFilter(areas), 
-        byNotAttachedToProjectFilter(projects), 
-        byCategory("inbox"),
+        (todo:Todo) => not(byAttachedToArea(areas)(todo)), 
+        (todo:Todo) => not(byAttachedToProject(projects)(todo)), 
+        byCategory("inbox"), 
         byNotCompleted, 
         byNotDeleted 
     ]; 

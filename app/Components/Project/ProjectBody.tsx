@@ -210,7 +210,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         this.hidePlaceholder();
         this.props.dispatch({type:"dragged",load:null});
         let x = e.clientX; 
-        let y = e.clientY+this.props.rootRef.scrollTop;  
+        let y = e.clientY;  
         let items = this.props.items;   
         let draggedItem : (Todo | Heading) = items[oldIndex];
         let leftpanel = document.getElementById("leftpanel");
@@ -242,7 +242,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
          
     onSortMove = (e, helper : HTMLElement, newIndex:number, oldIndex:number) => {
         let x = e.clientX; 
-        let y = e.clientY+this.props.rootRef.scrollTop;   
+        let y = e.clientY;   
 
         if(newIndex!==this.state.currentIndex)
            this.setState({currentIndex:newIndex,helper}); 
