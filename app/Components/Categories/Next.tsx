@@ -328,8 +328,6 @@ let byHaveTodos = (table:Table) => (project:Project) : boolean => {
 
 
  
-
- 
 interface NextProjectsListProps{
     dispatch:Function,
     selectedTag:string, 
@@ -361,18 +359,12 @@ class NextProjectsList extends Component<NextProjectsListProps, NextProjectsList
             WebkitUserSelect:"none" 
         }}> 
             {     
-                this
-                .props
-                .table
-                .projects
-                .map(
+                this.props.table.projects.map( 
                     (p:Project, index:number) : JSX.Element => {
-
                         let todos = this.props.table[p._id] as Todo[];
 
                         return isEmpty(todos) ? null :
                         <div key={`project-${index}`}>
-
                             <div>
                             { 
                                 getProjectLink(
@@ -383,7 +375,6 @@ class NextProjectsList extends Component<NextProjectsListProps, NextProjectsList
                                 ) 
                             }
                             </div> 
- 
                             <ExpandableTodosList
                                 dispatch={this.props.dispatch}   
                                 selectedTag={this.props.selectedTag} 

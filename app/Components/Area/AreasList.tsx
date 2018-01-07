@@ -101,7 +101,7 @@ export let isDetached = (index:number, layout:any[]) : boolean => {
             } 
         }
     } 
-          
+           
     return false;
 }
 
@@ -109,11 +109,13 @@ export let isDetached = (index:number, layout:any[]) : boolean => {
 
 interface AreasListProps{   
     dispatch:Function,
+    leftPanelWidth:number, 
     dragged:string, 
     selectedProjectId:string,
     selectedAreaId:string, 
     selectedCategory:Category, 
     areas:Area[],
+    leftPanelRef:HTMLElement, 
     projects:Project[]    
 }  
 
@@ -251,8 +253,10 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         return <AreaElement 
             area={a}
             index={index} 
+            leftPanelRef={this.props.leftPanelRef}
             dragged={this.props.dragged}
             selectArea={this.selectArea}
+            leftPanelWidth={this.props.leftPanelWidth}
             selectedAreaId={this.props.selectedAreaId}
             selectedCategory={this.props.selectedCategory}
         />
@@ -263,8 +267,10 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         return <ProjectElement 
             project={p}
             index={index}
-            dragged={this.props.dragged} 
+            leftPanelRef={this.props.leftPanelRef}
+            dragged={this.props.dragged}  
             selectProject={this.selectProject}
+            leftPanelWidth={this.props.leftPanelWidth}
             selectedProjectId={this.props.selectedProjectId}
             selectedCategory={this.props.selectedCategory}
         />
@@ -414,14 +420,16 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 interface AreaElementProps{
     area:Area,
     dragged:string, 
+    leftPanelWidth:number, 
     index:number,
+    leftPanelRef:HTMLElement,
     selectArea:Function,
     selectedAreaId:string,
     selectedCategory:Category
 } 
 
 interface AreaElementState{
-    highlight:boolean
+    highlight:boolean 
 }
 
  
@@ -439,10 +447,17 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
     render(){      
            
         let selected = this.props.area._id===this.props.selectedAreaId && this.props.selectedCategory==="area";
-                  
+        let fontSize = 15; 
+        let stringLength = 25;
+
+        if(this.props.leftPanelRef){
+           let box = this.props.leftPanelRef.getBoundingClientRect();
+           stringLength = Math.round(box.width/10); 
+        }  
+        
         return <li 
-            style={{WebkitUserSelect:"none"}}
-            className={"area"} 
+            style={{WebkitUserSelect:"none"}} 
+            className={"area"}  
             key={this.props.index} 
             onMouseOver={(e) => {
                 if(e.buttons == 1 || e.buttons == 3){
@@ -488,7 +503,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                 
                 <div style={{
                     fontFamily: "sans-serif",
-                    fontSize: "15px",    
+                    fontSize: `${fontSize}px`,    
                     cursor: "default",
                     paddingLeft: "5px", 
                     WebkitUserSelect: "none",
@@ -496,8 +511,8 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                     color: "rgba(0, 0, 0, 0.8)" 
                 }}>    
                     {
-                        this.props.area.name.length===0 ? 
-                        "New Area" : stringToLength(this.props.area.name,20) 
+                       this.props.area.name.length===0 ? 
+                       "New Area" : stringToLength(this.props.area.name,stringLength) 
                     }   
                 </div>  
             </div>
@@ -511,6 +526,8 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
 interface ProjectElementProps{
     project:Project,
     index:number,
+    leftPanelRef:HTMLElement,
+    leftPanelWidth:number,
     dragged:string,
     selectProject:Function,
     selectedProjectId:string,
@@ -522,9 +539,10 @@ interface ProjectElementState{
 }
  
 class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
-
+ 
     constructor(props){
         super(props);
+
         this.state={
             highlight:false
         }; 
@@ -536,14 +554,22 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         let days = !isNil(this.props.project.deadline) ? dateDiffInDays(this.props.project.created,this.props.project.deadline) : 0;      
         let remaining = !isNil(this.props.project.deadline) ? daysRemaining(this.props.project.deadline) : 0;  
         let selected = this.props.project._id===this.props.selectedProjectId && this.props.selectedCategory==="project";
+        
+        let stringLength = 25;
+        let fontSize = 15; 
+
+        if(this.props.leftPanelRef){ 
+           let box = this.props.leftPanelRef.getBoundingClientRect();
+           stringLength = Math.round(box.width/10); 
+        } 
 
         return <li
-            style={{WebkitUserSelect:"none"}}
+            style={{WebkitUserSelect:"none"}}  
             key={this.props.index}
             onMouseOver={(e) => { 
                 if(e.buttons === 1 || e.buttons === 3){ 
                     if(this.props.dragged==="todo"){
-                       this.setState({highlight:true}); 
+                       this.setState({highlight:true});  
                     }  
                 }  
             }} 
@@ -614,7 +640,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                         style={{  
                             paddingLeft:"5px",
                             fontFamily: "sans-serif",
-                            fontSize:"15px",  
+                            fontSize:`${fontSize}px`,  
                             whiteSpace: "nowrap",
                             cursor: "default",
                             WebkitUserSelect: "none" 
@@ -622,9 +648,9 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     >   
                         { 
                             this.props.project.name.length==0 ? 
-                            "New Project" : stringToLength(this.props.project.name,15) 
+                            "New Project" : stringToLength(this.props.project.name,stringLength) 
                         } 
-                    </div>   
+                    </div>    
             </div>
         </li> 
     }

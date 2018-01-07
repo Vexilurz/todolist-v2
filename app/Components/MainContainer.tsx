@@ -260,7 +260,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
             fullWindowSize:true 
         }
         
-           
+            
         if(this.props.windowId===1){  
             
             destroyEverything()   

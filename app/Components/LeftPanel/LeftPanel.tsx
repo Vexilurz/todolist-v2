@@ -7,7 +7,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
-    byDeleted, dateDiffInDays, byAttachedToProject, byAttachedToArea, isDate, daysRemaining 
+    byDeleted, dateDiffInDays, byAttachedToProject, byAttachedToArea, isDate, daysRemaining, isToday 
 } from "../../utils";  
 import { Provider, connect } from "react-redux";
 import Menu from 'material-ui/Menu';
@@ -83,12 +83,18 @@ export let calculateAmount = (areas:Area[], projects:Project[], todos:Todo[]) : 
     let inboxFilters = [ 
         (todo:Todo) => not(byAttachedToArea(areas)(todo)), 
         (todo:Todo) => not(byAttachedToProject(projects)(todo)), 
-        byCategory("inbox"), 
-        byNotCompleted, 
+        (todo:Todo) => isNil(todo.attachedDate), 
+        byCategory("inbox"),  
+        byNotCompleted,   
         byNotDeleted 
     ]; 
  
-    let todayFilters = [todayFilter, byNotCompleted, byNotDeleted];
+    let todayFilters = [
+        todayFilter, 
+        byNotCompleted,  
+        byNotDeleted,
+        (t:Todo) => isToday(t.attachedDate),
+    ];
 
     let trashFilters = [byDeleted];
 
@@ -119,6 +125,7 @@ interface LeftPanelState{
 export class LeftPanel extends Component<Store,LeftPanelState>{
     newProjectAnchor:HTMLElement;
     deltaX:number;  
+    leftPanelRef:HTMLElement; 
         
     constructor(props){  
         super(props);      
@@ -242,6 +249,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                 <ResizableHandle onDrag={this.onResizableHandleDrag}/>  
                     <div      
                         id="leftpanel"
+                        ref={(e) => { this.leftPanelRef=e; }}
                         className="scroll"
                         style={{ 
                             display:"flex",    
@@ -293,6 +301,8 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             }}
                         > 
                             <AreasList  
+                                leftPanelWidth={this.props.leftPanelWidth}
+                                leftPanelRef={this.leftPanelRef}
                                 dragged={this.props.dragged} 
                                 dispatch={this.props.dispatch}   
                                 areas={this.props.areas}

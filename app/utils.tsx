@@ -477,33 +477,20 @@ export let debounce = (fun, mil=50) => {
 
 export let stringToLength = (s : string, length : number) : string => {
 
-    if(!isString(s)){
-        if(isDev()){ 
-           throw new Error(`s is not a string ${s}. stringToLength.`);
-        }
-    }
+    assert(isString(s),`s is not a string ${s}. stringToLength.`);
+    assert(!isNaN(length),`length is not a number ${length}. stringToLength.`);
 
-    if(isNaN(length)){
-        if(isDev()){ 
-           throw new Error(`length is not a number ${length}. stringToLength.`);
-        }
-    }
-
-    return s.substring(0, length) + "...";
-}  
-    
+    return s.length<=length ? s : s.substring(0, length) + "...";
+}   
+      
 
 export let uppercase = (str:string) : string => { 
 
-    if(!isString(str)){
-        if(isDev()){ 
-           throw new Error(`str is not a string ${str}. uppercase.`); 
-        }
-    }
-
+    assert(isString(str),`str is not a string ${str}. uppercase.`);
+    
     if(str.length===0)
        return str; 
-
+    
     return str.substring(0,1).toUpperCase() + str.substring(1,str.length);
 }
  

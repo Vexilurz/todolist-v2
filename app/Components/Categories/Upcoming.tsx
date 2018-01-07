@@ -52,7 +52,6 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
 
     let filters = [ 
         haveDate,  
-        (t:Todo) => t.category!=="inbox", 
         byTags(props.selectedTag),
         byNotCompleted, 
         byNotDeleted  

@@ -242,25 +242,21 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 paddingTop:"50px",
                 paddingBottom:"10px"  
             }}>
- 
             <Separator />
-        
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"inbox"});
                     this.props.dispatch({type:"selectedTag", load:"All"});
                 }}
                 dragged={this.props.dragged}
-                icon={<Inbox style={{ color:"dodgerblue" }} />}
-                title={"Inbox"}
+                icon={<Inbox style={{color:"dodgerblue"}} />}
+                title={"Inbox"} 
                 category={"inbox"}
                 selected={this.props.selectedCategory==="inbox"}
                 showCounter={true}
                 counter={this.props.inbox} 
             />  
- 
             <Separator />
-
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"today"});
@@ -275,7 +271,6 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 counter={this.props.today}
                 hot={this.props.hot}
             /> 
-
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"next"});
@@ -289,7 +284,6 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 showCounter={false}
                 counter={0} 
             /> 
-
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"upcoming"});
@@ -303,7 +297,6 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 showCounter={false} 
                 counter={0}
             />  
-
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"someday"});
@@ -317,9 +310,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 showCounter={false}
                 counter={0} 
             /> 
-
             <Separator />    
-
             { 
                 this.props.logbook===0 ? null :
                 <LeftPanelMenuItem 

@@ -253,11 +253,19 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         if(!isEmpty(todo.title)){
 
             let todos = [...this.props.todos].sort((a:Todo,b:Todo) => a.priority-b.priority);
+        
             
             if(!isEmpty(todos)){ 
                 todo.priority = todos[0].priority - 1;
             }  
   
+            if(
+                this.props.selectedCategory==="today" || 
+                this.props.selectedCategory==="evening"
+            ){
+                todo = {...todo, attachedDate:new Date()}; 
+            }
+            
             this.props.dispatch({type:"addTodo", load:todo}); 
 
             if(this.props.selectedCategory==="project"){ 
@@ -296,7 +304,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         attachedTags:todo.attachedTags, 
         checklist:todo.checklist  
     }) 
-
+    
 
     todoFromState = () : Todo => ({
         _id : this.props.todo._id,
@@ -435,7 +443,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     closeTagsSelection = (e) => this.setState({showTagsSelection:false});
 
 
-
     onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         let remaining = daysRemaining(day);
             
@@ -443,34 +450,28 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            this.setState({deadline:day}); 
     };
 
-
  
     onDeadlineCalendarClear = (e:any) : void => this.setState({deadline:null}); 
     
 
-
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         this.setState({
             attachedDate:day,
-            category:daysRemaining(day)===0 ? "today" : this.state.category
+            category:isToday(day) ? "today" : "next"
         });   
     };
-
-
+    
 
     onRemoveAttachedDateLabel = () => {
-        if(
-            daysRemaining(this.state.attachedDate)===0 &&  
-            (this.state.category==="today" || this.state.category==="evening") &&
-            this.props.selectedCategory!=="today" &&
-            this.props.selectedCategory!=="evening"
-        ){
-            this.setState({attachedDate:null, category:this.props.selectedCategory});
-        }else{
-            this.setState({attachedDate:null});  
-        }
-    }
+        let today = this.props.selectedCategory==="today" || 
+                    this.props.selectedCategory==="evening";
 
+        this.setState({
+          attachedDate:null,  
+          category:today ? "next" : this.props.selectedCategory
+        });  
+    };  
+    
 
     onCalendarSomedayClick = (e) => this.setState({category:"someday", attachedDate:null})
 
@@ -1021,7 +1022,10 @@ export class Checkbox extends Component<CheckboxProps,{}>{
 
     render(){
         return <div  
-            onClick = {(e) => this.props.onClick()}  
+            onClick = {(e) => {
+                e.stopPropagation(); 
+                this.props.onClick();
+            }}
             style={{  
                 width:"14px",   
                 borderRadius:"3px",  
@@ -1060,11 +1064,14 @@ class RestoreButton extends Component<RestoreButtonProps,{}>{
         super(props); 
     } 
  
-    render(){
+    render(){ 
         return !this.props.deleted ? null :   
         this.props.open ? null :  
         <div             
-            onClick={(e) => this.props.onClick()}  
+            onClick={(e) => {
+                e.stopPropagation(); 
+                this.props.onClick(); 
+            }}
             style={{  
                 display:"flex",
                 cursor:"pointer", 

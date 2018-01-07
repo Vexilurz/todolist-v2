@@ -11,7 +11,7 @@ import {
     generateEmptyTodo, attachEmptyTodo, byAttachedToProject, byAttachedToArea 
 } from '../../utils'; 
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { compose, filter, allPass, prepend, contains, not } from 'ramda';
+import { compose, filter, allPass, prepend, contains, not, isNil } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { isString } from 'util';
 
@@ -86,13 +86,13 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     rootRef={this.props.rootRef}  
                     todo={empty}
                     creation={true}
-                /> 
+                />  
                 <TodosList    
                     filters={[   
                         (todo:Todo) => not(byAttachedToArea(this.props.areas)(todo)), 
                         (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
-                        byTags(this.props.selectedTag),
-                        byCategory("inbox"),
+                        (todo:Todo) => isNil(todo.attachedDate), 
+                        byCategory("inbox"), 
                         byNotCompleted,  
                         byNotDeleted 
                     ]}       
@@ -107,10 +107,10 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     selectedCategory={"inbox"} 
                     selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}
-                    todos={this.props.todos}  
+                    todos={this.props.todos}   
                     tags={this.props.tags} 
                 /> 
             </div>
-        </div>
+        </div> 
     }
 } 
