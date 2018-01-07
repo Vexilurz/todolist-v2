@@ -481,7 +481,7 @@ export let stringToLength = (s : string, length : number) : string => {
     assert(!isNaN(length),`length is not a number ${length}. stringToLength.`);
 
     return s.length<=length ? s : s.substring(0, length) + "...";
-}   
+}    
       
 
 export let uppercase = (str:string) : string => { 

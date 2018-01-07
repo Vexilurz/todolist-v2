@@ -17,7 +17,7 @@ import PieChart from 'react-minimal-pie-chart';
 import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains, assoc, isNil, not, all } from 'ramda';
 import { Category } from '../MainContainer';
 import { isDev } from '../../app';
-
+const pixelWidth = require('string-pixel-width');
 
 export let changeProjectsOrder = (dispatch:Function, listAfter:(Project | Area | Separator)[]) : void => {
     let projects = listAfter.filter( i => i.type==="project" ) as Project[];
@@ -448,12 +448,17 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
            
         let selected = this.props.area._id===this.props.selectedAreaId && this.props.selectedCategory==="area";
         let fontSize = 15; 
-        let stringLength = 25;
+        let stringLength = this.props.area.name.length;
+        let stringWidth = pixelWidth(this.props.area.name, {font: 'open sans', size: fontSize, bold: true});
 
         if(this.props.leftPanelRef){
-           let box = this.props.leftPanelRef.getBoundingClientRect();
-           stringLength = Math.round(box.width/10); 
-        }  
+            let box = this.props.leftPanelRef.getBoundingClientRect();
+            if(stringLength>box.width){
+               let length = isEmpty(this.props.area.name) ? 1 : this.props.area.name.length;     
+               let ratio = stringWidth / length;
+               stringLength = Math.round(box.width/ratio);
+            }
+        }   
         
         return <li 
             style={{WebkitUserSelect:"none"}} 
@@ -554,14 +559,21 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         let days = !isNil(this.props.project.deadline) ? dateDiffInDays(this.props.project.created,this.props.project.deadline) : 0;      
         let remaining = !isNil(this.props.project.deadline) ? daysRemaining(this.props.project.deadline) : 0;  
         let selected = this.props.project._id===this.props.selectedProjectId && this.props.selectedCategory==="project";
-        
-        let stringLength = 25;
+      
+      
         let fontSize = 15; 
+        let stringLength = this.props.project.name.length;
+        let stringWidth = pixelWidth(this.props.project.name, {font: 'open sans', size: fontSize});
 
-        if(this.props.leftPanelRef){ 
-           let box = this.props.leftPanelRef.getBoundingClientRect();
-           stringLength = Math.round(box.width/10); 
-        } 
+        if(this.props.leftPanelRef){
+            let box = this.props.leftPanelRef.getBoundingClientRect();
+            if(stringLength>box.width){
+               let length = isEmpty(this.props.project.name) ? 1 : this.props.project.name.length;     
+               let ratio = stringWidth / length;
+               stringLength = Math.round(box.width/ratio);
+            }
+        }   
+         
 
         return <li
             style={{WebkitUserSelect:"none"}}  

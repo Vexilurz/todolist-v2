@@ -2,10 +2,10 @@
   "name": "tasklist",
   "version": "1.0.0",
   "description": "tasklist",
-  "main": "dist/main.js", 
-  "scripts": { 
+  "main": "dist/main.js",
+  "scripts": {
     "start": "electron .",
-    "pack": "build --win",  
+    "pack": "build --win",
     "build": "start webpack -w --config webpack.config.main.js && webpack -w --config webpack.config.renderer.js",
     "production": "start webpack -w --config webpack.config.main.prod.js && webpack -w --config webpack.config.renderer.prod.js"
   },
@@ -72,6 +72,7 @@
     "redux": "^3.7.2",
     "remote": "^0.2.6",
     "rimraf": "^2.6.1",
+    "string-pixel-width": "^1.4.0",
     "typeface-roboto": "^0.0.45",
     "uniqid": "^4.1.1",
     "url": "^0.11.0",
@@ -84,7 +85,7 @@
     "files": [
       "production"
     ],
-    "win": { 
+    "win": {
       "target": [
         "nsis"
       ],
