@@ -61,9 +61,10 @@ import Inbox from 'material-ui/svg-icons/content/inbox';
 interface TodoInputPopupProps extends Store{} 
  
 interface TodoInputPopupState{
-    ctrlPressed:boolean
+    ctrlPressed:boolean,
+    altPressed:boolean 
 }
-
+ 
 @connect((store,props) => store, attachDispatchToProps) 
 export class TodoInputPopup extends Component<TodoInputPopupProps,TodoInputPopupState>{
 
@@ -72,39 +73,50 @@ export class TodoInputPopup extends Component<TodoInputPopupProps,TodoInputPopup
     constructor(props){
        super(props);
        this.state = {
-          ctrlPressed:false
+          ctrlPressed:false,
+          altPressed:false 
        }
     } 
     
     componentDidMount(){
-        window.addEventListener("keydown", this.onCtrlXPress);
+        window.addEventListener("keydown", this.onCtrlAltTPress); 
+          
         window.addEventListener("keydown", this.onCtrlDown);
-        window.addEventListener("keyup", this.onCtrlUp);
+        window.addEventListener("keyup", this.onCtrlUp); 
+
+
+        window.addEventListener("keydown", this.onAltDown);
+        window.addEventListener("keyup", this.onAltUp);
     };  
           
 
     componentWillUnmount(){
-        window.removeEventListener("keydown", this.onCtrlXPress);
+        window.removeEventListener("keydown", this.onCtrlAltTPress);
+
         window.removeEventListener("keydown", this.onCtrlDown); 
         window.removeEventListener("keyup", this.onCtrlUp); 
-    };  
 
+        window.removeEventListener("keydown", this.onAltDown); 
+        window.removeEventListener("keyup", this.onAltUp); 
+    };      
 
-    onCtrlDown = (e) => e.keyCode == 17 ? this.setState({ctrlPressed:true}) : null;
-
+ 
+    onAltDown = (e) => e.keyCode == 18 ? this.setState({altPressed:true}) : null; 
+    
+    onAltUp = (e) => e.keyCode == 18 ? this.setState({altPressed:false}) : null;
+     
+    onCtrlDown = (e) => e.keyCode == 17 ? this.setState({ctrlPressed:true}) : null; 
 
     onCtrlUp = (e) => e.keyCode == 17 ? this.setState({ctrlPressed:false}) : null;
     
-
-    onCtrlXPress = (e) => { 
-        if(e.keyCode === 88){
-            if(this.state.ctrlPressed){  
-               this.props.dispatch({type:"openTodoInputPopup", load:!this.props.openTodoInputPopup});
-            }
-        }  
+    onCtrlAltTPress = (e) => { 
+        if(e.keyCode === 84){ 
+           if(this.state.ctrlPressed && this.state.altPressed){  
+              this.props.dispatch({type:"openTodoInputPopup", load:!this.props.openTodoInputPopup});
+           } 
+        }   
     }
-
-     
+ 
     render(){
 
         return <Popover 
