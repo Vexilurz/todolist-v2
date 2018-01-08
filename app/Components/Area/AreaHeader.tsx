@@ -176,6 +176,7 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
                         minWidth={"170px"}
                         inputStyle={{  
                             boxSizing: "content-box", 
+                            backgroundColor:"rgba(0,0,0,0)",   
                             height: "42px",
                             fontWeight: "bold", 
                             maxWidth:"450px",
