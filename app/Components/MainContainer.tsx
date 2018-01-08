@@ -569,6 +569,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedProjectId={this.props.selectedProjectId}
                                 selectedTodoId={this.props.selectedTodoId} 
                                 todos={this.props.todos} 
+                                dragged={this.props.dragged} 
                                 showScheduled={this.props.showScheduled}
                                 showCompleted={this.props.showCompleted}
                                 selectedAreaId={this.props.selectedAreaId} 

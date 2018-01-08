@@ -53,6 +53,7 @@ interface ProjectBodyProps{
     showScheduled : boolean,
     showCompleted : boolean,
     areas:Area[],
+    dragged:string, 
     projects:Project[], 
     selectedProjectId:string,
     selectedAreaId:string,  
@@ -95,8 +96,16 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         if(this.props.showScheduled!==nextProps.showScheduled)
            should = true; 
         if(this.props.showCompleted!==nextProps.showCompleted)
-           should = true; 
+           should = true;  
 
+
+        if(this.state.showPlaceholder!==nextState.showPlaceholder)
+           should = true; 
+        if(this.state.currentIndex!==nextState.currentIndex)
+           should = true; 
+        if(this.state.helper!==nextState.helper)
+           should = true; 
+        
 
         if(this.props.searched!==nextProps.searched)
            should = true; 
@@ -179,15 +188,14 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     }  
  
     changeOrder = (oldIndex:number,newIndex:number) => { 
-        if(oldIndex===newIndex)
-           return; 
-
         let items = this.props.items;  
         items = items.map(i => i.type==="todo" ? i._id : i) as any;
         let changed = arrayMove(items, oldIndex, newIndex); 
         this.props.updateLayoutOrder(changed);    
     }  
     
+
+ 
     showPlaceholder = () => this.setState({showPlaceholder:true});
     
     hidePlaceholder = () => this.setState({showPlaceholder:false});
@@ -199,8 +207,8 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         assert(
             not(isNil(item)),
             `item undefined. ${index}. onSortStart. ProjectBody.`
-        );  
-
+        );   
+         
         this.props.dispatch({type:"dragged",load:item.type});
 
         if(item.type==="todo"){
@@ -219,7 +227,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     onSortEnd = ({oldIndex, newIndex, collection}, e) => {  
         this.hidePlaceholder();
         this.props.dispatch({type:"dragged",load:null});
-        let x = e.clientX; 
+        let x = e.clientX;  
         let y = e.clientY;  
         let items = this.props.items;   
         let draggedItem : (Todo | Heading) = items[oldIndex];
@@ -253,10 +261,11 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     onSortMove = (e, helper : HTMLElement, newIndex:number, oldIndex:number) => {
         let x = e.clientX; 
         let y = e.clientY;   
-
-        if(newIndex!==this.state.currentIndex)
+ 
+        if(newIndex!==this.state.currentIndex){ 
            this.setState({currentIndex:newIndex,helper}); 
-            
+        }
+
         if(this.props.items[oldIndex].type==="todo"){
               
             let leftpanel = document.getElementById("leftpanel");
@@ -272,7 +281,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 nested.style.opacity='0';  
             } 
         }
-    }
+    } 
 
 
     calculatePlaceholderOffset = () : number => {
@@ -311,7 +320,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     dispatch={this.props.dispatch}    
                     searched={this.props.searched}
                     projects={this.props.projects} 
-                    selectedProjectId={this.props.selectedProjectId}
+                    selectedProjectId={this.props.selectedProjectId} 
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos}
                     selectedCategory={"project"}   
@@ -326,8 +335,25 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 height={placeholderHeight} 
                 offset={placeholderOffset}
                 show={this.state.showPlaceholder}
+            />  
+            <ProjectSortableList
+                getElement={this.getElement}
+                items={this.props.items}
+                shouldCancelStart={this.shouldCancelStart}
+                shouldCancelAnimation={this.shouldCancelAnimation} 
+                rootRef={this.props.rootRef ? this.props.rootRef : document.body}
+                onSortEnd={this.onSortEnd} 
+                onSortMove={this.onSortMove as any}
+                onSortStart={this.onSortStart}
+                searched={this.props.searched}
+                areas={this.props.areas}
+                todos={this.props.todos}
+                tags={this.props.tags} 
+                selectedProjectId={this.props.selectedProjectId}
+                selectedTodoId={this.props.selectedTodoId}
+                selectedTag={this.props.selectedTag}
             />    
-            <SortableList 
+            {/*<SortableList  
                 getElement={this.getElement}
                 items={this.props.items}
                 shouldCancelStart={this.shouldCancelStart}
@@ -340,11 +366,80 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 distance={5}
                 useDragHandle={false} 
                 lock={false} 
-            />
+            />*/}
             <RightClickMenu {...{} as any}/> 
         </div> 
     }
 } 
+
+
+interface ProjectSortableListProps{
+    getElement:Function,
+    items:(Heading|Todo)[], 
+    shouldCancelStart:Function,
+    shouldCancelAnimation:Function,
+    rootRef:HTMLElement, 
+    onSortEnd:Function,
+    onSortMove:Function,
+    onSortStart:Function,
+    searched:boolean,
+    areas:Area[],
+    todos:Todo[],
+    tags:string[],
+    selectedProjectId:string,
+    selectedTodoId:string, 
+    selectedTag:string 
+}  
+
+class ProjectSortableList extends Component<ProjectSortableListProps,{}>{
+
+    constructor(props){
+        super(props);
+    }
+ 
+    shouldComponentUpdate(nextProps:ProjectSortableListProps){
+        let should = false;
+
+        if(layoutOrderChanged(this.props.items,nextProps.items)){
+           should = true;  
+        }
+ 
+        if(this.props.searched!==nextProps.searched)
+            should = true; 
+        if(this.props.areas!==nextProps.areas)
+            should = true; 
+        if(this.props.selectedProjectId!==nextProps.selectedProjectId)
+            should = true; 
+        if(this.props.selectedTodoId!==nextProps.selectedTodoId)
+            should = true; 
+        if(this.props.todos!==nextProps.todos)
+            should = true; 
+        if(this.props.tags!==nextProps.tags)
+            should = true; 
+        if(this.props.selectedTag!==nextProps.selectedTag)
+            should = true; 
+
+        return should;
+    }
+ 
+    render(){
+        return <SortableList 
+            getElement={this.props.getElement as any}
+            items={this.props.items}
+            shouldCancelStart={this.props.shouldCancelStart as any}
+            shouldCancelAnimation={this.props.shouldCancelAnimation as any}  
+            container={this.props.rootRef ? this.props.rootRef : document.body}
+            onSortEnd={this.props.onSortEnd as any} 
+            onSortMove={this.props.onSortMove as any}
+            onSortStart={this.props.onSortStart as any}
+            lockToContainerEdges={false}
+            distance={5}
+            useDragHandle={false} 
+            lock={false} 
+        />
+    }
+}
+
 
 
 

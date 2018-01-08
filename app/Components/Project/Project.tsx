@@ -32,9 +32,10 @@ import { isDev } from '../../app';
 
 
 
-interface ProjectComponentProps{
+interface ProjectComponentProps{ 
     projects:Project[], 
     selectedTag:string, 
+    dragged:string, 
     areas:Area[], 
     searched:boolean, 
     selectedCategory:string, 
@@ -51,11 +52,7 @@ interface ProjectComponentProps{
   
 
 
-interface ProjectComponentState{
-    toProjectHeader : Todo[],  
-    toProjectBody : (Heading | Todo)[],
-    project : Project
-}   
+interface ProjectComponentState{}   
  
  
  
@@ -64,15 +61,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     constructor(props){
         super(props); 
-
-        let {
-            toProjectHeader, 
-            toProjectBody, 
-            project
-        } = this.getItems(this.props);
- 
-        this.state = {toProjectHeader, toProjectBody, project}; 
     }   
+
 
     getItems = (props:ProjectComponentProps) => {
         let project = props.projects.find((p:Project) => props.selectedProjectId===p._id);
@@ -93,12 +83,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         }
     }
 
-    componentDidMount(){
-        let { toProjectHeader, toProjectBody, project } = this.getItems(this.props);
-        this.setState({toProjectHeader, toProjectBody, project}); 
-    }   
- 
-    componentWillReceiveProps(nextProps:ProjectComponentProps,nextState:ProjectComponentState){
+
+    shouldComponentUpdate(nextProps:ProjectComponentProps,nextState:ProjectComponentState){
         if(
             nextProps.projects!==this.props.projects ||
 
@@ -112,20 +98,21 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                                                            
             nextProps.showCompleted!==this.props.showCompleted 
         ){
-            let { 
-                toProjectHeader, 
-                toProjectBody, 
-                project 
-            } = this.getItems(nextProps);
+            
+            return true;
 
-            this.setState({toProjectHeader,toProjectBody, project}); 
+        }else{
+            
+            return false;
         }
     } 
-    
+     
 
-    updateProject = (selectedProject:Project, updatedProps) : void => { 
+
+    updateProject = (updatedProps) : void => { 
         let type = "updateProject";  
-        let load = { ...selectedProject, ...updatedProps };
+        let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
+        let load = { ...project, ...updatedProps }; 
         
         assert(
            isProject(load), 
@@ -136,30 +123,37 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     } 
 
 
-    updateProjectName = (selectedProject:Project) => debounce(
+
+    updateProjectName = debounce(
         (value:string) : void => {
-            this.updateProject(selectedProject, {name:value});
+            this.updateProject({name:value});
         },
         50
     )
+
 
      
-    updateProjectDescription = (selectedProject:Project) => debounce(
+    updateProjectDescription = debounce(
         (value:string) : void => {
-            this.updateProject(selectedProject, {description:value});
+            this.updateProject({description:value});
         },
         50
     )
 
- 
-    updateHeading = (selectedProject:Project) => debounce(
-        (heading_id:string, newValue:string) => { 
-            let layout = selectedProject.layout;
-            let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
+    componentDidUpdate(){
+        console.log("componentDidUpdate project")
+    }
 
+ 
+    updateHeading = debounce(
+        (heading_id:string, newValue:string) => { 
+            let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
+            let layout = project.layout;
+            let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
+         
             assert(
                 idx!==-1, 
-                `Item does not exist. 
+                `Item does not exist.  
                 ${heading_id}.
                 updateHeading. 
                 ${JSON.stringify(layout)}`
@@ -168,44 +162,50 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             let heading : Heading = {...layout[idx] as Heading};
             heading.title=newValue;
             let updatedLayout = adjust(() => heading, idx, layout);
-            this.updateProject(selectedProject,{layout:updatedLayout});
+            console.log("update heading")
+            this.updateProject({layout:updatedLayout});
         },
         50
     ) 
     
+ 
      
-    updateLayoutOrder = (selectedProject:Project) => (layout:LayoutItem[]) => {
-        let previousLayout = [...selectedProject.layout]; 
+    updateLayoutOrder = (layout:LayoutItem[]) => {
+        let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
+        let previousLayout = [...project.layout]; 
         let allLayoutItemsPresent : boolean = previousLayout.length===layout.length;
 
         if(allLayoutItemsPresent){
-            this.updateProject(selectedProject, {layout}); 
+            this.updateProject({layout}); 
         }else{
             let fixed = previousLayout.filter(
                 (item:LayoutItem) => -1===layout.findIndex((updated:LayoutItem) => 
                     typeof item==="string" ? 
                     item===updated : 
                     item["_id"]===updated["_id"]
-                )
+                ) 
             );  
 
             let newLayout : LayoutItem[] = [...fixed,...layout];
                
             assert(
-                newLayout.length===selectedProject.layout.length, 
+                newLayout.length===project.layout.length, 
                 `Updated layout has incorrect length.
                 ${JSON.stringify(newLayout)}.
-                ${JSON.stringify(selectedProject.layout)}.
+                ${JSON.stringify(project.layout)}.
                 updateLayoutOrder.` 
             );   
  
-            this.updateProject(selectedProject, {layout:newLayout});
+            this.updateProject({layout:newLayout});
+            console.log("update layout order. project.")
         }
-    }  
+    }
      
 
-    removeHeading = (selectedProject:Project) => (heading_id:string) => {
-        let layout = selectedProject.layout;
+
+    removeHeading = (heading_id:string) => {
+        let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
+        let layout = project.layout;
         let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
 
         assert(
@@ -216,26 +216,30 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             ${JSON.stringify(layout)}
             `
         ) 
-        this.updateProject(selectedProject, {layout:remove(idx,1,layout)});
+        this.updateProject({layout:remove(idx,1,layout)});
     }
+
 
     
-    updateProjectDeadline = (selectedProject:Project) => (value:Date) => {
-        this.updateProject(selectedProject, {deadline:value});
+    updateProjectDeadline = (value:Date) => {
+        this.updateProject({deadline:value});
     }
 
 
-    attachTagToProject = (selectedProject:Project) => (tag:string) => {
-        let attachedTags = uniq([tag, ...selectedProject.attachedTags]);    
-        this.updateProject(selectedProject, {attachedTags}); 
+    attachTagToProject = (tag:string) => {
+        let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
+        let attachedTags = uniq([tag, ...project.attachedTags]);    
+        this.updateProject({attachedTags}); 
     } 
 
 
-    archiveHeading = (selectedProject:Project) => (heading_id:string) => {
-        this.removeHeading(selectedProject)(heading_id); 
+    archiveHeading = (heading_id:string) => {
+        this.removeHeading(heading_id); 
     } 
       
+
     moveHeading = (heading_id:string) => {}
+    
 
     selectItems = (
         layout:LayoutItem[], 
@@ -273,36 +277,43 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         return items; 
     }   
     
- 
+    
     render(){   
+
+        let { 
+            toProjectHeader,
+            toProjectBody,  
+            project
+        } = this.getItems(this.props); 
          
-        return  isNil(this.state.project) ? null :
+        return  isNil(project) ? null :
                 <div>   
                     <div>    
                         <ProjectHeader 
                             rootRef={this.props.rootRef}
-                            name={this.state.project.name} 
-                            attachTagToProject={this.attachTagToProject(this.state.project)}
+                            name={project.name} 
+                            attachTagToProject={this.attachTagToProject}
                             tags={this.props.tags}
-                            description={this.state.project.description}
-                            created={this.state.project.created as any}  
-                            deadline={this.state.project.deadline as any} 
-                            completed={this.state.project.completed as any} 
+                            description={project.description}
+                            created={project.created as any}  
+                            deadline={project.deadline as any} 
+                            completed={project.completed as any} 
                             selectedTag={this.props.selectedTag}    
-                            updateProjectDeadline={this.updateProjectDeadline(this.state.project)}
-                            updateProjectName={this.updateProjectName(this.state.project)}
-                            updateProjectDescription={this.updateProjectDescription(this.state.project)} 
-                            todos={this.state.toProjectHeader}
+                            updateProjectDeadline={this.updateProjectDeadline}
+                            updateProjectName={this.updateProjectName}
+                            updateProjectDescription={this.updateProjectDescription} 
+                            todos={toProjectHeader}
                             dispatch={this.props.dispatch} 
                         />        
                     </div>  
                     <div>  
                         <ProjectBody    
-                            items={this.state.toProjectBody}
-                            updateLayoutOrder={this.updateLayoutOrder(this.state.project)}
-                            removeHeading={this.removeHeading(this.state.project)}
-                            updateHeading={this.updateHeading(this.state.project)}
-                            archiveHeading={this.archiveHeading(this.state.project)}
+                            items={toProjectBody}
+                            dragged={this.props.dragged}
+                            updateLayoutOrder={this.updateLayoutOrder}
+                            removeHeading={this.removeHeading}
+                            updateHeading={this.updateHeading}
+                            archiveHeading={this.archiveHeading}
                             moveHeading={this.moveHeading}   
                             selectedTag={this.props.selectedTag}    
                             showScheduled={this.props.showScheduled}

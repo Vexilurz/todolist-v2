@@ -25,6 +25,7 @@ import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem } from '../../database';
 import { uppercase, debounce } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
+import { isEmpty } from 'ramda';
 
  
 
@@ -42,12 +43,13 @@ interface ProjectHeadingProps{
 interface ProjectHeadingState{
     open:boolean
 }
- 
+  
    
   
 export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeadingState>{
 
     actionsAnchor:HTMLElement; 
+    inputRef:HTMLElement; 
 
     constructor(props){ 
         super(props);
@@ -55,6 +57,12 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
             open:false
         }
     } 
+
+    componentDidMount(){
+        if(isEmpty(this.props.heading.title) && this.inputRef){
+           this.inputRef.focus();      
+        } 
+    }
 
     render(){
         return <div>
@@ -69,7 +77,8 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
         >      
             <div style={{width:"100%", paddingLeft:"10px", WebkitUserSelect: "none"}}>  
                 <div style={{display:"flex", WebkitUserSelect: "none"}}>   
-                    <TextField   
+                    <TextField     
+                        ref={(e) => {this.inputRef=e;}}
                         hintText = "Heading"     
                         id = {this.props.heading.key} 
                         defaultValue = {uppercase(this.props.heading.title)} 

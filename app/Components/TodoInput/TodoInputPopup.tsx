@@ -75,7 +75,7 @@ export class TodoInputPopup extends Component<TodoInputPopupProps,TodoInputPopup
        this.state = {
           ctrlPressed:false,
           altPressed:false 
-       }
+       } 
     } 
     
     componentDidMount(){
