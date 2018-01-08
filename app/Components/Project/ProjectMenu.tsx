@@ -18,7 +18,9 @@ import Inbox from 'material-ui/svg-icons/content/inbox';
 import Duplicate from 'material-ui/svg-icons/content/content-copy';
 import ShareIcon from 'material-ui/svg-icons/social/share';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import Flag from 'material-ui/svg-icons/image/assistant-photo';
+import Show from 'material-ui/svg-icons/action/visibility';
+import Hide from 'material-ui/svg-icons/action/visibility-off';
+import Flag from 'material-ui/svg-icons/image/assistant-photo'; 
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui'; 
 import AutosizeInput from 'react-input-autosize';
@@ -67,7 +69,7 @@ interface ProjectMenuPopoverProps extends Store{
     openTagsPopup:Function   
 }    
  
-
+ 
 
 interface ProjectMenuPopoverState{}
 
@@ -115,17 +117,15 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         
         let idx = this.props.projects.findIndex( (p:Project) => p._id===projectId );
 
-        if(idx===-1){  
-          if(isDev()){ 
-             throw new Error(`Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`);
-          }
-        }  
+        assert(
+            idx!==-1, 
+            `Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`
+        )
 
         let duplicate = {... this.props.projects[idx], _id:generateId()};
         delete duplicate["_rev"]; 
         
         this.props.dispatch({type:"addProject", load:duplicate}); 
-
         this.closeMenu(); 
     }
 
@@ -134,19 +134,16 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
  
         let projectId : string = this.props.selectedProjectId;
 
-        let idx = this.props.projects.findIndex( (p:Project) => p._id===projectId );
+        let idx = this.props.projects.findIndex((p:Project) => p._id===projectId);
 
-        if(idx===-1){ 
-           if(isDev()){ 
-              throw new Error(`Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`);
-           }
-        }  
+        assert(
+            idx!==-1, 
+            `Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`
+        )
 
-        let project : Project = { ...this.props.projects[idx] };
-
+        let project : Project = {...this.props.projects[idx]};
         this.updateProject(project, {completed:new Date()});
         this.props.dispatch({type:"selectedCategory",load:"inbox"});
-        
         this.closeMenu() 
     } 
   
@@ -168,6 +165,17 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         this.props.openTagsPopup();
         this.closeMenu(); 
     }
+
+    onToggleCompleted = (e) => {
+        this.props.dispatch({type:"showCompleted", load:!this.props.showCompleted});
+        this.closeMenu(); 
+    }
+     
+    onToggleScheduled = (e) => {
+        this.props.dispatch({type:"showScheduled", load:!this.props.showScheduled});
+        this.closeMenu(); 
+    }
+     
  
     render(){  
             
@@ -214,24 +222,6 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                         </div>     
                     </div>
                  
-                    {/*
-                        <div  
-                            onClick={this.onWhen} 
-                            className={"tagItem"} style={{
-                                display:"flex", 
-                                height:"auto",
-                                alignItems:"center",
-                                padding:"5px"
-                            }}
-                        >  
-                            <CalendarIco style={{color:"rgb(69, 95, 145)"}}/> 
-                            <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                                When   
-                            </div>     
-                        </div>
-                    */}
-                     
-                    
                     <div    
                         onClick={this.onAddTags}  
                         className={"tagItem"} style={{
@@ -247,8 +237,6 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                         </div>     
                     </div>
                     
-                    
- 
                     <div  
                         onClick={this.onAddDeadline} 
                         className={"tagItem"} style={{
@@ -263,7 +251,6 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             Add deadline 
                         </div>     
                     </div>
-
 
                     <div  
                         onClick={this.onAddHeading} 
@@ -280,7 +267,6 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                         </div>     
                     </div>
  
-
                     <div  
                         onClick={this.onMove} 
                         className={"tagItem"} style={{
@@ -295,6 +281,48 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             Move 
                         </div>     
                     </div>
+
+                    {
+                        <div  
+                            onClick={this.onToggleCompleted} 
+                            className={"tagItem"} style={{
+                                display:"flex", 
+                                height:"auto",
+                                alignItems:"center",
+                                padding:"5px"
+                            }}
+                        >  
+                            {
+                                !this.props.showCompleted ?
+                                <Show style={{color:"rgb(69, 95, 145)"}}/> :
+                                <Hide style={{color:"rgb(69, 95, 145)"}}/>
+                            }
+                            <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                                {`${this.props.showCompleted ? 'Hide' : 'Show'} completed to-dos`}
+                            </div>     
+                        </div>
+                    }
+
+                    { 
+                        <div  
+                            onClick={this.onToggleScheduled} 
+                            className={"tagItem"} style={{
+                                display:"flex", 
+                                height:"auto",
+                                alignItems:"center",
+                                padding:"5px"
+                            }}
+                        >  
+                            { 
+                                !this.props.showScheduled ? 
+                                <Show style={{color:"rgb(69, 95, 145)"}}/> :
+                                <Hide style={{color:"rgb(69, 95, 145)"}}/>
+                            } 
+                            <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                               {`${this.props.showScheduled ? 'Hide' : 'Show'} later to-dos`}
+                            </div>     
+                        </div>
+                    }   
 
 
                     <div style={{
@@ -365,14 +393,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             Share
                         </div>     
                     </div>
-
-                    
- 
             </div> 
         </Popover> 
-
-
     }
-
 }
 

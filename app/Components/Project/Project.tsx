@@ -23,7 +23,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
-import { uppercase, debounce, byNotDeleted, byNotCompleted, byTags, assert, isProject, isTodo } from '../../utils';
+import { uppercase, debounce, byNotDeleted, byNotCompleted, byTags, assert, isProject, isTodo, byHaveAttachedDate, byNotSomeday } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
@@ -41,7 +41,9 @@ interface ProjectComponentProps{
     selectedProjectId:string, 
     selectedAreaId:string, 
     selectedTodoId:string, 
-    todos:Todo[],
+    showScheduled:boolean,
+    showCompleted:boolean,
+    todos:Todo[], 
     tags:string[],
     rootRef:HTMLElement,
     dispatch:Function
@@ -63,14 +65,23 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     constructor(props){
         super(props); 
 
-        let {toProjectHeader, toProjectBody, project} = this.getItems(this.props);
+        let {
+            toProjectHeader, 
+            toProjectBody, 
+            project
+        } = this.getItems(this.props);
  
         this.state = {toProjectHeader, toProjectBody, project}; 
     }   
 
     getItems = (props:ProjectComponentProps) => {
         let project = props.projects.find((p:Project) => props.selectedProjectId===p._id);
-        let items = this.selectItems(project.layout,props.todos);
+        let items = this.selectItems( 
+            project.layout,
+            props.todos,
+            props.showCompleted, 
+            props.showScheduled
+        );  
 
         let toProjectHeader = items.filter( isTodo ) as Todo[];
         let toProjectBody = items.filter((i:Todo) => isTodo(i) ? byTags(props.selectedTag)(i) : true);
@@ -95,9 +106,18 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
             nextProps.selectedTag !== this.props.selectedTag || 
 
-            nextProps.todos!==this.props.todos 
+            nextProps.todos!==this.props.todos ||
+
+            nextProps.showScheduled!==this.props.showScheduled ||  
+                                                           
+            nextProps.showCompleted!==this.props.showCompleted 
         ){
-            let { toProjectHeader, toProjectBody, project } = this.getItems(nextProps);
+            let { 
+                toProjectHeader, 
+                toProjectBody, 
+                project 
+            } = this.getItems(nextProps);
+
             this.setState({toProjectHeader,toProjectBody, project}); 
         }
     } 
@@ -178,7 +198,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 ${JSON.stringify(selectedProject.layout)}.
                 updateLayoutOrder.` 
             );   
-
+ 
             this.updateProject(selectedProject, {layout:newLayout});
         }
     }  
@@ -213,13 +233,26 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     archiveHeading = (selectedProject:Project) => (heading_id:string) => {
         this.removeHeading(selectedProject)(heading_id); 
-    }
+    } 
       
     moveHeading = (heading_id:string) => {}
 
-    selectItems = (layout:LayoutItem[], todos:Todo[]) : (Todo | Heading)[] => { 
-        let items = [];
-        let filters = [byNotDeleted, byNotCompleted];
+    selectItems = (
+        layout:LayoutItem[], 
+        todos:Todo[], 
+        showCompleted:boolean, 
+        showScheduled:boolean
+    ) : (Todo | Heading)[] => { 
+
+        let items = []; 
+             
+        let filters = [
+            byNotDeleted, 
+            showCompleted ? null : byNotCompleted, 
+            showScheduled ? null : byHaveAttachedDate,
+            showScheduled ? null : byNotSomeday,
+        ].filter( f => f );  
+
         let filteredTodos:Todo[] = todos.filter(allPass(filters));
     
         for(let i=0; i<layout.length; i++){ 
@@ -272,7 +305,9 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             archiveHeading={this.archiveHeading(this.state.project)}
                             moveHeading={this.moveHeading}   
                             selectedTag={this.props.selectedTag}    
-                            areas={this.props.areas}     
+                            showScheduled={this.props.showScheduled}
+                            showCompleted={this.props.showCompleted}
+                            areas={this.props.areas}      
                             selectedProjectId={this.props.selectedProjectId}
                             selectedAreaId={this.props.selectedAreaId}  
                             projects={this.props.projects}
@@ -283,7 +318,30 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             rootRef={this.props.rootRef}
                             dispatch={this.props.dispatch} 
                         />  
-                    </div>    
+                    </div>   
+
+                    <div  
+                        style={{
+                            cursor:"default",
+                            display:"flex", 
+                            paddingTop:"20px",
+                            height:"auto", 
+                            width:"100%"
+                        }}  
+                    >  
+                        <div 
+                            onClick={() => this.props.dispatch({
+                                type:"showScheduled", 
+                                load:!this.props.showScheduled
+                            })}  
+                            style={{
+                                color:"rgba(100,100,100,0.7)",
+                                fontSize:"13px" 
+                            }}
+                        > 
+                            {`${this.props.showScheduled ? 'Hide' : 'Show'} later to-dos`}
+                        </div>      
+                    </div> 
                 </div> 
     }
 } 

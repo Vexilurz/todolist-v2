@@ -15,6 +15,23 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                 }; 
                 break; 
 
+
+            case "showCompleted": 
+                newState = { 
+                    ...state, 
+                    showCompleted:action.load 
+                }; 
+                break;  
+            
+            
+            case "showScheduled": 
+                newState = { 
+                    ...state, 
+                    showScheduled:action.load 
+                }; 
+                break; 
+
+
            case "searched": 
                 newState = {
                     ...state, 

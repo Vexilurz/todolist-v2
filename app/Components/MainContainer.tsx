@@ -242,7 +242,7 @@ export let createHeading = (e, props:Store) : void => {
         props.dispatch({ type:"updateProject", load });
 }
 
-
+ 
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
 export class MainContainer extends Component<Store,MainContainerState>{
@@ -569,10 +569,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedProjectId={this.props.selectedProjectId}
                                 selectedTodoId={this.props.selectedTodoId} 
                                 todos={this.props.todos} 
+                                showScheduled={this.props.showScheduled}
+                                showCompleted={this.props.showCompleted}
                                 selectedAreaId={this.props.selectedAreaId} 
                                 projects={this.props.projects}  
                                 areas={this.props.areas}
-                                rootRef={this.rootRef}
+                                rootRef={this.rootRef} 
                                 tags={this.props.tags} 
                             />,    
  

@@ -61,7 +61,7 @@ export class ContainerHeader extends Component<ContainerHeaderProps,ContainerHea
                 <Tags  
                   selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
                   tags={this.props.tags} 
-                  selectedTag={this.props.selectedTag}
+                  selectedTag={this.props.selectedTag} 
                   show={this.props.showTags} 
                 />   
             </div>  

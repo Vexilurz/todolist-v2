@@ -9,7 +9,7 @@ import { Component } from "react";
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux"; 
 import DayPicker from 'react-day-picker';
-import { append, prepend } from 'ramda';
+import { append, prepend, contains } from 'ramda';
    
 
 
@@ -22,30 +22,29 @@ interface TagsProps{
   
 export class Tags extends Component<TagsProps,{}>{
 
-  
- 
+    componentWillReceiveProps(nextProps:TagsProps){
+        if(!contains(nextProps.selectedTag)(nextProps.tags)){
+            nextProps.selectTag("All") 
+        } 
+    }  
+
 
     selectTagBackgroundColor = (tag,selectedTag) => {
 
         if(this.props.selectedTag==="All" && tag==="All"){
 
             return "dimgray";
-
         }else if(this.props.selectedTag==="High" && tag==="High"){
 
             return "red";
-            
         }else if(this.props.selectedTag === tag && tag!=="All" && tag!=="High"){
 
             return "cornflowerblue";
-
         }else if(this.props.selectedTag !== tag){
 
             return "white";
-
         }
-    
-    }
+    } 
   
 
     selectTagFontColor = (tag,selectedTag) => {
@@ -54,19 +53,15 @@ export class Tags extends Component<TagsProps,{}>{
         if(this.props.selectedTag==="All" && tag==="All"){
             
             return "white";
-
         }else if(this.props.selectedTag==="High" && tag==="High"){
 
             return "white";
-            
         }else if(this.props.selectedTag === tag && tag!=="All" && tag!=="High"){
 
             return "white";
-
         }else if(this.props.selectedTag !== tag){
 
             return "dimgray";
-
         }
     }  
       
@@ -104,7 +99,7 @@ export class Tags extends Component<TagsProps,{}>{
                         )
                     }
                 </div>
-      }
+      } 
   } 
   
    

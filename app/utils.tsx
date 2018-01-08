@@ -553,6 +553,16 @@ export const muiTheme = getMuiTheme({
 });  
 
 
+export let byNotSomeday = (t:Todo) : boolean => {
+    return t.category!=="someday"; 
+}
+
+export let byHaveAttachedDate = (t:Todo) : boolean => {
+    
+    assert(isTodo(t), `t is not of type Todo ${JSON.stringify(t)}`);
+
+    return not(isNil(t.attachedDate));
+} 
 
 
 export let byNotDeleted = (item:Item) : boolean => { 

@@ -134,6 +134,8 @@ ipcRenderer.on(
  
 
 export interface Store{
+    showScheduled : boolean,
+    showCompleted : boolean,
     selectedCategory : Category,
     selectedTodoId : string, 
     openSearch : boolean, 
@@ -165,6 +167,8 @@ export interface Store{
    
 
 export let defaultStoreItems : Store = {
+    showScheduled : true,
+    showCompleted : false,
     windowId:null, 
     searched:false, 
     selectedCategory : "inbox",

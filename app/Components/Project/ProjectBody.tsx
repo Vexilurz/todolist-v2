@@ -24,13 +24,13 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area, generateId } from '../../database';
-import { uppercase, debounce, byNotDeleted, generateEmptyTodo, byNotCompleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, layoutOrderChanged } from '../../utils';
+import { uppercase, debounce, byNotDeleted, generateEmptyTodo, byNotCompleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, layoutOrderChanged, assert } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeading } from './ProjectHeading';  
 import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
-import { equals, allPass, isEmpty, isNil } from 'ramda';
+import { equals, allPass, isEmpty, isNil, not } from 'ramda';
 import { onDrop, Placeholder } from '../TodosList';
 import { isDev } from '../../app';
 import { SortableElement } from '../../sortable/CustomSortableElement';
@@ -50,6 +50,8 @@ interface ProjectBodyProps{
     removeHeading:(heading_id:string) => void,
     searched:boolean,
     selectedTag:string,
+    showScheduled : boolean,
+    showCompleted : boolean,
     areas:Area[],
     projects:Project[], 
     selectedProjectId:string,
@@ -89,6 +91,13 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
            should = true;  
         }
 
+
+        if(this.props.showScheduled!==nextProps.showScheduled)
+           should = true; 
+        if(this.props.showCompleted!==nextProps.showCompleted)
+           should = true; 
+
+
         if(this.props.searched!==nextProps.searched)
            should = true; 
         if(this.props.areas!==nextProps.areas)
@@ -103,6 +112,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
            should = true; 
         if(this.props.selectedTag!==nextProps.selectedTag)
            should = true;  
+
 
         return should;     
     }
@@ -186,12 +196,11 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         this.showPlaceholder();
         let item = this.props.items[index];
 
-        if(isNil(item)){
-            if(isDev()){  
-               throw new Error(`item undefined. ${index}. onSortStart. ProjectBody.`);
-            }
-        }
- 
+        assert(
+            not(isNil(item)),
+            `item undefined. ${index}. onSortStart. ProjectBody.`
+        );  
+
         this.props.dispatch({type:"dragged",load:item.type});
 
         if(item.type==="todo"){
@@ -284,8 +293,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                  } 
                } 
            }
-        } 
-
+        }   
         return placeholderOffset;
     }
 
@@ -319,19 +327,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 offset={placeholderOffset}
                 show={this.state.showPlaceholder}
             />    
-
-            {/*<div style={{display:"flex", flexDirection:"column"}}>
-            {this.props.items.map(
-                (item) => <div key = {`${item["_id"]}`} >
-                    <SortableElement  
-                        getElement={this.getElement as any}
-                        item={item}
-                        onDrag={(x,y) => console.log(x,y)}
-                    />
-                </div>
-            )} 
-            </div>*/}  
-            
             <SortableList 
                 getElement={this.getElement}
                 items={this.props.items}
@@ -353,9 +348,20 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
 
 
-
-
-
+/*
+<div style={{display:"flex", flexDirection:"column"}}>
+    {this.props.items.map(
+        (item) => <div key = {`${item["_id"]}`} >
+            <SortableElement  
+                getElement={this.getElement as any}
+                item={item}
+                onDrag={(x,y) => console.log(x,y)}
+            />
+        </div>
+    )} 
+</div>
+*/  
+            
 
     
     

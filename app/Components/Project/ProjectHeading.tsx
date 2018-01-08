@@ -56,30 +56,34 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
         }
     } 
 
-
-
     render(){
         return <div>
         <div   
             className="projectHeading" 
-            style={{
+            style={{ 
                 display:"flex",
                 height:"30px",
                 alignItems:"center",
                 justifyContent:"space-between"
             }} 
         >      
-            <div style={{width:"100%", paddingLeft:"10px"}}>  
-                <div style={{display:"flex"}}>   
+            <div style={{width:"100%", paddingLeft:"10px", WebkitUserSelect: "none"}}>  
+                <div style={{display:"flex", WebkitUserSelect: "none"}}>   
                     <TextField   
                         hintText = "Heading"     
                         id = {this.props.heading.key} 
                         defaultValue = {uppercase(this.props.heading.title)} 
                         fullWidth = {true}   
                         onChange = {(event, newValue:string) => this.props.onChange(this.props.heading._id, newValue)}
-                        inputStyle = {{fontWeight:600, color:"rgba(10,110,205,1)", fontSize:"16px"}}  
-                        hintStyle = {{top:"3px", left:0, width:"100%", height:"100%"}}   
-                        style = {{height:"30px"}}      
+                        inputStyle = {{
+                            fontWeight:600, color:"rgba(10,110,205,1)", 
+                            fontSize:"16px",  WebkitUserSelect: "none"
+                        }}  
+                        hintStyle = {{
+                            top:"3px", left:0, width:"100%", 
+                            height:"100%", WebkitUserSelect:"none"
+                        }}   
+                        style = {{height:"30px", WebkitUserSelect: "none"}}      
                         underlineFocusStyle = {{borderColor:"rgba(0,0,0,0)"}}    
                         underlineStyle = {{borderColor:"rgba(0,0,0,0)"}}  
                     /> 
