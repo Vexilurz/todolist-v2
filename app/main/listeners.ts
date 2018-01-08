@@ -7,24 +7,22 @@ let uniqid = require("uniqid");
 const {shell} = require('electron');  
 
 
-let clonedWindowWidth : number = 100;//30;
-let clonedWindowHeight : number = 100;//80;
+let clonedWindowWidth : number = 30;
+let clonedWindowHeight : number = 80; 
  
  
 let remove = (array:any[], idx:number) : any[] => {
-    
-        return [
-            ...array.slice(0,idx),
-            ...array.slice(idx+1),
-        ]
-   
+    return [
+        ...array.slice(0,idx),
+        ...array.slice(idx+1)
+    ] 
 }  
 
 
-interface RegisteredListener{ 
+interface RegisteredListener{  
      name : string, 
      callback : (event:any,...args:any[]) => void
-};
+}; 
   
 
  
@@ -59,7 +57,7 @@ export class Listeners{
                     loadApp(newWindow)     
                     .then(() => {        
                         newWindow.webContents.send("loaded", {type:"clone",load:storeWithId}); 
-                        newWindow.webContents.openDevTools();    
+                        //newWindow.webContents.openDevTools();    
                     }); 
                 }   
             },  

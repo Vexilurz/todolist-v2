@@ -52,20 +52,13 @@ export let getProjectLink = (p:Project, todos:Todo[],  dispatch:Function, index:
         
         let days = 100;
 
-        /*if(!isNil(this.props.deadline)){
-           days = dateDiffInDays(this.props.created,this.props.deadline);
-           if(days<0){
-              days=0; 
-           }  
-        }*/
-
-        let remaining = !isNil(this.props.deadline) ? daysRemaining(this.props.deadline) : 0;      
+        let remaining = !isNil(p.deadline) ? daysRemaining(p.deadline) : 0;      
 
         let current = (days-remaining);
 
-        if(current<0){
+        if(current<0){ 
            current=0; 
-        }
+        } 
         
         
         let restoreProject = (p:Project) : void => { 
