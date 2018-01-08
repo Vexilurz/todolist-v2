@@ -46,19 +46,19 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
 
         assert(isArea(load), `Load is not an Area. ${JSON.stringify(load)}`);
 
-        this.props.dispatch({ type, load });
+        this.props.dispatch({type, load});
     }
 
 
-    updateAreaName = (area:Area) => debounce(
-        (value:string) : void => { 
+    updateAreaName = debounce(
+        (area:Area, value:string) : void => { 
             this.updateArea(area, {name:value});
         },
         50
     ) 
   
 
-    attachTagToArea = (area:Area) => (tag:string) => {
+    attachTagToArea = (area:Area, tag:string) => {
         let attachedTags = uniq([tag, ...area.attachedTags]); 
         this.updateArea(area, {attachedTags})
     } 
@@ -66,7 +66,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
  
     render(){
         let area = this.props.areas.find((a:Area) => this.props.selectedAreaId===a._id);
- 
+        
         return isNil(area) ? null :
         <div>  
             <div> 
@@ -75,16 +75,16 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                     tags={this.props.tags}
                     rootRef={this.props.rootRef}
                     areas={this.props.areas}    
-                    attachTagToArea={this.attachTagToArea(area)}
+                    attachTagToArea={(tag:string) => this.attachTagToArea(area,tag)}
                     projects={this.props.projects}
                     todos={this.props.todos} 
                     selectedAreaId={this.props.selectedAreaId}
-                    updateAreaName={this.updateAreaName(area)}
+                    updateAreaName={(value:string) => this.updateAreaName(area,value)}
                     dispatch={this.props.dispatch}  
                 />   
             </div> 
             <div> 
-                <AreaBody 
+                <AreaBody  
                     area={area} 
                     selectedTodoId={this.props.selectedTodoId}
                     selectedCategory={this.props.selectedCategory}

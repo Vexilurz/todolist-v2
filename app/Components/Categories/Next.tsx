@@ -482,7 +482,8 @@ interface ExpandableTodosListProps{
     projects:Project[], 
     rootRef:HTMLElement, 
     todos:Todo[],
-    tags:string[] 
+    tags:string[],
+    onToggleList?:Function,  
 } 
  
 
@@ -501,6 +502,15 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
             expanded : false,
         }
     } 
+
+    onToggle = () => this.setState({
+        expanded:!this.state.expanded
+    }, 
+    () => {
+        if(typeof this.props.onToggleList === "function"){
+           this.props.onToggleList(this.state.expanded);
+        } 
+    })
 
     render(){ 
 
@@ -533,7 +543,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                     <div style={{cursor: "pointer", height: "30px"}}>
                         {   
                             <div     
-                                onClick={() => this.setState({expanded:!this.state.expanded})}
+                                onClick={this.onToggle}
                                 style={{
                                     width:"100%",
                                     height:"30px",

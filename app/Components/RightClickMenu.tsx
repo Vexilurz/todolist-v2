@@ -9,7 +9,7 @@ import ClearArrow from 'material-ui/svg-icons/content/backspace';
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { attachDispatchToProps, insideTargetArea } from '../utils';
+import { attachDispatchToProps, insideTargetArea, assert } from '../utils';
 import { Todo, removeTodo, addTodo, generateId, Project, Area, LayoutItem } from '../database';
 import { Store, isDev } from '../app';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
@@ -132,11 +132,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
     onConvertToProject = (e) => { 
         let todo : Todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId); 
 
-        if(!todo){ 
-           if(isDev()){ 
-              throw new Error(`todo undefined. ${todo} ${this.props.rightClickedTodoId}. onConvertToProject.`); 
-           }
-        } 
+        assert(!isNil(todo),`todo undefined. ${todo} ${this.props.rightClickedTodoId}. onConvertToProject.`);
       
         let todos = todo.checklist.map( 
             (c : ChecklistItem) : Todo => ({ 

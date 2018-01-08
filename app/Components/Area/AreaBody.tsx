@@ -25,8 +25,9 @@ import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
 import { 
     uppercase, debounce, stringToLength, daysLeftMark, byNotCompleted, 
-    byNotDeleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, assert, isArrayOfProjects, isProject, isCategory 
+    byNotDeleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, assert, isArrayOfProjects, isProject, isCategory, isString 
 } from '../../utils';
+import SortableHandle from '../../sortable-hoc/sortableHandle';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';
@@ -34,12 +35,13 @@ import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import PieChart from 'react-minimal-pie-chart';
 import { getProjectLink } from '../Project/ProjectLink';
-import { allPass, isNil, not } from 'ramda';
+import { allPass, isNil, not, contains, isEmpty } from 'ramda';
 import { TodosList, Placeholder } from '../TodosList';
 import { Category } from '../MainContainer';
 import { changeProjectsOrder, removeFromArea, attachToArea } from './AreasList';
 import { isDev } from '../../app';
 import { deleteProject } from '../Project/ProjectMenu';
+import { ExpandableTodosList } from '../Categories/Next';
 
 
  
@@ -63,9 +65,9 @@ interface AreaBodyProps{
  
    
 interface AreaBodyState{
+    placeholderHeight:number, 
     showPlaceholder:boolean,
-    currentIndex:number,
-    selectedProjects:Project[]
+    currentIndex:number
 } 
  
  
@@ -75,26 +77,16 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
     ref:HTMLElement; 
 
     constructor(props){
-        super(props);
+        super(props); 
         this.state = {
+            placeholderHeight:0,
             showPlaceholder:false,
-            currentIndex:0,
-            selectedProjects:this.selectProjects(this.props)
-                                 .sort(( a:Project, b:Project ) => a.priority-b.priority)
+            currentIndex:0
         } 
     }
     
 
-    
-    componentDidMount(){
-        let selectedProjects = this.selectProjects(this.props)
-                                   .sort(( a:Project, b:Project ) => a.priority-b.priority);
-        this.setState({selectedProjects});
-    } 
-
-
-
-    componentWillReceiveProps(nextProps:AreaBodyProps,nextState:AreaBodyState){
+    shouldComponentUpdate(nextProps:AreaBodyProps,nextState:AreaBodyState){
         let should = false;
 
         if(nextProps.area!==this.props.area)
@@ -127,25 +119,9 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         if(nextProps.selectedTag!==this.props.selectedTag) 
             should = true;
          
-        if(should){
-            let selectedProjects = this.selectProjects(nextProps)
-                                    .sort((a:Project, b:Project) => a.priority-b.priority);
-            this.setState({selectedProjects});  
-        }
+        return should; 
     }
  
-
-
-    selectTodos = (props:AreaBodyProps) : Todo[] => { 
-        let todosIds : string[] = props.area.attachedTodosIds;
-        let filters = [
-            byNotCompleted,
-            byNotDeleted,
-            (t:Todo) => todosIds.indexOf(t._id)!==-1
-        ];
-
-        return props.todos.filter( allPass(filters) );
-    }
 
     selectProjects = (props:AreaBodyProps) : Project[] => { 
         let projectsIds : string[] = props.area.attachedProjectsIds;
@@ -164,41 +140,25 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
  
         return selected;
     }
-         
-    getTodoElement = (value:Todo, index:number) : JSX.Element => { 
-        return  <div style={{position:"relative"}}> 
-            <TodoInput   
-                id={value["_id"]} 
-                key = {value["_id"]} 
-                selectedCategory={this.props.selectedCategory}
-                selectedTodoId={this.props.selectedTodoId} 
-                dispatch={this.props.dispatch}      
-                projects={this.props.projects}
-                todos={this.props.todos}
-                selectedAreaId={this.props.selectedAreaId}
-                selectedProjectId={this.props.selectedProjectId}
-                searched={this.props.searched}
-                tags={this.props.tags} 
-                rootRef={this.props.rootRef} 
-                todo={value as Todo}
-            />      
-        </div> 
-    } 
-
-
-
-    getElement = (value:any, index:number) : JSX.Element => { 
-          
-        switch(value.type){   
-            case "todo":
-                return this.getTodoElement(value, index);
-            case "project":    
-                return getProjectLink(value, this.props.todos, this.props.dispatch, index);
-            default: 
-                return null; 
-        }  
+      
+ 
+    getProjectElement = (value:Project,index:number) : JSX.Element => {
+        return <ProjectElement 
+            project={value}
+            todos={this.props.todos}
+            index={index}
+            dispatch={this.props.dispatch}
+            searched={this.props.searched}
+            selectedTag={this.props.selectedTag}
+            rootRef={this.props.rootRef}
+            selectedAreaId={this.props.selectedAreaId}
+            selectedProjectId={this.props.selectedProjectId}
+            selectedTodoId={this.props.selectedTodoId}
+            tags={this.props.tags}  
+            areas={this.props.areas}
+            projects={this.props.projects}
+        />
     }
-
 
 
     shouldCancelStart = (e) => {
@@ -210,7 +170,6 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         return false; 
     } 
 
-
        
     shouldCancelAnimation = (e) => {
         if(!this.props.rootRef)
@@ -221,11 +180,18 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
     }  
     
 
-
     onSortStart = ({node, index, collection}, e, helper) => { 
+        let box = node.getBoundingClientRect();
 
-        this.setState({showPlaceholder:true});
-        let item = this.state.selectedProjects[index];
+        this.setState({
+            showPlaceholder:true,
+            placeholderHeight:box.height 
+        });
+
+        let selectedProjects = this.selectProjects(this.props)
+        .sort((a:Project, b:Project) => a.priority-b.priority);
+
+        let item = selectedProjects[index];
 
         assert(isProject(item), `item is not a project. ${JSON.stringify(item)}. onSortStart. AreaBody.`);
         
@@ -241,16 +207,18 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
     }   
 
 
-
     onSortEnd = ({oldIndex, newIndex, collection}, e) => {
 
         this.setState({showPlaceholder:false}); 
         this.props.dispatch({type:"dragged",load:null}); 
 
+        let selectedProjects = this.selectProjects(this.props)
+        .sort((a:Project, b:Project) => a.priority-b.priority);
+
         let x = e.clientX+this.props.rootRef.scrollLeft; 
         let y = e.clientY+this.props.rootRef.scrollTop;  
         let leftpanel = document.getElementById("leftpanel");
-        let target = this.state.selectedProjects[oldIndex];
+        let target = selectedProjects[oldIndex];
 
         assert(isProject(target), `itarget is not a project. ${JSON.stringify(target)}. onSortEnd. AreaBody.`);
         assert(not(isNil(leftpanel)), `leftpanel is Nil. onSortEnd. AreaBody.`);
@@ -279,7 +247,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         }else{     
             if(oldIndex===newIndex)
                return; 
-            let updated = arrayMove([...this.state.selectedProjects], oldIndex, newIndex);
+            let updated = arrayMove([...selectedProjects], oldIndex, newIndex);
             changeProjectsOrder(this.props.dispatch,updated);
         } 
     }   
@@ -311,30 +279,24 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         } 
     } 
     
-    render(){ 
-        let placeholderHeight = 37;
-       
-        return <div ref={(e) => { this.ref=e; }}>    
-            <div style={{ paddingTop:"20px", paddingBottom:"20px" }}> 
-                <Placeholder    
-                    offset={this.state.currentIndex*placeholderHeight}
-                    height={placeholderHeight}
-                    show={this.state.showPlaceholder}
-                />  
-                <SortableList
-                    getElement={this.getElement}
-                    items={this.state.selectedProjects}
+    render(){  
+        let selectedProjects = this.selectProjects(this.props)
+        .sort((a:Project, b:Project) => a.priority-b.priority);
+        
+        return <div ref={(e) => {this.ref=e;}}>    
+            <div style={{paddingTop:"20px", paddingBottom:"20px"}}> 
+                <SortableList 
+                    getElement={this.getProjectElement}
+                    items={selectedProjects}
                     container={this.props.rootRef ? this.props.rootRef : document.body}
                     shouldCancelStart={this.shouldCancelStart} 
                     shouldCancelAnimation={this.shouldCancelAnimation}
-
+                    useDragHandle={true}  
                     onSortEnd={this.onSortEnd}
                     onSortMove={this.onSortMove}
                     onSortStart={this.onSortStart}
-
                     lockToContainerEdges={false}
-                    distance={3}
-                    useDragHandle={false}
+                    distance={3} 
                     lock={false} 
                 /> 
             </div> 
@@ -343,6 +305,106 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
 } 
 
 
+
+
+interface ProjectElementProps{
+    project:Project,
+    index:number,
+    todos:Todo[],
+    dispatch:Function,
+    searched:boolean,  
+    selectedTag:string, 
+    rootRef:HTMLElement,  
+    selectedAreaId:string,  
+    selectedProjectId:string,  
+    selectedTodoId:string,  
+    tags:string[],  
+    areas:Area[],  
+    projects:Project[]   
+}
+
+interface ProjectElementState{
+    canDrag:boolean
+}
+
+class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
+    ref:HTMLElement; 
+
+    constructor(props){ 
+        super(props);
+        this.state={
+           canDrag:true
+        }
+    } 
+
+
+    onToggleList = (showAllItems:boolean) => {
+        if(showAllItems){
+            this.setState({canDrag:false});
+        }else{ 
+            this.setState({canDrag:true}); 
+        }
+    }  
+
+
+    render(){
+        let {project,todos,index,dispatch,
+            searched,   
+            selectedTag, 
+            rootRef,  
+            selectedAreaId,  
+            selectedProjectId,  
+            selectedTodoId,  
+            tags,  
+            areas,  
+            projects,
+        } = this.props
+
+        const DragHandle = SortableHandle(
+            () => <div>
+                {getProjectLink(project, todos, dispatch, index)}
+            </div>
+        );    
+
+        let attachedTodosIds = project.layout.filter(isString) as string[];
+        let selected = this.props.todos.filter((t:Todo) => 
+            contains(t._id)(attachedTodosIds) && 
+            byNotCompleted(t) &&
+            byNotDeleted(t) 
+        );  
+ 
+
+        return isEmpty(todos) ? null :
+        <div 
+        ref={e => {this.ref=e;}}
+        style={{
+            display:"flex", 
+            flexDirection:"column" 
+        }}>
+            {
+                this.state.canDrag ? 
+                <DragHandle /> :
+                getProjectLink(project, todos, dispatch, index)
+            }
+            <div>
+                <ExpandableTodosList
+                    dispatch={dispatch}   
+                    searched={this.props.searched}
+                    selectedTag={this.props.selectedTag}  
+                    rootRef={this.props.rootRef}
+                    onToggleList={this.onToggleList}
+                    selectedAreaId={this.props.selectedAreaId}
+                    selectedProjectId={this.props.selectedProjectId}
+                    selectedTodoId={this.props.selectedTodoId} 
+                    todos={selected} 
+                    tags={this.props.tags} 
+                    areas={this.props.areas}
+                    projects={this.props.projects}
+                /> 
+            </div>
+        </div>
+    }
+}
 
 
 
