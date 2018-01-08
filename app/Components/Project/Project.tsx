@@ -248,19 +248,19 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         showScheduled:boolean
     ) : (Todo | Heading)[] => { 
 
-        let items = []; 
+        let items = [];  
              
         let filters = [
             byNotDeleted, 
             showCompleted ? null : byNotCompleted, 
-            showScheduled ? null : byHaveAttachedDate,
-            showScheduled ? null : byNotSomeday,
+            showScheduled ? null : (t:Todo) => isNil(t.attachedDate),
+            showScheduled ? null : byNotSomeday
         ].filter( f => f );  
 
         let filteredTodos:Todo[] = todos.filter(allPass(filters));
     
         for(let i=0; i<layout.length; i++){ 
-            let item : LayoutItem = layout[i]; 
+            let item : LayoutItem = layout[i];  
             
             assert(not(isNil(item)), `Layout item is Nil ${JSON.stringify(layout)}`);
  
