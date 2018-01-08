@@ -33,7 +33,6 @@ let onReady = () => {
     let height = mainWindowHeight*(workingArea.height/100); 
 
     //width = width <= 800 ? width : 800; 
-    console.log("process.env", process.env);
     
     preventAnnoyingErrorPopups();     
      

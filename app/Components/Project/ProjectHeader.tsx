@@ -101,15 +101,15 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
     componentWillReceiveProps(nextProps:ProjectHeaderProps, nextState:ProjectHeaderState){
 
         if(this.props.name!==nextProps.name){
-           this.setState({name:nextProps.name})
+           this.setState({name:nextProps.name});
         }
 
         if(this.props.description!==nextProps.description){
-           this.setState({description:nextProps.description})
+           this.setState({description:nextProps.description});
         }
            
         if(!this.state.projectMenuPopoverAnchor && !!this.projectMenuPopoverAnchor){
-            this.setState({projectMenuPopoverAnchor:this.projectMenuPopoverAnchor})
+            this.setState({projectMenuPopoverAnchor:this.projectMenuPopoverAnchor});
         }
     }    
     
@@ -143,21 +143,34 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
     };   
  
     render(){ 
-     
-        let days = !isNil(this.props.deadline) ? dateDiffInDays(this.props.created,this.props.deadline) : 0; 
+
+        let days = 100;
+
+        /*if(!isNil(this.props.deadline)){
+           days = dateDiffInDays(this.props.created,this.props.deadline);
+           if(days<0){
+              days=0; 
+           }  
+        }*/
 
         let remaining = !isNil(this.props.deadline) ? daysRemaining(this.props.deadline) : 0;      
 
         let tags = getTagsFromItems(this.props.todos); 
+
+        let current = (days-remaining);
+
+        if(current<0){
+           current=0; 
+        }
          
         return <div>  
             <ProjectMenuPopover 
                 {
                  ...{
                         anchorEl:this.state.projectMenuPopoverAnchor,
-                        rootRef:this.props.rootRef,  
+                        rootRef:this.props.rootRef,   
                         openDeadlineCalendar:() => {
-                            this.setState({showDeadlineCalendar:true})
+                            this.setState({showDeadlineCalendar:true}) 
                         },    
                         openTagsPopup:() => { 
                             this.setState({showTagsPopup:true}) 
@@ -216,17 +229,18 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                             animate={true}    
                             totalValue={days}
                             data={[{  
-                                value:this.props.completed ? days : (days-remaining),  
+                                value:isNil(this.props.deadline) ? 0 :
+                                      this.props.completed ? days : current,  
                                 key:1,   
                                 color:'rgba(108, 135, 222, 0.8)'  
                             }]}   
-                            style={{ 
-                                width: "22px", 
-                                height: "22px",
-                                position: "absolute",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center" 
+                            style={{  
+                                width:"22px", 
+                                height:"22px",
+                                position:"absolute",
+                                display:"flex",
+                                alignItems:"center",
+                                justifyContent:"center" 
                             }}
                         />     
                     </div>
@@ -238,14 +252,15 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         name="form-field-name" 
                         minWidth={"170px"}
                         inputStyle={{  
-                            boxSizing: "content-box", 
-                            height: "42px",
-                            fontWeight: "bold", 
+                            boxSizing:"content-box", 
+                            height:"42px",
+                            backgroundColor:"rgba(0,0,0,0)",
+                            fontWeight:"bold", 
                             maxWidth:"450px",
-                            fontFamily: "sans-serif",
-                            border: "none",
-                            fontSize: "26px",
-                            outline: "none"  
+                            fontFamily:"sans-serif",
+                            border:"none",
+                            fontSize:"26px",
+                            outline:"none"  
                         }}  
                         value={this.state.name}
                         placeholder="New Project"  

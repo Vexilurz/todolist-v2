@@ -373,7 +373,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onNoteChange = (event,newValue:string) : void => this.setState({note:newValue});
 
 
-    onTitleChange = (event) : void => this.setState({title:event.target.value}, () => console.log(this.state.title));
+    onTitleChange = (event) : void => this.setState({title:event.target.value});
      
 
     onCheckBoxClick = debounce(() => {   
@@ -820,8 +820,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         transition: "opacity 0.2s ease-in-out",
                         opacity: this.state.open ? 1 : 0,
                         color:"rgb(207,206,207)",
-                        width:"25px",   
-                        height:"25px"  
+                        width:25,   
+                        height:25 
                     }}>      
                         <Calendar /> 
                     </IconButton> 
@@ -835,8 +835,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                             transition: "opacity 0.2s ease-in-out",
                             opacity: this.state.open ? 1 : 0,
                             color:"rgb(207,206,207)",
-                            width:"25px",  
-                            height:"25px" 
+                            width:25,  
+                            height:25  
                         }} 
                     >         
                         <TriangleLabel />
@@ -851,14 +851,14 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         transition: "opacity 0.2s ease-in-out",
                         opacity: this.state.open ? 1 : 0,
                         color:"rgb(207,206,207)",
-                        width:"25px", 
-                        height:"25px" 
+                        width:25, 
+                        height:25
                     }}
                 >       
                     <List />
-                </IconButton> 
+                </IconButton>  
             } 
-            {    
+            {     
                 <div ref={(e) => {this.deadline=e;}}>  
                     <IconButton 
                         onClick = {this.onFlagButtonClick} 
@@ -866,8 +866,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                             transition: "opacity 0.2s ease-in-out",
                             opacity: this.state.open ? 1 : 0,
                             color:"rgb(207,206,207)",
-                            width:"25px", 
-                            height:"25px" 
+                            width:25, 
+                            height:25 
                         }}
                     >     
                         <Flag />  

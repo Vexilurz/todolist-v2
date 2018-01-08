@@ -54,7 +54,6 @@ let removeTodoFromAreas = (dispatch:Function, areas:Area[], todo:Todo) : void =>
         let idx : number = fromArea.attachedTodosIds.findIndex((id:string) => id===todo._id);  
         if(idx!==-1){
            fromArea.attachedTodosIds = remove(idx, 1, fromArea.attachedTodosIds); 
-           console.log(`${todo.title} removed from ${fromArea.name}`);
         }  
         return fromArea; 
     })
@@ -68,7 +67,6 @@ let removeTodoFromProjects = (dispatch:Function, projects:Project[], todo:Todo) 
         let idx : number = fromProject.layout.findIndex((id:string) => id===todo._id);  
         if(idx!==-1){
            fromProject.layout = remove(idx, 1, fromProject.layout); 
-           console.log(`${todo.title} removed from ${fromProject.name}`);
         }
         return fromProject; 
     }) 
@@ -83,7 +81,6 @@ let dropTodoOnProject = (
     projectTarget:Project,
     draggedTodo:Todo
 ) : void => {
-    console.log(`Drop on project ${projectTarget.name}`);
 
     let relatedProjects : Project[] = findRelatedProjects(projects,draggedTodo); 
     let relatedAreas : Area[] = findRelatedAreas(areas,draggedTodo); 
@@ -113,7 +110,6 @@ let dropTodoOnArea = (
     areaTarget:Area, 
     draggedTodo:Todo 
 ) : void => {
-    console.log(`Drop on area ${areaTarget.name}`);
 
     let relatedProjects : Project[] = findRelatedProjects(projects,draggedTodo); 
     let relatedAreas : Area[] = findRelatedAreas(areas,draggedTodo); 

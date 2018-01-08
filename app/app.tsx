@@ -27,7 +27,7 @@ import { cond, assoc } from 'ramda';
 injectTapEventPlugin();
 
 
-export let isDev = () => true; 
+export let isDev = () => false; 
 
 
 (() => {     

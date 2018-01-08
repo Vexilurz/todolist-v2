@@ -80,6 +80,7 @@ export class Today extends Component<TodayProps,TodayState>{
             (todos) => todos.filter(
               allPass([ 
                 (t:Todo) => byCategory("today")(t) || byCategory("evening")(t),
+                (t:Todo) => isToday(t.attachedDate), 
                  byNotCompleted,  
                  byNotDeleted  
               ])    

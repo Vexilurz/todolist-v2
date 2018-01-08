@@ -12,7 +12,6 @@ export let initWindow = ({width,height,transparent})  => {
     Menu.setApplicationMenu(null);   
     let icon = path.resolve(__dirname,'icon.ico');
     
-    console.log(icon); 
       
     let handler = new BrowserWindow({    
         icon,
@@ -20,7 +19,6 @@ export let initWindow = ({width,height,transparent})  => {
         height,   
         transparent,    
         opacity:transparent ? 0 : 1, 
-        //backgroundColor:"#ffffff", 
         title:'Tasklist',      
         center:true,      
         frame:true 

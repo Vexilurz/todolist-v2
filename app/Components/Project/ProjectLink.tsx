@@ -47,8 +47,26 @@ import { contains, isNil } from 'ramda';
 
 export let getProjectLink = (p:Project, todos:Todo[],  dispatch:Function, index:number) : JSX.Element => { 
         
-        let days = !isNil(p.deadline) ? dateDiffInDays(p.created,p.deadline) : 0;      
-        let remaining = !isNil(p.deadline) ? daysRemaining(p.deadline) : 0;   
+        /*let days = !isNil(p.deadline) ? dateDiffInDays(p.created,p.deadline) : 0;      
+        let remaining = !isNil(p.deadline) ? daysRemaining(p.deadline) : 0;*/
+        
+        let days = 100;
+
+        /*if(!isNil(this.props.deadline)){
+           days = dateDiffInDays(this.props.created,this.props.deadline);
+           if(days<0){
+              days=0; 
+           }  
+        }*/
+
+        let remaining = !isNil(this.props.deadline) ? daysRemaining(this.props.deadline) : 0;      
+
+        let current = (days-remaining);
+
+        if(current<0){
+           current=0; 
+        }
+        
         
         let restoreProject = (p:Project) : void => { 
             
@@ -127,7 +145,8 @@ export let getProjectLink = (p:Project, todos:Todo[],  dispatch:Function, index:
                                 animate={false}    
                                 totalValue={days}
                                 data={[{    
-                                    value:p.completed ? days : (days-remaining), 
+                                    value:isNil(p.deadline) ? 0 :
+                                          p.completed ? days : current, 
                                     key:1,  
                                     color:"rgb(108, 135, 222)" 
                                 }]}    

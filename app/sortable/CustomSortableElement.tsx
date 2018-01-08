@@ -36,7 +36,6 @@ export class SortableElement extends Component<SortableElementProps,SortableElem
 
     componentDidMount(){
         if(this.ref){
-            console.log("success init") 
             this.mouseMoveStream = Observable
                                     .fromEvent(this.ref,"mousedown")
                                     .switchMap(
@@ -53,7 +52,6 @@ export class SortableElement extends Component<SortableElementProps,SortableElem
                                      
             this.subscription = this.mouseMoveStream.subscribe(
                 (value:{x:number,y:number}) => {
-                    console.log(value);  
                     this.setState(
                         {x:value.x,y:value.y}, 
                         () => this.props.onDrag(this.state.x,this.state.y)
@@ -67,7 +65,6 @@ export class SortableElement extends Component<SortableElementProps,SortableElem
  
     componentWillUnmount(){
         if(this.subscription){
-            console.log("will unmount")
             this.subscription.unsubscribe();
         }
     } 

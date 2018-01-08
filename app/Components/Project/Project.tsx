@@ -140,10 +140,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         50
     )
 
-    componentDidUpdate(){
-        console.log("componentDidUpdate project")
-    }
-
  
     updateHeading = debounce(
         (heading_id:string, newValue:string) => { 
@@ -162,7 +158,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             let heading : Heading = {...layout[idx] as Heading};
             heading.title=newValue;
             let updatedLayout = adjust(() => heading, idx, layout);
-            console.log("update heading")
             this.updateProject({layout:updatedLayout});
         },
         50
@@ -197,7 +192,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             );   
  
             this.updateProject({layout:newLayout});
-            console.log("update layout order. project.")
         }
     }
      
@@ -295,7 +289,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             attachTagToProject={this.attachTagToProject}
                             tags={this.props.tags}
                             description={project.description}
-                            created={project.created as any}  
+                            created={project.created as any}   
                             deadline={project.deadline as any} 
                             completed={project.completed as any} 
                             selectedTag={this.props.selectedTag}    

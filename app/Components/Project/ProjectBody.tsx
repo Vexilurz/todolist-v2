@@ -267,19 +267,18 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         }
 
         if(this.props.items[oldIndex].type==="todo"){
-              
-            let leftpanel = document.getElementById("leftpanel");
-            let nested = document.getElementById("nested");
+           let leftpanel = document.getElementById("leftpanel");
+           let nested = document.getElementById("nested");
 
-            if(insideTargetArea(leftpanel,x,y)){
+           if(insideTargetArea(leftpanel,x,y)){
                 hideChildrens(helper);  
                 nested.style.visibility=""; 
                 nested.style.opacity='1';    
-            }else{ 
+           }else{  
                 makeChildrensVisible(helper);  
                 nested.style.visibility="hidden";
                 nested.style.opacity='0';  
-            } 
+           } 
         }
     } 
 

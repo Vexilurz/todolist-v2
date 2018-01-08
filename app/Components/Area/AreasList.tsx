@@ -564,8 +564,19 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
 
 
     render(){
-        let days = !isNil(this.props.project.deadline) ? dateDiffInDays(this.props.project.created,this.props.project.deadline) : 0;      
-        let remaining = !isNil(this.props.project.deadline) ? daysRemaining(this.props.project.deadline) : 0;  
+        //let days = !isNil(this.props.project.deadline) ? dateDiffInDays(this.props.project.created,this.props.project.deadline) : 0;      
+        //let remaining = !isNil(this.props.project.deadline) ? daysRemaining(this.props.project.deadline) : 0;  
+        
+        let days = 100;
+        let remaining = !isNil(this.props.project.deadline) ? daysRemaining(this.props.project.deadline) : 0;      
+
+        let current = (days-remaining);
+
+        if(current<0){
+           current=0; 
+        }
+        
+        
         let selected = this.props.project._id===this.props.selectedProjectId && this.props.selectedCategory==="project";
       
         let fontSize = 15; 
@@ -637,19 +648,20 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                                 animate={false}    
                                 totalValue={days}
                                 data={[{    
-                                    value:this.props.project.completed ? days : (days-remaining), 
-                                    key:1,  
+                                    value: isNil(this.props.project.deadline) ? 0 :
+                                           this.props.project.completed ? days : current,   
+                                    key:1,    
                                     color:"rgba(159, 159, 159, 1)" 
                                 }]}    
                                 style={{ 
                                     color:"rgba(159, 159, 159, 1)",
-                                    width:"12px",
+                                    width:"12px", 
                                     height:"12px",
                                     position:"absolute",
                                     display:"flex",
                                     alignItems:"center",
                                     justifyContent:"center"  
-                                }}  
+                                }}    
                             />       
                         </div>
                     </div> 

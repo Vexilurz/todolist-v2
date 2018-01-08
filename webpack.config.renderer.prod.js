@@ -60,10 +60,7 @@ module.exports = {
         new UglifyJSPlugin(),
         new CopyWebpackPlugin([{ 
             from : './app/assets' 
-        }]),   
-        new CopyWebpackPlugin([{ 
-            from : './pkgprod' 
-        }]),   
+        }]),  
         new HtmlWebpackPlugin({
             inject:true, 
             title:'tasklist',     

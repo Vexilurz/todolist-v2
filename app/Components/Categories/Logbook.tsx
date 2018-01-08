@@ -36,25 +36,25 @@ interface LogbookProps{
  
          
 interface LogbookState{ 
-    groups:(Todo | Project)[][]
+   //groups:(Todo | Project)[][]
 }   
-
+ 
 
 export class Logbook extends Component<LogbookProps,LogbookState>{
 
     constructor(props){
         super(props);
-        this.state={
+        /*this.state={
             groups:null 
-        }
+        }*/
     }  
 
     shouldComponentUpdate(nextProps:LogbookProps,nextState:LogbookState){
         let should = false;
 
-        if(nextState.groups!==this.state.groups){ 
-           should = true;
-        }  
+        //if(nextState.groups!==this.state.groups){ 
+        //   should = true;
+        //}  
 
 
         if(nextProps.todos!==this.props.todos)
@@ -68,7 +68,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
         if(nextProps.selectedCategory!==this.props.selectedCategory)
             should = true;
         if(nextProps.selectedTodoId!==this.props.selectedTodoId)
-            should = true;
+           should = true;
         if(nextProps.projects!==this.props.projects)
             should = true;
         if(nextProps.areas!==this.props.areas)  
@@ -98,14 +98,13 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                     );  
                }
            } 
-        }
-
-
-        this.setState({groups});
+        } 
+        return groups;
+        //this.setState({groups});
     } 
+ 
 
-
-    componentDidMount(){
+    /*componentDidMount(){
         this.init(this.props);
     }
  
@@ -120,7 +119,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
         if(this.props.selectedTag!==nextProps.selectedTag){
            this.init(nextProps);
         }
-    } 
+    }*/ 
 
 
     groupByMonth = (props:LogbookProps) : (Todo | Project)[][] => {  
@@ -238,7 +237,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
     }
   
 
-    render(){ 
+    render(){  
  
         let tags = compose(
             getTagsFromItems,
@@ -254,7 +253,9 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
            assert(isArrayOfStrings(tags), `tags is not a string array ${JSON.stringify(tags)}. Logbook. render.`) 
         } 
   
-        return !this.state.groups ? null :
+        let groups = this.init(this.props);  
+
+        return !groups ? null :
                 <div>
                     <ContainerHeader 
                         selectedCategory={"logbook"} 
@@ -265,7 +266,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                     />
                     <div style={{display:"flex", flexDirection:"column", width:"100%"}}> 
                     {   
-                        this.state.groups.map( 
+                        groups.map( 
                          (group:any[], index:number) : JSX.Element => {
                               let todos:Todo[] = group.filter((item:Todo) => item.type==="todo");
                               let projects:Project[] = group.filter((item:Project) => item.type==="project"); 
@@ -276,7 +277,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                               </div> 
                           } 
                         )  
-                    }
+                    }  
                     </div>
                 </div>
     } 
