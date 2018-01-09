@@ -579,7 +579,6 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 useDragHandle={false}
                 lock={false}
             />  
-            <RightClickMenu {...{} as any}/> 
         </div> 
     }   
 }    

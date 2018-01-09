@@ -98,15 +98,6 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                    leftPanelWidth:action.load
                };
                break;
-   
-   
-           case "currentleftPanelWidth":
-                newState = {
-                    ...state, 
-                    currentleftPanelWidth:action.load
-                };
-                break;    
-               
 
            case "selectedTag":  
                newState = {

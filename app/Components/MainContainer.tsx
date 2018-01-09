@@ -35,6 +35,7 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
+import { RightClickMenu } from './RightClickMenu';
  
  
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
@@ -255,18 +256,17 @@ export class MainContainer extends Component<Store,MainContainerState>{
         return  <div ref={(e) => { this.rootRef=e }}
                     className="scroll"  
                     id="maincontainer"  
-                    style={{   
-                        width:this.props.clone ?  
-                              `${window.innerWidth}px` :   
-                              `${window.innerWidth-this.props.currentleftPanelWidth}px`,
+                    style={{    
+                        flexGrow:1,
                         height:`${window.innerHeight}px`,     
                         position:"relative",  
                         display:"flex",   
                         backgroundColor:"rgba(209, 209, 209, 0.1)", 
                         overflow:"scroll",      
-                        flexDirection:"column"   
+                        flexDirection:"column"     
                     }}  
                 >  
+                <RightClickMenu {...{} as any}/> 
                 <div style={{display: "flex", padding: "10px", minWidth:"500px"}}>   
                     <div className="no-drag" style={{position: "fixed", top: 0, right: 0}}>  
                         {

@@ -173,9 +173,13 @@ export let initListeners = (props:AppProps) : void => {
     ipcRenderer.on(
         "Ctrl+Alt+T", 
         (event) => {
+            props.dispatch({type:"showRightClickMenu", load:false});
+            props.dispatch({type:"openNewProjectAreaPopup", load:false});
+            props.dispatch({type:"showTrashPopup", load:false});
+
             props.dispatch({type:"openTodoInputPopup", load:true});
         }
-    )
+    ) 
      
 
     ipcRenderer.on(
@@ -240,7 +244,9 @@ export class App extends Component<AppProps,{}>{
 
 
     render(){     
-        let action = this.props.initialLoad;
+        let { initialLoad, clone } = this.props;
+
+        let action = initialLoad;
         let windowId = null;
 
         if(
@@ -259,7 +265,9 @@ export class App extends Component<AppProps,{}>{
                 zIndex:2001,  
             }}>  
                 <div style={{display:"flex", width:"inherit", height:"inherit"}}>  
-                    <LeftPanel {...{} as any}  /> 
+                    {
+                        clone ? null : <LeftPanel {...{} as any}  />
+                    }
                     <MainContainer {...{windowId} as any} />  
                 </div>  
    
@@ -302,7 +310,6 @@ export interface Store{
     searched : boolean, 
     selectedTag : string, 
     leftPanelWidth : number,
-    currentleftPanelWidth : number,
     closeAllItems : any,
     dragged:string,
     selectedProjectId : string,
@@ -333,8 +340,7 @@ export let defaultStoreItems : Store = {
     selectedTodoId : null,
     openTodoInputPopup : false, 
     selectedTag : "All",
-    leftPanelWidth : window.innerWidth/3.7,
-    currentleftPanelWidth : window.innerWidth/3.7,
+    leftPanelWidth : window.innerWidth/3.7, 
     selectedProjectId : null,
     selectedAreaId : null,
     showProjectMenuPopover : false,

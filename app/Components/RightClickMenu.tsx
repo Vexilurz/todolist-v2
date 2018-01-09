@@ -27,7 +27,7 @@ import { Subscription } from 'rxjs/Rx';
  
 interface RightClickMenuState{
     offset:number
-}  
+}   
  
 @connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
 export class RightClickMenu extends Component<Store,RightClickMenuState>{
@@ -37,51 +37,22 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
     constructor(props){
        super(props);
-       this.state = {offset:0};
+       this.state = {offset:0}; 
        this.subscriptions = [];
     }
+    
 
-
-    init = () => {
-        if(isNil(this.props.rootRef)){
-           return
-        }
-
+    componentDidMount(){  
         let click = Observable 
                     .fromEvent(window, "click")
                     .subscribe(this.onOutsideClick);
-
-        let scroll = Observable  
-                    .fromEvent(this.props.rootRef, "scroll")
-                    .subscribe(this.onContainerScroll);  
-
-        this.subscriptions.push(scroll);   
         this.subscriptions.push(click); 
-    }
-
-
-    componentDidMount(){ 
-       let {rootRef} = this.props;
-
-       this.init();
     }   
 
 
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = [];
-    } 
-
-
-    onContainerScroll = (e) => {
-       
-        let { rootRef } = this.props;
-
-        if(isNil(rootRef)){
-           return 
-        }
-
-        this.setState({offset:rootRef.scrollTop});
     } 
 
 
@@ -385,7 +356,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                     }} 
                     style={{  
                        paddingLeft: "20px",
-                       paddingRight: "5px",
+                       paddingRight: "5px", 
                        paddingTop: "5px",
                        paddingBottom: "5px",
                        boxShadow: "0 0 18px rgba(0,0,0,0.2)", 
@@ -394,10 +365,10 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                        zIndex: 30000, 
                        WebkitUserSelect:"none", 
                        width: "250px",      
-                       position: "fixed",
+                       position: "absolute",
                        backgroundColor: "rgba(238,237,239,1)", 
                        left: this.props.rightClickMenuX+"px",
-                       top: (this.props.rightClickMenuY-this.state.offset)+"px"  
+                       top: this.props.rightClickMenuY+"px"  
                     }}         
                 >       
                     <div      
@@ -546,11 +517,11 @@ export class RightClickMenuItem extends Component<RightClickMenuItemProps,RightC
          
          return <div  
                     onClick = {
-                        (e) =>  {
+                        (e) => {
                             if(!this.props.disabled){
                                 this.props.onClick(e);
                                 this.props.dispatch({type:"showRightClickMenu",load:false});
-                            }
+                            } 
                         }
                     } 
                     className="rightclickmenuitem"
@@ -567,11 +538,9 @@ export class RightClickMenuItem extends Component<RightClickMenuItemProps,RightC
                         paddingBottom: "2px" 
                     }}
                 >  
-                   
                     <div style={{color: !this.props.disabled ? "rgba(70,70,70,1)" : disabledColor}}>
                         {this.props.title} 
                     </div>
- 
                     <div style={{
                         height: "14px",
                         display: "flex", 
@@ -581,7 +550,6 @@ export class RightClickMenuItem extends Component<RightClickMenuItemProps,RightC
                     }}>
                         {this.props.icon}
                     </div>
-
                 </div> 
     }
 

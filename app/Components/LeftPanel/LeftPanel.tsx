@@ -44,7 +44,13 @@ import { LeftPanelMenu } from './LeftPanelMenu';
 import { NewProjectAreaPopup } from './NewProjectAreaPopup';
 import { allPass, isNil, not } from 'ramda';
 import { QuickSearch } from '../Search';
- 
+import { Observable } from 'rxjs/Rx';
+import * as Rx from 'rxjs/Rx';
+import { Subscriber } from "rxjs/Subscriber";
+import { Subscription } from 'rxjs/Rx';
+
+const ctrlKeyCode = 17;
+const bKeyCode = 66;
  
 interface ItemsAmount{
     inbox:number,
@@ -107,93 +113,53 @@ export let calculateAmount = (areas:Area[], projects:Project[], todos:Todo[]) : 
 
   
 interface LeftPanelState{ 
-    collapsed:boolean,
-    fullWindowSize:boolean,
-    ctrlPressed:boolean  
+    collapsed:boolean 
 }
  
-   
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
 export class LeftPanel extends Component<Store,LeftPanelState>{
-    newProjectAnchor:HTMLElement;
-    deltaX:number;  
-    leftPanelRef:HTMLElement; 
+    anchor:HTMLElement;
+    subscriptions:Subscription[];
+    leftPanelRef:HTMLElement;  
         
     constructor(props){  
-        super(props);      
-        this.deltaX = window.innerWidth/12; 
-        this.state = {
-            collapsed:this.props.clone ? true : false,     
-            fullWindowSize:true,
-            ctrlPressed:false  
-        }    
-    };   
+        super(props);   
+        this.subscriptions = [];    
+        this.state = { 
+            collapsed:false 
+        }     
+    }   
     
-
+    
     componentDidMount(){
-        window.addEventListener("keydown", this.onCtrlBPress);
-        window.addEventListener("keydown", this.onCtrlDown);
-        window.addEventListener("keyup", this.onCtrlUp);
-    };  
+
+        let ctrlBPress = Observable
+                         .fromEvent(window,"keydown")
+                         .filter((e:any) => e.keyCode===ctrlKeyCode)
+                         .switchMap(
+                            () => Observable
+                                .fromEvent(window, "keydown")
+                                .filter((e:any) => e.keyCode===bKeyCode)
+                                .takeUntil(
+                                    Observable
+                                    .fromEvent(window,"keyup")
+                                    .filter((e:any) => e.keyCode===ctrlKeyCode)
+                                )
+                         ).subscribe(
+                            () => this.setState({collapsed:!this.state.collapsed})
+                         )
+        
+
+        this.subscriptions.push(ctrlBPress)
+    }  
          
 
     componentWillUnmount(){
-        window.removeEventListener("keydown", this.onCtrlBPress);
-        window.removeEventListener("keydown", this.onCtrlDown); 
-        window.removeEventListener("keyup", this.onCtrlUp); 
-    }; 
+        this.subscriptions.map(s => s.unsubscribe());
+        this.subscriptions = [];
+    } 
 
-
-    onCtrlDown = (e) => e.keyCode == 17 ? this.setState({ctrlPressed:true}) : null;
-
-
-    onCtrlUp = (e) => e.keyCode == 17 ? this.setState({ctrlPressed:false}) : null;
-    
-
-    onCtrlBPress = (e) => {
-        if(this.props.clone)
-           return;
-
-        if(e.keyCode == 66){
-            if(this.state.ctrlPressed)
-               this.setState({collapsed:!this.state.collapsed});
-        }  
-    }; 
-
-
-    componentDidUpdate(){
-        if(!this.props.clone){
-            requestAnimationFrame(this.collapse);
-        }
-    }; 
-     
-
-    collapse = () => {
-        if(this.props.clone)
-           return; 
-
-        let width : number = this.props.currentleftPanelWidth;
-        let collapsed : boolean = this.state.collapsed;
-        let leftPanelWidth : number = this.props.leftPanelWidth;
-        let threshold : number = 5; 
-        let factor = null;  
-        
-        if(width>0 && collapsed){
-           factor = -this.deltaX;
-        }else if(width<this.props.leftPanelWidth && !collapsed){
-           factor = this.deltaX;
-        } 
-
-        let newWidth = width+factor < 0 ? 0 :
-                       width+factor > leftPanelWidth ? leftPanelWidth :
-                       width+factor;
- 
-        if(!isNil(factor)){
-            this.props.dispatch({type:"currentleftPanelWidth",load:newWidth}); 
-        } 
-    };  
-  
  
     onNewProjectClick = (e:any) => {
         let project = generateEmptyProject();
@@ -201,7 +167,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         this.props.dispatch({type:"selectedProjectId", load:project._id});
         this.props.dispatch({type:"openNewProjectAreaPopup", load:false});
         this.props.dispatch({type:"selectedCategory", load:"project"});
-    };
+    }
  
          
     onNewAreaClick = (e:any) => {   
@@ -210,18 +176,14 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         this.props.dispatch({type:"selectedAreaId", load:area._id});
         this.props.dispatch({type:"openNewProjectAreaPopup", load:false}); 
         this.props.dispatch({type:"selectedCategory", load:"area"});
-    };
+    }
 
 
     onResizableHandleDrag = (e,d) => {
         this.props.dispatch({
             type:"leftPanelWidth",
-            load:this.props.currentleftPanelWidth+d.deltaX
+            load:this.props.leftPanelWidth+d.deltaX
         })
-        this.props.dispatch({
-            type:"currentleftPanelWidth",
-            load:this.props.currentleftPanelWidth+d.deltaX
-        }) 
     }
       
 
@@ -233,23 +195,26 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
   
     render(){      
-        let {areas,projects,todos} = this.props; 
+        let {collapsed} = this.state;
+        let {areas,projects,todos,leftPanelWidth} = this.props; 
         let {inbox,today,hot,trash,logbook} : ItemsAmount = calculateAmount(areas,projects,todos);
 
-        let getWidth = () => this.props.clone ? `${0}px` : `${this.props.currentleftPanelWidth}px`;
                    
         return  <div style={{display: "flex",flexDirection: "row-reverse"}}>
-                <ResizableHandle onDrag={this.onResizableHandleDrag}/>  
+                {
+                    collapsed ? null : <ResizableHandle onDrag={this.onResizableHandleDrag}/> 
+                }
                     <div      
                         id="leftpanel"
                         ref={(e) => { this.leftPanelRef=e; }}
                         className="scroll"
                         style={{ 
                             display:"flex",    
-                            flexDirection:"column", 
-                            WebkitUserSelect:"none",
-                            width:getWidth(), 
-                            overflowX:"hidden", 
+                            flexDirection:"column",  
+                            WebkitUserSelect:"none", 
+                            transition: "width 0.2s ease-in-out", 
+                            width:collapsed ? "0px" : `${leftPanelWidth}px`,
+                            overflowX:"hidden",   
                             height:`${window.innerHeight}px`,     
                             position:"relative", 
                             backgroundColor:"rgb(248, 248, 248)"  
@@ -259,7 +224,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             position:"relative", 
                             display:"flex", 
                             alignItems:"center",
-                            WebkitUserSelect:"none",
+                            WebkitUserSelect:"none", 
                             justifyContent:"center", 
                             paddingTop:"15px" 
                         }}>   
@@ -305,19 +270,20 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             />
                         </div> 
 
-                        <LeftPanelFooter 
-                            width={getWidth()}
+                        <LeftPanelFooter  
+                            width={leftPanelWidth}  
+                            collapsed={collapsed}
                             openNewProjectAreaPopup={this.openNewProjectAreaPopup}
-                            setNewProjectAnchor={(e) => {this.newProjectAnchor=e}}
+                            setNewProjectAnchor={(e) => {this.anchor=e}}  
                         /> 
                        
                         <NewProjectAreaPopup   
-                            anchor={this.newProjectAnchor}
+                            anchor={this.anchor}
                             open={this.props.openNewProjectAreaPopup}
                             close={() => this.props.dispatch({type:"openNewProjectAreaPopup",load:false})} 
                             onNewProjectClick={this.onNewProjectClick}
                             onNewAreaClick={this.onNewAreaClick}
-                        />
+                        />   
                 </div>   
                 </div>   
     };    
@@ -326,7 +292,8 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
 
 interface LeftPanelFooterProps{
-    width:string,
+    width:number,
+    collapsed:boolean,
     openNewProjectAreaPopup:(e:any) => void,
     setNewProjectAnchor:(e:any) => void,
 }
@@ -338,11 +305,13 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
     constructor(props){
         super(props); 
     }
+     
+    render(){ 
+        let { collapsed } = this.props; 
 
-
-    render(){
         return <div style={{    
-            width:this.props.width,  
+            transition: "width 0.2s ease-in-out", 
+            width:collapsed ? "0px" : `${this.props.width}px`,
             display:"flex",  
             alignItems:"center",  
             position:"fixed",    
@@ -356,10 +325,10 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
 
             <div  
                 onClick = {this.props.openNewProjectAreaPopup}
-                style={{display: "flex", padding: "5px", alignItems: "center", cursor: "pointer"}}
+                style={{display:"flex", padding:"5px", alignItems:"center", cursor:"pointer"}}
             >     
                 <div 
-                    style={{display: "flex", alignItems: "center", justifyContent: "center"}}
+                    style={{display:"flex", alignItems:"center", justifyContent:"center"}}
                     ref = {this.props.setNewProjectAnchor}
                 >
                     <Plus    
@@ -371,7 +340,7 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
                             paddingRight: "5px"     
                         }}
                     />
-                </div>  
+                </div>   
                 <div style={{
                     color: "rgba(100, 100, 100, 1)",
                     fontSize: "15px",

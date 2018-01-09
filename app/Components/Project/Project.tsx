@@ -23,13 +23,28 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
-import { uppercase, debounce, byNotDeleted, byNotCompleted, byTags, assert, isProject, isTodo, byHaveAttachedDate, byNotSomeday } from '../../utils';
+import { uppercase, debounce, byNotDeleted, byNotCompleted, byTags, assert, isProject, isTodo, byHaveAttachedDate, byNotSomeday, isString, byScheduled, bySomeday } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
-import { adjust, remove, allPass, uniq, isNil, not } from 'ramda';
+import { adjust, remove, allPass, uniq, isNil, not, contains, isEmpty } from 'ramda';
 import { isDev } from '../../app';
 
+
+let haveScheduledTodos = (project:Project, todos:Todo[]) : boolean => {
+    let todosIds = project.layout.filter(isString) as string[];
+    let filters = [
+        byNotDeleted,
+        byNotCompleted,
+        byScheduled,
+        bySomeday,
+        (todo:Todo) => contains(todo._id)(todosIds) 
+    ];
+
+    let filtered : Todo[] = todos.filter( allPass(filters) );
+
+    return not(isEmpty(filtered)); 
+}
 
 
 interface ProjectComponentProps{ 
@@ -270,7 +285,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         }
         return items; 
     }   
-    
+
     
     render(){   
 
@@ -280,7 +295,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             project
         } = this.getItems(this.props); 
          
-        return  isNil(project) ? null :
+        return  isNil(project) ? null : 
                 <div>   
                     <div>    
                         <ProjectHeader 
@@ -300,7 +315,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             dispatch={this.props.dispatch} 
                         />        
                     </div>  
-                    <div>  
+                    <div>   
                         <ProjectBody    
                             items={toProjectBody}
                             dragged={this.props.dragged}
@@ -325,28 +340,27 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         />  
                     </div>   
 
-                    <div  
-                        style={{
-                            cursor:"default",
-                            display:"flex", 
-                            paddingTop:"20px",
-                            height:"auto", 
+                    {  
+                        not(haveScheduledTodos(project, this.props.todos)) ? null :
+                        <div style={{
+                            cursor:"default", display:"flex", 
+                            paddingTop:"20px", height:"auto", 
                             width:"100%"
-                        }}  
-                    >  
-                        <div 
-                            onClick={() => this.props.dispatch({
-                                type:"showScheduled", 
-                                load:!this.props.showScheduled
-                            })}  
-                            style={{
-                                color:"rgba(100,100,100,0.7)",
-                                fontSize:"13px" 
-                            }}
-                        > 
-                            {`${this.props.showScheduled ? 'Hide' : 'Show'} later to-dos`}
-                        </div>      
-                    </div> 
+                        }}>  
+                            <div 
+                                onClick={() => this.props.dispatch({
+                                    type:"showScheduled", 
+                                    load:!this.props.showScheduled
+                                })}  
+                                style={{
+                                    color:"rgba(100,100,100,0.7)",
+                                    fontSize:"13px" 
+                                }}
+                            > 
+                                {`${this.props.showScheduled ? 'Hide' : 'Show'} later to-dos`}
+                            </div>      
+                        </div> 
+                    }
                 </div> 
     }
 } 

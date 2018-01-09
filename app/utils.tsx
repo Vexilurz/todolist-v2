@@ -71,8 +71,11 @@ export let isCategory = (category : Category) : boolean => {
     return yes; 
 }  
 
+export let bySomeday = (todo:Todo) : boolean => todo.category==="someday";
 
-export let isTodo = (todo:Todo) : boolean => {
+export let byScheduled = (todo:Todo) : boolean => not(isNil(todo.attachedDate));
+ 
+export let isTodo = (todo:Todo) : boolean => { 
     if(isNil(todo)){
         return false;
     } 

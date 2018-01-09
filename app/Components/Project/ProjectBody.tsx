@@ -352,21 +352,22 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 selectedTodoId={this.props.selectedTodoId}
                 selectedTag={this.props.selectedTag}
             />    
-            {/*<SortableList  
-                getElement={this.getElement}
-                items={this.props.items}
-                shouldCancelStart={this.shouldCancelStart}
-                shouldCancelAnimation={this.shouldCancelAnimation}  
-                container={this.props.rootRef ? this.props.rootRef : document.body}
-                onSortEnd={this.onSortEnd} 
-                onSortMove={this.onSortMove as any}
-                onSortStart={this.onSortStart}
-                lockToContainerEdges={false}
-                distance={5}
-                useDragHandle={false} 
-                lock={false} 
-            />*/}
-            <RightClickMenu {...{} as any}/> 
+            {
+                /*<SortableList  
+                    getElement={this.getElement}
+                    items={this.props.items}
+                    shouldCancelStart={this.shouldCancelStart}
+                    shouldCancelAnimation={this.shouldCancelAnimation}  
+                    container={this.props.rootRef ? this.props.rootRef : document.body}
+                    onSortEnd={this.onSortEnd} 
+                    onSortMove={this.onSortMove as any}
+                    onSortStart={this.onSortStart}
+                    lockToContainerEdges={false}
+                    distance={5}
+                    useDragHandle={false} 
+                    lock={false} 
+                />*/
+            }
         </div> 
     }
 } 

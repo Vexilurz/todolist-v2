@@ -388,22 +388,22 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             );  
         } 
     },50) 
-
     
-    onRightClickMenu = (e) => {
-        if(!this.state.open){ 
-            this.props.dispatch({
+    
+    onRightClickMenu = (e) => { 
+        if(!this.state.open){
+
+            this.props.dispatch({ 
                 type:"openRightClickMenu",  
                 load:{  
                   showRightClickMenu:true,
                   rightClickedTodoId:this.props.todo._id, 
-                  rightClickMenuX:e.clientX,
-                  rightClickMenuY:e.clientY
+                  rightClickMenuX:e.clientX-this.props.rootRef.offsetLeft,
+                  rightClickMenuY:e.clientY+this.props.rootRef.scrollTop 
                 } 
-            });       
-        }    
+            });   
+        }     
     }  
-
 
     
     onRemoveSelectedCategoryLabel = () => {
@@ -519,7 +519,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                       isNil(relatedProjectName) || this.props.selectedCategory==="project" ? "0px" : 
                       "5px";  
  
-        return  <div    
+        return  <div     
             id={this.props.id}   
             onKeyDown={this.onWindowEnterPress}
             onContextMenu={this.onRightClickMenu}

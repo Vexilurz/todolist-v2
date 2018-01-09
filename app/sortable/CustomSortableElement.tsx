@@ -27,28 +27,24 @@ export class SortableElement extends Component<SortableElementProps,SortableElem
 
     constructor(props){
         super(props);
-        this.state = {
-            x:0,
-            y:0 
-        }
+        this.state = {x:0, y:0};
     }
-
-
+    
     componentDidMount(){
         if(this.ref){
             this.mouseMoveStream = Observable
                                     .fromEvent(this.ref,"mousedown")
                                     .switchMap(
                                     () => Observable
-                                            .fromEvent(this.ref, "mousemove")
-                                            .map((event:any) => ({
+                                          .fromEvent(this.ref, "mousemove")
+                                          .map((event:any) => ({
                                                 x:event.clientX,
                                                 y:event.clientY
-                                            }))
-                                            .takeUntil(
+                                           }))
+                                           .takeUntil(
                                                 Observable.fromEvent(this.ref,"mouseup") //or mouse out
-                                            )
-                                    )
+                                           )
+                                    ) 
                                      
             this.subscription = this.mouseMoveStream.subscribe(
                 (value:{x:number,y:number}) => {

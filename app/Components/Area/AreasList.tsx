@@ -19,8 +19,10 @@ import { Category } from '../MainContainer';
 import { isDev } from '../../app';
 
 export let changeProjectsOrder = (dispatch:Function, listAfter:(Project | Area | Separator)[]) : void => {
-    let projects = listAfter.filter( i => i.type==="project" ) as Project[];
-    projects = projects.map((item:Project,index:number) => assoc("priority",index,item));
+
+    let projects = listAfter
+                    .filter( i => i.type==="project" )
+                    .map((item:Project,index:number) => assoc("priority",index,item));
 
     assert(isArrayOfProjects(projects), `projects is not an array os projects ${JSON.stringify(projects)}`);
         
@@ -31,15 +33,10 @@ export let changeProjectsOrder = (dispatch:Function, listAfter:(Project | Area |
 
 export let attachToArea = (dispatch:Function, closestArea:Area, selectedProject:Project) : void => {
      
-    if(isDev()){
-        assert(not(isNil(closestArea)),`closestArea undefined. attachToArea.`);
-        assert(closestArea.type==="area",`closestArea is not of type Area. ${JSON.stringify(closestArea)}. attachToArea.`);
-        assert(
-            isArrayOfStrings(closestArea.attachedProjectsIds), 
-            `closestArea.attachedProjectsIds is not array of strings ${closestArea.attachedProjectsIds}`
-        );  
-    }
-
+    assert(not(isNil(closestArea)),`closestArea undefined. attachToArea.`);
+    assert(closestArea.type==="area",`closestArea is not of type Area. ${JSON.stringify(closestArea)}. attachToArea.`);
+    assert(isArrayOfStrings(closestArea.attachedProjectsIds),`closestArea.attachedProjectsIds is not array of strings ${closestArea.attachedProjectsIds}`);  
+    
     closestArea.attachedProjectsIds = [selectedProject._id,...closestArea.attachedProjectsIds];
     dispatch({type:"updateArea", load:closestArea});  
 }  
@@ -50,20 +47,9 @@ export let removeFromArea = (dispatch:Function, fromArea:Area, selectedProject:P
 
     let idx = fromArea.attachedProjectsIds.findIndex((id:string) => id===selectedProject._id);  
 
-    assert(
-      idx!==-1,
-      `selectedProject is not attached to fromArea. ${JSON.stringify(selectedProject)} ${JSON.stringify(fromArea)}`
-    );
-
-    assert( 
-      selectedProject.type==="project",
-      `selectedProject is not of type project.  ${JSON.stringify(selectedProject)}. removeFromArea.`
-    );
-       
-    assert( 
-      fromArea.type==="area",
-      `fromArea is not of type Area. ${JSON.stringify(fromArea)}. removeFromArea.`
-    );
+    assert(idx!==-1,`selectedProject is not attached to fromArea. ${JSON.stringify(selectedProject)} ${JSON.stringify(fromArea)}`);
+    assert(selectedProject.type==="project",`selectedProject is not of type project.  ${JSON.stringify(selectedProject)}. removeFromArea.`);
+    assert(fromArea.type==="area",`fromArea is not of type Area. ${JSON.stringify(fromArea)}. removeFromArea.`);
      
     fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
     dispatch({type:"updateArea", load:fromArea});  
@@ -118,9 +104,7 @@ interface AreasListProps{
     projects:Project[]    
 }  
 
-interface AreasListState{
-    layout : (Project | Area | Separator)[]   
-} 
+interface AreasListState{} 
 
 interface Separator{ type:string }; 
  
@@ -128,55 +112,63 @@ type LayoutItem = Project | Area | Separator;
 
 export class AreasList extends Component<AreasListProps,AreasListState>{
 
-
     constructor(props){
-        super(props); 
-        this.state = {layout : []};  
+        super(props);  
     } 
 
+    shouldComponentUpdate(nextProps:AreasListProps){
 
-    init = (props:AreasListProps) => {
-        let {table,detached} = this.groupProjectsByArea(props);
+        let should = false;
 
-        if(isDev()){
+        let {
+            leftPanelWidth,
+            dragged,
+            selectedProjectId,
+            selectedAreaId,
+            selectedCategory,
+            areas,
+            leftPanelRef,
+            projects
+        } = this.props;
 
-            assert(
-               isArrayOfProjects(detached), 
-               `detached is not an array of projects. AreasList. ${JSON.stringify(detached)}.`
-            );   
-
-            assert(
-               all((a:Area) => isArrayOfProjects(table[a._id]), props.areas.filter(byNotDeleted)), 
-               `Not all table cells are arrays of projects. AreasList. ${JSON.stringify(table)}`
-            );
+        if(
+            leftPanelWidth!==nextProps.leftPanelWidth ||
+            dragged!==nextProps.dragged ||
+            selectedProjectId!==nextProps.selectedProjectId ||
+            selectedAreaId!==nextProps.selectedAreaId ||
+            selectedCategory!==nextProps.selectedCategory ||
+            areas!==nextProps.areas ||
+            leftPanelRef!==nextProps.leftPanelRef ||
+            projects!==nextProps.projects 
+        ){
+            should = true;
         } 
- 
-        let layout = this.generateLayout(props,{table,detached}); 
 
-        this.setState({layout});  
-    }   
-  
-    componentDidMount(){   
-        this.init(this.props);
-    } 
-
-    componentWillReceiveProps(nextProps:AreasListProps){
-        this.init(nextProps);  
+        return should;  
     }
- 
-    
-    groupProjectsByArea = (props:AreasListProps) : {
+
+    selectArea = (a:Area) => {
+        this.props.dispatch({type:"selectedAreaId",load:a._id}); 
+    }
+
+
+    selectProject = (p:Project) => {
+        this.props.dispatch({type:"selectedProjectId",load:p._id});
+    }
+
+
+    groupProjectsByArea = () : {
         table : { [key: string]: Project[]; }, 
         detached:Project[]  
     } => {
-        let projects : Project[] = props.projects.filter( allPass([byNotDeleted,byNotCompleted]) );
-        let areas : Area[] = props.areas.filter( byNotDeleted );
+        let projects : Project[] = this.props.projects.filter( allPass([byNotDeleted,byNotCompleted]) );
+        let areas : Area[] = this.props.areas.filter( byNotDeleted );
         let table = {};
         let detached : Project[] = [];
 
         for(let i=0; i<areas.length; i++){
             table[areas[i]._id] = [];
-        } 
+        }  
          
         for(let i=0; i<projects.length; i++){
             let projectId = projects[i]._id;
@@ -201,18 +193,16 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
         return {table,detached};
     }
-         
-    
+
 
     generateLayout = (  
-        props : AreasListProps, 
         { table, detached } : { table : { [key: string]: Project[]; }, detached:Project[] } 
     ) : LayoutItem[] => { 
 
-        let areas : Area[] = props
-                            .areas
-                            .filter( byNotDeleted )
-                            .sort((a:Area,b:Area) => a.priority-b.priority);
+        let areas : Area[] = this.props
+                                 .areas
+                                 .filter(byNotDeleted)
+                                 .sort((a:Area,b:Area) => a.priority-b.priority);
                              
         let layout : LayoutItem[] = [];
 
@@ -234,19 +224,9 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         for(let i=0; i<detached.length; i++)
             layout.push(detached[i]);
  
-        return layout;
+        return layout; 
     } 
  
-
-    selectArea = (a:Area) => {
-        this.props.dispatch({type:"selectedAreaId",load:a._id}); 
-    }
-
-
-    selectProject = (p:Project) => {
-        this.props.dispatch({type:"selectedProjectId",load:p._id});
-    } 
-          
  
     getAreaElement = (a : Area, index : number) : JSX.Element => {
         return <AreaElement 
@@ -312,86 +292,79 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     moveToClosestArea = (fromArea:Area, closestArea:Area, selectedProject:Project) : void => {
 
-        let idx : number = fromArea.attachedProjectsIds.findIndex( (id:string) => id===selectedProject._id );
+        let idx : number = fromArea.attachedProjectsIds.findIndex((id:string) => id===selectedProject._id);
         
         if(isDev()){ 
-
-            assert(isArea(fromArea),`fromArea is not of type Area. ${JSON.stringify(fromArea)}. moveToClosestArea.`);
-            assert(isArea(closestArea),`closestArea is not of type Area. ${JSON.stringify(closestArea)}. moveToClosestArea.`);
-            assert(isProject(selectedProject),`selectedProject is not of type Project. ${JSON.stringify(selectedProject)}. moveToClosestArea.`);
-        
-            assert(
-                idx!==-1,
-                `selectedProject is not attached to fromArea. 
-                ${JSON.stringify(selectedProject)}. 
-                ${JSON.stringify(fromArea)}.`
-            ) 
-
-            assert(
-                isArrayOfStrings(fromArea.attachedProjectsIds), 
-                `fromArea.attachedProjectsIds is not an array of strings. ${JSON.stringify(fromArea.attachedProjectsIds)}`
-            )
-
-            assert( 
-                isArrayOfStrings(closestArea.attachedProjectsIds),
-                `closestArea.attachedProjectsIds is not an array of strings. ${JSON.stringify(closestArea.attachedProjectsIds)}`
-            )
+           assert(isArea(fromArea),`fromArea is not of type Area.${JSON.stringify(fromArea)}. moveToClosestArea.`);
+           assert(isArea(closestArea),`closestArea is not of type Area. ${JSON.stringify(closestArea)}. moveToClosestArea.`);
+           assert(isProject(selectedProject),`selectedProject is not of type Project. ${JSON.stringify(selectedProject)}. moveToClosestArea.`);
+           assert(idx!==-1,`selectedProject is not attached to fromArea.${JSON.stringify(selectedProject)}.${JSON.stringify(fromArea)}.`); 
+           assert(isArrayOfStrings(fromArea.attachedProjectsIds),`fromArea.attachedProjectsIds is not an array of strings. ${JSON.stringify(fromArea.attachedProjectsIds)}`);
+           assert(isArrayOfStrings(closestArea.attachedProjectsIds),`closestArea.attachedProjectsIds is not an array of strings.${JSON.stringify(closestArea.attachedProjectsIds)}`);
         }
         
- 
         fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
         closestArea.attachedProjectsIds = [selectedProject._id,...closestArea.attachedProjectsIds];
-
         this.props.dispatch({type:"updateAreas", load:[fromArea,closestArea]});  
     }
   
  
-
     onSortStart = ({node, index, collection}, e, helper) => {}
 
     onSortMove = (e, helper : HTMLElement) => {} 
 
     onSortEnd = ({oldIndex, newIndex, collection}, e) : void => {  
-        if(oldIndex===newIndex || isEmpty(this.state.layout))
-           return;  
 
-        let selectedProject : Project = {...this.state.layout[oldIndex] as Project}; 
+        let {table,detached} = this.groupProjectsByArea();
+        let layout = this.generateLayout({table,detached}); 
+
+        if(isEmpty(layout)){
+           return 
+        }
+
+        let selectedProject : Project = {...layout[oldIndex] as Project}; 
         let fromArea : Area = this.props.areas.find((a:Area) => contains(selectedProject._id)(a.attachedProjectsIds));
-        let listAfter = arrayMove([...this.state.layout], oldIndex, newIndex);
+        let listAfter = arrayMove([...layout], oldIndex, newIndex);
         let closestArea : Area = findClosestArea(newIndex, listAfter); 
-        let detachedBefore = isDetached(oldIndex, this.state.layout);
+        let detachedBefore = isDetached(oldIndex, layout);
         let detachedAfter = isDetached(newIndex, listAfter);
 
         if(detachedBefore && !detachedAfter){ 
 
             attachToArea(this.props.dispatch, closestArea, selectedProject);
+
         }else if(!detachedBefore && detachedAfter){
 
             removeFromArea(this.props.dispatch, fromArea, selectedProject); 
+
         }else if(!detachedBefore && !detachedAfter && fromArea._id!==closestArea._id){
 
             this.moveToClosestArea(fromArea, closestArea, selectedProject);
+
         }  
-        
+         
         changeProjectsOrder(this.props.dispatch,listAfter);
     } 
        
-      
+
+ 
     render(){ 
         let container = document.getElementById("areas");
+        let {table,detached} = this.groupProjectsByArea();
+        let layout = this.generateLayout({table,detached}); 
 
         return  <div  
             style={{
                 display:"flex",
                 flexDirection:"column",
                 WebkitUserSelect:"none",
-                position:"relative" 
+                position:"relative"  
             }} 
-        >   
+        >    
             <SortableList 
                 getElement={this.getElement}
-                items={this.state.layout}    
-                container={container} 
+                items={layout}     
+                container={container ? container : document.body} 
                 shouldCancelStart={this.shouldCancelStart}
                 shouldCancelAnimation={() => false}
     
@@ -400,7 +373,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 onSortStart={this.onSortStart}
     
                 lockToContainerEdges={true}
-                distance={5}   
+                distance={1}   
                 useDragHandle={false} 
                 lock={true}
             />  
