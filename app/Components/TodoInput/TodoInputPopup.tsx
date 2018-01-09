@@ -55,15 +55,13 @@ import { isString } from 'util';
 import { Store } from '../../app';
 import { TodoInput, Checkbox } from './TodoInput';
 import Inbox from 'material-ui/svg-icons/content/inbox';
+import { SimplePopup } from '../SimplePopup';
  
 
 
 interface TodoInputPopupProps extends Store{} 
- 
-interface TodoInputPopupState{
-    ctrlPressed:boolean,
-    altPressed:boolean 
-}
+            
+interface TodoInputPopupState{}
  
 @connect((store,props) => store, attachDispatchToProps) 
 export class TodoInputPopup extends Component<TodoInputPopupProps,TodoInputPopupState>{
@@ -72,77 +70,31 @@ export class TodoInputPopup extends Component<TodoInputPopupProps,TodoInputPopup
 
     constructor(props){
        super(props);
-       this.state = {
-          ctrlPressed:false,
-          altPressed:false 
-       } 
     } 
-    
-    componentDidMount(){
-        window.addEventListener("keydown", this.onCtrlAltTPress); 
-          
-        window.addEventListener("keydown", this.onCtrlDown);
-        window.addEventListener("keyup", this.onCtrlUp); 
-
-
-        window.addEventListener("keydown", this.onAltDown);
-        window.addEventListener("keyup", this.onAltUp);
-    };  
-          
-
-    componentWillUnmount(){
-        window.removeEventListener("keydown", this.onCtrlAltTPress);
-
-        window.removeEventListener("keydown", this.onCtrlDown); 
-        window.removeEventListener("keyup", this.onCtrlUp); 
-
-        window.removeEventListener("keydown", this.onAltDown); 
-        window.removeEventListener("keyup", this.onAltUp); 
-    };      
-
  
-    onAltDown = (e) => e.keyCode == 18 ? this.setState({altPressed:true}) : null; 
-    
-    onAltUp = (e) => e.keyCode == 18 ? this.setState({altPressed:false}) : null;
-     
-    onCtrlDown = (e) => e.keyCode == 17 ? this.setState({ctrlPressed:true}) : null; 
-
-    onCtrlUp = (e) => e.keyCode == 17 ? this.setState({ctrlPressed:false}) : null;
-    
-    onCtrlAltTPress = (e) => { 
-        if(e.keyCode === 84){ 
-           if(this.state.ctrlPressed && this.state.altPressed){  
-              this.props.dispatch({type:"openTodoInputPopup", load:!this.props.openTodoInputPopup});
-           } 
-        }   
-    }
+    onClose = () => {
+       this.props.dispatch({type:"openTodoInputPopup", load:false}); 
+    }  
  
-    render(){
-
-        return <Popover 
-            useLayerForClickAway={false} 
-            open={this.props.openTodoInputPopup}
-            anchorEl={document.body}
-            style={{  
-                backgroundColor:"rgba(0,0,0,0)",
-                background:"rgba(0,0,0,0)",  
-                borderRadius:"20px",
-                zIndex:40000 
-            }}     
-            onRequestClose={() => this.props.dispatch({type:"openTodoInputPopup", load:false})}
-            anchorOrigin={{vertical:"center", horizontal:"middle"}} 
-            targetOrigin={{vertical:"center", horizontal:"middle"}} 
-            zDepth={5}    
-        >   
+    render(){ 
+ 
+        return <SimplePopup    
+            show={this.props.openTodoInputPopup}
+            onOutsideClick={this.onClose}
+        >  
             <div style={{
-                display:"flex",  
-                alignItems:"center", 
+                backgroundColor:"rgba(0,0,0,0)",  
+                zIndex:40000,  
+                display:"flex",   
+                alignItems:"center",  
                 justifyContent:"center", 
-                flexDirection:"column"
+                flexDirection:"column"  
             }}>  
-                <div style={{  
-                    minWidth:`${window.innerWidth/2}px`, 
-                    backgroundColor: "white" 
+                <div style={{   
+                    borderRadius:"10px",
+                    boxShadow:"0 0 18px rgba(0,0,0,0.5)", 
+                    minWidth:`${window.innerWidth/2.5}px`,  
+                    backgroundColor:"white" 
                 }}> 
                     <AlwaysOpenedTodoInput
                         dispatch={this.props.dispatch}   
@@ -153,8 +105,8 @@ export class TodoInputPopup extends Component<TodoInputPopupProps,TodoInputPopup
                         selectedAreaId={this.props.selectedAreaId} 
                     /> 
                 </div>  
-            </div>    
-        </Popover>
+            </div>  
+        </SimplePopup>    
     }
 
 } 

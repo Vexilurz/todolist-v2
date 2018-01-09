@@ -1,22 +1,87 @@
 import { mainWindow } from './main';
-import { loadApp } from './loadApp'; 
+import { loadApp, dev } from './loadApp'; 
 import * as electron from 'electron'; 
 import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';
 import { initWindow } from './initWindow';
+import { remove } from 'ramda';
 let uniqid = require("uniqid");
-const {shell} = require('electron');  
+const {shell} = require('electron');   
+
+type kind = "external";
 
 
-let clonedWindowWidth : number = 30;
-let clonedWindowHeight : number = 80; 
+let onAction = (event, action : any, id : number, spawnedWindows:BrowserWindow[]) : void => {
+    let kind : kind = "external";
  
+    if(id===undefined || id===null){
+       return 
+    }
+
+    let windows = spawnedWindows.filter( w => !w.isDestroyed());
  
-let remove = (array:any[], idx:number) : any[] => {
-    return [
-        ...array.slice(0,idx),
-        ...array.slice(idx+1)
-    ] 
-}  
+    for(let i=0; i<windows.length; i++){
+
+        if(windows[i].id===id)
+           continue;     
+        
+        windows[i].webContents.send("action", {...action, kind});
+    }  
+} 
+
+
+let onReload = (event, id:number, spawnedWindows:BrowserWindow[]) : void => { 
+                     
+    spawnedWindows = spawnedWindows.filter( w => !w.isDestroyed() );
+
+    let browserWindow = spawnedWindows.find( browserWindow => browserWindow.id===id );  
+
+    if(browserWindow===undefined || browserWindow===null){
+       return   
+    }
+
+    browserWindow.reload();  
+
+    loadApp(browserWindow)
+    .then(() => browserWindow.webContents.send(
+        "loaded", 
+        {type:"reload",load:browserWindow.id}
+    ));   
+} 
+ 
+
+let onCloneLoaded = (newWindow:BrowserWindow, storeWithId:any) => {       
+
+    newWindow.webContents.send("loaded", {type:"clone",load:storeWithId}); 
+
+    if(dev()){
+        newWindow.webContents.openDevTools();    
+    }
+}
+ 
+
+let onCloneWindow = (event, store, spawnedWindows:BrowserWindow[]) : void => { 
+
+    let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
+    let clonedWindowWidth : number =  dev() ? 100 : 30;
+    let clonedWindowHeight : number = dev() ? 100 : 80;  
+    
+    let width = clonedWindowWidth*(workingArea.width/100);  
+    let height = clonedWindowHeight*(workingArea.height/100); 
+     
+    let newWindow = initWindow({width, height}); 
+    
+    spawnedWindows.push(newWindow); 
+
+    spawnedWindows = spawnedWindows.filter(w => !w.isDestroyed());
+    
+    let storeWithId = {...store, windowId:newWindow.id}; 
+
+    loadApp(newWindow).then(() => onCloneLoaded(newWindow,storeWithId)); 
+} 
+
+
+
+
 
 
 interface RegisteredListener{  
@@ -24,6 +89,8 @@ interface RegisteredListener{
      callback : (event:any,...args:any[]) => void
 }; 
   
+
+
 
  
 export class Listeners{
@@ -37,69 +104,15 @@ export class Listeners{
       this.spawnedWindows = [mainWindow];  
  
       this.registeredListeners = [   
-
             { 
-                name : "cloneWindow",
-                callback : (event, store) => {
-
-                    let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
-                    let width = clonedWindowWidth*(workingArea.width/100);  
-                    let height = clonedWindowHeight*(workingArea.height/100); 
- 
-                    let newWindow = initWindow({width, height, transparent:false}); 
-                    
-                    this.spawnedWindows.push(newWindow);
-
-                    this.spawnedWindows = this.spawnedWindows.filter(w => !w.isDestroyed());
-                    
-                    let storeWithId = {...store, windowId:newWindow.id};
- 
-                    loadApp(newWindow)     
-                    .then(() => {        
-                        newWindow.webContents.send("loaded", {type:"clone",load:storeWithId}); 
-                        //newWindow.webContents.openDevTools();    
-                    }); 
-                }   
-            },  
-            {  
+                name : "cloneWindow", 
+                callback : (event, store)  => onCloneWindow(event,store,this.spawnedWindows)},  
+            { 
                 name : "reload", 
-                callback : (event, id:number) => { 
-                    
-                    this.spawnedWindows = this.spawnedWindows.filter( w => !w.isDestroyed() );
-
-                    let browserWindow = this.spawnedWindows.find( browserWindow => browserWindow.id===id );  
- 
-                    if(browserWindow===undefined || browserWindow===null)
-                       return;
-
-                    browserWindow.reload();  
- 
-                    loadApp(browserWindow)
-                    .then(
-                        () => browserWindow.webContents.send(
-                            "loaded",
-                            {type:"reload",load:browserWindow.id}
-                        )
-                    );   
-                }     
-            },  
-            {
-                name : "action",
-                callback : (event, action : any, id : number) => {
-
-                    if(id===undefined || id===null)
-                       return;  
- 
-                    let windows = this.spawnedWindows.filter( w => !w.isDestroyed());
-
-                    for(let i=0; i<windows.length; i++){
-
-                        if(windows[i].id===id)
-                           continue;     
-                        
-                        windows[i].webContents.send("action", {...action, kind:"external"});
-                    }  
-                } 
+                callback : (event, id:number) => onReload(event,id,this.spawnedWindows)},  
+            { 
+                name : "action", 
+                callback : (event, action : any, id : number) => onAction(event,action,id,this.spawnedWindows)
             }
         ];    
       
@@ -108,19 +121,19 @@ export class Listeners{
  
 
     registerListener(listener : RegisteredListener) : void{
-
         this.registeredListeners.push(listener);
     }  
-
+    
 
     unregisterListener(name : string) : void{
 
         let idx = this.registeredListeners.findIndex((listener : RegisteredListener) => listener.name==name)
  
-        if(idx===-1)
-           return;
+        if(idx===-1){ 
+           return
+        }
             
-        this.registeredListeners = remove(this.registeredListeners, idx); 
+        this.registeredListeners = remove(idx, 1, this.registeredListeners); 
 
         ipcMain.removeAllListeners(name); 
     } 

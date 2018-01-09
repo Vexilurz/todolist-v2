@@ -14,43 +14,85 @@ import { Todo, removeTodo, addTodo, generateId, Project, Area, LayoutItem } from
 import { Store, isDev } from '../app';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { Category } from './MainContainer';
-import { remove, isNil } from 'ramda';
+import { remove, isNil, not } from 'ramda';
 let uniqid = require("uniqid");    
- 
+import { Observable } from 'rxjs/Rx';
+import * as Rx from 'rxjs/Rx';
+import { Subscriber } from "rxjs/Subscriber";
+import { Subscription } from 'rxjs/Rx';
  
    
 
+
  
-interface RightClickMenuState{}  
+interface RightClickMenuState{
+    offset:number
+}  
  
-@connect((store,props) => store, attachDispatchToProps) 
+@connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
 export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
-    ref:HTMLElement; 
+    ref:HTMLElement;  
+    subscriptions:Subscription[];  
 
     constructor(props){
        super(props);
+       this.state = {offset:0};
+       this.subscriptions = [];
     }
-      
+
+
+    init = () => {
+        if(isNil(this.props.rootRef)){
+           return
+        }
+
+        let click = Observable 
+                    .fromEvent(window, "click")
+                    .subscribe(this.onOutsideClick);
+
+        let scroll = Observable  
+                    .fromEvent(this.props.rootRef, "scroll")
+                    .subscribe(this.onContainerScroll);  
+
+        this.subscriptions.push(scroll);   
+        this.subscriptions.push(click); 
+    }
+
 
     componentDidMount(){ 
-        
-        window.addEventListener("click", this.onOutsideClick);
+       let {rootRef} = this.props;
 
-    }
+       this.init();
+    }   
 
 
     componentWillUnmount(){
+        this.subscriptions.map(s => s.unsubscribe());
+        this.subscriptions = [];
+    } 
 
-        window.removeEventListener("click", this.onOutsideClick);
 
-    }
- 
+    onContainerScroll = (e) => {
+       
+        let { rootRef } = this.props;
+
+        if(isNil(rootRef)){
+           return 
+        }
+
+        this.setState({offset:rootRef.scrollTop});
+    } 
+
 
     onOutsideClick = (e) => {
-        
-        if(this.ref===null || this.ref===undefined)
-            return; 
+
+        if(
+            this.ref===null || 
+            this.ref===undefined
+        ){
+            return  
+        }
 
         let x = e.pageX;
         let y = e.pageY; 
@@ -353,13 +395,13 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                        WebkitUserSelect:"none", 
                        width: "250px",      
                        position: "fixed",
-                       backgroundColor: "rgba(238,237,239,1)",
+                       backgroundColor: "rgba(238,237,239,1)", 
                        left: this.props.rightClickMenuX+"px",
-                       top: this.props.rightClickMenuY+"px"  
+                       top: (this.props.rightClickMenuY-this.state.offset)+"px"  
                     }}         
                 >       
                     <div      
-                        onClick = {(e) =>  {
+                        onClick = {(e) =>  { 
                             e.stopPropagation();
                             e.preventDefault(); 
                         }}  

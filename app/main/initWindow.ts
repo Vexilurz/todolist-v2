@@ -7,25 +7,25 @@ import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';
 
  
  
-export let initWindow = ({width,height,transparent})  => {
-      
+export let initWindow = (
+    {width,height} : {width:number,height:number}
+) : BrowserWindow  => { 
+        
     Menu.setApplicationMenu(null);   
+
     let icon = path.resolve(__dirname,'icon.ico');
     
-      
     let handler = new BrowserWindow({    
         icon,
         width,         
         height,   
-        transparent,    
-        opacity:transparent ? 0 : 1, 
+        transparent:false,    
+        opacity:1, 
         title:'Tasklist',      
-        center:true,      
+        center:true,       
         frame:true 
     } as any);               
-            
-    //handler.setMovable(true);   
-
+              
     handler.on('ready-to-show', () => handler.show());
   
     handler.on('closed', () => {handler = null;}); 

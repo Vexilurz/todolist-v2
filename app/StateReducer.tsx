@@ -22,7 +22,15 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                     showCompleted:action.load 
                 }; 
                 break;  
-            
+
+                  
+            case "showTrashPopup":
+                newState = { 
+                    ...state,  
+                    showTrashPopup:action.load 
+                }; 
+                break;     
+                
             
             case "showScheduled": 
                 newState = { 

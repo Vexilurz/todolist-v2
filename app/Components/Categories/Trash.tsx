@@ -10,21 +10,24 @@ import { Transition } from 'react-transition-group';
 import { TodosList } from '../../Components/TodosList';
 import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '../ContainerHeader';
-import { byTags, chooseIcon, insideTargetArea, getTagsFromItems, byDeleted, Item } from '../../utils';
+import { byTags, chooseIcon, insideTargetArea, getTagsFromItems, byDeleted, Item, attachDispatchToProps } from '../../utils';
 import { getProjectLink } from '../Project/ProjectLink';
 import { getAreaLink } from '../Area/AreaLink';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { uniq, compose, contains, allPass } from 'ramda';
+import { uniq, compose, contains, allPass, not } from 'ramda';
 import { isString } from 'util';
 import { Category } from '../MainContainer';
+import { SimplePopup } from '../SimplePopup';
+import { Store } from '../../app';
 
  
 
 interface TrashProps{ 
     dispatch:Function,
     selectedCategory:Category,  
+    showTrashPopup:boolean, 
     tags:string[],
     selectedProjectId:string,
     selectedAreaId:string, 
@@ -36,75 +39,37 @@ interface TrashProps{
     areas:Area[],
     rootRef:HTMLElement     
 }      
-    
- 
-interface TrashState{  
-    showPopup:boolean,
-    deletedTodos:Todo[],
-    deletedProjects:Project[], 
-    deletedAreas:Area[],
-    empty:boolean   
-}
 
-  
+interface TrashState{}
+ 
 export class Trash extends Component<TrashProps,TrashState>{
      
-    constructor(props){
 
+    constructor(props){
         super(props);
- 
-        this.state = {
-            showPopup : false,
-            deletedTodos : [],
-            deletedProjects : [],
-            deletedAreas : [],
-            empty : false    
-        }; 
     }  
 
-     
-    selectDeleted = (props) : void => {
-        let filters = [byDeleted,byTags(props.selectedTag)]; 
 
-        let deletedTodos = props.todos.filter(allPass(filters));
-        let deletedProjects = props.projects.filter(allPass(filters));
-        let deletedAreas = props.areas.filter(allPass(filters)); 
-        
-        let empty : boolean = deletedTodos.length===0 && deletedProjects.length===0 && deletedAreas.length===0;  
-          
-        this.setState({deletedTodos, deletedProjects, deletedAreas, empty});  
-    }
- 
+    shouldComponentUpdate(nextProps:TrashProps){
+        let should = false;
 
-    componentDidMount(){ 
-        this.selectDeleted(this.props);
-    }
 
- 
-    componentWillReceiveProps(nextProps){ 
-        this.selectDeleted(nextProps); 
-    }   
- 
-
-    onEmptyTrash = (e) => {
-        if(!this.state.showPopup){
-            this.setState({showPopup:true}); 
+        if(   
+            this.props.tags!==nextProps.tags ||
+            this.props.searched!==nextProps.searched ||
+            this.props.selectedTag!==nextProps.selectedTag ||
+            this.props.todos!==nextProps.todos ||
+            this.props.projects!==nextProps.projects ||
+            this.props.areas!==nextProps.areas ||
+            this.props.rootRef!==nextProps.rootRef 
+        ){
+            should = true; 
         }
+
+
+        return should;
     }
-      
-
-    onCancel = (e) => this.setState({showPopup:false}) 
-    
-
-    onOk = (e) => this.setState( 
-        {showPopup:false}, 
-        () => {
-            this.props.dispatch({type:"removeDeleted"});  
-            this.props.dispatch({type:"selectedCategory", load:"inbox"});
-            this.props.dispatch({type:"selectedTag", load:"All"}); 
-        }
-    )  
-
+ 
 
     getDeletedProjectElement = (value:Project,  index:number) : JSX.Element => {
         return <div 
@@ -179,41 +144,95 @@ export class Trash extends Component<TrashProps,TrashState>{
                     todo={value}
                 />   
             </div>   
-         </div>  
-    }   
+        </div>  
+    }    
         
+      
+    selectDeleted = () : {
+        deletedTodos : Todo[], 
+        deletedProjects : Project[], 
+        deletedAreas : Area[], 
+        empty : boolean,
+        tags : string[] 
+    } => { 
+        let {selectedTag, todos, projects, areas} = this.props;
 
-    render(){  
+        let filters = [byDeleted,byTags(selectedTag)]; 
+
+        let deletedProjects = projects.filter(allPass(filters));
+        let deletedAreas = areas.filter(allPass(filters)); 
+        let deletedTodos = todos.filter(allPass(filters));
 
         let tags = compose(
             getTagsFromItems, 
             (items : Item[]) => items.filter(byDeleted)  
         )([
-            ...this.props.todos, 
-            ...this.props.projects, 
-            ...this.props.areas
+            ...todos, 
+            ...projects,  
+            ...areas
         ]); 
+
+        
+        let empty : boolean = deletedTodos.length===0 && 
+                              deletedProjects.length===0 && 
+                              deletedAreas.length===0;  
+          
+        return {deletedTodos, deletedProjects, deletedAreas, empty, tags};  
+    } 
+ 
+
+    onEmptyTrash = () => {
+        this.props.dispatch({type:"showTrashPopup", load:true});
+    }
+     
+    
+    render(){  
+        let {
+            todos,  
+            projects, 
+            areas,
+            selectedProjectId,
+            searched, 
+            dispatch,
+            selectedTodoId, 
+            selectedAreaId,
+            selectedTag, 
+            rootRef
+        } = this.props; 
+ 
+        let {
+            deletedTodos, 
+            deletedProjects, 
+            deletedAreas, 
+            empty, 
+            tags
+        } = this.selectDeleted();
+        
  
         return <div style={{WebkitUserSelect:"none"}}> 
             <div> 
                 <ContainerHeader  
                     selectedCategory={"trash"}  
-                    dispatch={this.props.dispatch} 
+                    dispatch={dispatch} 
                     tags={tags} 
-                    selectedTag={this.props.selectedTag}
+                    selectedTag={selectedTag}
                     showTags={true} 
                 /> 
             </div>     
 
             <FadeBackgroundIcon    
-                container={this.props.rootRef} 
+                container={rootRef} 
                 selectedCategory={"trash"}  
-                show={this.state.empty}
-            />        
+                show={empty}
+            />               
 
             <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
                 <div    
-                    onClick={this.onEmptyTrash}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        this.onEmptyTrash();
+                    }} 
                     style={{    
                         width:"130px",
                         display:"flex",
@@ -235,234 +254,144 @@ export class Trash extends Component<TrashProps,TrashState>{
                 <TodosList    
                     filters={[ ]}     
                     disabled={true} 
-                    areas={this.props.areas}
-                    projects={this.props.projects} 
-                    selectedTodoId={this.props.selectedTodoId}
+                    areas={areas}
+                    projects={projects} 
+                    selectedTodoId={selectedTodoId}
                     isEmpty={(empty:boolean) => {}}
-                    selectedAreaId={this.props.selectedAreaId}
-                    selectedProjectId={this.props.selectedProjectId}
-                    dispatch={this.props.dispatch}    
+                    selectedAreaId={selectedAreaId}
+                    selectedProjectId={selectedProjectId}
+                    dispatch={dispatch}    
                     selectedCategory={"trash"}    
-                    selectedTag={this.props.selectedTag}  
-                    rootRef={this.props.rootRef}
-                    todos={this.state.deletedTodos}  
-                    searched={this.props.searched}
-                    tags={this.props.tags} 
+                    selectedTag={selectedTag}  
+                    rootRef={rootRef}
+                    todos={deletedTodos}  
+                    searched={searched}
+                    tags={tags} 
                 /> 
             </div>    
 
             <div style={{paddingTop:"10px", paddingBottom:"10px"}}>
-                {this.state.deletedProjects.map(this.getDeletedProjectElement)}  
+                {deletedProjects.map(this.getDeletedProjectElement)}  
             </div>  
  
             <div style={{paddingTop:"10px", paddingBottom:"10px"}}>
-                {this.state.deletedAreas.map(this.getDeletedAreaElement)} 
+                {deletedAreas.map(this.getDeletedAreaElement)} 
             </div>  
-
-            {
-                !this.state.showPopup ? null :
-                <TrashPopup
-                    dispatch={this.props.dispatch} 
-                    container={this.props.rootRef} 
-                    onCancel={this.onCancel}
-                    onOk={this.onOk}
-                />
-            }  
-        </div>
-         
+        </div> 
     }
 } 
  
-   
-
-
- 
-
-
-
-
+      
 
 interface TrashPopupProps{
     dispatch:Function,
-    container:HTMLElement, 
-    onCancel:(e) => void,
-    onOk:(e) => void   
-} 
-
-
-
-interface TrashPopupState{
-    width:number,
-    x:number,
-    y:number 
+    showTrashPopup:boolean
 }  
- 
-  
 
-class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
+interface TrashPopupState{}  
 
-    ref:HTMLElement; 
-    timeout:any;  
- 
-    constructor(props){
-        super(props);
-        this.state = { 
-            width : 400, 
-            x : 0,
-            y : 0 
-        }; 
-    }  
-    
+export class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
 
-    onOutsideClick = (e) => {
-        
-        if(this.ref===null || this.ref===undefined){
-           return;  
-        } 
-
-        let rect = this.ref.getBoundingClientRect();
-        let x = e.pageX;
-        let y = e.pageY; 
-         
-        let inside : boolean = insideTargetArea(this.ref, x, y);
-
-        if(!inside){ 
-            this.props.onCancel(null);
-        } 
-    }  
- 
-
-    updatePosition = (props:TrashPopupProps) : void => { 
-        if(!props.container)
-            return; 
-
-        let fixedOffsetTop = 200;
-        let rect = props.container.getBoundingClientRect();
-        let x = rect.width/2 - this.state.width/2; 
-        let y = fixedOffsetTop + props.container.scrollTop;
- 
-        this.setState({x,y});  
+    onCancel = () => { 
+        this.props.dispatch({type:"showTrashPopup", load:false});
     }
       
+    onOk = (e) => { 
+        this.props.dispatch({type:"removeDeleted"});  
+        this.props.dispatch({type:"selectedCategory", load:"inbox"});
+        this.props.dispatch({type:"selectedTag", load:"All"});
+        this.props.dispatch({type:"showTrashPopup", load:false});
+    }   
 
-    componentDidMount(){
-        this.updatePosition(this.props);
-        this.timeout = setTimeout(() => window.addEventListener("click", this.onOutsideClick), 300);  
-    }  
-
-
-    componentWillUnmount(){
-        clearTimeout(this.timeout as any);
-        window.removeEventListener("click", this.onOutsideClick);
-    } 
- 
-
-    componentWillReceiveProps(nextProps){
-       if(this.props.container!==nextProps.container)
-          this.updatePosition(nextProps); 
-    }
-  
- 
-    render(){
- 
-     return <div   
-                ref={(e) => { this.ref=e; }}
-                onClick = {(e) => {
-                   e.stopPropagation();
-                   e.preventDefault();
-                }}  
-                style={{   
-                    padding: "10px", 
-                    boxShadow: "0 0 18px rgba(0,0,0,0.5)", 
-                    margin: "5px",
-                    borderRadius: "5px",
-                    zIndex: 30000, 
-                    width: `${this.state.width}px`,  
-                    height: "auto",    
-                    position: "absolute",
-                    backgroundColor: "rgba(238,237,239,1)",
-                    left:`${this.state.x}px`, 
-                    top:`${this.state.y}px`,   
-                }}          
-            >   
-            <div style={{display:"flex", flexDirection:"column"}}>   
-                <div style={{display:"flex", alignItems:"center"}}>  
-                    <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding:"10px"  
-                    }}>  
-                        { chooseIcon({width:"80px", height:"80px"}, "inbox") } 
-                    </div>
-                    <div style={{ 
-                        display:"flex",
-                        flexDirection:"column",
-                        justifyContent:"flex-start",
-                        padding:"10px" 
-                    }}>
-                        <div style={{
-                            paddingBottom:"10px", 
-                            fontWeight:"bold", 
-                            fontSize:"15px", 
-                            color:"rgba(0,0,0,1)"
-                        }}>   
-                            Empty Trash  
-                        </div>
-                        <div style={{fontSize:"14px", color:"rgba(0,0,0,1)"}}>
-                            Are you sure you want to remove the items in the Trash permanently ?
-                        </div>
- 
-                    </div>
+    render(){ 
+        return <SimplePopup     
+            show={this.props.showTrashPopup}
+            onOutsideClick={this.onCancel}
+        > 
+        <div style={{
+            display:"flex",
+            padding:"10px",
+            flexDirection:"column",
+            boxShadow:"0 0 18px rgba(0,0,0,0.5)",
+            borderRadius:"10px",
+            backgroundColor:"rgb(238, 237, 239)"
+        }}>   
+            <div style={{display:"flex", alignItems:"center"}}>  
+                <div style={{
+                    display: "flex", 
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding:"10px"  
+                }}>  
+                    { chooseIcon({width:"80px", height:"80px"}, "inbox") }  
                 </div>
-                <div style={{  
-                    display:"flex",  
-                    alignItems: "center", 
-                    justifyContent: "flex-end",
-                    padding: "10px"
+                <div style={{ 
+                    display:"flex",
+                    flexDirection:"column",
+                    justifyContent:"flex-start",
+                    padding:"10px" 
                 }}>
-                    <div style={{padding: "10px"}}>
-                        <div    
-                            onClick={this.props.onCancel} 
-                            style={{       
-                                width:"90px",
-                                display:"flex",
-                                alignItems:"center",
-                                cursor:"pointer",
-                                justifyContent:"center",
-                                borderRadius:"5px",
-                                height:"25px",  
-                                border:"1px solid rgba(100,100,100,0.7)",
-                                backgroundColor:"white"  
-                            }}  
-                        > 
-                            <div style={{color:"rgba(0,0,0,0.9)", fontSize:"16px"}}>      
-                                Cancel
-                            </div>  
-                        </div>
-                    </div> 
-                    <div style={{padding: "10px"}}>
-                        <div     
-                            onClick={this.props.onOk}
-                            style={{     
-                                width:"90px",
-                                display:"flex",
-                                alignItems:"center",
-                                cursor:"pointer",
-                                justifyContent:"center",
-                                borderRadius:"5px",
-                                height:"25px",  
-                                border:"1px solid rgba(100,100,100,0.5)",
-                                backgroundColor:"rgb(10, 90, 250)"  
-                            }}
-                        > 
-                            <div style={{color:"white", fontSize:"16px"}}>  
-                                OK
-                            </div>   
-                        </div> 
+                    <div style={{
+                        paddingBottom:"10px", 
+                        fontWeight:"bold", 
+                        fontSize:"15px", 
+                        color:"rgba(0,0,0,1)"
+                    }}>   
+                        Empty Trash  
+                    </div>
+                    <div style={{fontSize:"14px", color:"rgba(0,0,0,1)"}}>
+                        Are you sure you want to remove the items in the Trash permanently ?
                     </div>
                 </div>
-            </div>   
-        </div>
-    } 
-} 
+            </div>
+            <div style={{  
+                display:"flex",  
+                alignItems: "center", 
+                justifyContent: "flex-end",
+                padding: "10px"
+            }}>
+                <div style={{padding: "10px"}}>
+                    <div    
+                        onClick={this.onCancel} 
+                        style={{       
+                            width:"90px",
+                            display:"flex",
+                            alignItems:"center",
+                            cursor:"pointer",
+                            justifyContent:"center",
+                            borderRadius:"5px",
+                            height:"25px",  
+                            border:"1px solid rgba(100,100,100,0.7)",
+                            backgroundColor:"white"  
+                        }}  
+                    > 
+                        <div style={{color:"rgba(0,0,0,0.9)", fontSize:"16px"}}>      
+                            Cancel
+                        </div>  
+                    </div>
+                </div> 
+                <div style={{padding: "10px"}}>
+                    <div     
+                        onClick={this.onOk}
+                        style={{      
+                            width:"90px",
+                            display:"flex",
+                            alignItems:"center",
+                            cursor:"pointer",
+                            justifyContent:"center",
+                            borderRadius:"5px",
+                            height:"25px",  
+                            border:"1px solid rgba(100,100,100,0.5)",
+                            backgroundColor:"rgb(10, 90, 250)"  
+                        }}
+                    > 
+                        <div style={{color:"white", fontSize:"16px"}}>  
+                            OK
+                        </div>   
+                    </div> 
+                </div>
+            </div>
+        </div>   
+        </SimplePopup>
+    }
+}

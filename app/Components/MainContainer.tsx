@@ -15,11 +15,11 @@ import { getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects,
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, 
     removeProject, destroyEverything, addArea, addProject, generateId, addTodos, 
     addProjects, addAreas, Heading, LayoutItem } from '.././database';
-import { Store, isDev } from '.././app';   
+import { Store, isDev, convertDates } from '.././app';   
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import { AreaComponent } from './Area/Area';
 import { ProjectComponent } from './Project/Project';
-import { Trash } from './Categories/Trash';
+import { Trash, TrashPopup } from './Categories/Trash';
 import { Logbook } from './Categories/Logbook';
 import { Someday } from './Categories/Someday';
 import { Next } from './Categories/Next';  
@@ -31,8 +31,11 @@ import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { generateRandomDatabase } from '../generateRandomObjects';
 import { isEmpty, last, isNil, contains, all, not, assoc } from 'ramda';
 import { isString } from 'util';
-
-
+import { Observable } from 'rxjs/Rx';
+import * as Rx from 'rxjs/Rx';
+import { Subscriber } from "rxjs/Subscriber";
+import { Subscription } from 'rxjs/Rx';
+ 
  
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | "deadline"; 
@@ -44,150 +47,34 @@ interface MainContainerState{
 }
 
 
-let transformLoadDates = (load) : any => {
-
-    let converted = load;
-
-    if(isTodo(load)){
-        converted = convertTodoDates(load);
-    }else if(isProject(load)){
-        converted = convertProjectDates(load);
-    }else if(isArea(load)){
-        converted = convertAreaDates(load); 
-    }else if(isArray(load)){
-        if(isArrayOfAreas(load)){
-            converted = load.map(convertAreaDates);
-        }else if(isArrayOfProjects(load)){
-            converted = load.map(convertProjectDates);
-        }else if(isArrayOfTodos(load)){
-            converted = load.map(convertTodoDates);
-        }   
-    }    
-
-    if(!isNil(load.todos)){
-        if(isArrayOfTodos(load.todos)){
-           load.todos = load.todos.map(convertTodoDates);
-        } 
-    }
-
-    if(!isNil(load.projects)){
-        if(isArrayOfProjects(load.projects)){
-           load.projects = load.projects.map(convertProjectDates);
-        }
-    }
-
-    if(!isNil(load.areas)){
-        if(isArrayOfAreas(load.areas)){
-           load.areas = load.areas.map(convertAreaDates);
-        } 
-    }
- 
-    return  converted;  
-}
-
-
-let convertTodoDates = (t:Todo) : Todo => ({
-    ...t, 
-    reminder : !t.reminder ? undefined :  
-                typeof t.reminder==="string" ? new Date(t.reminder) : 
-                t.reminder,
-
-    deadline : !t.deadline ? undefined : 
-                typeof t.deadline==="string" ? new Date(t.deadline) : 
-                t.deadline,
-    
-    created : !t.created ? undefined : 
-               typeof t.created==="string" ? new Date(t.created) : 
-               t.created,
-    
-    deleted : !t.deleted ? undefined : 
-               typeof t.deleted==="string" ? new Date(t.deleted) : 
-               t.deleted,
-    
-    attachedDate : !t.attachedDate ? undefined : 
-                    typeof t.attachedDate==="string" ? new Date(t.attachedDate) : 
-                    t.attachedDate,
-    
-    completed : !t.completed ? undefined : 
-                typeof t.completed==="string" ? new Date(t.completed) : 
-                t.completed
-});
-
-
-
-let convertProjectDates = (p:Project) : Project => ({
-    ...p,
-    created : !p.created ? undefined : 
-               typeof p.created==="string" ? new Date(p.created) : 
-               p.created,
-
-    deadline : !p.deadline ? undefined : 
-                typeof p.deadline==="string" ? new Date(p.deadline) : 
-                p.deadline,
-
-    deleted : !p.deleted ? undefined : 
-               typeof p.deleted==="string" ? new Date(p.deleted) : 
-               p.deleted,
-
-    completed : !p.completed ? undefined : 
-                 typeof p.completed==="string" ? new Date(p.completed) : 
-                 p.completed  
-});
-
-
-
-let convertAreaDates = (a:Area) : Area => ({
-    ...a, 
-    created : !a.created ? undefined : 
-               typeof a.created==="string" ? new Date(a.created) : 
-               a.created,
-
-    deleted : !a.deleted ? undefined : 
-               typeof a.deleted==="string" ? new Date(a.deleted) : 
-               a.deleted,
-});
-
-
-export let convertDates = ([todos, projects, areas]) => [ 
-    todos.map(convertTodoDates),
-    projects.map(convertProjectDates),
-    areas.map(convertAreaDates)     
-];  
- 
-  
-  
+   
 export let createHeading = (e, props:Store) : void => {
-    
-        if(props.selectedCategory!=="project"){
-            if(isDev()){ 
-                throw new Error(
-                    `Attempt to create heading outside of project template. ${props.selectedCategory}. 
-                    createHeading`
-                );
-            } 
-        }  
-
+     
         let id : string = props.selectedProjectId;
+    
 
-        if(isNil(id)){
-           if(isDev()){ 
-              throw new Error(`selectedProjectId undefined ${id}. createHeading.`);
-           }
-        }
+        assert(
+            props.selectedCategory==="project",   
+            `Attempt to create heading outside of project template. 
+            ${props.selectedCategory}. 
+            createHeading.`
+        )
 
-        
+        assert(not(isNil(id)), `selectedProjectId undefined ${id}. createHeading.`);
+
+      
         let project = props.projects.find( (p:Project) => p._id===id );
 
-        if(!project){  
-            if(isDev()){ 
-                throw new Error(
-                    `this.props.selectedProjectId ${props.selectedProjectId} do not correspond to existing project.
-                    ${JSON.stringify(props.projects)}. createHeading`
-                );   
-            }   
-        }
+
+        assert( 
+            isProject(project),   
+            `this.props.selectedProjectId ${props.selectedProjectId} do not correspond to existing project.
+            ${JSON.stringify(props.projects)}. createHeading`
+        )
+
 
         let priority = 0; 
+
 
         if(!isEmpty(project.layout)){
             let item : LayoutItem = last(project.layout);
@@ -195,36 +82,21 @@ export let createHeading = (e, props:Store) : void => {
             if(isString(item)){ 
 
                 let todo = props.todos.find( (t:Todo) => t._id===item );
-
-                if(todo.type!=="todo"){ 
-                    if(isDev()){ 
-                        throw new Error(`
-                            todo is not of type Todo. 
-                            todo : ${JSON.stringify(todo)}. 
-                            item : ${JSON.stringify(item)}. 
-                            createHeading.
-                        `); 
-                    } 
-                }
-
+                assert(
+                    isTodo(todo), 
+                    `todo is not of type Todo. 
+                     todo : ${JSON.stringify(todo)}. 
+                     item : ${JSON.stringify(item)}. 
+                     createHeading.`
+                )
+            
                 priority = todo.priority + 1; 
-                
+                 
             }else if(item.type==="heading"){
 
                 let heading : Heading = item; 
-
-                if(heading.type!=="heading"){ 
-                    if(isDev()){ 
-                       throw new Error(`heading is not of type Heading. ${JSON.stringify(heading)} createHeading `);
-                    }
-                } 
-
                 priority = heading.priority + 1;
 
-            }else{
-                if(isDev()){ 
-                   throw new Error(`Selected item is not of type LayoutItem. ${JSON.stringify(item)}. createHeading.`); 
-                }
             }
         }
 
@@ -242,29 +114,30 @@ export let createHeading = (e, props:Store) : void => {
         props.dispatch({ type:"updateProject", load });
 }
 
- 
+  
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
 export class MainContainer extends Component<Store,MainContainerState>{
 
     rootRef:HTMLElement; 
     limit:number;
-
+    subscriptions:Subscription[]; 
+      
     constructor(props){
 
         super(props);  
 
-        this.limit = 10000;
+        this.limit = 100000;
 
-        this.state = {   
+        this.subscriptions = [];
+
+        this.state = {    
             fullWindowSize:true 
         }
-        
-            
-        if(this.props.windowId===1){
-            
-            
+
+        if(this.props.windowId===1){ 
             if(isDev()){
+
                 destroyEverything()   
                 .then(() => {  
                     initDB();
@@ -285,12 +158,11 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         addAreas(this.onError,areas)  
                     ]) 
                     .then(() => this.fetchData())    
-                });  
+                });
             }else{
+
                 this.fetchData();
             }
-
-
         }    
     }    
     
@@ -301,34 +173,35 @@ export class MainContainer extends Component<Store,MainContainerState>{
         ipcRenderer.send("cloneWindow", clonedStore);
     }
  
- 
 
     onError = (e) => console.log(e);
 
 
 
-    updateWidth = () => this.props.dispatch({type:"leftPanelWidth", load:window.innerWidth/3.7});
-  
-     
-
     closeRightClickMenu = () => {
-
         if(this.props.showRightClickMenu)
            this.props.dispatch({type:"showRightClickMenu", load:false});  
     }
 
+
+    updateLeftPanelWidth = () => {
+        this.props.dispatch({type:"leftPanelWidth", load:window.innerWidth/3.7})
+    } 
     
 
+
     fetchData = () => { 
-        if(this.props.clone)
-           return; 
+        
+        if(this.props.clone){
+           return 
+        }
 
         Promise.all([ 
             getTodos(this.onError)(true,this.limit),
             getProjects(this.onError)(true,this.limit), 
             getAreas(this.onError)(true,this.limit)
         ])
-        .then(convertDates)
+        .then(convertDates) 
         .then(([todos, projects, areas]) => {
 
                 this.props.dispatch({ 
@@ -345,30 +218,24 @@ export class MainContainer extends Component<Store,MainContainerState>{
      
     
     componentDidMount(){
-         
-        window.addEventListener("resize", this.updateWidth);
-        window.addEventListener("click", this.closeRightClickMenu); 
 
-        //update separate windows   
-        ipcRenderer.removeAllListeners("action");   
-        ipcRenderer.on(
-            "action", 
-            (event, action:{type:string, kind:string, load:any}) => { 
+        let resize = Observable
+                    .fromEvent(window,"resize")
+                    .debounceTime(100) 
+                    .subscribe(this.updateLeftPanelWidth);
 
-                if(action.type==="setAllTypes" && !this.props.clone){
-                   return; 
-                } 
-
-                this.props.dispatch(assoc("load", transformLoadDates(action.load), action));      
-            }
-        );  
+        let click = Observable 
+                    .fromEvent(window,"click")
+                    .debounceTime(100)
+                    .subscribe(this.closeRightClickMenu);
+        
+        this.subscriptions.push(resize,click);
     }      
      
     
 
-    componentWillUnmount(){
-        window.removeEventListener("resize", this.updateWidth);
-        window.removeEventListener("click", this.closeRightClickMenu);
+    componentWillUnmount(){ 
+        this.subscriptions.map( s => s.unsubscribe() );
     }  
       
       
@@ -415,7 +282,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 onTouchTap={() => {
                                     ipcRenderer.send("reload", this.props.windowId);
                                 }}
-                            >
+                            > 
                                 <Refresh />  
                             </IconButton>  
                         }
@@ -546,21 +413,28 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 tags={this.props.tags}
                             />,  
        
-                            trash: <Trash   
-                                dispatch={this.props.dispatch}
-                                tags={this.props.tags}
-                                searched={this.props.searched}
-                                selectedCategory={this.props.selectedCategory}
-                                selectedTag={this.props.selectedTag}
-                                selectedTodoId={this.props.selectedTodoId} 
-                                todos={this.props.todos}
-                                selectedProjectId={this.props.selectedProjectId}
-                                selectedAreaId={this.props.selectedAreaId} 
-                                projects={this.props.projects}
-                                areas={this.props.areas}
-                                rootRef={this.rootRef}      
-                            />,
-                            
+                            trash: <div>
+                                <TrashPopup  
+                                    dispatch={this.props.dispatch}
+                                    showTrashPopup={this.props.showTrashPopup}
+                                />
+                                <Trash   
+                                    dispatch={this.props.dispatch}
+                                    tags={this.props.tags}
+                                    searched={this.props.searched}
+                                    selectedCategory={this.props.selectedCategory}
+                                    selectedTag={this.props.selectedTag}
+                                    selectedTodoId={this.props.selectedTodoId}  
+                                    showTrashPopup={this.props.showTrashPopup}
+                                    todos={this.props.todos}
+                                    selectedProjectId={this.props.selectedProjectId}
+                                    selectedAreaId={this.props.selectedAreaId} 
+                                    projects={this.props.projects}
+                                    areas={this.props.areas}
+                                    rootRef={this.rootRef}      
+                                />
+                            </div>, 
+                             
                             project : <ProjectComponent 
                                 dispatch={this.props.dispatch} 
                                 selectedTag={this.props.selectedTag}  
@@ -578,7 +452,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 rootRef={this.rootRef} 
                                 tags={this.props.tags} 
                             />,    
- 
+  
                             area : <AreaComponent  
                                 areas={this.props.areas}
                                 selectedCategory={this.props.selectedCategory}
@@ -599,7 +473,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         </div> 
   }
 }  
-
+ 
 
 
 

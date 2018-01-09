@@ -400,7 +400,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                   rightClickMenuX:e.clientX,
                   rightClickMenuY:e.clientY
                 } 
-            });      
+            });       
         }    
     }  
 

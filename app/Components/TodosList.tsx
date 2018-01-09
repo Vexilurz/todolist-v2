@@ -582,7 +582,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             <RightClickMenu {...{} as any}/> 
         </div> 
     }   
-}  
+}    
  
 
 interface PlaceholderProps{

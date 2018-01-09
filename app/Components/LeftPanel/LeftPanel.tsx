@@ -7,7 +7,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
-    byDeleted, dateDiffInDays, byAttachedToProject, byAttachedToArea, isDate, daysRemaining, isToday 
+    byDeleted, dateDiffInDays, byAttachedToProject, byAttachedToArea, isDate, daysRemaining, isToday, assert 
 } from "../../utils";  
 import { Provider, connect } from "react-redux";
 import Menu from 'material-ui/Menu';
@@ -55,23 +55,16 @@ interface ItemsAmount{
 }
 
  
-let hotFilter = (todo:Todo) : boolean => {
+let hotFilter = (todo:Todo) : boolean => { 
 
-    if(isNil(todo)){
-        if(isDev()){ 
-           throw new Error(`Todo is undefined ${JSON.stringify(todo)}. hotFilter`);
-        }
-    }
-        
-    if(isNil(todo.deadline))
-        return false;
-           
-    if(!isDate(todo.deadline)){ 
-        if(isDev()){ 
-           throw new Error(`Deadline is not date. ${JSON.stringify(todo.deadline)} hotFilter`);
-        }
-    }
-      
+    assert(not(isNil(todo)), `Todo is undefined ${JSON.stringify(todo)}. hotFilter`);
+
+    if(isNil(todo.deadline)){
+       return false
+    } 
+    
+    assert(isDate(todo.deadline), `Deadline is not date. ${JSON.stringify(todo.deadline)} hotFilter`);
+ 
     return daysRemaining(todo.deadline)<=0;   
 }   
 
@@ -79,8 +72,8 @@ let hotFilter = (todo:Todo) : boolean => {
 export let calculateAmount = (areas:Area[], projects:Project[], todos:Todo[]) : ItemsAmount => {
 
     let todayFilter = (i) => byCategory("today")(i) || byCategory("evening")(i); 
-  
-    let inboxFilters = [ 
+   
+    let inboxFilters = [  
         (todo:Todo) => not(byAttachedToArea(areas)(todo)), 
         (todo:Todo) => not(byAttachedToProject(projects)(todo)), 
         (todo:Todo) => isNil(todo.attachedDate), 
