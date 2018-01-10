@@ -9,14 +9,24 @@ import SortableHandle from '../../sortable-hoc/sortableHandle';
 import { arrayMove } from '../../sortable-hoc/utils';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
-import { Project, Area } from '../../database';
+import { Project, Area, Todo } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
 import { stringToLength, byNotCompleted, byNotDeleted, daysRemaining, dateDiffInDays, assert, isArrayOfStrings, isArrayOfProjects, isArea, isProject } from '../../utils';
 import { SortableList } from '../SortableList';
 import PieChart from 'react-minimal-pie-chart';
-import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains, assoc, isNil, not, all } from 'ramda';
+import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains, assoc, isNil, not, all, merge } from 'ramda';
 import { Category } from '../MainContainer';
 import { isDev } from '../../app';
+import { Observable } from 'rxjs/Rx';
+import * as Rx from 'rxjs/Rx';
+import { Subscriber } from "rxjs/Subscriber";
+import { Subscription } from 'rxjs/Rx';
+import ResizeObserver from 'resize-observer-polyfill';
+import { AutoresizableText } from '../AutoresizableText';
+import { getProgressStatus } from '../Project/ProjectLink';
+
+
+
 
 export let changeProjectsOrder = (dispatch:Function, listAfter:(Project | Area | Separator)[]) : void => {
 
@@ -95,6 +105,7 @@ export let isDetached = (index:number, layout:any[]) : boolean => {
 interface AreasListProps{   
     dispatch:Function,
     leftPanelWidth:number, 
+    todos:Todo[], 
     dragged:string, 
     selectedProjectId:string,
     selectedAreaId:string, 
@@ -131,14 +142,12 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             projects
         } = this.props;
 
-        if(
-            leftPanelWidth!==nextProps.leftPanelWidth ||
+        if( 
             dragged!==nextProps.dragged ||
             selectedProjectId!==nextProps.selectedProjectId ||
             selectedAreaId!==nextProps.selectedAreaId ||
             selectedCategory!==nextProps.selectedCategory ||
-            areas!==nextProps.areas ||
-            leftPanelRef!==nextProps.leftPanelRef ||
+            areas!==nextProps.areas ||  
             projects!==nextProps.projects 
         ){
             should = true;
@@ -246,10 +255,9 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         return <ProjectElement 
             project={p}
             index={index}
-            leftPanelRef={this.props.leftPanelRef}
             dragged={this.props.dragged}  
             selectProject={this.selectProject}
-            leftPanelWidth={this.props.leftPanelWidth}
+            todos={this.props.todos} 
             selectedProjectId={this.props.selectedProjectId}
             selectedCategory={this.props.selectedCategory}
         />
@@ -358,7 +366,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 display:"flex",
                 flexDirection:"column",
                 WebkitUserSelect:"none",
-                position:"relative"  
+                position:"relative",   
+                paddingRight:"10px"
             }} 
         >    
             <SortableList 
@@ -377,7 +386,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 useDragHandle={false} 
                 lock={true}
             />  
-         </div>
+         </div> 
     }
 }
 
@@ -401,62 +410,47 @@ interface AreaElementProps{
 } 
 
 interface AreaElementState{
-    highlight:boolean,
-    measure:HTMLElement 
+    highlight:boolean
 } 
 
  
 
 class AreaElement extends Component<AreaElementProps,AreaElementState>{
+    ref:HTMLElement;
 
     constructor(props){
         super(props);
-        this.state={
-            highlight:false,
-            measure : null
-        }; 
+        this.state={highlight:false}; 
     }  
- 
- 
-    render(){      
-           
-        let selected = this.props.area._id===this.props.selectedAreaId && this.props.selectedCategory==="area";
-        let fontSize = 15; 
-        let stringLength = 25;
- 
-        if(this.props.leftPanelRef){ 
-           if(this.state.measure){
-              let box = this.props.leftPanelRef.getBoundingClientRect();
-              let textBox = this.state.measure.getBoundingClientRect();
-              let length = this.props.area.name.length;
-              if(length>0){  
-                 stringLength = box.width/(textBox.width/length);
-                 stringLength -= 10; 
-              }  
-           } 
-        } 
-  
 
-        return <li 
-            style={{WebkitUserSelect:"none"}} 
+    onMouseOver = (e) => {
+        let {dragged} = this.props;
+
+        if(e.buttons == 1 || e.buttons == 3){
+            if(dragged==="project" || dragged==="todo"){   
+                this.setState({highlight:true}); 
+            } 
+        } 
+    }  
+
+    onMouseOut = (e) => {  
+        if(this.state.highlight){
+           this.setState({highlight:false});
+        }
+    } 
+    
+    render(){      
+        let {area, selectedAreaId, selectedCategory, index, dragged} = this.props;   
+        let selected = area._id===selectedAreaId && selectedCategory==="area";
+        
+        return <li  
+            ref={e => {this.ref=e;}} 
+            style={{WebkitUserSelect:"none",width:"100%"}} 
             className={"area"}  
-            key={this.props.index} 
-            onMouseOver={(e) => {
-                if(e.buttons == 1 || e.buttons == 3){
-                    if(
-                       this.props.dragged==="project" ||
-                       this.props.dragged==="todo"
-                    ){   
-                      this.setState({highlight:true}); 
-                    } 
-                } 
-            }} 
-            onMouseOut={(e) => {  
-                if(this.state.highlight){
-                   this.setState({highlight:false});
-                }
-            }}  
-        >   
+            key={index} 
+            onMouseOver={this.onMouseOver} 
+            onMouseOut={this.onMouseOut} 
+        >     
             <div style={{outline:"none",width:"100%",height:"20px"}}></div>  
             <div     
                 onClick = {(e) => this.props.selectArea(this.props.area)}
@@ -467,53 +461,61 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                     backgroundColor: this.state.highlight ? "rgba(0,200,0,0.3)" :
                                      selected ? "rgba(228,230,233,1)" : 
                                      "",  
-                    height:"25px",
+                    height:"25px", 
                     display:"flex",  
                     alignItems: "center" 
                 }}
             >      
                 <IconButton  
                     style={{ 
-                        width:"26px", height:"26px", padding: "0px",
-                        display: "flex", alignItems: "center", justifyContent: "center"
+                        width:"26px", 
+                        height:"26px", 
+                        padding:"0px",
+                        display:"flex", 
+                        alignItems:"center", 
+                        justifyContent:"center"
                     }}    
-                    iconStyle={{ color:"rgba(109,109,109,0.7)", width:"26px", height:"26px" }}  
-                >   
+                    iconStyle={{ 
+                        color:"rgba(109,109,109,0.7)", 
+                        width:"26px", 
+                        height:"26px" 
+                    }}   
+                >      
                     <NewAreaIcon /> 
                 </IconButton> 
-
-                <MeasureTextWidth  
-                    text={this.props.area.name}
-                    setMeasure={(el) => this.setState({measure:el})}
-                />
                 
                 <div style={{
+                    width:"100%",
                     fontFamily: "sans-serif",
-                    fontSize: `${fontSize}px`,    
-                    cursor: "default",
+                    fontSize: `15px`,    
+                    cursor: "default", 
                     paddingLeft: "5px", 
                     WebkitUserSelect: "none",
                     fontWeight: "bolder", 
                     color: "rgba(0, 0, 0, 0.8)" 
-                }}>    
-                    {
-                       this.props.area.name.length===0 ? 
-                       "New Area" : stringToLength(this.props.area.name,stringLength) 
-                    }   
+                }}>  
+                    <AutoresizableText
+                        text={area.name}
+                        placeholder="New Area"
+                        fontSize={15}
+                        style={{}}
+                        placeholderStyle={{}}
+                    />
                 </div>  
-            </div>
+            </div> 
         </li>
     }
 }
+ 
+ 
 
 
 
 
 interface ProjectElementProps{
     project:Project,
+    todos:Todo[],
     index:number,
-    leftPanelRef:HTMLElement,
-    leftPanelWidth:number,
     dragged:string,
     selectProject:Function,
     selectedProjectId:string,
@@ -521,77 +523,55 @@ interface ProjectElementProps{
 }
 
 interface ProjectElementState{ 
-    highlight:boolean,
-    measure:HTMLElement 
+    highlight:boolean
 } 
  
 class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
- 
+    
+
     constructor(props){
         super(props);
         this.state={
-            highlight:false,
-            measure : null
+            highlight:false
         }; 
     }  
 
+    onMouseOver = (e) => { 
+        if(e.buttons === 1 || e.buttons === 3){ 
+            if(this.props.dragged==="todo"){
+               this.setState({highlight:true});  
+            }  
+        }  
+    }
+
+
+    onMouseOut = (e) => { 
+        if(this.state.highlight){
+           this.setState({highlight:false});
+        }
+    } 
+     
 
     render(){
-        //let days = !isNil(this.props.project.deadline) ? dateDiffInDays(this.props.project.created,this.props.project.deadline) : 0;      
-        //let remaining = !isNil(this.props.project.deadline) ? daysRemaining(this.props.project.deadline) : 0;  
-        
-        let days = 100;
-        let remaining = !isNil(this.props.project.deadline) ? daysRemaining(this.props.project.deadline) : 0;      
-
-        let current = (days-remaining);
-
-        if(current<0){
-           current=0; 
-        }
-        
-        
-        let selected = this.props.project._id===this.props.selectedProjectId && this.props.selectedCategory==="project";
-      
-        let fontSize = 15; 
-        let stringLength = 25;
- 
-        if(this.props.leftPanelRef){ 
-           if(this.state.measure){
-              let box = this.props.leftPanelRef.getBoundingClientRect();
-              let textBox = this.state.measure.getBoundingClientRect();
-              let length = this.props.project.name.length;
-              if(length>0){
-                stringLength = box.width/(textBox.width/length);
-                stringLength -= 10; 
-              }  
-           } 
-        }      
+        let {project, selectedProjectId, selectedCategory, todos} = this.props;
+        let selected = project._id===selectedProjectId && selectedCategory==="project";
+        let {done, left} = getProgressStatus(project,todos);
           
         return <li  
-            style={{WebkitUserSelect:"none"}}  
+            style={{WebkitUserSelect:"none",width:"100%"}}  
             key={this.props.index}
-            onMouseOver={(e) => { 
-                if(e.buttons === 1 || e.buttons === 3){ 
-                    if(this.props.dragged==="todo"){
-                       this.setState({highlight:true});  
-                    }  
-                }  
-            }} 
-            onMouseOut={(e) => { 
-                if(this.state.highlight){
-                   this.setState({highlight:false});
-                }
-            }}  
+            onMouseOver={this.onMouseOver} 
+            onMouseOut={this.onMouseOut}   
         >    
             <div  
                 onClick = {(e) => this.props.selectProject(this.props.project)} 
                 id = {this.props.project._id}
-                className={selected ? "" : "leftpanelmenuitem"} 
+                className={selected ? "" : "leftpanelmenuitem"}  
                 style={{     
                     borderRadius: this.state.highlight || selected ? "5px" : "0px", 
                     backgroundColor: this.state.highlight ? "rgba(0,200,0,0.3)" :
                                      selected ? "rgba(228,230,233,1)" : 
-                                     "",  
+                                     "",   
                     height:"25px",  
                     paddingLeft:"4px", 
                     display:"flex",
@@ -619,10 +599,9 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                         }}>  
                             <PieChart 
                                 animate={false}    
-                                totalValue={days}
-                                data={[{    
-                                    value: isNil(this.props.project.deadline) ? 0 :
-                                           this.props.project.completed ? days : current,   
+                                totalValue={done+left}
+                                data={[{     
+                                    value:done,  
                                     key:1,    
                                     color:"rgba(159, 159, 159, 1)" 
                                 }]}    
@@ -639,71 +618,35 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                         </div>
                     </div> 
  
-                    <MeasureTextWidth  
-                      text={this.props.project.name}
-                      setMeasure={(el) => this.setState({measure:el})}
-                    />
- 
                     <div   
                         id = {this.props.project._id}   
                         style={{  
+                            width:"100%",
                             paddingLeft:"5px",
                             fontFamily: "sans-serif",
-                            fontSize:`${fontSize}px`,  
+                            fontSize:`15px`,  
                             whiteSpace: "nowrap",
                             cursor: "default",
                             WebkitUserSelect: "none" 
                         }}
-                    >   
-                        { 
-                            this.props.project.name.length==0 ? 
-                            "New Project" : stringToLength(this.props.project.name,stringLength) 
-                        } 
+                    >    
+                        <AutoresizableText
+                            text={project.name}
+                            placeholder="New Project"
+                            fontSize={15}
+                            style={{}}
+                            placeholderStyle={{}}
+                        />
                     </div>    
             </div>
         </li> 
     }
 }
 
+ 
 
 
 
-interface MeasureTextWidthProps{
-    text:string,
-    setMeasure:(e:HTMLElement) => void
-}
 
-class MeasureTextWidth extends Component<MeasureTextWidthProps,{}>{
-    ref:HTMLElement;
 
-    constructor(props){
-        super(props);
-    } 
 
-    componentDidMount(){
-        if(this.ref){
-           this.props.setMeasure(this.ref);
-        } 
-    } 
-
-    shouldComponentUpdate(nextProps:MeasureTextWidthProps){
-        return nextProps.text!==this.props.text;
-    } 
-
-    render(){ 
-        return <div
-        ref={e => {this.ref=e;}}
-        id={this.props.text}  
-        style={{      
-          position:"absolute",
-          visibility:"hidden",
-          height:"auto",
-          width:"auto", 
-          whiteSpace:"nowrap"  
-        }}
-      > 
-          {this.props.text}
-      </div>
-    }
-
-}

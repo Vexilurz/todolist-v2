@@ -108,7 +108,7 @@ interface UpcomingState{
 }
 
 
-
+ 
 export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
     n:number;
@@ -207,7 +207,8 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 day={object.date.getDate()} 
                 searched={this.props.searched}
                 dayName={getDayName(object.date)}
-                todos={object.todos}
+                selectedTodos={object.todos} 
+                todos={this.props.todos}
                 areas={this.props.areas}
                 projects={object.projects}  
                 selectedAreaId={this.props.selectedAreaId}
@@ -267,6 +268,7 @@ interface CalendarDayProps{
     projects:Project[],
     areas:Area[], 
     searched:boolean, 
+    selectedTodos:Todo[],
     todos:Todo[],
     dispatch:Function, 
     selectedTodoId:string,
@@ -289,6 +291,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
 
     render(){ 
+        let {selectedTodos,todos} = this.props;
 
         return <div style={{
             display:"flex",
@@ -346,16 +349,18 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             paddingBottom : "10px"
                     }}>    
                         {
-                            this.props.projects.map((p:Project, index:number) : JSX.Element => 
-                                getProjectLink(
-                                    p, this.props.todos,  this.props.dispatch, index
+                            this.props.projects.map(
+                             (p:Project, index:number) : JSX.Element => {
+                                return getProjectLink(
+                                    p, todos,  this.props.dispatch, index
                                 ) 
-                            )    
+                              } 
+                            )     
                         }     
                     </div> 
                 } 
-                { 
-                    this.props.todos.length===0 ? null :
+                {   
+                    selectedTodos.length===0 ? null :
                     <div style={{
                         display:"flex",  
                         flexDirection:"column", 
@@ -363,7 +368,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         paddingTop : "10px",
                         paddingBottom : "10px" 
                     }}>   
-                        <TodosList   
+                        <TodosList    
                             filters={[]}    
                             isEmpty={(empty:boolean) => {}} 
                             dispatch={this.props.dispatch}     
@@ -376,7 +381,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             areas={this.props.areas}
                             projects={this.props.projects}
                             rootRef={this.props.rootRef}
-                            todos={this.props.todos}  
+                            todos={selectedTodos}   
                             tags={this.props.tags} 
                         />  
                     </div> 

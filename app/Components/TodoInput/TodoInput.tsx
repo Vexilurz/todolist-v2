@@ -34,7 +34,7 @@ import List from 'material-ui/svg-icons/action/list';
 import Reorder from 'material-ui/svg-icons/action/reorder';  
 let uniqid = require("uniqid");  
 import Popover from 'material-ui/Popover';
-import { TextField } from 'material-ui'; 
+import { TextField } from 'material-ui';  
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
     insideTargetArea, daysRemaining, todoChanged, 
@@ -44,8 +44,8 @@ import { Todo, removeTodo, updateTodo, Project, generateId } from '../../databas
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopup, TodoTags } from './TodoTags';
-import { TodoInputLabel } from './TodoInputLabel';
-import { uniq, isEmpty, contains, isNil } from 'ramda';
+import { TodoInputLabel } from './TodoInputLabel'; 
+import { uniq, isEmpty, contains, isNil, not } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
 let moment = require("moment"); 
 import AutosizeInput from 'react-input-autosize'; 
@@ -513,14 +513,23 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     } 
   
     render(){  
+        let {
+            open, deleted, checked, 
+            attachedDate, title, showAdditionalTags, 
+            attachedTags, note, deadline, showChecklist,
+            checklist, category   
+        } = this.state;
 
+        let {selectedCategory, id, todo} = this.props; 
+
+    
+        let todayCategory : boolean = category==="evening" || category==="today";   
         let relatedProjectName = this.getRelatedProjectName();
-        let padding = this.state.open ? "20px" :
-                      isNil(relatedProjectName) || this.props.selectedCategory==="project" ? "0px" : 
-                      "5px";  
- 
-        return  <div     
-            id={this.props.id}   
+        let removePadding = isNil(relatedProjectName) || selectedCategory==="project";
+        let padding = open ? "20px" : removePadding ? "0px" : "5px";  
+        
+        return  <div      
+            id={id}    
             onKeyDown={this.onWindowEnterPress}
             onContextMenu={this.onRightClickMenu}
             style={{    
@@ -538,23 +547,23 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             style={{           
                 display:"inline-block", 
                 transition: "box-shadow 0.2s ease-in-out, max-height 0.2s ease-in-out", 
-                maxHeight:this.state.open ? "1000px" : "30px",
+                maxHeight:open ? "1000px" : "30px",
                 width:"100%",        
-                boxShadow:this.state.open ? "rgba(156, 156, 156, 0.3) 0px 0px 20px" : "", 
+                boxShadow:open ? "rgba(156, 156, 156, 0.3) 0px 0px 20px" : "", 
                 borderRadius:"5px", 
                 marginBottom:"10px" 
-            }} 
+            }}   
         >       
             <div
-                className={this.state.open ? "" : "tasklist"}
+                className={open ? "" : "tasklist"}
                 style={{   
                     paddingLeft:"20px", 
                     paddingRight:"20px",   
                     transition: "max-height 0.2s ease-in-out", 
-                    maxHeight:this.state.open ? "1000px" : "30px",
+                    maxHeight:open ? "1000px" : "30px",
                     paddingTop:padding,
-                    paddingBottom:padding,
-                    caretColor:"cornflowerblue",  
+                    paddingBottom:padding, 
+                    caretColor:"cornflowerblue",   
                     display:"flex"
                 }}    
                 onClick={this.onFieldsContainerClick} 
@@ -563,30 +572,29 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     <div style={{display:"flex", alignItems:"center", position:"relative"}}> 
                     <div style={{display:"flex", alignItems:"center", width:"90%"}}> 
                         <RestoreButton  
-                            deleted={!!this.state.deleted}
-                            open={this.state.open} 
-                            onClick={this.onRestoreButtonClick} 
+                            deleted={!!deleted}
+                            open={open} 
+                            onClick={this.onRestoreButtonClick}  
                         />   
                         <div style={{paddingLeft:"5px", paddingRight:"5px"}}> 
-                            <Checkbox checked={this.state.checked} onClick={this.onCheckBoxClick}/>
+                            <Checkbox checked={checked} onClick={this.onCheckBoxClick}/>
                         </div>  
                         <div style={{
                             display:"flex", 
                             flexDirection:"column",  
-                            width:this.state.open ? "100%" : "50%", 
+                            width:open ? "100%" : "50%", 
                             maxHeight:"35px" 
                         }}>     
                             <div style={{display:"flex", height:"30px", alignItems:"center", width:"100%"}}>
                                 {
-                                    !this.state.attachedDate ? null : 
-                                    this.state.open ? null :
-                                    <DueDate    
-                                        month={getMonthName(this.state.attachedDate)} 
-                                        date={this.state.attachedDate}
-                                        day={this.state.attachedDate.getDate()} 
-                                    />         
-                                }  
-                                <AutosizeInput     
+                                  open ? null :    
+                                  <DueDate     
+                                    category={category} 
+                                    date={attachedDate}
+                                    selectedCategory={selectedCategory}     
+                                  />
+                                }   
+                                <AutosizeInput      
                                     ref={e => {this.inputRef=e;}}
                                     type="text"  
                                     name="form-field-name" 
@@ -598,30 +606,30 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                         backgroundColor:"rgba(0,0,0,0)",
                                         border:"none", outline:"none"  
                                     }}        
-                                    value={this.state.title}    
+                                    value={title}      
                                     placeholder="New To-Do" 
                                     onChange={this.onTitleChange}  
                                 />  
                                 <AdditionalTags 
-                                    attachedTags={this.state.attachedTags}
-                                    showAdditionalTags={this.state.showAdditionalTags}
-                                    open={this.state.open} 
+                                    attachedTags={attachedTags}
+                                    showAdditionalTags={showAdditionalTags}
+                                    open={open} 
                                     onMouseOver={(e) => this.setState({showAdditionalTags:true})}
                                     onMouseOut={(e) => this.setState({showAdditionalTags:false})} 
                                     onMouseDown={(e) => this.setState({showAdditionalTags:false})} 
                                 />
                             </div>
                             {
-                                this.state.open ? null : 
+                                open ? null : 
                                 <RelatedProjectLabel 
                                     name={relatedProjectName}
-                                    selectedCategory={this.props.selectedCategory}
+                                    selectedCategory={selectedCategory}
                                 />
                             }   
                         </div>
                     </div>  
                         {    
-                            !this.state.deadline ? null :  
+                            !deadline ? null :  
                             <div style={{
                                 display:"flex",
                                 cursor:"default",
@@ -633,28 +641,28 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                 top:"0px", 
                                 right:"0px"    
                             }}> 
-                                {daysLeftMark(this.state.open, this.state.deadline, false)}
+                                {daysLeftMark(open, deadline, false)}
                             </div>  
                         }   
                     </div>  
                     { 
-                        !this.state.open ? null :
+                        !open ? null :
                         <div style={{
                             transition:"opacity 0.2s ease-in-out",
-                            opacity:this.state.open ? 1 : 0,
+                            opacity:open ? 1 : 0,
                             paddingLeft:"25px",
                             paddingRight:"25px"  
                         }}>       
-                            <TextField  
-                                id={ `${this.props.todo._id}note` }
-                                value={this.state.note} 
+                            <TextField   
+                                id={`${todo._id}note`}
+                                value={note} 
                                 hintText="Notes"
                                 fullWidth={true}  
                                 hintStyle={{ 
-                                    top: "3px",  
-                                    left: 0,  
-                                    height:"100%"
-                                }}     
+                                  top:"3px",  
+                                  left:0,   
+                                  height:"100%"
+                                }}      
                                 onChange={this.onNoteChange}
                                 style={{
                                     height:"28px",  
@@ -670,21 +678,16 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                 underlineStyle={{borderColor: "rgba(0,0,0,0)"}}   
                             />  
                             {    
-                                !this.state.showChecklist ? null : 
-                                <div> 
+                                not(showChecklist) ? null : 
+                                <div>  
                                     <Checklist 
-                                        checklist={this.state.checklist}  
-                                        updateChecklist={
-                                            (checklist:ChecklistItem[]) => this.setState({checklist})   
-                                        } 
+                                     checklist={checklist}  
+                                     updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})} 
                                     /> 
                                 </div>
                             }  
-                            {  
-                                this.state.attachedTags.length===0 ? null :
-                                <TodoTags tags={this.state.attachedTags}/>
-                            }
-                        </div>  
+                            { isEmpty(attachedTags) ? null : <TodoTags tags={attachedTags}/> } 
+                        </div>   
                     }  
                     </div>   
                 </div>    
@@ -693,7 +696,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
         { 
-            !this.state.open ? null :  
+            !open ? null :  
             <div style={{
                 display:"flex", 
                 flexDirection:"column", 
@@ -701,29 +704,43 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 paddingRight:"10px"
             }}>   
                 {   
-                    !contains(this.state.category)(["evening","today","someday"]) ? null :
+                    !todayCategory ? null :
                     <div style={{ 
                         transition:"opacity 0.4s ease-in-out",
-                        opacity:this.state.open ? 1 : 0,
+                        opacity:open ? 1 : 0,
                         paddingLeft:"5px"  
                     }}>      
                         <TodoInputLabel 
                             onRemove={this.onRemoveSelectedCategoryLabel}
-                            category={this.state.category}
+                            category={category}
                             content={ 
-                                <div style={{marginLeft:"15px"}}>
-                                    { 
-                                     this.state.category==="evening" ? "This Evening" :
-                                     this.state.category==="today" ? "Today" :
-                                     "Someday"
-                                    }   
-                                </div>   
+                             <div style={{marginLeft:"15px"}}>
+                                 { category==="evening" ? "This Evening" : "Today" }   
+                             </div>   
                             }  
                         />   
                     </div>  
                 }  
+                {   
+                    category!=="someday" ? null :
+                    <div style={{ 
+                        transition:"opacity 0.4s ease-in-out",
+                        opacity:open ? 1 : 0,
+                        paddingLeft:"5px"  
+                    }}>      
+                        <TodoInputLabel 
+                            onRemove={this.onRemoveSelectedCategoryLabel}
+                            category={category}
+                            content={ 
+                                <div style={{marginLeft:"15px"}}>
+                                    {"Someday"}   
+                                </div>   
+                            }  
+                        />   
+                    </div>  
+                }   
                 { 
-                    !this.state.attachedDate ? null :
+                    isNil(attachedDate) || todayCategory ? null :
                     <div style={{
                         transition: "opacity 0.4s ease-in-out",
                         opacity:this.state.open ? 1 : 0
@@ -737,20 +754,20 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                 </div>    
                             }  
                         />    
-                    </div>  
+                    </div>   
                 } 
                 { 
-                    !this.state.deadline ? null :
+                    isNil(deadline) ? null : 
                     <div style={{
                         transition : "opacity 0.4s ease-in-out",
-                        opacity : this.state.open ? 1 : 0
+                        opacity : open ? 1 : 0
                     }}>
                         <TodoInputLabel  
                             onRemove={() => this.setState({deadline:null})}
                             category={"deadline"} 
                             content={ 
                                 <div style={{marginLeft:"15px", color:"black"}}>
-                                    Deadline: {moment(this.state.deadline).format('MMMM D')}
+                                    Deadline: {moment(deadline).format('MMMM D')}
                                 </div>
                             }
                         />     
@@ -762,9 +779,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
         {        
-            !this.state.open ? null :
+            !open ? null :
             <div style={{
-                display: "flex",
+                display: "flex", 
                 alignItems: "center",
                 justifyContent: "flex-end",
                 bottom: 0, 
@@ -853,7 +870,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         color:"rgb(207,206,207)",
                         width:25, 
                         height:25
-                    }}
+                    }} 
                 >       
                     <List />
                 </IconButton>  
@@ -881,7 +898,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     } 
 }   
   
- 
+  
 
  
 interface TransparentTagProps{
@@ -914,26 +931,46 @@ class TransparentTag extends Component<any,any>{
 } 
 
 
+
+
 interface DueDateProps{
     date:Date,
-    month:string,
-    day:number
+    selectedCategory:Category,
+    category:Category
 }
  
 class DueDate extends Component<DueDateProps,{}>{
+
+    constructor(props){
+        super(props); 
+    }
+
     render(){   
-        return daysRemaining(this.props.date)===0 ?    
-        <Star  
-            style={{    
-                width:"18px",  
-                height:"18px",
-                marginLeft:"3px",
-                color:"gold", 
-                cursor:"default",
-                marginRight:"5px" 
-            }}
-        />  
-        : 
+        let {date,category,selectedCategory} = this.props;
+
+        let hideDueDate : boolean = selectedCategory==="upcoming";
+        let style = {    
+            width:18,  
+            height:18, 
+            marginLeft:"3px",
+            color:"gold", 
+            cursor:"default", 
+            marginRight:"5px" 
+        }
+
+        let Someday = <div style={{height:"18px"}}><BusinessCase style={{...style,color:"burlywood"}}/></div>;
+        let Today = <div style={{height:"18px"}}><Star style={{...style,color:"gold"}}/></div>;
+        
+        if(isNil(date)){
+           return category==="someday" ? Someday : null 
+        }
+
+        let month = getMonthName(date);  
+        let day = date.getDate();   
+
+        return  isToday(date) ? Today :
+                category==="someday" ? Someday :
+                hideDueDate ? null :   
         <div style={{paddingRight:"5px"}}>
             <div style={{  
                 backgroundColor:"rgb(235, 235, 235)",
@@ -956,10 +993,10 @@ class DueDate extends Component<DueDateProps,{}>{
                     fontSize:"12px"
                 }}>      
                     <div style={{paddingRight:"5px"}}>
-                        {this.props.month.slice(0,3)+'.'}
+                        {month.slice(0,3)+'.'}
                     </div>  
                     <div>  
-                        {this.props.day}
+                        {day}
                     </div>
                 </div> 
             </div>

@@ -35,6 +35,7 @@ import { DeadlineCalendar } from '../ThingsCalendar';
 import { isNil, compose, allPass, isEmpty } from 'ramda';
 import { Tags } from '../Tags';
 import { TagsPopup } from '../TodoInput/TodoTags';
+import { getProgressStatus } from './ProjectLink';
 let moment = require("moment");  
 
 interface ProjectHeaderProps{
@@ -51,9 +52,10 @@ interface ProjectHeaderProps{
     updateProjectName:(value:string) => void,
     updateProjectDescription:(value:string) => void,
     attachTagToProject:(tag:string) => void,
-    dispatch:Function  
+    progress:{done:number,left:number}, 
+    dispatch:Function   
 }
-    
+     
 
   
 interface ProjectHeaderState{
@@ -143,26 +145,10 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
     };   
  
     render(){ 
-
-        let days = 100;
-
-        /*if(!isNil(this.props.deadline)){
-           days = dateDiffInDays(this.props.created,this.props.deadline);
-           if(days<0){
-              days=0; 
-           }  
-        }*/
-
-        let remaining = !isNil(this.props.deadline) ? daysRemaining(this.props.deadline) : 0;      
-
-        let tags = getTagsFromItems(this.props.todos); 
-
-        let current = (days-remaining);
-
-        if(current<0){
-           current=0; 
-        }
-         
+        let {todos} = this.props;
+        let {done,left} = this.props.progress; 
+        let tags = getTagsFromItems(todos); 
+          
         return <div>  
             <ProjectMenuPopover 
                 {
@@ -203,7 +189,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     point = {{vertical:"top", horizontal:"right"}} 
                     rootRef = {this.props.rootRef}
                 />
-            }
+            } 
             <div style={{display:"flex", alignItems: "center"}}>
                 <div style={{    
                     width: "30px",
@@ -217,7 +203,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     boxSizing: "border-box",
                     marginRight: "10px"
                 }}> 
-                    <div style={{
+                    <div style={{ 
                         width: "28px", 
                         height: "28px",
                         display: "flex", 
@@ -227,10 +213,9 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     }}>   
                         <PieChart
                             animate={true}    
-                            totalValue={days}
+                            totalValue={done+left}
                             data={[{  
-                                value:isNil(this.props.deadline) ? 0 :
-                                      this.props.completed ? days : current,  
+                                value:done,  
                                 key:1,   
                                 color:'rgba(108, 135, 222, 0.8)'  
                             }]}   

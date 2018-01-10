@@ -29,6 +29,7 @@ import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
 import { adjust, remove, allPass, uniq, isNil, not, contains, isEmpty } from 'ramda';
 import { isDev } from '../../app';
+import { getProgressStatus } from './ProjectLink';
 
 
 let haveScheduledTodos = (project:Project, todos:Todo[]) : boolean => {
@@ -36,12 +37,11 @@ let haveScheduledTodos = (project:Project, todos:Todo[]) : boolean => {
     let filters = [
         byNotDeleted,
         byNotCompleted,
-        byScheduled,
-        bySomeday,
+        (todo:Todo) => byScheduled(todo) || bySomeday(todo),
         (todo:Todo) => contains(todo._id)(todosIds) 
     ];
 
-    let filtered : Todo[] = todos.filter( allPass(filters) );
+    let filtered : Todo[] = todos.filter(allPass(filters));
 
     return not(isEmpty(filtered)); 
 }
@@ -286,23 +286,27 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         return items; 
     }   
 
-    
+     
     render(){   
-
+        let {todos} = this.props;
         let { 
             toProjectHeader,
             toProjectBody,  
             project
         } = this.getItems(this.props); 
-         
+
+        let progress = getProgressStatus(project,todos);
+
+
         return  isNil(project) ? null : 
                 <div>   
-                    <div>    
+                    <div>     
                         <ProjectHeader 
                             rootRef={this.props.rootRef}
                             name={project.name} 
                             attachTagToProject={this.attachTagToProject}
                             tags={this.props.tags}
+                            progress={progress}
                             description={project.description}
                             created={project.created as any}   
                             deadline={project.deadline as any} 
@@ -313,7 +317,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             updateProjectDescription={this.updateProjectDescription} 
                             todos={toProjectHeader}
                             dispatch={this.props.dispatch} 
-                        />        
+                        />         
                     </div>  
                     <div>   
                         <ProjectBody    
@@ -339,7 +343,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             dispatch={this.props.dispatch} 
                         />  
                     </div>   
-
+  
                     {  
                         not(haveScheduledTodos(project, this.props.todos)) ? null :
                         <div style={{

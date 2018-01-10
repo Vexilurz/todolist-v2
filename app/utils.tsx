@@ -69,7 +69,7 @@ export let isCategory = (category : Category) : boolean => {
     let yes = contains(category,categories);
  
     return yes; 
-}  
+}     
 
 export let bySomeday = (todo:Todo) : boolean => todo.category==="someday";
 
@@ -133,16 +133,13 @@ export let assert = (condition:boolean , error:string) : void => {
 } 
 
 
-export let keyFromDate = (date:Date) : string => {
+export let keyFromDate = (date:Date) : string => { 
     
-    if(!isDate(date)){
-        if(isDev()){ 
-           throw new Error(`keyFromDate. input is not a date. ${JSON.stringify(date)}`); 
-        }
-    }
+
+    assert(isDate(date), `keyFromDate. input is not a date. ${JSON.stringify(date)}`);
     
     let year = date.getFullYear();
-    let day = date.getDate();
+    let day = date.getDate(); 
     let month = date.getMonth();
     return [year,month+1,day].join('-');
          
@@ -177,15 +174,11 @@ let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {
     let remainder = [];
 
 
-    for(let i=0; i<objects.length; i++){
+    for(let i=0; i<objects.length; i++){ 
 
         let object = objects[i];
         
-        if(!isItem(object)){
-           if(isDev()){ 
-              throw new Error(`object has incorrect type ${JSON.stringify(object)} ${i} ${JSON.stringify(objects)}`);
-           }
-        }
+        assert(isItem(object), `object has incorrect type ${JSON.stringify(object)} ${i} ${JSON.stringify(objects)}`);
 
         if(!!objects[i]["deleted"]){
             deleted.push(objects[i]);
@@ -251,24 +244,10 @@ export let chooseIcon = (
     selectedCategory : Category
 ) => {
 
-    if(!isString(size.width)){
-        if(isDev()){ 
-           throw new Error(`Width is not a string. ${size.width}. chooseIcon.`);
-        }
-    }
-
-    if(!isString(size.height)){
-        if(isDev()){ 
-           throw new Error(`Height is not a string. ${size.height}. chooseIcon.`);
-        }
-    }
-    
-    if(!isCategory(selectedCategory)){
-        if(isDev()){ 
-           throw new Error(`selectedCategory is not a category. ${size.height}. chooseIcon.`);
-        }
-    }
-    
+    assert(isString(size.width),`Width is not a string. ${size.width}. chooseIcon.`);
+    assert(isString(size.height), `Height is not a string. ${size.height}. chooseIcon.`);
+    assert(isCategory(selectedCategory), `selectedCategory is not a category. ${size.height}. chooseIcon.`);
+   
     switch(selectedCategory){  
 
         case "inbox":
@@ -278,7 +257,7 @@ export let chooseIcon = (
                     color:"dodgerblue", 
                     cursor:"default" 
                 }
-            }} />; 
+            }} /> 
 
         case "today":
             return <Star style={{
@@ -287,7 +266,7 @@ export let chooseIcon = (
                     color:"gold", 
                     cursor:"default" 
                 }
-            }}/>;
+            }}/>
 
         case "upcoming":
             return <CalendarIco style={{
@@ -296,7 +275,7 @@ export let chooseIcon = (
                     color:"crimson", 
                     cursor:"default"
                 }
-            }}/>;
+            }}/>
 
         case "next":
             return <Layers style={{
@@ -304,8 +283,8 @@ export let chooseIcon = (
                 ...{
                     color:"darkgreen", 
                     cursor:"default"
-                }
-            }}/>;
+                } 
+            }}/>
 
         case "someday":
             return <BusinessCase  style={{
@@ -314,7 +293,7 @@ export let chooseIcon = (
                     color:"burlywood", 
                     cursor:"default"
                 }
-            }}/>;  
+            }}/>  
  
         case "logbook":
             return <Logbook style={{
@@ -323,7 +302,7 @@ export let chooseIcon = (
                     color:"limegreen", 
                     cursor:"default"
                 }
-            }}/>;  
+            }}/>  
 
         case "trash":
             return <Trash style={{
@@ -332,7 +311,7 @@ export let chooseIcon = (
                     color:"darkgray", 
                     cursor:"default" 
                 }
-            }}/>; 
+            }}/>
 
         case "evening":
             return <Moon style={{
@@ -351,7 +330,7 @@ export let chooseIcon = (
                     color:"black",  
                     cursor:"default"  
                 }
-            }}/>;
+            }}/>
             
         case "area":
             return <NewAreaIcon style={{
@@ -359,7 +338,7 @@ export let chooseIcon = (
                 ...{
                     color:"lightblue"
                 }
-            }}/>;        
+            }}/>       
  
         case "project":
             return <div>          
@@ -374,7 +353,7 @@ export let chooseIcon = (
                     }  
                 }}>   
                 </div>
-            </div>;    
+            </div>    
  
         default:
             return <Inbox style={{  
@@ -383,14 +362,14 @@ export let chooseIcon = (
                     color:"dodgerblue", 
                     cursor:"default"
                 }   
-            }}/>; 
+            }}/> 
     }
 }
 
 
 
 export let defaultTags = [ 
-    "Priority:Low",
+    "Priority:Low", 
     "Priority:Medium",
     "Priority:High",
     "Location:Home",

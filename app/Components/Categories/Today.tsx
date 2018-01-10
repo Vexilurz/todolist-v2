@@ -74,19 +74,22 @@ export class Today extends Component<TodayProps,TodayState>{
  
    
     render(){ 
+        let filters = [ 
+          (t:Todo) => isToday(t.attachedDate) || isToday(t.deadline), 
+           byNotCompleted,  
+           byNotDeleted  
+        ]    
 
         let tags = compose(
             getTagsFromItems,
             (todos) => todos.filter(
               allPass([ 
-                (t:Todo) => byCategory("today")(t) || byCategory("evening")(t),
-                (t:Todo) => isToday(t.attachedDate), 
-                 byNotCompleted,  
-                 byNotDeleted  
+                    (t:Todo) => byCategory("today")(t) || byCategory("evening")(t),
+                    ...filters
               ])    
             ) 
-        )(this.props.todos);
-        
+        )(this.props.todos); 
+         
         let empty = generateEmptyTodo(generateId(), "today", 0);  
 
         return <div style={{
@@ -149,12 +152,10 @@ export class Today extends Component<TodayProps,TodayState>{
                             creation={true}
                         /> 
                         <TodosList    
-                            filters={[ 
+                            filters={[  
                                 byTags(this.props.selectedTag), 
-                                (t:Todo) => isToday(t.attachedDate),
                                 byCategory("today"),
-                                byNotCompleted, 
-                                byNotDeleted 
+                                ...filters 
                             ]}   
                             searched={this.props.searched}
                             selectedTodoId={this.props.selectedTodoId}
@@ -203,10 +204,8 @@ export class Today extends Component<TodayProps,TodayState>{
                             <TodosList     
                                 filters={[  
                                    byTags(this.props.selectedTag),
-                                   (t:Todo) => isToday(t.attachedDate),  
                                    byCategory("evening"),
-                                   byNotCompleted,  
-                                   byNotDeleted    
+                                   ...filters 
                                 ]}   
                                 searched={this.props.searched}
                                 selectedTodoId={this.props.selectedTodoId} 

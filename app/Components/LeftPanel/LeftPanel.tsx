@@ -255,12 +255,13 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                                 WebkitUserSelect:"none",
                                 paddingLeft: "20px", 
                                 marginBottom:"150px" 
-                            }}
+                            }}   
                         > 
                             <AreasList  
                                 leftPanelWidth={this.props.leftPanelWidth}
                                 leftPanelRef={this.leftPanelRef}
                                 dragged={this.props.dragged} 
+                                todos={this.props.todos} 
                                 dispatch={this.props.dispatch}   
                                 areas={this.props.areas}
                                 selectedProjectId={this.props.selectedProjectId}

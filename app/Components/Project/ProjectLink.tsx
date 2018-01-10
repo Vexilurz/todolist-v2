@@ -26,7 +26,7 @@ import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
 import { 
     uppercase, debounce, stringToLength, daysRemaining, 
-    daysLeftMark, chooseIcon, dateDiffInDays  
+    daysLeftMark, chooseIcon, dateDiffInDays, assert, isProject, isArrayOfTodos, byNotDeleted, byCompleted  
 } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { SortableList, Data } from '../SortableList';
@@ -36,30 +36,39 @@ import Checked from 'material-ui/svg-icons/navigation/check';
 import PieChart from 'react-minimal-pie-chart';
 import Restore from 'material-ui/svg-icons/content/undo';
 import { isString } from 'util';
-import { contains, isNil } from 'ramda';
+import { contains, isNil, allPass } from 'ramda';
+import { isDev } from '../../app';
    
 
 
+export let getProgressStatus = (p:Project, todos:Todo[]) : {done:number,left:number} => {
 
+    if(isDev()){
+       assert(isProject(p),`p is not of type Project. ${JSON.stringify(p)}.getProgressStatus.`);
+       assert(isArrayOfTodos(todos),`todos is not of type Todo[]. ${JSON.stringify(todos)}`);  
+    } 
 
+    let todosIds = p.layout.filter(isString) as string[];
+    let relatedTodos = todos.filter(allPass([
+        byNotDeleted, 
+        (todo:Todo) => contains(todo._id)(todosIds)
+    ]));
+
+    let done : number = relatedTodos.filter(byCompleted).length;
+    let left : number = relatedTodos.length - done; 
+    
+    assert(done>=0, `Done - negative value. getProgressStatus.`);
+    assert(left>=0, `Left - negative value. getProgressStatus.`);
+    
+    return {done,left};
+}  
+ 
 
 
 
 export let getProjectLink = (p:Project, todos:Todo[],  dispatch:Function, index:number) : JSX.Element => { 
         
-        /*let days = !isNil(p.deadline) ? dateDiffInDays(p.created,p.deadline) : 0;      
-        let remaining = !isNil(p.deadline) ? daysRemaining(p.deadline) : 0;*/
-        
-        let days = 100;
-
-        let remaining = !isNil(p.deadline) ? daysRemaining(p.deadline) : 0;      
-
-        let current = (days-remaining);
-
-        if(current<0){ 
-           current=0; 
-        } 
-        
+        let { done, left } =  getProgressStatus(p,todos);
         
         let restoreProject = (p:Project) : void => { 
             
@@ -136,10 +145,9 @@ export let getProjectLink = (p:Project, todos:Todo[],  dispatch:Function, index:
                         }}>  
                             <PieChart 
                                 animate={false}    
-                                totalValue={days}
-                                data={[{    
-                                    value:isNil(p.deadline) ? 0 :
-                                          p.completed ? days : current, 
+                                totalValue={done+left}
+                                data={[{     
+                                    value:done, 
                                     key:1,  
                                     color:"rgb(108, 135, 222)" 
                                 }]}    
