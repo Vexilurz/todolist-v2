@@ -266,7 +266,7 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
     
     onNoteChange = (event,newValue:string) : void => this.setState({note:newValue});
 
-    onTitleChange = (event) : void => this.setState({title:event.target.value});
+    onTitleChange = (event,newValue:string) : void => this.setState({title:newValue});
 
     onCheckBoxClick = () => {  
         let checked : boolean = !this.state.checked; 
@@ -384,41 +384,35 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                             maxHeight:"35px" 
                         }}>     
                             <div style={{display:"flex", height:"30px", alignItems:"center", width:"100%"}}>
-                                <AutosizeInput     
-                                    ref={e => {this.inputRef=e;}}
-                                    type="text"  
-                                    name="form-field-name" 
-                                    minWidth={"100px"} 
-                                    style={{display:"flex", alignItems:"center", width:"100%"}}  
-                                    inputStyle={{         
-                                        color:"black", fontSize:"16px", 
-                                        cursor:"default", boxSizing:"content-box", 
-                                        backgroundColor:"rgba(0,0,0,0)",
-                                        border:"none", outline:"none"  
-                                    }}        
-                                    value={this.state.title}    
-                                    placeholder="New To-Do" 
-                                    onChange={this.onTitleChange}  
-                                /> 
+
+                            <TextField   
+                                ref={e => {this.inputRef=e;}}
+                                id={`todo-input-shortcut`}
+                                value={this.state.title} 
+                                hintText="New To-Do" 
+                                fullWidth={true}  
+                                hintStyle={{ 
+                                top:"3px",  
+                                left:0,   
+                                height:"100%"
+                                }}      
+                                onChange={this.onTitleChange} 
+                                style={{
+                                    display:"flex", alignItems:"center",  
+                                    width:"100%", cursor:"default"
+                                }}       
+                                inputStyle={{          
+                                    color:"black", fontSize:"16px", 
+                                    cursor:"default", boxSizing:"content-box", 
+                                    backgroundColor:"rgba(0,0,0,0)",
+                                    border:"none", outline:"none"  
+                                }} 
+                                underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}} 
+                                underlineStyle={{borderColor:"rgba(0,0,0,0)"}}   
+                            />  
                             </div>
                         </div>
-                    </div>  
-                        {    
-                            !this.state.deadline ? null :  
-                            <div style={{
-                                display:"flex",
-                                cursor:"default",
-                                pointerEvents:"none",  
-                                zIndex: 1000,   
-                                alignItems:"center",
-                                height:"100%",
-                                position:"absolute",
-                                top:"0px", 
-                                right:"0px"    
-                            }}> 
-                                {daysLeftMark(true, this.state.deadline, false)}
-                            </div>  
-                        }   
+                    </div>    
                     </div>  
                     { 
                         <div style={{
@@ -428,9 +422,9 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                             paddingRight:"25px"  
                         }}>       
                             <TextField  
-                                id={ `always-note` }
+                                id={`always-note`}
                                 value={this.state.note} 
-                                hintText="Notes"
+                                hintText="Notes" 
                                 fullWidth={true}  
                                 hintStyle={{ 
                                     top: "3px",  
@@ -452,7 +446,7 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                                 underlineStyle={{borderColor: "rgba(0,0,0,0)"}}   
                             />  
                             {    
-                                !this.state.showChecklist ? null : 
+                                !this.state.showChecklist ? null :  
                                 <div> 
                                     <Checklist 
                                      checklist={this.state.checklist}  

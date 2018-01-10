@@ -86,7 +86,8 @@ export let getProjectLink = (p:Project, todos:Todo[],  dispatch:Function, index:
              
          
         return <li  
-            onClick={() => {
+            onClick={(e) => {
+                e.stopPropagation(); 
                 if(p.deleted) 
                    return;   
                 dispatch({type:"selectedCategory",load:"project"});

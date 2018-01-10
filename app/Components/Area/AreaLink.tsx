@@ -53,7 +53,8 @@ export let getAreaLink = (
             
 
     return <li   
-        onClick={() => { 
+        onClick={(e) => {
+            e.stopPropagation();  
             if(a.deleted)  
                return;  
             dispatch({type:"selectedCategory",load:"area"});

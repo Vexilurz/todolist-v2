@@ -7,7 +7,7 @@ import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
 import { 
     stringToLength, byNotCompleted, byNotDeleted, 
     daysRemaining, dateDiffInDays, assert, isArrayOfStrings, 
-    isArrayOfProjects, isArea, isProject 
+    isArrayOfProjects, isArea, isProject, debounce 
 } from '../utils'; 
 import PieChart from 'react-minimal-pie-chart';
 import { 
@@ -26,6 +26,7 @@ interface AutoresizableTextProps{
     placeholder:string, 
     fontSize:number,
     style:any,
+    offset:number,
     placeholderStyle:any 
 } 
 
@@ -33,70 +34,69 @@ interface AutoresizableTextState{
     stringLength:number
 }
 
+let last = 0;
+
 export class AutoresizableText extends Component<AutoresizableTextProps,AutoresizableTextState>{
 
     ref:HTMLElement;
     ro:ResizeObserver;
-
+ 
     constructor(props){
         super(props);
-        this.state = {
-            stringLength:25 
-        }
-    }
+        this.state={
+            stringLength:last
+        }; 
+    } 
+ 
 
-    initRo = () => {
-        this.ro = new ResizeObserver((entries, observer) => {
-            const offset = 45; 
-            const {left, top, width, height} = entries[0].contentRect;
-            const {text, style, fontSize} = this.props;
-            let box = this.ref.getBoundingClientRect();
-            let containerWidth = width-offset <=0 ? 0 : width-offset; 
-            let stringLength = stringToContainer(containerWidth, text, fontSize);
-            this.setState({stringLength});
-        });      
-          
-        this.ro.observe(this.ref); 
+    onResize = (entries, observer) => { 
+        const {left, top, width, height} = entries[0].contentRect;
+        const {text, style, fontSize, offset} = this.props;
+        let containerWidth = width-offset <= 0 ? 0 : width-offset; 
+        let stringLength = stringToContainer(containerWidth, text, fontSize); 
+        last = stringLength;   
+        this.setState({stringLength}); 
+    }     
+  
+  
+    initRo = () => {  
+        this.ro = new ResizeObserver(this.onResize);  
+        this.ro.observe(this.ref);   
     }
+ 
 
-    suspendRo = () => { 
+    suspendRo = () => {      
         this.ro.disconnect();
         this.ro = undefined;
     }
+ 
 
     componentDidMount(){
         this.initRo();
-    }  
+    }
+    
 
     componentWillUnmount(){
-        this.suspendRo();
+        this.suspendRo(); 
     } 
+
 
     render(){
         let {text, style, fontSize, placeholder, placeholderStyle} = this.props;
         let {stringLength} = this.state;
          
-        let defaultStyle = {
-            fontSize:`${fontSize}px`, 
-            whiteSpace:"nowrap",
-            height:"auto",
-            width:"auto"
-        }; 
+        let defaultStyle = { 
+            fontSize:`${fontSize}px`,   
+            whiteSpace:"nowrap", 
+            width:"inherit"
+        };  
  
         let textStyle = isEmpty(text) ? 
                         merge(placeholderStyle,defaultStyle) :
-                        merge(style,defaultStyle); 
-        
-        return <div   
-            ref={(e) => {this.ref = e;}} 
-            style={textStyle}
-        >  
-            { 
-                stringToLength( 
-                  isEmpty(text) ? placeholder : text,
-                  stringLength
-                )    
-            }
+                        merge(style,defaultStyle);  
+         
+        return <div ref={(e) => {this.ref = e;}} style={textStyle}>  
+            { stringToLength(isEmpty(text) ? placeholder : text, stringLength) }
         </div>  
     } 
 }

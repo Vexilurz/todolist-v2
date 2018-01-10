@@ -38,7 +38,8 @@ import {
     isItem,
     byNotDeleted, 
     findAttachedArea,
-    findAttachedProject 
+    findAttachedProject, 
+    assert
 } from '../utils';
 import { Todo, removeTodo, updateTodo, generateId, ObjectType, Area, Project, Heading } from '../database';
 import { Store, isDev } from '../app'; 
@@ -56,7 +57,9 @@ let getTodoLink = (
     index : number, dispatch : Function, clear:Function
 ) : JSX.Element => {  
 
-     let onTodoLinkClick = () => { 
+     let onTodoLinkClick = (e) => { 
+        e.stopPropagation();
+
         let attachedProject = findAttachedProject(projects)(todo);
 
         dispatch({type:"selectedTodoId", load:todo._id});
@@ -234,20 +237,15 @@ interface QuickSearchState{
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
 export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
-    
     ref:HTMLElement; 
-
-    constructor(props){
-
+    constructor(props){ 
         super(props);
-
         this.state = {
             objectsWithKeywords : [],
             value:'',
             suggestions:[] 
         };
     } 
-
 
 
     onOutsideClick = (e) => {
@@ -263,25 +261,21 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
             this.setState({value:'', suggestions:[]}); 
     }  
   
-     
 
     componentDidMount(){ 
         this.init(this.props); 
         window.addEventListener("click", this.onOutsideClick)
     }      
-        
-
+      
      
     componentWillUnmount(){
         window.removeEventListener("click", this.onOutsideClick);
-    } 
+    }  
     
-
 
     shouldComponentUpdate(nextProps:QuickSearchProps,nextState:QuickSearchState){
         return this.state.value!==nextState.value; 
     }
-    
     
 
     init = (props) => {
@@ -289,7 +283,6 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
         let objectsWithKeywords = attachKeywordsToObjects(objects);
         this.setState({objectsWithKeywords}); 
     }
- 
  
 
     componentWillReceiveProps(nextProps:QuickSearchProps, nextState:QuickSearchState){   
@@ -308,8 +301,9 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
         if(nextProps.projects !== this.props.projects)
            update = true;  
 
-        if(update)
+        if(update){
            this.init(nextProps);
+        }
     }  
 
  
@@ -337,12 +331,8 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
 
         let object = suggestion.object;
 
-        if(!isItem(object)){
-            if(isDev()){ 
-               throw new Error(`object is not of type Item. ${JSON.stringify(object)}. suggestionToComponent.`);
-            }
-        }
-  
+        assert(isItem(object), `object is not of type Item. ${JSON.stringify(object)}. suggestionToComponent.`);
+        
         let clear = () => this.setState({value:'', suggestions:[]});    
         let dispatchAndClear = (action) => {
             this.props.dispatch(action);
@@ -357,7 +347,7 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
                     this.props.projects, 
                     index, 
                     this.props.dispatch, 
-                    clear
+                    clear 
                 );   
             case "project":
                 return getProjectLink(
@@ -418,7 +408,7 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
                     value={this.state.value} 
                     onChange={this.onChange}
                 />
-            </div>  
+            </div>   
       
             <div style={{position:"relative"}}>        
                 <div 

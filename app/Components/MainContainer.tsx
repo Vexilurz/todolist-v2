@@ -248,26 +248,25 @@ export class MainContainer extends Component<Store,MainContainerState>{
            } 
         }
     }
-   
+    
  
     
     render(){  
- 
         return  <div ref={(e) => { this.rootRef=e }}
                     className="scroll"  
                     id="maincontainer"  
                     style={{    
-                        flexGrow:1,
+                        flexGrow:1,  
+                        overflowX:"hidden",
                         height:`${window.innerHeight}px`,     
                         position:"relative",  
-                        display:"flex",   
+                        display:"flex",     
                         backgroundColor:"rgba(209, 209, 209, 0.1)", 
-                        overflow:"scroll",      
                         flexDirection:"column"     
                     }}  
                 >  
-                <RightClickMenu {...{} as any}/> 
-                <div style={{display: "flex", padding: "10px", minWidth:"500px"}}>   
+                <RightClickMenu {...{} as any}/>  
+                <div style={{display: "flex", padding: "10px"}}>   
                     <div className="no-drag" style={{position: "fixed", top: 0, right: 0}}>  
                         {
                             not(isDev()) ? null :
@@ -303,8 +302,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     paddingLeft:"60px", 
                     paddingRight:"60px",
                     paddingBottom:"60px",
-                    paddingTop:"10px",
-                    minWidth:"500px"
+                    paddingTop:"10px"
                 }}>
                     {    
                         {   

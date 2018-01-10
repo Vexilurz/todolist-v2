@@ -1202,26 +1202,16 @@ export let addDays = (date:Date, days:number) => {
  
 
 
-export let daysLeftMark = (hide:boolean, deadline:Date, showFlag:boolean, fontSize=13)  => {
+export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
  
-    if(hide)   
+    if(hide){   
        return null; 
+    }
      
-    if(isNil(deadline)){
-        if(isDev()){ 
-           throw new Error(`deadline undefined. ${deadline}. daysLeftMark.`);
-        }
-    }
- 
-    if(!isDate(deadline) ){    
-        if(isDev()){ 
-           throw new Error(`deadline not a Date. ${deadline}. daysLeftMark.`);
-        }
-    }
-
+    assert(not(isNil(deadline)), `deadline undefined. ${deadline}. daysLeftMark.`);
+    assert(isDate(deadline), `deadline not a Date. ${deadline}. daysLeftMark.`);
 
     let daysLeft = daysRemaining(deadline);      
-
     let flagColor = daysLeft <= 1  ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
        
     let style : any = { 
@@ -1232,14 +1222,6 @@ export let daysLeftMark = (hide:boolean, deadline:Date, showFlag:boolean, fontSi
         whiteSpace:"nowrap", 
         fontWeight:"600",  
         textAlign: "center"
-    };   
-
-    let iconStyle = {
-        width:"18px",  
-        height:"18px",
-        marginLeft:"3px",
-        color: flagColor, 
-        marginRight:"5px" 
     };
        
     let attachedText = "";
@@ -1255,11 +1237,7 @@ export let daysLeftMark = (hide:boolean, deadline:Date, showFlag:boolean, fontSi
        attachedText = " days left";
     }
 
-    return <p style={style}>
-               { showFlag ? <Flag style={iconStyle}/> : null }  
-               { Math.abs(daysLeft) }{ attachedText }
-           </p>  
-
+    return <p style={style}>{ Math.abs(daysLeft) }{ attachedText }</p>  
 } 
 
 

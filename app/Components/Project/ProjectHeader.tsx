@@ -293,7 +293,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         {`Deadline: ${getMonthName(this.props.deadline).slice(0,3)}. ${this.props.deadline.getDate()}`} 
                     </div> 
                     <div> 
-                        {daysLeftMark(false, this.props.deadline, false, 15)}
+                        {daysLeftMark(false, this.props.deadline, 15)}
                     </div>   
                 </div> 
             }  

@@ -193,7 +193,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                    haveArea = true;
                    break; 
                 }
-            }
+            } 
 
             if(!haveArea){
                detached.push(projects[i])
@@ -498,6 +498,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                         text={area.name}
                         placeholder="New Area"
                         fontSize={15}
+                        offset={45}
                         style={{}}
                         placeholderStyle={{}}
                     />
@@ -635,11 +636,12 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                             placeholder="New Project"
                             fontSize={15}
                             style={{}}
+                            offset={45} 
                             placeholderStyle={{}}
                         />
                     </div>    
             </div>
-        </li> 
+        </li>  
     }
 }
 

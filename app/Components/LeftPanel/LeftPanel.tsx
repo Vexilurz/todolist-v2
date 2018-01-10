@@ -84,11 +84,11 @@ export let calculateAmount = (areas:Area[], projects:Project[], todos:Todo[]) : 
         (todo:Todo) => not(byAttachedToProject(projects)(todo)), 
         (todo:Todo) => isNil(todo.attachedDate), 
         byCategory("inbox"),  
-        byNotCompleted,   
+        byNotCompleted,    
         byNotDeleted 
     ]; 
  
-    let todayFilters = [
+    let todayFilters = [ 
         todayFilter, 
         byNotCompleted,  
         byNotDeleted,
@@ -99,7 +99,12 @@ export let calculateAmount = (areas:Area[], projects:Project[], todos:Todo[]) : 
 
     let logbookFilters = [byCompleted, byNotDeleted]; 
     
-    let hotFilters = [byNotCompleted, byNotDeleted, hotFilter];
+    let hotFilters = [
+        byNotCompleted, 
+        byNotDeleted, 
+        hotFilter,
+        todayFilter, 
+    ];
           
     return {      
        inbox:todos.filter((t:Todo) => allPass(inboxFilters)(t)).length,
