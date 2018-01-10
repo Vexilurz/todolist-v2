@@ -225,7 +225,11 @@ ul {
   background-color: rgba(100,90,90,0.2)
 }
 
-.chip:hover{
+.chip{
+  border:1px solid rgba(0,0,0,0);
+} 
+
+.chip:hover{ 
   color:dimgray;
   border:1px solid dimgray;
   background-color:white; 

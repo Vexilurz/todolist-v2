@@ -150,11 +150,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         window.addEventListener("click", this.onOutsideClick);
 
         if(this.props.selectedTodoId===this.props.todo._id){   
-            this.select();   
+           this.select();   
         }
     }       
  
-
+ 
     select = () => {
         this.setState(    
             {open:true}, 
@@ -168,11 +168,13 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
     componentDidUpdate(prevProps:TodoInputProps,prevState:TodoInputState){
-        if(this.inputRef && isEmpty(this.state.title) && this.state.open){
+        let { title, open } = this.state; 
+
+        if(this.inputRef && isEmpty(title) && open){
            this.inputRef.focus();  
         } 
 
-        if(isEmpty(this.state.title) || this.state.open){  
+        if(isEmpty(title) || open){    
            this.preventDragOfThisItem();
         }else{
            this.enableDragOfThisItem(); 
@@ -260,7 +262,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     addTodo = () => {
         let todo : Todo = this.todoFromState();  
 
-        if(!isEmpty(todo.title)){
+        if(!isEmpty(todo.title)){ 
 
             let todos = [...this.props.todos].sort((a:Todo,b:Todo) => a.priority-b.priority);
         
@@ -295,9 +297,12 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }  
 
 
-    componentWillUnmount(){
-        window.removeEventListener("click",this.onOutsideClick);
-    }
+    componentWillUnmount(){ 
+        if(!this.props.creation){
+            this.updateTodo();
+        } 
+        window.removeEventListener("click", this.onOutsideClick);
+    } 
 
  
     stateFromTodo = (state:TodoInputState,todo:Todo) : TodoInputState => ({   

@@ -128,7 +128,8 @@ input[type=time]::-webkit-outer-spin-button {
 
 .DayPicker-Day {
   display: table-cell;
-  padding: 0.5rem;
+  height: 30px;
+  box-sizing: border-box;
   text-align: center;
   cursor: pointer;
   vertical-align: middle;
@@ -141,11 +142,11 @@ input[type=time]::-webkit-outer-spin-button {
   text-align: right;
   vertical-align: middle;
   min-width: 1rem;
+  box-sizing: border-box;
   font-size: 0.75em;
   cursor: pointer;
   color: #8b9898;
-  border-right: 1px solid #eaecec;
-}
+} 
 
 .DayPicker--interactionDisabled .DayPicker-Day {
   cursor: default;
@@ -207,12 +208,16 @@ input[type=time]::-webkit-outer-spin-button {
 }
 
 .DayPicker:not(.DayPicker--interactionDisabled)
-  .DayPicker-Day:not(.DayPicker-Day--disabled):not(.DayPicker-Day--selected):not(.DayPicker-Day--outside):hover {
-  border: 1px solid #51a0fa;
-  border-radius: 50%;
+  .DayPicker-Day:not(.DayPicker-Day--disabled):not(.DayPicker-Day--selected):not(.DayPicker-Day--outside) {
+  padding:1px;
 } 
 
-/* DayPickerInput */
+.DayPicker:not(.DayPicker--interactionDisabled)
+  .DayPicker-Day:not(.DayPicker-Day--disabled):not(.DayPicker-Day--selected):not(.DayPicker-Day--outside):hover {
+  border: 1px solid #51a0fa;
+} 
+
+/* DayPickerInput */ 
 
 .DayPickerInput {
   display: inline-block;
