@@ -445,7 +445,7 @@ export let getTagsFromItems = (items:Item[]) : string[] => {
 
 export let attachDispatchToProps = (dispatch:Function,props) => ({...props, dispatch});
  
-
+ 
 export let debounce = (fun, mil=50) => {
     let timer; 
     return function(...load){

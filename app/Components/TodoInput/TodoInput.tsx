@@ -45,7 +45,7 @@ import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopup, TodoTags } from './TodoTags';
 import { TodoInputLabel } from './TodoInputLabel'; 
-import { uniq, isEmpty, contains, isNil, not } from 'ramda';
+import { uniq, isEmpty, contains, isNil, not, multiply } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
 let moment = require("moment"); 
 import AutosizeInput from 'react-input-autosize'; 
@@ -256,8 +256,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         if(todoChanged(this.props.todo,todo)){
            this.props.dispatch({type:"updateTodo", load:todo});  
-        } 
-    }
+        }   
+    } 
 
     addTodo = () => {
         let todo : Todo = this.todoFromState();  
@@ -300,7 +300,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     componentWillUnmount(){ 
         if(!this.props.creation){
             this.updateTodo();
-        } 
+        }  
         window.removeEventListener("click", this.onOutsideClick);
     } 
 
@@ -557,7 +557,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             onKeyDown={this.onWindowEnterPress}
             onContextMenu={this.onRightClickMenu}
             style={{    
-                marginTop:"10px", 
+                marginTop:"5px", 
+                marginBottom:"5px", 
                 width:"100%",         
                 display:"flex",    
                 WebkitUserSelect:"none",
@@ -574,7 +575,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 width:"100%",   
                 display:"inline-block", 
                 transition: "box-shadow 0.2s ease-in-out, max-height 0.2s ease-in-out", 
-                maxHeight:open ? "1000px" : "40px",
+                maxHeight:open ? "1000px" : "65px",
                 boxShadow:open ? "rgba(156, 156, 156, 0.3) 0px 0px 20px" : "", 
                 borderRadius:"5px", 
             }}   
@@ -585,7 +586,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     paddingLeft:"20px", 
                     paddingRight:"20px",   
                     transition: "max-height 0.2s ease-in-out", 
-                    maxHeight:open ? "1000px" : "30px",
+                    //maxHeight:open ? "1000px" : "60px",
                     paddingTop:padding,
                     paddingBottom:padding, 
                     caretColor:"cornflowerblue",   
@@ -819,6 +820,9 @@ class DueDate extends Component<DueDateProps,{}>{
         let {date,category,selectedCategory} = this.props;
 
         let hideDueDate : boolean = selectedCategory==="upcoming";
+        let hideSomeday : boolean = selectedCategory==="someday";
+        let showSomeday : boolean = not(hideSomeday) && category==="someday";
+
         let style = {    
             width:18,  
             height:18, 
@@ -832,22 +836,22 @@ class DueDate extends Component<DueDateProps,{}>{
         let Today = <div style={{height:"18px"}}><Star style={{...style,color:"gold"}}/></div>;
         
         if(isNil(date)){
-           return category==="someday" ? Someday : null 
+           return showSomeday ? Someday : null 
         }
 
         let month = getMonthName(date);  
         let day = date.getDate();   
 
         return  isToday(date) ? Today :
-                category==="someday" ? Someday :
-                hideDueDate ? null :   
+                showSomeday ? Someday :
+                hideDueDate ? null :    
         <div style={{paddingRight:"5px"}}>
             <div style={{  
                 backgroundColor:"rgb(235, 235, 235)",
                 cursor:"default", 
                 WebkitUserSelect:"none", 
                 display:"flex",
-                alignItems:"center", 
+                alignItems:"center",  
                 justifyContent:"center", 
                 paddingLeft:"5px",
                 paddingRight:"5px", 
@@ -1023,6 +1027,7 @@ class AdditionalTags extends Component<AdditionalTagsProps,{}>{
                     position: "absolute",
                     right: "40px",
                     display: "flex",
+                    zIndex:50000,
                     bottom: "30px",  
                     pointerEvents:"none",  
                     background:"white",  
@@ -1034,7 +1039,7 @@ class AdditionalTags extends Component<AdditionalTagsProps,{}>{
                     transition: "opacity 0.2s ease-in-out",
                     opacity: this.props.showAdditionalTags ? 1 : 0
                 }}>      
-                    {   
+                    {    
                         this.props.attachedTags
                         .slice(1,this.props.attachedTags.length)
                         .map((tag:string) => <div 
@@ -1093,21 +1098,21 @@ interface TodoInputTopLevelProps{
 
 
 interface TodoInputTopLevelState{
-    hideTags : boolean,
-    hideDeadline : boolean 
+    overflow : boolean 
 }
 
 
 class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLevelState>{
 
     ref:HTMLElement; 
+    inputRef:HTMLElement;
+    labelRef:HTMLElement;
     ro:ResizeObserver;
-      
+
     constructor(props){
         super(props);
         this.state={
-            hideTags:false, 
-            hideDeadline:false
+            overflow:false
         }
     } 
 
@@ -1116,23 +1121,27 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
         this.ro = new ResizeObserver( 
             (entries, observer) => { 
                 const {left, top, width, height} = entries[0].contentRect;
-                let box = this.ref.getBoundingClientRect();
-                let hideTags : boolean = false; 
-                let hideDeadline : boolean = false;
+                if(
+                    isNil(this.inputRef) ||
+                    isNil(this.ref) ||
+                    isNil(this.labelRef)
+                ){ return; }
 
-                if(box.width<400){
-                   hideTags=true; 
-                } 
-                
-                if(box.width<300){
-                   hideDeadline=true; 
-                } 
-                
-                this.setState({hideTags,hideDeadline});
-            }  
-        );        
-           
-        this.ro.observe(this.ref);   
+                let container = this.ref.getBoundingClientRect();
+                let input = this.inputRef.getBoundingClientRect();
+                let label = this.labelRef.getBoundingClientRect();
+
+                if(
+                    input.width>multiply(container.width, 1/2)
+                ){
+                   this.setState({overflow:true});
+                }else{    
+                   this.setState({overflow:false}); 
+                }    
+            }      
+        );         
+            
+        this.ro.observe(this.ref);    
     }
 
 
@@ -1170,130 +1179,134 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
             flagColor,  
             rootRef
         } = this.props;
-
-        
-
+ 
         return <div  
-            ref={e => {this.ref=e;}}
-            style={{
-                display:"flex", 
-                alignItems:"center", 
-                position:"relative", 
-                justifyContent:"space-between",
-                width:"inherit"  
-            }}
+            ref={(e) => {this.ref=e;}}
+            style={{display:"flex", flexDirection:"column"}} 
         >  
-
-        <div style={{ 
-            display:"flex", 
-            alignItems:"center", 
-            position:'relative',  
-            justifyContent:"flex-start"
-        }}> 
-            {
-                isNil(deleted) ? null :    
-                <RestoreButton  
-                    deleted={not(isNil(deleted))}
-                    open={open}   
-                    onClick={this.props.onRestoreButtonClick}  
-                /> 
-            }     
-            <div style={{paddingLeft:"5px", paddingRight:"5px"}}> 
-                <Checkbox checked={checked} onClick={this.props.onCheckBoxClick}/>
-            </div>  
-            <div style={{display:"flex", flexDirection:"column", width:"inherit", maxHeight:"35px"}}>     
-            <div style={{display:"flex", height:"30px", alignItems:"center", width:"inherit"}}>
-                {
-                    open ? null :      
-                    <DueDate category={category} date={attachedDate} selectedCategory={selectedCategory}/>
-                }  
-                <div ref={this.props.setInputRef}>    
-                    <AutosizeInput   
-                        type="text"
-                        name="form-field-name"  
-                        style={{
-                            display:"flex", 
-                            alignItems:"center",      
-                            cursor:"default"  
-                        }}            
-                        inputStyle={{                
-                            color:"black",  
-                            fontSize:"16px",  
-                            cursor:"default", 
-                            boxSizing:"content-box", 
-                            backgroundColor:"rgba(0,0,0,0)",
-                            border:"none", 
-                            outline:"none"   
-                        }} 
-                        value={title} 
-                        placeholder="New To-Do" 
-                        onChange={this.props.onTitleChange} 
-                    /> 
-                </div>
-                { 
-                    isEmpty(attachedTags) ? null :
-                    <div style = {{visibility : this.state.hideTags  ? "hidden" : "visible"}}>
-                        <AdditionalTags   
-                            attachedTags={attachedTags}
-                            showAdditionalTags={showAdditionalTags}
-                            open={open} 
-                            onMouseOver={this.props.onAdditionalTagsHover as any}
-                            onMouseOut={this.props.onAdditionalTagsOut as any} 
-                            onMouseDown={this.props.onAdditionalTagsPress as any}  
-                        />  
+            <div style={{
+                display:"flex",    
+                alignItems:this.state.overflow ? "flex-start" : "center", 
+                flexDirection:this.state.overflow ? "column" : "row",
+                overflow:"hidden" 
+            }}>    
+                <div  
+                  ref={(e) => {this.inputRef=e;}}
+                  style={{
+                    display:"flex", 
+                    alignItems:"center"
+                  }}  
+                >
+                    {
+                        isNil(deleted) ? null :       
+                        <RestoreButton  
+                            deleted={not(isNil(deleted))}
+                            open={open}   
+                            onClick={this.props.onRestoreButtonClick}  
+                        /> 
+                    }   
+                    <div style={{paddingLeft:"5px", paddingRight:"5px"}}> 
+                        <Checkbox 
+                          checked={checked} 
+                          onClick={this.props.onCheckBoxClick}
+                        />
+                    </div>  
+                    {
+                        open ? null :       
+                        <DueDate  
+                            category={category} 
+                            date={attachedDate} 
+                            selectedCategory={selectedCategory}
+                        />
+                    }  
+                    <div 
+                        style={{overflowX:"hidden"}} 
+                        ref={this.props.setInputRef}
+                    >     
+                        <AutosizeInput   
+                            type="text"
+                            name="form-field-name"  
+                            style={{
+                                display:"flex", 
+                                alignItems:"center",      
+                                cursor:"default"  
+                            }}            
+                            inputStyle={{                
+                                color:"black",  
+                                fontSize:"16px",  
+                                cursor:"default", 
+                                boxSizing:"content-box", 
+                                backgroundColor:"rgba(0,0,0,0)",
+                                border:"none", 
+                                outline:"none"   
+                            }} 
+                            value={title} 
+                            placeholder="New To-Do" 
+                            onChange={this.props.onTitleChange} 
+                        /> 
                     </div>
-                }
                 </div>
-                {
-                    open ? null :  
-                    isNil(relatedProjectName) ? null :
-                    <RelatedProjectLabel 
-                        name={relatedProjectName}
-                        selectedCategory={selectedCategory}
-                    /> 
-                }   
+                
+                <div style={{
+                    height:"20px",
+                    display:"flex",
+                    alignItems:"center",
+                    zIndex:1001,   
+                    justifyContent:this.state.overflow ? "flex-start" : "space-between",
+                    zoom:this.state.overflow ? 0.8 : 1, 
+                    flexGrow:1  
+                }}>       
+                    { 
+                        isEmpty(attachedTags) ? null :
+                        <div style={{}}>
+                          <AdditionalTags   
+                              attachedTags={attachedTags}   
+                              showAdditionalTags={false} //showAdditionalTags
+                              open={open} 
+                              onMouseOver={this.props.onAdditionalTagsHover as any}
+                              onMouseOut={this.props.onAdditionalTagsOut as any} 
+                              onMouseDown={this.props.onAdditionalTagsPress as any}  
+                          />   
+                        </div>
+                    } 
+                    {    
+                        isNil(deadline) ? null :     
+                        open ? null : 
+                        <div 
+                            ref = {e => {this.labelRef=e;}}
+                            style={{
+                                display:"flex", 
+                                cursor:"default",    
+                                pointerEvents:"none", 
+                                alignItems:"center",  
+                                height:"100%"
+                            }} 
+                        > 
+                            <div style={{paddingRight:"5px", paddingTop:"5px"}}> 
+                                <Flag style={{          
+                                    color:flagColor, 
+                                    cursor:"default",  
+                                    width:16, 
+                                    height:16
+                                }}/>      
+                            </div>   
+                            {daysLeftMark(open, deadline)}
+                        </div>  
+                    } 
                 </div>
-            </div> 
-            {    
-                isNil(deadline) ? null :     
-                open ? null : 
-                <div 
-                    style={{
-                        display:"flex", 
-                        cursor:"default",    
-                        pointerEvents:"none",  
-                        zIndex:1000,   
-                        visibility:this.state.hideDeadline ? "hidden" : "visible", 
-                        alignItems:"center",  
-                        height:"100%", 
-                        position:"absolute", 
-                        top:0,   
-                        right:0   
-                    }} 
-                > 
-                    <div style={{paddingRight:"5px", paddingTop:"5px"}}> 
-                        <Flag style={{          
-                            color:flagColor, 
-                            visibility:this.state.hideDeadline ? "hidden" : "visible", 
-                            cursor:"default",  
-                            width:16, 
-                            height:16
-                        }}/>      
-                    </div>   
-                    {daysLeftMark(open, deadline)}
-                </div>  
-            } 
+
+            </div>
+            {
+                open ? null :  
+                isNil(relatedProjectName) ? null :
+                <RelatedProjectLabel 
+                    name={relatedProjectName}
+                    selectedCategory={selectedCategory}
+                /> 
+            }   
     </div> 
   }
 }
-
-
-
-
-
-
-
-
 
 
 

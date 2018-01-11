@@ -392,16 +392,20 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                                 hintText="New To-Do" 
                                 fullWidth={true}  
                                 hintStyle={{ 
-                                top:"3px",  
-                                left:0,   
-                                height:"100%"
+                                    top:"3px", 
+                                    left:0,   
+                                    height:"30px"
                                 }}      
                                 onChange={this.onTitleChange} 
                                 style={{
-                                    display:"flex", alignItems:"center",  
-                                    width:"100%", cursor:"default"
+                                    display:"flex", 
+                                    alignItems:"center",  
+                                    width:"100%", 
+                                    height:"30px",
+                                    cursor:"default"
                                 }}       
-                                inputStyle={{          
+                                inputStyle={{        
+                                    height:"30px",
                                     color:"black", fontSize:"16px", 
                                     cursor:"default", boxSizing:"content-box", 
                                     backgroundColor:"rgba(0,0,0,0)",
@@ -541,19 +545,19 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                 <DateCalendar 
                     close={this.closeDateCalendar}
                     open={this.state.showDateCalendar}
-                    origin = {{vertical: "center", horizontal: "right"}} 
-                    point = {{vertical: "center", horizontal: "right"}}  
+                    origin = {{vertical: "center", horizontal: "left"}} 
+                    point = {{vertical: "bottom", horizontal: "right"}}  
                     anchorEl={this.calendar}
                     rootRef = {document.body}
-                    reminder={this.state.reminder} 
+                    reminder={this.state.reminder}  
                     attachedDate={this.state.attachedDate}
                     onDayClick = {this.onCalendarDayClick}
                     onSomedayClick = {this.onCalendarSomedayClick}
                     onTodayClick = {this.onCalendarTodayClick}
                     onThisEveningClick = {this.onCalendarThisEveningClick}
                     onAddReminderClick = {this.onCalendarAddReminderClick}
-                    onClear = {this.onCalendarClear}
-                />  
+                    onClear = {this.onCalendarClear} 
+                />   
 
                 <TagsPopup   
                     tags = {this.props.tags}
@@ -561,8 +565,8 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                     close = {this.closeTagsSelection}
                     open = {this.state.showTagsSelection}   
                     anchorEl = {this.tags} 
-                    origin = {{vertical: "center", horizontal: "right"}} 
-                    point = {{vertical: "center", horizontal: "right"}}
+                    origin = {{vertical: "center", horizontal: "left"}} 
+                    point = {{vertical: "bottom", horizontal: "right"}} 
                     rootRef = {document.body} 
                 />
 
@@ -570,8 +574,8 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                     close={this.closeDeadlineCalendar}
                     onDayClick={this.onDeadlineCalendarDayClick}
                     open={this.state.showDeadlineCalendar}
-                    origin = {{vertical: "center", horizontal: "right"}} 
-                    point = {{vertical: "center", horizontal: "right"}} 
+                    origin = {{vertical: "center", horizontal: "left"}} 
+                    point = {{vertical: "bottom", horizontal: "right"}} 
                     anchorEl = {this.deadline}
                     onClear={this.onDeadlineCalendarClear}
                     rootRef = {document.body}

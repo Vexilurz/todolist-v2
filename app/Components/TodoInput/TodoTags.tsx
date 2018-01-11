@@ -90,6 +90,7 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
                     backgroundColor:"rgb(39, 43, 53, 0)"
                 }}
                 anchorEl={this.props.anchorEl}
+                canAutoPosition={true}
                 onRequestClose={this.props.close}
                 scrollableContainer={this.props.rootRef}
                 useLayerForClickAway={false} 

@@ -220,8 +220,8 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                                 color:'rgba(108, 135, 222, 0.8)'  
                             }]}   
                             style={{  
-                                width:"22px", 
-                                height:"22px",
+                                width:22, 
+                                height:22,
                                 position:"absolute",
                                 display:"flex",
                                 alignItems:"center",

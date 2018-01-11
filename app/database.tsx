@@ -5,7 +5,7 @@ import { ipcRenderer } from 'electron';
 import PouchDB from 'pouchdb-browser';  
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 import { Category } from './Components/MainContainer';
-import { randomArrayMember, randomInteger, randomDate, isString } from './utils';
+import { randomArrayMember, randomInteger, randomDate, isString, isTodo, assert } from './utils';
 import { isNil, all } from 'ramda';
 import { isDev } from './app';
 let uniqid = require("uniqid"); 
@@ -620,23 +620,29 @@ export let getTodoById = (onError:Function, _id : string) : Promise<Todo> => {
 
 }
  
-
-  
-export let updateTodo = (_id : string, replacement : Todo, onError:Function) : Promise<Todo> => {
-
-      if(replacement.type!=="todo"){  
-        if(isDev()){ 
-           throw new Error(`Input value is not of type Todo ${JSON.stringify(replacement)}. updateTodo.`);
-        }
-      }    
-
-      return updateItemInDatabase<Todo>(  
-        () => {},
-        (e) => console.log(e), 
-        todos_db
-      )(_id, replacement);  
-
+let debounce = (fun, mil=50) => {
+  let timer; 
+  return function(...load){
+      clearTimeout(timer); 
+      timer = setTimeout(function(){  
+          fun(...load); 
+      }, mil); 
+  };  
 } 
+  
+export let updateTodo = debounce(
+    (_id : string, replacement : Todo, onError:Function) : Promise<Todo> => {
+
+          assert(isTodo(replacement), `Input value is not of type Todo ${JSON.stringify(replacement)}. updateTodo.`);
+
+          return updateItemInDatabase<Todo>(  
+            () => {},
+            (e) => console.log(e), 
+            todos_db
+          )(_id, replacement);    
+    },
+    50
+)  
  
 
 

@@ -94,6 +94,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                 borderRadius:"20px",  
                 transform:`scale(0.8,0.8)` 
             }}   
+            canAutoPosition={true}
             onRequestClose={() => this.props.close()}
             anchorOrigin={this.props.origin} 
             targetOrigin={this.props.point}
@@ -536,6 +537,7 @@ export class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCa
             useLayerForClickAway={false} 
             open={this.props.open}
             anchorEl={this.props.anchorEl}
+            canAutoPosition={true} 
             style={{
                 backgroundColor:"rgba(0,0,0,0)",
                 background:"rgba(0,0,0,0)",  

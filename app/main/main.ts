@@ -22,6 +22,7 @@ export let listeners : Listeners;
  
 
 const CtrlAltT : string = 'Ctrl+Alt+T';
+const CtrlD : string = 'Ctrl+D';
 
 let onCtrlAltT = () : void => {
     if(isNil(mainWindow)){
@@ -32,6 +33,11 @@ let onCtrlAltT = () : void => {
     mainWindow.webContents.send(CtrlAltT);
 } 
   
+
+let onCtrlD = () : void => {
+    mainWindow.webContents.openDevTools();   
+}
+
 
 let preventAnnoyingErrorPopups = () => dialog.showErrorBox = (title, content) => {};
  
@@ -67,8 +73,9 @@ let getWindowSize = () : {width:number,height:number} => {
 let onReady = () => {  
 
     globalShortcut.register(CtrlAltT, onCtrlAltT);  
-
-    preventAnnoyingErrorPopups(); 
+    globalShortcut.register(CtrlD, onCtrlD);  
+    
+    preventAnnoyingErrorPopups();  
 
     mainWindow = initWindow(getWindowSize());  
 
@@ -86,8 +93,10 @@ app.on(
    'window-all-closed', 
     () => { 
         globalShortcut.unregister(CtrlAltT);
+        globalShortcut.unregister(CtrlD);
+          
         if(process.platform !== 'darwin'){ 
-           app.quit();  
+           app.quit();   
         }
     }    
 );     
