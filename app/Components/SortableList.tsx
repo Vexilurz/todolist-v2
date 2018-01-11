@@ -18,9 +18,9 @@ interface SortableListProps{
 
     shouldCancelStart : ( e : any ) => boolean,
     shouldCancelAnimation : ( e : any ) => boolean,
-
-    onSortEnd : ( data : Data, e : any ) => void,  
-    onSortMove : ( e : any, helper : HTMLElement, newIndex:number ) => void,
+ 
+    onSortEnd : ( data : Data, e : any ) => void,   
+    onSortMove : ( e : any, helper : HTMLElement, newIndex:number, nodes?:HTMLElement[] ) => void,
     onSortStart : ( data : any, e : any, helper : HTMLElement) => void,
 
     lockToContainerEdges : boolean,

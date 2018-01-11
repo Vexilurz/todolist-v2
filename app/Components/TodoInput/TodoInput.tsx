@@ -418,29 +418,37 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     })
     
      
- 
-    onCheckBoxClick = debounce(() => {   
-        let { selectedCategory, creation } = this.props;
-        let { checked, open } = this.state;
-        let shouldAnimateSlideAway = not(checked) && 
-                                     selectedCategory!=="logbook" &&  
-                                     selectedCategory!=="trash"; 
-         
-        if(not(open) && not(creation)){   
-            let isChecked : boolean = !checked; 
-            this.setState(   
-                { 
-                  checked:isChecked,  
-                  completed:isChecked ? new Date() : null
-                },  
-                () => shouldAnimateSlideAway ?   
-                      this
-                      .animateSlideAway()
-                      .then(() => setTimeout(() => this.updateTodo(), 0)) : 
-                      this.updateTodo() 
-            )    
-        }   
-    },50)  
+  
+    onCheckBoxClick = debounce(
+        () => {   
+            let { selectedCategory, creation } = this.props;
+            let { checked, open } = this.state;
+            let shouldAnimateSlideAway = not(checked) && 
+                                        selectedCategory!=="logbook" &&  
+                                        selectedCategory!=="trash"; 
+            
+            if(not(open) && not(creation)){   
+                let isChecked : boolean = !checked; 
+                this.setState(   
+                    { 
+                      checked:isChecked,  
+                      completed:isChecked ? new Date() : null
+                    },  
+                    () => setTimeout(   
+                        () => shouldAnimateSlideAway ?   
+                                this
+                                .animateSlideAway()
+                                .then(() => setTimeout(() => this.updateTodo(), 0)) : 
+                                this.updateTodo() 
+                        , 
+                        50
+                    )
+                )    
+            }   
+        },
+        50
+    )  
+    
     
     
     onRightClickMenu = (e) => { 
@@ -570,9 +578,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             open, deleted, checked, 
             attachedDate, title, showAdditionalTags, 
             attachedTags, note, deadline, showChecklist,
-            checklist, category   
+            checklist, category, completed    
         } = this.state;
-
+ 
         let {selectedCategory, id, todo} = this.props; 
 
     
@@ -588,7 +596,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         if(!isNil(deadline)){    
             daysLeft = daysRemaining(deadline);      
             flagColor = daysLeft <= 1  ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
-        } 
+        }   
         
         return  <div      
             id={id}    
@@ -644,7 +652,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     onTitleChange={this.onTitleChange}
                     open={open}
                     deleted={deleted} 
-                    rootRef={this.props.rootRef}
+                    rootRef={this.props.rootRef} 
+                    completed={completed}
                     checked={checked}
                     category={category}
                     attachedDate={attachedDate}
@@ -846,7 +855,8 @@ class TransparentTag extends Component<TransparentTagProps,{}>{
 interface DueDateProps{
     date:Date,
     selectedCategory:Category,
-    category:Category
+    category:Category,
+    completed:Date
 }
  
 class DueDate extends Component<DueDateProps,{}>{
@@ -856,12 +866,24 @@ class DueDate extends Component<DueDateProps,{}>{
     }
 
     render(){   
-        let {date,category,selectedCategory} = this.props;
+        let {date,category,selectedCategory,completed} = this.props;
+        let showSomeday : boolean = selectedCategory!=="someday" && category==="someday";
 
-        let hideDueDate : boolean = selectedCategory==="upcoming";
-        let hideSomeday : boolean = selectedCategory==="someday";
-        let showSomeday : boolean = not(hideSomeday) && category==="someday";
-
+        let containerStyle= {  
+            backgroundColor:"rgb(235, 235, 235)",
+            cursor:"default", 
+            WebkitUserSelect:"none", 
+            display:"flex",
+            alignItems:"center",  
+            justifyContent:"center", 
+            paddingLeft:"5px",
+            paddingRight:"5px", 
+            borderRadius:"15px",
+            color:"rgb(100,100,100)",
+            fontWeight:"bold",
+            height:"20px" 
+        } as any;
+ 
         let style = {    
             width:18,  
             height:18, 
@@ -874,46 +896,57 @@ class DueDate extends Component<DueDateProps,{}>{
         let Someday = <div style={{height:"18px"}}><BusinessCase style={{...style,color:"burlywood"}}/></div>;
         let Today = <div style={{height:"18px"}}><Star style={{...style,color:"gold"}}/></div>;
         
-        if(isNil(date)){
+
+
+        if(isNil(date) && isNil(completed)){
            return showSomeday ? Someday : null 
+        }else if(
+            not(isNil(date)) && 
+            selectedCategory!=="logbook" &&
+            selectedCategory!=="upcoming"
+        ){
+            let month = getMonthName(date);
+            let day = date.getDate();  
+
+            return isToday(date) ? Today :
+            <div style={{paddingRight:"5px"}}>
+                <div style={containerStyle}>     
+                    <div style={{ 
+                        display:"flex",   
+                        padding:"5px", 
+                        alignItems:"center", 
+                        fontSize:"12px"
+                    }}>      
+                        <div style={{paddingRight:"5px"}}>{month.slice(0,3)+'.'}</div>  
+                        <div>{day}</div>
+                    </div> 
+                </div>
+            </div> 
+
+        }else if(
+            not(isNil(completed)) && 
+            selectedCategory==="logbook" 
+        ){
+            let month = getMonthName(completed);
+            let day = completed.getDate(); 
+
+            return <div style={{paddingRight:"5px"}}>
+                <div style={containerStyle}>     
+                    <div style={{ 
+                        display:"flex",   
+                        padding:"5px", 
+                        alignItems:"center", 
+                        fontSize:"12px"
+                    }}>      
+                        <div style={{paddingRight:"5px"}}>{month.slice(0,3)+'.'}</div>  
+                        <div>{day}</div>
+                    </div> 
+                </div>
+            </div> 
+        }else{
+            return null;
         }
 
-        let month = getMonthName(date);  
-        let day = date.getDate();   
-
-        return  isToday(date) ? Today :
-                showSomeday ? Someday :
-                hideDueDate ? null :    
-        <div style={{paddingRight:"5px"}}>
-            <div style={{  
-                backgroundColor:"rgb(235, 235, 235)",
-                cursor:"default", 
-                WebkitUserSelect:"none", 
-                display:"flex",
-                alignItems:"center",  
-                justifyContent:"center", 
-                paddingLeft:"5px",
-                paddingRight:"5px", 
-                borderRadius:"15px",
-                color:"rgb(100,100,100)",
-                fontWeight:"bold",
-                height:"20px" 
-            }}>    
-                <div style={{ 
-                    display:"flex",   
-                    padding:"5px",
-                    alignItems:"center", 
-                    fontSize:"12px"
-                }}>      
-                    <div style={{paddingRight:"5px"}}>
-                        {month.slice(0,3)+'.'}
-                    </div>  
-                    <div>  
-                        {day}
-                    </div>
-                </div> 
-            </div>
-        </div> 
     }
 } 
 
@@ -1119,6 +1152,7 @@ interface TodoInputTopLevelProps{
     onRestoreButtonClick:Function,
     onCheckBoxClick:Function,
     onTitleChange:Function, 
+    completed:Date,
     open:boolean,
     deleted:Date,
     checked:boolean,
@@ -1171,9 +1205,10 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                 let container = this.ref.getBoundingClientRect();
                 let input = this.inputRef.getBoundingClientRect();
                 let label = this.labelRef.getBoundingClientRect();
-
+                let threshold = (container.width/100) * 65;
+ 
                 if( 
-                    input.width>multiply(container.width, 2/3)
+                    input.width>threshold
                 ){
                    this.setState({overflow:true}); 
                 }else{    
@@ -1209,6 +1244,7 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
             deleted,
             checked,
             category,
+            completed, 
             attachedDate,
             selectedCategory,
             todo,
@@ -1256,7 +1292,8 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                         open ? null :       
                         <DueDate  
                             category={category} 
-                            date={attachedDate}  
+                            date={attachedDate} 
+                            completed={completed} 
                             selectedCategory={selectedCategory}
                         />
                     }  
@@ -1286,14 +1323,14 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                 </div> 
                 
                 <div style={{
-                    height:"20px",
+                    height:"25px",
                     display:"flex",
                     alignItems:"center",
                     zIndex:1001,   
                     justifyContent:this.state.overflow ? "flex-start" : "space-between",
                     zoom:this.state.overflow ? 0.8 : 1, 
                     flexGrow:1  
-                }}>       
+                }}>        
                     { 
                         isEmpty(attachedTags) ? null :
                         <div style={{}}>

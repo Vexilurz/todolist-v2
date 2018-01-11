@@ -23,7 +23,7 @@ import { arrayMove } from '../sortable-hoc/utils';
 import { byTags, byCategory } from '../utils'; 
 import { SortableList } from './SortableList';
 import { TodoInput } from './TodoInput/TodoInput';
-import { allPass, isNil, prepend, isEmpty, compose, map, assoc, contains, remove } from 'ramda';
+import { allPass, isNil, prepend, isEmpty, compose, map, assoc, contains, remove, not } from 'ramda';
 import { Category } from './MainContainer';
 import { isDev } from '../app';
 import { calculateAmount } from './LeftPanel/LeftPanel';
@@ -283,7 +283,9 @@ interface TodosListProps{
   
 interface TodosListState{
     todos:Todo[],
+    nodes:HTMLElement[],
     currentIndex:number, 
+    placeholderHeight:number,
     helper:HTMLElement,
     showPlaceholder:boolean 
 }
@@ -298,7 +300,8 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                      this.props.sortBy;
  
         this.state={
-            
+            placeholderHeight:0,
+            nodes:[],
             todos:this.props 
                       .todos
                       .filter(allPass(this.props.filters)) 
@@ -447,20 +450,15 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
  
 
     onSortStart = ({node, index, collection}, e, helper) => { 
+        let box = helper.getBoundingClientRect();
 
-        this.setState({showPlaceholder:true});
+        this.setState({showPlaceholder:true, placeholderHeight:box.height});
         let draggedTodo = this.state.todos[index];
-        
-        if(isNil(draggedTodo)){
-           if(isDev()){ 
-              throw new Error(`draggedTodo undefined. ${index}. onSortStart. TodosList.`);
-           }
-        } 
-
+        assert(not(isNil(draggedTodo)), `draggedTodo undefined. ${index}. onSortStart. TodosList.`);
+          
         this.props.dispatch({type:"dragged",load:draggedTodo.type});
          
-        let helperRect = helper.getBoundingClientRect();
-        let offset = e.clientX - helperRect.left;
+        let offset = e.clientX - box.left;
 
         let el = generateDropStyle("nested"); 
         el.style.left=`${offset}px`;  
@@ -469,16 +467,16 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         
         helper.appendChild(el);  
     }
- 
+    
 
-     
+    
  
-    onSortMove = (e, helper : HTMLElement, newIndex:number) => {
-        let x = e.clientX; 
+    onSortMove = (e, helper : HTMLElement, newIndex:number, oldIndex:number, nodes:HTMLElement[]) => {
+        let x = e.clientX;  
         let y = e.clientY; 
         
-        if(newIndex!==this.state.currentIndex)
-           this.setState({currentIndex:newIndex,helper});   
+        if(newIndex!==this.state.currentIndex) 
+           this.setState({currentIndex:newIndex,helper,nodes});   
 
         let leftpanel = document.getElementById("leftpanel");
         let nested = document.getElementById("nested");
@@ -495,7 +493,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
     }
 
 
-    
+     
     
 
     onSortEnd = ({oldIndex, newIndex, collection}, e) => { 
@@ -545,48 +543,49 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         
     render(){    
         let placeholderOffset = 0;
-        let placeholderHeight = 0;
+        let nodes = this.state.nodes;
 
-        if(this.state.helper){
-           let rect = this.state.helper.getBoundingClientRect();
-           placeholderOffset = this.state.currentIndex*rect.height;
-           placeholderHeight = rect.height;
-        }  
+        for(let i=0; i<this.state.currentIndex; i++){
+            if(isNil(nodes[i])){ continue }   
+             
+            if(typeof nodes[i]["node"].getBoundingClientRect === "function"){
+                let box = nodes[i]["node"].getBoundingClientRect();  
+                placeholderOffset=placeholderOffset+box.height;
+            }
+        } 
  
         if(isDev()){
             let amount = calculateAmount(this.props.areas,this.props.projects,this.props.todos);
             if(this.props.selectedCategory==="inbox"){
-
                 assert(
-                    amount.inbox===this.state.todos.length, 
-                    `Incorrect amount ${amount.inbox}. TodosList. 
-                    Inbox. ${JSON.stringify(this.state.todos)}`
+                  amount.inbox===this.state.todos.length, 
+                 `Incorrect amount ${amount.inbox}. TodosList. 
+                  Inbox. ${JSON.stringify(this.state.todos)}`
                 );     
             }else if(this.props.selectedCategory==="trash"){
-
                 assert(
-                    amount.trash===this.state.todos.length, 
-                    `Incorrect amount. TodosList. 
-                    Trash. ${JSON.stringify(this.state.todos)}` 
-                );   
-            } 
+                  amount.trash===this.state.todos.length, 
+                 `Incorrect amount. TodosList. 
+                  Trash. ${JSON.stringify(this.state.todos)}` 
+                );    
+            }   
         } 
 
 
         return <div style={{WebkitUserSelect:"none",position:"relative"}}>   
             <Placeholder   
                 offset={placeholderOffset} 
-                height={placeholderHeight}  
+                height={this.state.placeholderHeight}  
                 show={this.state.showPlaceholder}
-            />  
-            <SortableList   
+            />   
+            <SortableList    
                 getElement={this.getTodoElement}
                 container={this.props.rootRef} 
                 items={this.state.todos}   
-                shouldCancelStart={this.shouldCancelStart}   
+                shouldCancelStart={this.shouldCancelStart}    
                 shouldCancelAnimation={this.shouldCancelAnimation}
                 onSortEnd={this.onSortEnd}    
-                onSortMove={this.onSortMove}  
+                onSortMove={this.onSortMove as any}  
                 onSortStart={this.onSortStart}  
                 lockToContainerEdges={false}
                 distance={5}   

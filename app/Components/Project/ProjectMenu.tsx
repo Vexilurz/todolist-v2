@@ -221,7 +221,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             Complete project   
                         </div>     
                     </div>
-                 
+                    {
+                    /*
                     <div    
                         onClick={this.onAddTags}  
                         className={"tagItem"} style={{
@@ -236,7 +237,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             Add tags  
                         </div>     
                     </div>
-                    
+                    */
+                    } 
                     <div  
                         onClick={this.onAddDeadline} 
                         className={"tagItem"} style={{

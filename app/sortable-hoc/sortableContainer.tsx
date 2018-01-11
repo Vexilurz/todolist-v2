@@ -407,7 +407,7 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
     handleSortMove = e => {
       const {onSortMove, shouldCancelAnimation} = this.props;
       e.preventDefault(); // Prevent scrolling on mobile
-   
+      
 
       this.updatePosition(e);
       
@@ -427,7 +427,10 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
       } 
 
 
-      if (onSortMove) onSortMove(e, this.helper, this.newIndex, this.index);
+      if (onSortMove) {
+        const nodes = this.manager.getOrderedRefs();
+        onSortMove(e, this.helper, this.newIndex, this.index, nodes);
+      }
     };
  
     handleSortEnd = e => {

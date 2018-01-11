@@ -248,7 +248,7 @@ interface AreaMenuState{}
 export class AreaMenu extends Component<AreaMenuProps,AreaMenuState>{
  
     constructor(props){ 
-        super(props); 
+        super(props);  
     }   
 
     render(){  
@@ -277,6 +277,8 @@ export class AreaMenu extends Component<AreaMenuProps,AreaMenuState>{
                     cursor:"pointer" 
                   }} 
             >      
+
+                {/*
                     <div   
                         onClick={this.props.onAddTags as any} 
                         className={"tagItem"} 
@@ -298,6 +300,9 @@ export class AreaMenu extends Component<AreaMenuProps,AreaMenuState>{
                         marginBottom: "5px"
                     }}>
                     </div> 
+                */} 
+
+                    
                     <div    
                         onClick={this.props.onDeleteArea as any} 
                         className={"tagItem"} style={{
