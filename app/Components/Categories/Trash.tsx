@@ -250,24 +250,40 @@ export class Trash extends Component<TrashProps,TrashState>{
                 </div>  
             </div> 
              
-            <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
-                <TodosList    
-                    filters={[ ]}     
-                    disabled={true} 
-                    areas={areas}
-                    projects={projects} 
-                    selectedTodoId={selectedTodoId}
-                    isEmpty={(empty:boolean) => {}}
-                    selectedAreaId={selectedAreaId}
-                    selectedProjectId={selectedProjectId}
-                    dispatch={dispatch}    
-                    selectedCategory={"trash"}    
-                    selectedTag={selectedTag}  
-                    rootRef={rootRef}
-                    todos={deletedTodos}  
-                    searched={searched}
-                    tags={tags} 
-                /> 
+            <div style={{
+                paddingTop:"20px", 
+                paddingBottom:"20px",
+                position:"relative", 
+                width:"100%"
+            }}>
+                { 
+                    deletedTodos.map(
+                        (value:Todo,index) => <div
+                            key={value._id}
+                            style={{
+                                position:"relative", 
+                                marginTop:"5px",
+                                marginBottom:"5px"
+                            }}
+                        >
+                            <TodoInput   
+                                id={value._id}
+                                key={value._id}
+                                projects={projects}  
+                                dispatch={dispatch}  
+                                selectedProjectId={selectedProjectId}
+                                selectedAreaId={selectedAreaId} 
+                                todos={this.props.todos}
+                                selectedCategory={"trash"} 
+                                selectedTodoId={selectedTodoId}
+                                tags={tags} 
+                                searched={searched}
+                                rootRef={rootRef}  
+                                todo={value}
+                            />     
+                        </div>
+                    )
+                }
             </div>    
 
             <div style={{paddingTop:"10px", paddingBottom:"10px"}}>

@@ -14,9 +14,10 @@ import {
     compareByDate, getMonthName, byTags, isTodo, isProject, 
     byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems, assert, isArrayOfStrings 
 } from '../../utils';
-import { allPass, compose, or } from 'ramda';
+import { allPass, compose, or, assoc } from 'ramda';
 import { getProjectLink } from '../Project/ProjectLink';
 import { isDev } from '../../app';
+import { TodoInput } from '../TodoInput/TodoInput';
      
 
 interface LogbookProps{
@@ -35,26 +36,17 @@ interface LogbookProps{
 }
  
          
-interface LogbookState{ 
-   //groups:(Todo | Project)[][]
-}   
+interface LogbookState{}   
  
 
 export class Logbook extends Component<LogbookProps,LogbookState>{
 
     constructor(props){
         super(props);
-        /*this.state={
-            groups:null 
-        }*/
     }  
 
     shouldComponentUpdate(nextProps:LogbookProps,nextState:LogbookState){
         let should = false;
-
-        //if(nextState.groups!==this.state.groups){ 
-        //   should = true;
-        //}  
 
 
         if(nextProps.todos!==this.props.todos)
@@ -100,26 +92,8 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
            } 
         } 
         return groups;
-        //this.setState({groups});
     } 
  
-
-    /*componentDidMount(){
-        this.init(this.props);
-    }
- 
-    
-    componentWillReceiveProps(nextProps:LogbookProps){
-        if(this.props.todos!==nextProps.todos){
-           this.init(nextProps);
-        }
-        if(this.props.projects!==nextProps.projects){ 
-           this.init(nextProps);
-        }
-        if(this.props.selectedTag!==nextProps.selectedTag){
-           this.init(nextProps);
-        }
-    }*/ 
 
 
     groupByMonth = (props:LogbookProps) : (Todo | Project)[][] => {  
@@ -204,27 +178,40 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
             >  
                 {month}
             </div>
-
             <div style={{position:"relative", width:"100%"}}>
-                <TodosList  
-                    filters={[]}   
-                    isEmpty={(empty:boolean) => {}} 
-                    selectedTodoId={this.props.selectedTodoId}
-                    dispatch={this.props.dispatch}     
-                    selectedAreaId={this.props.selectedAreaId}
-                    selectedProjectId={this.props.selectedProjectId}
-                    searched={this.props.searched}
-                    selectedCategory={"logbook"}  
-                    areas={this.props.areas}
-                    projects={this.props.projects}
-                    selectedTag={this.props.selectedTag}  
-                    rootRef={this.props.rootRef}
-                    todos={todos}  
-                    tags={this.props.tags} 
-                />   
+                {
+                    todos
+                    .sort((a:Todo,b:Todo) => b.completed.getTime()-a.completed.getTime())
+                    .map(  
+                        (value:Todo,index) => <div 
+                            key={value._id}
+                            style={{
+                                position:"relative",
+                                marginTop:"5px",
+                                marginBottom:"5px"
+                            }}
+                        >
+                            <TodoInput   
+                                id={value._id}
+                                key={value._id}
+                                projects={this.props.projects}  
+                                dispatch={this.props.dispatch}  
+                                selectedProjectId={this.props.selectedProjectId}
+                                selectedAreaId={this.props.selectedAreaId} 
+                                todos={this.props.todos} 
+                                selectedCategory={"logbook"} 
+                                selectedTodoId={this.props.selectedTodoId}
+                                tags={this.props.tags} 
+                                searched={this.props.searched}
+                                rootRef={this.props.rootRef}  
+                                todo={value}
+                            />     
+                        </div>
+                    )
+                }   
             </div> 
 
-            <div>
+            <div> 
             {
                 projects.map(
                     (p:Project, index:number) => {
@@ -271,12 +258,18 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                               let todos:Todo[] = group.filter((item:Todo) => item.type==="todo");
                               let projects:Project[] = group.filter((item:Project) => item.type==="project"); 
                               let month:string = getMonthName(new Date(group[0].completed));
-
+                                  
                               return <div key={index}>
-                                {this.getComponent(month, todos, projects)}
-                              </div> 
+                                {
+                                    this.getComponent(
+                                        month, 
+                                        todos,
+                                        projects
+                                    )
+                                }
+                              </div>   
                           } 
-                        )  
+                        )   
                     }  
                     </div>
                 </div>

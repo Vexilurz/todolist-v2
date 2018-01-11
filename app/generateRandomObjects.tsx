@@ -102,7 +102,7 @@ let fakeTodo = (tags:string[]) : Todo => {
                        randomDate(new Date(), new Date()["addDays"](50)) : 
                        Math.random() > 0.8 ? new Date() :  
                        undefined, 
-        completed : checked ? randomDate(new Date(), new Date()["addDays"](50)) : null,
+        completed : checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,
         checked 
     });   
       

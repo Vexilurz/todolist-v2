@@ -276,6 +276,7 @@ interface TodosListProps{
     rootRef:HTMLElement,   
     todos:Todo[],  
     tags:string[], 
+    sortBy?:(a:Todo,b:Todo) => number,
     disabled?:boolean     
 }    
    
@@ -292,11 +293,16 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
     constructor(props){ 
         super(props);
+        let sortBy = isNil(this.props.sortBy) ? 
+                     (a:Todo,b:Todo) => a.priority-b.priority:
+                     this.props.sortBy;
+ 
         this.state={
+            
             todos:this.props 
                       .todos
                       .filter(allPass(this.props.filters)) 
-                      .sort((a:Todo,b:Todo) => a.priority-b.priority), 
+                      .sort(sortBy), 
             currentIndex:0,     
             helper:null, 
             showPlaceholder:false
@@ -305,10 +311,14 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         
     componentDidMount(){
 
+        let sortBy = isNil(this.props.sortBy) ? 
+                     (a:Todo,b:Todo) => a.priority-b.priority:
+                     this.props.sortBy;
+
         let todos = this.props 
                         .todos
                         .filter(allPass(this.props.filters)) 
-                        .sort((a:Todo,b:Todo) => a.priority-b.priority);
+                        .sort(sortBy);
                         
         if(typeof this.props.isEmpty==="function"){  
            this.props.isEmpty(todos.length===0);  
@@ -321,6 +331,10 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
     componentWillReceiveProps(nextProps:TodosListProps, nextState:TodosListState){
      
+        let sortBy = isNil(this.props.sortBy) ? 
+                     (a:Todo,b:Todo) => a.priority-b.priority:
+                     this.props.sortBy;
+
         if(    
             this.props.areas!==nextProps.areas ||
             this.props.projects!==nextProps.projects || 
@@ -330,7 +344,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             let todos = nextProps 
                         .todos    
                         .filter(allPass(nextProps.filters)) 
-                        .sort((a:Todo,b:Todo) => a.priority-b.priority);
+                        .sort(sortBy);
                 
             if(typeof nextProps.isEmpty==="function"){ 
                nextProps.isEmpty(todos.length===0);  
@@ -339,7 +353,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             this.setState({todos});    
         }  
     } 
- 
+    
   
 
     shouldComponentUpdate(nextProps:TodosListProps, nextState:TodosListState){
@@ -369,8 +383,8 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         if(this.state.showPlaceholder!==nextState.showPlaceholder)
            should=true;        
             
-        return should;
-    }  
+        return should; 
+    }   
     
 
      

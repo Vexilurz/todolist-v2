@@ -57,7 +57,7 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
 
-
+ 
 
 export interface TodoInputState{
     open : boolean,
@@ -69,9 +69,12 @@ export interface TodoInputState{
     reminder : Date,
     deadline : Date,
     deleted : Date,
-    attachedDate : Date, 
+    attachedDate : Date,  
     attachedTags : string[],
     tag : string, 
+    translateX : number,
+    display : string,
+    opacity:number,
     checklist : ChecklistItem[],
     showAdditionalTags : boolean, 
     showDateCalendar : boolean,  
@@ -130,6 +133,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             category, 
             title,
             note,  
+            display:"flex",
+            translateX:0,
+            opacity:1,
             checked, 
             completed,
             reminder, 
@@ -137,7 +143,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             deleted, 
             attachedDate, 
             attachedTags, 
-            checklist,
+            checklist, 
             showAdditionalTags : false, 
             showDateCalendar : false,  
             showTagsSelection : false, 
@@ -389,20 +395,52 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
     onTitleChange = (event) :void => this.setState({title:event.target.value});
+    
+
+
+    animateSlideAway = () : Promise<void> => new Promise(resolve => {
+        let step = () => {
+            let translateX = this.state.translateX-30;
+            let opacity = 1 - (translateX/100); 
+            this.setState(
+                {translateX,opacity},
+                () =>   
+                        this.state.translateX<=-100 ?
+                        this.setState(
+                            {display:"none"}, 
+                            () => resolve()
+                        ) :
+                        requestAnimationFrame(step)
+            ); 
+        } 
+            
+        step();  
+    })
+    
      
  
     onCheckBoxClick = debounce(() => {   
-        if(!this.state.open && !this.props.creation){   
-            let checked : boolean = !this.state.checked; 
-            this.setState( 
+        let { selectedCategory, creation } = this.props;
+        let { checked, open } = this.state;
+        let shouldAnimateSlideAway = not(checked) && 
+                                     selectedCategory!=="logbook" &&  
+                                     selectedCategory!=="trash"; 
+         
+        if(not(open) && not(creation)){   
+            let isChecked : boolean = !checked; 
+            this.setState(   
                 { 
-                  checked:checked, 
-                  completed:checked ? new Date() : null
+                  checked:isChecked,  
+                  completed:isChecked ? new Date() : null
                 },  
-                () => this.updateTodo()
-            );  
-        } 
-    },50) 
+                () => shouldAnimateSlideAway ?   
+                      this
+                      .animateSlideAway()
+                      .then(() => setTimeout(() => this.updateTodo(), 0)) : 
+                      this.updateTodo() 
+            )    
+        }   
+    },50)  
     
     
     onRightClickMenu = (e) => { 
@@ -546,47 +584,48 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         let daysLeft = 0;
         let flagColor = "rgba(100,100,100,0.7)";
-        
-        if(!isNil(deadline)){ 
+
+        if(!isNil(deadline)){    
             daysLeft = daysRemaining(deadline);      
             flagColor = daysLeft <= 1  ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
-        }
-         
+        } 
+        
         return  <div      
             id={id}    
             onKeyDown={this.onWindowEnterPress}
             onContextMenu={this.onRightClickMenu}
             style={{    
                 marginTop:"5px", 
-                marginBottom:"5px", 
-                width:"100%",         
-                display:"flex",    
+                marginBottom:"5px",  
+                width:"100%",   
                 WebkitUserSelect:"none",
-                position:"relative", 
-                alignItems:"center",   
-                justifyContent:"center"
+                display:this.state.display,     
+                transform:`translateX(${this.state.translateX}%)`, 
+                opacity:this.state.opacity,
+                position:"relative",     
+                alignItems:"center",    
+                justifyContent:"center" 
             }}   
-        >    
+        >     
            
         <div    
             onClick={(e) => {e.stopPropagation();}}   
-            ref={(e) => {this.ref=e;}}  
+            ref={(e) => {this.ref=e;}}   
             style={{             
                 width:"100%",   
                 display:"inline-block", 
                 transition: "box-shadow 0.2s ease-in-out, max-height 0.2s ease-in-out", 
-                maxHeight:open ? "1000px" : "65px",
+                maxHeight:open ? "1000px" : "70px",
                 boxShadow:open ? "rgba(156, 156, 156, 0.3) 0px 0px 20px" : "", 
                 borderRadius:"5px", 
             }}   
         >        
-            <div
+            <div 
                 className={open ? "" : "tasklist"}
                 style={{    
                     paddingLeft:"20px", 
                     paddingRight:"20px",   
                     transition: "max-height 0.2s ease-in-out", 
-                    //maxHeight:open ? "1000px" : "60px",
                     paddingTop:padding,
                     paddingBottom:padding, 
                     caretColor:"cornflowerblue",   
@@ -604,7 +643,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     onCheckBoxClick={this.onCheckBoxClick}
                     onTitleChange={this.onTitleChange}
                     open={open}
-                    deleted={deleted}
+                    deleted={deleted} 
                     rootRef={this.props.rootRef}
                     checked={checked}
                     category={category}
@@ -1125,16 +1164,18 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                     isNil(this.inputRef) ||
                     isNil(this.ref) ||
                     isNil(this.labelRef)
-                ){ return; }
+                ){ 
+                    return
+                }
 
                 let container = this.ref.getBoundingClientRect();
                 let input = this.inputRef.getBoundingClientRect();
                 let label = this.labelRef.getBoundingClientRect();
 
-                if(
-                    input.width>multiply(container.width, 1/2)
+                if( 
+                    input.width>multiply(container.width, 2/3)
                 ){
-                   this.setState({overflow:true});
+                   this.setState({overflow:true}); 
                 }else{    
                    this.setState({overflow:false}); 
                 }    
@@ -1144,7 +1185,7 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
         this.ro.observe(this.ref);    
     }
 
-
+     
     suspendRo = () => { 
         this.ro.disconnect();
         this.ro = undefined;
@@ -1157,7 +1198,7 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
 
 
     componentWillUnmount(){
-        this.suspendRo();
+        this.suspendRo(); 
     } 
 
  
@@ -1188,7 +1229,7 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                 display:"flex",    
                 alignItems:this.state.overflow ? "flex-start" : "center", 
                 flexDirection:this.state.overflow ? "column" : "row",
-                overflow:"hidden" 
+                overflow: this.state.overflow ? "hidden" : "visible"
             }}>    
                 <div  
                   ref={(e) => {this.inputRef=e;}}
@@ -1215,14 +1256,11 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                         open ? null :       
                         <DueDate  
                             category={category} 
-                            date={attachedDate} 
+                            date={attachedDate}  
                             selectedCategory={selectedCategory}
                         />
                     }  
-                    <div 
-                        style={{overflowX:"hidden"}} 
-                        ref={this.props.setInputRef}
-                    >     
+                    <div ref={this.props.setInputRef}>     
                         <AutosizeInput   
                             type="text"
                             name="form-field-name"  
@@ -1245,7 +1283,7 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                             onChange={this.props.onTitleChange} 
                         /> 
                     </div>
-                </div>
+                </div> 
                 
                 <div style={{
                     height:"20px",
@@ -1260,9 +1298,9 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                         isEmpty(attachedTags) ? null :
                         <div style={{}}>
                           <AdditionalTags   
-                              attachedTags={attachedTags}   
-                              showAdditionalTags={false} //showAdditionalTags
-                              open={open} 
+                              attachedTags={attachedTags}      
+                              showAdditionalTags={this.state.overflow ? false : showAdditionalTags}
+                              open={open}  
                               onMouseOver={this.props.onAdditionalTagsHover as any}
                               onMouseOut={this.props.onAdditionalTagsOut as any} 
                               onMouseDown={this.props.onAdditionalTagsPress as any}  
