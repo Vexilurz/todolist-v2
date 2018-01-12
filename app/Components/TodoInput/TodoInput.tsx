@@ -203,12 +203,15 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }   
  
 
-    onFieldsContainerClick = () => {     
+    onFieldsContainerClick = () => {        
         this.preventDragOfThisItem();
-        if(!this.state.open){ 
-            this.setState({open:true,showAdditionalTags:false});   
-        }   
-    } 
+        if(!this.state.open){  
+            this.setState({ 
+                open:true, 
+                showAdditionalTags:false 
+            });    
+        }
+    }  
      
 
     onWindowEnterPress = (e) => { 
@@ -257,7 +260,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }    
 
 
-    updateTodo = () => {
+    updateTodo = () => { 
         let todo : Todo = this.todoFromState();  
 
         if(todoChanged(this.props.todo,todo)){
@@ -583,7 +586,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
  
         let {selectedCategory, id, todo} = this.props; 
 
-    
+        
         let todayCategory : boolean = category==="evening" || category==="today";   
         let relatedProjectName = this.getRelatedProjectName();
         let removePadding = isNil(relatedProjectName) || selectedCategory==="project";
@@ -593,14 +596,16 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let daysLeft = 0;
         let flagColor = "rgba(100,100,100,0.7)";
 
-        if(!isNil(deadline)){    
+
+        if(!isNil(deadline)){     
             daysLeft = daysRemaining(deadline);      
             flagColor = daysLeft <= 1  ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
         }   
         
-        return  <div      
+
+        return  <div       
             id={id}    
-            onKeyDown={this.onWindowEnterPress}
+            onKeyDown={this.onWindowEnterPress}  
             onContextMenu={this.onRightClickMenu}
             style={{    
                 marginTop:"5px", 
@@ -610,23 +615,21 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 display:this.state.display,     
                 transform:`translateX(${this.state.translateX}%)`, 
                 opacity:this.state.opacity,
-                position:"relative",     
                 alignItems:"center",    
                 justifyContent:"center" 
             }}   
         >     
-           
         <div    
-            onClick={(e) => {e.stopPropagation();}}   
+            //onClick={(e) => {e.stopPropagation();}}   
             ref={(e) => {this.ref=e;}}   
             style={{             
                 width:"100%",   
                 display:"inline-block", 
-                transition: "box-shadow 0.2s ease-in-out, max-height 0.2s ease-in-out", 
+                transition:"box-shadow 0.2s ease-in-out, max-height 0.2s ease-in-out", 
                 maxHeight:open ? "1000px" : "70px",
                 boxShadow:open ? "rgba(156, 156, 156, 0.3) 0px 0px 20px" : "", 
                 borderRadius:"5px", 
-            }}   
+            }}    
         >        
             <div 
                 className={open ? "" : "tasklist"}
@@ -638,9 +641,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     paddingBottom:padding, 
                     caretColor:"cornflowerblue",   
                     display:"flex"
-                }}    
-                onClick={this.onFieldsContainerClick} 
-            >         
+                }}     
+                onMouseUp={this.onFieldsContainerClick} 
+            >          
             <div style={{display:"flex", flexDirection:"column",  padding:"2px", width:"100%"}}>
                 <TodoInputTopLevel 
                     onAdditionalTagsHover={(e) => this.setState({showAdditionalTags:true})}
@@ -678,8 +681,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         checklist={checklist}
                         attachedTags={attachedTags} 
                     /> 
-                } 
-              
+                }  
             </div>   
         </div>   
         {
@@ -1205,7 +1207,7 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                 let container = this.ref.getBoundingClientRect();
                 let input = this.inputRef.getBoundingClientRect();
                 let label = this.labelRef.getBoundingClientRect();
-                let threshold = (container.width/100) * 65;
+                let threshold = (container.width/100) * 50;
  
                 if( 
                     input.width>threshold
@@ -1353,8 +1355,10 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                                 display:"flex", 
                                 cursor:"default",    
                                 pointerEvents:"none", 
-                                alignItems:"center",  
-                                height:"100%"
+                                alignItems:"center",   
+                                height:"100%",
+                                flexGrow:1,  
+                                justifyContent:"flex-end" 
                             }} 
                         > 
                             <div style={{paddingRight:"5px", paddingTop:"5px"}}> 

@@ -631,8 +631,10 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
         left: this.scrollContainer.scrollLeft - this.initialScroll.left,
         top: this.scrollContainer.scrollTop - this.initialScroll.top,
       };
+
+
       const sortingOffset = {
-        left: this.offsetEdge.left + this.translate.x + deltaScroll.left,
+        left: this.offsetEdge.left + this.translate.x + deltaScroll.left          + this.scrollContainer.offsetTop,
         top: this.offsetEdge.top + this.translate.y + deltaScroll.top,
       };
       const scrollDifference = {
@@ -789,6 +791,9 @@ export default function SortableContainer(WrappedComponent, config = {withRef: f
         this.newIndex = this.index;
       } 
     }  
+
+
+
 
     autoscroll = (e) => {
       const translate = this.translate;

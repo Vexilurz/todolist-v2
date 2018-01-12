@@ -2,7 +2,7 @@
   "name": "tasklist",
   "version": "1.0.0",
   "description": "tasklist",
-  "main": "dist/main.js",   
+  "main": "dist/main.js",
   "scripts": {
     "start": "electron .",
     "pack": "build --win",
@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "calculate-size": "^1.1.1",
+    "deep-diff": "^0.3.8",
     "electron-log": "^2.2.13",
     "electron-updater": "^2.17.6",
     "file-loader": "^0.11.2",

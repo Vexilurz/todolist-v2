@@ -35,7 +35,7 @@ export let isDev = () => true;
 (() => {     
     let app=document.createElement('div'); 
     app.id='application';     
-    document.body.appendChild(app);   
+    document.body.appendChild(app);    
 })();  
  
 

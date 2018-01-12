@@ -144,15 +144,15 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     initDB();
 
                     let fakeData = generateRandomDatabase({ 
-                        todos : 140,  
-                        projects : 38,  
+                        todos : 150,  
+                        projects : 18,  
                         areas : 5 
                     });     
-                    
+                     
                     let todos = fakeData.todos;
                     let projects = fakeData.projects; 
                     let areas = fakeData.areas; 
-                    
+                     
                     Promise.all([
                         addTodos(this.onError,todos),    
                         addProjects(this.onError,projects), 

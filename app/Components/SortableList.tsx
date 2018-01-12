@@ -7,6 +7,11 @@ import SortableContainer from '../sortable-hoc/sortableContainer';
 import SortableElement from '../sortable-hoc/sortableElement';
 import SortableHandle from '../sortable-hoc/sortableHandle';
 import {arrayMove} from '../sortable-hoc/utils';
+import { equals } from 'ramda';
+import {default as dDiff} from 'deep-diff'
+
+
+ 
  
 export interface Data {oldIndex : number, newIndex : number, collection:any[]}
 
@@ -70,12 +75,12 @@ export class SortableList extends Component<SortableListProps, SortableListState
     shouldComponentUpdate(nextProps:SortableListProps){
         let should = false;
 
-        if(nextProps.items!==this.props.items)
-            should=true; 
-         
+        should = !equals(nextProps.items,this.props.items)
+  
+  
         if(nextProps.container!==this.props.container)
-            should=true;
-
+           should=true;
+        
         return should;  
     } 
 
@@ -83,11 +88,11 @@ export class SortableList extends Component<SortableListProps, SortableListState
     getSortableContainer = () => {
 
         let Container = SortableContainer(({items}) => this.getSortableList(items),{withRef:true});
-         
-        return <Container 
-            axis='y'   
+        console.log(this.props.container);  
+        return <Container  
+            axis='y'    
             getContainer={() => this.props.container ? this.props.container : document.body} 
-            shouldCancelStart={this.props.shouldCancelStart}
+            shouldCancelStart={this.props.shouldCancelStart}   
             shouldCancelAnimation={this.props.shouldCancelAnimation}
             hideSortableGhost={true} 
             lockToContainerEdges={this.props.lockToContainerEdges}  
@@ -99,7 +104,7 @@ export class SortableList extends Component<SortableListProps, SortableListState
             onSortMove={this.props.onSortMove}  
             onSortStart={this.props.onSortStart}
         /> 
-    }
+    }  
 
  
     render(){

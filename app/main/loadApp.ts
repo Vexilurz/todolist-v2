@@ -3,7 +3,7 @@ import { mainWindow } from "./main";
 import fs = require('fs');    
     
 export let dev = () : boolean => true; 
-   
+    
 let templateLoader = (
     onDidFinishLoad : Function,  
     onDidFailLoad : Function,  

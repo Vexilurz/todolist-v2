@@ -600,7 +600,7 @@ export let byCompleted = (item:Project | Todo) : boolean => {
  
 }  
 
-
+ 
    
 export let byTags = (selectedTag:string) => (item:Item) : boolean => { 
 
@@ -636,11 +636,6 @@ export let byCategory = (selectedCategory:Category) => (item:Todo) : boolean => 
         }
     }
  
-    if(item.type!=="todo"){
-        if(isDev()){ 
-           throw new Error(`item is not of type Todo. ${JSON.stringify(item)}. ${selectedCategory}. byCategory.`);
-        }
-    }
 
     return item.category===selectedCategory;
 

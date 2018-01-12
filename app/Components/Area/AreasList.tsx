@@ -129,8 +129,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     shouldComponentUpdate(nextProps:AreasListProps){
 
-        let should = false;
-
         let {
             leftPanelWidth,
             dragged,
@@ -150,10 +148,10 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             areas!==nextProps.areas ||  
             projects!==nextProps.projects 
         ){
-            should = true;
-        } 
+            return true;
+        }  
 
-        return should;  
+        return false;  
     }
 
     selectArea = (a:Area) => {

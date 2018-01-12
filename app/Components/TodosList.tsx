@@ -13,7 +13,8 @@ import {
     generateEmptyTodo,
     isString,
     isCategory,
-    assert
+    assert,
+    isTodo
 } from '../utils';  
 import { RightClickMenu } from './RightClickMenu';
 import SortableContainer from '../sortable-hoc/sortableContainer';
@@ -23,10 +24,34 @@ import { arrayMove } from '../sortable-hoc/utils';
 import { byTags, byCategory } from '../utils'; 
 import { SortableList } from './SortableList';
 import { TodoInput } from './TodoInput/TodoInput';
-import { allPass, isNil, prepend, isEmpty, compose, map, assoc, contains, remove, not } from 'ramda';
+import { allPass, isNil, prepend, isEmpty, compose, map, assoc, contains, remove, not, equals } from 'ramda';
 import { Category } from './MainContainer';
 import { isDev } from '../app';
 import { calculateAmount } from './LeftPanel/LeftPanel';
+import { indexToPriority } from './Categories/Today';
+
+
+
+export let getPlaceholderOffset = (nodes, currentIndex) : number => {
+    let placeholderOffset = 0;
+
+    if(isEmpty(nodes)){ return placeholderOffset } 
+
+    for(let i=0; i<currentIndex; i++){
+
+        if(isNil(nodes[i])){ continue }   
+
+        let target = nodes[i]["node"];
+
+        if(typeof target.getBoundingClientRect === "function"){
+            let box = target.getBoundingClientRect();  
+            placeholderOffset = placeholderOffset+box.height;
+        }
+    }
+    
+    return placeholderOffset;
+}
+
 
 
 let findRelatedAreas = (areas:Area[], t:Todo) : Area[] => {
@@ -259,8 +284,6 @@ export let onDrop = (
 
 
 
-
-
 interface TodosListProps{ 
     dispatch:Function,
     filters:( (t:Todo) => boolean )[],
@@ -275,124 +298,54 @@ interface TodosListProps{
     selectedAreaId:string,  
     rootRef:HTMLElement,   
     todos:Todo[],  
-    tags:string[], 
-    sortBy?:(a:Todo,b:Todo) => number,
+    tags:string[],
     disabled?:boolean     
 }    
-   
+
+
   
 interface TodosListState{
-    todos:Todo[],
     nodes:HTMLElement[],
     currentIndex:number, 
-    placeholderHeight:number,
-    helper:HTMLElement,
+    helper:HTMLElement, 
     showPlaceholder:boolean 
 }
-      
+  
+
    
 export class TodosList extends Component<TodosListProps, TodosListState>{
 
     constructor(props){ 
         super(props);
-        let sortBy = isNil(this.props.sortBy) ? 
-                     (a:Todo,b:Todo) => a.priority-b.priority:
-                     this.props.sortBy;
- 
+
         this.state={
-            placeholderHeight:0,
             nodes:[],
-            todos:this.props 
-                      .todos
-                      .filter(allPass(this.props.filters)) 
-                      .sort(sortBy), 
             currentIndex:0,     
-            helper:null, 
+            helper:null,
             showPlaceholder:false
         };  
     }   
-        
-    componentDidMount(){
-
-        let sortBy = isNil(this.props.sortBy) ? 
-                     (a:Todo,b:Todo) => a.priority-b.priority:
-                     this.props.sortBy;
-
-        let todos = this.props 
-                        .todos
-                        .filter(allPass(this.props.filters)) 
-                        .sort(sortBy);
-                        
-        if(typeof this.props.isEmpty==="function"){  
-           this.props.isEmpty(todos.length===0);  
-        }
-        
-        this.setState({todos});  
-    }  
-
-
-
-    componentWillReceiveProps(nextProps:TodosListProps, nextState:TodosListState){
      
-        let sortBy = isNil(this.props.sortBy) ? 
-                     (a:Todo,b:Todo) => a.priority-b.priority:
-                     this.props.sortBy;
-
-        if(    
-            this.props.areas!==nextProps.areas ||
-            this.props.projects!==nextProps.projects || 
-            this.props.todos!==nextProps.todos ||  
-            this.props.selectedTag!==nextProps.selectedTag 
-        ){  
-            let todos = nextProps 
-                        .todos    
-                        .filter(allPass(nextProps.filters)) 
-                        .sort(sortBy);
-                
-            if(typeof nextProps.isEmpty==="function"){ 
-               nextProps.isEmpty(todos.length===0);  
-            }      
-             
-            this.setState({todos});    
-        }  
-    } 
-    
-  
-
     shouldComponentUpdate(nextProps:TodosListProps, nextState:TodosListState){
-        let should = false; 
 
-        if(this.props.todos!==nextProps.todos) 
-           should=true;   
-  
-        if(this.props.projects!==nextProps.projects) 
-           should=true;   
+        if(
+            this.props.todos!==nextProps.todos ||
+            this.props.projects!==nextProps.projects ||
+            this.props.areas!==nextProps.areas ||
+            this.props.selectedTag!==nextProps.selectedTag ||
+            this.props.todos!==nextProps.todos ||
 
-        if(this.props.areas!==nextProps.areas) 
-           should=true;   
-
-        if(this.props.selectedTag!==nextProps.selectedTag)
-           should=true;   
-
-        if(this.state.todos!==nextState.todos)
-           should=true;    
- 
-        if(this.state.currentIndex!==nextState.currentIndex)
-           should=true;   
-
-        if(this.state.helper!==nextState.helper)
-           should=true;     
-       
-        if(this.state.showPlaceholder!==nextState.showPlaceholder)
-           should=true;        
-            
-        return should; 
+            this.state.currentIndex!==nextState.currentIndex ||
+            this.state.nodes!==nextState.nodes || 
+            this.state.showPlaceholder!==nextState.showPlaceholder 
+        ){  
+            return true 
+        }
+           
+        return false 
     }   
     
-
-     
     getTodoElement = (value:Todo, index:number) => {
-       
         return  <div style={{position:"relative"}}> 
                     <TodoInput   
                         id={value._id}
@@ -413,51 +366,47 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
     }
        
 
- 
     shouldCancelStart = (e) => {
- 
-        if(this.props.disabled)
-           return true;
+
+        if(this.props.disabled){ return true }
 
         let nodes = [].slice.call(e.path);
 
         for(let i=0; i<nodes.length; i++)
-            if(nodes[i].preventDrag)
-               return true;
-         
-
-        return false; 
-    } 
+            if(nodes[i].preventDrag){
+               return true 
+            }
+          
+        return false
+    }  
      
-      
 
     shouldCancelAnimation = (e) => {
+        let {disabled, rootRef} = this.props;
  
-        if(this.props.disabled)
-           return true;
+        if(disabled || isNil(rootRef)){
+            return
+        }
 
-        if(!this.props.rootRef)
-            return true;
-
-        let rect = this.props.rootRef.getBoundingClientRect();    
-
-        let x = e.pageX;
-
-        return x < rect.left;   
-    } 
+        return e.pageX < rootRef.getBoundingClientRect().left;   
+    }  
 
 
- 
+    
+
 
     onSortStart = ({node, index, collection}, e, helper) => { 
+        let {todos,filters} = this.props;
         let box = helper.getBoundingClientRect();
+        let selected = todos
+                       .filter(allPass(filters))
+                       .sort((a:Todo,b:Todo) => a.priority-b.priority); 
 
-        this.setState({showPlaceholder:true, placeholderHeight:box.height});
-        let draggedTodo = this.state.todos[index];
-        assert(not(isNil(draggedTodo)), `draggedTodo undefined. ${index}. onSortStart. TodosList.`);
-          
-        this.props.dispatch({type:"dragged",load:draggedTodo.type});
-         
+        this.setState(
+            {showPlaceholder:true, helper},
+            () => this.props.dispatch({type:"dragged",load:selected[index].type})
+        ); 
+
         let offset = e.clientX - box.left;
 
         let el = generateDropStyle("nested"); 
@@ -468,15 +417,15 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         helper.appendChild(el);  
     }
     
-
     
  
     onSortMove = (e, helper : HTMLElement, newIndex:number, oldIndex:number, nodes:HTMLElement[]) => {
         let x = e.clientX;  
         let y = e.clientY; 
         
-        if(newIndex!==this.state.currentIndex) 
-           this.setState({currentIndex:newIndex,helper,nodes});   
+        if(newIndex!==this.state.currentIndex){ 
+           this.setState({currentIndex:newIndex,helper,nodes}); 
+        }  
 
         let leftpanel = document.getElementById("leftpanel");
         let nested = document.getElementById("nested");
@@ -493,109 +442,85 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
     }
 
 
-     
-    
 
     onSortEnd = ({oldIndex, newIndex, collection}, e) => { 
         this.setState({showPlaceholder:false});
 
+        let {todos, filters, dispatch, areas, projects} = this.props;
         let x = e.clientX; 
         let y = e.clientY;  
-        let draggedTodo = this.state.todos[oldIndex];
 
-        if(isEmpty(draggedTodo.title)) 
-           return;
+        let selected = todos
+                       .filter(allPass(filters))
+                       .sort((a:Todo,b:Todo) => a.priority-b.priority); 
+
+        let draggedTodo = selected[oldIndex];
+
+        if(isEmpty(draggedTodo.title)){ return }
   
-        this.props.dispatch({type:"dragged",load:null}); 
+        dispatch({type:"dragged",load:null}); 
 
         let leftpanel = document.getElementById("leftpanel");
 
-        if(insideTargetArea(leftpanel,x,y)){   
-            onDrop(
-                e, 
-                draggedTodo, 
-                this.props.dispatch,
-                this.props.areas,
-                this.props.projects, 
-            ) 
+        if(insideTargetArea(leftpanel,x,y) && isTodo(draggedTodo)){  
+
+            onDrop(e,draggedTodo,dispatch,areas,projects) 
+
         }else{     
-            if(oldIndex===newIndex)
-               return; 
-                      
-            this.changeOrder(oldIndex,newIndex); 
-        }   
+            if(oldIndex===newIndex){ return }
+
+            this.changeOrder(oldIndex,newIndex,selected) 
+        }    
     }  
 
      
 
-    changeOrder = (oldIndex,newIndex) => {
-        let load = arrayMove([...this.state.todos],oldIndex,newIndex);
-        
-        for(let i=0; i<load.length; i++){ 
-            let todo : Todo = load[i]; 
-            todo.priority = i;   
-        }
-        
-        this.props.dispatch({type:"updateTodos", load});
+    changeOrder = (oldIndex,newIndex,selected) => {
+        let load = indexToPriority(arrayMove(selected,oldIndex,newIndex)); 
+        this.props.dispatch({type:"updateTodos", load:load.filter(isTodo)});
     }
  
-
+  
+    
         
     render(){    
-        let placeholderOffset = 0;
-        let nodes = this.state.nodes;
-
-        for(let i=0; i<this.state.currentIndex; i++){
-            if(isNil(nodes[i])){ continue }   
-             
-            if(typeof nodes[i]["node"].getBoundingClientRect === "function"){
-                let box = nodes[i]["node"].getBoundingClientRect();  
-                placeholderOffset=placeholderOffset+box.height;
-            }
-        } 
- 
-        if(isDev()){
-            let amount = calculateAmount(this.props.areas,this.props.projects,this.props.todos);
-            if(this.props.selectedCategory==="inbox"){
-                assert(
-                  amount.inbox===this.state.todos.length, 
-                 `Incorrect amount ${amount.inbox}. TodosList. 
-                  Inbox. ${JSON.stringify(this.state.todos)}`
-                );     
-            }else if(this.props.selectedCategory==="trash"){
-                assert(
-                  amount.trash===this.state.todos.length, 
-                 `Incorrect amount. TodosList. 
-                  Trash. ${JSON.stringify(this.state.todos)}` 
-                );    
-            }   
-        } 
-
+        let {todos, filters, selectedCategory} = this.props;
+        let {helper,showPlaceholder, nodes, currentIndex} = this.state;
+        let offset = getPlaceholderOffset(nodes,currentIndex);
+        let height = helper ? helper.getBoundingClientRect().height : 0;
+        let selected = todos
+                       .filter(allPass(filters))
+                       .sort((a:Todo,b:Todo) => a.priority-b.priority); 
 
         return <div style={{WebkitUserSelect:"none",position:"relative"}}>   
             <Placeholder   
-                offset={placeholderOffset} 
-                height={this.state.placeholderHeight}  
-                show={this.state.showPlaceholder}
-            />   
+                offset={offset} 
+                height={height}  
+                show={showPlaceholder}
+            />    
             <SortableList    
-                getElement={this.getTodoElement}
+                getElement={this.getTodoElement }
                 container={this.props.rootRef} 
-                items={this.state.todos}   
-                shouldCancelStart={this.shouldCancelStart}    
-                shouldCancelAnimation={this.shouldCancelAnimation}
-                onSortEnd={this.onSortEnd}    
+                items={selected}    
+                shouldCancelStart={this.shouldCancelStart as any}    
+                shouldCancelAnimation={this.shouldCancelAnimation as any}
+                onSortEnd={this.onSortEnd as any}    
                 onSortMove={this.onSortMove as any}  
-                onSortStart={this.onSortStart}  
+                onSortStart={this.onSortStart as any}  
                 lockToContainerEdges={false}
-                distance={5}   
+                distance={1}    
                 useDragHandle={false}
                 lock={false}
             />  
-        </div> 
+        </div>  
     }   
 }    
  
+
+
+
+
+
 
 interface PlaceholderProps{
     offset:number,

@@ -34,6 +34,7 @@ import { equals, allPass, isEmpty, isNil, not } from 'ramda';
 import { onDrop, Placeholder } from '../TodosList';
 import { isDev } from '../../app';
 import { SortableElement } from '../../sortable/CustomSortableElement';
+import { SortableContainer } from '../../sortable/CustomSortableContainer';
 
 
  
@@ -311,7 +312,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let placeholderOffset = this.calculatePlaceholderOffset();
         let placeholderHeight = 30;
          
-        return <div style={{WebkitUserSelect:"none", position:"relative"}}>  
+        return <div style={{WebkitUserSelect:"none"}}>  
             <div>  
                 <TodoInput    
                     id={empty._id}
@@ -329,8 +330,18 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     todo={empty}
                     creation={true}
                 />   
-            </div>   
-            <Placeholder    
+            </div>    
+
+            <SortableContainer
+                getElement={this.getElement}
+                items={this.props.items}
+                shouldCancelStart={this.shouldCancelStart}
+                shouldCancelAnimation={this.shouldCancelAnimation}
+                rootRef={this.props.rootRef}
+            />   
+ 
+            
+            {/*<Placeholder    
                 height={placeholderHeight} 
                 offset={placeholderOffset}
                 show={this.state.showPlaceholder}
@@ -351,7 +362,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 selectedProjectId={this.props.selectedProjectId}
                 selectedTodoId={this.props.selectedTodoId}
                 selectedTag={this.props.selectedTag}
-            />    
+            />*/}    
             {
                 /*<SortableList  
                     getElement={this.getElement}
