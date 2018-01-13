@@ -6,9 +6,8 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-//import { SortableElement } from './CustomSortableElement';
 import { insideTargetArea, assert } from '../utils';
-import { isEmpty, not, contains } from 'ramda';
+import { isEmpty, not, contains, isNil } from 'ramda';
   
 
 interface Data{
@@ -20,6 +19,18 @@ interface Data{
     currentIndex:number, 
     item?:any     
 } 
+
+
+let hideElement = (node:HTMLElement) : void => {
+    node.style.visibility = 'hidden';
+    node.style.opacity = '0';  
+}
+
+
+let showElement = (node:HTMLElement) : void => {
+    node.style.visibility = 'visible';
+    node.style.opacity = '1';  
+}
 
 
 
@@ -37,6 +48,126 @@ let match = (nodes:HTMLElement[],items:{_id:string}[]) : boolean => {
 
     return true;
 }
+
+
+
+let cloneOne = (node:HTMLElement) : HTMLElement => {
+    const fields = node.querySelectorAll('input, textarea, select');
+    const clone = node.cloneNode(true) as HTMLElement;
+    const {top,left,width,height} = node.getBoundingClientRect();
+    const clonedFields = [...clone.querySelectorAll('input, textarea, select')];
+
+    clonedFields.forEach((field:any, index) => {
+      if(field.type !== 'file' && fields[index]) {
+         field.value = fields[index]["value"];
+      }
+    }); 
+
+    clone.style.position = 'fixed';
+    clone.style.top = `${top}px`;
+    clone.style.left = `${left}px`;
+    clone.style.width = `${width}px`;
+    clone.style.height = `${height}px`;
+    clone.style.boxSizing = 'border-box';
+    clone.style.pointerEvents = 'none';
+    clone.style.zIndex = '200000';
+    clone.style.userSelect = "none"; 
+
+    clone.onselectstart='return false;' as any;
+    
+    return clone;
+}
+
+
+
+let cloneMany = (nodes:HTMLElement[]) : HTMLElement => {
+    let container = document.createElement('div');
+    let containerWidth = 0;
+    let containerHeight = 0;
+    let containerTop = 0;
+    let containerLeft = 0;
+
+    let first = nodes[0];
+    let {top,left} = first.getBoundingClientRect();
+      
+    containerTop = top; 
+    containerLeft = left;
+
+    for(let i=0; i<nodes.length; i++){
+        let node = nodes[i];
+        let fields = node.querySelectorAll('input, textarea, select');
+        let clone = node.cloneNode(true) as HTMLElement;
+        let {top,left,width,height} = node.getBoundingClientRect();
+        let clonedFields = [...clone.querySelectorAll('input, textarea, select')];
+
+        clonedFields.forEach((field:any, index) => {
+          if(field.type !== 'file' && fields[index]) {
+             field.value = fields[index]["value"];
+          }  
+        }); 
+           
+        containerHeight = containerHeight + height;
+        containerWidth = containerWidth < width ? width : containerWidth
+
+        clone.style.position = 'relative';
+
+        container.appendChild(clone);
+    }
+
+    container.style.position = 'fixed';
+    container.style.top = `${containerTop}px`;
+    container.style.left = `${containerLeft}px`;
+    container.style.width = `${containerWidth}px`;
+    container.style.height = `${containerHeight}px`;
+    container.style.boxSizing = 'border-box';
+    container.style.pointerEvents = 'none';
+    container.style.zIndex = '200000';
+    container.style.userSelect = "none"; 
+
+    container.onselectstart='return false;' as any;
+    
+    return container;  
+}   
+
+
+ 
+let cloneSelectedElements = (
+    nodes:HTMLElement[],
+    indices:number[] 
+) : {selectedElements:HTMLElement[], clone:HTMLElement}  => {
+   
+    if(indices.length===1){
+        
+       let index = indices[0]; 
+       let node = nodes[index];
+       let clone = cloneOne(node);
+       
+       return { selectedElements:[node], clone };
+
+    }else if(indices.length>1){ 
+       
+       let selected = nodes.filter((node,index) => contains(index)(indices));  
+       let clone = cloneMany(selected);   
+ 
+       return { selectedElements:selected, clone }; 
+    } 
+}
+
+
+
+let getNodes = (ref) : HTMLElement[] => {
+
+    assert(!isNil(ref), `ref is Nil. getNodes.`);
+    return [].slice.call(ref.children);
+};
+
+
+
+
+
+
+
+
 
 
 
@@ -90,9 +221,17 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         };    
     }
 
+
+
+    onError = (error) => console.log(error)
+
+
+
     componentDidMount(){ 
         this.init();
     }  
+
+
 
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
@@ -100,17 +239,16 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     } 
 
 
-    onError = (error) => console.log(error)
-
-    getNodes = () : HTMLElement[] => [].slice.call(this.ref.children)
 
     getNodesToBeAnimated = () : HTMLElement[] => {
         let selectedNodesIds = this.selected.map( node => node.id );
-        return this.getNodes().filter((node:any) => !contains(node.id)(selectedNodesIds));
+        return getNodes(this.ref).filter((node:any) => !contains(node.id)(selectedNodesIds));
     }
     
+
+
     indexFromClick = (event:any) : number => {
-        let nodes = this.getNodes();
+        let nodes = getNodes(this.ref);
         let x = event.clientX;
         let y = event.clientY;
 
@@ -124,6 +262,8 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
  
         return -1; 
     }    
+
+
 
     inside = (event:any) : boolean => {
        let inside = this.indexFromClick(event)!==-1;
@@ -193,27 +333,39 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     }
 
 
+
+
+
+
+    
     onDragStart = (event:any) => {
+       let { selectElements, items } = this.props; 
+
+       if(isEmpty(items)){ return null }
+
        this.start = true;
 
-       //all children
-       let children = this.getNodes();
-
-       let initialIndex : number = this.indexFromClick(event); 
+       let nodes = getNodes(this.ref); //collect children
+       let initialIndex : number = this.indexFromClick(event); //get index of element from event coordinates   
        
-       //nodes - selected nodes. clone - cloned selected nodes.
-       let {nodes, clone} = this.clone(initialIndex,children);  
-         
-       //append cloned nodes in container to body
-       this.cloned = document.body.appendChild(clone);
+       assert(match(nodes,items), `incorrect order. onDragStart.`);
+    
+       let indices : number[] = selectElements(initialIndex,items); //get indices of target elements
 
-       //preserve replaced nodes
-       this.selected = nodes;
-       //hide replaced nodes
-       this.selected.map((node:HTMLElement) => this.hideElement(node));
+       let {selectedElements, clone} = cloneSelectedElements(nodes,indices); //clone element or a group of elements
+       
+       assert(
+           selectedElements.length===indices.length, 
+           `incorrect selection.selectedElements:${selectedElements.length}.indices:${indices.length}.onDragStart.`
+       );
 
-       //initial client rect of cloned node
-       let initialRect = this.cloned.getBoundingClientRect();
+
+       this.cloned = document.body.appendChild(clone); //append cloned nodes in container to body
+       this.selected = selectedElements; //preserve reference to replaced nodes
+
+
+       this.selected.map((node:HTMLElement) => hideElement(node)); //hide replaced nodes
+       let initialRect = this.cloned.getBoundingClientRect(); //initial client bounding box of target elements
        
        console.log(`initial height ${initialRect.height}`);
        console.log(`onDragStart.initialIndex:${initialIndex}.initialRect:${JSON.stringify(initialRect)}.`);
@@ -221,8 +373,34 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
        this.setState({initialRect,initialIndex}); 
     }
 
+ 
 
-    
+
+
+    onDragMove = (event:any) => {
+        
+        assert(this.start,'onDragMove invoked before onDragStart');
+
+        if(not(this.start)){ return }
+
+        let {scrollableContainer,items} = this.props;
+
+        let rootClientRect = scrollableContainer.getBoundingClientRect();
+        let cloneClientRect = this.cloned.getBoundingClientRect();
+
+        let {initialX,initialY,initialIndex,scrollTop} = this.state;
+
+        let deltaX = event.clientX-initialX;  
+        let deltaY = event.clientY-initialY;  
+
+        this.animateClone(deltaX,deltaY);
+        this.animateNodes(event);
+        this.applyCustomStyle(event);
+    } 
+
+
+
+
 
     getCurrentIndex = (event:any) : number => {
         let { initialIndex } = this.state;
@@ -239,48 +417,23 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             }
         }
         
-
         return above.length;
     }
 
 
-    onDragMove = (event:any) => {
-        
 
-        assert(this.start,'onDragMove invoked before onDragStart');
-
-        if(not(this.start)){ return }
-
-        let {scrollableContainer,items} = this.props;
-
-        let rootClientRect = scrollableContainer.getBoundingClientRect();
-        let cloneClientRect = this.cloned.getBoundingClientRect();
-
-        let {initialX,initialY,initialIndex,scrollTop} = this.state;
-
-        let deltaX = event.clientX-initialX;  
-        let deltaY = event.clientY-initialY;  
-
-
-        let currentIndex = this.getCurrentIndex(event); 
-        console.log(`currentIndex ${currentIndex}.`);
-
-        this.animateClone(deltaX,deltaY);
-
-        this.animateNodes(event);
-        this.applyCustomStyle(event);
-    } 
-
+    
 
     animateClone = (deltaX:number,deltaY:number) => { 
         this.cloned.style[`transform`] = `translate3d(${deltaX}px,${deltaY}px, 0)`;
     }
 
 
+
+
     animateNodes = (event) => {
 
         let {initialIndex,initialRect} = this.state;
-        let currentIndex = this.getCurrentIndex(event); 
         let nodes = this.getNodesToBeAnimated();
         let cloneRect = this.cloned.getBoundingClientRect();
         let cloneTop = cloneRect.top;
@@ -290,6 +443,9 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         for(let i=0; i<nodes.length; i++){ 
             let element = nodes[i];
             element.style[`transition-duration`] = `${300}ms`; 
+
+            element.onselectstart='return false;' as any;
+
             let {top} = element.getBoundingClientRect();
 
 
@@ -309,35 +465,10 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                 nodes[i].style[`transform`] = `translate3d(${0}px,${0}px, 0)`;
             }
         }       
-    }
+    } 
 
 
-    initDecorator = (
-        value : {
-            condition:(x:number,y:number) => boolean, 
-            decorator:HTMLElement
-        }
-    ) => {
-
-        let {condition,decorator} = value; 
-
-    }
-
-
-    applyCustomStyle = (event:any) => {
-        let x = event.clientX;
-        let y = event.clientY;
-        this.showElement(this.cloned);
-        let {decorators} = this.props;
-
-        for(let i=0; i<decorators.length; i++){
-            let {condition, decorator} = decorators[i];
-            if(condition(x,y)){
-               this.hideElement(this.cloned);
-            }    
-        }  
-    }
-
+ 
 
     onDragEnd = (event:any) => {
         this.start = false;
@@ -345,7 +476,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         let newIndex = this.getCurrentIndex(event); 
 
         this.cloned.parentNode.removeChild(this.cloned);
-        this.selected.map((node:HTMLElement) => this.showElement(node));
+        this.selected.map((node:HTMLElement) => showElement(node));
         this.cloned = null;
         this.selected = [];
 
@@ -363,123 +494,24 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     }
 
 
-    cloneOne = (node:HTMLElement) : HTMLElement => {
-        const fields = node.querySelectorAll('input, textarea, select');
-        const clone = node.cloneNode(true) as HTMLElement;
-        const {top,left,width,height} = node.getBoundingClientRect();
-        const clonedFields = [...clone.querySelectorAll('input, textarea, select')];
 
-        clonedFields.forEach((field:any, index) => {
-          if(field.type !== 'file' && fields[index]) {
-             field.value = fields[index]["value"];
-          }
-        }); 
 
-        clone.style.position = 'fixed';
-        clone.style.top = `${top}px`;
-        clone.style.left = `${left}px`;
-        clone.style.width = `${width}px`;
-        clone.style.height = `${height}px`;
-        clone.style.boxSizing = 'border-box';
-        clone.style.pointerEvents = 'none';
-        clone.style.zIndex = '200000';
-        clone.style.userSelect = "none"; 
-        
-        return clone;
+    applyCustomStyle = (event:any) => {
+        let x = event.clientX;
+        let y = event.clientY;
+        showElement(this.cloned);
+        let {decorators} = this.props;
+
+        for(let i=0; i<decorators.length; i++){
+            let {condition, decorator} = decorators[i];
+            if(condition(x,y)){
+               hideElement(this.cloned);
+            }    
+        }  
     }
 
-    cloneMany = (nodes:HTMLElement[]) : HTMLElement => {
-        let container = document.createElement('div');
-        let containerWidth = 0;
-        let containerHeight = 0;
-        let containerTop = 0;
-        let containerLeft = 0;
 
-        let first = nodes[0];
-        let {top,left} = first.getBoundingClientRect();
-          
-        containerTop = top; 
-        containerLeft = left;
-
-        for(let i=0; i<nodes.length; i++){
-            let node = nodes[i];
-            let fields = node.querySelectorAll('input, textarea, select');
-            let clone = node.cloneNode(true) as HTMLElement;
-            let {top,left,width,height} = node.getBoundingClientRect();
-            let clonedFields = [...clone.querySelectorAll('input, textarea, select')];
-
-            clonedFields.forEach((field:any, index) => {
-              if(field.type !== 'file' && fields[index]) {
-                 field.value = fields[index]["value"];
-              }  
-            }); 
-               
-            containerHeight = containerHeight + height;
-            containerWidth = containerWidth < width ? width : containerWidth
- 
-            clone.style.position = 'relative';
-
-            container.appendChild(clone);
-        }
-
-        container.style.position = 'fixed';
-        container.style.top = `${containerTop}px`;
-        container.style.left = `${containerLeft}px`;
-        container.style.width = `${containerWidth}px`;
-        container.style.height = `${containerHeight}px`;
-        container.style.boxSizing = 'border-box';
-        container.style.pointerEvents = 'none';
-        container.style.zIndex = '200000';
-        container.style.userSelect = "none"; 
-
-        return container;  
-    }   
- 
-    clone = (index:number,nodes:HTMLElement[]) : {nodes:HTMLElement[], clone:HTMLElement}  => {
-       
-       let { selectElements, items } = this.props; 
-
-       if(isEmpty(items)){ return null }
-
-
-       assert(match(nodes,items),`incorrect order. clone.`);
-
-
-       let selection : number[] = selectElements(index,items);
-
-       
-       assert(not(isEmpty(selection)),`selection empty. clone.`);
-
-
-       if(selection.length===1){
-            
-          let index = selection[0]; 
-          let node = nodes[index];
-          let clone = this.cloneOne(node);
-          
-          return {nodes:[node],clone};
-
-       }else if(selection.length>1){
-            
-          let selected = nodes.filter((node,index) => contains(index)(selection));  
-          
-          assert(selected.length===selection.length, `incorrect selection. clone.`);
-
-          let clone = this.cloneMany(selected);    
-          
-          return {nodes:selected,clone};
-       } 
-    }
-
-    hideElement = (node:HTMLElement) : void => {
-        node.style.visibility = 'hidden';
-        node.style.opacity = '0';  
-    }
-
-    showElement = (node:HTMLElement) : void => {
-        node.style.visibility = 'visible';
-        node.style.opacity = '1';  
-    }
+    
    
     render(){ 
         return <div 
