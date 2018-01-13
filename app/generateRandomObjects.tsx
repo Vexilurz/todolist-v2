@@ -5,9 +5,9 @@ import { ipcRenderer } from 'electron';
 import PouchDB from 'pouchdb-browser';  
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 import { Category } from './Components/MainContainer';
-import { randomArrayMember, randomInteger, randomDate } from './utils';
+import { randomArrayMember, randomInteger, randomDate, isString } from './utils';
 import { generateId, Todo, Heading, LayoutItem, Project, Area } from './database';
-import { uniq, splitEvery } from 'ramda';
+import { uniq, splitEvery, contains } from 'ramda';
 const randomWord = require('random-word');
 let uniqid = require("uniqid"); 
 
@@ -219,8 +219,10 @@ let generateProjectLayout = (generateTodosIds:string[],n:number) : LayoutItem[] 
         }
     }  
 
-    return layout;
+    let correct = uniq( layout.map((i:any) => isString(i) ? i : i._id) );
 
+
+    return layout.filter( (i:any) => isString(i) ? contains(i)(correct) : contains(i._id)(correct) );
 }
 
     

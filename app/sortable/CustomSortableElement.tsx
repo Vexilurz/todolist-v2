@@ -7,14 +7,15 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { isNil } from 'ramda';
- 
+ /*
 
 export interface Data{
     event:any,
     deltaX:number,
     deltaY:number,
     rect:ClientRect, 
-    index:number,
+    initialIndex:number,
+    currentIndex:number,
     item?:any     
 } 
 
@@ -248,5 +249,5 @@ export class SortableElement extends Component<SortableElementProps,SortableElem
     } 
 }
 
- 
+ */
 

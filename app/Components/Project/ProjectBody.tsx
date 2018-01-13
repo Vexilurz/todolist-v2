@@ -32,8 +32,7 @@ import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
 import { equals, allPass, isEmpty, isNil, not } from 'ramda';
 import { onDrop, Placeholder } from '../TodosList';
-import { isDev } from '../../app';
-import { SortableElement } from '../../sortable/CustomSortableElement';
+import { isDev } from '../../app'; 
 import { SortableContainer } from '../../sortable/CustomSortableContainer';
 
 
@@ -132,6 +131,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         switch(value.type){ 
             case "todo":
                     return  <div   
+                        id = {value["_id"]}
                         key = {`${value["_id"]}-todo`}  
                         style={{position:"relative"}}
                     >  
@@ -333,15 +333,41 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             </div>    
 
             <SortableContainer
-                getElement={this.getElement}
                 items={this.props.items}
-                shouldCancelStart={this.shouldCancelStart}
-                shouldCancelAnimation={this.shouldCancelAnimation}
-                rootRef={this.props.rootRef}
-            />   
+                scrollableContainer={this.props.rootRef}
+                selectElements={(index:number,items:any[]) => {
+                    let selected = [index];
+                    let item = items[index];
+
+                    if(item.type==="heading"){
+                        for(let i=index+1; i<items.length; i++){
+                            let item = items[i];
+
+                            if(isNil(item)){ break; }
+                            else{
+                               if(item.type==="todo"){ selected.push(i); }
+                               else{ break; } 
+                            }
+                        }   
+                    }
+                    console.log(`selected ${selected.length}`);
+                    return selected; 
+                }} 
+                shouldCancelStart={(event:any,item:any) => false}  
+                shouldCancelAnimation={(event:any,item:any) => false}
+                decorators={[{
+                    condition:(() => {
+                        let lp = document.getElementById("leftpanel");
+                        return (x,y) => insideTargetArea(lp,x,y)
+                    })(),  
+                    decorator:(() => generateDropStyle("nested"))()
+                }]} 
+            >   
+                {this.props.items.map((item,index) => this.getElement(item,index))}
+            </SortableContainer> 
  
             
-            {/*<Placeholder    
+            {/*<Placeholder     
                 height={placeholderHeight} 
                 offset={placeholderOffset}
                 show={this.state.showPlaceholder}
