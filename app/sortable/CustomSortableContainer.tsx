@@ -11,15 +11,7 @@ import { isEmpty, not, contains, isNil } from 'ramda';
 import { Placeholder } from '../Components/TodosList';
   
 
-interface Data{
-    event:any,
-    deltaX:number,
-    deltaY:number,
-    rect:ClientRect, 
-    initialIndex:number,
-    currentIndex:number, 
-    item?:any     
-} 
+
 
 
 let hideElement = (node:HTMLElement) : void => {
@@ -74,7 +66,7 @@ let cloneOne = (node:HTMLElement) : HTMLElement => {
     clone.style.width = `${width}px`;
     clone.style.height = `${height}px`;
     clone.style.boxSizing = 'border-box';
-    //clone.style.pointerEvents = 'none';
+    clone.style.pointerEvents = 'none';
     clone.style.zIndex = '200000';
     clone.style.userSelect = "none";
     clone.style.webkitUserSelect = "none";
@@ -127,12 +119,12 @@ let cloneMany = (nodes:HTMLElement[]) : HTMLElement => {
     container.style.width = `${containerWidth}px`;
     container.style.height = `${containerHeight}px`;
     container.style.boxSizing = 'border-box';
-    //container.style.pointerEvents = 'none';
+    container.style.pointerEvents = 'none';
     container.style.zIndex = '200000';
     container.style.userSelect = "none";
     container.style.webkitUserSelect = "none";
 
-    
+      
     return container;  
 }   
 
@@ -170,25 +162,19 @@ let getNodes = (ref) : HTMLElement[] => {
 
 
 
-
-
-
-
-
-
-
-
 interface SortableContainerProps{
     items:any[],
     scrollableContainer:HTMLElement,
     selectElements:(index:number,items:any[]) => number[],
-    shouldCancelStart:(event:any,item:any) => boolean,
-    shouldCancelAnimation:(event:any,item:any) => boolean,
+    shouldCancelStart:(event:any,item:any) => boolean, 
+    onSortStart:(oldIndex:number,event:any) => void,  
     onSortEnd:(oldIndex:number,newIndex:number,event:any) => void,
+    onSortMove:(oldIndex:number,event:any) => void,
     decorators:{ condition:(x:number,y:number) => boolean, decorator:HTMLElement }[]
 }      
 
   
+
 interface SortableContainerState{
     placeholderHeight:number,
     placeholderOffset:number, 
@@ -199,9 +185,10 @@ interface SortableContainerState{
 export class SortableContainer extends Component<SortableContainerProps,SortableContainerState>{
 
     ref:HTMLElement;
-    subscriptions:Subscription[];
+    subscriptions:Subscription[]; 
 
-
+    paused:boolean; 
+     
     cloned:HTMLElement;
     selected:HTMLElement[];
 
@@ -250,53 +237,82 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     }  
 
 
-
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = []; 
     } 
     
 
+    pause = () => {
+        hideElement(this.cloned);
+
+        let nodes = getNodes(this.ref);
+
+        nodes.forEach((node) => {
+            node.style[`transition-duration`] = `${0}ms`; 
+            node.style[`transform`] = `translate3d(${0}px,${0}px, 0)`;
+        }) 
+
+        this.selected.map((node:HTMLElement) => showElement(node));
+        this.paused = true;
+
+        this.setState({showPlaceholder:false});
+    }
+     
+
+    resume = () => {
+        showElement(this.cloned); 
+
+        this.selected.map((node:HTMLElement) => hideElement(node));
+        this.paused = false; 
+
+        this.setState({showPlaceholder:true});        
+    } 
+ 
     
     init = () => {
 
-        let { scrollableContainer } = this.props;
+        let { scrollableContainer, shouldCancelStart, items } = this.props;
         let dragStartThreshold = 5;
 
 
         let byExceedThreshold = (event:any) => {
-            let { initialX,initialY } = this.initial;
-
+            let { initialX,initialY, initialIndex } = this.initial;
+            let item = items[initialIndex];
             let x = Math.abs(event.clientX-initialX);
             let y = Math.abs(event.clientY-initialY);
 
             let canStartDrag = y > dragStartThreshold || x > dragStartThreshold;
-            return canStartDrag;  
+            let dragNotAllowed = shouldCancelStart(event,item);
+ 
+            return dragNotAllowed ? false : canStartDrag;    
         }
-          
-
-        let sufficientDistance = Observable.fromEvent(window, "mousemove").filter(byExceedThreshold);
+           
         
-        let dragEnd = Observable.fromEvent(window,"mouseup").do((event:any) => this.onDragEnd(event));
-         
-        let drag = Observable 
+        let dragEnd = Observable
+                     .fromEvent(window,"mouseup")
+                     .do((event:any) => this.onDragEnd(event)); 
+           
+
+        let drag = Observable  
                     .fromEvent(this.ref,"mousedown") 
                     .filter(this.inside)
                     .do((event:any) => {
+                        event.preventDefault();   
                         this.initial.initialIndex = this.indexFromClick(event);
                         this.initial.initialX = event.clientX;
                         this.initial.initialY = event.clientY;
                     })
                     .switchMap(
                         () => Observable 
-                                .fromEvent(window,"mousemove")
-                                .skipUntil(sufficientDistance)
-                                .takeUntil(dragEnd)
-                    ) 
+                              .fromEvent(window,"mousemove")
+                              .skipWhile(byExceedThreshold)
+                              .takeUntil(dragEnd)
+                    )   
                     .subscribe(
                         this.onDragMove,
                         this.onError  
-                    );  
+                    );   
     
 
         this.subscriptions.push(drag);
@@ -305,7 +321,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
     
     onDragStart = (event:any) : void => {
-       let { selectElements, items } = this.props; 
+       let { selectElements, items, onSortStart } = this.props; 
        let initialIndex = this.initial.initialIndex;
         
        let nodes = getNodes(this.ref); //collect children
@@ -328,17 +344,21 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
        
        this.initial.initialRect = initialRect;
 
+       onSortStart(initialIndex,event); 
+
        this.setState({
-           showPlaceholder:true,
-           placeholderHeight:0,
-           placeholderOffset:0  
-        });
+          showPlaceholder:true,
+          placeholderHeight:0,
+          placeholderOffset:0  
+       });
     }
   
 
 
-    onDragMove = (event:any) : void => {
-        let {scrollableContainer,items} = this.props; 
+    onDragMove = (event:any) : void => { 
+        event.preventDefault();  
+        let {scrollableContainer,items, onSortMove} = this.props; 
+        
         let {
             initialIndex,
             initialX,
@@ -363,12 +383,14 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         this.deltaY = deltaY;
         this.deltaX = deltaX;
 
-        
-       
-
         this.animateClone(this.deltaX,this.deltaY);
-        this.animateNodes(event, direction);
+
+        if(not(this.paused)){ 
+           this.animateNodes(event, direction); 
+        }   
+
         this.applyCustomStyle(event);
+        onSortMove(initialIndex,event); 
     } 
 
 
@@ -419,7 +441,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         let cloneBottom = cloneRect.bottom;
         let cloneCenter = (cloneTop+cloneBottom)/2;   
         let cloneHeight = cloneRect.height;
-        placeholderOffset
+     
       
         for(let i=0; i<nodes.length; i++){  
             let element = nodes[i];
@@ -497,11 +519,9 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         this.deltaX=0; 
         this.deltaY=0;
         
-        this.props.onSortEnd( 
-            this.initial.initialIndex,
-            newIndex,
-            event
-        );     
+        console.log(`oldIndex : ${this.initial.initialIndex}; newIndex : ${newIndex};`);
+
+        this.props.onSortEnd(this.initial.initialIndex,newIndex,event);     
 
         this.initial = {   
             initialIndex:0,
@@ -509,25 +529,30 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             initialY:0,
             initialRect:null
         }
-
+        
        this.setState({showPlaceholder:false});
     }    
     
 
 
-    applyCustomStyle = (event:any) => { 
+    applyCustomStyle = (event:any) : void => { 
         let {decorators} = this.props;
         let x = event.clientX;
         let y = event.clientY;
 
-        showElement(this.cloned);
-        
         for(let i=0; i<decorators.length; i++){
             let {condition, decorator} = decorators[i];
             if(condition(x,y)){
-               hideElement(this.cloned);
-            }    
-        }  
+               if(not(this.paused)){ 
+                  this.pause();
+               }
+               return;
+            }     
+        } 
+        
+        if(this.paused){
+           this.resume(); 
+        }
     }
 
 
@@ -563,24 +588,30 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
 
     
-    render(){  
+    render(){   
         let {placeholderHeight,placeholderOffset,showPlaceholder} = this.state;
-
-        return <div>
-        <Placeholder     
-            height={placeholderHeight} 
-            offset={placeholderOffset}
-            show={showPlaceholder}
-        /> 
-        <div 
-            ref={e => {this.ref=e;}} 
+        
+        return <div  
+            className="unselectable" 
             style={{
-              display:"flex", 
-              flexDirection:"column"
-            }}  
-        > 
-            {this.props.children}    
-        </div>
+                width:"100%",
+                position:"relative"
+            }}    
+        >     
+                <Placeholder       
+                    height={placeholderHeight}  
+                    offset={placeholderOffset}
+                    show={showPlaceholder}
+                />  
+            <div  
+                ref={e => {this.ref=e;}} 
+                style={{ 
+                  display:"flex",  
+                  flexDirection:"column"
+                }}   
+            >    
+                {this.props.children}    
+            </div>
         </div>
     }
 } 
@@ -593,9 +624,9 @@ let insideTargetArea = (target:HTMLElement,x:number,y:number) : boolean => {
        return false;   
 
     let rect = target.getBoundingClientRect();
-    let margins = getElementMargin(target);
+    let margins = getElementMargin(target); 
     let top = rect.top;
-    let bottom = rect.bottom; 
+    let bottom = rect.bottom;    
 
     if(x>rect.left && x<rect.right)
        if(y>top && y<bottom)

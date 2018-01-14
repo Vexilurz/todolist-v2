@@ -299,14 +299,14 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
 
         return  isNil(project) ? null : 
-                <div>   
-                    <div>     
+                <div>      
+                    <div className="unselectable">     
                         <ProjectHeader 
                             rootRef={this.props.rootRef}
                             name={project.name} 
                             attachTagToProject={this.attachTagToProject}
-                            tags={this.props.tags}
-                            progress={progress}
+                            tags={this.props.tags} 
+                            progress={progress}   
                             description={project.description}
                             created={project.created as any}   
                             deadline={project.deadline as any} 
@@ -315,10 +315,10 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             updateProjectDeadline={this.updateProjectDeadline}
                             updateProjectName={this.updateProjectName}
                             updateProjectDescription={this.updateProjectDescription} 
-                            todos={toProjectHeader}
-                            dispatch={this.props.dispatch} 
-                        />         
-                    </div>  
+                            todos={toProjectHeader} 
+                            dispatch={this.props.dispatch}   
+                        />          
+                    </div>   
                     <div>   
                         <ProjectBody    
                             items={toProjectBody}
@@ -346,12 +346,16 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
   
                     {  
                         not(haveScheduledTodos(project, this.props.todos)) ? null :
-                        <div style={{
-                            cursor:"default", display:"flex", 
-                            paddingTop:"20px", height:"auto", 
-                            width:"100%"
-                        }}>  
-                            <div 
+                        <div 
+                            className="noselection"
+                            style={{ 
+                                cursor:"default", display:"flex", 
+                                paddingTop:"20px", height:"auto", 
+                                width:"100%"
+                            }}
+                        >        
+                            <div  
+                                className="unselectable"
                                 onClick={() => this.props.dispatch({
                                     type:"showScheduled", 
                                     load:!this.props.showScheduled

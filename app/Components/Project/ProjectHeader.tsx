@@ -230,7 +230,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         />     
                     </div>
                 </div> 
-                <div>
+                <div className="unselectable">
                     <AutosizeInput
                         ref={e => {this.inputRef=e;}}
                         type="text"
@@ -273,14 +273,17 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             </div> 
             {     
                 isNil(this.props.deadline) ? null :        
-                <div style={{ 
-                    paddingTop:'15px', 
-                    cursor:"default",
-                    WebkitUserSelect:"none", 
-                    display:"flex",  
-                    alignItems:"center",  
-                    height:"30px"
-                }}> 
+                <div 
+                    className="unselectable"
+                    style={{ 
+                        paddingTop:'15px', 
+                        cursor:"default",
+                        WebkitUserSelect:"none", 
+                        display:"flex",  
+                        alignItems:"center",  
+                        height:"30px"
+                    }}
+                > 
                     <div style={{paddingRight:"5px", paddingTop:"5px"}}> 
                         <Flag style={{        
                             color:"black",   
@@ -294,11 +297,12 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     </div> 
                     <div> 
                         {daysLeftMark(false, this.props.deadline, 15)}
-                    </div>   
+                    </div>    
                 </div> 
-            }  
+            }    
             <div>                
-                <TextField      
+                <TextField       
+                    className="unselectable" 
                     id = {"project_notes"}  
                     hintText = "Notes"      
                     hintStyle={{top:"12px"}}

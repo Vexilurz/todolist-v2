@@ -53,6 +53,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                     ...state,
                     dragged:action.load
                 }
+                console.log(`dragged ${action.load}`) 
                 break;   
 
              

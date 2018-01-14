@@ -429,7 +429,6 @@ export class Today extends Component<TodayProps,TodayState>{
                         selectedTag={this.props.selectedTag}
                         show={true}  
                     />   
-                         
                 <div   
                     className="unselectable" 
                     id="todos" 

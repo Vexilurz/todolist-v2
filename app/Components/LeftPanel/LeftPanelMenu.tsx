@@ -57,20 +57,20 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
 
 
     onMouseOver = (e) => {
+        let {dragged, category} = this.props;
+
         if(e.buttons == 1 || e.buttons == 3){
 
-            if(this.props.category==="upcoming"){
+            if(category==="upcoming"){
                return
             }
  
             if(
-                this.props.dragged==="todo" ||
-                (
-                    this.props.dragged==="project" && 
-                    this.props.category==="trash"
-                ) 
-            ){ 
-                this.setState({highlight:true}) 
+                (dragged==="todo" || dragged==="heading") || 
+                (dragged==="project" && category==="trash")
+            ){   
+
+                this.setState({highlight:true}); 
             }
         }   
     }

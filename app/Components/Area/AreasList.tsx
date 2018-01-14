@@ -423,9 +423,9 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
 
     onMouseOver = (e) => {
         let {dragged} = this.props;
-
+ 
         if(e.buttons == 1 || e.buttons == 3){
-            if(dragged==="project" || dragged==="todo"){   
+            if(dragged==="project" || dragged==="todo" || dragged==="heading"){   
                 this.setState({highlight:true}); 
             } 
         } 
@@ -434,7 +434,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
     onMouseOut = (e) => {  
         if(this.state.highlight){
            this.setState({highlight:false});
-        }
+        } 
     } 
     
     render(){      
@@ -535,13 +535,18 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         }; 
     }  
 
-    onMouseOver = (e) => { 
-        if(e.buttons === 1 || e.buttons === 3){ 
-            if(this.props.dragged==="todo"){
+    componentWillReceiveProps(nextProps){
+        console.log(`ProjectElement nextProps.dragged : ${nextProps.dragged}`);
+    }
+
+    onMouseOver = (e) => {  
+        let {dragged} = this.props; 
+        if(e.buttons === 1 || e.buttons === 3){   
+            if(dragged==="todo" || dragged==="heading"){
                this.setState({highlight:true});  
             }  
         }  
-    }
+    } 
 
 
     onMouseOut = (e) => { 

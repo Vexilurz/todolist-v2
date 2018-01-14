@@ -427,8 +427,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             let { selectedCategory, creation } = this.props;
             let { checked, open } = this.state;
             let shouldAnimateSlideAway = not(checked) && 
-                                        selectedCategory!=="logbook" &&  
-                                        selectedCategory!=="trash"; 
+                                         selectedCategory!=="logbook" &&  
+                                         selectedCategory!=="trash"; 
             
             if(not(open) && not(creation)){   
                 let isChecked : boolean = !checked; 
@@ -439,10 +439,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     },  
                     () => setTimeout(   
                         () => shouldAnimateSlideAway ?   
-                                this
-                                .animateSlideAway()
-                                .then(() => setTimeout(() => this.updateTodo(), 0)) : 
-                                this.updateTodo() 
+                              this
+                              .animateSlideAway()
+                              .then(() => setTimeout(() => this.updateTodo(), 0)) : 
+                              this.updateTodo() 
                         , 
                         50
                     )
@@ -629,7 +629,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 maxHeight:open ? "1000px" : "70px",
                 boxShadow:open ? "rgba(156, 156, 156, 0.3) 0px 0px 20px" : "", 
                 borderRadius:"5px", 
-            }}    
+            }}     
         >        
             <div 
                 className={open ? "" : "tasklist"}
@@ -642,7 +642,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     caretColor:"cornflowerblue",   
                     display:"flex"
                 }}     
-                onMouseUp={this.onFieldsContainerClick} 
+                onClick={this.onFieldsContainerClick} 
             >          
             <div style={{display:"flex", flexDirection:"column",  padding:"2px", width:"100%"}}>
                 <TodoInputTopLevel 
@@ -1291,9 +1291,10 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                         </div>   
                     }   
                     <div   
-                        onClick={(e) => {e.stopPropagation();}}  
-                        onMouseUp={(e) => {e.stopPropagation();}} 
-                        onMouseDown={(e) => {e.stopPropagation();}} 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            e.nativeEvent.stopImmediatePropagation();
+                        }} 
                         style={{paddingLeft:"5px", paddingRight:"5px"}}
                     > 
                         <Checkbox  
