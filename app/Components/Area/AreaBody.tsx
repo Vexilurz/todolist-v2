@@ -296,7 +296,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                     onSortMove={this.onSortMove}
                     onSortStart={this.onSortStart}
                     lockToContainerEdges={false}
-                    distance={3} 
+                    distance={5} 
                     lock={false} 
                 /> 
             </div> 

@@ -429,7 +429,7 @@ export class Today extends Component<TodayProps,TodayState>{
                         selectedTag={this.props.selectedTag}
                         show={true}  
                     />   
-                        
+                         
                 <div   
                     className="unselectable" 
                     id="todos" 
@@ -453,7 +453,7 @@ export class Today extends Component<TodayProps,TodayState>{
                     />  
 
                     <div style={{WebkitUserSelect:"none",position:"relative"}}>   
-                        {
+                        {   
                             /*
                             <Placeholder   
                                 offset={offset} 
@@ -472,7 +472,7 @@ export class Today extends Component<TodayProps,TodayState>{
                             onSortMove={this.onSortMove as any}  
                             onSortStart={this.onSortStart as any}  
                             lockToContainerEdges={false}
-                            distance={1}    
+                            distance={5}    
                             useDragHandle={false}
                             lock={false}
                         />  

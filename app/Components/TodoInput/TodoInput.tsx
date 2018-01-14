@@ -1277,19 +1277,30 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                   }}  
                 >
                     {
-                        isNil(deleted) ? null :       
-                        <RestoreButton  
-                            deleted={not(isNil(deleted))}
-                            open={open}   
-                            onClick={this.props.onRestoreButtonClick}  
-                        /> 
+                        isNil(deleted) ? null :      
+                        <div
+                            onClick={(e) => {e.stopPropagation();}} 
+                            onMouseUp={(e) => {e.stopPropagation();}} 
+                            onMouseDown={(e) => {e.stopPropagation();}} 
+                        > 
+                            <RestoreButton  
+                                deleted={not(isNil(deleted))}
+                                open={open}   
+                                onClick={this.props.onRestoreButtonClick}  
+                            />    
+                        </div>   
                     }   
-                    <div style={{paddingLeft:"5px", paddingRight:"5px"}}> 
-                        <Checkbox 
-                          checked={checked} 
+                    <div   
+                        onClick={(e) => {e.stopPropagation();}}  
+                        onMouseUp={(e) => {e.stopPropagation();}} 
+                        onMouseDown={(e) => {e.stopPropagation();}} 
+                        style={{paddingLeft:"5px", paddingRight:"5px"}}
+                    > 
+                        <Checkbox  
+                          checked={checked}  
                           onClick={this.props.onCheckBoxClick}
                         />
-                    </div>  
+                    </div>   
                     {
                         open ? null :       
                         <DueDate  
@@ -1302,7 +1313,7 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                     <div ref={this.props.setInputRef}>     
                         <AutosizeInput   
                             type="text"
-                            name="form-field-name"  
+                            name="form-field-name"   
                             style={{
                                 display:"flex", 
                                 alignItems:"center",      

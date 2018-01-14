@@ -72,13 +72,15 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                 display:"flex",
                 height:"30px",
                 alignItems:"center",
-                justifyContent:"space-between"
+                cursor:"default",
+                justifyContent:"space-between",
+                WebkitUserSelect: "none"
             }} 
         >      
-            <div style={{width:"100%", paddingLeft:"10px", WebkitUserSelect: "none"}}>  
-                <div style={{display:"flex", WebkitUserSelect: "none"}}>   
+            <div style={{width:"100%", paddingLeft:"10px", WebkitUserSelect: "none", }}>  
+                <div style={{display:"flex", WebkitUserSelect: "none", cursor:"default", userSelect: "none"}}>   
                     <TextField     
-                        ref={(e) => {this.inputRef=e;}}
+                        ref={(e) => {this.inputRef=e;}} 
                         hintText = "Heading"     
                         id = {this.props.heading.key} 
                         defaultValue = {uppercase(this.props.heading.title)} 
@@ -86,7 +88,8 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                         onChange = {(event, newValue:string) => this.props.onChange(this.props.heading._id, newValue)}
                         inputStyle = {{
                             fontWeight:600, color:"rgba(10,110,205,1)", 
-                            fontSize:"16px",  WebkitUserSelect: "none"
+                            fontSize:"16px",  WebkitUserSelect: "none",
+                            cursor:"default", userSelect: "none"
                         }}  
                         hintStyle = {{
                             top:"3px", left:0, width:"100%", 
@@ -113,7 +116,7 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                 <ThreeDots style={{  
                     color:"dodgerblue",
                     width:"30px", 
-                    height:"30px",
+                    height:"30px", 
                     cursor: "pointer" 
                 }} />
             </div> 

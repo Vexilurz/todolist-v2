@@ -24,13 +24,13 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area, generateId } from '../../database';
-import { uppercase, debounce, byNotDeleted, generateEmptyTodo, byNotCompleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, layoutOrderChanged, assert } from '../../utils';
+import { uppercase, debounce, byNotDeleted, generateEmptyTodo, byNotCompleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, layoutOrderChanged, assert, isTodo } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeading } from './ProjectHeading';  
 import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
-import { equals, allPass, isEmpty, isNil, not } from 'ramda';
+import { equals, allPass, isEmpty, isNil, not, uniq, contains } from 'ramda';
 import { onDrop, Placeholder } from '../TodosList';
 import { isDev } from '../../app'; 
 import { SortableContainer } from '../../sortable/CustomSortableContainer';
@@ -84,6 +84,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             helper:null
         }; 
     }  
+    
 
     shouldComponentUpdate(nextProps:ProjectBodyProps,nextState:ProjectBodyState){
         let should = false;
@@ -126,6 +127,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         return should;     
     }
   
+
     getElement = (value:Heading | Todo, index:number) : JSX.Element => { 
         
         switch(value.type){ 
@@ -133,7 +135,11 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     return  <div   
                         id = {value["_id"]}
                         key = {`${value["_id"]}-todo`}  
-                        style={{position:"relative"}}
+                        style={{
+                            position:"relative",
+                            UserSelect:"none",
+                            WebkitUserSelect:"none"
+                        }}
                     >  
                         <TodoInput    
                             id={value["_id"]} 
@@ -155,7 +161,13 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     return  <div   
                         key={`${value["_id"]}-heading`} 
                         id={value["_id"]} 
-                        style={{position:"relative", marginBottom:"10px", marginTop:"5px"}}         
+                        style={{
+                            position:"relative", 
+                            paddingBottom:"10px", 
+                            paddingTop:"5px",    
+                            UserSelect:"none",  
+                            WebkitUserSelect:"none"    
+                        }}               
                     > 
                         <ProjectHeading  
                             heading={value as Heading}
@@ -164,12 +176,13 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                             onArchive={this.props.archiveHeading}
                             onMove={this.props.moveHeading} 
                             onRemove={this.props.removeHeading}
-                        />
+                        /> 
                     </div> 
             default:  
                 return null;
         }
     }
+
 
     shouldCancelStart = (e) => {
         let nodes = [].slice.call(e.path);
@@ -180,6 +193,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         return false; 
     }
 
+
     shouldCancelAnimation = (e) => {
         if(!this.props.rootRef)
             return true;
@@ -188,18 +202,62 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         return x < rect.left;   
     }  
  
+
     changeOrder = (oldIndex:number,newIndex:number) => { 
         let items = this.props.items;  
         items = items.map(i => i.type==="todo" ? i._id : i) as any;
         let changed = arrayMove(items, oldIndex, newIndex); 
         this.props.updateLayoutOrder(changed);    
     }  
-    
 
- 
-    showPlaceholder = () => this.setState({showPlaceholder:true});
+
+
+
+
+    changeHeadingsOrder = (oldIndex:number,newIndex:number) => {
+        let items = [...this.props.items];
     
+        assert(
+            items[oldIndex].type==="heading", 
+            `item is not heading. ${JSON.stringify(items[oldIndex])}. changeHeadingsOrder. `
+        )
+
+
+        let selection = [items[oldIndex]];
+        for(let i = oldIndex+1; i<items.length; i++)
+            if(isTodo(items[i]))
+               selection.push(items[i]); 
+            else 
+               break;   
+ 
+        let ids = selection.map(i => i._id);       
+
+        let before = items.slice(0,newIndex).filter( i => !contains(i._id)(ids) );
+        let after = items.slice(newIndex,items.length).filter( i => !contains(i._id)(ids) );
+
+        let updated = [
+            ...before,
+            ...selection,
+            ...after
+        ];  
+
+
+
+        let updatedIDs = updated.map( i => i._id ); 
+        assert(uniq(updatedIDs).length===updatedIDs.length,`incorrect length. changeHeadingsOrder.`);
+        //assert(updated[newIndex]._id===items[oldIndex]._id, `item placement incorrect`);
+
+          
+          
+        this.props.updateLayoutOrder(updated.map( i => isTodo(i) ? i._id : i ) as any);    
+    }
+      
+
+    showPlaceholder = () => this.setState({showPlaceholder:true});
+        
+
     hidePlaceholder = () => this.setState({showPlaceholder:false});
+
     
     onSortStart = ({node, index, collection}, e, helper) => { 
         this.showPlaceholder();
@@ -225,18 +283,19 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         }
     }
 
+
     onSortEnd = ({oldIndex, newIndex, collection}, e) => {  
         this.hidePlaceholder();
-        this.props.dispatch({type:"dragged",load:null});
+        this.props.dispatch({type:"dragged",load:null}); 
         let x = e.clientX;  
         let y = e.clientY;  
         let items = this.props.items;   
         let draggedItem : (Todo | Heading) = items[oldIndex];
         let leftpanel = document.getElementById("leftpanel");
 
-        if(draggedItem.type==="heading"){
+        if(draggedItem.type==="heading"){ 
             
-            this.changeOrder(oldIndex,newIndex); 
+            this.changeOrder(oldIndex,newIndex);  
 
         }else if(draggedItem.type==="todo"){
 
@@ -311,8 +370,26 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let empty = generateEmptyTodo(generateId(),"project",0);
         let placeholderOffset = this.calculatePlaceholderOffset();
         let placeholderHeight = 30;
+
+        let items = this.props.items;
+
+        let ids = items.map( (i:any) => i._id ); 
+
+        assert(uniq(ids).length===ids.length, 'duplicate ids in project layout. render.');
+
+        let shouldDecorate = (() => {
+            let lp = document.getElementById("leftpanel");
+            return (x,y) => insideTargetArea(lp,x,y)
+        })();
+
+            
+        let decorators = [{
+            condition:shouldDecorate,  
+            decorator:generateDropStyle("nested")
+        }];  
+
          
-        return <div style={{WebkitUserSelect:"none"}}>  
+        return <div>   
             <div>  
                 <TodoInput    
                     id={empty._id}
@@ -324,13 +401,13 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos}
                     selectedCategory={"project"}   
-                    selectedTodoId={this.props.selectedTodoId}
-                    tags={this.props.tags} 
+                    selectedTodoId={this.props.selectedTodoId} 
+                    tags={this.props.tags}  
                     rootRef={this.props.rootRef}  
                     todo={empty}
                     creation={true}
                 />   
-            </div>    
+            </div>      
 
             <SortableContainer
                 items={this.props.items}
@@ -339,6 +416,8 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     let selected = [index];
                     let item = items[index];
 
+                    assert(!isNil(item),`item is Nil. selectElements. index ${index}`);
+
                     if(item.type==="heading"){
                         for(let i=index+1; i<items.length; i++){
                             let item = items[i];
@@ -346,22 +425,47 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                             if(isNil(item)){ break; }
                             else{
                                if(item.type==="todo"){ selected.push(i); }
-                               else{ break; } 
+                               else{ break; }  
                             }
                         }   
-                    }
-                    console.log(`selected ${selected.length}`);
+                    } 
                     return selected; 
-                }} 
+                }}     
+                onSortEnd={(oldIndex,newIndex, event) => {
+                    this.props.dispatch({type:"dragged",load:null}); 
+                    let x = event.clientX;  
+                    let y = event.clientY;  
+                    let items = this.props.items;   
+                    let draggedItem : (Todo | Heading) = items[oldIndex];
+                    let leftpanel = document.getElementById("leftpanel");
+            
+                    if(draggedItem.type==="heading"){ 
+                        
+
+                        this.changeHeadingsOrder(oldIndex,newIndex);  
+            
+
+                    }else if(draggedItem.type==="todo"){
+            
+                        if(isEmpty(draggedItem.title))  
+                           return;
+              
+                        if(insideTargetArea(leftpanel,x,y)){    
+                           onDrop(
+                                event, 
+                                draggedItem as Todo,
+                                this.props.dispatch,
+                                this.props.areas,
+                                this.props.projects, 
+                           )  
+                        }else{   
+                           this.changeOrder(oldIndex,newIndex); 
+                        }   
+                    }
+                }}
                 shouldCancelStart={(event:any,item:any) => false}  
                 shouldCancelAnimation={(event:any,item:any) => false}
-                decorators={[{
-                    condition:(() => {
-                        let lp = document.getElementById("leftpanel");
-                        return (x,y) => insideTargetArea(lp,x,y)
-                    })(),  
-                    decorator:(() => generateDropStyle("nested"))()
-                }]} 
+                decorators={decorators} 
             >   
                 {this.props.items.map((item,index) => this.getElement(item,index))}
             </SortableContainer> 
@@ -477,23 +581,6 @@ class ProjectSortableList extends Component<ProjectSortableListProps,{}>{
     }
 }
 
-
-
-
-/*
-<div style={{display:"flex", flexDirection:"column"}}>
-    {this.props.items.map(
-        (item) => <div key = {`${item["_id"]}`} >
-            <SortableElement  
-                getElement={this.getElement as any}
-                item={item}
-                onDrag={(x,y) => console.log(x,y)}
-            />
-        </div>
-    )} 
-</div>
-*/  
-            
 
     
     

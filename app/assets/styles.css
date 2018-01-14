@@ -252,6 +252,14 @@ ul {
   background: rgba(0,0,0,0);
 }
 
+.noselection {
+  -webkit-user-select: none;  
+  -moz-user-select: none;    
+  -ms-user-select: none;     
+  -o-user-select: none;
+  user-select: none;
+}
+
 .box {
   display: inline-block;
   background: #ccc;

@@ -6,8 +6,9 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { insideTargetArea, assert } from '../utils';
+import { assert } from '../utils';
 import { isEmpty, not, contains, isNil } from 'ramda';
+import { Placeholder } from '../Components/TodosList';
   
 
 interface Data{
@@ -57,24 +58,28 @@ let cloneOne = (node:HTMLElement) : HTMLElement => {
     const {top,left,width,height} = node.getBoundingClientRect();
     const clonedFields = [...clone.querySelectorAll('input, textarea, select')];
 
+    
+
     clonedFields.forEach((field:any, index) => {
       if(field.type !== 'file' && fields[index]) {
          field.value = fields[index]["value"];
-      }
+         field.style.userSelect = "none";
+         field.style.webkitUserSelect = "none";
+      } 
     }); 
-
+ 
     clone.style.position = 'fixed';
     clone.style.top = `${top}px`;
     clone.style.left = `${left}px`;
     clone.style.width = `${width}px`;
     clone.style.height = `${height}px`;
     clone.style.boxSizing = 'border-box';
-    clone.style.pointerEvents = 'none';
+    //clone.style.pointerEvents = 'none';
     clone.style.zIndex = '200000';
-    clone.style.userSelect = "none"; 
+    clone.style.userSelect = "none";
+    clone.style.webkitUserSelect = "none";
 
-    clone.onselectstart='return false;' as any;
-    
+      
     return clone;
 }
 
@@ -103,8 +108,10 @@ let cloneMany = (nodes:HTMLElement[]) : HTMLElement => {
         clonedFields.forEach((field:any, index) => {
           if(field.type !== 'file' && fields[index]) {
              field.value = fields[index]["value"];
+             field.style.userSelect = "none";
+             field.style.webkitUserSelect = "none";
           }  
-        }); 
+        });    
            
         containerHeight = containerHeight + height;
         containerWidth = containerWidth < width ? width : containerWidth
@@ -120,11 +127,11 @@ let cloneMany = (nodes:HTMLElement[]) : HTMLElement => {
     container.style.width = `${containerWidth}px`;
     container.style.height = `${containerHeight}px`;
     container.style.boxSizing = 'border-box';
-    container.style.pointerEvents = 'none';
+    //container.style.pointerEvents = 'none';
     container.style.zIndex = '200000';
-    container.style.userSelect = "none"; 
+    container.style.userSelect = "none";
+    container.style.webkitUserSelect = "none";
 
-    container.onselectstart='return false;' as any;
     
     return container;  
 }   
@@ -177,48 +184,59 @@ interface SortableContainerProps{
     selectElements:(index:number,items:any[]) => number[],
     shouldCancelStart:(event:any,item:any) => boolean,
     shouldCancelAnimation:(event:any,item:any) => boolean,
+    onSortEnd:(oldIndex:number,newIndex:number,event:any) => void,
     decorators:{ condition:(x:number,y:number) => boolean, decorator:HTMLElement }[]
 }      
 
- 
+  
 interface SortableContainerState{
-    scrollTop:number,
-    x:number,   
-    y:number,
-    initialIndex:number, 
-    initialX:number,
-    initialY:number,
-    initialRect:ClientRect 
+    placeholderHeight:number,
+    placeholderOffset:number, 
+    showPlaceholder:boolean
 }
  
 
 export class SortableContainer extends Component<SortableContainerProps,SortableContainerState>{
 
-
     ref:HTMLElement;
-
-    cloned:HTMLElement;
-
-    selected:HTMLElement[];
-
     subscriptions:Subscription[];
 
-    start:boolean;
+
+    cloned:HTMLElement;
+    selected:HTMLElement[];
+
+    deltaX:number;
+    deltaY:number;
+
+    initial : {
+        initialIndex:number,
+        initialX:number,
+        initialY:number,
+        initialRect:ClientRect
+    }
+    
+
 
     constructor(props){
         super(props);
         this.subscriptions = [];
-        this.start = false;
-        this.state = {
-            scrollTop:0,
-            x:0,
-            y:0,
 
+        this.state = { 
+            placeholderHeight:0,
+            placeholderOffset:0, 
+            showPlaceholder:false
+        }
+
+        this.deltaX=0;
+        this.deltaY=0;
+
+        this.initial = {
             initialIndex:0,
             initialX:0,
             initialY:0,
             initialRect:null
-        };    
+        }
+    
     }
 
 
@@ -237,173 +255,128 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = []; 
     } 
-
-
-
-    getNodesToBeAnimated = () : HTMLElement[] => {
-        let selectedNodesIds = this.selected.map( node => node.id );
-        return getNodes(this.ref).filter((node:any) => !contains(node.id)(selectedNodesIds));
-    }
     
 
-
-    indexFromClick = (event:any) : number => {
-        let nodes = getNodes(this.ref);
-        let x = event.clientX;
-        let y = event.clientY;
-
-        for(let i=0; i<nodes.length; i++){
-            let target = nodes[i];
-            if(insideTargetArea(target,x,y)){
-               console.log(`inside : true; initial index ${i}; x : ${x}, y : ${y}`); 
-               return i; 
-            }
-        }
- 
-        return -1; 
-    }    
-
-
-
-    inside = (event:any) : boolean => {
-       let inside = this.indexFromClick(event)!==-1;
-       console.log(`${inside ? 'inside element' : 'not inside element'}`);
-       return inside; 
-    }
-
-    
     
     init = () => {
 
+        let { scrollableContainer } = this.props;
         let dragStartThreshold = 5;
-        let {scrollableContainer} = this.props;
 
-        let scroll = Observable  
-                     .fromEvent(scrollableContainer,"scroll")
-                     .subscribe(e => {
-                        this.setState(
-                            {scrollTop:scrollableContainer.scrollTop}, 
-                            () => console.log(`scrollTop ${this.state.scrollTop}`)
-                        )
-                     });    
 
-        let sufficientDistance = Observable 
-                                 .fromEvent(window, "mousemove") 
-                                 .filter((event:any) => {
-                                        let { initialX,initialY } = this.state;
+        let byExceedThreshold = (event:any) => {
+            let { initialX,initialY } = this.initial;
 
-                                        let x = Math.abs(event.clientX-initialX);
-                                        let y = Math.abs(event.clientY-initialY);
-    
-                                        let canStartDrag = y > dragStartThreshold || x > dragStartThreshold;
-                                        console.log(`canStartDrag  ${canStartDrag }. sufficientDistance.`)
-                                        return canStartDrag; 
-                                 });
+            let x = Math.abs(event.clientX-initialX);
+            let y = Math.abs(event.clientY-initialY);
+
+            let canStartDrag = y > dragStartThreshold || x > dragStartThreshold;
+            return canStartDrag;  
+        }
+          
+
+        let sufficientDistance = Observable.fromEvent(window, "mousemove").filter(byExceedThreshold);
         
-        let dragEnd = Observable 
-                      .fromEvent(window,"mouseup") 
-                      .do((event:any) => this.start ? this.onDragEnd(event) : null);
-  
+        let dragEnd = Observable.fromEvent(window,"mouseup").do((event:any) => this.onDragEnd(event));
+         
         let drag = Observable 
-                   .fromEvent(this.ref,"mousedown") 
-                   .filter(this.inside)
-                   .switchMap(
-                       (event:any) => Observable.fromPromise(
-                            new Promise(  
-                                resolve => this.setState(
-                                    {
-                                        initialX:event.clientX,
-                                        initialY:event.clientY
-                                    }, 
-                                    () => resolve()
-                                )
-                            )
-                        )
-                    )
-                   .switchMap(
+                    .fromEvent(this.ref,"mousedown") 
+                    .filter(this.inside)
+                    .do((event:any) => {
+                        this.initial.initialIndex = this.indexFromClick(event);
+                        this.initial.initialX = event.clientX;
+                        this.initial.initialY = event.clientY;
+                    })
+                    .switchMap(
                         () => Observable 
-                                .fromEvent(window, "mousemove")
+                                .fromEvent(window,"mousemove")
                                 .skipUntil(sufficientDistance)
-                                .do((event:any) => !this.start ? this.onDragStart(event) : null)
                                 .takeUntil(dragEnd)
                     ) 
-                   .subscribe(this.onDragMove,this.onError);  
+                    .subscribe(
+                        this.onDragMove,
+                        this.onError  
+                    );  
+    
 
-        this.subscriptions.push(drag,scroll);
+        this.subscriptions.push(drag);
     }
 
 
-
-
-
-
     
-    onDragStart = (event:any) => {
+    onDragStart = (event:any) : void => {
        let { selectElements, items } = this.props; 
-
-       if(isEmpty(items)){ return null }
-
-       this.start = true;
-
+       let initialIndex = this.initial.initialIndex;
+        
        let nodes = getNodes(this.ref); //collect children
-       let initialIndex : number = this.indexFromClick(event); //get index of element from event coordinates   
-       
-       assert(match(nodes,items), `incorrect order. onDragStart.`);
-    
-       let indices : number[] = selectElements(initialIndex,items); //get indices of target elements
 
+       let indices : number[] = selectElements(initialIndex,items); //get indices of target elements
        let {selectedElements, clone} = cloneSelectedElements(nodes,indices); //clone element or a group of elements
        
+
+       assert(match(nodes,items), `incorrect order. onDragStart.`);
        assert(
-           selectedElements.length===indices.length, 
-           `incorrect selection.selectedElements:${selectedElements.length}.indices:${indices.length}.onDragStart.`
+         selectedElements.length===indices.length, 
+        `incorrect selection.selectedElements:${selectedElements.length}.indices:${indices.length}.onDragStart.`
        );
 
 
        this.cloned = document.body.appendChild(clone); //append cloned nodes in container to body
        this.selected = selectedElements; //preserve reference to replaced nodes
-
-
        this.selected.map((node:HTMLElement) => hideElement(node)); //hide replaced nodes
        let initialRect = this.cloned.getBoundingClientRect(); //initial client bounding box of target elements
        
-       console.log(`initial height ${initialRect.height}`);
-       console.log(`onDragStart.initialIndex:${initialIndex}.initialRect:${JSON.stringify(initialRect)}.`);
+       this.initial.initialRect = initialRect;
 
-       this.setState({initialRect,initialIndex}); 
+       this.setState({
+           showPlaceholder:true,
+           placeholderHeight:0,
+           placeholderOffset:0  
+        });
     }
-
- 
-
+  
 
 
-    onDragMove = (event:any) => {
-        
-        assert(this.start,'onDragMove invoked before onDragStart');
+    onDragMove = (event:any) : void => {
+        let {scrollableContainer,items} = this.props; 
+        let {
+            initialIndex,
+            initialX,
+            initialY,
+            initialRect
+        } = this.initial;
 
-        if(not(this.start)){ return }
 
-        let {scrollableContainer,items} = this.props;
+        if(isNil(initialRect)){
+           this.onDragStart(event); //invoke on start if initial variables not defined
+           return; 
+        }
 
         let rootClientRect = scrollableContainer.getBoundingClientRect();
         let cloneClientRect = this.cloned.getBoundingClientRect();
 
-        let {initialX,initialY,initialIndex,scrollTop} = this.state;
-
-        let deltaX = event.clientX-initialX;  
+        let deltaX = event.clientX-initialX;  //difference between current and initial position
         let deltaY = event.clientY-initialY;  
 
-        this.animateClone(deltaX,deltaY);
-        this.animateNodes(event);
+        let direction = deltaY - this.deltaY;
+
+        this.deltaY = deltaY;
+        this.deltaX = deltaX;
+
+        
+       
+
+        this.animateClone(this.deltaX,this.deltaY);
+        this.animateNodes(event, direction);
         this.applyCustomStyle(event);
     } 
 
 
 
-
-
     getCurrentIndex = (event:any) : number => {
-        let { initialIndex } = this.state;
+
+        let { initialIndex } = this.initial;
+
         let { top } = this.cloned.getBoundingClientRect();
         let nodes = this.getNodesToBeAnimated();
         let above = [];
@@ -415,14 +388,12 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             if(middle<top){
                above.push(node) 
             }
-        }
+        } 
         
         return above.length;
     }
 
 
-
-    
 
     animateClone = (deltaX:number,deltaY:number) => { 
         this.cloned.style[`transform`] = `translate3d(${deltaX}px,${deltaY}px, 0)`;
@@ -430,78 +401,127 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
 
 
+    animateNodes = (event, direction:number) => {
 
-    animateNodes = (event) => {
+        let {
+            initialIndex,
+            initialX,
+            initialY, 
+            initialRect
+        } = this.initial;
 
-        let {initialIndex,initialRect} = this.state;
+        let placeholderOffset = 0;
         let nodes = this.getNodesToBeAnimated();
         let cloneRect = this.cloned.getBoundingClientRect();
+        
+
         let cloneTop = cloneRect.top;
+        let cloneBottom = cloneRect.bottom;
+        let cloneCenter = (cloneTop+cloneBottom)/2;   
         let cloneHeight = cloneRect.height;
-        let cloneInitialTop = initialRect.top;
+        placeholderOffset
+      
+        for(let i=0; i<nodes.length; i++){  
+            let element = nodes[i];
+            let margins = getElementMargin(element);
+
+            element.style[`transition-duration`] = `${300}ms`; 
+            element.style.userSelect = "none"; 
+            element.style.webkitUserSelect = "none";
+
+            let {top,bottom,height} = element.getBoundingClientRect();
+            let center = (top+bottom)/2; 
+ 
+            if(center<cloneCenter){
+               placeholderOffset += height + margins.top + margins.bottom; 
+            }
+           
+            let above = i < initialIndex;
+            let below = i >= initialIndex;
+            let down = direction > 0;   
+            let up = direction < 0; 
+
+
+            if(above){
+ 
+               if(cloneTop<=center && up){
+
+                  nodes[i].style[`transform`] = `translate3d(${0}px,${cloneHeight}px, 0)`;
+
+               }else if(cloneBottom>=center){  
+
+                  nodes[i].style[`transform`] = `translate3d(${0}px,${0}px, 0)`;
+               }  
+            }else if(below){
+ 
+                if(cloneBottom>=center && down){
+
+                   nodes[i].style[`transform`] = `translate3d(${0}px,${-cloneHeight}px, 0)`;
+                   
+                }else if(cloneTop<=center){    
+ 
+                   nodes[i].style[`transform`] = `translate3d(${0}px,${0}px, 0)`;
+                }  
+            } 
+        } 
+
+
+        this.setState({ 
+            placeholderHeight:cloneHeight,
+            placeholderOffset 
+        })
+    }  
+   
+    
+ 
+    onDragEnd = (event:any) => {
+
+        if(isNil(this.initial.initialRect)){
+           return;
+        } 
+
+        let newIndex = this.getCurrentIndex(event); 
+        let nodes = this.getNodesToBeAnimated();
 
         for(let i=0; i<nodes.length; i++){ 
             let element = nodes[i];
-            element.style[`transition-duration`] = `${300}ms`; 
-
-            element.onselectstart='return false;' as any;
-
-            let {top} = element.getBoundingClientRect();
-
-
-            let initiallyAbove : boolean = top < cloneInitialTop;
-            let initiallyBelow : boolean = top > cloneInitialTop;
-            let above = top < cloneTop; 
-            let below = top > cloneTop; 
-
-            if(initiallyAbove && below){ 
-
-                nodes[i].style[`transform`] = `translate3d(${0}px,${cloneHeight}px, 0)`;
-            }else if(initiallyBelow && above){  
- 
-                nodes[i].style[`transform`] = `translate3d(${0}px,${-cloneHeight}px, 0)`;
-            }else{  
-
-                nodes[i].style[`transform`] = `translate3d(${0}px,${0}px, 0)`;
-            }
-        }       
-    } 
-
-
- 
-
-    onDragEnd = (event:any) => {
-        this.start = false;
-
-        let newIndex = this.getCurrentIndex(event); 
+            element.style[`transition-duration`] = ``; 
+            element.style[`transform`] = ``;
+        }   
 
         this.cloned.parentNode.removeChild(this.cloned);
         this.selected.map((node:HTMLElement) => showElement(node));
         this.cloned = null;
         this.selected = [];
 
-        console.log(`onDragEnd.newIndex:${newIndex}.`);
+        this.deltaX=0; 
+        this.deltaY=0;
+        
+        this.props.onSortEnd( 
+            this.initial.initialIndex,
+            newIndex,
+            event
+        );     
 
-        this.setState({
-            scrollTop:0,
-            x:0,
-            y:0,
+        this.initial = {   
             initialIndex:0,
             initialX:0,
             initialY:0,
             initialRect:null
-        });    
-    }
+        }
+
+       this.setState({showPlaceholder:false});
+    }    
+    
 
 
-
-
-    applyCustomStyle = (event:any) => {
+    applyCustomStyle = (event:any) => { 
+        let {decorators} = this.props;
         let x = event.clientX;
         let y = event.clientY;
-        showElement(this.cloned);
-        let {decorators} = this.props;
 
+        showElement(this.cloned);
+        
         for(let i=0; i<decorators.length; i++){
             let {condition, decorator} = decorators[i];
             if(condition(x,y)){
@@ -511,14 +531,97 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     }
 
 
+
+    getNodesToBeAnimated = () : HTMLElement[] => {
+        let selectedNodesIds = this.selected.map( node => node.id );
+        return getNodes(this.ref).filter((node:any) => !contains(node.id)(selectedNodesIds));
+    }
+
     
-   
-    render(){ 
-        return <div 
+
+    indexFromClick = (event:any) : number => {
+        let nodes = getNodes(this.ref);
+        let x = event.clientX;
+        let y = event.clientY;
+
+        for(let i=0; i<nodes.length; i++){
+            let target = nodes[i];
+            if(insideTargetArea(target,x,y)){
+               return i;  
+            }
+        }
+ 
+        return -1; 
+    }   
+
+
+
+    inside = (event:any) : boolean => {
+       let inside = this.indexFromClick(event)!==-1;
+       return inside; 
+    }
+
+
+    
+    render(){  
+        let {placeholderHeight,placeholderOffset,showPlaceholder} = this.state;
+
+        return <div>
+        <Placeholder     
+            height={placeholderHeight} 
+            offset={placeholderOffset}
+            show={showPlaceholder}
+        /> 
+        <div 
             ref={e => {this.ref=e;}} 
-            style={{display:"flex", flexDirection:"column"}}
+            style={{
+              display:"flex", 
+              flexDirection:"column"
+            }}  
         > 
             {this.props.children}    
         </div>
+        </div>
     }
+} 
+
+
+
+let insideTargetArea = (target:HTMLElement,x:number,y:number) : boolean => {
+
+    if(target===null || target===undefined)
+       return false;   
+
+    let rect = target.getBoundingClientRect();
+    let margins = getElementMargin(target);
+    let top = rect.top;
+    let bottom = rect.bottom; 
+
+    if(x>rect.left && x<rect.right)
+       if(y>top && y<bottom)
+          return true; 
+    
+    return false;
+}    
+
+
+
+function getCSSPixelValue(stringValue) {
+    if (stringValue.substr(-2) === 'px') {
+      return parseFloat(stringValue);
+    }
+    return 0;
+}
+
+
+ 
+function getElementMargin(element) {
+    const style = window.getComputedStyle(element);
+    
+    return {
+      top: getCSSPixelValue(style.marginTop),
+      right: getCSSPixelValue(style.marginRight),
+      bottom: getCSSPixelValue(style.marginBottom),
+      left: getCSSPixelValue(style.marginLeft),
+    };
 }

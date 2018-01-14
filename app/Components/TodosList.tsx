@@ -499,16 +499,16 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 show={showPlaceholder}
             />    
             <SortableList    
-                getElement={this.getTodoElement }
+                getElement={this.getTodoElement} 
                 container={this.props.rootRef} 
-                items={selected}    
+                items={selected}     
                 shouldCancelStart={this.shouldCancelStart as any}    
                 shouldCancelAnimation={this.shouldCancelAnimation as any}
                 onSortEnd={this.onSortEnd as any}    
                 onSortMove={this.onSortMove as any}  
                 onSortStart={this.onSortStart as any}  
                 lockToContainerEdges={false}
-                distance={1}    
+                distance={5}    
                 useDragHandle={false}
                 lock={false}
             />  
@@ -516,11 +516,6 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
     }   
 }    
  
-
-
-
-
-
 
 interface PlaceholderProps{
     offset:number,
@@ -539,15 +534,16 @@ export class Placeholder extends Component<PlaceholderProps,PlaceholderState>{
     render(){        
  
         return !this.props.show ? null : 
-                <div style={{   
+                <div style={{       
                     backgroundColor:"rgba(205,221,253,0.5)",
                     zIndex:100,     
                     height:`${this.props.height}px`, 
                     borderRadius:"5px",     
                     width:"100%",    
-                    position:"absolute",  
+                    position:"absolute",       
+                    //transitionDuration:`300ms`,
                     transform:`translateY(${this.props.offset}px)`
-                }}>   
+                }}>    
                 </div> 
     } 
 }    

@@ -5,7 +5,7 @@ import { ipcRenderer } from 'electron';
 import PouchDB from 'pouchdb-browser';  
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 import { Category } from './Components/MainContainer';
-import { randomArrayMember, randomInteger, randomDate, isString } from './utils';
+import { randomArrayMember, randomInteger, randomDate, isString, assert } from './utils';
 import { generateId, Todo, Heading, LayoutItem, Project, Area } from './database';
 import { uniq, splitEvery, contains } from 'ramda';
 const randomWord = require('random-word');
@@ -213,16 +213,19 @@ let generateProjectLayout = (generateTodosIds:string[],n:number) : LayoutItem[] 
     for(let i=0; i<n; i++){
         let r = Math.random(); 
         if(r > 0.7){
-            layout.push(fakeHeading());
+            let heading = fakeHeading();
+
+            if(!contains(heading._id)( layout.map(i => isString(i) ? i : i._id) ))
+               layout.push(heading); 
         }else{
-            layout.push(randomArrayMember(generateTodosIds));
+            let todoId = randomArrayMember(generateTodosIds);
+
+            if(!contains(todoId)(layout))  
+               layout.push(todoId);
         }
     }  
 
-    let correct = uniq( layout.map((i:any) => isString(i) ? i : i._id) );
-
-
-    return layout.filter( (i:any) => isString(i) ? contains(i)(correct) : contains(i._id)(correct) );
+    return layout;
 }
 
     
@@ -265,10 +268,13 @@ export let generateRandomDatabase = (
     let projectItems = [];
       
     for(let i=0; i<projects; i++){
-        let project = fakeProject(
-            randomArrayMember(tagsChunks), 
-            generateProjectLayout(generateTodosIds,25)
-        );
+        let fakeLayout = generateProjectLayout(generateTodosIds,25);
+
+        let ids = fakeLayout.map( (i:any) => isString(i) ? i : i._id ); 
+
+        assert(uniq(ids).length===ids.length, 'duplicate ids in project layout.');
+         
+        let project = fakeProject(randomArrayMember(tagsChunks),fakeLayout);
  
         projectItems.push(project);
     }

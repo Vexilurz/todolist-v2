@@ -290,7 +290,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 return true; 
             }
         } 
-  
+   
         return false; 
     } 
     
@@ -380,7 +380,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 onSortStart={this.onSortStart}
     
                 lockToContainerEdges={true}
-                distance={1}   
+                distance={5}   
                 useDragHandle={false} 
                 lock={true}
             />  

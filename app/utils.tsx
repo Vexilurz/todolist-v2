@@ -75,7 +75,7 @@ export let bySomeday = (todo:Todo) : boolean => todo.category==="someday";
 
 export let byScheduled = (todo:Todo) : boolean => not(isNil(todo.attachedDate));
  
-export let isTodo = (todo:Todo) : boolean => { 
+export let isTodo = (todo:any) : boolean => { 
     if(isNil(todo)){
         return false;
     } 
@@ -641,7 +641,7 @@ export let byCategory = (selectedCategory:Category) => (item:Todo) : boolean => 
 
 } 
  
-
+ 
 
 export let insideTargetArea = (target:HTMLElement,x:number,y:number) : boolean => {
 
@@ -654,14 +654,13 @@ export let insideTargetArea = (target:HTMLElement,x:number,y:number) : boolean =
         }
     }  
  
-    let react = target.getBoundingClientRect();
+    let rect = target.getBoundingClientRect();
      
-    if(x>react.left && x<react.right)
-       if(y>react.top && y<react.bottom)
+    if(x>rect.left && x<rect.right)
+       if(y>rect.top && y<rect.bottom)
           return true; 
     
     return false;
-
 }
 
 
