@@ -327,23 +327,27 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
     }   
     
     getTodoElement = (value:Todo, index:number) => {
-        return  <div key={value._id} style={{position:"relative"}}> 
-                    <TodoInput       
-                        id={value._id} 
-                        key={value._id}
-                        projects={this.props.projects}  
-                        dispatch={this.props.dispatch}  
-                        selectedProjectId={this.props.selectedProjectId}
-                        selectedAreaId={this.props.selectedAreaId} 
-                        todos={this.props.todos}
-                        selectedCategory={this.props.selectedCategory} 
-                        selectedTodoId={this.props.selectedTodoId}
-                        tags={this.props.tags} 
-                        searched={this.props.searched}
-                        rootRef={this.props.rootRef}  
-                        todo={value}
-                    />     
-                </div> 
+        return <div   
+            key={`${value._id}todo`} 
+            id={value._id}  
+            style={{position:"relative"}}
+        > 
+            <TodoInput        
+                id={value._id} 
+                key={value._id} 
+                projects={this.props.projects}  
+                dispatch={this.props.dispatch}  
+                selectedProjectId={this.props.selectedProjectId}
+                selectedAreaId={this.props.selectedAreaId} 
+                todos={this.props.todos}
+                selectedCategory={this.props.selectedCategory} 
+                selectedTodoId={this.props.selectedTodoId}
+                tags={this.props.tags} 
+                searched={this.props.searched}
+                rootRef={this.props.rootRef}  
+                todo={value}
+            />     
+        </div> 
     }
        
 
@@ -384,14 +388,14 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         let draggedTodo = item;
 
         assert(
-            item._id===selected[newIndex]._id, 
+            item._id===selected[oldIndex]._id, 
             `
                 incorrect index. 
                 ${newIndex} 
                 ${JSON.stringify(item)} 
                 ${JSON.stringify(selected)} 
                 onSortEnd. TodosList.
-            `
+            ` 
         )
 
         assert(isTodo(draggedTodo), `draggedTodo is not of type Todo ${JSON.stringify(draggedTodo)}. TodosList.`);

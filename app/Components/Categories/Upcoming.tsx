@@ -214,6 +214,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                     style={{
                         WebkitUserSelect: "none", 
                         display:"flex",
+                        cursor:"default", 
                         fontSize:"x-large",
                         width:"100%", 
                         fontWeight:"bold"
