@@ -324,9 +324,10 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         let decorators = [{  
             condition:shouldDecorate,  
-            decorator:generateDropStyle("nested")
+            decorator:generateDropStyle("nested"),
+            id:"default"
         }];    
-           
+            
         return <div className="unselectable">   
             <div>  
                 <TodoInput    

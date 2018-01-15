@@ -390,14 +390,14 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         if(tag.length===0) 
            return;
  
-        this.setState({tag:'', attachedTags:uniq([...this.state.attachedTags, tag])});
+        this.setState({tag:'', attachedTags:uniq([...this.state.attachedTags, tag])})
     } 
 
 
-    onNoteChange = (event,newValue:string) : void => this.setState({note:newValue});
+    onNoteChange = (event,newValue:string) : void => this.setState({note:newValue})
 
 
-    onTitleChange = (event) :void => this.setState({title:event.target.value});
+    onTitleChange = (event) :void => this.setState({title:event.target.value})
     
 
 
@@ -486,25 +486,25 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
  
-    onChecklistButtonClick = (e) => this.setState({showChecklist:true}); 
+    onChecklistButtonClick = (e) => this.setState({showChecklist:true}) 
       
 
-    onFlagButtonClick = (e) => this.setState({showDeadlineCalendar:true});
+    onFlagButtonClick = (e) => this.setState({showDeadlineCalendar:true})
 
 
-    closeDeadlineCalendar = (e) => this.setState({showDeadlineCalendar:false});
+    closeDeadlineCalendar = (e) => this.setState({showDeadlineCalendar:false})
  
 
-    onCalendarButtonClick = (e) => this.setState({showDateCalendar:true});
+    onCalendarButtonClick = (e) => this.setState({showDateCalendar:true})
     
 
-    closeDateCalendar = (e) => this.setState({showDateCalendar:false});
+    closeDateCalendar = (e) => this.setState({showDateCalendar:false})
     
 
-    onTagsButtonClick = (e) => this.setState({showTagsSelection:true});
+    onTagsButtonClick = (e) => this.setState({showTagsSelection:true})
 
 
-    closeTagsSelection = (e) => this.setState({showTagsSelection:false});
+    closeTagsSelection = (e) => this.setState({showTagsSelection:false})
 
 
     onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
@@ -512,10 +512,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             
         if(remaining>=0)
            this.setState({deadline:day}); 
-    };
+    }
 
  
-    onDeadlineCalendarClear = (e:any) : void => this.setState({deadline:null}); 
+    onDeadlineCalendarClear = (e:any) : void => this.setState({deadline:null})
     
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
@@ -523,7 +523,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             attachedDate:day,
             category:isToday(day) ? "today" : "next"
         });   
-    };
+    }
     
 
     onRemoveAttachedDateLabel = () => {
@@ -534,7 +534,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
           attachedDate:null,  
           category:today ? "next" : this.props.selectedCategory
         });  
-    };  
+    }  
     
 
     onCalendarSomedayClick = (e) => this.setState({category:"someday", attachedDate:null})
@@ -555,12 +555,14 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         reminder:null 
     }) 
  
+
     onRestoreButtonClick = debounce(() => {
         this.setState( 
             {deleted:undefined}, 
             () => this.updateTodo()  
         )    
     },50)
+
  
     getRelatedProjectName = () : string => { 
         let {todo, projects} = this.props;
@@ -575,6 +577,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            return undefined;  
         }; 
     } 
+
   
     render(){  
         let {
@@ -619,8 +622,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 justifyContent:"center" 
             }}   
         >     
-        <div    
-            //onClick={(e) => {e.stopPropagation();}}   
+        <div      
             ref={(e) => {this.ref=e;}}   
             style={{             
                 width:"100%",   

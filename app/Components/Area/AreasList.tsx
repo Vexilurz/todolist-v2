@@ -376,8 +376,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 shouldCancelAnimation={() => false}
     
                 onSortEnd={this.onSortEnd} 
-                onSortMove = {this.onSortMove}
-                onSortStart={this.onSortStart}
+                onSortMove={this.onSortMove}
+                onSortStart={this.onSortStart} 
     
                 lockToContainerEdges={true}
                 distance={5}   
