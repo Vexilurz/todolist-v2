@@ -1310,7 +1310,7 @@ export let daysRemaining = (date:Date) : number => {
         if(isDev()){ 
            throw new Error(`Date is Nil. daysRemaining.`);
         }
-     }
+    }
 
     return dateDiffInDays(new Date(), date); 
 } 

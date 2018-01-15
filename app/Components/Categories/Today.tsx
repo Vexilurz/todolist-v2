@@ -220,8 +220,10 @@ export class Today extends Component<TodayProps,TodayState>{
             _id:`today-separator` 
         };   
         
-        let filters = [ 
-            (t:Todo) => isToday(t.attachedDate) || daysRemaining(t.deadline)<=0, 
+        let isDeadlineTodayOrPast = (deadline:Date) : boolean => isNil(deadline) ? false : daysRemaining(deadline)<=0;
+
+        let filters = [  
+            (t:Todo) => isToday(t.attachedDate) || isDeadlineTodayOrPast(t.deadline), 
             byNotCompleted,  
             byNotDeleted  
         ];    
@@ -358,8 +360,7 @@ export class Today extends Component<TodayProps,TodayState>{
 
         return <div style={{
             disaply:"flex", 
-            flexDirection:"column",
-            WebkitUserSelect:"none" 
+            flexDirection:"column"
         }}> 
             <div style={{width: "100%"}}> 
                     <div style={{  
@@ -376,7 +377,6 @@ export class Today extends Component<TodayProps,TodayState>{
                             fontSize: "xx-large",
                             fontWeight: 600,
                             paddingLeft: "10px", 
-                            WebkitUserSelect: "none", 
                             cursor:"default" 
                         }}>   
                             {uppercase("today")} 
@@ -394,7 +394,6 @@ export class Today extends Component<TodayProps,TodayState>{
                         show={true}  
                     />   
                 <div   
-                    className="unselectable" 
                     id="todos" 
                     style={{marginBottom: "50px", marginTop:"20px"}} 
                 >         
@@ -410,12 +409,12 @@ export class Today extends Component<TodayProps,TodayState>{
                         selectedTodoId={this.props.selectedTodoId}
                         tags={this.props.tags} 
                         rootRef={this.props.rootRef}  
-                        searched={this.props.searched}
+                        searched={this.props.searched} 
                         todo={empty}
                         creation={true}
                     />   
 
-                    <div style={{WebkitUserSelect:"none",position:"relative"}}>   
+                    <div style={{position:"relative"}}>   
                         <SortableContainer
                             items={items}
                             scrollableContainer={this.props.rootRef}

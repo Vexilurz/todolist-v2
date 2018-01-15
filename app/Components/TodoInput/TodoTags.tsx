@@ -31,7 +31,7 @@ let uniqid = require("uniqid");
 import Popover from 'material-ui/Popover';
 import { Todo } from '../../database';
 import { uppercase, insideTargetArea } from '../../utils';
-
+import AutosizeInput from 'react-input-autosize'; 
 
 
 
@@ -53,7 +53,7 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
         ref:HTMLElement; 
         
         constructor(props){
-            super(props);
+            super(props); 
         }
 
 
@@ -66,7 +66,7 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
             document.body.removeEventListener("click", this.onOutsideClick);
         } 
 
-
+        
         onOutsideClick = (e) => {
             if(this.ref===null || this.ref===undefined)
                 return; 
@@ -137,8 +137,7 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
                                             paddingLeft:"5px", 
                                             paddingRight:"10px"  
                                         }}
-                                    >  
-                                     
+                                    >   
                                             <div style={{width:"24px",height:"24px"}}>
                                                 <TriangleLabel style={{color:"gainsboro"}}/>
                                             </div> 
@@ -151,9 +150,7 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
                                             }}> 
                                                 {tag}   
                                             </div>  
-
                                     </div>
-                                     
                                 }
                             )
                         } 
@@ -167,18 +164,44 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
 
 
 interface TodoTagsProps{
-    tags:string[] 
+    tags:string[],
+    attachTag:(tag:string) => void,
+    removeTag:(tag:string) => void,
 }    
 
+interface TodoTagsState{
+    tag:string
+}
  
-export class TodoTags extends Component<TodoTagsProps,{}>{
+export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
 
     constructor(props){
         super(props);
+        this.state={ tag:'' };  
+    } 
+    
+    
+    onEnterPress = (e) => { 
+
+        if(e.keyCode!==13){ return }
+        
+        e.stopPropagation(); 
+
+        let {attachTag} = this.props;
+        let {tag} = this.state;
+        attachTag(tag);
+        this.setState({tag:''}); 
     }
-  
+    
+    onRemoveTag = (tag:string) => () => {
+        let {removeTag} = this.props;
+        removeTag(tag);
+    }
+    
     
     render(){
+        let {attachTag} = this.props;
+        let {tag} = this.state;
 
         return <div
             onClick={(e) => {e.stopPropagation();}} 
@@ -186,41 +209,86 @@ export class TodoTags extends Component<TodoTagsProps,{}>{
                 display:"flex", 
                 paddingTop:"5px",
                 paddingBottom:"5px",
-                flexWrap:"wrap"
+                flexWrap:"wrap" 
             }}
-        >{      
-            this.props.tags
-            .sort((a:string,b:string) : number => a.localeCompare(b))
-            .map( 
-                (tag:string, index:number) => 
-                <div  
-                    key={`${tag}-${index}`} 
-                    style={{ 
-                        paddingLeft:"4px", 
-                        paddingRight:"4px", 
-                        paddingTop:"4px",  
-                        cursor:"default",  
-                        WebkitUserSelect:"none"
-                    }}   
-                > 
-                    <div style={{
-                        borderRadius:"15px", 
-                        backgroundColor:"rgb(189,219,209)",
-                        paddingLeft:"5px",
-                        paddingRight:"5px"   
-                    }}>
+        >
+            {      
+                this.props.tags
+                .sort((a:string,b:string) : number => a.localeCompare(b))
+                .map( 
+                    (tag:string, index:number) => 
+                    <div  
+                        key={`${tag}-${index}`} 
+                        style={{ 
+                            paddingLeft:"4px", 
+                            paddingRight:"4px", 
+                            paddingTop:"4px",  
+                            cursor:"default",  
+                            WebkitUserSelect:"none"
+                        }}   
+                    > 
                         <div style={{
-                            height:"20px",
-                            padding:"4px", 
-                            color:"rgb(115,167,152)",
-                            fontWeight: 600 
-                        }}> 
-                            {uppercase(tag)} 
-                        </div>
-                    </div>
-                </div> 
-            ) 
-        }</div>
+                            borderRadius:"15px", 
+                            backgroundColor:"rgb(189,219,209)",
+                            paddingLeft:"5px",
+                            paddingRight:"5px",
+                            display:"flex"   
+                        }}>
+                            <div style={{
+                                height:"20px",
+                                padding:"4px", 
+                                color:"rgb(115,167,152)",
+                                fontWeight: 600 
+                            }}> 
+                                {uppercase(tag)} 
+                            </div> 
+                            <div  
+                              style={{padding:"2px",alignItems:"center",display:"flex"}} 
+                              onClick={this.onRemoveTag(tag)}
+                            >
+                                <Clear style={{
+                                    color:"rgba(100,100,100,0.5)",
+                                    height:20,
+                                    width:20 
+                                }}/>
+                            </div>
+                        </div> 
+                    </div> 
+                )   
+            }
+            <div
+                style={{ 
+                    display:"flex",
+                    alignItems:"center",
+                    justifyContent:"center"
+                }}
+            >   
+                <AutosizeInput   
+                    type="text"  
+                    name="form-field-name-tag"   
+                    minWidth={40}
+                    style={{ 
+                        display:"flex", 
+                        alignItems:"center",      
+                        cursor:"default"  
+                    }}            
+                    inputStyle={{                
+                        color:"black",  
+                        fontSize:"16px",  
+                        cursor:"default", 
+                        caretColor:"cornflowerblue",  
+                        boxSizing:"content-box", 
+                        backgroundColor:"rgba(0,0,0,0)",
+                        border:"none",  
+                        outline:"none"   
+                    }}  
+                    placeholder=""  
+                    value={this.state.tag} 
+                    onKeyDown={this.onEnterPress} 
+                    onChange={(event) => this.setState({tag:event.target.value})} 
+                /> 
+            </div>
+        </div>
     }
 }
  

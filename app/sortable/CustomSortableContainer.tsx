@@ -12,7 +12,7 @@ import { Placeholder } from '../Components/TodosList';
   
 
 
-
+ 
 
 let hideElement = (node:HTMLElement) : void => {
     node.style.visibility = 'hidden';
@@ -55,8 +55,6 @@ let cloneOne = (node:HTMLElement) : HTMLElement => {
     clonedFields.forEach((field:any, index) => {
       if(field.type !== 'file' && fields[index]) {
          field.value = fields[index]["value"];
-         field.style.userSelect = "none";
-         field.style.webkitUserSelect = "none";
       } 
     }); 
  
@@ -68,10 +66,7 @@ let cloneOne = (node:HTMLElement) : HTMLElement => {
     clone.style.boxSizing = 'border-box';
     clone.style.pointerEvents = 'none';
     clone.style.zIndex = '200000';
-    clone.style.userSelect = "none";
-    clone.style.webkitUserSelect = "none";
 
-      
     return clone;
 }
 
@@ -100,8 +95,6 @@ let cloneMany = (nodes:HTMLElement[]) : HTMLElement => {
         clonedFields.forEach((field:any, index) => {
           if(field.type !== 'file' && fields[index]) {
              field.value = fields[index]["value"];
-             field.style.userSelect = "none";
-             field.style.webkitUserSelect = "none";
           }  
         });    
            
@@ -121,12 +114,10 @@ let cloneMany = (nodes:HTMLElement[]) : HTMLElement => {
     container.style.boxSizing = 'border-box';
     container.style.pointerEvents = 'none';
     container.style.zIndex = '200000';
-    container.style.userSelect = "none";
-    container.style.webkitUserSelect = "none";
 
       
     return container;  
-}   
+}    
 
 
  
@@ -234,13 +225,10 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             initialY:0,
             initialRect:null
         }
-    
     }
 
 
-
     onError = (error) => console.log(error)
-
 
 
     componentDidMount(){ 
@@ -306,19 +294,28 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         let drag = Observable  
                     .fromEvent(this.ref,"mousedown") 
                     .filter(this.inside)
-                    .do((event:any) => {
-                        event.preventDefault();   
+                    .do((event:any) => { 
+
                         this.initial.initialIndex = this.indexFromClick(event);
                         this.initial.initialX = event.clientX;
                         this.initial.initialY = event.clientY;
+                        
                     })
                     .switchMap(
-                        (event) => shouldCancelStart(event,items[this.initial.initialIndex]) ?
-                                    Observable.of() :
-                                    Observable 
-                                    .fromEvent(window,"mousemove")
-                                    .skipWhile(byExceedThreshold)
-                                    .takeUntil(dragEnd) 
+                        (event) => {
+                            
+                            let cancel = shouldCancelStart(event,items[this.initial.initialIndex]);
+                            
+                            if(cancel){
+                                return Observable.of()
+                            }else{
+                                event.preventDefault()
+                                return Observable 
+                                        .fromEvent(window,"mousemove")
+                                        .skipWhile(byExceedThreshold)
+                                        .takeUntil(dragEnd) 
+                            }
+                        }
                                     
                     )    
                     .subscribe(this.onDragMove, this.onError);   
@@ -365,7 +362,6 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
 
     onDragMove = (event:any) : void => { 
-        event.preventDefault();  
         let {scrollableContainer,items, onSortMove} = this.props; 
         let scrollThreshold = 30;
 
@@ -521,8 +517,6 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             let margins = getElementMargin(element);
 
             element.style[`transition-duration`] = `${300}ms`; 
-            element.style.userSelect = "none"; 
-            element.style.webkitUserSelect = "none";
 
             let {top,bottom,height} = element.getBoundingClientRect();
             let center = (top+bottom)/2; 
@@ -675,10 +669,10 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         decorator.style.left = `${initialX}px`;  
         decorator.style.transform = transform;
         decorator.style.position = position;
-        decorator.style.cursor = "pointer";
+        decorator.style.cursor = "default";
         document.body.appendChild(decorator);    
          
-        this.decorator = target; 
+        this.decorator = target;  
         
         if(not(this.paused)){ 
             this.pause();
@@ -721,7 +715,6 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         let {placeholderHeight,placeholderOffset,showPlaceholder} = this.state;
         
         return <div  
-            className="unselectable" 
             style={{
                 width:"100%",
                 position:"relative"

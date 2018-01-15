@@ -45,21 +45,20 @@ import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopup, TodoTags } from './TodoTags';
 import { TodoInputLabel } from './TodoInputLabel'; 
-import { uniq, isEmpty, contains, isNil, not, multiply } from 'ramda';
+import { uniq, isEmpty, contains, isNil, not, multiply, remove } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
 let moment = require("moment"); 
 import AutosizeInput from 'react-input-autosize'; 
 import { isString } from 'util';
 import { AutoresizableText } from '../AutoresizableText';
-import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
+import { Observable } from 'rxjs/Rx';
+  
 
- 
-
-export interface TodoInputState{
+export interface TodoInputState{  
     open : boolean,
     category : Category,
     title : string,  
@@ -108,11 +107,17 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     tags:HTMLElement;
     ref:HTMLElement; 
     inputRef:HTMLElement; 
+
+
+    subscriptions:Subscription[]; 
  
+
     constructor(props){
 
         super(props);  
 
+        this.subscriptions = [];
+         
         let {
             category, 
             title,  
@@ -153,18 +158,21 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }
 
     componentDidMount(){  
-        window.addEventListener("click", this.onOutsideClick);
+
+        let click = Observable.fromEvent(window,"click").subscribe(this.onOutsideClick);
+
+        this.subscriptions.push(click);
 
         if(this.props.selectedTodoId===this.props.todo._id){   
            this.select();   
         }
-    }       
+    }          
  
  
     select = () => {
         this.setState(    
             {open:true}, 
-            () => {
+            () => { 
                 if(this.props.searched){   
                    this.scrollTo();  
                 }      
@@ -306,14 +314,15 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }  
 
 
-    componentWillUnmount(){ 
+    componentWillUnmount(){
         if(!this.props.creation){
             this.updateTodo();
         }  
-        window.removeEventListener("click", this.onOutsideClick);
+        this.subscriptions.map(s => s.unsubscribe());
+        this.subscriptions = []; 
     } 
 
- 
+  
     stateFromTodo = (state:TodoInputState,todo:Todo) : TodoInputState => ({   
         ...state,
         category:todo.category, 
@@ -394,6 +403,21 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     } 
 
 
+    onRemoveTag = (tag) => {
+
+        let {attachedTags} = this.state;
+        
+        if(tag.length===0){ return } 
+        
+        let idx = attachedTags.findIndex( v => v===tag );
+ 
+        if(idx===-1){ return }
+
+        this.setState({attachedTags:remove(idx,1,attachedTags)})
+    } 
+
+
+
     onNoteChange = (event,newValue:string) : void => this.setState({note:newValue})
 
 
@@ -419,7 +443,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             
         step();  
     })
-    
+      
      
   
     onCheckBoxClick = debounce(
@@ -430,7 +454,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                          selectedCategory!=="logbook" &&  
                                          selectedCategory!=="trash"; 
             
-            if(not(open) && not(creation)){   
+            if(not(creation)){
+
                 let isChecked : boolean = !checked; 
                 this.setState(   
                     { 
@@ -446,7 +471,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         , 
                         50
                     )
-                )    
+                ) 
+
             }   
         },
         50
@@ -675,6 +701,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     not(open) ? null :    
                     <TodoInputMiddleLevel 
                         onNoteChange={this.onNoteChange}
+                        onAttachTag={this.onAttachTag}
+                        onRemoveTag={this.onRemoveTag}
                         updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})}
                         open={open} 
                         note={note} 
@@ -1337,57 +1365,57 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                         /> 
                     </div>
                 </div> 
-                
-                <div style={{
-                    height:"25px",
-                    display:"flex",
-                    alignItems:"center",
-                    zIndex:1001,   
-                    justifyContent:this.state.overflow ? "flex-start" : "space-between",
-                    zoom:this.state.overflow ? 0.8 : 1, 
-                    flexGrow:1  
-                }}>        
-                    { 
-                        isEmpty(attachedTags) ? null :
-                        <div style={{}}>
-                          <AdditionalTags   
-                              attachedTags={attachedTags}      
-                              showAdditionalTags={this.state.overflow ? false : showAdditionalTags}
-                              open={open}  
-                              onMouseOver={this.props.onAdditionalTagsHover as any}
-                              onMouseOut={this.props.onAdditionalTagsOut as any} 
-                              onMouseDown={this.props.onAdditionalTagsPress as any}  
-                          />   
-                        </div>
-                    } 
-                    {    
-                        isNil(deadline) ? null :     
-                        open ? null : 
-                        <div 
-                            ref = {e => {this.labelRef=e;}}
-                            style={{
-                                display:"flex", 
-                                cursor:"default",    
-                                pointerEvents:"none", 
-                                alignItems:"center",   
-                                height:"100%",
-                                flexGrow:1,  
-                                justifyContent:"flex-end" 
-                            }} 
-                        > 
-                            <div style={{paddingRight:"5px", paddingTop:"5px"}}> 
-                                <Flag style={{          
-                                    color:flagColor, 
-                                    cursor:"default",  
-                                    width:16, 
-                                    height:16
-                                }}/>      
-                            </div>   
-                            {daysLeftMark(open, deadline)}
-                        </div>  
-                    } 
-                </div>
-
+                {   
+                    open ? null :
+                    <div style={{
+                        height:"25px",
+                        display:"flex",
+                        alignItems:"center",
+                        zIndex:1001,   
+                        justifyContent:this.state.overflow ? "flex-start" : "space-between",
+                        zoom:this.state.overflow ? 0.8 : 1, 
+                        flexGrow:1   
+                    }}>        
+                        {  
+                            isEmpty(attachedTags) ? null :
+                            <div style={{}}>
+                            <AdditionalTags   
+                                attachedTags={attachedTags}      
+                                showAdditionalTags={this.state.overflow ? false : showAdditionalTags}
+                                open={open}  
+                                onMouseOver={this.props.onAdditionalTagsHover as any}
+                                onMouseOut={this.props.onAdditionalTagsOut as any} 
+                                onMouseDown={this.props.onAdditionalTagsPress as any}  
+                            />   
+                            </div> 
+                        } 
+                        {    
+                            isNil(deadline) ? null :   
+                            <div 
+                                ref = {e => {this.labelRef=e;}}
+                                style={{
+                                    display:"flex", 
+                                    cursor:"default",    
+                                    pointerEvents:"none", 
+                                    alignItems:"center",   
+                                    height:"100%",
+                                    flexGrow:1,  
+                                    justifyContent:"flex-end" 
+                                }} 
+                            > 
+                                <div style={{paddingRight:"5px", paddingTop:"5px"}}> 
+                                    <Flag style={{          
+                                        color:flagColor, 
+                                        cursor:"default",  
+                                        width:16, 
+                                        height:16
+                                    }}/>      
+                                </div>   
+                                {daysLeftMark(open, deadline)}
+                            </div>  
+                        } 
+                    </div>
+                }
             </div>
             {
                 open ? null :  
@@ -1409,7 +1437,9 @@ interface TodoInputMiddleLevelProps{
     updateChecklist:Function, 
     open:boolean,
     note:string, 
-    showChecklist:boolean,
+    onAttachTag:(tag:string) => void,
+    onRemoveTag:(tag:string) => void,
+    showChecklist:boolean, 
     todo:Todo,
     checklist:ChecklistItem[],
     attachedTags:string[] 
@@ -1431,27 +1461,31 @@ class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,TodoInput
             showChecklist,
             todo,
             checklist,
-            attachedTags
+            attachedTags,
+            onAttachTag,
+            onRemoveTag
         } = this.props;
 
         return  <div style={{ 
             transition:"opacity 0.2s ease-in-out", 
             opacity:open ? 1 : 0, 
             paddingLeft:"25px", 
-            paddingRight:"25px" 
-        }}>       
+            paddingRight:"25px"  
+        }}>    
             <TextField   
-                id={`${todo._id}note`}
+                id={`${todo._id}note`}  
                 value={note} 
                 hintText="Notes"
-                fullWidth={true}  
-                hintStyle={{top:"3px",left:0, height:"100%"}}      
-                onChange={this.props.onNoteChange}
-                style={{height:"28px",marginBottom:"15px",marginTop:"15px",cursor:"default"}}    
-                inputStyle={{fontFamily:"sans-serif",fontSize:"14px"}} 
-                underlineFocusStyle={{borderColor: "rgba(0,0,0,0)"}} 
-                underlineStyle={{borderColor: "rgba(0,0,0,0)"}}   
-            />  
+                multiLine={true}   
+                rows={1}
+                fullWidth={true} 
+                onChange={this.props.onNoteChange} 
+                inputStyle={{fontSize:"14px"}} 
+                underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}} 
+                underlineStyle={{borderColor:"rgba(0,0,0,0)"}}  
+                //hintStyle={{}}   
+                //style={{}}   
+            />   
             {    
                 not(showChecklist) ? null : 
                 <div>   
@@ -1461,7 +1495,14 @@ class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,TodoInput
                     /> 
                 </div>
             }  
-            { isEmpty(attachedTags) ? null : <TodoTags tags={attachedTags}/> } 
+            { 
+                isEmpty(attachedTags) ? null : 
+                <TodoTags 
+                    attachTag={onAttachTag} 
+                    removeTag={onRemoveTag}
+                    tags={attachedTags}
+                /> 
+            } 
         </div>   
     } 
 }

@@ -24,6 +24,7 @@ import {
     getTagsFromItems,
     assert,
     isDate,
+    getMonthName,
 } from '../../utils';  
 import { getProjectLink } from '../Project/ProjectLink';
 import { allPass, uniq, isNil, compose, not, last, isEmpty } from 'ramda';
@@ -201,10 +202,30 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         idx:number
     ) : JSX.Element => {
 
+        let day = object.date.getDate();
+        let month = getMonthName(object.date);
+        let showMonth = idx===0 || day===1;
+
         return <div  style={{WebkitUserSelect:"none"}} key={idx}>
+
+            { 
+                not(showMonth) ? null :
+                <div 
+                    style={{
+                        WebkitUserSelect: "none", 
+                        display:"flex",
+                        fontSize:"x-large",
+                        width:"100%", 
+                        fontWeight:"bold"
+                    }} 
+                >  
+                    {month}  
+                </div>
+            }
+ 
             <CalendarDay 
                 idx={idx} 
-                day={object.date.getDate()} 
+                day={day} 
                 searched={this.props.searched}
                 dayName={getDayName(object.date)}
                 selectedTodos={object.todos} 
@@ -238,15 +259,17 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
 
         return <div style={{WebkitUserSelect:"none"}}> 
-                <ContainerHeader 
-                    selectedCategory={"upcoming"} 
-                    dispatch={this.props.dispatch}  
-                    tags={tags}
-                    showTags={true} 
-                    selectedTag={this.props.selectedTag}
-                />
+                <div style={{paddingBottom:"20px"}}>
+                    <ContainerHeader 
+                        selectedCategory={"upcoming"} 
+                        dispatch={this.props.dispatch}  
+                        tags={tags}
+                        showTags={true} 
+                        selectedTag={this.props.selectedTag}
+                    />
+                </div>
    
-                <div>{ this.state.objects.map(this.objectToComponent) }</div>
+                <div>{this.state.objects.map(this.objectToComponent)}</div>
 
                 <div style={{width:"100%", height:"1px"}}> 
                     <Waypoint  
@@ -296,8 +319,8 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
         return <div style={{
             display:"flex",
             flexDirection:"column", 
-            paddingTop:"50px", 
-            paddingBottom:"50px",
+            paddingTop:"20px", 
+            paddingBottom:"20px",
             WebkitUserSelect: "none" 
         }}> 
                 <div style={{ 

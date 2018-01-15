@@ -47,7 +47,7 @@ import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopup, TodoTags } from './TodoTags';
 import { TodoInputLabel } from './TodoInputLabel';
-import { uniq, isEmpty, contains, isNil } from 'ramda';
+import { uniq, isEmpty, contains, isNil, remove } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
 let moment = require("moment"); 
 import AutosizeInput from 'react-input-autosize'; 
@@ -263,6 +263,18 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
         this.setState({tag:'', attachedTags:uniq([...this.state.attachedTags, tag])});
     }  
 
+    onRemoveTag = (tag) => {
+
+        let {attachedTags} = this.state;
+        
+        if(tag.length===0){ return }
+        
+        let idx = attachedTags.findIndex( v => v===tag );
+ 
+        if(idx===-1){ return }
+
+        this.setState({attachedTags:remove(idx,1,attachedTags)})
+    } 
     
     onNoteChange = (event,newValue:string) : void => this.setState({note:newValue});
 
@@ -337,6 +349,8 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
     onCalendarAddReminderClick = (reminder:Date) : void => this.setState({reminder, attachedDate:reminder})
     
     render(){  
+
+
         return  <div    
             style={{    
                 width:"100%",         
@@ -460,11 +474,15 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                             }   
                             {  
                                 this.state.attachedTags.length===0 ? null :
-                                <TodoTags tags={this.state.attachedTags}/>
+                                <TodoTags   
+                                    tags={this.state.attachedTags}
+                                    attachTag={this.onAttachTag}
+                                    removeTag={this.onRemoveTag}
+                                /> 
                             }
                         </div>  
                     }  
-                    </div>   
+                    </div>    
                 </div>    
         { 
             <div style={{

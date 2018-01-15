@@ -302,7 +302,6 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             }    
             <div>                
                 <TextField       
-                    className="unselectable" 
                     id = {"project_notes"}  
                     hintText = "Notes"      
                     hintStyle={{top:"12px"}}
