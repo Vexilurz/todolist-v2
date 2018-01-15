@@ -401,17 +401,19 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
 
         this.animateClone(this.deltaX,this.deltaY);
-
         this.animateDecorator(this.deltaX,this.deltaY);
-
         this.animateNodes(event, direction); 
-          
         this.applyCustomStyle(event);
 
 
-        if(this.scroll==="up" || this.scroll==="down")
-           if(isNil(this.decorator)) 
+        let insideScrollableContainer = insideTargetArea(scrollableContainer,event.clientX,event.clientY);
+
+        
+        if(this.scroll==="up" || this.scroll==="down"){
+           if(insideScrollableContainer){ 
               this.animateScroll();
+           }
+        }
 
 
         onSortMove(initialIndex,event); 
