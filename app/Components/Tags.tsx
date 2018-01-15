@@ -9,7 +9,7 @@ import { Component } from "react";
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux"; 
 import DayPicker from 'react-day-picker';
-import { append, prepend, contains } from 'ramda';
+import { append, prepend, contains, not, isEmpty } from 'ramda';
    
 
 
@@ -67,18 +67,21 @@ export class Tags extends Component<TagsProps,{}>{
       
   
       render(){
-         return !this.props.show ? null :
+         let { show, tags, selectTag, selectedTag } = this.props; 
+          
+         return not(show) ? null :
+                isEmpty(tags) ? null :
                 <div style={{  
                     display:'flex', 
                     flexWrap:'wrap',
                     WebkitUserSelect:"none" 
                 }}>  
                     {    
-                        ["All",...this.props.tags.sort((a:string,b:string) : number => a.localeCompare(b))]
+                        ["All",...tags.sort((a:string,b:string) : number => a.localeCompare(b))]
                         .map((tag:string) =>  
                             <div key={tag} style={{padding:"4px"}}> 
                                 <div className="chip"      
-                                    onClick={() => this.props.selectTag(tag)} 
+                                    onClick={() => selectTag(tag)} 
                                     style={{
                                         width:"auto",
                                         height:"25px", 
@@ -88,8 +91,8 @@ export class Tags extends Component<TagsProps,{}>{
                                         paddingRight:"5px", 
                                         cursor:"pointer",
                                         borderRadius:"100px", 
-                                        backgroundColor:this.selectTagBackgroundColor(tag,this.props.selectedTag),
-                                        color:this.selectTagFontColor(tag,this.props.selectedTag),                  
+                                        backgroundColor:this.selectTagBackgroundColor(tag,selectedTag),
+                                        color:this.selectTagFontColor(tag,selectedTag),                  
                                         fontWeight:700 
                                     }}     
                                 >   

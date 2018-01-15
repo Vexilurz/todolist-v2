@@ -17,9 +17,6 @@ import {
     isTodo
 } from '../utils';  
 import { RightClickMenu } from './RightClickMenu';
-import SortableContainer from '../sortable-hoc/sortableContainer';
-import SortableElement from '../sortable-hoc/sortableElement';
-import SortableHandle from '../sortable-hoc/sortableHandle';
 import { arrayMove } from '../sortable-hoc/utils';
 import { byTags, byCategory } from '../utils'; 
 import { SortableList } from './SortableList';
@@ -29,6 +26,7 @@ import { Category } from './MainContainer';
 import { isDev } from '../app';
 import { calculateAmount } from './LeftPanel/LeftPanel';
 import { indexToPriority } from './Categories/Today';
+import { SortableContainer } from '../sortable/CustomSortableContainer';
 
 
 
@@ -304,12 +302,7 @@ interface TodosListProps{
 
 
   
-interface TodosListState{
-    nodes:HTMLElement[],
-    currentIndex:number, 
-    helper:HTMLElement, 
-    showPlaceholder:boolean 
-}
+interface TodosListState{}
   
 
    
@@ -317,13 +310,6 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
     constructor(props){ 
         super(props);
-
-        this.state={
-            nodes:[],
-            currentIndex:0,     
-            helper:null,
-            showPlaceholder:false
-        };  
     }   
      
     shouldComponentUpdate(nextProps:TodosListProps, nextState:TodosListState){
@@ -332,23 +318,18 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             this.props.todos!==nextProps.todos ||
             this.props.projects!==nextProps.projects ||
             this.props.areas!==nextProps.areas ||
-            this.props.selectedTag!==nextProps.selectedTag ||
-            this.props.todos!==nextProps.todos ||
-
-            this.state.currentIndex!==nextState.currentIndex ||
-            this.state.nodes!==nextState.nodes || 
-            this.state.showPlaceholder!==nextState.showPlaceholder 
+            this.props.selectedTag!==nextProps.selectedTag 
         ){  
-            return true 
+            return true  
         }
            
         return false 
     }   
     
     getTodoElement = (value:Todo, index:number) => {
-        return  <div style={{position:"relative"}}> 
-                    <TodoInput   
-                        id={value._id}
+        return  <div key={value._id} style={{position:"relative"}}> 
+                    <TodoInput       
+                        id={value._id} 
                         key={value._id}
                         projects={this.props.projects}  
                         dispatch={this.props.dispatch}  
@@ -381,90 +362,47 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
     }  
      
 
-    shouldCancelAnimation = (e) => {
-        let {disabled, rootRef} = this.props;
- 
-        if(disabled || isNil(rootRef)){
-            return
-        }
 
-        return e.pageX < rootRef.getBoundingClientRect().left;   
-    }  
-
-
-    
-
-
-    onSortStart = ({node, index, collection}, e, helper) => { 
-        let {todos,filters} = this.props;
-        let box = helper.getBoundingClientRect();
-        let selected = todos
-                       .filter(allPass(filters))
-                       .sort((a:Todo,b:Todo) => a.priority-b.priority); 
-
-        this.setState(
-            {showPlaceholder:true, helper},
-            () => this.props.dispatch({type:"dragged",load:selected[index].type})
-        ); 
-
-        let offset = e.clientX - box.left;
-
-        let el = generateDropStyle("nested"); 
-        el.style.left=`${offset}px`;  
-        el.style.visibility="hidden";
-        el.style.opacity='0'; 
-        
-        helper.appendChild(el);  
-    }
-    
-    
- 
-    onSortMove = (e, helper : HTMLElement, newIndex:number, oldIndex:number, nodes:HTMLElement[]) => {
-        let x = e.clientX;  
-        let y = e.clientY; 
-        
-        if(newIndex!==this.state.currentIndex){ 
-           this.setState({currentIndex:newIndex,helper,nodes}); 
-        }  
-
-        let leftpanel = document.getElementById("leftpanel");
-        let nested = document.getElementById("nested");
-
-        if(insideTargetArea(leftpanel,x,y)){ 
-            hideChildrens(helper);  
-            nested.style.visibility=""; 
-            nested.style.opacity='1';    
-        }else{ 
-            makeChildrensVisible(helper);  
-            nested.style.visibility="hidden";
-            nested.style.opacity='0';  
-        } 
+    onSortStart = (oldIndex:number,event:any) : void => { 
+        let {dispatch} = this.props;
+        dispatch({type:"dragged",load:"todo"}); 
     }
 
+    onSortMove = (oldIndex:number,event:any) => {}
 
-
-    onSortEnd = ({oldIndex, newIndex, collection}, e) => { 
-        this.setState({showPlaceholder:false});
+    onSortEnd = (oldIndex:number,newIndex:number,event:any,item?:any) => { 
 
         let {todos, filters, dispatch, areas, projects} = this.props;
-        let x = e.clientX; 
-        let y = e.clientY;  
-
+        let x = event.clientX; 
+        let y = event.clientY;   
         let selected = todos
                        .filter(allPass(filters))
                        .sort((a:Todo,b:Todo) => a.priority-b.priority); 
 
-        let draggedTodo = selected[oldIndex];
+        dispatch({type:"dragged",load:null}); 
+
+        let draggedTodo = item;
+
+        assert(
+            item._id===selected[newIndex]._id, 
+            `
+                incorrect index. 
+                ${newIndex} 
+                ${JSON.stringify(item)} 
+                ${JSON.stringify(selected)} 
+                onSortEnd. TodosList.
+            `
+        )
+
+        assert(isTodo(draggedTodo), `draggedTodo is not of type Todo ${JSON.stringify(draggedTodo)}. TodosList.`);
 
         if(isEmpty(draggedTodo.title)){ return }
   
-        dispatch({type:"dragged",load:null}); 
-
         let leftpanel = document.getElementById("leftpanel");
 
         if(insideTargetArea(leftpanel,x,y) && isTodo(draggedTodo)){  
 
-            onDrop(e,draggedTodo,dispatch,areas,projects) 
+            onDrop(event,draggedTodo,dispatch,areas,projects) 
 
         }else{     
             if(oldIndex===newIndex){ return }
@@ -472,50 +410,48 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             this.changeOrder(oldIndex,newIndex,selected) 
         }    
     }  
-
-     
+    
 
     changeOrder = (oldIndex,newIndex,selected) => {
-        let load = indexToPriority(arrayMove(selected,oldIndex,newIndex)); 
-        this.props.dispatch({type:"updateTodos", load:load.filter(isTodo)});
+        let load = arrayMove(selected,oldIndex,newIndex); 
+        this.props.dispatch({type:"updateTodos", load:indexToPriority(load).filter(isTodo)});
     }
  
   
-    
         
     render(){    
         let {todos, filters, selectedCategory} = this.props;
-        let {helper,showPlaceholder, nodes, currentIndex} = this.state;
-        let offset = getPlaceholderOffset(nodes,currentIndex);
-        let height = helper ? helper.getBoundingClientRect().height : 0;
+        let decorators = [{  
+            area:document.getElementById("leftpanel"),  
+            decorator:generateDropStyle("nested"),
+            id:"default"
+        }];    
         let selected = todos
                        .filter(allPass(filters))
                        .sort((a:Todo,b:Todo) => a.priority-b.priority); 
-
+        
         return <div style={{WebkitUserSelect:"none",position:"relative"}}>   
-            <Placeholder   
-                offset={offset} 
-                height={height}  
-                show={showPlaceholder}
-            />    
-            <SortableList    
-                getElement={this.getTodoElement} 
-                container={this.props.rootRef} 
-                items={selected}     
-                shouldCancelStart={this.shouldCancelStart as any}    
-                shouldCancelAnimation={this.shouldCancelAnimation as any}
-                onSortEnd={this.onSortEnd as any}    
-                onSortMove={this.onSortMove as any}  
-                onSortStart={this.onSortStart as any}  
-                lockToContainerEdges={false}
-                distance={5}    
-                useDragHandle={false}
-                lock={false}
-            />  
+                <SortableContainer
+                    items={selected}
+                    scrollableContainer={this.props.rootRef}
+                    selectElements={(index:number,items:any[]) => [index]}
+                    shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
+                    decorators={decorators}
+                    onSortStart={this.onSortStart}   
+                    onSortMove={this.onSortMove} 
+                    onSortEnd={this.onSortEnd}  
+                >   
+                    {selected.map((todo:Todo,index) => this.getTodoElement(todo, index))} 
+                </SortableContainer> 
         </div>  
     }   
 }    
  
+
+
+
+
+
 
 interface PlaceholderProps{
     offset:number,

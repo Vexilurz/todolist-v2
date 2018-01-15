@@ -73,15 +73,15 @@ export class SortableList extends Component<SortableListProps, SortableListState
  
 
     shouldComponentUpdate(nextProps:SortableListProps){
-        let should = false;
-
-        should = !equals(nextProps.items,this.props.items)
   
-  
-        if(nextProps.container!==this.props.container)
-           should=true;
+        if(
+            nextProps.container!==this.props.container,
+            nextProps.items,this.props.items
+        ){
+           return true;
+        }
         
-        return should;  
+        return false;  
     } 
 
         

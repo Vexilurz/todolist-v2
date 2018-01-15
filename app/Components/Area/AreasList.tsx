@@ -136,12 +136,14 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             selectedAreaId,
             selectedCategory,
             areas,
+            todos,
             leftPanelRef,
             projects
-        } = this.props;
+        } = this.props; 
 
         if( 
             dragged!==nextProps.dragged ||
+            todos!==nextProps.todos ||
             selectedProjectId!==nextProps.selectedProjectId ||
             selectedAreaId!==nextProps.selectedAreaId ||
             selectedCategory!==nextProps.selectedCategory ||
@@ -380,7 +382,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 onSortStart={this.onSortStart} 
     
                 lockToContainerEdges={true}
-                distance={5}   
+                distance={5}     
                 useDragHandle={false} 
                 lock={true}
             />  
@@ -423,9 +425,9 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
 
     onMouseOver = (e) => {
         let {dragged} = this.props;
- 
+  
         if(e.buttons == 1 || e.buttons == 3){
-            if(dragged==="project" || dragged==="todo" || dragged==="heading"){   
+            if(dragged==="project" || dragged==="todo" || dragged==="heading"){  
                 this.setState({highlight:true}); 
             } 
         } 

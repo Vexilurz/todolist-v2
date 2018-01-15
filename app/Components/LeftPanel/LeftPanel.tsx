@@ -60,25 +60,27 @@ interface ItemsAmount{
     logbook:number  
 }
 
+  
  
-let hotFilter = (todo:Todo) : boolean => { 
-
-    assert(not(isNil(todo)), `Todo is undefined ${JSON.stringify(todo)}. hotFilter`);
-
-    if(isNil(todo.deadline)){
-       return false
-    } 
-    
-    assert(isDate(todo.deadline), `Deadline is not date. ${JSON.stringify(todo.deadline)} hotFilter`);
- 
-    return daysRemaining(todo.deadline)<=0;   
-}   
-
 
 export let calculateAmount = (areas:Area[], projects:Project[], todos:Todo[]) : ItemsAmount => {
+ 
+    let isDeadlineTodayOrPast = (deadline:Date) : boolean => isNil(deadline) ? 
+                                                             false : 
+                                                             daysRemaining(deadline)<=0;
+        
+    let todayFilters = [  
+        (t:Todo) => isToday(t.attachedDate) || isDeadlineTodayOrPast(t.deadline), 
+        byNotCompleted,  
+        byNotDeleted  
+    ];   
 
-    let todayFilter = (i) => byCategory("today")(i) || byCategory("evening")(i); 
-   
+    let hotFilters = [
+        (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
+        byNotCompleted,  
+        byNotDeleted  
+    ];
+    
     let inboxFilters = [  
         (todo:Todo) => not(byAttachedToArea(areas)(todo)), 
         (todo:Todo) => not(byAttachedToProject(projects)(todo)), 
@@ -88,24 +90,10 @@ export let calculateAmount = (areas:Area[], projects:Project[], todos:Todo[]) : 
         byNotDeleted 
     ]; 
  
-    let todayFilters = [ 
-        todayFilter, 
-        byNotCompleted,  
-        byNotDeleted,
-        (t:Todo) => isToday(t.attachedDate),
-    ];
-
     let trashFilters = [byDeleted];
 
     let logbookFilters = [byCompleted, byNotDeleted]; 
-    
-    let hotFilters = [
-        byNotCompleted, 
-        byNotDeleted, 
-        hotFilter,
-        todayFilter, 
-    ];
-          
+        
     return {      
        inbox:todos.filter((t:Todo) => allPass(inboxFilters)(t)).length,
        today:todos.filter((t:Todo) => allPass(todayFilters)(t)).length,
@@ -205,7 +193,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         let {inbox,today,hot,trash,logbook} : ItemsAmount = calculateAmount(areas,projects,todos);
 
                    
-        return  <div style={{display: "flex",flexDirection: "row-reverse"}}>
+        return  <div style={{display: "flex",flexDirection: "row-reverse", height:"100%"}}>
                 {
                     collapsed ? null : <ResizableHandle onDrag={this.onResizableHandleDrag}/> 
                 }
@@ -220,11 +208,11 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                             transition: "width 0.2s ease-in-out", 
                             width:collapsed ? "0px" : `${leftPanelWidth}px`,
                             overflowX:"hidden",   
-                            height:`${window.innerHeight}px`,     
+                            height:`100%`,      
                             position:"relative", 
                             backgroundColor:"rgb(248, 248, 248)"  
-                        }}
-                    >       
+                        }}      
+                    >        
                         <div style={{
                             position:"relative", 
                             display:"flex", 

@@ -317,13 +317,8 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     render(){  
         let empty = generateEmptyTodo(generateId(),"project",0);
 
-        let shouldDecorate = (() => {
-            let lp = document.getElementById("leftpanel");
-            return (x,y) => insideTargetArea(lp,x,y)
-        })();
-
         let decorators = [{  
-            condition:shouldDecorate,  
+            area:document.getElementById("leftpanel"),  
             decorator:generateDropStyle("nested"),
             id:"default"
         }];    

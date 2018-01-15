@@ -143,11 +143,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 .then(() => {  
                     initDB();
 
-                    let fakeData = generateRandomDatabase({ 
-                        todos : 150,  
-                        projects : 18,  
-                        areas : 5 
-                    });     
+                    let fakeData = generateRandomDatabase({todos:150, projects:38, areas:15});      
                      
                     let todos = fakeData.todos;
                     let projects = fakeData.projects; 
@@ -156,7 +152,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     Promise.all([
                         addTodos(this.onError,todos),    
                         addProjects(this.onError,projects), 
-                        addAreas(this.onError,areas)  
+                        addAreas(this.onError,areas)      
                     ]) 
                     .then(() => this.fetchData())    
                 });

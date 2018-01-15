@@ -24,8 +24,45 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import { QuickSearch } from '../Search';
-import { merge } from 'ramda';
+import { merge, isNil, not } from 'ramda';
 import { Category } from '../MainContainer';
+import { assert } from '../../utils';
+
+
+let Hot = (hot:number) : JSX.Element => 
+    hot===0 ? null :
+    <div style={{ 
+        display: "flex", 
+        alignItems: "center",
+        height: "18px",
+        width: "25px",
+        borderRadius: "10px", 
+        backgroundColor: "rgb(239, 80, 120)",
+        color: "white"
+    }}>   
+        <div style={{
+            padding: "2px",
+            width: "100%",
+            textAlign: "center"  
+        }}>
+            {hot}
+        </div>
+    </div> 
+
+
+let Counter = (counter:number) : JSX.Element =>
+    counter===0 ? null :    
+    <div style={{
+        height: "100%",
+        display: "flex", 
+        alignItems: "center",
+        paddingRight: "5px", 
+        paddingLeft: "5px", 
+        fontWeight: 700,
+        color:"rgba(100, 100, 100, 0.6)" 
+    }}>
+        {counter}
+    </div> 
 
 
 interface LeftPanelMenuItemProps{
@@ -36,7 +73,7 @@ interface LeftPanelMenuItemProps{
     category:Category, 
     title:string,
     showCounter:boolean, 
-    counter:number,
+    counter?:number,
     hot?:number  
 }
    
@@ -87,6 +124,8 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
 
         let selectedStyle = { borderRadius: "5px", backgroundColor: "rgba(228,230,233,1)" };
 
+        let {hot,counter,showCounter} = this.props;
+
         let style = {    
             justifyContent: "space-between" as any,
             display: "flex",
@@ -100,7 +139,11 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
             cursor: "pointer"  
         }; 
 
-        let selected = this.props.selected;   
+        let selected = this.props.selected;    
+        
+        if(!isNil(hot) && !isNil(counter)){
+           assert((counter-hot)>=0,`incorrect values counter : ${counter}; hot : ${hot};`);
+        }
 
         return <div  
             onMouseOver={this.onMouseOver} 
@@ -112,7 +155,7 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
         >     
             <div  
                 style={{         
-                    display:"flex",
+                    display:"flex", 
                     alignItems:"center", 
                     height:"100%"
                 }}
@@ -147,51 +190,18 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
             </div>
 
             {   
-                !this.props.hot && !this.props.counter ? null :
-                <div style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center"
-                }}>    
-                {
-                    !this.props.hot ? null : 
-                    <div style={{ 
-                        display: "flex", 
-                        alignItems: "center",
-                        height: "18px",
-                        width: "25px",
-                        borderRadius: "10px", 
-                        backgroundColor: "rgb(239, 80, 120)",
-                        color: "white"
-                    }}>   
-                        <div style={{
-                            padding: "2px",
-                            width: "100%",
-                            textAlign: "center"  
-                        }}>
-                            {this.props.hot}
-                        </div>
-                    </div> 
-                }    
-
-                {   
-                    !this.props.showCounter ? null : 
-                    <div style={{
-                        height: "100%",
-                        display: "flex", 
-                        alignItems: "center",
-                        paddingRight: "5px", 
-                        paddingLeft: "5px", 
-                        fontWeight: 700,
-                        color:"rgba(100, 100, 100, 0.6)" 
-                    }}>
-                        {this.props.counter}
-                    </div>
-                }
-                </div> 
+                isNil(hot) && isNil(counter) ? null :
+                <div style={{display:"flex", alignItems:"center", justifyContent:"center"}}>    
+                    { isNil(hot) ? null : Hot(hot) }  
+                    { 
+                        isNil(counter) || not(showCounter) ? null : 
+                        isNil(hot) ? Counter(counter) :
+                        Counter(counter-hot) 
+                    } 
+                </div>
             } 
         </div> 
-    }
+    }   
 }
  
 

@@ -1253,8 +1253,17 @@ export let getDateFromObject = (i) : Date => {
         }
     }
 
+    assert(
+        i.type==="todo" || i.type==="project", 
+        `items is not of type project or todo ${JSON.stringify(i)}`
+    );
+
     if(i.type==="todo"){ 
-        return i.attachedDate;
+        if(!isNil(i.attachedDate)){
+           return i.attachedDate; 
+        }else if(!isNil(i.deadline)){
+           return i.deadline;  
+        } 
     }else if(i.type==="project"){ 
         return i.deadline;
     } 

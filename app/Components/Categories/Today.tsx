@@ -18,7 +18,7 @@ import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Repeat from 'material-ui/svg-icons/av/repeat';
-import { Store } from '../../app';
+import { Store, isDev } from '../../app';
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Duplicate from 'material-ui/svg-icons/content/content-copy';
 import ShareIcon from 'material-ui/svg-icons/social/share';
@@ -38,6 +38,7 @@ import { arrayMove } from '../../sortable-hoc/utils';
 import { SortableList } from '../SortableList';
 import { Category } from '../MainContainer';
 import { SortableContainer } from '../../sortable/CustomSortableContainer';
+import { calculateAmount } from '../LeftPanel/LeftPanel';
  
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map((item,index:number) => assoc("priority",index,item)) 
@@ -107,12 +108,6 @@ class ThisEveningSeparator extends Component<{},{}>{
  
 
 
-
-
-
-
-
-
 interface TodayProps{  
     dispatch:Function,
     selectedTodoId:string,
@@ -130,12 +125,7 @@ interface TodayProps{
    
 
  
-interface TodayState{
-    nodes:HTMLElement[],
-    currentIndex:number, 
-    helper:HTMLElement, 
-    showPlaceholder:boolean 
-}
+interface TodayState{}
  
  
 type Evening = "evening";
@@ -153,12 +143,6 @@ export class Today extends Component<TodayProps,TodayState>{
 
     constructor(props){
         super(props);
-        this.state={
-            nodes:[],
-            currentIndex:0,     
-            helper:null,
-            showPlaceholder:false
-        };       
     } 
 
     
@@ -172,12 +156,7 @@ export class Today extends Component<TodayProps,TodayState>{
             this.props.selectedTag!==nextProps.selectedTag ||
             this.props.rootRef!==nextProps.rootRef ||
             this.props.todos!==nextProps.todos ||
-            this.props.tags!==nextProps.tags ||
-
-            this.state.nodes!==nextState.nodes ||
-            this.state.currentIndex!==nextState.currentIndex ||    
-            this.state.helper!==nextState.helper ||
-            this.state.showPlaceholder!==nextState.showPlaceholder
+            this.props.tags!==nextProps.tags
         ){ 
             return true
         }
@@ -212,7 +191,9 @@ export class Today extends Component<TodayProps,TodayState>{
 
 
     getItems = () : { items:(Todo|TodaySeparator)[], tags:string[] } => {
+
         let { todos, selectedTag } = this.props;
+
         let separator : TodaySeparator = { 
             type:"separator", 
             kind:"evening", 
@@ -220,8 +201,10 @@ export class Today extends Component<TodayProps,TodayState>{
             _id:`today-separator` 
         };   
         
-        let isDeadlineTodayOrPast = (deadline:Date) : boolean => isNil(deadline) ? false : daysRemaining(deadline)<=0;
-
+        let isDeadlineTodayOrPast = (deadline:Date) : boolean => isNil(deadline) ? 
+                                                                 false : 
+                                                                 daysRemaining(deadline)<=0;
+        
         let filters = [  
             (t:Todo) => isToday(t.attachedDate) || isDeadlineTodayOrPast(t.deadline), 
             byNotCompleted,  
@@ -245,10 +228,7 @@ export class Today extends Component<TodayProps,TodayState>{
         let today = todos.filter(allPass(todayFilters)); 
         let evening = todos.filter(allPass(eveningFilters)); 
 
-        if(isEmpty(today && isEmpty(evening))){ 
-
-            return {items:[],tags} 
-        }
+        if(isEmpty(today) && isEmpty(evening)){ return {items:[],tags} }
 
         let items = indexToPriority([...today, separator, ...evening]); 
 
@@ -348,16 +328,30 @@ export class Today extends Component<TodayProps,TodayState>{
     
 
     render(){ 
-        let { todos, selectedTag } = this.props;
+        let { todos, selectedTag, areas, projects } = this.props;
         let { items, tags } = this.getItems();
         let empty = generateEmptyTodo(generateId(), "today", 0);  
-        
 
-        let {helper,showPlaceholder, nodes, currentIndex} = this.state;
-        let offset = getPlaceholderOffset(nodes,currentIndex);
-        let height = helper ? helper.getBoundingClientRect().height : 0;
+
+        let {today} = calculateAmount(areas,projects,todos); 
+
+        if(isDev() && selectedTag==="All"){    
+            assert(
+             (today)===(items.length-1), 
+               `
+                 incorrect amount. 
+                 items : ${items.length}; 
+                 today : ${today}; 
+               `
+            );   
+        }
+
+        let decorators = [{  
+            area:document.getElementById("leftpanel"),  
+            decorator:generateDropStyle("nested"),
+            id:"default"
+        }];    
          
-
         return <div style={{
             disaply:"flex", 
             flexDirection:"column"
@@ -420,46 +414,24 @@ export class Today extends Component<TodayProps,TodayState>{
                             scrollableContainer={this.props.rootRef}
                             selectElements={(index:number,items:any[]) => [index]}
                             shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
-                            decorators={[]}
+                            decorators={decorators}
                             onSortStart={this.onSortStart}   
                             onSortMove={this.onSortMove} 
                             onSortEnd={this.onSortEnd}  
-  
                         >   
                             {items.map((item,index) => this.getElement(item,index))}
                         </SortableContainer> 
-
-                        {   
-                            /*
-                            <Placeholder   
-                                offset={offset} 
-                                height={height}  
-                                show={showPlaceholder}
-                            />
-                            */ 
-                        }     
-                        {/*
-                        <SortableList    
-                            getElement={this.getElement }
-                            container={this.props.rootRef} 
-                            items={items}    
-                            shouldCancelStart={this.shouldCancelStart as any}    
-                            shouldCancelAnimation={this.shouldCancelAnimation as any}
-                            onSortEnd={this.onSortEnd as any}    
-                            onSortMove={this.onSortMove as any}  
-                            onSortStart={this.onSortStart as any}  
-                            lockToContainerEdges={false}
-                            distance={5}    
-                            useDragHandle={false}
-                            lock={false}
-                        />
-                        */}    
                     </div>  
                 </div>     
             </div>
     </div>
   } 
 }
+
+
+
+
+
 
 
 

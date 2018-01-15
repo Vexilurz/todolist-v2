@@ -11,7 +11,18 @@ import { isEmpty, not, contains, isNil } from 'ramda';
 import { Placeholder } from '../Components/TodosList';
   
 
+let selectContainer = (x:number,y:number,containers:HTMLElement[]) : HTMLElement => {
 
+    for(let i=0; i<containers.length; i++){
+        if(insideTargetArea(containers[i],x,y)){
+
+           return containers[i]; 
+        }
+
+    }
+ 
+    return undefined;
+}
  
 
 let hideElement = (node:HTMLElement) : void => {
@@ -152,7 +163,7 @@ let getNodes = (ref) : HTMLElement[] => {
 
 
 interface Decorator{ 
-    condition:(x:number,y:number) => boolean, 
+    area:HTMLElement, 
     decorator:HTMLElement, 
     id:string 
 } 
@@ -164,7 +175,7 @@ interface SortableContainerProps{
     selectElements:(index:number,items:any[]) => number[],
     shouldCancelStart:(event:any,item:any) => boolean, 
     onSortStart:(oldIndex:number,event:any) => void,  
-    onSortEnd:(oldIndex:number,newIndex:number,event:any) => void,
+    onSortEnd:(oldIndex:number,newIndex:number,event:any,item?:any) => void,
     onSortMove:(oldIndex:number,event:any) => void,
     decorators:Decorator[]
 }      
@@ -282,12 +293,12 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
             let canStartDrag = y > dragStartThreshold || x > dragStartThreshold;
 
-            return canStartDrag;    
+            return canStartDrag;     
         }
            
-        
+         
         let dragEnd = Observable
-                      .fromEvent(window,"mouseup")
+                      .fromEvent(document.body,"mouseup")
                       .do((event:any) => this.onDragEnd(event)); 
            
 
@@ -311,7 +322,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                             }else{
                                 event.preventDefault()
                                 return Observable 
-                                        .fromEvent(window,"mousemove")
+                                        .fromEvent(document.body,"mousemove")
                                         .skipWhile(byExceedThreshold)
                                         .takeUntil(dragEnd) 
                             }
@@ -352,40 +363,19 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
        onSortStart(initialIndex,event); 
        
-       this.setState({
-          showPlaceholder:true,
-          placeholderHeight:0,
-          placeholderOffset:0  
-       });
+       this.setState({showPlaceholder:true,placeholderHeight:0,placeholderOffset:0});
     }
   
 
 
     onDragMove = (event:any) : void => { 
-        let {scrollableContainer,items, onSortMove} = this.props; 
-        let scrollThreshold = 30;
-
-        let {
-            initialIndex,
-            initialX,
-            initialY,
-            initialRect
-        } = this.initial;
-
+        let {scrollableContainer,items,onSortMove,decorators} = this.props; 
+        let {initialIndex,initialX,initialY,initialRect} = this.initial;
 
         if(isNil(initialRect)){
            this.onDragStart(event); //invoke on start if initial variables not defined
            return; 
         }
-
-        let rootClientRect = scrollableContainer.getBoundingClientRect();
-        let cloneClientRect = this.cloned.getBoundingClientRect();
-
-
-        this.scroll = cloneClientRect.bottom > (rootClientRect.bottom-scrollThreshold) ? "down" :
-                      cloneClientRect.top < (rootClientRect.top + scrollThreshold) ? "up" :
-                      null;  
-
 
         let deltaX = event.clientX-initialX;  //difference between current and initial position
         let deltaY = event.clientY-initialY;  
@@ -395,72 +385,98 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         this.deltaY = deltaY;
         this.deltaX = deltaX;
 
-
         this.animateClone(this.deltaX,this.deltaY);
         this.animateDecorator(this.deltaX,this.deltaY);
-        this.animateNodes(event, direction); 
+        this.animateNodes(event,direction); 
         this.applyCustomStyle(event);
 
-
-        let insideScrollableContainer = insideTargetArea(scrollableContainer,event.clientX,event.clientY);
-
-        
-        if(this.scroll==="up" || this.scroll==="down"){
-           if(insideScrollableContainer){ 
-              this.animateScroll();
-           }
-        }
-
+        this.animateScroll(event);
 
         onSortMove(initialIndex,event); 
+    }    
+    
+
+
+    animateScroll = (event:any) => {
+
+        let container = this.selectScrollableContainer(event);
+
+        if(isNil(container)){ 
+            this.scroll = null;
+            return; 
+        }
+        this.setScrollDirection(container);
+        this.performScrolling(container); 
     }   
 
 
+    selectScrollableContainer = (event:any) : HTMLElement => {
+        let { scrollableContainer, decorators } = this.props; 
+        let containers : HTMLElement[] = [scrollableContainer, ...decorators.map(d => d.area)];
 
+        let container = selectContainer(event.clientX,event.clientY,containers); 
+        return container;  
+    }   
+    
 
+    setScrollDirection = (container:HTMLElement) : void => {
+        let {scrollTop, scrollHeight} = container;
+        let {height} = container.getBoundingClientRect(); 
+        let max = scrollHeight - height; 
+        let scrollThreshold = 30;
 
-    animateScroll = () => {
-        let {scrollableContainer} = this.props;
-        let {scrollTop,scrollHeight} = scrollableContainer;
+        let cloneClientRect = this.cloned.getBoundingClientRect();
+        let containerClientRect = container.getBoundingClientRect();
+
+        let scrollDown =  ( cloneClientRect.bottom > (containerClientRect.bottom-scrollThreshold) ) && 
+                            scrollTop < max;
+
+        let scrollUp = ( cloneClientRect.top < (containerClientRect.top + scrollThreshold) ) && 
+                         scrollTop > 0;
+
+        this.scroll = scrollDown ? "down" : scrollUp ? "up" : null;  
+    }
+    
+
+    performScrolling = (container:HTMLElement) => {
+
+        if(isNil(container) || isNil(this.scroll)){ return } 
+         
+        let {scrollTop, scrollHeight} = container;
+        let {height} = container.getBoundingClientRect(); 
         let speed = 10;
 
-        if(this.scroll==="up"){
+        if(this.scroll==="up"){ 
 
             if(scrollTop>0){
                let newScrollTop = scrollTop - speed;
 
                if(newScrollTop > 0){
-                  scrollableContainer.scrollTop = newScrollTop; 
-                  console.log(`scroll up ${newScrollTop}`);
-                  requestAnimationFrame(() => this.animateScroll());
+                  container.scrollTop = newScrollTop; 
+                  requestAnimationFrame(() => this.performScrolling(container));
                }else{
-                  scrollableContainer.scrollTop = 0;
-                  this.scroll = null;
+                  container.scrollTop = 0;  
+                  this.scroll = null; //stop scrolling
                }
             }
 
         }else if(this.scroll==="down"){
+            let max = scrollHeight - height; 
 
-            if(scrollTop<scrollHeight){
-                let newScrollTop = scrollTop + speed;
+            if(scrollTop<max){
+                let newScrollTop = scrollTop + speed; 
 
-                newScrollTop = newScrollTop < scrollHeight ? newScrollTop : scrollHeight;
-
-                if(newScrollTop < scrollHeight){
-                    scrollableContainer.scrollTop = newScrollTop;
-                    console.log(`scroll down ${newScrollTop}`); 
-                    requestAnimationFrame(() => this.animateScroll());
+                if(newScrollTop < max){  
+                    container.scrollTop = newScrollTop;
+                    requestAnimationFrame(() => this.performScrolling(container));
                 }else{
-                    scrollableContainer.scrollTop = scrollHeight;
-                    this.scroll = null;
-                }
+                    container.scrollTop = max;
+                    this.scroll = null; //stop scrolling
+                }   
             }
-
         } 
-
     }
-
-
+ 
 
     getCurrentIndex = (event:any) : number => {
 
@@ -569,6 +585,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
            return;
         } 
 
+        let {items} = this.props;
         let newIndex = this.getCurrentIndex(event); 
         let nodes = this.getNodesToBeAnimated();
 
@@ -586,9 +603,12 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         this.deltaX=0; 
         this.deltaY=0;
         
-        console.log(`oldIndex : ${this.initial.initialIndex}; newIndex : ${newIndex};`);
-
-        this.props.onSortEnd(this.initial.initialIndex,newIndex,event);     
+        this.props.onSortEnd(
+            this.initial.initialIndex,
+            newIndex, 
+            event,
+            items[this.initial.initialIndex]
+        );     
 
         this.initial = {   
             initialIndex:0,
@@ -616,9 +636,9 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
         for(let i=0; i<decorators.length; i++){
 
-            let {condition, decorator, id} = decorators[i];
+            let {area, decorator, id} = decorators[i];
 
-            if(condition(x,y)){
+            if(insideTargetArea(area,x,y)){
                 this.initDecorator(decorators[i]);
                 return;
             }     
@@ -629,19 +649,19 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     }
 
 
-    suspendDecorator = () => {
+    suspendDecorator = () => { 
         if(this.decorator){
-            this
-            .decorator
-            .decorator
-            .parentNode
-            .removeChild(this.decorator.decorator); 
+           this
+           .decorator
+           .decorator
+           .parentNode 
+           .removeChild(this.decorator.decorator); 
 
-            this.decorator = null;
+           this.decorator = null;
         }
         
         if(this.paused){
-            this.resume(); 
+           this.resume(); 
         }
     } 
     
@@ -657,18 +677,18 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             initialRect
         } = this.initial;
 
-        let {condition, decorator, id} = target;
-        
+        let {decorator, id} = target;
+         
         if(this.decorator){
            if(this.decorator.id===id){ return }
            else{ this.suspendDecorator() }
         } 
           
         
-        decorator.style.top = top; 
+        decorator.style.top = `${initialY}px`; 
         decorator.style.left = `${initialX}px`;  
         decorator.style.transform = transform;
-        decorator.style.position = position;
+        decorator.style.position = position; 
         decorator.style.cursor = "default";
         document.body.appendChild(decorator);    
          

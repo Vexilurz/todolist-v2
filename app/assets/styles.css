@@ -132,12 +132,12 @@ ul {
 } 
 
 .projectHeading:hover{ 
-  background-color: rgb(205,221,253);
+  background-color: rgb(205,221,253);  
   border-radius: 5px; 
-  border-bottom : none;
+  border-bottom : 1px solid rgba(100, 100, 100, 0);
 } 
 
-.projectHeading:active{  
+.projectHeading:active{   
   background-color: rgb(205,221,253);
   border-radius: 5px; 
   border-bottom : none;

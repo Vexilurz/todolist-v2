@@ -25,6 +25,7 @@ import {
     assert,
     isDate,
     getMonthName,
+    isTodo,
 } from '../../utils';  
 import { getProjectLink } from '../Project/ProjectLink';
 import { allPass, uniq, isNil, compose, not, last, isEmpty } from 'ramda';
@@ -47,7 +48,7 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
         if(item.type==="project"){ 
            return not(isNil(item.deadline)); 
         }else if(item.type==="todo"){ 
-           return not(isNil(item["attachedDate"]));
+           return not(isNil(item["attachedDate"])) || not(isNil(item.deadline));
         }
     }
 
@@ -67,17 +68,16 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
     }
   
     for(let i=0; i<objects.length; i++){
-        let date : Date = getDateFromObject(objects[i]);
+        let date : Date = getDateFromObject(objects[i]); //attachedDate or Deadline
 
-        if(!date)
-           continue;  
+        if(isNil(date)){ continue }  
 
         let key : string = keyFromDate(date);
 
         if(isNil(objectsByDate[key])){
-            objectsByDate[key] = [objects[i]];
+           objectsByDate[key] = [objects[i]];
         }else{
-            objectsByDate[key].push(objects[i]);
+           objectsByDate[key].push(objects[i]);
         }
     }    
 
@@ -246,26 +246,34 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
  
     render(){ 
         
-        let tags = compose(
+        let {todos,projects,selectedTag,dispatch} = this.props;
+
+        let byScheduled = (item : Todo) : boolean => {
+            if(isNil(item)){ return false } 
+            return !isNil(item.deadline) || !isNil(item.attachedDate); 
+        }   
+
+        let tags = compose( 
             getTagsFromItems,
             (items : Item[]) => items.filter(
                 allPass([
                     (t:Todo) => t.category!=="inbox",  
+                    byScheduled,
                     byNotCompleted,  
                     byNotDeleted  
                 ])  
             )
-        )([...this.props.todos, ...this.props.projects]); 
+        )([...todos, ...projects]); 
 
 
         return <div style={{WebkitUserSelect:"none"}}> 
                 <div style={{paddingBottom:"20px"}}>
                     <ContainerHeader 
                         selectedCategory={"upcoming"} 
-                        dispatch={this.props.dispatch}  
+                        dispatch={dispatch}  
                         tags={tags}
                         showTags={true} 
-                        selectedTag={this.props.selectedTag}
+                        selectedTag={selectedTag}
                     />
                 </div>
    

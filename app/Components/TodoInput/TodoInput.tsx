@@ -937,23 +937,23 @@ class DueDate extends Component<DueDateProps,{}>{
             selectedCategory!=="logbook" &&
             selectedCategory!=="upcoming"
         ){
-            let month = getMonthName(date);
+            let month = getMonthName(date); 
             let day = date.getDate();  
 
-            return isToday(date) ? Today :
-            <div style={{paddingRight:"5px"}}>
-                <div style={containerStyle}>     
-                    <div style={{ 
-                        display:"flex",   
-                        padding:"5px", 
-                        alignItems:"center", 
-                        fontSize:"12px"
-                    }}>      
-                        <div style={{paddingRight:"5px"}}>{month.slice(0,3)+'.'}</div>  
-                        <div>{day}</div>
-                    </div> 
-                </div>
-            </div> 
+            return isToday(date) && selectedCategory!=="today" ? Today :
+                   <div style={{paddingRight:"5px"}}>
+                    <div style={containerStyle}>     
+                        <div style={{ 
+                            display:"flex",   
+                            padding:"5px", 
+                            alignItems:"center", 
+                            fontSize:"12px"
+                        }}>      
+                            <div style={{paddingRight:"5px"}}>{month.slice(0,3)+'.'}</div>  
+                            <div>{day}</div>
+                        </div> 
+                    </div>
+                   </div> 
 
         }else if(
             not(isNil(completed)) && 
