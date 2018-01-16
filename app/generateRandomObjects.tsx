@@ -75,14 +75,17 @@ let fakeTodo = (tags:string[]) : Todo => {
     let c = randomInteger(5) + 2;
     
 
-    for(let i=0; i<k; i++)
-        title.push(randomWord());  
+    for(let i=0; i<k; i++){
+        title.push(randomWord()); 
+    } 
 
-    for(let i=0; i<n; i++) 
+    for(let i=0; i<n; i++){ 
         note.push(randomWord());  
+    }
 
-    for(let i=0; i<c; i++) 
+    for(let i=0; i<c; i++){ 
         checklist.push(fakeCheckListItem(i));  
+    }
     
     
     return ({ 
@@ -95,17 +98,20 @@ let fakeTodo = (tags:string[]) : Todo => {
         checklist : checklist, 
         reminder : Math.random() > 0.7 ? randomDate(new Date(), new Date()["addDays"](50)) : null, 
         attachedTags:tags,  
-        deadline : randomDate(new Date(), new Date()["addDays"](50)),
+        deadline : Math.random() < 0.3 ? null :
+                   Math.random() > 0.5 ?
+                   randomDate(new Date(), new Date()["addDays"](50)) : 
+                   new Date(),
         created : randomDate(new Date(), new Date()["addDays"](50)),
         deleted : Math.random() < 0.5 ? new Date() : undefined,
-        attachedDate : Math.random() < 0.5 ? 
+        attachedDate : Math.random() < 0.3 ? null :
+                       Math.random() > 0.5 ?
                        randomDate(new Date(), new Date()["addDays"](50)) : 
-                       new Date(),
-                       
+                       new Date(), 
         completed : checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,
         checked 
     });   
-      
+       
 }
     
     

@@ -997,8 +997,16 @@ class RelatedProjectLabel extends Component<RelatedProjectLabelProps,RelatedProj
     
     render(){
 
+
+
         if(this.props.selectedCategory==="project")
            return null;
+        
+        if(this.props.selectedCategory==="next")
+           return null;  
+
+        if(this.props.selectedCategory==="area")
+           return null;     
 
         if(isNil(this.props.name)){
            return null;
@@ -1228,19 +1236,17 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                 const {left, top, width, height} = entries[0].contentRect;
                 if(
                     isNil(this.inputRef) ||
-                    isNil(this.ref) ||
-                    isNil(this.labelRef)
+                    isNil(this.ref) 
                 ){ 
                     return
                 }
 
                 let container = this.ref.getBoundingClientRect();
                 let input = this.inputRef.getBoundingClientRect();
-                let label = this.labelRef.getBoundingClientRect();
                 let threshold = (container.width/100) * 50;
  
                 if( 
-                    input.width>threshold
+                    input.width>threshold 
                 ){
                    this.setState({overflow:true}); 
                 }else{    
@@ -1288,10 +1294,11 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
             flagColor,  
             rootRef
         } = this.props;
+
  
         return <div  
-            ref={(e) => {this.ref=e;}}
-            style={{display:"flex", flexDirection:"column"}} 
+            ref={(e) => {this.ref=e;}} 
+            style={{display:"flex", flexDirection:"column"}}  
         >  
             <div style={{
                 display:"flex",    
@@ -1430,7 +1437,7 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
 }
 
 
-
+ 
 
 interface TodoInputMiddleLevelProps{
     onNoteChange:Function, 

@@ -701,21 +701,24 @@ export let generateDropStyle = (id:string) : HTMLElement => {
     rectangle.style.zIndex = "1000000";   
     
     rectangle.style.width="60px";
-    rectangle.style.height="30px";
+    rectangle.style.height="30px"; 
     rectangle.style.backgroundColor="cadetblue";
     rectangle.style.position="absolute";
     rectangle.style.top=0+"px";   
     rectangle.style.left=0+"px";
+    rectangle.style.pointerEvents = 'none';
     
     container.style.width="60px";
     container.style.height="30px";
     container.style.backgroundColor="cadetblue";
     container.style.position="relative";
     container.style.display="flex";
-    container.style.justifyContent="center";
+    container.style.justifyContent="center"; 
     container.style.textAlign="center";
-    container.style.zIndex = "1000000"; 
-
+    container.style.zIndex = "1000000";
+    container.style.pointerEvents = 'none';
+     
+    
     counter.style.borderRadius="50px";
     counter.style.width="25px";
     counter.style.height="25px";
@@ -727,7 +730,8 @@ export let generateDropStyle = (id:string) : HTMLElement => {
     counter.style.textAlign="center";
     counter.style.display="flex";   
     counter.style.justifyContent="center";
-    counter.innerHTML="1";  
+    counter.style.pointerEvents = 'none';
+    counter.innerHTML="1";   
 
     container.appendChild(counter);
     rectangle.appendChild(container);

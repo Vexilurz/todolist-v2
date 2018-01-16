@@ -35,6 +35,118 @@ import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { uniq, allPass, isEmpty, isNil, not, any } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
  
+
+
+let collectProjects = (projects:Project[], projectsFilters, table:Table) : Table => {
+    for(let i=0;  i<projects.length; i++){
+        let project : Project = projects[i]; 
+
+        assert(
+          isProject(project), 
+          `project is not of type Project. ${JSON.stringify(project)}. groupObjects. next.`
+        );  
+
+        if(allPass([ 
+            //byTags(this.props.selectedTag), 
+            ...projectsFilters
+        ])(project)){
+           table[project._id] = [];
+           table.projects.push(project);  
+        }
+    };
+
+    return table;
+} 
+
+
+let collectAreas = (areas:Area[], areasFilters, table:Table) : Table => {
+    for(let i=0; i<areas.length; i++){
+        let area : Area = areas[i]; 
+
+        assert(
+          isArea(area), 
+          `area is not of type Area. ${JSON.stringify(area)}. groupObjects. next.`
+        );   
+        
+        if(allPass([
+            //byTags(this.props.selectedTag), 
+            ...areasFilters]
+        )(area)){
+           table[area._id] = [];
+           table.areas.push(area);
+        }
+    };
+
+    return table;
+}
+
+
+
+
+export let groupObjects = (
+    projects:Project[],areas:Area[],todos:Todo[],
+    
+    projectsFilters,
+    areasFilters,
+    todosFilters,
+    
+    selectedTag:string
+) : Table => { 
+
+    let table : Table = { 
+        projects : [],
+        areas : [],
+        todos : [],
+        detached : []   
+    };  
+
+    table = collectProjects(projects,projectsFilters,table);
+    table = collectAreas(areas,areasFilters,table);
+
+    for(let i = 0; i<todos.length; i++){
+        let todo : Todo = todos[i]; 
+
+        assert(isTodo(todo),`todo is not of type Todo. ${JSON.stringify(todo)}. groupObjects.`);
+
+        if(!allPass([byTags(selectedTag), ...todosFilters])(todo))
+            continue;  
+          
+        table.todos.push(todo);  
+
+        let attached = false;
+
+        for(let j=0; j<table.projects.length; j++){
+            let project : Project = table.projects[j];
+            let idx : number = project.layout.findIndex( (i:LayoutItem) => i===todo._id );
+
+            if(idx!==-1){ 
+               table[project._id].push(todo);
+               attached = true; 
+               break; 
+            } 
+        } 
+
+        for(let k=0; k<table.areas.length; k++){
+            let area : Area = table.areas[k]; 
+            let idx : number = area.attachedTodosIds.indexOf(todo._id);
+
+            if(idx!==-1){
+               table[area._id].push(todo);
+               attached = true; 
+               break;
+            }
+        }   
+
+        if(!attached)
+           table.detached.push(todo); 
+    }
+
+    return table; 
+} 
+
+
+
+
   
 
 interface NextProps{
@@ -75,12 +187,14 @@ export class Next extends Component<NextProps, NextState>{
         super(props);
         this.projectsFilters = [byNotCompleted, byNotDeleted]; 
         this.areasFilters = [byNotDeleted];
+
+
         this.todosFilters = [
-            (t:Todo) => not(isToday(t.attachedDate)),
-            (t:Todo) => isNil(t.attachedDate),
+            (t:Todo) => not(isToday(t.attachedDate)) && not(isToday(t.deadline)),
+            (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
             byNotCompleted, 
-            byNotDeleted
-        ];  
+            byNotDeleted 
+        ];
     }
 
     shouldComponentUpdate(nextProps:NextProps,nextState:NextState){
@@ -114,102 +228,10 @@ export class Next extends Component<NextProps, NextState>{
     }
  
 
-    collectProjects = (table:Table) : Table => {
-        for(let i=0;  i<this.props.projects.length; i++){
-            let project : Project = this.props.projects[i]; 
-
-            assert(
-              isProject(project), 
-              `project is not of type Project. ${JSON.stringify(project)}. groupObjects. next.`
-            );  
+ 
+ 
   
-            if(allPass([ 
-                //byTags(this.props.selectedTag), 
-                ...this.projectsFilters
-            ])(project)){
-               table[project._id] = [];
-               table.projects.push(project);  
-            }
-        };
     
-        return table;
-    } 
-
-
-    collectAreas = (table:Table) : Table => {
-        for(let i=0; i<this.props.areas.length; i++){
-            let area : Area = this.props.areas[i]; 
-
-            assert(
-              isArea(area), 
-              `area is not of type Area. ${JSON.stringify(area)}. groupObjects. next.`
-            );   
-            
-            if(allPass([
-                //byTags(this.props.selectedTag), 
-                ...this.areasFilters]
-            )(area)){
-               table[area._id] = [];
-               table.areas.push(area);
-            }
-        };
-
-        return table;
-    }
- 
-  
-    groupObjects = () : Table => { 
-        let table : Table = { 
-            projects : [],
-            areas : [],
-            todos : [],
-            detached : []   
-        };  
- 
-        table = this.collectProjects(table);
-        table = this.collectAreas(table);
-
-        for(let i = 0; i<this.props.todos.length; i++){
-            let todo : Todo = this.props.todos[i]; 
-
-            assert(isTodo(todo),`todo is not of type Todo. ${JSON.stringify(todo)}. groupObjects. next.`);
-
-            if(!allPass([byTags(this.props.selectedTag), ...this.todosFilters])(todo))
-                continue;  
-              
-            table.todos.push(todo);  
-
-            let attached = false;
-
-            for(let j=0; j<table.projects.length; j++){
-                let project : Project = table.projects[j];
-                let idx : number = project.layout.findIndex( (i:LayoutItem) => i===todo._id );
- 
-                if(idx!==-1){ 
-                   table[project._id].push(todo);
-                   attached = true; 
-                   break; 
-                } 
-            } 
-
-            for(let k=0; k<table.areas.length; k++){
-                let area : Area = table.areas[k]; 
-                let idx : number = area.attachedTodosIds.indexOf(todo._id);
- 
-                if(idx!==-1){
-                   table[area._id].push(todo);
-                   attached = true; 
-                   break;
-                }
-            }   
-
-            if(!attached)
-               table.detached.push(todo); 
-        }
-
-        return table; 
-    } 
-
 
 
     getNextTags = () : string[] => {
@@ -217,18 +239,26 @@ export class Next extends Component<NextProps, NextState>{
 
         return uniq(   
             getTagsFromItems([  
-              ...projects.filter(allPass(this.projectsFilters)),
-              ...areas.filter(allPass(this.areasFilters)),
+              //...projects.filter(allPass(this.projectsFilters)),
+              //...areas.filter(allPass(this.areasFilters)),
               ...todos.filter(allPass(this.todosFilters))   
             ]) 
         );   
     }
 
 
-    render(){ 
+    render(){
 
-        let table = this.groupObjects();
+        let { projects, areas, todos, selectedTag } = this.props;
 
+        let table = groupObjects(  
+            projects, areas, todos,
+            this.projectsFilters,
+            this.areasFilters,
+            this.todosFilters,
+            selectedTag
+        );
+ 
         let empty = table.projects.length===0 && table.areas.length===0 && table.todos.length===0;
          
         let tags = this.getNextTags();
@@ -345,7 +375,7 @@ interface NextProjectsListProps{
  
 interface NextProjectsListState{}
 
-class NextProjectsList extends Component<NextProjectsListProps, NextProjectsListState>{
+export class NextProjectsList extends Component<NextProjectsListProps, NextProjectsListState>{
 
     constructor(props){
         super(props); 

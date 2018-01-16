@@ -23,7 +23,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
-import { uppercase, debounce, byNotDeleted, byNotCompleted, byTags, assert, isProject, isTodo, byHaveAttachedDate, byNotSomeday, isString, byScheduled, bySomeday } from '../../utils';
+import { uppercase, debounce, byNotDeleted, byNotCompleted, byTags, assert, isProject, isTodo, byHaveAttachedDate, byNotSomeday, isString, byScheduled, bySomeday, daysRemaining } from '../../utils';
 import { arrayMove } from '../../sortable-hoc/utils';
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
@@ -258,13 +258,23 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     ) : (Todo | Heading)[] => { 
 
         let items = [];  
-             
+
+
+        let byNotFuture = (t:Todo) => isNil(t.attachedDate) ? true : daysRemaining(t.attachedDate)<=0;
+
+        
+              
         let filters = [
             byNotDeleted, 
             showCompleted ? null : byNotCompleted, 
-            showScheduled ? null : (t:Todo) => isNil(t.attachedDate),
+
+            showScheduled ? null : byNotFuture,
             showScheduled ? null : byNotSomeday
         ].filter( f => f );  
+
+
+        
+
 
         let filteredTodos:Todo[] = todos.filter(allPass(filters));
     

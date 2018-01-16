@@ -589,6 +589,8 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         let newIndex = this.getCurrentIndex(event); 
         let nodes = this.getNodesToBeAnimated();
 
+        this.suspendDecorator();
+
         for(let i=0; i<nodes.length; i++){ 
             let element = nodes[i];
             element.style[`transition-duration`] = ``; 
@@ -603,7 +605,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         this.deltaX=0; 
         this.deltaY=0;
         
-        this.props.onSortEnd(
+        this.props.onSortEnd(   
             this.initial.initialIndex,
             newIndex, 
             event,
@@ -615,7 +617,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             initialX:0,
             initialY:0,
             initialRect:null
-        }
+        };
         
        this.setState({showPlaceholder:false});
     }     

@@ -32,7 +32,10 @@ import Popover from 'material-ui/Popover';
 import { Todo } from '../../database';
 import { uppercase, insideTargetArea } from '../../utils';
 import AutosizeInput from 'react-input-autosize'; 
-
+import { Observable } from 'rxjs/Rx';
+import * as Rx from 'rxjs/Rx';
+import { Subscriber } from "rxjs/Subscriber";
+import { Subscription } from 'rxjs/Rx';
 
 
 interface TagsPopupProps{
@@ -50,20 +53,28 @@ interface TagsPopupProps{
  
 export class TagsPopup extends Component<TagsPopupProps,{}>{
     
-        ref:HTMLElement; 
+        ref:HTMLElement;
+        subscriptions:Subscription[];
+
         
-        constructor(props){
+        constructor(props){ 
             super(props); 
-        }
+            this.subscriptions = [];
+        }   
 
 
         componentDidMount(){ 
-            document.body.addEventListener("click", this.onOutsideClick);
-        }
+            let click = Observable
+                        .fromEvent(document.body,"click")
+                        .subscribe(this.onOutsideClick);
+                        
+            this.subscriptions.push(click);
+        }   
 
 
         componentWillUnmount(){
-            document.body.removeEventListener("click", this.onOutsideClick);
+            this.subscriptions.map(s => s.unsubscribe());
+            this.subscriptions = []; 
         } 
 
         

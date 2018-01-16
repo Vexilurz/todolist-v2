@@ -232,7 +232,8 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 selectedTodos={object.todos} 
                 todos={this.props.todos}
                 areas={this.props.areas}
-                projects={object.projects}  
+                scheduledProjects={object.projects}  
+                projects={this.props.projects}
                 selectedAreaId={this.props.selectedAreaId}
                 selectedProjectId={this.props.selectedProjectId}
                 dispatch={this.props.dispatch}
@@ -298,10 +299,11 @@ interface CalendarDayProps{
     day:number, 
     dayName:string,
     projects:Project[],
+    scheduledProjects:Project[],
     areas:Area[], 
     searched:boolean, 
     selectedTodos:Todo[],
-    todos:Todo[],
+    todos:Todo[], 
     dispatch:Function, 
     selectedTodoId:string,
     selectedAreaId:string,
@@ -321,9 +323,12 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
         super(props)
     }
 
+    render(){   
 
-    render(){ 
-        let {selectedTodos,todos} = this.props;
+        let {
+            selectedTodos,todos,scheduledProjects,
+            day,idx,dayName,dispatch
+        } = this.props; 
 
         return <div style={{
             display:"flex",
@@ -332,7 +337,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
             paddingBottom:"20px",
             WebkitUserSelect: "none" 
         }}> 
-                <div style={{ 
+                <div style={{  
                     width: "100%",
                     display: "flex",
                     alignItems: "center",
@@ -347,7 +352,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         fontFamily: "sans-serif",
                         WebkitUserSelect: "none" 
                     }}>
-                        {this.props.day} 
+                        {day} 
                     </div>  
                  
                     <div style={{
@@ -364,31 +369,29 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         WebkitUserSelect: "none" 
                     }}>  
                         {
-                            this.props.idx===0 ? "Today" :
-                            this.props.idx===1 ? "Tomorrow" :
-                            this.props.dayName
+                            idx===0 ? "Today" :
+                            idx===1 ? "Tomorrow" :
+                            dayName
                         }
                     </div> 
                 </div>  
                 {
-                    this.props.projects.length===0 ? null :
+                    scheduledProjects.length===0 ? null :
  
                     <div style={{
-                            display:"flex", 
-                            flexDirection:"column", 
-                            width:"100%",
-                            paddingTop : "10px",
-                            paddingBottom : "10px"
+                        display:"flex", 
+                        flexDirection:"column", 
+                        width:"100%",
+                        paddingTop : "10px",
+                        paddingBottom : "10px"
                     }}>    
                         {
-                            this.props.projects.map(
-                             (p:Project, index:number) : JSX.Element => {
-                                return getProjectLink(
-                                    p, todos,  this.props.dispatch, index
+                            scheduledProjects.map(
+                                (p:Project, index:number) : JSX.Element => getProjectLink(
+                                    p, todos, dispatch, index
                                 ) 
-                              } 
                             )     
-                        }     
+                        }      
                     </div> 
                 } 
                 {   

@@ -22,11 +22,7 @@ interface SimplePopupProps{
 }  
  
 
-interface SimplePopupState{
-    x:number, 
-    y:number,
-    show:boolean  
-}    
+interface SimplePopupState{}    
    
 
 export class SimplePopup extends Component<SimplePopupProps,SimplePopupState>{
@@ -37,7 +33,6 @@ export class SimplePopup extends Component<SimplePopupProps,SimplePopupState>{
     constructor(props){ 
         super(props);
         this.subscriptions=[]; 
-        this.state={x:0, y:0, show:false}; 
     }    
     
     
@@ -56,65 +51,49 @@ export class SimplePopup extends Component<SimplePopupProps,SimplePopupState>{
         }  
     }  
 
-   
-    updatePosition = () : void => { 
-        if(isNil(this.ref)){
-           setTimeout(this.updatePosition, 10);    
-           return;  
-        }
-
-        let box = this.ref.getBoundingClientRect();
-        let rect = document.body.getBoundingClientRect();
-        let centerX : number = window.innerWidth/2;
-        let centerY : number = window.innerHeight/2;
-          
-        let x = centerX - box.width/2;    
-        let y = centerY - box.height/2;
-        this.setState({x,y,show:true});   
-    } 
-       
      
     componentDidMount(){
         let click = Observable 
                     .fromEvent(window, "click")
                     .subscribe(this.onOutsideClick);
 
-        let resize = Observable  
-                    .fromEvent(window, "resize")
-                    .subscribe(() => this.updatePosition());            
-        
-        this.subscriptions.push(click,resize); 
-        this.updatePosition();   
+        this.subscriptions.push(click); 
     }    
 
 
     componentWillUnmount(){
-        this.subscriptions.map(s => s.unsubscribe());
+        this.subscriptions.map( s => s.unsubscribe() );
         this.subscriptions = [];
     } 
   
 
     render(){ 
         let {show, children} = this.props;
-        let {x, y} = this.state;
  
-        return not(show) ? null :
-        <div     
-            ref={(e) => { this.ref=e; }}
-            onClick = {(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-            }}  
-            style={{      
-                visibility:this.state.show ? "visible" : "hidden",  
-                zIndex:40000,      
-                position:"fixed",
-                backgroundColor: "rgba(0,0,0,0)",
-                left:`${x}px`,   
-                top:`${y}px`   
-            }}          
-        >        
-            {children}
+        return not(show) ? null : 
+        <div style={{ 
+            width:"100%",
+            position:"fixed",
+            left:0,  
+            top:0,
+            justifyContent:"center",
+            alignItems:"center",
+            display:"flex", 
+            height:"100%"
+        }}>
+            <div     
+                ref={(e) => { this.ref=e; }}
+                onClick = {(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                }}   
+                style={{       
+                    zIndex:40000,      
+                    backgroundColor: "rgba(0,0,0,0)"
+                }}           
+            >        
+                {children}
+            </div>
         </div>
     } 
 } 

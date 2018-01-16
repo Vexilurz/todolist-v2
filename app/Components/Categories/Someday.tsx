@@ -32,8 +32,9 @@ import { ContainerHeader } from '.././ContainerHeader';
 import { byTags, byCategory } from '../../utils';
 import { TodosList } from '.././TodosList';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { allPass, compose } from 'ramda';
+import { allPass, compose, isEmpty, uniq } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
+import { NextProjectsList, groupObjects } from './Next';
 
   
 
@@ -54,33 +55,48 @@ interface SomedayProps{
 } 
 
 
-interface SomedayState{
-    empty:boolean
-}  
-
+interface SomedayState{}  
+ 
 
 export class Someday extends Component<SomedayProps, SomedayState>{
+    projectsFilters : ((p:Project) => boolean)[];
+    areasFilters : ((a:Area) => boolean)[];
+    todosFilters : ((t:Todo) => boolean)[];
 
     constructor(props){ 
         super(props);
-        this.state={ 
-            empty:false
-        } 
+
+        this.projectsFilters = [byNotCompleted, byNotDeleted]; 
+        this.areasFilters = [byNotDeleted];
+
+        this.todosFilters = [
+            byCategory("someday"),
+            byNotCompleted, 
+            byNotDeleted 
+        ];
     } 
  
     render(){
+        let {projects, areas, todos, selectedTag} = this.props;
 
         let tags = compose(
+            uniq,
             getTagsFromItems,
-            (todos) => todos.filter(
-                allPass([
-                    byCategory("someday"),
-                    byNotCompleted,  
-                    byNotDeleted 
-                ])  
-            )
-        )(this.props.todos);  
+            (todos) => todos.filter(allPass(this.todosFilters))
+        )(this.props.todos) as string[];  
 
+        let table = groupObjects(  
+            projects, areas, todos,
+            this.projectsFilters,
+            this.areasFilters,
+            this.todosFilters,
+            selectedTag
+        );
+
+        let showFadeBackgroundIcon = table.projects.length===0 && 
+                                     table.areas.length===0 && 
+                                     table.todos.length===0;
+         
         let empty = generateEmptyTodo(generateId(),"someday",0);   
          
         return <div  style={{WebkitUserSelect:"none"}}>
@@ -93,21 +109,19 @@ export class Someday extends Component<SomedayProps, SomedayState>{
             />   
            
             <FadeBackgroundIcon    
-                container={this.props.rootRef} 
+                container={this.props.rootRef}  
                 selectedCategory={"someday"}  
-                show={this.state.empty}
+                show={showFadeBackgroundIcon}
             />    
     
-            { 
-                this.state.empty ? null :
+            <div>   
                 <div   
-                    className="unselectable" 
                     id="todos" 
                     style={{
-                        marginBottom: "100px", 
-                        marginTop:"50px" 
-                    }} 
-                >     
+                        paddingTop:"20px", 
+                        paddingBottom:"20px"
+                    }}  
+                >      
                     <TodoInput   
                         id={empty._id} 
                         key={"someday-todo-creation-form"} 
@@ -124,29 +138,44 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         todo={empty}
                         creation={true}
                     /> 
-                    <TodosList 
-                        filters={[ 
-                            byTags(this.props.selectedTag),
-                            byCategory("someday"),
-                            byNotCompleted, 
-                            byNotDeleted 
-                        ]}      
+                    {
+                        isEmpty(table.detached) ? null :
+                        <TodosList 
+                            filters={[]}      
+                            searched={this.props.searched}
+                            areas={this.props.areas}
+                            selectedAreaId={this.props.selectedAreaId}
+                            selectedProjectId={this.props.selectedProjectId}
+                            projects={this.props.projects}
+                            selectedTodoId={this.props.selectedTodoId} 
+                            isEmpty={(empty:boolean) => {}} 
+                            dispatch={this.props.dispatch}   
+                            selectedCategory={"someday"}  
+                            selectedTag={this.props.selectedTag}  
+                            rootRef={this.props.rootRef}
+                            todos={table.detached}  
+                            tags={this.props.tags} 
+                        />
+                    } 
+                </div>  
+
+                <div>
+                     <NextProjectsList 
+                        dispatch={this.props.dispatch}
+                        selectedTag={this.props.selectedTag}
                         searched={this.props.searched}
-                        areas={this.props.areas}
+                        selectedTodoId={this.props.selectedTodoId} 
+                        rootRef={this.props.rootRef}
                         selectedAreaId={this.props.selectedAreaId}
                         selectedProjectId={this.props.selectedProjectId}
+                        todos={this.props.todos}
+                        areas={this.props.areas}
                         projects={this.props.projects}
-                        selectedTodoId={this.props.selectedTodoId} 
-                        isEmpty={(empty:boolean) => this.setState({empty})} 
-                        dispatch={this.props.dispatch}   
-                        selectedCategory={"someday"}  
-                        selectedTag={this.props.selectedTag}  
-                        rootRef={this.props.rootRef}
-                        todos={this.props.todos}  
-                        tags={this.props.tags} 
-                    /> 
-                </div>  
-            }   
+                        tags={this.props.tags}
+                        table={table}
+                    />
+                </div> 
+            </div> 
         </div>
     }
 

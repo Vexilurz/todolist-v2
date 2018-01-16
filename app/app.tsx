@@ -271,7 +271,7 @@ export class App extends Component<AppProps,{}>{
                     <MainContainer {...{windowId} as any} />  
                 </div>  
    
-                <TodoInputPopup {...{container:window} as any} />
+                <TodoInputPopup {...{} as any} />
             </div>           
         );  
     }         

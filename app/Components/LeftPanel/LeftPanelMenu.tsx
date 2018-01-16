@@ -113,7 +113,7 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
     }
 
 
-    onMouseOut = (e) => {  
+    onMouseLeave = (e) => {  
         if(this.state.highlight){
            this.setState({highlight:false})
         }
@@ -143,16 +143,16 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
         
         if(!isNil(hot) && !isNil(counter)){
            assert((counter-hot)>=0,`incorrect values counter : ${counter}; hot : ${hot};`);
-        }
+        }   
 
-        return <div  
-            onMouseOver={this.onMouseOver} 
-            onMouseOut={this.onMouseOut}  
+        return <div   
+            onMouseMove={this.onMouseOver} 
+            onMouseOut={this.onMouseLeave}    
             className={this.props.selected ? `` : `leftpanelmenuitem`}  
-            onClick={this.props.onClick}  
+            onClick={this.props.onClick}   
             id={this.props.category}    
             style={selected ? merge(style,selectedStyle) : style}
-        >     
+        >      
             <div  
                 style={{         
                     display:"flex", 
