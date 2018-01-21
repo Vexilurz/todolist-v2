@@ -42,7 +42,7 @@ let fakeTags = (n) : string[] => {
       
 
 
-let fakeCheckListItem = (idx) : ChecklistItem => {
+let fakeCheckListItem = (idx) : ChecklistItem => { 
 
     let words : string[] = [];
     let k = randomInteger(3) + 2;
@@ -56,7 +56,8 @@ let fakeCheckListItem = (idx) : ChecklistItem => {
         text : words.join(), 
         checked : Math.random() > 0.5 ? true : false,
         idx : idx,
-        key : generateId()  
+        key : generateId(),
+        _id : generateId()  
     } 
 
 }
@@ -154,20 +155,19 @@ let fakeProject = (attachedTags:string[], layout:LayoutItem[]) : Project => {
     for(let i=0; i<l; i++)
         description.push(randomWord());  
     
-    return {   
+    return {    
         _id : generateId(),    
         type : "project", 
         name : name.join(),  
         priority : Math.random()*999999999,
         deleted : Math.random() < 0.5 ? new Date() : undefined,
-        description : description.join(),
+        description : description.join(), 
         created : randomDate(new Date()["addDays"](-50), new Date()),
         deadline : randomDate(new Date(), new Date()["addDays"](50)),
-        completed : checked ? randomDate(new Date(), new Date()["addDays"](50)) : null,
-        layout,   
+        completed : checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,
+        layout,     
         attachedTags  
     };    
-
 } 
     
     

@@ -44,7 +44,7 @@ export class SimplePopup extends Component<SimplePopupProps,SimplePopupState>{
         let x = e.pageX;
         let y = e.pageY; 
          
-        let inside:boolean = insideTargetArea(this.ref, x, y);
+        let inside:boolean = insideTargetArea(null, this.ref, x, y);
           
         if(!inside){  
             this.props.onOutsideClick();

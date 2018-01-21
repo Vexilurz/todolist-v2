@@ -200,15 +200,16 @@ export class Today extends Component<TodayProps,TodayState>{
             priority:0, 
             _id:`today-separator` 
         };   
-        
-        let isDeadlineTodayOrPast = (deadline:Date) : boolean => isNil(deadline) ? 
-                                                                 false : 
-                                                                 daysRemaining(deadline)<=0;
-        
-        let filters = [  
-            (t:Todo) => isToday(t.attachedDate) || isDeadlineTodayOrPast(t.deadline), 
+
+        let isTodayOrPast = (date:Date) : boolean => 
+            isNil(date) ?    
+            false :  
+            daysRemaining(date)<=0; 
+
+        let filters = [   
+            (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
             byNotCompleted,  
-            byNotDeleted  
+            byNotDeleted   
         ];    
 
         let todayFilters = [ 
@@ -311,10 +312,10 @@ export class Today extends Component<TodayProps,TodayState>{
 
         assert(isTodo(draggedTodo), `draggedTodo is not of type Todo. onSortEnd. ${JSON.stringify(draggedTodo)}`);
 
-        if(insideTargetArea(leftpanel,x,y) && isTodo(draggedTodo)){ 
+        if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
            onDrop(
-             event,
-             draggedTodo,
+             event, 
+             draggedTodo, 
              dispatch,
              areas,
              projects
@@ -325,9 +326,10 @@ export class Today extends Component<TodayProps,TodayState>{
         }     
     }   
  
-    
+     
 
-    render(){ 
+    render(){
+         
         let { todos, selectedTag, areas, projects } = this.props;
         let { items, tags } = this.getItems();
         let empty = generateEmptyTodo(generateId(), "today", 0);  

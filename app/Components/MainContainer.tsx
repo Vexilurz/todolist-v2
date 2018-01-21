@@ -263,11 +263,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     }}  
                 >  
                 <RightClickMenu {...{} as any}/>  
-                <RepeatPopup /> 
                 <div style={{display: "flex", padding: "10px"}}>   
                     <div className="no-drag" style={{position: "fixed", top: 0, right: 0}}>  
-                        {
-                            not(isDev()) ? null :
+                        { 
+                            not(isDev()) ? null : 
                             <IconButton  
                                 iconStyle={{
                                     color:"rgba(100,100,100,0.6)",

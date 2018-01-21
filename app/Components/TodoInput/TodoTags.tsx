@@ -85,7 +85,7 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
             let x = e.pageX;
             let y = e.pageY; 
 
-            let inside = insideTargetArea(this.ref,x,y);
+            let inside = insideTargetArea(null,this.ref,x,y);
         
             if(!inside){
                 this.props.close(); 
@@ -139,11 +139,14 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
 
                                     return <div   
                                         key={tag}  
-                                        onClick={() => this.props.attachTag(tag)} 
+                                        onClick={(e) => {
+                                            e.stopPropagation();  
+                                            this.props.attachTag(tag)
+                                        }} 
                                         className={"tagItem"} 
                                         style={{
                                             display:"flex", 
-                                            height:"auto",  
+                                            height:"auto",
                                             width:"140px", 
                                             paddingLeft:"5px", 
                                             paddingRight:"10px"  
@@ -245,11 +248,13 @@ export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
                             paddingRight:"5px",
                             display:"flex"   
                         }}>
-                            <div style={{
-                                height:"20px",
+                            <div style={{  
+                                height:"15px",
+                                display:"flex",
+                                alignItems:"center",
                                 padding:"4px", 
                                 color:"rgb(115,167,152)",
-                                fontWeight: 600 
+                                fontWeight: 600    
                             }}> 
                                 {uppercase(tag)} 
                             </div> 

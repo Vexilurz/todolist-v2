@@ -23,13 +23,13 @@ import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
 import { TodoInputPopup } from './Components/TodoInput/TodoInputPopup';
 import { cond, assoc, isNil, not } from 'ramda';
-import { TrashPopup } from './Components/Categories/Trash';
- 
+import { TrashPopup } from './Components/Categories/Trash'; 
+  
 
 injectTapEventPlugin();
 
 
-export let isDev = () => false; 
+export let isDev = () => false;  
 
 
 (() => {     
@@ -168,16 +168,15 @@ export let convertDates = ([todos, projects, areas]) => [
 export let initListeners = (props:AppProps) : void => {
     ipcRenderer.removeAllListeners("action");  
     ipcRenderer.removeAllListeners("Ctrl+Alt+T"); 
-      
+   
+    let {dispatch,clone} = props;
 
     ipcRenderer.on(
         "Ctrl+Alt+T", 
         (event) => {
-            props.dispatch({type:"showRightClickMenu", load:false});
-            props.dispatch({type:"openNewProjectAreaPopup", load:false});
-            props.dispatch({type:"showTrashPopup", load:false});
-
-            props.dispatch({type:"openTodoInputPopup", load:true});
+           dispatch({type:"openNewProjectAreaPopup", load:false});
+           dispatch({type:"showTrashPopup", load:false});
+           dispatch({type:"openTodoInputPopup", load:true});
         }
     ) 
      
@@ -186,14 +185,9 @@ export let initListeners = (props:AppProps) : void => {
         "action", 
         (event, action:{type:string, kind:string, load:any}) => { 
 
-            if(
-                action.type==="setAllTypes" && 
-                not(props.clone)
-            ){  
-                return  
-            } 
+            if(not(clone) && action.type==="setAllTypes"){ return } 
 
-            props.dispatch(assoc("load", transformLoadDates(action.load), action));      
+            dispatch(assoc("load", transformLoadDates(action.load), action));      
         }
     )   
 }
@@ -216,44 +210,43 @@ export class App extends Component<AppProps,{}>{
     }
     
     componentDidMount(){ 
+
+        let {initialLoad,dispatch} = this.props; 
+
         cond([
             [
                 (action:{type:string}) : boolean => "open"===action.type,  
                 (action:{type:string, load:string}) : void => { 
 
-                    this.props.dispatch({type:"windowId", load:action.load});
+                    dispatch({type:"windowId", load:action.load});
                 }   
             ], 
             [
                 (action:{type:string}) : boolean => "clone"===action.type,  
                 (action:{type:string, load:Store}) : void => { 
 
-                    this.props.dispatch({type:"newStore", load:assoc("clone", true, action.load)});
+                    dispatch({type:"newStore", load:assoc("clone", true, action.load)});
                 } 
             ],   
             [ 
                 (action:{type:string}) : boolean => "reload"===action.type,  
                 (action:{type:string, load:string}) : void => { 
 
-                    this.props.dispatch({type:"windowId", load:action.load});
+                    dispatch({type:"windowId", load:action.load});
                 }   
             ]
-        ])(this.props.initialLoad)
+        ])(initialLoad)
     }   
  
 
 
     render(){     
         let { initialLoad, clone } = this.props;
-
-        let action = initialLoad;
+        let { type,load } = initialLoad;
         let windowId = null;
 
-        if(
-            action.type==="open" || 
-            action.type==="reload"
-        ){
-           windowId=action.load; 
+        if(type==="open" || type==="reload"){
+           windowId=load; 
         }
         
         return wrapMuiThemeLight(
@@ -265,10 +258,8 @@ export class App extends Component<AppProps,{}>{
                 zIndex:2001,  
             }}>  
                 <div style={{display:"flex", width:"inherit", height:"inherit"}}>  
-                    {
-                        clone ? null : <LeftPanel {...{} as any}  />
-                    }
-                    <MainContainer {...{windowId} as any} />  
+                    { clone ? null : <LeftPanel {...{} as any}/> }
+                    <MainContainer {...{windowId} as any}/>  
                 </div>  
                     
                 <TodoInputPopup {...{} as any} />

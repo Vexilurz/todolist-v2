@@ -5,7 +5,6 @@ import * as ReactDOM from 'react-dom';
 import { ipcRenderer } from 'electron'; 
 import IconButton from 'material-ui/IconButton';  
 import { Component } from "react";  
-import SortableContainer from '../../sortable-hoc/sortableContainer';
 import SortableElement from '../../sortable-hoc/sortableElement';
 import SortableHandle from '../../sortable-hoc/sortableHandle';
 import {arrayMove} from '../../sortable-hoc/utils';
@@ -45,6 +44,7 @@ import { Todo, removeTodo, updateTodo, generateId } from '../../database';
 import { SortableList } from '../SortableList';
 import { replace, adjust, append, prepend, isEmpty } from 'ramda';
 import { Placeholder } from '../TodosList';
+import { SortableContainer } from '../../sortable/CustomSortableContainer';
 
 
 let shouldUpdateChecklist = (
@@ -83,7 +83,8 @@ export interface ChecklistItem{
     text : string, 
     checked : boolean,
     idx : number,
-    key : string  
+    key : string,
+    _id : string  
 }   
  
 
@@ -92,11 +93,7 @@ interface ChecklistProps{
     updateChecklist : (checklist:ChecklistItem[]) => void   
 }
 
-interface ChecklistState{
-    currentIndex:number, 
-    helper:HTMLElement,
-    showPlaceholder:boolean 
-} 
+interface ChecklistState{} 
 
   
  
@@ -107,18 +104,10 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
     constructor(props){
         super(props); 
-        this.state={
-          currentIndex:0, 
-          helper:null,
-          showPlaceholder:false 
-        }
     }
 
   
     shouldComponentUpdate(nextProps:ChecklistProps, nextState:ChecklistState){
-        if(nextState!==this.state){
-           return true; 
-        }
          
         let checklistChanged = shouldUpdateChecklist(nextProps.checklist, this.props.checklist);
 
@@ -159,30 +148,18 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
     } 
 
 
-    onSortMove = (e, helper : HTMLElement, newIndex:number) => {
-        this.setState({
-            currentIndex:newIndex,
-            helper
-        })
-    } 
+    selectElements = (index:number,items:any[]) => [index];
 
 
-    onSortStart = ({node, index, collection}, e, helper) => { 
-        if(this.ref){
-            this.setState({
-                showPlaceholder:true,
-                currentIndex:index,
-                helper
-            });
-        } 
-    }  
+    onSortMove = (oldIndex:number, event) : void => {} 
+
     
+    onSortStart = (oldIndex:number, event:any) : void => {}
 
-    onSortEnd = ({oldIndex, newIndex, collection}, e) => {
-        this.setState({showPlaceholder:false}); 
 
-        if(oldIndex===newIndex)
-           return;
+    onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
+
+        if(oldIndex===newIndex){ return }
              
         let updateIndex = (el:ChecklistItem,idx:number) => {
             el.idx=idx;
@@ -197,20 +174,28 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
     }  
       
     
-    getCheckListItem = (value:ChecklistItem, index:number) => {
-        
-        const DragHandle = SortableHandle(() => 
-            <Reorder style={{ 
-                cursor: "default",
-                marginRight: "5px",  
-                color: "rgba(100, 100, 100, 0.17)"
-            }}/>  
-        );    
+    getCheckListItem = (value:ChecklistItem, index:number) => { 
 
+        let style = {
+            display:"flex",alignItems:"center"
+        } as any;
+
+        let checkedStyle = {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            paddingRight: "3px",
+            paddingLeft: "3px"
+        } as any;
             
-        return <li style={{width:"100%"}}>  
+        return <li 
+          className={'checklistItem'}    
+          id={value._id} 
+          key={value.key} 
+          style={{width:"100%"}}    
+        >  
             <div   
-                 style={{   
+                style={{   
                     WebkitUserSelect:"none",
                     transition: "opacity 0.4s ease-in-out", 
                     opacity:1,
@@ -218,57 +203,63 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                     fontSize:"16px",
                     borderRadius:"5px",
                     alignItems:"center", 
-                    display:"flex",   
-                 }} 
+                    display:"flex" 
+                }} 
             >  
-                <div>
-                    <div  onClick={(e) => this.onChecklistItemCheck(e, value.key)}
-                        style={{
-                            backgroundColor:value.checked ? 'rgb(10, 100, 240)' : '',
-                            width:"15px",  
-                            height:"15px",
-                            borderRadius:"50px",
-                            display:"flex",
-                            justifyContent:"center",
-                            position:"relative", 
-                            border:value.checked ? '' : "2px solid rgb(10, 100, 240)",
-                            boxSizing:"border-box",
-                            marginRight:"5px",
-                            marginLeft:"5px" 
-                        }}    
-                    >        
-                    </div>  
-                </div>   
-                    <div    
-                        style={{   
-                            display:"flex",
-                            justifyContent:"space-around",
-                            width:"100%",    
-                            alignItems:"center"
-                        }} 
-                    >    
-                        <TextField     
-                            id={value.key} 
-                            fullWidth={true}   
-                            defaultValue={value.text}
-                            hintStyle={{top:"3px", left:0, width:"100%", height:"100%"}}  
-                            style={{height:"28px",cursor:"default"}}  
-                            inputStyle={{
-                                color:"rgba(0,0,0,1)", 
-                                fontSize:"16px",
-                                textDecoration:value.checked ? "line-through" : "none"
+                <div  
+                    style={value.checked ? checkedStyle : style} 
+                    onClick={(e) => this.onChecklistItemCheck(e, value.key)}   
+                > 
+                    {
+                        value.checked ? <Checked style={{width:18, height:18, color:"rgba(100,100,100,0.7)"}}/> :
+                        <div
+                            style={{
+                                backgroundColor:value.checked ? 'rgb(10, 100, 240)' : '',
+                                width:"15px",  
+                                height:"15px", 
+                                borderRadius:"50px",
+                                display:"flex",
+                                justifyContent:"center",
+                                position:"relative", 
+                                border:value.checked ? '' : "2px solid rgb(10, 100, 240)",
+                                boxSizing:"border-box",
+                                marginRight:"5px",
+                                marginLeft:"5px" 
                             }}    
-                            underlineFocusStyle={{borderColor: "rgba(0,0,0,0)"}}  
-                            underlineStyle={{borderColor: "rgba(0,0,0,0)"}}   
-                            onChange={(event, newText:string) => this.onChecklistItemChange(value.key, event, newText)}
-                            onKeyDown={(event) => { 
-                                if(event.which == 13 || event.keyCode == 13){
-                                   event.stopPropagation();
-                                }      
-                            }} 
-                        />  
-                        <DragHandle /> 
-                    </div>  
+                        >        
+                        </div>  
+                    }    
+                </div> 
+                <div    
+                    style={{   
+                        display:"flex",
+                        justifyContent:"space-around",
+                        width:"100%",    
+                        alignItems:"center"
+                    }} 
+                >    
+                    <TextField     
+                        id={value.key} 
+                        fullWidth={true}   
+                        defaultValue={value.text}
+                        hintStyle={{top:"3px", left:0, width:"100%", height:"100%"}}  
+                        style={{height:"28px",cursor:"default"}}  
+                        inputStyle={{
+                            color:value.checked ? "rgba(100,100,100,0.7)" : "rgba(0,0,0,1)",  
+                            fontSize:"16px",
+                            textDecoration:value.checked ? "line-through" : "none"
+                        }}    
+                        underlineFocusStyle={{borderColor: "rgba(0,0,0,0)"}}   
+                        underlineStyle={{borderColor: "rgba(0,0,0,0)"}}   
+                        onClick={(e) => e.target.focus()}  
+                        onChange={(event, newText:string) => this.onChecklistItemChange(value.key, event, newText)}
+                        onKeyDown={(event) => { 
+                            if(event.which == 13 || event.keyCode == 13){
+                                event.stopPropagation(); 
+                            }      
+                        }} 
+                    />  
+                </div>  
             </div>  
         </li>     
     } 
@@ -282,7 +273,8 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
             checked:false,  
             text:event.target.value,  
             idx:this.props.checklist.length, 
-            key:generateId() 
+            key:generateId(),
+            _id:generateId()
         };
  
         let checklist = append(newItem)(this.props.checklist);
@@ -301,7 +293,8 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                 checked:false,  
                 text:event.target.value,  
                 idx:this.props.checklist.length, 
-                key:generateId() 
+                key:generateId(),
+                _id:generateId()
             };
 
             let checklist = append(newItem)(this.props.checklist);
@@ -309,17 +302,20 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         }     
     } 
 
+
     componentDidMount(){
         if(this.inputRef){
            this.inputRef.focus();  
         } 
     }
+
     
     componentDidUpdate(){
         if(this.inputRef){
            this.inputRef.focus();  
         }  
     }
+
 
     render(){  
  
@@ -332,28 +328,21 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                 WebkitUserSelect:"none" 
             }}
             onClick={(e) => {e.stopPropagation();}}  
-        >     
-            <div style={{width:"100%"}}>
-                <Placeholder     
-                    offset={this.state.currentIndex*28}
-                    height={28} 
-                    show={this.state.showPlaceholder}
-                /> 
-            </div>
-            <SortableList  
-                getElement={this.getCheckListItem}
-                items={this.props.checklist}      
-                container={document.body}  
-                shouldCancelStart={() => false}
-                shouldCancelAnimation={() => false} 
-                onSortEnd={this.onSortEnd}  
-                onSortMove = {this.onSortMove}
-                onSortStart={this.onSortStart}
-                lockToContainerEdges={true}
-                distance={0} 
-                useDragHandle={true}   
-                lock={true}  
-            />
+        >    
+            <SortableContainer
+              items={this.props.checklist}
+              scrollableContainer={document.body}
+              selectElements={this.selectElements}   
+              onSortStart={this.onSortStart} 
+              onSortMove={this.onSortMove}
+              onSortEnd={this.onSortEnd}
+              shouldCancelStart={(event:any,item:any) => false}  
+              decorators={[]}   
+              lock={true}
+            >   
+                {this.props.checklist.map((item,index) => this.getCheckListItem(item,index))}
+            </SortableContainer> 
+            
             {   
                 <div
                     style={{   

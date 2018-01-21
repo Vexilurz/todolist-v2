@@ -643,10 +643,12 @@ export let byCategory = (selectedCategory:Category) => (item:Todo) : boolean => 
  
  
 
-export let insideTargetArea = (target:HTMLElement,x:number,y:number) : boolean => {
+export let insideTargetArea = (
+    scrollableContainer:HTMLElement, target:HTMLElement,
+    x:number,y:number
+) : boolean => {
 
-    if(target===null || target===undefined)
-       return false;   
+    if(target===null || target===undefined){ return false }
 
     if(!isFunction(target.getBoundingClientRect)){
         if(isDev()){ 
@@ -654,12 +656,18 @@ export let insideTargetArea = (target:HTMLElement,x:number,y:number) : boolean =
         }
     }  
  
-    let rect = target.getBoundingClientRect();
-     
-    if(x>rect.left && x<rect.right)
-       if(y>rect.top && y<rect.bottom)
-          return true; 
+    let {left,right,top,bottom} = target.getBoundingClientRect();
+    let scrolledLeft = left;
+    let scrolledTop = top;
     
+    /*if(!isNil(scrollableContainer)){
+        scrolledLeft = left + scrollableContainer.scrollLeft;
+        scrolledTop = top + scrollableContainer.scrollTop;
+    }*/  
+
+    if(x>scrolledLeft && x<right)
+       if(y>scrolledTop && y<bottom){ return true }
+       
     return false;
 }
 
@@ -1309,7 +1317,7 @@ export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:
     
         
 
-    if(iDate.getTime() > jDate.getTime())
+    if(iDate.getTime() < jDate.getTime())
         return 1;
     else 
         return -1;   

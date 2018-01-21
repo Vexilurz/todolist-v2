@@ -277,7 +277,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             if(isEmpty(draggedItem.title))  
                return;
   
-            if(insideTargetArea(leftpanel,x,y)){    
+            if(insideTargetArea(null,leftpanel,x,y)){    
                onDrop(
                     event, 
                     draggedItem as Todo,
@@ -290,7 +290,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             }   
         }
     }
-
     
 
     selectElements = (index:number,items:any[]) => {

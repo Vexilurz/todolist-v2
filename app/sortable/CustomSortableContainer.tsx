@@ -6,7 +6,7 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { assert } from '../utils';
+import { assert, insideTargetArea } from '../utils';
 import { isEmpty, not, contains, isNil } from 'ramda';
 import { Placeholder } from '../Components/TodosList';
   
@@ -14,12 +14,10 @@ import { Placeholder } from '../Components/TodosList';
 let selectContainer = (x:number,y:number,containers:HTMLElement[]) : HTMLElement => {
 
     for(let i=0; i<containers.length; i++){
-        if(insideTargetArea(containers[i],x,y)){
-
+        if(insideTargetArea(null,containers[i],x,y)){
            return containers[i]; 
         }
-
-    }
+    } 
  
     return undefined;
 }
@@ -177,7 +175,8 @@ interface SortableContainerProps{
     onSortStart:(oldIndex:number,event:any) => void,  
     onSortEnd:(oldIndex:number,newIndex:number,event:any,item?:any) => void,
     onSortMove:(oldIndex:number,event:any) => void,
-    decorators:Decorator[]
+    decorators:Decorator[],
+    lock?:boolean
 }      
 
 type Scroll = "up" | "down" 
@@ -500,7 +499,10 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
 
     animateClone = (deltaX:number,deltaY:number) => { 
-        this.cloned.style[`transform`] = `translate3d(${deltaX}px,${deltaY}px, 0)`;
+        let { lock } = this.props;
+        let x = lock ? 0 : deltaX;
+        
+        this.cloned.style[`transform`] = `translate3d(${x}px,${deltaY}px, 0)`;
     }
     
     
@@ -633,7 +635,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
             let {area, decorator, id} = decorators[i];
 
-            if(insideTargetArea(area,x,y)){
+            if(insideTargetArea(null,area,x,y)){
                 this.initDecorator(decorators[i]);
                 return;
             }     
@@ -703,13 +705,14 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     
 
     indexFromClick = (event:any) : number => {
+        let { scrollableContainer } = this.props;
         let nodes = getNodes(this.ref);
         let x = event.clientX;
         let y = event.clientY;
 
-        for(let i=0; i<nodes.length; i++){
+        for(let i=0; i<nodes.length; i++){ 
             let target = nodes[i];
-            if(insideTargetArea(target,x,y)){
+            if(insideTargetArea(scrollableContainer,target,x,y)){
                return i;  
             }
         }
@@ -752,25 +755,6 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         </div>
     }
 } 
-
-
-
-let insideTargetArea = (target:HTMLElement,x:number,y:number) : boolean => {
-
-    if(target===null || target===undefined)
-       return false;   
-
-    let rect = target.getBoundingClientRect();
-    let margins = getElementMargin(target); 
-    let top = rect.top;
-    let bottom = rect.bottom;    
-
-    if(x>rect.left && x<rect.right)
-       if(y>top && y<bottom)
-          return true; 
-    
-    return false;
-}    
 
 
 

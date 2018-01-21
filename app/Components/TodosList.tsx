@@ -386,7 +386,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         dispatch({type:"dragged",load:null}); 
 
         let draggedTodo = item;
-
+        
         assert(
             item._id===selected[oldIndex]._id, 
             `
@@ -404,8 +404,8 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
   
         let leftpanel = document.getElementById("leftpanel");
 
-        if(insideTargetArea(leftpanel,x,y) && isTodo(draggedTodo)){  
-
+        if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){  
+ 
             onDrop(event,draggedTodo,dispatch,areas,projects) 
 
         }else{     

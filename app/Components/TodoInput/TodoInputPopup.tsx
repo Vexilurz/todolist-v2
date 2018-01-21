@@ -73,7 +73,7 @@ interface TodoInputPopupProps extends Store{}
             
 interface TodoInputPopupState{}
  
-@connect((store,props) => store, attachDispatchToProps) 
+@connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
 export class TodoInputPopup extends Component<TodoInputPopupProps,TodoInputPopupState>{
 
     ref:HTMLElement; 
@@ -87,9 +87,15 @@ export class TodoInputPopup extends Component<TodoInputPopupProps,TodoInputPopup
     }  
  
     render(){ 
+
+        let {
+            openTodoInputPopup, dispatch, tags, todos, 
+            projects, selectedCategory, selectedProjectId, 
+            selectedAreaId
+        } = this.props; 
  
         return <SimplePopup    
-            show={this.props.openTodoInputPopup}
+            show={openTodoInputPopup}
             onOutsideClick={this.onClose}
         >  
             <div style={{
@@ -107,13 +113,13 @@ export class TodoInputPopup extends Component<TodoInputPopupProps,TodoInputPopup
                     backgroundColor:"white" 
                 }}> 
                     <AlwaysOpenedTodoInput 
-                        dispatch={this.props.dispatch}   
-                        tags={this.props.tags}  
-                        todos={this.props.todos} 
-                        projects={this.props.projects}
-                        selectedCategory={this.props.selectedCategory}
-                        selectedProjectId={this.props.selectedProjectId}
-                        selectedAreaId={this.props.selectedAreaId} 
+                        dispatch={dispatch}   
+                        tags={tags}  
+                        todos={todos} 
+                        projects={projects}
+                        selectedCategory={selectedCategory}
+                        selectedProjectId={selectedProjectId}
+                        selectedAreaId={selectedAreaId} 
                     />  
                 </div>   
             </div>  
@@ -193,47 +199,50 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
   
 
     componentDidMount(){  
-        if(this.inputRef){
-           this.inputRef.focus();  
-        }
+        if(this.inputRef){  this.inputRef.focus()  }
     }    
 
 
-    closeParentContainer = () => this.props.dispatch({type:"openTodoInputPopup", load:false}); 
+    closeParentContainer = () => {
+        this.props.dispatch({type:"openTodoInputPopup", load:false})
+    }
 
 
     addTodo = () => {
         let todo : Todo = this.todoFromState();  
         let { project } = this.state;
+        let { dispatch,todos } = this.props;
 
         if(!isEmpty(todo.title)){
 
             let priority : number = 0;
 
-            if(!isEmpty(this.props.todos)){
-                let first : Todo = this.props.todos[0];
+            if(!isEmpty(todos)){
+                let first : Todo = todos[0];
                 priority = first.priority - 1; 
             }  
 
-            this.props.dispatch({type:"addTodo", load:todo}); 
+            dispatch({type:"addTodo", load:todo}); 
 
             if(!isNil(project)){
-                this.props.dispatch({
-                    type:"attachTodoToProject",  
-                    load:{ projectId:project._id, todoId:todo._id }
-                });        
+                dispatch({
+                  type:"attachTodoToProject",  
+                  load:{ projectId:project._id, todoId:todo._id }
+                })      
             } 
         }
     } 
 
 
     onSave = () => {
-        this.addTodo(); 
-        this.closeParentContainer();
+        this.addTodo() 
+        this.closeParentContainer()
     } 
     
 
-    onCancel = () => this.closeParentContainer();
+    onCancel = () => {
+        this.closeParentContainer()
+    }
 
 
     stateFromTodo = (state,todo:Todo) => ({   
@@ -272,9 +281,10 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
     
 
     onAttachTag = (tag) => { 
-        if(tag.length===0) 
-           return;
-        this.setState({tag:'', attachedTags:uniq([...this.state.attachedTags, tag])});
+
+        if(tag.length===0){ return }
+
+        this.setState({ tag:'', attachedTags:uniq([...this.state.attachedTags, tag]) });
     }  
 
 
@@ -292,31 +302,56 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
     } 
 
     
-    onNoteChange = (event,newValue:string) : void => this.setState({note:newValue});
+    onNoteChange = (event,newValue:string) : void => {
+        this.setState({note:newValue})
+    }
 
-    onTitleChange = (event,newValue:string) : void => this.setState({title:newValue});
+
+    onTitleChange = (event,newValue:string) : void => {
+        this.setState({title:newValue})
+    }
+
 
     onCheckBoxClick = () => {  
         let checked : boolean = !this.state.checked; 
-        this.setState({checked:checked, completed:checked ? new Date() : null});
+        this.setState({checked:checked, completed:checked ? new Date() : null})
     } 
 
 
-   
-
-    onChecklistButtonClick = (e) => this.setState({showChecklist:true}) 
+    onChecklistButtonClick = (e) => {
+        this.setState({showChecklist:true}) 
+    }
       
-    onFlagButtonClick = (e) => this.setState({showDeadlineCalendar:true})
 
-    closeDeadlineCalendar = (e) => this.setState({showDeadlineCalendar:false})
+    onFlagButtonClick = (e) => {
+        this.setState({showDeadlineCalendar:true})
+    }
+
+
+    closeDeadlineCalendar = (e) => {
+        this.setState({showDeadlineCalendar:false})
+    }
  
-    onCalendarButtonClick = (e) => this.setState({showDateCalendar:true})
-    
-    closeDateCalendar = (e) => this.setState({showDateCalendar:false})
-    
-    onTagsButtonClick = (e) => this.setState({showTagsSelection:true})
 
-    closeTagsSelection = (e) => this.setState({showTagsSelection:false}) 
+    onCalendarButtonClick = (e) => {
+        this.setState({showDateCalendar:true})
+    }
+    
+
+    closeDateCalendar = (e) => {
+        this.setState({showDateCalendar:false})
+    }
+
+    
+    onTagsButtonClick = (e) => {
+        this.setState({showTagsSelection:true})
+    }
+
+
+    closeTagsSelection = (e) => {
+        this.setState({showTagsSelection:false}) 
+    }
+
 
     onRemoveSelectedCategoryLabel = () => {
         let { category, project } = this.state;
@@ -386,17 +421,28 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
         this.setState({
             attachedDate:day, 
             category:daysRemaining(day)===0 ? "today" : category
-        });   
+        })   
     }
 
     
-    onCalendarSomedayClick = (e) => this.setState({category:"someday", attachedDate:null, deadline:null})
+    onCalendarSomedayClick = (e) => {
+        this.setState({category:"someday", attachedDate:null, deadline:null})
+    }
 
-    onCalendarTodayClick = (e) => this.setState({category:"today", attachedDate:new Date()}) 
 
-    onCalendarThisEveningClick = (e) => this.setState({category:"evening", attachedDate:new Date()}) 
+    onCalendarTodayClick = (e) => {
+        this.setState({category:"today", attachedDate:new Date()}) 
+    }
 
-    onCalendarAddReminderClick = (reminder:Date) : void => this.setState({reminder, attachedDate:reminder})
+
+    onCalendarThisEveningClick = (e) => {
+        this.setState({category:"evening", attachedDate:new Date()}) 
+    }
+
+
+    onCalendarAddReminderClick = (reminder:Date) : void => {
+        this.setState({reminder, attachedDate:reminder})
+    }
 
     
     selectInbox = () => this.setState({
@@ -405,17 +451,16 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
         attachedDate:null,
         deadline:null 
     })
+
  
     selectProject = (project:Project) => {
         this.setState({project,category:"next"})
     }   
 
 
-    onWindowEnterPress = (e) => { 
-        if(e.keyCode===13){  
-           this.onSave();
-        }    
-    }      
+    onWindowEnterPress = (e) => {  
+        if(e.keyCode===13){ this.onSave() }    
+    }       
     
     
     render(){  
@@ -446,7 +491,6 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
             }} 
         >       
             <div
-                onKeyDown={this.onWindowEnterPress}
                 style={{   
                     paddingLeft:"20px", 
                     paddingRight:"20px",   
@@ -474,6 +518,7 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
 
                             <TextField   
                                 ref={e => {this.inputRef=e;}}
+                                onKeyDown={this.onWindowEnterPress}
                                 id={`todo-input-shortcut`}
                                 value={this.state.title} 
                                 hintText="New To-Do" 
@@ -509,11 +554,14 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                         <div style={{
                             transition:"opacity 0.2s ease-in-out",
                             opacity:1,
-                            paddingLeft:"25px",
+                            paddingLeft:"25px", 
                             paddingRight:"25px"  
-                        }}>       
+                        }}>        
                             <TextField   
                                 id={`always-note`}  
+                                onKeyDown={(e) => {
+                                    if(e.keyCode===13){e.stopPropagation();} 
+                                }}
                                 value={this.state.note} 
                                 hintText="Notes"
                                 multiLine={true}   
@@ -774,27 +822,24 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
 
     constructor(props){
         super(props);
-        this.state={
-            selectorPopupOpened:false
-        }
+        this.state={selectorPopupOpened:false}
     }
 
 
-    
- 
     closeSelectorPopup = () => {
-        this.setState({selectorPopupOpened:false});
+        this.setState({selectorPopupOpened:false})
     }
+
 
     render(){
-        let {selectorPopupOpened} = this.state;
+        let { selectorPopupOpened } = this.state;
 
         let {
-            projects,todos,rootRef,
-
+            projects,
+            todos,
+            rootRef,
             selectInbox,  
             selectProject,
-            
             category,
             project,
             attachedDate,
@@ -904,138 +949,7 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
 
 
 
-let selectButtonContent = ({
-    category,
-    project,
-    attachedDate,
-    deadline,
-    todos
-}) => { 
-    
-    if(category==="inbox" && isNil(attachedDate) && isNil(project) && isNil(deadline)){
 
-        return <div   
-            style={{
-                cursor:"pointer",
-                display:"flex",
-                paddingLeft:"15px",
-                height:"25px", 
-                alignItems:"center"
-            }}
-        >
-            <Inbox   
-                style={{
-                    width:"18px",
-                    height:"18px",
-                    color:"rgba(100,100,100,1)"
-
-                }}  
-            />
-            <div style={{ 
-                paddingRight:"5px",    
-                paddingLeft:"5px", 
-                WebkitUserSelect:"none"
-            }}>  
-                Inbox
-            </div> 
-        </div>
-    }else if(!isNil(project)){
-
-        let {done, left} = getProgressStatus(project,todos);
-
-        return <div   
-            style={{
-                paddingLeft:"15px",
-                cursor:"pointer",
-                display:"flex",
-                height:"25px", 
-                alignItems:"center"
-            }}
-        >
-            <div style={{    
-                width: "18px",
-                height: "18px",
-                position: "relative",
-                borderRadius: "100px",
-                display: "flex",
-                justifyContent: "flex-start", 
-                alignItems: "center",
-                border: "1px solid rgb(170, 170, 170)",
-                boxSizing: "border-box" 
-            }}> 
-                <div style={{
-                    width: "18px",
-                    height: "18px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    position: "relative" 
-                }}>  
-                    <PieChart 
-                        animate={false}    
-                        totalValue={done+left}
-                        data={[{     
-                            value:done,  
-                            key:1,    
-                            color:"white" 
-                        }]}    
-                        style={{ 
-                            color:"white",
-                            width:"12px", 
-                            height:"12px",
-                            position:"absolute",
-                            display:"flex",
-                            alignItems:"center",
-                            justifyContent:"center"  
-                        }}    
-                    />       
-                </div>
-            </div> 
-            
-            <div style={{ 
-                paddingRight:"5px", 
-                paddingLeft: "5px", 
-                WebkitUserSelect:"none", 
-                width:"100%"
-            }}>   
-                {
-                    isEmpty(project.name) ? 
-                    "New Project" : 
-                    stringToLength(project.name,10) 
-                }    
-            </div>  
-        </div>  
-
-    }else{
-        
-        return <div  
-            style={{
-                cursor:"pointer",
-                display:"flex",
-                paddingLeft:"15px", 
-                height:"25px", 
-                alignItems:"center"
-            }}
-        >
-            <CalendarIco 
-                style={{
-                    width:"18px",
-                    height:"18px",
-                    color:"rgba(100,100,100,1)", 
-                    cursor:"default"
-                }}  
-            />
-            
-            <div style={{ 
-                paddingRight:"5px", 
-                paddingLeft:"5px", 
-                WebkitUserSelect:"none"
-            }}>  
-                Scheduled
-            </div>
-        </div>
-    }
-}
 
 
 
@@ -1075,12 +989,10 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
         let click = Observable
                     .fromEvent(document.body,"click")
                     .subscribe((event:any) => 
-                      
-                        insideTargetArea(this.ref,event.clientX,event.clientY) ? 
+                        insideTargetArea(null,this.ref,event.clientX,event.clientY) ? 
                         null :
                         close() 
-                        
-                    )
+                    ) 
 
         this.subscriptions.push(click);  
     }
@@ -1136,7 +1048,11 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                             }}>
                                 <div  
                                     className="hoverDateType" 
-                                    onClick={() => this.props.selectInbox()}
+                                    onClick={() => {
+                                        let {selectInbox,close} = this.props;
+                                        selectInbox();
+                                        close();
+                                    }}
                                     style={{
                                         height:"25px",
                                         display:"flex",
@@ -1208,7 +1124,11 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                                          
                                         return <div    
                                             key = {`${p._id}-project`}
-                                            onClick = {(e) => this.props.selectProject(p)}
+                                            onClick = {(e) => {
+                                                let {selectProject,close} = this.props;
+                                                selectProject(p);
+                                                close(); 
+                                            }}
                                             id = {`${p._id}-popup`} 
                                             className="hoverDateType" 
                                             style={{       
@@ -1304,3 +1224,136 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
 }
 
 
+
+
+
+
+
+
+
+let selectButtonContent = ({
+    category,
+    project,
+    attachedDate,
+    deadline,
+    todos
+}) => { 
+    
+    if(category==="inbox" && isNil(attachedDate) && isNil(project) && isNil(deadline)){
+
+        return <div   
+            style={{
+                cursor:"pointer",
+                display:"flex",
+                paddingLeft:"15px",
+                height:"25px", 
+                alignItems:"center"
+            }}
+        >
+            <Inbox   
+                style={{
+                    width:"18px",
+                    height:"18px",
+                    color:"rgba(100,100,100,1)"
+                }}  
+            />
+            <div style={{ 
+                paddingRight:"5px",    
+                paddingLeft:"5px", 
+                WebkitUserSelect:"none"
+            }}>  
+                Inbox
+            </div> 
+        </div>
+
+    }else if(!isNil(project)){
+
+        let {done, left} = getProgressStatus(project,todos);
+
+        return <div   
+            style={{
+                paddingLeft:"15px",
+                cursor:"pointer",
+                display:"flex",
+                height:"25px", 
+                alignItems:"center"
+            }}
+        >
+            <div style={{    
+                width: "18px",
+                height: "18px",
+                position: "relative",
+                borderRadius: "100px",
+                display: "flex",
+                justifyContent: "flex-start", 
+                alignItems: "center",
+                border: "1px solid rgb(170, 170, 170)",
+                boxSizing: "border-box" 
+            }}> 
+                <div style={{
+                    width: "18px",
+                    height: "18px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative" 
+                }}>  
+                    <PieChart 
+                        animate={false}    
+                        totalValue={done+left}
+                        data={[{
+                            value:done,  
+                            key:1,    
+                            color:"white" 
+                        }]}    
+                        style={{ 
+                            color:"white",
+                            width:"12px", 
+                            height:"12px",
+                            position:"absolute",
+                            display:"flex",
+                            alignItems:"center",
+                            justifyContent:"center"  
+                        }}    
+                    />       
+                </div>
+            </div> 
+            <div style={{ 
+                paddingRight:"5px", 
+                paddingLeft: "5px", 
+                WebkitUserSelect:"none", 
+                width:"100%"
+            }}>   
+                {isEmpty(project.name) ? "New Project" : stringToLength(project.name,10)}    
+            </div>  
+        </div>  
+
+    }else{
+
+        return <div  
+            style={{
+                cursor:"pointer",
+                display:"flex",
+                paddingLeft:"15px", 
+                height:"25px", 
+                alignItems:"center"
+            }}
+        >
+            <CalendarIco 
+                style={{
+                    width:"18px",
+                    height:"18px",
+                    color:"rgba(100,100,100,1)", 
+                    cursor:"default"
+                }}  
+            />
+            <div style={{ 
+                paddingRight:"5px", 
+                paddingLeft:"5px", 
+                WebkitUserSelect:"none"
+            }}>  
+                Scheduled
+            </div>
+        </div>
+    }
+}

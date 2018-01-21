@@ -71,7 +71,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
         let x = e.pageX;
         let y = e.pageY; 
 
-        let inside = insideTargetArea(this.ref,x,y);
+        let inside = insideTargetArea(null,this.ref,x,y);
     
         if(!inside){
             this.props.close(); 
@@ -523,7 +523,7 @@ export class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCa
         let x = e.pageX;
         let y = e.pageY; 
 
-        let inside = insideTargetArea(this.ref,x,y);
+        let inside = insideTargetArea(null,this.ref,x,y);
     
         if(!inside){
             this.props.close(); 

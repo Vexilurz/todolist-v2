@@ -69,11 +69,16 @@ export let calculateAmount = (areas:Area[], projects:Project[], todos:Todo[]) : 
                                                              false : 
                                                              daysRemaining(deadline)<=0;
         
-    let todayFilters = [  
-        (t:Todo) => isToday(t.attachedDate) || isDeadlineTodayOrPast(t.deadline), 
+     let isTodayOrPast = (date:Date) : boolean => 
+         isNil(date) ?    
+         false :  
+         daysRemaining(date)<=0; 
+ 
+    let todayFilters = [   
+        (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
         byNotCompleted,  
-        byNotDeleted  
-    ];   
+        byNotDeleted   
+    ];    
 
     let hotFilters = [
         (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
@@ -85,6 +90,7 @@ export let calculateAmount = (areas:Area[], projects:Project[], todos:Todo[]) : 
         (todo:Todo) => not(byAttachedToArea(areas)(todo)), 
         (todo:Todo) => not(byAttachedToProject(projects)(todo)), 
         (todo:Todo) => isNil(todo.attachedDate), 
+        (todo:Todo) => isNil(todo.deadline), 
         byCategory("inbox"),  
         byNotCompleted,    
         byNotDeleted 

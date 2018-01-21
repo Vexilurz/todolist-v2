@@ -223,7 +223,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         assert(isProject(target), `itarget is not a project. ${JSON.stringify(target)}. onSortEnd. AreaBody.`);
         assert(not(isNil(leftpanel)), `leftpanel is Nil. onSortEnd. AreaBody.`);
  
-        if(insideTargetArea(leftpanel,x,y)){   
+        if(insideTargetArea(null,leftpanel,x,y)){   
 
             let el = document.elementFromPoint(e.clientX, e.clientY);
             let id = el.id || el.parentElement.id;
@@ -268,7 +268,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         let container = document.getElementById("areas");
         let nested = document.getElementById("nested");
 
-        if(insideTargetArea(container,x,y)){
+        if(insideTargetArea(this.props.rootRef,container,x,y)){ 
             hideChildrens(helper);  
             nested.style.visibility=""; 
             nested.style.opacity='1';    

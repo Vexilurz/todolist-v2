@@ -159,7 +159,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     componentDidMount(){  
 
-        let click = Observable.fromEvent(window,"click").subscribe(this.onOutsideClick);
+        let click = Observable
+                    .fromEvent(document.body,"click")
+                    .subscribe(this.onOutsideClick); 
 
         this.subscriptions.push(click);
 
@@ -236,26 +238,28 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     
 
     onOutsideClick = (e) => {
-        if(this.ref===null || this.ref===undefined)
-           return; 
+        let { creation, rootRef, dispatch } = this.props;
+        let { open } = this.state;
 
-        if(!this.state.open) 
-           return;    
+        if(this.ref===null || this.ref===undefined){ return }
+
+        if(not(open)){ return }
 
         let x = e.pageX;
         let y = e.pageY; 
 
-        let inside = insideTargetArea(this.ref,x,y);
+        let inside = insideTargetArea(rootRef,this.ref,x,y);
      
         if(!inside){   
-            if(this.props.creation){
+            if(creation){
                 this.addTodo();
             }else{
                 this.updateTodo();
             } 
+
             this.setState(
                 {open:false}, 
-                () => this.props.dispatch({type:"selectedTodoId", load:null})
+                () => dispatch({type:"selectedTodoId", load:null})
             ); 
         }  
     }    
@@ -913,7 +917,7 @@ class DueDate extends Component<DueDateProps,{}>{
             borderRadius:"15px",
             color:"rgb(100,100,100)",
             fontWeight:"bold",
-            height:"20px" 
+            height:"15px" 
         } as any;
  
         let style = {    
@@ -944,10 +948,10 @@ class DueDate extends Component<DueDateProps,{}>{
                    <div style={{paddingRight:"5px"}}>
                     <div style={containerStyle}>     
                         <div style={{ 
-                            display:"flex",   
+                            display:"flex",    
                             padding:"5px", 
                             alignItems:"center", 
-                            fontSize:"12px"
+                            fontSize:"11px"
                         }}>      
                             <div style={{paddingRight:"5px"}}>{month.slice(0,3)+'.'}</div>  
                             <div>{day}</div>
@@ -955,30 +959,51 @@ class DueDate extends Component<DueDateProps,{}>{
                     </div>
                    </div> 
 
-        }else if(
-            not(isNil(completed)) && 
-            selectedCategory==="logbook" 
-        ){
+        }else if(not(isNil(completed)) && selectedCategory==="logbook"){
+
             let month = getMonthName(completed);
             let day = completed.getDate(); 
 
             return <div style={{paddingRight:"5px"}}>
-                <div style={containerStyle}>     
+                <div style={{
+                    backgroundColor:"rgba(0, 0, 0,0)",
+                    cursor:"default", 
+                    WebkitUserSelect:"none", 
+                    display:"flex",
+                    alignItems:"center",  
+                    justifyContent:"center", 
+                    paddingLeft:"5px",
+                    paddingRight:"5px", 
+                    borderRadius:"15px",
+                    color:"rgb(0, 60, 250)",
+                    fontWeight:"bold",
+                    height:"20px" 
+                }}>      
                     <div style={{ 
                         display:"flex",   
                         padding:"5px", 
                         alignItems:"center", 
                         fontSize:"12px"
                     }}>      
-                        <div style={{paddingRight:"5px"}}>{month.slice(0,3)+'.'}</div>  
-                        <div>{day}</div>
-                    </div> 
+                        {
+                          isToday(completed) ? 
+                          <div>Today</div> :  
+                          <div style={{
+                            display:"flex",   
+                            padding:"5px", 
+                            alignItems:"center", 
+                            fontSize:"12px" 
+                          }}>    
+                            <div style={{paddingRight:"5px"}}>{month.slice(0,3)+'.'}</div>  
+                            <div>{day}</div>
+                          </div>
+                        }  
+                    </div>  
                 </div>
             </div> 
         }else{
             return null;
         }
-
     }
 } 
 

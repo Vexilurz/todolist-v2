@@ -68,7 +68,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         let x = e.pageX;
         let y = e.pageY; 
 
-        let inside = insideTargetArea(this.ref,x,y);
+        let inside = insideTargetArea(null,this.ref,x,y);
     
         if(!inside){
            this.props.dispatch({

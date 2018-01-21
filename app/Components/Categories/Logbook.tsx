@@ -45,6 +45,8 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
         super(props);
     }  
 
+
+
     shouldComponentUpdate(nextProps:LogbookProps,nextState:LogbookState){
         let should = false;
 
@@ -72,6 +74,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
         
         return should;
     } 
+
     
 
     init = (props:LogbookProps) => {
@@ -94,7 +97,6 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
         return groups;
     } 
  
-
 
     groupByMonth = (props:LogbookProps) : (Todo | Project)[][] => {  
  
@@ -228,16 +230,14 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
  
         let tags = compose(
             getTagsFromItems,
-            (todos) => todos.filter(
-                allPass([
-                    byCompleted,  
-                    byNotDeleted 
-                ])  
-            )
+            (todos) => todos.filter(allPass([byCompleted,byNotDeleted]))
         )([...this.props.todos, ...this.props.projects]);
 
         if(isDev()){
-           assert(isArrayOfStrings(tags), `tags is not a string array ${JSON.stringify(tags)}. Logbook. render.`) 
+           assert(
+               isArrayOfStrings(tags), 
+               `tags is not a string array ${JSON.stringify(tags)}. Logbook. render.`
+           ) 
         } 
   
         let groups = this.init(this.props);  
@@ -260,13 +260,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                               let month:string = getMonthName(new Date(group[0].completed));
                                   
                               return <div key={index}>
-                                {
-                                    this.getComponent(
-                                        month, 
-                                        todos,
-                                        projects
-                                    )
-                                }
+                                {this.getComponent(month, todos, projects)}
                               </div>   
                           } 
                         )   

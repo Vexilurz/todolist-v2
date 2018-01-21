@@ -256,9 +256,11 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
         let x = e.pageX;
         let y = e.pageY;  
          
-        let inside : boolean = insideTargetArea(this.ref, x, y);
-        if(!inside)
+        let inside : boolean = insideTargetArea(null, this.ref, x, y);
+            
+        if(!inside){
             this.setState({value:'', suggestions:[]}); 
+        }
     }  
   
 

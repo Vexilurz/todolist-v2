@@ -74,9 +74,9 @@ export class SortableList extends Component<SortableListProps, SortableListState
 
     shouldComponentUpdate(nextProps:SortableListProps){
   
-        if(
-            nextProps.container!==this.props.container,
-            nextProps.items,this.props.items
+        if(  
+            nextProps.container!==this.props.container ||
+            nextProps.items!==this.props.items
         ){
            return true;
         }

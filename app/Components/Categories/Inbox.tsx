@@ -92,6 +92,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                         (todo:Todo) => not(byAttachedToArea(this.props.areas)(todo)), 
                         (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
                         (todo:Todo) => isNil(todo.attachedDate), 
+                        (todo:Todo) => isNil(todo.deadline), 
                         byCategory("inbox"), 
                         byNotCompleted,  
                         byNotDeleted 

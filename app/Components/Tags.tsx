@@ -28,43 +28,6 @@ export class Tags extends Component<TagsProps,{}>{
         } 
     }  
 
-
-    selectTagBackgroundColor = (tag,selectedTag) => {
-
-        if(this.props.selectedTag==="All" && tag==="All"){
-
-            return "dimgray";
-        }else if(this.props.selectedTag==="High" && tag==="High"){
-
-            return "red";
-        }else if(this.props.selectedTag === tag && tag!=="All" && tag!=="High"){
-
-            return "cornflowerblue";
-        }else if(this.props.selectedTag !== tag){
-
-            return "white";
-        }
-    } 
-  
-
-    selectTagFontColor = (tag,selectedTag) => {
-
-
-        if(this.props.selectedTag==="All" && tag==="All"){
-            
-            return "white";
-        }else if(this.props.selectedTag==="High" && tag==="High"){
-
-            return "white";
-        }else if(this.props.selectedTag === tag && tag!=="All" && tag!=="High"){
-
-            return "white";
-        }else if(this.props.selectedTag !== tag){
-
-            return "dimgray";
-        }
-    }  
-      
   
       render(){
          let { show, tags, selectTag, selectedTag } = this.props; 
@@ -84,15 +47,15 @@ export class Tags extends Component<TagsProps,{}>{
                                     onClick={() => selectTag(tag)} 
                                     style={{
                                         width:"auto",
-                                        height:"25px", 
+                                        height:"20px", 
                                         alignItems:"center",   
                                         display:"flex",
                                         paddingLeft:"5px",
-                                        paddingRight:"5px", 
+                                        paddingRight:"5px",  
                                         cursor:"pointer",
                                         borderRadius:"100px", 
-                                        backgroundColor:this.selectTagBackgroundColor(tag,selectedTag),
-                                        color:this.selectTagFontColor(tag,selectedTag),                  
+                                        backgroundColor:tag===selectedTag ? "dimgray" : "white",
+                                        color:tag===selectedTag ? "white" : "dimgray",                  
                                         fontWeight:700 
                                     }}     
                                 >   
