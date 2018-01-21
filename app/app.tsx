@@ -26,10 +26,10 @@ import { cond, assoc, isNil, not } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
   
 
-injectTapEventPlugin();
+injectTapEventPlugin(); 
 
 
-export let isDev = () => false;  
+export let isDev = () => true;  
 
 
 (() => {     

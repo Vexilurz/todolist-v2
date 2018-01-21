@@ -166,7 +166,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         this.props.dispatch({type:"selectedProjectId", load:project._id});
         this.props.dispatch({type:"openNewProjectAreaPopup", load:false});
         this.props.dispatch({type:"selectedCategory", load:"project"});
-    }
+    }   
  
          
     onNewAreaClick = (e:any) => {   
@@ -203,89 +203,89 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                 {
                     collapsed ? null : <ResizableHandle onDrag={this.onResizableHandleDrag}/> 
                 }
-                    <div      
-                        id="leftpanel"
-                        ref={(e) => { this.leftPanelRef=e; }}
-                        className="scroll"
-                        style={{ 
-                            display:"flex",    
-                            flexDirection:"column",  
-                            WebkitUserSelect:"none", 
-                            transition: "width 0.2s ease-in-out", 
-                            width:collapsed ? "0px" : `${leftPanelWidth}px`,
-                            overflowX:"hidden",   
-                            height:`100%`,      
-                            position:"relative", 
-                            backgroundColor:"rgb(248, 248, 248)"  
-                        }}      
-                    >        
-                        <div style={{
-                            position:"relative", 
-                            display:"flex", 
-                            alignItems:"center",
-                            WebkitUserSelect:"none", 
-                            justifyContent:"center", 
-                            paddingTop:"15px" 
-                        }}>   
-                            <div style={{    
-                                marginLeft:"15px",
-                                marginRight:"15px", 
-                                position:"relative",
-                                width:"100%" 
-                            }}>  
-                                <QuickSearch {...{} as any}/>
-                            </div> 
-                        </div>   
-                        <div>  
-                            <LeftPanelMenu   
-                                dragged={this.props.dragged}
-                                dispatch={this.props.dispatch} 
-                                selectedCategory={this.props.selectedCategory}
-                                inbox={inbox} 
-                                today={today} 
-                                hot={hot} 
-                                trash={trash}
-                                logbook={logbook}
-                            />    
-                        </div>
-                        <div   
-                            id="areas"
-                            style={{
-                                WebkitUserSelect:"none",
-                                paddingLeft: "20px", 
-                                height:"100%"
-                            }}   
-                        > 
-                            <AreasList  
-                                leftPanelWidth={this.props.leftPanelWidth}
-                                leftPanelRef={this.leftPanelRef}
-                                dragged={this.props.dragged} 
-                                todos={this.props.todos} 
-                                dispatch={this.props.dispatch}   
-                                areas={this.props.areas}
-                                selectedProjectId={this.props.selectedProjectId}
-                                selectedAreaId={this.props.selectedAreaId}
-                                selectedCategory={this.props.selectedCategory}
-                                projects={this.props.projects} 
-                            />
+                <div      
+                    id="leftpanel"
+                    ref={(e) => { this.leftPanelRef=e; }}
+                    className="scroll"
+                    style={{ 
+                        display:"flex",    
+                        flexDirection:"column",  
+                        WebkitUserSelect:"none", 
+                        transition: "width 0.2s ease-in-out", 
+                        width:collapsed ? "0px" : `${leftPanelWidth}px`,
+                        overflowX:"hidden",   
+                        height:`100%`,      
+                        position:"relative", 
+                        backgroundColor:"rgb(248, 248, 248)"  
+                    }}      
+                >        
+                    <div style={{
+                        position:"relative", 
+                        display:"flex", 
+                        alignItems:"center",
+                        WebkitUserSelect:"none", 
+                        justifyContent:"center", 
+                        paddingTop:"15px" 
+                    }}>   
+                        <div style={{    
+                            marginLeft:"15px",
+                            marginRight:"15px", 
+                            position:"relative",
+                            width:"100%" 
+                        }}>  
+                            <QuickSearch {...{} as any}/>
                         </div> 
+                    </div>   
+                    <div>  
+                        <LeftPanelMenu   
+                            dragged={this.props.dragged}
+                            dispatch={this.props.dispatch} 
+                            selectedCategory={this.props.selectedCategory}
+                            inbox={inbox} 
+                            today={today} 
+                            hot={hot} 
+                            trash={trash}
+                            logbook={logbook}
+                        />    
+                    </div>
+                    <div   
+                        id="areas"
+                        style={{
+                            WebkitUserSelect:"none",
+                            paddingLeft: "20px", 
+                            height:"100%"
+                        }}   
+                    > 
+                        <AreasList  
+                            leftPanelWidth={this.props.leftPanelWidth}
+                            leftPanelRef={this.leftPanelRef}
+                            dragged={this.props.dragged} 
+                            todos={this.props.todos} 
+                            dispatch={this.props.dispatch}   
+                            areas={this.props.areas}
+                            selectedProjectId={this.props.selectedProjectId}
+                            selectedAreaId={this.props.selectedAreaId}
+                            selectedCategory={this.props.selectedCategory}
+                            projects={this.props.projects} 
+                        />
+                    </div> 
 
-                        <LeftPanelFooter  
-                            width={leftPanelWidth}  
-                            collapsed={collapsed}
-                            openNewProjectAreaPopup={this.openNewProjectAreaPopup}
-                            setNewProjectAnchor={(e) => {this.anchor=e}}  
-                        /> 
-                       
-                        <NewProjectAreaPopup   
-                            anchor={this.anchor}
-                            open={this.props.openNewProjectAreaPopup}
-                            close={() => this.props.dispatch({type:"openNewProjectAreaPopup",load:false})} 
-                            onNewProjectClick={this.onNewProjectClick}
-                            onNewAreaClick={this.onNewAreaClick}
-                        />   
-                </div>   
-                </div>   
+                    <LeftPanelFooter  
+                        width={leftPanelWidth}  
+                        collapsed={collapsed}
+                        openNewProjectAreaPopup={this.openNewProjectAreaPopup}
+                        setNewProjectAnchor={(e) => {this.anchor=e}}  
+                    /> 
+                    
+                    <NewProjectAreaPopup   
+                        anchor={this.anchor}
+                        open={this.props.openNewProjectAreaPopup}
+                        close={() => this.props.dispatch({type:"openNewProjectAreaPopup",load:false})} 
+                        onNewProjectClick={this.onNewProjectClick}
+                        onNewAreaClick={this.onNewAreaClick}
+                    />   
+        </div>   
+        </div>   
     };    
 };  
  

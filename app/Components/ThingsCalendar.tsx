@@ -20,7 +20,12 @@ import { insideTargetArea } from '../utils';
 import { isNil } from 'ramda';
 import { isDate } from 'util';
 import { isDev } from '../app';
- 
+import * as Rx from 'rxjs/Rx';
+import { Subscriber } from "rxjs/Subscriber";
+import { Subscription } from 'rxjs/Rx';
+import ResizeObserver from 'resize-observer-polyfill';
+import { Observable } from 'rxjs/Rx';
+
 
 interface DateCalendarProps{ 
     close : Function,
@@ -46,21 +51,27 @@ interface DateCalendarState{}
 
 
 export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
-
+    subscriptions:Subscription[];
     ref:HTMLElement; 
     
     constructor(props){
         super(props);
+        this.subscriptions=[];
     }
 
 
     componentDidMount(){ 
-        document.body.addEventListener("click", this.onOutsideClick);
+        let click = Observable
+                    .fromEvent(document.body,"click")
+                    .subscribe(this.onOutsideClick); 
+         
+        this.subscriptions.push(click);
     }
 
 
     componentWillUnmount(){
-        document.body.removeEventListener("click", this.onOutsideClick);
+        this.subscriptions.map(s => s.unsubscribe());
+        this.subscriptions = []; 
     } 
   
 
@@ -86,7 +97,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
             open={this.props.open}
             scrollableContainer={this.props.rootRef}
             useLayerForClickAway={false} 
-            anchorEl={this.props.anchorEl}
+            anchorEl={this.props.anchorEl} 
             style={{
                 backgroundColor:"rgba(0,0,0,0)",
                 background:"rgba(0,0,0,0)",  
@@ -96,12 +107,15 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
             }}   
             canAutoPosition={true}
             onRequestClose={() => this.props.close()}
-            anchorOrigin={this.props.origin} 
+            anchorOrigin={this.props.origin}           
             targetOrigin={this.props.point}
         >    
             <div 
             ref={(e) => { this.ref=e; }}  
-            onClick={(e) => {e.stopPropagation();}}  
+            onClick={(e) => {
+                e.stopPropagation();
+                e.nativeEvent.stopImmediatePropagation();
+            }}  
             style={{     
                 display:"flex",
                 flexDirection:"column",  

@@ -160,7 +160,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     componentDidMount(){  
 
         let click = Observable
-                    .fromEvent(document.body,"click")
+                    .fromEvent(window,"click")
                     .subscribe(this.onOutsideClick); 
 
         this.subscriptions.push(click);
@@ -1508,25 +1508,26 @@ class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,TodoInput
                 id={`${todo._id}note`}  
                 value={note} 
                 hintText="Notes"
+                onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
                 multiLine={true}   
                 rows={1}
                 fullWidth={true} 
                 onChange={this.props.onNoteChange} 
                 inputStyle={{fontSize:"14px"}} 
                 underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}} 
-                underlineStyle={{borderColor:"rgba(0,0,0,0)"}}  
+                underlineStyle={{borderColor:"rgba(0,0,0,0)"}}   
                 //hintStyle={{}}   
                 //style={{}}   
             />   
             {    
                 not(showChecklist) ? null : 
                 <div>   
-                    <Checklist 
-                        checklist={checklist}  
-                        updateChecklist={this.props.updateChecklist as any} 
-                    /> 
+                <Checklist 
+                    checklist={checklist}  
+                    updateChecklist={this.props.updateChecklist as any} 
+                />  
                 </div>
-            }  
+            }   
             { 
                 isEmpty(attachedTags) ? null : 
                 <TodoTags 
