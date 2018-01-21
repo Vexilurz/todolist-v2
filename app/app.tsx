@@ -29,7 +29,7 @@ import { TrashPopup } from './Components/Categories/Trash';
 injectTapEventPlugin();
 
 
-export let isDev = () => true; 
+export let isDev = () => false; 
 
 
 (() => {     
@@ -270,7 +270,7 @@ export class App extends Component<AppProps,{}>{
                     }
                     <MainContainer {...{windowId} as any} />  
                 </div>  
-   
+                    
                 <TodoInputPopup {...{} as any} />
             </div>           
         );  

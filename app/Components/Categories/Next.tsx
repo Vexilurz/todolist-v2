@@ -199,32 +199,34 @@ export class Next extends Component<NextProps, NextState>{
 
     shouldComponentUpdate(nextProps:NextProps,nextState:NextState){
 
-        let should = false;
+        if(
+            this.props.selectedTodoId!==nextProps.selectedTodoId ||
+        
+            this.props.searched!==nextProps.searched ||
+        
+            this.props.selectedProjectId!==nextProps.selectedProjectId ||
+        
+            this.props.selectedAreaId!==nextProps.selectedAreaId ||
+            
+            this.props.selectedCategory!==nextProps.selectedCategory ||
+            
+            this.props.selectedTag!==nextProps.selectedTag ||
+            
+            this.props.rootRef!==nextProps.rootRef ||
+            
+            this.props.areas!==nextProps.areas ||
+            
+            this.props.projects!==nextProps.projects ||
+            
+            this.props.todos!==nextProps.todos ||
+            
+            this.props.tags!==nextProps.tags 
+        ){
+            return true
+        }
+           
 
-        if(this.props.selectedTodoId!==nextProps.selectedTodoId)
-            should = true;
-        if(this.props.searched!==nextProps.searched)
-            should = true;
-        if(this.props.selectedProjectId!==nextProps.selectedProjectId)
-            should = true;
-        if(this.props.selectedAreaId!==nextProps.selectedAreaId)
-            should = true;
-        if(this.props.selectedCategory!==nextProps.selectedCategory)
-            should = true;
-        if(this.props.selectedTag!==nextProps.selectedTag)
-            should = true;
-        if(this.props.rootRef!==nextProps.rootRef)
-            should = true;
-        if(this.props.areas!==nextProps.areas)
-            should = true;
-        if(this.props.projects!==nextProps.projects)
-            should = true;
-        if(this.props.todos!==nextProps.todos)
-            should = true;
-        if(this.props.tags!==nextProps.tags)
-            should = true;
-
-        return should;
+        return false 
     }
  
 

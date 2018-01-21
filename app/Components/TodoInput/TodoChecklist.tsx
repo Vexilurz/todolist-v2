@@ -113,6 +113,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
           showPlaceholder:false 
         }
     }
+
   
     shouldComponentUpdate(nextProps:ChecklistProps, nextState:ChecklistState){
         if(nextState!==this.state){
@@ -124,6 +125,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         return checklistChanged;  
     } 
  
+
     onChecklistItemChange = (key:string, event, newText:string) => {  
         let idx : number = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
         
@@ -139,6 +141,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         } 
     }    
    
+
     onChecklistItemCheck = (e, key:string) => {
         
         let idx = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
@@ -155,12 +158,14 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         }
     } 
 
+
     onSortMove = (e, helper : HTMLElement, newIndex:number) => {
         this.setState({
             currentIndex:newIndex,
             helper
-        }); 
+        })
     } 
+
 
     onSortStart = ({node, index, collection}, e, helper) => { 
         if(this.ref){
@@ -172,6 +177,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         } 
     }  
     
+
     onSortEnd = ({oldIndex, newIndex, collection}, e) => {
         this.setState({showPlaceholder:false}); 
 
@@ -189,7 +195,8 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
         this.props.updateChecklist(checklist); 
     }  
-        
+      
+    
     getCheckListItem = (value:ChecklistItem, index:number) => {
         
         const DragHandle = SortableHandle(() => 

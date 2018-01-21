@@ -364,8 +364,9 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         return  <div  
             style={{
                 display:"flex",
-                flexDirection:"column",
+                flexDirection:"column", 
                 WebkitUserSelect:"none",
+                height:"100%",
                 position:"relative",   
                 paddingRight:"10px"
             }} 

@@ -283,7 +283,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     init = () => {
 
         let { scrollableContainer, shouldCancelStart, items } = this.props;
-        let dragStartThreshold = 5;
+        let dragStartThreshold = 8; 
 
 
         let byExceedThreshold = (event:any) => {
@@ -310,7 +310,6 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                         this.initial.initialIndex = this.indexFromClick(event);
                         this.initial.initialX = event.clientX;
                         this.initial.initialY = event.clientY;
-                        
                     })
                     .switchMap(
                         (event) => {
@@ -537,53 +536,47 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             let {top,bottom,height} = element.getBoundingClientRect();
             let center = (top+bottom)/2; 
  
-            if(center<cloneCenter){
-               placeholderOffset += height + margins.top + margins.bottom; 
-            }
-           
             let above = i < initialIndex;
-            let below = i >= initialIndex;
+            let below = i >= initialIndex;  
             let down = direction > 0;   
             let up = direction < 0; 
 
+            if(cloneCenter>=center){
+               placeholderOffset += height + margins.top + margins.bottom; 
+            }  
 
             if(above){
- 
-               if(cloneTop<=center && up){
 
-                  nodes[i].style[`transform`] = `translate3d(${0}px,${cloneHeight}px, 0)`;
+                if(cloneTop<=center && up){
 
-               }else if(cloneBottom>=center){  
+                    nodes[i].style[`transform`] = `translate3d(${0}px,${cloneHeight}px, 0)`;
+                 
+                }else if(cloneBottom>=center){  
 
-                  nodes[i].style[`transform`] = `translate3d(${0}px,${0}px, 0)`;
-               }  
-            }else if(below){
- 
+                    nodes[i].style[`transform`] = `translate3d(${0}px,${0}px, 0)`;
+                }  
+            }else if(below){  
+
                 if(cloneBottom>=center && down){
-
-                   nodes[i].style[`transform`] = `translate3d(${0}px,${-cloneHeight}px, 0)`;
-                   
+                    
+                    nodes[i].style[`transform`] = `translate3d(${0}px,${-cloneHeight}px, 0)`;
+                    
                 }else if(cloneTop<=center){    
  
-                   nodes[i].style[`transform`] = `translate3d(${0}px,${0}px, 0)`;
+                    nodes[i].style[`transform`] = `translate3d(${0}px,${0}px, 0)`;
                 }  
             } 
         } 
 
 
-        this.setState({ 
-            placeholderHeight:cloneHeight,
-            placeholderOffset 
-        })
+        this.setState({placeholderHeight:cloneHeight,placeholderOffset})
     }  
    
     
  
     onDragEnd = (event:any) => {
 
-        if(isNil(this.initial.initialRect)){
-           return;
-        } 
+        if(isNil(this.initial.initialRect)){ return } 
 
         let {items} = this.props;
         let newIndex = this.getCurrentIndex(event); 

@@ -36,6 +36,7 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { RightClickMenu } from './RightClickMenu';
+import { RepeatPopup } from './RepeatPopup';
  
  
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
@@ -262,6 +263,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     }}  
                 >  
                 <RightClickMenu {...{} as any}/>  
+                <RepeatPopup /> 
                 <div style={{display: "flex", padding: "10px"}}>   
                     <div className="no-drag" style={{position: "fixed", top: 0, right: 0}}>  
                         {
