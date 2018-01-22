@@ -29,36 +29,44 @@ interface RepeatPopupProps{
 
 
 interface RepeatPopupState{
-
-}
+    n:number, 
+    interval:'week' | 'day' | 'month' | 'year',
+    day:number,
+    on:Date,
+    after:number
+} 
 
 export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
     constructor(props){
         super(props)
-    }
+        this.state = {
+            n:null,
+            interval:null,
+            day:null,
+            on:null,
+            after:null
+        };
+    } 
 
 
 
     render(){
-        let now = new Date();
+        let now = new Date(); 
         let month = now.getUTCMonth() + 1; //months from 1-12
-        let day = now.getUTCDate();
+        let d = now.getUTCDate();
         let year = now.getUTCFullYear();
 
-        day = day < 10 ? `0${day}` : day.toString() as any;
+        d = d < 10 ? `0${d}` : d.toString() as any;
         month = month < 10 ? `0${month}` : month.toString() as any;
         
-        let start = year + "-" + month + "-" + day;
-        let end = '2050' + "-" + month + "-" + day;
+        let start = year + "-" + month + "-" + d;
+        let end = '2050' + "-" + month + "-" + d;
 
-        return <div  
-            style={{
-                position:"fixed",
-                top:"50%",
-                left:"50%"
-            }}
-        > 
+        let { interval, n, day, on, after } = this.state;
+        let done = !isNil(n) && !isNil(interval) && !isNil(day) && (!isNil(on) || !isNil(after));
+
+        return <div style={{position:"fixed",top:"50%",left:"50%"}}> 
         <div style={{
             borderRadius:"10px", 
             cursor: "default",
@@ -106,17 +114,23 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     textAlign:"center",
                     width:"100%"  
                   }} 
+                  onChange={
+                    (event) => this.setState({n:Number(event.target.value)}, () => console.log(this.state))
+                  }
                   type="number" 
                 />
                 </div>
                 <select 
                     style={{backgroundColor:"rgba(235,235,235,1)"}}  
                     name="text"
-                > 
-                    <option value="day">Day</option> 
-                    <option value="week" selected={true}>Week</option>
-                    <option value="month">Month</option>
-                    <option value="year">Year</option>
+                    onChange={
+                      (event) => this.setState({interval:event.target.value as any}, () => console.log(this.state))
+                    }  
+                >  
+                    <option value="day" selected={interval==="day"}>Day</option> 
+                    <option value="week" selected={interval==="week"}>Week</option>
+                    <option value="month" selected={interval==="month"}>Month</option>
+                    <option value="year" selected={interval==="year"}>Year</option>
                 </select>   
             </div>  
 
@@ -125,7 +139,32 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                 
                 <div style={{display:"flex", paddingTop:"5px"}}>
                 {  
-                    ['M','T','W','T','F','S','S'].map((day:string,index:number) => WeekDay('W',day,index,(day) => {}))
+                    ['M','T','W','T','F','S','S']
+                    .map(
+                      (value:string, index:number) => {
+                            return <div
+                                key={day}
+                                onClick={(e) => this.setState({day:index}, () => console.log(this.state))}    
+                                style={{   
+                                    backgroundColor:day===index ? 'rgb(10, 100, 240)' : 'rgba(235,235,235,1)',
+                                    color:day===index ? "white" : 'rgb(100,100,100)',
+                                    width:"20px",  
+                                    height:"20px",
+                                    alignItems:"center",
+                                    borderRadius:"50px",
+                                    display:"flex",
+                                    fontSize:"13px",
+                                    justifyContent:"center",
+                                    position:"relative", 
+                                    boxSizing:"border-box",  
+                                    marginRight:"5px",  
+                                    marginLeft:"5px" 
+                                }}
+                            >
+                                {day}
+                            </div> 
+                      }
+                    )
                 }
                 </div>
             </div>
@@ -139,7 +178,8 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
                 <div style={{fontSize:"14px"}}>Ends</div> 
 
-                <div style={{display:"flex", alignItems:"center"}}>    
+                {
+                /*<div style={{display:"flex", alignItems:"center"}}>    
                     <div>
                         <div onClick={(e) => {}}
                              style={{
@@ -159,8 +199,9 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                         </div>  
                     </div> 
                     <div style={{fontSize:"14px"}}>Never</div> 
-                </div>         
-
+                </div>*/
+                }     
+    
 
                 <div style={{
                    display:"flex",
@@ -259,17 +300,27 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
             </div>
 
             <div style={{display:"flex", justifyContent:"flex-end"}}>
-              <div style={{color:"black", cursor:"default", padding:"5px"}}>
-                    Cancel
+              <div 
+                onClick={() => this.setState({
+                    n:null,interval:null,day:null,on:null,after:null
+                })}
+                style={{color:"black", cursor:"default", padding:"5px"}}
+              >
+                Cancel 
               </div> 
-              <div style={{color:"rgb(10, 100, 240)", cursor:"default", padding:"5px"}}>
-                    Done
+
+              <div 
+                style={{
+                  color:done ? "rgb(10, 100, 240)" : "rgb(230,230,230)", 
+                  cursor:"default", 
+                  padding:"5px"
+                }}
+              >
+                Done
               </div>
             </div>    
 
-
             </div>
-
         </div>
         </div>
     }
@@ -277,26 +328,3 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
 
 
-let WeekDay = (selected:string, day:string, index:number, onClick:(day:string) => void) : JSX.Element => {
-    return <div
-        key={day}
-        onClick={(e) => onClick(day)}  
-        style={{   
-            backgroundColor:selected===day ? 'rgb(10, 100, 240)' : 'rgba(235,235,235,1)',
-            color:selected===day ? "white" : 'rgb(100,100,100)',
-            width:"20px",  
-            height:"20px",
-            alignItems:"center",
-            borderRadius:"50px",
-            display:"flex",
-            fontSize:"13px",
-            justifyContent:"center",
-            position:"relative", 
-            boxSizing:"border-box",  
-            marginRight:"5px",  
-            marginLeft:"5px" 
-        }}
-    >
-        {day}
-    </div> 
-}   
