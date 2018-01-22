@@ -29,11 +29,12 @@ import AutosizeInput from 'react-input-autosize';
 import { TodosList } from '../TodosList';
 import { ContainerHeader } from '../ContainerHeader';
 import { Tags } from '../Tags';
-import { getProjectLink } from '../Project/ProjectLink';
 import { getAreaLink } from '../Area/AreaLink';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { uniq, allPass, isEmpty, isNil, not, any } from 'ramda';
+import { uniq, allPass, isEmpty, isNil, not, any, contains } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
+import { ProjectLink } from '../Project/ProjectLink';
+import { Category } from '../MainContainer';
  
 
 
@@ -329,6 +330,7 @@ export class Next extends Component<NextProps, NextState>{
                         selectedProjectId={this.props.selectedProjectId}
                         todos={this.props.todos}
                         areas={this.props.areas}
+                        selectedCategory={this.props.selectedCategory as Category}
                         projects={this.props.projects}
                         tags={this.props.tags}
                         table={table}
@@ -368,6 +370,7 @@ interface NextProjectsListProps{
     todos:Todo[], 
     rootRef:HTMLElement,
     tags:string[],
+    selectedCategory:Category,
     selectedAreaId:string,
     selectedProjectId:string, 
     table:Table,
@@ -393,20 +396,19 @@ export class NextProjectsList extends Component<NextProjectsListProps, NextProje
             {     
                 this.props.table.projects.map( 
                     (p:Project, index:number) : JSX.Element => {
+                        let category = this.props.selectedCategory;
                         let todos = this.props.table[p._id] as Todo[];
-
-                        return isEmpty(todos) ? null :
+                        let hide = isNil(p.hide) ? false : contains(category)(p.hide); 
+                         
+                        return isEmpty(todos) || hide ? null :
                         <div key={`project-${index}`}>
-                            <div>
-                            { 
-                                getProjectLink(
-                                    p,  
-                                    this.props.todos,  
-                                    this.props.dispatch, 
-                                    index
-                                ) 
-                            }
-                            </div> 
+                            <ProjectLink 
+                                dispatch={this.props.dispatch}
+                                index={index}
+                                selectedCategory={this.props.selectedCategory as Category}
+                                project={p}
+                                todos={this.props.todos}
+                            />
                             <ExpandableTodosList
                                 dispatch={this.props.dispatch}   
                                 selectedTag={this.props.selectedTag} 
@@ -419,6 +421,7 @@ export class NextProjectsList extends Component<NextProjectsListProps, NextProje
                                 tags={this.props.tags}
                                 areas={this.props.areas}
                                 projects={this.props.projects}
+                                project={p}
                             />
                         </div>
                     }
@@ -474,7 +477,7 @@ class NextAreasList extends Component<NextAreasListProps,NextAreasListState>{
                                     this.props.projects, 
                                     index, 
                                     this.props.dispatch
-                                )       
+                                )        
                             }  
                             </div>  
                             <ExpandableTodosList
@@ -515,6 +518,7 @@ interface ExpandableTodosListProps{
     rootRef:HTMLElement, 
     todos:Todo[],
     tags:string[],
+    project?:Project,
     onToggleList?:Function,  
 } 
  
@@ -523,7 +527,7 @@ interface ExpandableTodosListState{
     expanded : boolean 
 } 
 
- 
+  
  
 export class ExpandableTodosList extends Component<ExpandableTodosListProps,ExpandableTodosListState>{
 
@@ -545,30 +549,31 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
     })
 
     render(){ 
+        let { project } = this.props; 
+        let expand = isNil(project) ? 3 : 
+                     isNil(project.expand) ? 3 : 
+                     project.expand; 
 
-        let idx = this.state.expanded ? this.props.todos.length : 3; 
-        let showExpandButton = this.props.todos.length > 3; 
+        let idx = this.state.expanded ? this.props.todos.length : expand; 
+        let showExpandButton = this.props.todos.length > expand; 
           
-        return <div>  
-            <div>     
-                <div style={{padding:"10px"}}>      
-                    <TodosList       
-                        filters={[]}  
-                        isEmpty={(empty:boolean) => {}}  
-                        dispatch={this.props.dispatch}     
-                        selectedCategory={"next"} 
-                        areas={this.props.areas}
-                        searched={this.props.searched} 
-                        selectedAreaId={this.props.selectedAreaId}
-                        selectedProjectId={this.props.selectedProjectId}
-                        projects={this.props.projects}
-                        selectedTodoId={this.props.selectedTodoId} 
-                        selectedTag={this.props.selectedTag}  
-                        rootRef={this.props.rootRef}
-                        todos={this.props.todos.slice(0,idx)}  
-                        tags={this.props.tags}  
-                    /> 
-                </div>  
+        return <div>          
+                <TodosList       
+                    filters={[]}  
+                    isEmpty={(empty:boolean) => {}}  
+                    dispatch={this.props.dispatch}     
+                    selectedCategory={"next"} 
+                    areas={this.props.areas}
+                    searched={this.props.searched} 
+                    selectedAreaId={this.props.selectedAreaId}
+                    selectedProjectId={this.props.selectedProjectId}
+                    projects={this.props.projects}
+                    selectedTodoId={this.props.selectedTodoId} 
+                    selectedTag={this.props.selectedTag}  
+                    rootRef={this.props.rootRef}
+                    todos={this.props.todos.slice(0,idx)}  
+                    tags={this.props.tags}  
+                />  
 
                 {   
                     !showExpandButton ? null :
@@ -589,7 +594,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                             >     
                                 { 
                                     !this.state.expanded ? 
-                                    `Show ${ this.props.todos.length-3 } more items` :
+                                    `Show ${ this.props.todos.length-expand } more items` :
                                     `Hide` 
                                 } 
                             </div>
@@ -597,6 +602,5 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                     </div>
                 }
             </div>
-        </div>
     }
 } 

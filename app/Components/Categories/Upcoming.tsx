@@ -27,8 +27,9 @@ import {
     getMonthName,
     isTodo,
 } from '../../utils';  
-import { getProjectLink } from '../Project/ProjectLink';
 import { allPass, uniq, isNil, compose, not, last, isEmpty } from 'ramda';
+import { ProjectLink } from '../Project/ProjectLink';
+import { Category } from '../MainContainer';
   
 
 type Item = Project | Todo;
@@ -234,7 +235,8 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 areas={this.props.areas}
                 scheduledProjects={object.projects}  
                 projects={this.props.projects}
-                selectedAreaId={this.props.selectedAreaId}
+                selectedAreaId={this.props.selectedAreaId} 
+                selectedCategory={this.props.selectedCategory as Category}
                 selectedProjectId={this.props.selectedProjectId}
                 dispatch={this.props.dispatch}
                 selectedTodoId={this.props.selectedTodoId}
@@ -308,8 +310,9 @@ interface CalendarDayProps{
     selectedTodoId:string,
     selectedAreaId:string,
     selectedProjectId:string, 
+    selectedCategory:Category,
     selectedTag:string,
-    rootRef:HTMLElement,
+    rootRef:HTMLElement, 
     tags:string[]
 }
 
@@ -387,9 +390,15 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                     }}>    
                         {
                             scheduledProjects.map(
-                                (p:Project, index:number) : JSX.Element => getProjectLink(
-                                    p, todos, dispatch, index
-                                ) 
+                                (p:Project, index:number) : JSX.Element =>
+                                    <ProjectLink
+                                        dispatch={dispatch}
+                                        index={index}
+                                        selectedCategory={this.props.selectedCategory as Category}
+                                        project={p}
+                                        simple={true}
+                                        todos={todos}
+                                    /> 
                             )     
                         }      
                     </div> 

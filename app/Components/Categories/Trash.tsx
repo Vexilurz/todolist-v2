@@ -11,7 +11,6 @@ import { TodosList } from '../../Components/TodosList';
 import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '../ContainerHeader';
 import { byTags, chooseIcon, insideTargetArea, getTagsFromItems, byDeleted, Item, attachDispatchToProps } from '../../utils';
-import { getProjectLink } from '../Project/ProjectLink';
 import { getAreaLink } from '../Area/AreaLink';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { TodoInput } from '../TodoInput/TodoInput';
@@ -21,6 +20,7 @@ import { isString } from 'util';
 import { Category } from '../MainContainer';
 import { SimplePopup } from '../SimplePopup';
 import { Store } from '../../app';
+import { ProjectLink } from '../Project/ProjectLink';
 
  
 
@@ -71,7 +71,7 @@ export class Trash extends Component<TrashProps,TrashState>{
     }
  
 
-    getDeletedProjectElement = (value:Project,  index:number) : JSX.Element => {
+    getDeletedProjectElement = (value:Project, index:number) : JSX.Element => {
         return <div 
             key={`deletedProject-${index}`}  
             style={{
@@ -79,16 +79,16 @@ export class Trash extends Component<TrashProps,TrashState>{
                display:"flex", 
                alignItems:"center"
             }}
-        > 
+        >   
             <div style={{width:"100%"}}>
-                { 
-                  getProjectLink(
-                    value, 
-                    this.props.todos,  
-                    this.props.dispatch, 
-                    index
-                  ) 
-                }    
+                <ProjectLink
+                    dispatch={this.props.dispatch}
+                    index={index}
+                    selectedCategory={this.props.selectedCategory as Category}
+                    project={value}
+                    todos={this.props.todos}
+                    simple={true}
+                />   
             </div>   
         </div>    
     }

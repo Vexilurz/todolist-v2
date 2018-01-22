@@ -61,18 +61,18 @@ export let getAreaLink = (
             dispatch({type:"selectedAreaId",load:a._id});
         }} 
         style={{width:"100%"}}
-        className="area" 
         key={index}
-    > 
+        className="listHeading"
+    >   
       
         <div      
             id = {a._id}   
-            className="leftpanelmenuitem"  
             style={{   
-                height:"25px",
+                height:"30px",
                 width:"95%",
                 display:"flex", 
-                padding:"6px", 
+                paddingLeft:"6px", 
+                paddingRight:"6px", 
                 alignItems:"center" 
             }}
         >       

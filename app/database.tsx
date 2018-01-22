@@ -67,7 +67,9 @@ export interface Project{
   deadline : Date,
   deleted : Date,
   completed : Date, 
-  attachedTags : string[]
+  attachedTags : string[], 
+  hide?:Category[],
+  expand?:number 
 };
   
 

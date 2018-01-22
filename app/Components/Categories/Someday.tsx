@@ -35,6 +35,7 @@ import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { allPass, compose, isEmpty, uniq } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { NextProjectsList, groupObjects } from './Next';
+import { Category } from '../MainContainer';
 
   
 
@@ -168,9 +169,10 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         rootRef={this.props.rootRef}
                         selectedAreaId={this.props.selectedAreaId}
                         selectedProjectId={this.props.selectedProjectId}
-                        todos={this.props.todos}
+                        selectedCategory={this.props.selectedCategory as Category}
+                        todos={this.props.todos} 
                         areas={this.props.areas}
-                        projects={this.props.projects}
+                        projects={this.props.projects} 
                         tags={this.props.tags}
                         table={table}
                     />

@@ -29,7 +29,7 @@ import { uppercase, debounce, attachDispatchToProps, assert } from '../../utils'
 import { arrayMove } from '../../sortable-hoc/utils';
 import { Store, isDev } from '../../app';
 import { isString } from 'util'; 
-import { contains, not, isNil } from 'ramda';
+import { contains, not, isNil, isEmpty } from 'ramda';
 import { createHeading } from '../MainContainer';
 
  
@@ -130,8 +130,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
     }
 
 
-    onComplete = (e) => {   
- 
+    getSelectedProject = () : Project => {
         let projectId : string = this.props.selectedProjectId;
 
         let idx = this.props.projects.findIndex((p:Project) => p._id===projectId);
@@ -141,7 +140,13 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
             `Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`
         )
 
-        let project : Project = {...this.props.projects[idx]};
+        return {...this.props.projects[idx]};
+    }
+
+
+    onComplete = (e) => { 
+
+        let project : Project = this.getSelectedProject();
         this.updateProject(project, {completed:new Date()});
         this.props.dispatch({type:"selectedCategory",load:"inbox"});
         this.closeMenu() 
@@ -149,7 +154,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
   
    
     onDelete = (e) => {   
-        let project = this.props.projects.find((p:Project) => p._id===this.props.selectedProjectId);
+        let project = this.getSelectedProject();
         deleteProject(this.props.dispatch, project, this.props.todos); 
         this.props.dispatch({type:"selectedCategory", load:"inbox"});
         this.closeMenu();           
@@ -178,7 +183,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
      
  
     render(){  
-            
+        let project = this.getSelectedProject();
+
         return !this.props.showProjectMenuPopover ? null :
         <Popover 
             className="nocolor"
@@ -302,6 +308,25 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
                                 {`${this.props.showCompleted ? 'Hide' : 'Show'} completed to-dos`}
                             </div>     
+                        </div>
+                    }
+
+                    {
+                        isNil(project.hide) ? null :
+                        isEmpty(project.hide) ? null :
+                        <div  
+                            onClick={() => this.props.dispatch({type:"updateProject", load:{...project,hide:[]}})}  
+                            className={"tagItem"} 
+                            style={{ 
+                                display:"flex", 
+                                height:"auto",
+                                alignItems:"center",
+                                padding:"5px"
+                            }}
+                        >  
+                            <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                                 Show in related categories
+                            </div>      
                         </div>
                     }
 

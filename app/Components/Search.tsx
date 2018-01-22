@@ -45,8 +45,9 @@ import { Todo, removeTodo, updateTodo, generateId, ObjectType, Area, Project, He
 import { Store, isDev } from '../app'; 
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { getAreaLink } from './Area/AreaLink';
-import { getProjectLink } from './Project/ProjectLink';
 import { allPass, isNil } from 'ramda';
+import { Category } from './MainContainer';
+import { ProjectLink } from './Project/ProjectLink';
 
   
 interface keyworded{ object : any, keywords : string[] } 
@@ -352,9 +353,14 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
                     clear 
                 );   
             case "project":
-                return getProjectLink(
-                    object, this.props.todos, dispatchAndClear, index
-                );
+                return <ProjectLink 
+                    dispatch={dispatchAndClear} 
+                    index={index}
+                    selectedCategory={this.props.selectedCategory as Category}
+                    project={object}
+                    simple={true}
+                    todos={this.props.todos}
+                />
             case "area":    
                 return getAreaLink( 
                     object, this.props.todos, this.props.projects, index, dispatchAndClear
@@ -364,24 +370,25 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
     
      
 
-    render(){ 
+    render(){  
         return <div 
             ref={(e) => { this.ref=e; }}
             style={{   
-                zIndex: 30000,
-                borderRadius: "5px",
-                position: "absolute",
-                width: "100%",
-                WebkitUserSelect:"none", 
-                backgroundColor: "rgba(238,237,239,1)"
-            }}
-        >   
-        <div style={{position:"relative"}}>    
+                zIndex:30000,
+                borderRadius:"5px",
+                position:"relative",
+                WebkitUserSelect:"none",  
+                maxHeight:"30px",
+                overflowY:"visible",
+                padding:"10px"  
+            }}  
+        >     
             <div style={{
-                backgroundColor: "rgb(217, 218, 221)", 
-                borderRadius: "5px",
-                display: "flex",  
-                alignItems: "center"
+                backgroundColor:"rgb(217, 218, 221)", 
+                borderRadius:"5px",
+                display:"flex",
+                height:"30px",  
+                alignItems:"center"
             }}>  
                 <div style={{
                     padding:"5px",
@@ -411,16 +418,17 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
                     onChange={this.onChange}
                 />
             </div>   
-      
-            <div style={{position:"relative"}}>        
-                <div 
-                    className="scroll" 
-                    style={{
-                        maxHeight:"600px",
-                        width:"100%",
-                        overflowX:"hidden"
-                    }}    
-                >
+             
+
+
+            <div 
+                className="scroll" 
+                style={{
+                    maxHeight:"600px",
+                    overflowX:"hidden",
+                    backgroundColor:"rgba(238,237,239,1)"
+                }}    
+            >
                 <div>  
                     {    
                         this.state.value.length===0 ? null :
@@ -435,10 +443,8 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
                         )  
                     }
                 </div>  
-                </div>  
-            </div>  
+            </div> 
             
-        </div>
         </div>
     }
 }

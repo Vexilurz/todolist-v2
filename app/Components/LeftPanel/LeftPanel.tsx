@@ -199,76 +199,46 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         let {inbox,today,hot,trash,logbook} : ItemsAmount = calculateAmount(areas,projects,todos);
 
                    
-        return  <div style={{display: "flex",flexDirection: "row-reverse", height:"100%"}}>
-                {
-                    collapsed ? null : <ResizableHandle onDrag={this.onResizableHandleDrag}/> 
-                }
-                <div      
+        return  <div style={{display: "flex",flexDirection: "row-reverse", height:window.innerHeight}}> 
+                {   collapsed ? null : <ResizableHandle onDrag={this.onResizableHandleDrag}/>   }
+                <div       
                     id="leftpanel"
                     ref={(e) => { this.leftPanelRef=e; }}
                     className="scroll"
                     style={{ 
-                        display:"flex",    
-                        flexDirection:"column",  
                         WebkitUserSelect:"none", 
                         transition: "width 0.2s ease-in-out", 
                         width:collapsed ? "0px" : `${leftPanelWidth}px`,
-                        overflowX:"hidden",   
                         height:`100%`,      
-                        position:"relative", 
                         backgroundColor:"rgb(248, 248, 248)"  
                     }}      
-                >        
-                    <div style={{
-                        position:"relative", 
-                        display:"flex", 
-                        alignItems:"center",
-                        WebkitUserSelect:"none", 
-                        justifyContent:"center", 
-                        paddingTop:"15px" 
-                    }}>   
-                        <div style={{    
-                            marginLeft:"15px",
-                            marginRight:"15px", 
-                            position:"relative",
-                            width:"100%" 
-                        }}>  
-                            <QuickSearch {...{} as any}/>
-                        </div> 
-                    </div>   
-                    <div>  
-                        <LeftPanelMenu   
-                            dragged={this.props.dragged}
-                            dispatch={this.props.dispatch} 
-                            selectedCategory={this.props.selectedCategory}
-                            inbox={inbox} 
-                            today={today} 
-                            hot={hot} 
-                            trash={trash}
-                            logbook={logbook}
-                        />    
-                    </div>
-                    <div   
-                        id="areas"
-                        style={{
-                            WebkitUserSelect:"none",
-                            paddingLeft: "20px", 
-                            height:"100%"
-                        }}   
-                    > 
-                        <AreasList  
-                            leftPanelWidth={this.props.leftPanelWidth}
-                            leftPanelRef={this.leftPanelRef}
-                            dragged={this.props.dragged} 
-                            todos={this.props.todos} 
-                            dispatch={this.props.dispatch}   
-                            areas={this.props.areas}
-                            selectedProjectId={this.props.selectedProjectId}
-                            selectedAreaId={this.props.selectedAreaId}
-                            selectedCategory={this.props.selectedCategory}
-                            projects={this.props.projects} 
-                        />
-                    </div> 
+                >         
+
+                    <QuickSearch {...{} as any}/> 
+
+                    <LeftPanelMenu   
+                        dragged={this.props.dragged}
+                        dispatch={this.props.dispatch} 
+                        selectedCategory={this.props.selectedCategory}
+                        inbox={inbox} 
+                        today={today} 
+                        hot={hot} 
+                        trash={trash}
+                        logbook={logbook}
+                    />  
+
+                    <AreasList  
+                        leftPanelWidth={this.props.leftPanelWidth}
+                        leftPanelRef={this.leftPanelRef}
+                        dragged={this.props.dragged} 
+                        todos={this.props.todos} 
+                        dispatch={this.props.dispatch}   
+                        areas={this.props.areas}
+                        selectedProjectId={this.props.selectedProjectId}
+                        selectedAreaId={this.props.selectedAreaId}
+                        selectedCategory={this.props.selectedCategory}
+                        projects={this.props.projects} 
+                    />
 
                     <LeftPanelFooter  
                         width={leftPanelWidth}  

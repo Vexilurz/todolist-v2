@@ -15,9 +15,10 @@ import {
     byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems, assert, isArrayOfStrings 
 } from '../../utils';
 import { allPass, compose, or, assoc } from 'ramda';
-import { getProjectLink } from '../Project/ProjectLink';
 import { isDev } from '../../app';
 import { TodoInput } from '../TodoInput/TodoInput';
+import { ProjectLink } from '../Project/ProjectLink';
+import { Category } from '../MainContainer';
      
 
 interface LogbookProps{
@@ -215,10 +216,16 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
             <div> 
             {
-                projects.map(
-                    (p:Project, index:number) => {
-                        return getProjectLink(p,this.props.todos,this.props.dispatch,index);
-                    }
+                projects.map( 
+                    (p:Project, index:number) => 
+                        <ProjectLink
+                            dispatch={this.props.dispatch}
+                            index={index}
+                            selectedCategory={this.props.selectedCategory as Category}
+                            project={p}
+                            todos={this.props.todos}
+                            simple={true}
+                        />
                 )
             }
             </div>       

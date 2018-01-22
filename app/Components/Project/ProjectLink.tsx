@@ -38,6 +38,7 @@ import Restore from 'material-ui/svg-icons/content/undo';
 import { isString } from 'util';
 import { contains, isNil, allPass } from 'ramda';
 import { isDev } from '../../app';
+import { Category } from '../MainContainer';
    
 
 
@@ -62,125 +63,261 @@ export let getProgressStatus = (p:Project, todos:Todo[]) : {done:number,left:num
     
     return {done,left};
 }  
+
+
+interface ProjectLinkProps{
+    dispatch:Function,
+    index:number,
+    selectedCategory:Category,
+    project:Project,
+    todos:Todo[],
+    simple?:boolean 
+}
+
+interface ProjectLinkState{
+    open:boolean
+}
+
  
 
 
+export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
+    actionsAnchor:HTMLElement;
 
-export let getProjectLink = (p:Project, todos:Todo[],  dispatch:Function, index:number) : JSX.Element => { 
-        
-        let { done, left } =  getProgressStatus(p,todos);
-        
-        let restoreProject = (p:Project) : void => { 
-            
-            let relatedTodosIds : string[] = p.layout.filter(isString);
-    
-            let selectedTodos : Todo[] = todos.filter(
-                (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
-            );   
-            dispatch({
-                type:"updateTodos", 
-                load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))
-            })
-            dispatch({type:"updateProject", load:{...p,deleted:undefined}});
-        }
-             
-         
+    constructor(props){
+        super(props); 
+        this.state={open:false};
+    }
+     
+    restoreProject = (p:Project) : void => { 
+        let {dispatch, todos} = this.props;
+
+        let relatedTodosIds : string[] = p.layout.filter(isString);
+
+        let selectedTodos : Todo[] = todos.filter(
+            (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
+        );   
+        dispatch({
+            type:"updateTodos", 
+            load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))
+        })
+        dispatch({type:"updateProject", load:{...p,deleted:undefined}});
+    }
+
+
+
+    render(){
+        let {dispatch,index,project,todos,selectedCategory,simple} = this.props;
+        let {done,left} = getProgressStatus(project,todos);
+
         return <li  
             onClick={(e) => {
                 e.stopPropagation(); 
-                if(p.deleted) 
-                   return;   
+                if(project.deleted){ return }   
                 dispatch({type:"selectedCategory",load:"project"});
-                dispatch({type:"selectedProjectId",load:p._id});
+                dispatch({type:"selectedProjectId",load:project._id});
             }}    
             style={{width:"100%"}} 
-            key={index} 
-        >   
-            <div   
-                id = {p._id}        
-                className="leftpanelmenuitem" 
-                style={{    
-                    height:"25px",  
-                    padding:"6px", 
-                    overflowX: "hidden",
-                    width:"95%",
-                    display:"flex",
-                    alignItems:"center" 
-                }}
-            >     
-                    { 
-                        !p.deleted ? null : 
-                        <div       
-                            onClick={(e) => restoreProject(p)}  
-                            style={{ 
-                                display:"flex", 
-                                cursor:"pointer",
-                                alignItems:"center",
-                                height:"14px",
-                                paddingLeft:"20px",
-                                paddingRight:"5px"  
-                            }} 
-                        >  
-                            <Restore style={{width:"20px", height:"20px"}}/> 
-                        </div>  
-                    }   
-                    
-                    <div style={{    
+            key={`key-${project._id}`} 
+            className={simple ? "leftpanelmenuitem" : "listHeading"}
+        >     
+        <div   
+            id = {project._id}        
+            style={{    
+                height:"30px",   
+                paddingLeft:"6px", 
+                paddingRight:"6px",  
+                cursor:"pointer",
+                width:"100%",
+                display:"flex",  
+                alignItems:"center" 
+            }}
+        >     
+                { 
+                    !project.deleted ? null : 
+                    <div       
+                        onClick={(e) => this.restoreProject(project)}  
+                        style={{ 
+                            display:"flex", 
+                            cursor:"pointer",
+                            alignItems:"center",
+                            height:"14px",
+                            paddingLeft:"20px",
+                            paddingRight:"5px"  
+                        }} 
+                    >  
+                        <Restore style={{width:"20px", height:"20px"}}/> 
+                    </div>  
+                }   
+                <div style={{    
+                    width: "18px",
+                    height: "18px",
+                    position: "relative",
+                    borderRadius: "100px",
+                    display: "flex",
+                    justifyContent: "center",
+                    cursor:"pointer",
+                    alignItems: "center",
+                    border: "1px solid rgb(108, 135, 222)",
+                    boxSizing: "border-box" 
+                }}> 
+                    <div style={{
                         width: "18px",
                         height: "18px",
-                        position: "relative",
-                        borderRadius: "100px",
                         display: "flex",
-                        justifyContent: "center",
                         alignItems: "center",
-                        border: "1px solid rgb(108, 135, 222)",
-                        boxSizing: "border-box" 
-                    }}> 
-                        <div style={{
-                            width: "18px",
-                            height: "18px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            position: "relative" 
-                        }}>  
-                            <PieChart 
-                                animate={false}    
-                                totalValue={done+left}
-                                data={[{     
-                                    value:done, 
-                                    key:1,  
-                                    color:"rgb(108, 135, 222)" 
-                                }]}    
-                                style={{  
-                                    color: "rgb(108, 135, 222)",
-                                    width: "12px",
-                                    height: "12px",
-                                    position: "absolute",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center"  
-                                }}
-                            />     
-                        </div>
-                    </div> 
+                        cursor:"pointer",
+                        justifyContent: "center",
+                        position: "relative" 
+                    }}>  
+                        <PieChart 
+                            animate={false}    
+                            totalValue={done+left}
+                            data={[{     
+                                value:done, 
+                                key:1,  
+                                color:"rgb(108, 135, 222)" 
+                            }]}    
+                            style={{  
+                                color: "rgb(108, 135, 222)",
+                                width: "12px",
+                                height: "12px",
+                                position: "absolute",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center"  
+                            }}
+                        />     
+                    </div>
+                </div> 
+                <div   
+                    id = {project._id}   
+                    style={{   
+                        fontFamily: "sans-serif",
+                        fontSize: "15px",    
+                        cursor: "pointer",
+                        paddingLeft: "5px", 
+                        WebkitUserSelect: "none",
+                        fontWeight: "bolder", 
+                        color: "rgba(0, 0, 0, 0.8)" 
+                    }}
+                >    
+                    { project.name.length==0 ? "New Project" : project.name } 
+                </div>
 
-                    <div   
-                        id = {p._id}   
-                        style={{   
-                            fontFamily: "sans-serif",
-                            fontSize: "15px",    
-                            cursor: "default",
-                            paddingLeft: "5px", 
-                            WebkitUserSelect: "none",
-                            fontWeight: "bolder", 
-                            color: "rgba(0, 0, 0, 0.8)" 
-                        }}
-                    >    
-                        { p.name.length==0 ? "New Project" : stringToLength(p.name,25) } 
-                    </div>     
+                 <div  
+                    style={{
+                        width: "30px",  
+                        height: "30px",
+                        flexGrow: 1 as number,
+                        paddingLeft:"5px",
+                        paddingRight:"10px",
+                        display: "flex", 
+                        justifyContent: "flex-end",
+                        cursor: "pointer"
+                    }} 
+                > 
+                    {
+                        simple ? null :
+                        <div 
+                            ref={ (e) => { this.actionsAnchor=e; } }
+                            onClick = {(e) => { 
+                                e.stopPropagation();
+                                this.setState({open:true}); 
+                            }}  
+                        >
+                            <ThreeDots style={{  
+                                color:"dimgray",
+                                width:"30px", 
+                                height:"30px", 
+                                cursor: "pointer" 
+                            }}/>
+                        </div> 
+                    }  
+                </div>     
+        </div>
+        { 
+        simple ? null :               
+        <div>
+            <Popover 
+                className="nocolor"
+                style={{
+                    marginTop:"20px", 
+                    backgroundColor:"rgba(0,0,0,0)",
+                    background:"rgba(0,0,0,0)",
+                    borderRadius:"10px"
+                }}    
+                scrollableContainer={document.body}
+                useLayerForClickAway={false}   
+                open={this.state.open}
+                onRequestClose={() => this.setState({open:false})}
+                targetOrigin={{ vertical: 'top', horizontal: 'right'}}
+                anchorOrigin={{ vertical: 'center', horizontal: 'left'}}
+                anchorEl={this.actionsAnchor} 
+            >   
+                <div    
+                    className={"darkscroll"}
+                    style={{  
+                        backgroundColor: "rgb(39, 43, 53)",
+                        paddingRight: "10px",
+                        paddingLeft: "10px",
+                        borderRadius: "10px",
+                        paddingTop: "5px",
+                        paddingBottom: "5px",
+                        cursor:"pointer" 
+                    }} 
+                >    
+                    <div  
+                      onClick={() => {
+                          let hide = isNil(project.hide) ? [selectedCategory] : 
+                                     contains(selectedCategory)(project.hide) ? project.hide :
+                                     [...project.hide,selectedCategory]; 
+
+                          dispatch({type:"updateProject", load:{...project,hide}});
+                          this.setState({open:false}); 
+                      }} 
+                      className={"tagItem"} 
+                      style={{
+                        display:"flex",  
+                        height:"auto",
+                        alignItems:"center",
+                        padding:"5px"
+                      }}
+                    >   
+                        <div style={{color:"gainsboro",marginLeft:"5px",marginRight:"5px"}}>
+                            Hide from {uppercase(selectedCategory)}
+                        </div>        
+                    </div> 
  
-            </div>
-        </li>  
-}     
-      
+                    <div   
+                      onClick={() => {
+                         let expand =  isNil(project.expand) ? 1 : 
+                                       project.expand===3 ? 1 :
+                                       3 
+
+                         dispatch({type:"updateProject", load:{...project,expand}});
+                         this.setState({open:false});  
+                      }} 
+                      className={"tagItem"} 
+                      style={{
+                        display:"flex", 
+                        height:"auto",
+                        alignItems:"center",
+                        padding:"5px"
+                      }}
+                    >  
+                        <div style={{color:"gainsboro",marginLeft:"5px",marginRight:"5px"}}>
+                            Show {
+                                isNil(project.expand) ? 'one' : 
+                                project.expand===3 ? 'one' :
+                                'three'
+                            } todo
+                        </div>     
+                    </div>
+                </div> 
+            </Popover> 
+        </div>
+        }  
+    </li>  
+    }
+}

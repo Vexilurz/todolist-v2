@@ -86,6 +86,16 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
         }
     }
 
+    componentWillReceiveProps(nextProps:AreaHeaderProps){
+        if(nextProps.selectedAreaId!==this.props.selectedAreaId){
+            this.setState({
+                openMenu:false,
+                showTagsPopup:false, 
+                name:nextProps.name    
+            }) 
+        }
+    }
+
     openMenu = () => {
         this.setState({openMenu:true});
     }

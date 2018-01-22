@@ -77,12 +77,12 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                 WebkitUserSelect: "none"
             }} 
         >      
-            <div style={{width:"100%", paddingLeft:"10px", WebkitUserSelect: "none", }}>  
-                <div style={{display:"flex", WebkitUserSelect: "none", cursor:"default", userSelect: "none"}}>   
+            <div style={{width:"100%", paddingLeft:"10px", WebkitUserSelect:"none"}}>  
+                <div style={{display:"flex", WebkitUserSelect:"none", cursor:"default", userSelect: "none"}}>   
                     <TextField     
                         ref={(e) => {this.inputRef=e;}} 
-                        hintText = "Heading"     
-                        id = {this.props.heading.key} 
+                        hintText="Heading"      
+                        id={this.props.heading.key} 
                         defaultValue = {uppercase(this.props.heading.title)} 
                         fullWidth = {true}   
                         onChange = {(event, newValue:string) => this.props.onChange(this.props.heading._id, newValue)}
@@ -118,7 +118,7 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                     width:"30px", 
                     height:"30px", 
                     cursor: "pointer" 
-                }} />
+                }}/>
             </div> 
 
         </div>
@@ -138,9 +138,9 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                 useLayerForClickAway={false}  
                 open={this.state.open}
                 onRequestClose={() => this.setState({open:false})}
-                origin={{vertical: "center", horizontal: "middle"}}  
+                targetOrigin={{ vertical: 'top', horizontal: 'right'}}
+                anchorOrigin={{ vertical: 'center', horizontal: 'left'}} 
                 anchorEl={this.actionsAnchor} 
-                point={{vertical: "top", horizontal: "middle"}} 
             >   
                 <div    
                     className={"darkscroll"}

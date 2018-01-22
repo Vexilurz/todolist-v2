@@ -88,7 +88,7 @@ export class SortableList extends Component<SortableListProps, SortableListState
     getSortableContainer = () => {
 
         let Container = SortableContainer(({items}) => this.getSortableList(items),{withRef:true});
-        console.log(this.props.container);  
+  
         return <Container  
             axis='y'    
             getContainer={() => this.props.container ? this.props.container : document.body} 

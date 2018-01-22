@@ -1410,7 +1410,6 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                     }}>        
                         {  
                             isEmpty(attachedTags) ? null :
-                            <div style={{}}>
                             <AdditionalTags   
                                 attachedTags={attachedTags}      
                                 showAdditionalTags={this.state.overflow ? false : showAdditionalTags}
@@ -1419,7 +1418,6 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                                 onMouseOut={this.props.onAdditionalTagsOut as any} 
                                 onMouseDown={this.props.onAdditionalTagsPress as any}  
                             />   
-                            </div> 
                         } 
                         {    
                             isNil(deadline) ? null :   
@@ -1452,6 +1450,7 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
             {
                 open ? null :  
                 isNil(relatedProjectName) ? null :
+                isEmpty(relatedProjectName) ? null :
                 <RelatedProjectLabel 
                     name={relatedProjectName}
                     selectedCategory={selectedCategory}

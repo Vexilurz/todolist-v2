@@ -127,14 +127,13 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
         let {hot,counter,showCounter} = this.props;
 
         let style = {    
-            justifyContent: "space-between" as any,
-            display: "flex",
+            position: "relative" as "relative",
             height: "25px",  
             borderRadius: !this.state.highlight ? "0px" : "5px", 
             backgroundColor: !this.state.highlight ? "" : 
                               this.props.category==="trash" ? "rgba(200,0,0,0.3)" : 
                               "rgba(0,200,0,0.3)", 
-            alignItems: "center" as any, 
+            display: "flex",
             padding: "5px",  
             cursor: "pointer"  
         }; 
@@ -153,50 +152,40 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
             id={this.props.category}    
             style={selected ? merge(style,selectedStyle) : style}
         >      
-            <div  
-                style={{         
-                    display:"flex", 
-                    alignItems:"center", 
-                    height:"100%"
-                }}
-            >   
-                <div style={{  
+            <div style={{display:"flex"}}>    
+                <div style={{    
                     paddingRight:"5px",
-                    height:"100%", 
                     display:"flex", 
                     alignItems:"center",
                     WebkitUserSelect:"none"  
                 }}>
                     {this.props.icon}
                 </div>  
-                <div style={{    
-                    position: "relative",
+                <div style={{
                     height: "100%",
-                    width: "0px"
-                }}>
-                    <div style={{
-                        height: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        transform: "scale(0.3, 0.3)",
-                        fontWeight: 500,
-                        fontSize: "53px",  
-                        color: "rgba(10, 10, 10, 0.9)", 
-                        WebkitUserSelect:"none"   
-                    }}>     
-                        {this.props.title}
-                    </div>
+                    display: "flex",
+                    alignItems: "center",
+                    fontWeight: 500,
+                    fontSize: "18px",  
+                    color: "rgba(10, 10, 10, 0.9)", 
+                    WebkitUserSelect:"none"   
+                }}>     
+                    {this.props.title}
                 </div>
-            </div>
-
+            </div> 
             {   
                 isNil(hot) && isNil(counter) ? null :
-                <div style={{display:"flex", alignItems:"center", justifyContent:"center"}}>    
+                <div style={{
+                  display:"flex",
+                  alignItems:"center",
+                  flexGrow:1,
+                  justifyContent:"flex-end"
+                }}>         
                     { isNil(hot) ? null : Hot(hot) }  
                     { 
                         isNil(counter) || not(showCounter) ? null : 
                         isNil(hot) ? Counter(counter) :
-                        Counter(counter-hot) 
+                        Counter(counter-hot)  
                     } 
                 </div>
             } 
@@ -208,7 +197,7 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
 
 export class Separator extends Component<{},{}>{
     render(){
-        return <div style={{outline: "none", width:"100%",height:"20px"}}></div>
+        return <div style={{outline:"none",position:"relative",width:"100%",height:"20px"}}></div>
     }
 }
 
@@ -239,34 +228,26 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
     
 
     render(){ 
+        return <div style={{paddingLeft:"15px",paddingRight:"15px"}}>
 
-        return <div style={{
-            display:"flex",
-            flexDirection:"column",
-            WebkitUserSelect:"none",
-            width:"100%"
-        }}>
-            <div style={{ 
-                paddingLeft:"15px", 
-                paddingRight:"15px",
-                paddingTop:"50px",
-                paddingBottom:"10px"  
-            }}>
             <Separator />
+
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"inbox"});
                     this.props.dispatch({type:"selectedTag", load:"All"});
                 }}
                 dragged={this.props.dragged}
-                icon={<Inbox style={{color:"dodgerblue"}} />}
+                icon={<Inbox style={{color:"dodgerblue"}}/>}
                 title={"Inbox"} 
                 category={"inbox"}
                 selected={this.props.selectedCategory==="inbox"}
                 showCounter={true}
                 counter={this.props.inbox} 
             />  
+
             <Separator />
+
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"today"});
@@ -280,7 +261,8 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 selected={this.props.selectedCategory==="today"}
                 counter={this.props.today}
                 hot={this.props.hot}
-            /> 
+            />
+
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"next"});
@@ -294,6 +276,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 showCounter={false}
                 counter={0} 
             /> 
+
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"upcoming"});
@@ -307,6 +290,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 showCounter={false} 
                 counter={0}
             />  
+
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"someday"});
@@ -320,7 +304,9 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 showCounter={false}
                 counter={0} 
             /> 
-            <Separator />    
+
+            <Separator />   
+
             { 
                 this.props.logbook===0 ? null :
                 <LeftPanelMenuItem 
@@ -336,7 +322,8 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                     showCounter={false}
                     counter={0}
                 />   
-            }   
+            } 
+
             {
                 this.props.trash===0 ? null :    
                 <LeftPanelMenuItem
@@ -353,8 +340,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                     counter={0}
                 />
             }    
-            </div>
-        </div>     
+        </div> 
     }
 }  
  

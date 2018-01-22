@@ -3,7 +3,6 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react"; 
-import SortableContainer from '../../sortable-hoc/sortableContainer';
 import SortableElement from '../../sortable-hoc/sortableElement';
 import SortableHandle from '../../sortable-hoc/sortableHandle';
 import { arrayMove } from '../../sortable-hoc/utils';
@@ -24,6 +23,7 @@ import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
 import { AutoresizableText } from '../AutoresizableText';
 import { getProgressStatus } from '../Project/ProjectLink';
+import { SortableContainer } from '../../sortable/CustomSortableContainer';
 
 
 
@@ -117,7 +117,7 @@ interface AreasListProps{
 
 interface AreasListState{} 
 
-interface Separator{ type:string }; 
+interface Separator{ type:string, _id:string }; 
  
 type LayoutItem = Project | Area | Separator;  
 
@@ -158,11 +158,13 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     selectArea = (a:Area) => {
         this.props.dispatch({type:"selectedAreaId",load:a._id}); 
+        this.props.dispatch({type:"selectedCategory",load:"area"}); 
     }
-
+ 
 
     selectProject = (p:Project) => {
         this.props.dispatch({type:"selectedProjectId",load:p._id});
+        this.props.dispatch({type:"selectedCategory",load:"project"}); 
     }
 
 
@@ -226,7 +228,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 layout.push(attachedProjects[j]);
         }
 
-        layout.push({type:"separator"});
+        layout.push({type:"separator", _id:"separator"});
          
         detached.sort((a:Project, b:Project) => a.priority-b.priority);
 
@@ -266,19 +268,17 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     getElement = (value : LayoutItem, index : number) : JSX.Element => { 
 
-        let separator = <div id="separator" style={{outline: "none", width:"100%",height:"30px"}}></div>;
-
         switch(value.type){
             case "area":
-                return this.getAreaElement(value as any,index);
+                return <div key={`key-${value._id}`} id={value._id}>{this.getAreaElement(value as any,index)}</div>;
             case "project":
-                return this.getProjectElement(value as any,index);
+                return <div key={`key-${value._id}`} id={value._id}>{this.getProjectElement(value as any,index)}</div>;
             case "separator":
-                return separator;
-            default:
+                return <div key={`key-${value._id}`} id={value._id} style={{outline: "none", width:"100%",height:"30px"}}></div>;
+            default:  
                 return null;   
-        }
-    }
+        }   
+    } 
 
 
     shouldCancelStart = (e) => {
@@ -315,20 +315,23 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         closestArea.attachedProjectsIds = [selectedProject._id,...closestArea.attachedProjectsIds];
         this.props.dispatch({type:"updateAreas", load:[fromArea,closestArea]});  
     }
-  
  
-    onSortStart = ({node, index, collection}, e, helper) => {}
 
-    onSortMove = (e, helper : HTMLElement) => {} 
+    selectElements = (index:number,items:any[]) => [index];
+ 
+    
+    onSortMove = (oldIndex:number, event) : void => {} 
 
-    onSortEnd = ({oldIndex, newIndex, collection}, e) : void => {  
+
+    onSortStart = (oldIndex:number, event:any) : void => {}
+
+
+    onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
 
         let {table,detached} = this.groupProjectsByArea();
         let layout = this.generateLayout({table,detached}); 
 
-        if(isEmpty(layout)){
-           return 
-        }
+        if(isEmpty(layout)){ return }
 
         let selectedProject : Project = {...layout[oldIndex] as Project}; 
         let fromArea : Area = this.props.areas.find((a:Area) => contains(selectedProject._id)(a.attachedProjectsIds));
@@ -339,7 +342,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
         if(detachedBefore && !detachedAfter){ 
 
-            attachToArea(this.props.dispatch, closestArea, selectedProject);
+            attachToArea(this.props.dispatch, closestArea, selectedProject); 
 
         }else if(!detachedBefore && detachedAfter){
 
@@ -348,45 +351,40 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         }else if(!detachedBefore && !detachedAfter && fromArea._id!==closestArea._id){
 
             this.moveToClosestArea(fromArea, closestArea, selectedProject);
-
         }  
          
         changeProjectsOrder(this.props.dispatch,listAfter);
     } 
        
-
  
     render(){ 
-        let container = document.getElementById("areas");
+        let scrollableContainer = document.getElementById("leftpanel");
         let {table,detached} = this.groupProjectsByArea();
         let layout = this.generateLayout({table,detached}); 
 
         return  <div  
-            style={{
-                display:"flex",
-                flexDirection:"column", 
-                WebkitUserSelect:"none",
-                height:"100%",
-                position:"relative",   
-                paddingRight:"10px"
-            }} 
-        >    
-            <SortableList 
-                getElement={this.getElement}
-                items={layout}     
-                container={container ? container : document.body} 
-                shouldCancelStart={this.shouldCancelStart}
-                shouldCancelAnimation={() => false}
-    
-                onSortEnd={this.onSortEnd} 
-                onSortMove={this.onSortMove}
+            id="areas"
+            style={{  
+              userSelect:"none",
+              paddingRight:"15px",
+              paddingLeft:"15px",
+              paddingBottom:"80px"  
+            }}   
+        >     
+            <SortableContainer
+                items={layout}
+                scrollableContainer={scrollableContainer}
+                selectElements={this.selectElements}   
                 onSortStart={this.onSortStart} 
-    
-                lockToContainerEdges={true}
-                distance={5}     
-                useDragHandle={false} 
+                onSortMove={this.onSortMove}
+                onSortEnd={this.onSortEnd}
+                shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
+                decorators={[]}   
                 lock={true}
-            />  
+                hidePlaceholder={true}
+            >   
+                {layout.map((item,index) => this.getElement(item,index))}
+            </SortableContainer> 
          </div> 
     }
 }
@@ -538,9 +536,6 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         }; 
     }  
 
-    componentWillReceiveProps(nextProps){
-        console.log(`ProjectElement nextProps.dragged : ${nextProps.dragged}`);
-    }
 
     onMouseOver = (e) => {  
         let {dragged} = this.props; 

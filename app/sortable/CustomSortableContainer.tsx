@@ -176,7 +176,8 @@ interface SortableContainerProps{
     onSortEnd:(oldIndex:number,newIndex:number,event:any,item?:any) => void,
     onSortMove:(oldIndex:number,event:any) => void,
     decorators:Decorator[],
-    lock?:boolean
+    lock?:boolean,
+    hidePlaceholder?:boolean 
 }      
 
 type Scroll = "up" | "down" 
@@ -731,18 +732,22 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     
     render(){   
         let {placeholderHeight,placeholderOffset,showPlaceholder} = this.state;
-        
+        let {hidePlaceholder} = this.props;
+
         return <div  
             style={{
                 width:"100%",
                 position:"relative"
             }}    
         >     
-                <Placeholder       
-                    height={placeholderHeight}  
-                    offset={placeholderOffset}
-                    show={showPlaceholder}
-                />  
+                {   
+                    hidePlaceholder ? null :
+                    <Placeholder       
+                        height={placeholderHeight}  
+                        offset={placeholderOffset}
+                        show={showPlaceholder}
+                    />
+                }  
             <div  
                 ref={e => {this.ref=e;}} 
                 style={{ 

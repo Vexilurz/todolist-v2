@@ -34,7 +34,7 @@ import { TodoInput } from '../TodoInput/TodoInput';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import PieChart from 'react-minimal-pie-chart';
-import { getProjectLink } from '../Project/ProjectLink';
+import { ProjectLink } from '../Project/ProjectLink';
 import { allPass, isNil, not, contains, isEmpty } from 'ramda';
 import { TodosList, Placeholder } from '../TodosList';
 import { Category } from '../MainContainer';
@@ -124,8 +124,14 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
  
 
     selectProjects = (props:AreaBodyProps) : Project[] => { 
+        let {selectedCategory} = this.props;
         let projectsIds : string[] = props.area.attachedProjectsIds;
+
         let filters = [
+            (p:Project) => 
+                isNil(p.hide) ? true : 
+                isEmpty(p.hide) ? true : 
+                not(contains(selectedCategory)(p.hide)), 
             byNotCompleted,
             byNotDeleted,
             (p:Project) => projectsIds.indexOf(p._id)!==-1
@@ -154,6 +160,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
             selectedAreaId={this.props.selectedAreaId}
             selectedProjectId={this.props.selectedProjectId}
             selectedTodoId={this.props.selectedTodoId}
+            selectedCategory={this.props.selectedCategory}
             tags={this.props.tags}  
             areas={this.props.areas}
             projects={this.props.projects}
@@ -245,8 +252,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
             }   
 
         }else{     
-            if(oldIndex===newIndex)
-               return; 
+            if(oldIndex===newIndex){ return }
+
             let updated = arrayMove([...selectedProjects], oldIndex, newIndex);
             changeProjectsOrder(this.props.dispatch,updated);
         } 
@@ -315,6 +322,7 @@ interface ProjectElementProps{
     searched:boolean,  
     selectedTag:string, 
     rootRef:HTMLElement,  
+    selectedCategory:Category,
     selectedAreaId:string,  
     selectedProjectId:string,  
     selectedTodoId:string,  
@@ -328,6 +336,7 @@ interface ProjectElementState{
 }
 
 class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
+
     ref:HTMLElement; 
 
     constructor(props){ 
@@ -355,15 +364,20 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
             selectedAreaId,  
             selectedProjectId,  
             selectedTodoId,  
+            selectedCategory,
             tags,  
             areas,  
             projects,
         } = this.props
 
         const DragHandle = SortableHandle(
-            () => <div>
-                {getProjectLink(project, todos, dispatch, index)}
-            </div>
+            () => <ProjectLink 
+                dispatch={dispatch}
+                index={index}
+                selectedCategory={selectedCategory}
+                project={project}
+                todos={todos}
+            /> 
         );    
 
         let attachedTodosIds = project.layout.filter(isString) as string[];
@@ -376,17 +390,21 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
 
         return isEmpty(todos) ? null :
         <div 
-        ref={e => {this.ref=e;}}
-        style={{
-            display:"flex", 
-            flexDirection:"column" 
-        }}>
+            ref={e => {this.ref=e;}}
+            style={{display:"flex", flexDirection:"column"}}
+        >
             {
-                this.state.canDrag ? 
+                this.state.canDrag ?  
                 <DragHandle /> :
-                getProjectLink(project, todos, dispatch, index)
+                <ProjectLink 
+                    dispatch={dispatch}
+                    index={index}
+                    selectedCategory={selectedCategory}
+                    project={project}
+                    todos={todos}
+                /> 
             }
-            <div>
+            <div> 
                 <ExpandableTodosList
                     dispatch={dispatch}   
                     searched={this.props.searched}
@@ -397,8 +415,9 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     selectedProjectId={this.props.selectedProjectId}
                     selectedTodoId={this.props.selectedTodoId} 
                     todos={selected} 
-                    tags={this.props.tags} 
-                    areas={this.props.areas}
+                    project={project}  
+                    tags={this.props.tags}  
+                    areas={this.props.areas} 
                     projects={this.props.projects}
                 /> 
             </div>

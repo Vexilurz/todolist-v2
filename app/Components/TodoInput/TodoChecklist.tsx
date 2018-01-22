@@ -132,7 +132,6 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
    
 
     onChecklistItemCheck = (e, key:string) => {
-        
         let idx = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
             
         if(idx!==-1){
