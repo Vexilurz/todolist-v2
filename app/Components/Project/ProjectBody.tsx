@@ -5,7 +5,7 @@ import * as ReactDOM from 'react-dom';
 import { Provider } from "react-redux";
 import { Transition } from 'react-transition-group';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
-import { ipcRenderer } from 'electron';
+import { ipcRenderer } from 'electron'; 
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { connect } from "react-redux";
@@ -24,10 +24,12 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area, generateId } from '../../database';
-import { uppercase, debounce, byNotDeleted, generateEmptyTodo, byNotCompleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, layoutOrderChanged, assert, isTodo, isString } from '../../utils';
-import { arrayMove } from '../../sortable-hoc/utils';
+import { 
+    uppercase, debounce, byNotDeleted, generateEmptyTodo, byNotCompleted, 
+    generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, 
+    layoutOrderChanged, assert, isTodo, isString, arrayMove 
+} from '../../utils'; 
 import { ProjectHeading } from './ProjectHeading';  
-import { SortableList, Data } from '../SortableList';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
 import { equals, allPass, isEmpty, isNil, not, uniq, contains } from 'ramda';
@@ -174,7 +176,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
     changeOrder = (oldIndex:number,newIndex:number) => { 
         let items = this.props.items;  
-        items = items.map(i => i.type==="todo" ? i._id : i) as any;
+        items = items.map(i => i.type==="todo" ? i._id : i) as any; 
         let changed = arrayMove(items, oldIndex, newIndex); 
         this.props.updateLayoutOrder(changed);    
     }  

@@ -341,7 +341,7 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
             this.props.dispatch(action);
             clear();
         }; 
- 
+  
         switch(object.type){
             case "todo":  
                 return getTodoLink(

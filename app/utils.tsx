@@ -44,7 +44,20 @@ import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { TodoInput } from './Components/TodoInput/TodoInput';
 import { contains, isNil, all, prepend, not } from 'ramda';
 import { isDev } from './app';
- 
+
+
+export function arrayMove(arr, previousIndex, newIndex) {
+    const array = arr.slice(0);
+    if (newIndex >= array.length) {
+      let k = newIndex - array.length;
+      while (k-- + 1) {
+        array.push(undefined);
+      }
+    }
+    array.splice(newIndex, 0, array.splice(previousIndex, 1)[0]);
+    return array;
+  } 
+
 
 export type Item = Area | Project | Todo; 
 

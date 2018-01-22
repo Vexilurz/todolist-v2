@@ -4,11 +4,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
 import { ipcRenderer } from 'electron'; 
 import IconButton from 'material-ui/IconButton';  
-import { Component } from "react";  
-import SortableContainer from '../../sortable-hoc/sortableContainer';
-import SortableElement from '../../sortable-hoc/sortableElement';
-import SortableHandle from '../../sortable-hoc/sortableHandle';
-import {arrayMove} from '../../sortable-hoc/utils';
+import { Component } from "react";   
 import { Provider, connect } from "react-redux";
 import Chip from 'material-ui/Chip';  
 import Star from 'material-ui/svg-icons/toggle/star';
@@ -284,7 +280,7 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
 
         if(tag.length===0){ return }
 
-        this.setState({ tag:'', attachedTags:uniq([...this.state.attachedTags, tag]) });
+        this.setState({tag:'', attachedTags:uniq([...this.state.attachedTags, tag])})
     }  
 
 
@@ -559,27 +555,23 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                         }}>        
                             <TextField   
                                 id={`always-note`}  
-                                onKeyDown={(e) => {
-                                    if(e.keyCode===13){e.stopPropagation();} 
-                                }}
                                 value={this.state.note} 
                                 hintText="Notes"
                                 multiLine={true}   
                                 rows={1}
                                 fullWidth={true}  
-                                onChange={this.onNoteChange} 
+                                onChange={this.onNoteChange}  
+                                onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
                                 inputStyle={{fontSize:"14px"}} 
                                 underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}} 
                                 underlineStyle={{borderColor:"rgba(0,0,0,0)"}}  
-                                //hintStyle={{}}   
-                                //style={{}}   
                             />  
                             {    
                                 !this.state.showChecklist ? null :  
                                 <div> 
                                     <Checklist 
-                                     checklist={this.state.checklist}  
-                                     updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})} 
+                                      checklist={this.state.checklist}  
+                                      updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})} 
                                     /> 
                                 </div> 
                             }   
@@ -614,11 +606,11 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                             category={this.state.category}
                             content={ 
                                 <div style={{marginLeft:"15px"}}>
-                                    { 
+                                { 
                                      this.state.category==="evening" ? "This Evening" :
                                      this.state.category==="today" ? "Today" :
                                      "Someday"
-                                    }   
+                                }   
                                 </div>   
                             }  
                         />   

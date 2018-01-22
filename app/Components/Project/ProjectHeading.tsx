@@ -8,7 +8,7 @@ import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { connect } from "react-redux";
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
+import OverlappingWindows from 'material-ui/svg-icons/image/filter-none'; 
 import Popover from 'material-ui/Popover';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
@@ -24,7 +24,6 @@ import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem } from '../../database';
 import { uppercase, debounce } from '../../utils';
-import { arrayMove } from '../../sortable-hoc/utils';
 import { isEmpty } from 'ramda';
 
  

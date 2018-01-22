@@ -14,12 +14,11 @@ import {
     isString,
     isCategory,
     assert,
-    isTodo
+    isTodo,
+    arrayMove 
 } from '../utils';  
-import { RightClickMenu } from './RightClickMenu';
-import { arrayMove } from '../sortable-hoc/utils';
+import { RightClickMenu } from './RightClickMenu'; 
 import { byTags, byCategory } from '../utils'; 
-import { SortableList } from './SortableList';
 import { TodoInput } from './TodoInput/TodoInput';
 import { allPass, isNil, prepend, isEmpty, compose, map, assoc, contains, remove, not, equals } from 'ramda';
 import { Category } from './MainContainer';
@@ -311,7 +310,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
     constructor(props){ 
         super(props);
     }   
-     
+      
     shouldComponentUpdate(nextProps:TodosListProps, nextState:TodosListState){
 
         if(
@@ -357,10 +356,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
         let nodes = [].slice.call(e.path);
 
-        for(let i=0; i<nodes.length; i++)
-            if(nodes[i].preventDrag){
-               return true 
-            }
+        for(let i=0; i<nodes.length; i++){
+            if(nodes[i].preventDrag){ return true }
+        }
           
         return false
     }  
@@ -415,7 +413,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         }    
     }  
     
-
+    
     changeOrder = (oldIndex,newIndex,selected) => {
         let load = arrayMove(selected,oldIndex,newIndex); 
         this.props.dispatch({type:"updateTodos", load:indexToPriority(load).filter(isTodo)});
@@ -453,10 +451,6 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
  
 
 
-
-
-
-
 interface PlaceholderProps{
     offset:number,
     height:number,
@@ -481,9 +475,8 @@ export class Placeholder extends Component<PlaceholderProps,PlaceholderState>{
                     borderRadius:"5px",     
                     width:"100%",    
                     position:"absolute",       
-                    //transitionDuration:`300ms`,
                     transform:`translateY(${this.props.offset}px)`
                 }}>    
                 </div> 
     } 
-}    
+}     

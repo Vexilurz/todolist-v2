@@ -23,8 +23,11 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
-import { uppercase, debounce, byNotDeleted, byNotCompleted, byTags, assert, isProject, isTodo, byHaveAttachedDate, byNotSomeday, isString, byScheduled, bySomeday, daysRemaining } from '../../utils';
-import { arrayMove } from '../../sortable-hoc/utils';
+import { 
+    uppercase, debounce, byNotDeleted, byNotCompleted, byTags, assert, 
+    isProject, isTodo, byHaveAttachedDate, byNotSomeday, isString, 
+    byScheduled, bySomeday, daysRemaining 
+} from '../../utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
 import { adjust, remove, allPass, uniq, isNil, not, contains, isEmpty } from 'ramda';

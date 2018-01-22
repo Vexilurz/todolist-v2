@@ -25,11 +25,10 @@ import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
 import { 
     uppercase, debounce, stringToLength, daysLeftMark, byNotCompleted, 
-    byNotDeleted, generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, assert, isArrayOfProjects, isProject, isCategory, isString 
-} from '../../utils';
-import SortableHandle from '../../sortable-hoc/sortableHandle';
-import { arrayMove } from '../../sortable-hoc/utils';
-import { SortableList, Data } from '../SortableList';
+    byNotDeleted, generateDropStyle, insideTargetArea, hideChildrens, 
+    makeChildrensVisible, assert, isArrayOfProjects, isProject, isCategory, 
+    isString, arrayMove 
+} from '../../utils'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import Checked from 'material-ui/svg-icons/navigation/check';
@@ -42,6 +41,7 @@ import { changeProjectsOrder, removeFromArea, attachToArea } from './AreasList';
 import { isDev } from '../../app';
 import { deleteProject } from '../Project/ProjectMenu';
 import { ExpandableTodosList } from '../Categories/Next';
+import { SortableContainer } from '../../sortable/CustomSortableContainer';
 
 
  
@@ -149,22 +149,24 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
       
  
     getProjectElement = (value:Project,index:number) : JSX.Element => {
-        return <ProjectElement 
-            project={value}
-            todos={this.props.todos}
-            index={index}
-            dispatch={this.props.dispatch}
-            searched={this.props.searched}
-            selectedTag={this.props.selectedTag}
-            rootRef={this.props.rootRef}
-            selectedAreaId={this.props.selectedAreaId}
-            selectedProjectId={this.props.selectedProjectId}
-            selectedTodoId={this.props.selectedTodoId}
-            selectedCategory={this.props.selectedCategory}
-            tags={this.props.tags}  
-            areas={this.props.areas}
-            projects={this.props.projects}
-        />
+        return <div key={`${value._id}-key`} id={value._id}> 
+            <ProjectElement  
+                project={value}
+                todos={this.props.todos}
+                index={index}
+                dispatch={this.props.dispatch}
+                searched={this.props.searched}
+                selectedTag={this.props.selectedTag}
+                rootRef={this.props.rootRef}
+                selectedAreaId={this.props.selectedAreaId}
+                selectedProjectId={this.props.selectedProjectId}
+                selectedTodoId={this.props.selectedTodoId}
+                selectedCategory={this.props.selectedCategory}
+                tags={this.props.tags}  
+                areas={this.props.areas} 
+                projects={this.props.projects}
+            />
+        </div> 
     }
 
 
@@ -187,34 +189,12 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
     }  
     
 
-    onSortStart = ({node, index, collection}, e, helper) => { 
-        let box = node.getBoundingClientRect();
-
-        this.setState({
-            showPlaceholder:true,
-            placeholderHeight:box.height 
-        });
-
-        let selectedProjects = this.selectProjects(this.props)
-        .sort((a:Project, b:Project) => a.priority-b.priority);
-
-        let item = selectedProjects[index];
-
-        assert(isProject(item), `item is not a project. ${JSON.stringify(item)}. onSortStart. AreaBody.`);
-        
-        this.props.dispatch({type:"dragged",load:item.type});
- 
-        let helperRect = helper.getBoundingClientRect();
-        let offset = e.clientX - helperRect.left;
-        let el = generateDropStyle("nested"); 
-        el.style.left = `${offset}px`;  
-        el.style.visibility = "hidden";
-        el.style.opacity = '0'; 
-        helper.appendChild(el);   
+    onSortStart = (oldIndex:number,event:any) => {
+        this.props.dispatch({type:"dragged",load:"project"});
     }   
 
 
-    onSortEnd = ({oldIndex, newIndex, collection}, e) => {
+    onSortEnd = (oldIndex:number,newIndex:number,event:any) => { 
 
         this.setState({showPlaceholder:false}); 
         this.props.dispatch({type:"dragged",load:null}); 
@@ -222,8 +202,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         let selectedProjects = this.selectProjects(this.props)
         .sort((a:Project, b:Project) => a.priority-b.priority);
 
-        let x = e.clientX+this.props.rootRef.scrollLeft; 
-        let y = e.clientY+this.props.rootRef.scrollTop;  
+        let x = event.clientX+this.props.rootRef.scrollLeft; 
+        let y = event.clientY+this.props.rootRef.scrollTop;  
         let leftpanel = document.getElementById("leftpanel");
         let target = selectedProjects[oldIndex];
 
@@ -232,7 +212,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
  
         if(insideTargetArea(null,leftpanel,x,y)){   
 
-            let el = document.elementFromPoint(e.clientX, e.clientY);
+            let el = document.elementFromPoint(event.clientX, event.clientY);
             let id = el.id || el.parentElement.id;
             let areaTarget : Area = this.props.areas.find( (a:Area) => a._id===id );
          
@@ -243,7 +223,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 }    
             }
 
-            let nodes = [].slice.call(e.path);
+            let nodes = [].slice.call(event.path);
         
             for(let i=0; i<nodes.length; i++){
                 if(nodes[i].id==="trash"){ 
@@ -258,33 +238,10 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
             changeProjectsOrder(this.props.dispatch,updated);
         } 
     }   
-
    
  
-    onSortMove = (e, helper : HTMLElement, newIndex:number) => {
-        if(!this.props.rootRef)
-           return; 
+    onSortMove = (oldIndex:number,event:any) => {} 
 
-        let x = e.clientX;   
-        let y = e.clientY;   
-
-        if(newIndex!==this.state.currentIndex && this.ref){
-           this.setState({currentIndex:newIndex});   
-        }
-
-        let container = document.getElementById("areas");
-        let nested = document.getElementById("nested");
-
-        if(insideTargetArea(this.props.rootRef,container,x,y)){ 
-            hideChildrens(helper);  
-            nested.style.visibility=""; 
-            nested.style.opacity='1';    
-        }else{ 
-            makeChildrensVisible(helper);  
-            nested.style.visibility="hidden";
-            nested.style.opacity='0';  
-        } 
-    } 
     
     render(){  
         let selectedProjects = this.selectProjects(this.props)
@@ -292,20 +249,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         
         return <div ref={(e) => {this.ref=e;}}>    
             <div style={{paddingTop:"20px", paddingBottom:"20px"}}> 
-                <SortableList 
-                    getElement={this.getProjectElement}
-                    items={selectedProjects}
-                    container={this.props.rootRef ? this.props.rootRef : document.body}
-                    shouldCancelStart={this.shouldCancelStart} 
-                    shouldCancelAnimation={this.shouldCancelAnimation}
-                    useDragHandle={true}  
-                    onSortEnd={this.onSortEnd}
-                    onSortMove={this.onSortMove}
-                    onSortStart={this.onSortStart}
-                    lockToContainerEdges={false}
-                    distance={5} 
-                    lock={false} 
-                /> 
+               {selectedProjects.map((item,index) => this.getProjectElement(item,index))}
             </div> 
         </div>
     }
@@ -337,91 +281,50 @@ interface ProjectElementState{
 
 class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
 
-    ref:HTMLElement; 
-
     constructor(props){ 
         super(props);
-        this.state={
-           canDrag:true
-        }
     } 
 
-
-    onToggleList = (showAllItems:boolean) => {
-        if(showAllItems){
-            this.setState({canDrag:false});
-        }else{ 
-            this.setState({canDrag:true}); 
-        }
-    }  
-
-
     render(){
-        let {project,todos,index,dispatch,
-            searched,   
-            selectedTag, 
-            rootRef,  
-            selectedAreaId,  
-            selectedProjectId,  
-            selectedTodoId,  
-            selectedCategory,
-            tags,  
-            areas,  
-            projects,
-        } = this.props
 
-        const DragHandle = SortableHandle(
-            () => <ProjectLink 
-                dispatch={dispatch}
-                index={index}
-                selectedCategory={selectedCategory}
-                project={project}
-                todos={todos}
-            /> 
-        );    
+        let {
+            project, todos, index, dispatch, searched, selectedTag, 
+            rootRef, selectedAreaId, selectedProjectId, selectedTodoId,  
+            selectedCategory, tags, areas, projects,
+        } = this.props;
 
         let attachedTodosIds = project.layout.filter(isString) as string[];
-        let selected = this.props.todos.filter((t:Todo) => 
+
+        let selected = todos.filter((t:Todo) => 
             contains(t._id)(attachedTodosIds) && 
             byNotCompleted(t) &&
             byNotDeleted(t) 
         );  
- 
-
-        return isEmpty(todos) ? null :
-        <div 
-            ref={e => {this.ref=e;}}
-            style={{display:"flex", flexDirection:"column"}}
-        >
-            {
-                this.state.canDrag ?  
-                <DragHandle /> :
-                <ProjectLink 
-                    dispatch={dispatch}
-                    index={index}
-                    selectedCategory={selectedCategory}
-                    project={project}
-                    todos={todos}
-                /> 
-            }
-            <div> 
-                <ExpandableTodosList
-                    dispatch={dispatch}   
-                    searched={this.props.searched}
-                    selectedTag={this.props.selectedTag}  
-                    rootRef={this.props.rootRef}
-                    onToggleList={this.onToggleList}
-                    selectedAreaId={this.props.selectedAreaId}
-                    selectedProjectId={this.props.selectedProjectId}
-                    selectedTodoId={this.props.selectedTodoId} 
-                    todos={selected} 
-                    project={project}  
-                    tags={this.props.tags}  
-                    areas={this.props.areas} 
-                    projects={this.props.projects}
-                /> 
-            </div>
-        </div>
+  
+        return  isEmpty(todos) ? null : 
+                <div style={{display:"flex", flexDirection:"column"}}>
+                    <ProjectLink 
+                        dispatch={dispatch}
+                        index={index}
+                        selectedCategory={selectedCategory}
+                        project={project}
+                        todos={todos}
+                    /> 
+                    <ExpandableTodosList
+                        dispatch={dispatch}   
+                        searched={this.props.searched}
+                        selectedTag={this.props.selectedTag}  
+                        rootRef={this.props.rootRef} 
+                        selectedAreaId={this.props.selectedAreaId}
+                        selectedProjectId={this.props.selectedProjectId}
+                        selectedTodoId={this.props.selectedTodoId} 
+                        todos={selected} 
+                        project={project}  
+                        tags={this.props.tags}  
+                        areas={this.props.areas} 
+                        projects={this.props.projects}
+                    />  
+                </div>
     }
 }
 

@@ -28,7 +28,7 @@ import { TrashPopup } from './Components/Categories/Trash';
 
 injectTapEventPlugin(); 
 
-
+ 
 export let isDev = () => true;  
 
 

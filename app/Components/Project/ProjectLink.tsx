@@ -27,9 +27,7 @@ import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
 import { 
     uppercase, debounce, stringToLength, daysRemaining, 
     daysLeftMark, chooseIcon, dateDiffInDays, assert, isProject, isArrayOfTodos, byNotDeleted, byCompleted  
-} from '../../utils';
-import { arrayMove } from '../../sortable-hoc/utils';
-import { SortableList, Data } from '../SortableList';
+} from '../../utils'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import Checked from 'material-ui/svg-icons/navigation/check';

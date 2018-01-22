@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, generateEmptyTodo, isToday, daysRemaining, isTodo, assert, makeChildrensVisible, hideChildrens, generateDropStyle 
+    chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, generateEmptyTodo, isToday, daysRemaining, isTodo, assert, makeChildrensVisible, hideChildrens, generateDropStyle, arrayMove 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -33,9 +33,7 @@ import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { byTags, byCategory } from '../../utils';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { compose, allPass, isEmpty, not, assoc, isNil } from 'ramda';
-import { TodoInput } from '../TodoInput/TodoInput';
-import { arrayMove } from '../../sortable-hoc/utils';
-import { SortableList } from '../SortableList';
+import { TodoInput } from '../TodoInput/TodoInput'; 
 import { Category } from '../MainContainer';
 import { SortableContainer } from '../../sortable/CustomSortableContainer';
 import { calculateAmount } from '../LeftPanel/LeftPanel';
@@ -172,7 +170,7 @@ export class Today extends Component<TodayProps,TodayState>{
         let items = arrayMove(selected,oldIndex,newIndex);
 
         for(let i=0; i<items.length; i++){
-           let item = items[i];
+           let item = items[i]; 
            
            if(item.kind==="evening"){
               category="evening"; 

@@ -3,21 +3,24 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react"; 
-import SortableElement from '../../sortable-hoc/sortableElement';
-import SortableHandle from '../../sortable-hoc/sortableHandle';
-import { arrayMove } from '../../sortable-hoc/utils';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area, Todo } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
-import { stringToLength, byNotCompleted, byNotDeleted, daysRemaining, dateDiffInDays, assert, isArrayOfStrings, isArrayOfProjects, isArea, isProject } from '../../utils';
-import { SortableList } from '../SortableList';
+import { 
+    stringToLength, byNotCompleted, byNotDeleted, daysRemaining, 
+    dateDiffInDays, assert, isArrayOfStrings, isArrayOfProjects, 
+    isArea, isProject, arrayMove  
+} from '../../utils';
 import PieChart from 'react-minimal-pie-chart';
-import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains, assoc, isNil, not, all, merge } from 'ramda';
+import { 
+    uniq, allPass, remove, toPairs, intersection, 
+    isEmpty, contains, assoc, isNil, not, all, merge 
+} from 'ramda'; 
 import { Category } from '../MainContainer';
 import { isDev } from '../../app';
 import { Observable } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx';
+import * as Rx from 'rxjs/Rx'; 
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
@@ -127,44 +130,14 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         super(props);  
     } 
 
-    shouldComponentUpdate(nextProps:AreasListProps){
-
-        let {
-            leftPanelWidth,
-            dragged,
-            selectedProjectId,
-            selectedAreaId,
-            selectedCategory,
-            areas,
-            todos,
-            leftPanelRef,
-            projects
-        } = this.props; 
-
-        if( 
-            dragged!==nextProps.dragged ||
-            todos!==nextProps.todos ||
-            selectedProjectId!==nextProps.selectedProjectId ||
-            selectedAreaId!==nextProps.selectedAreaId ||
-            selectedCategory!==nextProps.selectedCategory ||
-            areas!==nextProps.areas ||  
-            projects!==nextProps.projects 
-        ){
-            return true;
-        }  
-
-        return false;  
-    }
 
     selectArea = (a:Area) => {
         this.props.dispatch({type:"selectedAreaId",load:a._id}); 
-        this.props.dispatch({type:"selectedCategory",load:"area"}); 
     }
  
 
     selectProject = (p:Project) => {
         this.props.dispatch({type:"selectedProjectId",load:p._id});
-        this.props.dispatch({type:"selectedCategory",load:"project"}); 
     }
 
 
@@ -172,6 +145,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         table : { [key: string]: Project[]; }, 
         detached:Project[]  
     } => {
+
         let projects : Project[] = this.props.projects.filter( allPass([byNotDeleted,byNotCompleted]) );
         let areas : Area[] = this.props.areas.filter( byNotDeleted );
         let table = {};
@@ -224,16 +198,18 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
             layout.push(areas[i]);
              
-            for(let j=0; j<attachedProjects.length; j++)
-                layout.push(attachedProjects[j]);
+            for(let j=0; j<attachedProjects.length; j++){
+                layout.push(attachedProjects[j])
+            }
         }
 
         layout.push({type:"separator", _id:"separator"});
          
         detached.sort((a:Project, b:Project) => a.priority-b.priority);
 
-        for(let i=0; i<detached.length; i++)
-            layout.push(detached[i]);
+        for(let i=0; i<detached.length; i++){
+            layout.push(detached[i])
+        }
  
         return layout; 
     } 
@@ -270,13 +246,18 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
         switch(value.type){
             case "area":
-                return <div key={`key-${value._id}`} id={value._id}>{this.getAreaElement(value as any,index)}</div>;
+                return <div key={`key-${value._id}`} id={value._id}>{this.getAreaElement(value as any,index)}</div>
             case "project":
-                return <div key={`key-${value._id}`} id={value._id}>{this.getProjectElement(value as any,index)}</div>;
+                return <div key={`key-${value._id}`} id={value._id}>{this.getProjectElement(value as any,index)}</div>
             case "separator":
-                return <div key={`key-${value._id}`} id={value._id} style={{outline: "none", width:"100%",height:"30px"}}></div>;
+                return <div 
+                    key={`key-${value._id}`} 
+                    id={value._id} 
+                    style={{outline: "none", width:"100%",height:"30px"}}
+                >
+                </div>
             default:  
-                return null;   
+                return null 
         }   
     } 
 
@@ -285,15 +266,12 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let nodes = [].slice.call(e.path);
 
         for(let i=0; i<nodes.length; i++){ 
-
-            if(nodes[i].id==="separator"){
-                return true;
-            }else if(nodes[i].className==="area"){
-                return true; 
+            if(nodes[i].id==="separator" || nodes[i].className==="area"){
+               return true
             }
         } 
    
-        return false; 
+        return false 
     } 
     
 
@@ -380,7 +358,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 onSortEnd={this.onSortEnd}
                 shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
                 decorators={[]}   
-                lock={true}
+                lock={true} 
                 hidePlaceholder={true}
             >   
                 {layout.map((item,index) => this.getElement(item,index))}
@@ -427,14 +405,14 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
   
         if(e.buttons == 1 || e.buttons == 3){
             if(dragged==="project" || dragged==="todo" || dragged==="heading"){  
-                this.setState({highlight:true}); 
+                this.setState({highlight:true}) 
             } 
         } 
     }  
 
     onMouseOut = (e) => {  
         if(this.state.highlight){
-           this.setState({highlight:false});
+           this.setState({highlight:false})
         } 
     } 
     
@@ -501,7 +479,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                         style={{}}
                         placeholderStyle={{}}
                     />
-                </div>  
+                </div>   
             </div> 
         </li>
     }
@@ -532,16 +510,17 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
     constructor(props){
         super(props);
         this.state={
-            highlight:false
+            highlight:false 
         }; 
     }  
 
 
     onMouseOver = (e) => {  
         let {dragged} = this.props; 
+
         if(e.buttons === 1 || e.buttons === 3){   
             if(dragged==="todo" || dragged==="heading"){
-               this.setState({highlight:true});  
+               this.setState({highlight:true})  
             }  
         }  
     } 
@@ -549,7 +528,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
 
     onMouseOut = (e) => { 
         if(this.state.highlight){
-           this.setState({highlight:false});
+           this.setState({highlight:false})
         }
     } 
      
@@ -653,3 +632,4 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
 
 
 
+ 

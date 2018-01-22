@@ -39,24 +39,46 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
     }
 
 
+
     render(){
-        return <div
+        let now = new Date();
+        let month = now.getUTCMonth() + 1; //months from 1-12
+        let day = now.getUTCDate();
+        let year = now.getUTCFullYear();
+
+        day = day < 10 ? `0${day}` : day.toString() as any;
+        month = month < 10 ? `0${month}` : month.toString() as any;
+        
+        let start = year + "-" + month + "-" + day;
+        let end = '2050' + "-" + month + "-" + day;
+
+        return <div  
             style={{
                 position:"fixed",
                 top:"50%",
                 left:"50%"
             }}
         > 
-        
         <div style={{
+            borderRadius:"10px", 
+            cursor: "default",
+            boxShadow:"0 0 18px rgba(0,0,0,0.5)", 
+            backgroundColor:"white",
             display:"flex", 
-            flexDirection:"column",
+            flexDirection:"column", 
             alignItems:"center",
             justifyContent:"flex-start",
             width:"100%",
             height:"100%"
         }}> 
-            <div 
+            <div style={{
+                padding:"10px",
+                height:"300px",
+                justifyContent:"space-between",
+                display:"flex",
+                flexDirection:"column"
+            }}>  
+            <div    
                 style={{
                     fontSize:"18px", 
                     fontWeight:"bold", 
@@ -72,13 +94,21 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
             </div>
 
             <div style={{display:"flex"}}>
-                <div style={{color:"rgba(100,100,100,0.8)", fontSize:"15px"}}>
+                <div style={{fontSize:"14px"}}>
                     Repeat every
-                </div>   
-                <input 
-                  style={{backgroundColor:"rgba(235,235,235,1)"}} 
+                </div>  
+                <div style={{width:"50px", paddingLeft:"10px", paddingRight:"10px"}}> 
+                <input   
+                  style={{ 
+                    outline:"none",  
+                    backgroundColor:"rgba(235,235,235,1)",
+                    border:"none",
+                    textAlign:"center",
+                    width:"100%"  
+                  }} 
                   type="number" 
                 />
+                </div>
                 <select 
                     style={{backgroundColor:"rgba(235,235,235,1)"}}  
                     name="text"
@@ -90,24 +120,29 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                 </select>   
             </div>  
 
-            <div style={{display:"flex", flexDirection:"column"}}>
-                <div style={{color:"rgba(100,100,100,0.8)", fontSize:"15px"}}>Repeat on</div>
-
-                <div style={{display:"flex"}}>
-                {
-                    ['M','T','W','T','F','S','S'].map((day:string) => WeekDay('W',day,(day) => {}))
+            <div style={{display:"flex", flexDirection:"column", width:"100%"}}>
+                <div style={{fontSize:"14px"}}>Repeat on</div> 
+                
+                <div style={{display:"flex", paddingTop:"5px"}}>
+                {  
+                    ['M','T','W','T','F','S','S'].map((day:string,index:number) => WeekDay('W',day,index,(day) => {}))
                 }
                 </div>
             </div>
 
-            <div>
+            <div style={{
+                height:"100px",
+                display:"flex",
+                flexDirection:"column",  
+                justifyContent:"space-between"
+            }}>
 
-                <div style={{color:"rgba(100,100,100,0.8)", fontSize:"15px"}}>Ends</div> 
+                <div style={{fontSize:"14px"}}>Ends</div> 
 
-                <div style={{display:"flex"}}>    
+                <div style={{display:"flex", alignItems:"center"}}>    
                     <div>
-                        <div  onClick={(e) => {}}
-                            style={{
+                        <div onClick={(e) => {}}
+                             style={{
                                 backgroundColor:true ? 'rgb(10, 100, 240)' : '',
                                 width:"15px",  
                                 height:"15px",
@@ -119,18 +154,22 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                                 boxSizing:"border-box",
                                 marginRight:"5px",
                                 marginLeft:"5px" 
-                            }}    
+                             }}    
                         >        
                         </div>  
                     </div> 
-                    <div style={{color:"rgba(100,100,100,0.8)", fontSize:"15px"}}>Never</div> 
+                    <div style={{fontSize:"14px"}}>Never</div> 
                 </div>         
 
 
-                <div>
-                    <div style={{display:"flex"}}>    
+                <div style={{
+                   display:"flex",
+                   justifyContent:"space-between", 
+                   alignItems:"center"
+                }}>
+                    <div style={{display:"flex", alignItems:"center"}}>     
                         <div>
-                            <div  
+                            <div   
                                 onClick={(e) => {}}
                                 style={{
                                     backgroundColor:true ? 'rgb(10, 100, 240)' : '',
@@ -144,23 +183,34 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                                     boxSizing:"border-box",
                                     marginRight:"5px",
                                     marginLeft:"5px" 
-                                }}    
+                                }}     
                             >        
                             </div>  
                         </div> 
-                        <div style={{color:"rgba(100,100,100,0.8)", fontSize:"15px"}}>On</div> 
+                        <div style={{fontSize:"14px"}}>On</div> 
                     </div>  
                     <div>
-                        <input type="date"/>
-                    </div>
+                        <input 
+                            type="date"    
+                            min={start}   
+                            max={end}
+                            style={{       
+                               outline:"none",  
+                               backgroundColor:"rgba(235,235,235,1)",
+                               border:"none",
+                               textAlign:"center", 
+                               width:"100%"    
+                            }}     
+                        />
+                    </div> 
                 </div>
-
-
-                <div>
-                    <div style={{display:"flex"}}>    
+    
+        
+                <div style={{display:"flex", justifyContent:"space-between"}}>
+                    <div style={{display:"flex",alignItems:"center"}}>    
                         <div>
                             <div onClick={(e) => {}}
-                                style={{
+                                style={{ 
                                     backgroundColor:true ? 'rgb(10, 100, 240)' : '',
                                     width:"15px",  
                                     height:"15px",
@@ -176,18 +226,35 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                             >        
                             </div>  
                         </div> 
-                        <div style={{color:"rgba(100,100,100,0.8)", fontSize:"15px"}}>After</div> 
+                        <div style={{fontSize:"14px"}}>After</div> 
                     </div>  
-                    <div style={{backgroundColor:"rgba(235,235,235,1)"}}>
-                        <input style={{backgroundColor:"rgba(0,0,0,0)"}} type="number"/>
-                        <div style={{
-                            paddingLeft:"5px",
-                            paddingRight:"5px",
-                            backgroundColor:"rgba(0,0,0,0)"
-                        }}>
-                            repetitions
+
+                    <div>            
+
+                        <div style={{display:"flex", backgroundColor:"rgba(235,235,235,1)"}}>
+                            <div style={{width:"50px"}}> 
+                                <input   
+                                    style={{ 
+                                        outline:"none",  
+                                        backgroundColor:"rgba(0,0,0,0)",
+                                        border:"none",
+                                        textAlign:"center",
+                                        width:"100%"   
+                                    }}   
+                                    type="number" 
+                                />  
+                            </div>    
+                            <div style={{
+                                paddingLeft:"5px",
+                                paddingRight:"5px",
+                                backgroundColor:"rgba(0,0,0,0)"
+                            }}>
+                                repetitions
+                            </div>
                         </div>
+
                     </div>
+
                 </div> 
             </div>
 
@@ -200,6 +267,9 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
               </div>
             </div>    
 
+
+            </div>
+
         </div>
         </div>
     }
@@ -207,23 +277,26 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
 
 
-let WeekDay = (selected:string, day:string, onClick:(day:string) => void) : JSX.Element => {
+let WeekDay = (selected:string, day:string, index:number, onClick:(day:string) => void) : JSX.Element => {
     return <div
+        key={day}
         onClick={(e) => onClick(day)}  
         style={{   
             backgroundColor:selected===day ? 'rgb(10, 100, 240)' : 'rgba(235,235,235,1)',
-            color:selected===day ? "white" : 'rgb(180,180,180)',
-            width:"15px",  
-            height:"15px",
+            color:selected===day ? "white" : 'rgb(100,100,100)',
+            width:"20px",  
+            height:"20px",
+            alignItems:"center",
             borderRadius:"50px",
             display:"flex",
+            fontSize:"13px",
             justifyContent:"center",
             position:"relative", 
-            boxSizing:"border-box",
-            marginRight:"5px",
+            boxSizing:"border-box",  
+            marginRight:"5px",  
             marginLeft:"5px" 
         }}
     >
         {day}
     </div> 
-}
+}   

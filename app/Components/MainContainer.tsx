@@ -116,7 +116,7 @@ export let createHeading = (e, props:Store) : void => {
         props.dispatch({ type:"updateProject", load });
 }
 
-  
+   
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
 export class MainContainer extends Component<Store,MainContainerState>{
@@ -175,10 +175,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
     onError = (e) => console.log(e);
 
 
-
     closeRightClickMenu = () => {
-        if(this.props.showRightClickMenu)
-           this.props.dispatch({type:"showRightClickMenu", load:false});  
+        if(this.props.showRightClickMenu){
+           this.props.dispatch({type:"showRightClickMenu", load:false})
+        }
     }
 
 
@@ -187,12 +187,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
     } 
     
 
-
     fetchData = () => { 
         
-        if(this.props.clone){
-           return 
-        }
+        if(this.props.clone){ return }
 
         Promise.all([ 
             getTodos(this.onError)(true,this.limit),
@@ -230,12 +227,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
         this.subscriptions.push(resize,click);
     }      
      
-    
 
     componentWillUnmount(){ 
         this.subscriptions.map( s => s.unsubscribe() );
     }  
-      
       
 
     componentWillReceiveProps(nextProps){
@@ -246,7 +241,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
         }
     }
     
- 
     
     render(){  
         return  <div ref={(e) => { this.rootRef=e }}
@@ -263,6 +257,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     }}  
                 >  
                 <RightClickMenu {...{} as any}/>  
+
+                <RepeatPopup />  
+
                 <div style={{display: "flex", padding: "10px"}}>   
                     <div className="no-drag" style={{position: "fixed", top: 0, right: 0}}>  
                         { 
@@ -303,7 +300,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 }}>
                     {    
                         {   
-                            inbox:<Inbox 
+                            inbox : <Inbox 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedCategory={this.props.selectedCategory}
@@ -318,7 +315,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 tags={this.props.tags}
                             />,   
           
-                            today: <Today 
+                            today : <Today 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
                                 searched={this.props.searched}
@@ -333,7 +330,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 tags={this.props.tags}
                             />,
   
-                            evening: <Today 
+                            evening : <Today 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
                                 searched={this.props.searched}
@@ -348,7 +345,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 tags={this.props.tags}
                             />,
 
-                            upcoming: <Upcoming 
+                            upcoming : <Upcoming 
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedCategory={this.props.selectedCategory}
@@ -363,7 +360,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 rootRef={this.rootRef}
                             />,  
  
-                            logbook: <Logbook   
+                            logbook : <Logbook   
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId}
                                 selectedCategory={this.props.selectedCategory}
@@ -378,7 +375,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 rootRef={this.rootRef}
                             />, 
 
-                            someday: <Someday 
+                            someday : <Someday 
                                 dispatch={this.props.dispatch}
                                 selectedProjectId={this.props.selectedProjectId}
                                 selectedAreaId={this.props.selectedAreaId} 
@@ -393,7 +390,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 tags={this.props.tags}
                             />,    
 
-                            next: <Next   
+                            next : <Next   
                                 dispatch={this.props.dispatch}
                                 selectedTodoId={this.props.selectedTodoId} 
                                 searched={this.props.searched}
@@ -408,7 +405,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 tags={this.props.tags}
                             />,  
        
-                            trash: <div>
+                            trash : <div>
                                 <TrashPopup  
                                     dispatch={this.props.dispatch}
                                     showTrashPopup={this.props.showTrashPopup}
@@ -464,9 +461,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             />    
                         }[this.props.selectedCategory]
                     }
-                </div>   
+                </div>    
         </div> 
-  }
+    }
 }  
  
 

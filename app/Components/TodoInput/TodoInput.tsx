@@ -3,12 +3,8 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
 import { ipcRenderer } from 'electron'; 
-import IconButton from 'material-ui/IconButton';  
+import IconButton from 'material-ui/IconButton';   
 import { Component } from "react";  
-import SortableContainer from '../../sortable-hoc/sortableContainer';
-import SortableElement from '../../sortable-hoc/sortableElement';
-import SortableHandle from '../../sortable-hoc/sortableHandle';
-import {arrayMove} from '../../sortable-hoc/utils';
 import { Provider, connect } from "react-redux";
 import Chip from 'material-ui/Chip';  
 import Star from 'material-ui/svg-icons/toggle/star';
@@ -38,7 +34,8 @@ import { TextField } from 'material-ui';
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
     insideTargetArea, daysRemaining, todoChanged, 
-    daysLeftMark, generateTagElement, uppercase, generateEmptyTodo, isToday, getMonthName, stringToLength, debounce 
+    daysLeftMark, generateTagElement, uppercase, generateEmptyTodo,  
+    isToday, getMonthName, stringToLength, debounce 
 } from '../../utils'; 
 import { Todo, removeTodo, updateTodo, Project, generateId } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
@@ -1514,9 +1511,7 @@ class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,TodoInput
                 onChange={this.props.onNoteChange} 
                 inputStyle={{fontSize:"14px"}} 
                 underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}} 
-                underlineStyle={{borderColor:"rgba(0,0,0,0)"}}   
-                //hintStyle={{}}   
-                //style={{}}   
+                underlineStyle={{borderColor:"rgba(0,0,0,0)"}}
             />   
             {    
                 not(showChecklist) ? null : 

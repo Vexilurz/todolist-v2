@@ -5,9 +5,6 @@ import * as ReactDOM from 'react-dom';
 import { ipcRenderer } from 'electron'; 
 import IconButton from 'material-ui/IconButton';  
 import { Component } from "react";  
-import SortableElement from '../../sortable-hoc/sortableElement';
-import SortableHandle from '../../sortable-hoc/sortableHandle';
-import {arrayMove} from '../../sortable-hoc/utils';
 import { Provider, connect } from "react-redux";
 import Chip from 'material-ui/Chip';  
 import Star from 'material-ui/svg-icons/toggle/star';
@@ -37,11 +34,11 @@ import { TextField } from 'material-ui';
 import { 
     insideTargetArea, daysRemaining, 
     todoChanged, daysLeftMark, 
-    generateTagElement
+    generateTagElement,
+    arrayMove
 } from '../../utils';
 import { Category } from '.././MainContainer';
-import { Todo, removeTodo, updateTodo, generateId } from '../../database';
-import { SortableList } from '../SortableList';
+import { Todo, removeTodo, updateTodo, generateId } from '../../database'; 
 import { replace, adjust, append, prepend, isEmpty } from 'ramda';
 import { Placeholder } from '../TodosList';
 import { SortableContainer } from '../../sortable/CustomSortableContainer';
@@ -164,7 +161,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
             el.idx=idx;
             return el; 
         };
-
+ 
         let moved = arrayMove([...this.props.checklist],oldIndex,newIndex);
 
         let checklist = moved.map(updateIndex).filter((el:ChecklistItem) => !isEmpty(el.text));  

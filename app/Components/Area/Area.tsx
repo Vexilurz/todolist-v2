@@ -9,9 +9,9 @@ import { AreaHeader } from './AreaHeader';
 import { AreaBody } from './AreaBody';
 import { debounce, assert, isArea } from '../../utils';
 import { Category } from '../MainContainer';
-import { uniq, isNil } from 'ramda';
+import { uniq, isNil } from 'ramda'; 
+   
   
- 
 interface AreaComponentProps{
     areas:Area[],  
     selectedCategory:Category, 
