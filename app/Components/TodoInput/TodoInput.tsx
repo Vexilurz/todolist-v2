@@ -590,7 +590,24 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         )    
     },50)
 
- 
+
+    onRepeatTodo = (top:number, left:number) => {  
+        let {todo, rootRef} = this.props;
+        let id = todo._id;  
+        let containerClientRect = rootRef.getBoundingClientRect();
+         
+        this.props.dispatch({
+            type : "openRepeatPopup",
+            load : { 
+                showRepeatPopup : true, 
+                repeatTodoId : id,
+                repeatPopupX : left-containerClientRect.left,    
+                repeatPopupY : top+rootRef.scrollTop 
+            }    
+        });  
+    }
+
+    
     getRelatedProjectName = () : string => { 
         let {todo, projects} = this.props;
 
@@ -802,6 +819,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     </IconButton> 
                 </div>  
             }  
+            
             <DateCalendar 
                 close={this.closeDateCalendar}
                 open={this.state.showDateCalendar}
@@ -814,6 +832,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 onDayClick = {this.onCalendarDayClick}
                 onSomedayClick = {this.onCalendarSomedayClick}
                 onTodayClick = {this.onCalendarTodayClick}
+                onRepeatTodo = {this.onRepeatTodo}
                 onThisEveningClick = {this.onCalendarThisEveningClick}
                 onAddReminderClick = {this.onCalendarAddReminderClick}
                 onClear = {this.onCalendarClear}

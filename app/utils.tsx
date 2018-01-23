@@ -1403,7 +1403,7 @@ export let getDatesRange = (
 
 
     if(includeStart){
-        from -= 1;
+        from -= 1; 
     }
 
     if(includeEnd){

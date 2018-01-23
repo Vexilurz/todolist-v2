@@ -458,7 +458,12 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
         if(e.keyCode===13){ this.onSave() }    
     }       
     
-    
+      
+    onRepeatTodo = (top:number,left:number) => {
+        
+    }
+     
+
     render(){  
         let {projects,todos} = this.props;  
         let {category,attachedDate} = this.state;
@@ -666,8 +671,8 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                 <DateCalendar 
                     close={this.closeDateCalendar}
                     open={this.state.showDateCalendar}
-                    origin = {{vertical: "center", horizontal: "left"}} 
-                    point = {{vertical: "bottom", horizontal: "right"}}  
+                    origin = {{vertical:"center", horizontal:"left"}} 
+                    point = {{vertical:"bottom", horizontal:"right"}}  
                     anchorEl={this.calendar}
                     rootRef = {document.body}
                     reminder={this.state.reminder}  
@@ -675,9 +680,11 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                     onDayClick = {this.onCalendarDayClick}
                     onSomedayClick = {this.onCalendarSomedayClick}
                     onTodayClick = {this.onCalendarTodayClick}
+                    onRepeatTodo = {this.onRepeatTodo}
                     onThisEveningClick = {this.onCalendarThisEveningClick}
                     onAddReminderClick = {this.onCalendarAddReminderClick}
                     onClear = {this.onCalendarClear} 
+                    hideRepeatButton={true}
                 />   
 
                 <TagsPopup   

@@ -24,6 +24,8 @@ import { applicationObjectsReducer } from './ObjectsReducer';
 import { TodoInputPopup } from './Components/TodoInput/TodoInputPopup';
 import { cond, assoc, isNil, not } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
+import { Settings } from './Components/Settings/settings';
+import { SimplePopup } from './Components/SimplePopup';
   
 
 injectTapEventPlugin(); 
@@ -261,7 +263,7 @@ export class App extends Component<AppProps,{}>{
                     { clone ? null : <LeftPanel {...{} as any}/> }
                     <MainContainer {...{windowId} as any}/>  
                 </div>  
-                    
+                <SettingsPopup {...{} as any} />      
                 <TodoInputPopup {...{} as any} />
             </div>           
         );  
@@ -282,44 +284,90 @@ ipcRenderer.on(
         )  
     }
 );    
-  
+   
+
+
+interface SettingsPopupProps extends Store{
+
+}
+
+interface SettingsPopupState{
+
+}
+ 
+
+@connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
+class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupState>{
+
+    constructor(props){
+        super(props);
+    }
+
+    render(){
+        let {openSettings,dispatch} = this.props;
+
+        return <SimplePopup
+           show={openSettings} 
+           onOutsideClick={() => dispatch({type:"openSettings",load:false})}
+        >
+            <Settings />
+        </SimplePopup>    
+    } 
+}
+
+
+
+
+
+
  
 
 export interface Store{
+    openSettings : boolean,
     showScheduled : boolean,
     showCompleted : boolean,
     openSearch : boolean, 
     openTodoInputPopup : boolean, 
     openRightClickMenu : any, 
+    openRepeatPopup : any, 
+    showRepeatPopup : boolean,
+    repeatTodoId : string,
+    repeatPopupX : number,
+    repeatPopupY : number,
     showRightClickMenu : boolean, 
     openNewProjectAreaPopup : boolean,
     showProjectMenuPopover : boolean,
     showTrashPopup : boolean,
-
     selectedCategory : Category,
     selectedTodoId : string, 
     searched : boolean, 
     selectedTag : string, 
     leftPanelWidth : number,
     closeAllItems : any,
-    dragged:string,
+    dragged : string,
     selectedProjectId : string,
     selectedAreaId : string,
     rightClickedTodoId : string,
     rightClickMenuX : number,
     rightClickMenuY : number,
-    windowId:number,
-    projects:Project[],
-    areas:Area[], 
-    todos:Todo[],
-    tags:string[],
-    clone?:boolean,
-    dispatch?:Function
+    windowId : number,
+    projects : Project[],
+    areas : Area[], 
+    todos : Todo[],
+    tags : string[],
+    clone? : boolean,
+    dispatch? : Function
 } 
-
+ 
    
 
 export let defaultStoreItems : Store = {
+    openSettings : false, 
+    openRepeatPopup : null, 
+    showRepeatPopup : false,
+    repeatTodoId : null,
+    repeatPopupX : 0, 
+    repeatPopupY : 0,
     showScheduled : true,
     showCompleted : false,
     windowId:null, 

@@ -104,7 +104,8 @@ export interface Todo{
   attachedDate : Date,  
   attachedTags : string[], 
   completed : Date, 
-  checked : boolean
+  checked : boolean,
+  group?:string 
 };
   
 

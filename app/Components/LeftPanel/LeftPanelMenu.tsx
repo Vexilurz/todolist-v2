@@ -35,7 +35,7 @@ let Hot = (hot:number) : JSX.Element =>
         display: "flex", 
         alignItems: "center",
         height: "18px",
-        width: "25px",
+        width: "auto",
         borderRadius: "10px", 
         backgroundColor: "rgb(239, 80, 120)",
         color: "white"

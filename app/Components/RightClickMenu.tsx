@@ -58,12 +58,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
     onOutsideClick = (e) => {
 
-        if(
-            this.ref===null || 
-            this.ref===undefined
-        ){
-            return  
-        }
+        if(this.ref===null || this.ref===undefined){ return }
 
         let x = e.pageX;
         let y = e.pageY; 
@@ -81,7 +76,6 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                 }
            }); 
         }   
-         
     }   
                
 
@@ -300,53 +294,57 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         if(projectSelected){
            this.removeFromProject();
         }else if(areaSelected){
-            this.removeFromArea();
+           this.removeFromArea();
         }   
+    }  
 
-    } 
-
-    
 
     onWhen = (e) => {} 
-
-    
-
     onMove = (e) => {}
-
-
-
     onShortcuts = (e) => {}
+      
 
+    onRepeat = (e) => {
+        let {
+            rightClickedTodoId,
+            rightClickMenuX,
+            rightClickMenuY
+        } = this.props;   
 
-
-    onRepeat = (e) => {}
-
+        this.props.dispatch({
+            type : "openRepeatPopup",
+            load : {
+                showRepeatPopup : true, 
+                repeatTodoId : rightClickedTodoId,
+                repeatPopupX : rightClickMenuX, 
+                repeatPopupY : rightClickMenuY,
+                showRightClickMenu : false
+            } 
+        }); 
+    }
 
 
     onShare = (e) => {}
 
  
-
-    render(){
-
+    render(){ 
         let todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId );
         
-        if(!todo)  
-           return null; 
+        if(isNil(todo)){ return null }
 
         let projectSelected = this.props.selectedCategory==="project" && !!this.props.selectedProjectId;
         let areaSelected = this.props.selectedCategory==="area" && !!this.props.selectedAreaId;                          
         let canWhen = false; 
         let canMove = false;  
         let canComplete = isNil(todo.deleted) && isNil(todo.completed);
-        let canShortcuts = false; 
-        let canRepeat = false;
+        let canShortcuts = false;  
+        let canRepeat = isNil(todo.deleted);
         let canDuplicate = isNil(todo.deleted); 
         let canConvert = isNil(todo.deleted);
         let canDelete = isNil(todo.deleted); 
         let canRemoveFromProjectArea = isNil(todo.deleted) && (projectSelected || areaSelected);
         let canShare = false; 
-
+        
         return  !this.props.showRightClickMenu ? null:
                 <div  
                     ref={(e) => { this.ref=e; }}   

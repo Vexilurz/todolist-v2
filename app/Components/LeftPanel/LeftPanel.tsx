@@ -240,9 +240,13 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                     />
 
                     <LeftPanelFooter  
-                        width={leftPanelWidth}  
-                        collapsed={collapsed}
-                        openNewProjectAreaPopup={this.openNewProjectAreaPopup}
+                        width={ leftPanelWidth }  
+                        collapsed={ collapsed }
+                        openSettings={(e) => {  
+                            e.stopPropagation();  
+                            this.props.dispatch({type:"openSettings",load:true}); 
+                        }}
+                        openNewProjectAreaPopup={ this.openNewProjectAreaPopup }
                         setNewProjectAnchor={(e) => {this.anchor=e}}  
                     /> 
                     
@@ -265,6 +269,7 @@ interface LeftPanelFooterProps{
     collapsed:boolean,
     openNewProjectAreaPopup:(e:any) => void,
     setNewProjectAnchor:(e:any) => void,
+    openSettings:(e:any) => void 
 }
 
 
@@ -322,8 +327,8 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
 
             <div>     
                 <IconButton    
-                onClick = {() => {}}  
-                iconStyle={{  
+                onClick = {(e) => this.props.openSettings(e)}  
+                iconStyle={{   
                     color:"rgba(100, 100, 100, 1)",
                     width:"25px", 
                     height:"25px"   

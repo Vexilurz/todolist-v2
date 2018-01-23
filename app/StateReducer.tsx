@@ -7,7 +7,26 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
        let newState = undefined;
    
        switch(action.type){ 
-            
+
+            case "openSettings":
+                newState = { 
+                    ...state,
+                    openSettings : action.load,
+                };  
+                break;
+                
+
+            case "openRepeatPopup":
+                newState = { 
+                    ...state,
+                    showRepeatPopup : action.load.showRepeatPopup,
+                    repeatTodoId : action.load.repeatTodoId,
+                    repeatPopupX : action.load.repeatPopupX, 
+                    repeatPopupY : action.load.repeatPopupY
+                };  
+                break;
+
+
             case "openTodoInputPopup": 
                 newState = { 
                     ...state, 
@@ -62,6 +81,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                    openSearch:action.load 
                }; 
                break;
+
    
            case "showProjectMenuPopover":
                newState = {
@@ -69,6 +89,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                    showProjectMenuPopover:action.load
                }; 
                break;
+
    
            case "windowId":
                newState = {
@@ -77,6 +98,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                }; 
                break;
    
+
            case "clone":
                newState = {
                    ...state, 
@@ -84,6 +106,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                }; 
                break;    
     
+
            case "selectedCategory":
                newState = {
                    ...state,
@@ -99,6 +122,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                };
                break;
 
+
            case "selectedTag":  
                newState = {
                    ...state,
@@ -113,6 +137,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                    openNewProjectAreaPopup:action.load
                }; 
                break;
+
  
            case "showRightClickMenu":
                newState = {
@@ -131,7 +156,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                    rightClickMenuY : action.load.rightClickMenuY
                };  
                break;
-   
+
    
            case "selectedTodoId":
                newState = {
@@ -146,7 +171,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                    ...state,
                    openSearch:false,
                    openRightClickMenu:false,
-                   showProjectMenuPopover:false,
+                   showProjectMenuPopover:false, 
                    openNewProjectAreaPopup:false,
                    showRightClickMenu:false, 
                };  
@@ -160,7 +185,8 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                    selectedProjectId:action.load
                };    
                break;
-           
+               
+
            case "selectedAreaId": 
                newState = { 
                    ...state, 

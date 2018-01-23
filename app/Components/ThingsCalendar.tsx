@@ -5,6 +5,7 @@ import * as ReactDOM from 'react-dom';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react";  
+import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Star from 'material-ui/svg-icons/toggle/star';
 import Plus from 'material-ui/svg-icons/content/add';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
@@ -41,14 +42,14 @@ interface DateCalendarProps{
     onTodayClick : (e:any) => void, 
     onThisEveningClick : (e:any) => void, 
     onAddReminderClick : (reminder:Date) => void,
-    onClear : (e:any) => void 
-}   
-       
+    onRepeatTodo : (top:number,left:number) => void, 
+    onClear : (e:any) => void,
+    hideRepeatButton? : boolean   
+}           
  
 
 interface DateCalendarState{}
   
-
 
 export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
     subscriptions:Subscription[];
@@ -56,7 +57,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
     
     constructor(props){
         super(props);
-        this.subscriptions=[];
+        this.subscriptions = [];
     }
 
 
@@ -89,9 +90,9 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
         }   
     }   
                
- 
      
     render(){    
+        let {hideRepeatButton} = this.props;
 
         return <Popover 
             open={this.props.open}
@@ -111,20 +112,22 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
             targetOrigin={this.props.point}
         >    
             <div 
-            ref={(e) => { this.ref=e; }}  
-            onClick={(e) => {
-                e.stopPropagation();
-                e.nativeEvent.stopImmediatePropagation();
-            }}  
-            style={{     
-                display:"flex",
-                flexDirection:"column",  
-                backgroundColor:"rgb(39,43,53)",  
-                borderRadius: "20px",
-                overflowX:"hidden"  
-            }}>    
+                ref={(e) => { this.ref=e; }}  
+                onClick={(e) => {
+                    e.stopPropagation();
+                    e.nativeEvent.stopImmediatePropagation();
+                }}  
+                style={{     
+                    display:"flex",
+                    flexDirection:"column",  
+                    backgroundColor:"rgb(39,43,53)",  
+                    borderRadius: "20px",
+                    overflowX:"hidden"  
+                }}
+            >    
                 
-                <div style={{
+                <div  
+                style={{
                     color: "dimgray",
                     textAlign: "center",
                     padding: "5px",
@@ -186,7 +189,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                 }}> 
                     <DayPicker onDayClick={this.props.onDayClick} />
                 </div> 
-                    
+                     
                 <div  
                     className="hoverDateType"
                     onClick={this.props.onSomedayClick}
@@ -210,14 +213,43 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                         Someday
                     </div>
                 </div> 
-                  
+                {    
+                    hideRepeatButton ? null :    
+                    <div  
+                        className="hoverDateType"
+                        onClick={() => {
+                            let {top, left}= this.ref.getBoundingClientRect();
+                            this.props.onRepeatTodo(top,left);
+                            this.props.close();   
+                        }}
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            color: "white",
+                            cursor: "default",
+                            marginLeft: "20px",
+                            marginRight: "20px",
+                            WebkitUserSelect:"none"  
+                        }}
+                    >
+                        <Refresh style={{  
+                            color:"white", 
+                            width:"15px", 
+                            height:"15px", 
+                            cursor:"default"  
+                        }}/>
+                        <div style={{marginLeft:"15px"}}> 
+                            Recurring task
+                        </div>
+                    </div> 
+                }
                 <div style={{
                     border:"1px solid rgba(200,200,200,0.1)",
                     marginTop:"10px", 
                     width:"100%",   
                     marginBottom:"10px"
                 }}>
-                </div>   
+                </div>  
     
                 <CalendarFooter 
                     onAddReminder={this.props.onAddReminderClick}
@@ -273,7 +305,7 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
             { 
             !this.state.openReminderInput ? null :
             <div>
-                <div style={{
+                <div style={{  
                     display:"flex", 
                     alignItems:"center", 
                     justifyContent:"center",

@@ -191,23 +191,17 @@ export class MainContainer extends Component<Store,MainContainerState>{
         
         if(this.props.clone){ return }
 
-        Promise.all([ 
+        Promise.all([  
             getTodos(this.onError)(true,this.limit),
             getProjects(this.onError)(true,this.limit), 
             getAreas(this.onError)(true,this.limit)
         ])
         .then(convertDates) 
-        .then(([todos, projects, areas]) => {
-
-                this.props.dispatch({ 
+        .then(
+            ([todos, projects, areas]) => this.props.dispatch({ 
                     type:"setAllTypes", 
-                    load:{ 
-                        todos,
-                        projects,
-                        areas
-                    }
-                })  
-            } 
+                    load:{todos,projects,areas}
+            })  
         ) 
     } 
      
@@ -256,9 +250,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         flexDirection:"column"     
                     }}  
                 >  
-                <RightClickMenu {...{} as any}/>  
 
-                <RepeatPopup />  
+                <RightClickMenu {...{} as any}/> 
+
+                <RepeatPopup {...{} as any}/>  
 
                 <div style={{display: "flex", padding: "10px"}}>   
                     <div className="no-drag" style={{position: "fixed", top: 0, right: 0}}>  
