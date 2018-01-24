@@ -9,19 +9,19 @@ import { randomArrayMember, randomInteger, randomDate, isString, isTodo, assert 
 import { isNil, all } from 'ramda';
 import { isDev } from './app';
 let uniqid = require("uniqid"); 
+let path = require('path');
  
   
  
 let todos_db;
 let projects_db; 
 let areas_db;
-
  
  
-export let initDB = () => {
-    todos_db = new PouchDB('todos'); 
-    projects_db = new PouchDB('projects');
-    areas_db = new PouchDB('areas'); 
+export let initDB = () => { 
+  todos_db = new PouchDB('todos');   
+  projects_db = new PouchDB('projects');
+  areas_db = new PouchDB('areas'); 
 } 
 
 

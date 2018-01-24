@@ -1271,27 +1271,6 @@ export let isToday = (date : Date) => {
 
 
 
-export let getDateFromObject = (i) : Date => {
-
-    if(i.type==="todo"){ 
-
-        if(!isNil(i.attachedDate)){
-           return i.attachedDate; 
-        }else if(!isNil(i.deadline)){
-           return i.deadline;  
-        } 
-
-    }else if(i.type==="project"){ 
-
-        return i.deadline;
-
-    }else if(isDate(i.start)){
-
-        return i.start;
-    } 
-}
-
-
 
 export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:Todo | Project) => {
 

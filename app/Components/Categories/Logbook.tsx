@@ -180,55 +180,53 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                 }}
             >  
                 {month}
-            </div>
-            <div style={{position:"relative", width:"100%"}}>
-                {
-                    todos
-                    .sort((a:Todo,b:Todo) => b.completed.getTime()-a.completed.getTime())
-                    .map(  
-                        (value:Todo,index) => <div 
-                            key={value._id}
-                            style={{
-                                position:"relative",
-                                marginTop:"5px",
-                                marginBottom:"5px"
-                            }}
-                        >
-                            <TodoInput   
-                                id={value._id}
-                                key={value._id}
-                                projects={this.props.projects}  
-                                dispatch={this.props.dispatch}  
-                                selectedProjectId={this.props.selectedProjectId}
-                                selectedAreaId={this.props.selectedAreaId} 
-                                todos={this.props.todos} 
-                                selectedCategory={"logbook"} 
-                                selectedTodoId={this.props.selectedTodoId}
-                                tags={this.props.tags} 
-                                searched={this.props.searched}
-                                rootRef={this.props.rootRef}  
-                                todo={value}
-                            />     
-                        </div>
-                    )
-                }   
             </div> 
 
-            <div> 
-            {
-                projects.map( 
-                    (p:Project, index:number) => 
-                        <ProjectLink
-                            dispatch={this.props.dispatch}
-                            index={index}
-                            selectedCategory={this.props.selectedCategory as Category}
-                            project={p}
-                            todos={this.props.todos}
-                            simple={true}
-                        />
-                )
-            }
-            </div>       
+            <div style={{position:"relative", width:"100%"}}>
+                {
+                    [...todos,...projects]
+                    .sort((a:Todo|Project,b:Todo|Project) => b.completed.getTime()-a.completed.getTime())
+                    .map(  
+                        (value:Todo|Project,index) => 
+
+                        <div  
+                          key={value._id}
+                          style={{position:"relative", marginTop:"5px", marginBottom:"5px"}}
+                        > 
+                            {
+                                value.type==="project" ?
+                                <ProjectLink 
+                                    dispatch={this.props.dispatch}
+                                    index={index}
+                                    selectedCategory={this.props.selectedCategory as Category}
+                                    project={value as Project}
+                                    todos={this.props.todos}
+                                    simple={true} 
+                                /> 
+                                :
+                                value.type==="todo" ?
+                                <TodoInput     
+                                    id={value._id}
+                                    key={value._id}
+                                    projects={this.props.projects}  
+                                    dispatch={this.props.dispatch}  
+                                    selectedProjectId={this.props.selectedProjectId}
+                                    selectedAreaId={this.props.selectedAreaId} 
+                                    todos={this.props.todos} 
+                                    selectedCategory={"logbook"} 
+                                    selectedTodoId={this.props.selectedTodoId}
+                                    tags={this.props.tags} 
+                                    searched={this.props.searched}
+                                    rootRef={this.props.rootRef}  
+                                    todo={value as Todo}
+                                />    
+                                :
+                                null
+                            }   
+                        </div> 
+                    )
+                }   
+            </div>     
         </div> 
     }
   

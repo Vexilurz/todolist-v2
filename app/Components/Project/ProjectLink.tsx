@@ -28,7 +28,7 @@ import {
     uppercase, debounce, stringToLength, daysRemaining, 
     daysLeftMark, chooseIcon, dateDiffInDays, assert, isProject, isArrayOfTodos, byNotDeleted, byCompleted  
 } from '../../utils'; 
-import { TodoInput } from '../TodoInput/TodoInput';
+import { TodoInput, Checkbox, DueDate } from '../TodoInput/TodoInput';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import PieChart from 'react-minimal-pie-chart';
@@ -115,8 +115,8 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                 dispatch({type:"selectedCategory",load:"project"});
                 dispatch({type:"selectedProjectId",load:project._id});
             }}    
-            style={{width:"100%"}} 
-            key={`key-${project._id}`} 
+            style={{width:"100%", overflow:"hidden"}}   
+            key={`key-${project._id}`}  
             className={simple ? "leftpanelmenuitem" : "listHeading"}
         >     
         <div   
@@ -125,7 +125,7 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                 height:"30px",   
                 paddingLeft:"6px", 
                 paddingRight:"6px",  
-                cursor:"pointer",
+                cursor:"default",
                 width:"100%",
                 display:"flex",  
                 alignItems:"center" 
@@ -146,48 +146,89 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                     >  
                         <Restore style={{width:"20px", height:"20px"}}/> 
                     </div>  
-                }   
-                <div style={{    
-                    width: "18px",
-                    height: "18px",
-                    position: "relative",
-                    borderRadius: "100px",
-                    display: "flex",
-                    justifyContent: "center",
-                    cursor:"pointer",
-                    alignItems: "center",
-                    border: "1px solid rgb(108, 135, 222)",
-                    boxSizing: "border-box" 
-                }}> 
-                    <div style={{
-                        width: "18px",
-                        height: "18px",
+                } 
+                
+
+
+
+
+                {
+                    isNil(project.completed) ? 
+                    <div style={{    
+                        marginLeft:"18px",
+                        width:"18px",
+                        height:"18px",
+                        position: "relative",
+                        borderRadius: "100px",
                         display: "flex",
-                        alignItems: "center",
-                        cursor:"pointer",
                         justifyContent: "center",
-                        position: "relative" 
-                    }}>  
-                        <PieChart 
-                            animate={false}    
-                            totalValue={done+left}
-                            data={[{     
-                                value:done, 
-                                key:1,  
-                                color:"rgb(108, 135, 222)" 
-                            }]}    
-                            style={{  
-                                color: "rgb(108, 135, 222)",
-                                width: "12px",
-                                height: "12px",
-                                position: "absolute",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center"  
+                        cursor:"default",
+                        alignItems: "center",
+                        border: "1px solid rgb(108, 135, 222)",
+                        boxSizing: "border-box" 
+                    }}> 
+                        <div style={{
+                            width: "18px",
+                            height: "18px",
+                            display: "flex",
+                            alignItems: "center", 
+                            cursor:"default",
+                            justifyContent: "center",
+                            position: "relative" 
+                        }}>  
+                            <PieChart 
+                                animate={false}    
+                                totalValue={done+left}
+                                data={[{     
+                                    value:done, 
+                                    key:1,  
+                                    color:"rgb(108, 135, 222)" 
+                                }]}    
+                                style={{  
+                                    color: "rgb(108, 135, 222)",
+                                    width: "12px",
+                                    height: "12px",
+                                    position: "absolute",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center"  
+                                }}
+                            />     
+                        </div>
+                    </div> 
+                    :
+                    <div style={{paddingLeft:"20px",display:"flex",alignItems:"center"}}>
+                        <Checkbox  
+                            checked={!isNil(project.completed)}
+                            onClick={(e) => {
+                                if(!isNil(project.completed)){
+                                    let type = "updateProject";
+                                    this.props.dispatch({
+                                        type:"updateProject", 
+                                        load:{...project,completed:undefined}
+                                    });
+                                }  
                             }}
-                        />     
-                    </div>
-                </div> 
+                        />
+                        <div>
+                          <DueDate
+                            date={null}
+                            selectedCategory={this.props.selectedCategory}
+                            category={this.props.selectedCategory}
+                            completed={project.completed}
+                          />
+                        </div>
+                    </div> 
+                } 
+
+                
+
+
+
+
+
+
+
                 <div   
                     id = {project._id}   
                     style={{   

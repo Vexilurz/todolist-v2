@@ -447,8 +447,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
       
      
   
-    onCheckBoxClick = debounce(
-        () => {   
+    onCheckBoxClick = () => {   
             let { selectedCategory, creation } = this.props;
             let { checked, open } = this.state;
             let shouldAnimateSlideAway = not(checked) && 
@@ -458,6 +457,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             if(not(creation)){
 
                 let isChecked : boolean = !checked; 
+
                 this.setState(   
                     { 
                       checked:isChecked,  
@@ -470,14 +470,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                               .then(() => setTimeout(() => this.updateTodo(), 0)) : 
                               this.updateTodo() 
                         , 
-                        50
+                        10
                     )
-                ) 
-
+                )  
             }   
-        },
-        50
-    )  
+    }
     
     
     
@@ -911,7 +908,7 @@ interface DueDateProps{
     completed:Date
 }
  
-class DueDate extends Component<DueDateProps,{}>{
+export class DueDate extends Component<DueDateProps,{}>{
 
     constructor(props){
         super(props); 
@@ -1076,18 +1073,37 @@ interface CheckboxProps{
 
 
 export class Checkbox extends Component<CheckboxProps,{}>{
+    ref:HTMLElement; 
 
     constructor(props){
         super(props); 
     } 
 
+    componentDidMount(){
+        if(this.ref){
+           this.ref["preventDrag"] = true; 
+        }
+    }  
+    
+    componentWillReceiveProps(){
+        if(this.ref){
+           this.ref["preventDrag"] = true; 
+        }
+    }
+
     render(){
-        return <div  
+        return <div    
+            ref={(e) => {this.ref=e;}} 
             onClick = {(e) => {
                 e.stopPropagation(); 
+                e.nativeEvent.stopImmediatePropagation();
                 this.props.onClick();
             }}
-            style={{  
+            onMouseDown= {(e) => { 
+                e.stopPropagation(); 
+                e.nativeEvent.stopImmediatePropagation();
+            }} 
+            style={{   
                 width:"14px",   
                 borderRadius:"3px",  
                 backgroundColor:this.props.checked ? "rgb(32, 86, 184)" : "",
@@ -1101,10 +1117,9 @@ export class Checkbox extends Component<CheckboxProps,{}>{
             { this.props.checked ? <Checked style={{color:"white"}}/> : null }
         </div> 
     }
-
 }
 
-
+ 
 
 interface RestoreButtonProps{
     deleted:boolean,

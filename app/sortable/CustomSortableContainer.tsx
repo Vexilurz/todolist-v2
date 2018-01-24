@@ -283,7 +283,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     init = () => {
 
         let { scrollableContainer, shouldCancelStart, items } = this.props;
-        let dragStartThreshold = 8; 
+        let dragStartThreshold = 15; 
 
 
         let byExceedThreshold = (event:any) => {

@@ -30,12 +30,15 @@ import {
 import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
-import { DeadlineCalendar } from '../ThingsCalendar';
+import { DeadlineCalendar } from '../ThingsCalendar'; 
 import { isNil, compose, allPass, isEmpty } from 'ramda';
 import { Tags } from '../Tags';
 import { TagsPopup } from '../TodoInput/TodoTags';
 import { getProgressStatus } from './ProjectLink';
+
+
 let moment = require("moment");  
+
 
 interface ProjectHeaderProps{
     rootRef:HTMLElement, 
@@ -55,7 +58,6 @@ interface ProjectHeaderProps{
     dispatch:Function   
 }
      
-
   
 interface ProjectHeaderState{
     projectMenuPopoverAnchor:HTMLElement,
@@ -65,7 +67,6 @@ interface ProjectHeaderState{
     showDeadlineCalendar:boolean   
 }
   
-    
 
 export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderState>{
 
@@ -79,7 +80,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         this.state = {
             projectMenuPopoverAnchor:null,
             name:this.props.name,
-            description:this.props.description,
+            description:this.props.description, 
             showDeadlineCalendar:false,
             showTagsPopup:false    
         }

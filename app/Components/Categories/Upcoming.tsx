@@ -13,7 +13,6 @@ import * as Waypoint from 'react-waypoint';
 import { ContainerHeader } from '.././ContainerHeader';
 import { 
     byTags, 
-    getDateFromObject, 
     getDayName, 
     getDatesRange, 
     keyFromDate, 
@@ -27,7 +26,7 @@ import {
     getMonthName,
     isTodo,
 } from '../../utils';  
-import { allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map } from 'ramda';
+import { allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map, flatten, prop } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category } from '../MainContainer';
 let ical = require('ical');
@@ -43,13 +42,13 @@ interface objectsByDate{
 let getIcalData = (url:string) => new Promise( resolve => ical.fromURL( url, {}, (err, data) => resolve(data) ) );
 
 
-let objectsToHashTableByDate = (props:UpcomingProps,events:any[]) : objectsByDate => {
+let objectsToHashTableByDate = (props:UpcomingProps, events:any[]) : objectsByDate => {
      
     let todos : Todo[] = props.todos;
     let projects : Project[] = props.projects; 
 
-    let haveDate = (item : Project | Todo) : boolean => {
-        if(item.type==="project"){ 
+    let haveDate = (item : Project | Todo) : boolean => {  
+        if(item.type==="project"){  
            return not(isNil(item.deadline)); 
         }else if(item.type==="todo"){ 
            return not(isNil(item["attachedDate"])) || not(isNil(item.deadline));
@@ -73,20 +72,54 @@ let objectsToHashTableByDate = (props:UpcomingProps,events:any[]) : objectsByDat
     }
   
     for(let i=0; i<objects.length; i++){
-        let date : Date = getDateFromObject(objects[i]); //attachedDate or Deadline or start
-         
-        if(isNil(date)){ continue }  
 
-        let key : string = keyFromDate(date);
+        let item = objects[i]; 
+        
+        if(item.type==="todo"){  
 
-        if(isNil(objectsByDate[key])){
-           objectsByDate[key] = [objects[i]];
-        }else{
-           objectsByDate[key].push(objects[i]);
-        }
+            if(!isNil(item.attachedDate)){
+                let key : string = keyFromDate(item.attachedDate);
+
+                if(isNil(objectsByDate[key])){
+                    objectsByDate[key] = [objects[i]];
+                }else{
+                    objectsByDate[key].push(objects[i]);
+                }
+            } 
+
+            if(!isNil(item.deadline)){
+                let key : string = keyFromDate(item.deadline);
+
+                if(isNil(objectsByDate[key])){
+                    objectsByDate[key] = [objects[i]];
+                }else{
+                    objectsByDate[key].push(objects[i]);
+                }  
+            } 
+        }else if(item.type==="project"){ 
+
+
+            let key : string = keyFromDate(item.deadline);
+
+            if(isNil(objectsByDate[key])){
+               objectsByDate[key] = [objects[i]];
+            }else{
+               objectsByDate[key].push(objects[i]);
+            }
+        }else if(isDate(item.start)){
+
+
+            let key : string = keyFromDate(item.start);
+
+            if(isNil(objectsByDate[key])){
+               objectsByDate[key] = [objects[i]];
+            }else{
+               objectsByDate[key].push(objects[i]);
+            }
+        } 
     }    
 
-    return objectsByDate;
+    return objectsByDate; 
 }   
 
 
@@ -142,12 +175,17 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     
  
     componentDidMount(){
-        getIcalData("https://www.calendarlabs.com/ical-calendar/ics/76/US_Holidays.ics")
-        .then(compose(map(pair => pair[1]), toPairs)) 
+        Promise.all([
+            getIcalData("https://www.calendarlabs.com/ical-calendar/ics/39/Canada_Holidays.ics"),
+            getIcalData("https://www.calendarlabs.com/ical-calendar/ics/76/US_Holidays.ics")
+        ])
+        .then( map(compose(map(pair => pair[1]), toPairs)) )
+        .then( (events:any[][]) => flatten(events) )  
         .then(
           (events:any[]) =>  this.setState({objects:this.getObjects(this.props,this.n,events),events}) 
         ) 
     }    
+    
     
     
     componentWillReceiveProps(nextProps:UpcomingProps,nextState:UpcomingState){
@@ -164,8 +202,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         }else if(nextProps.selectedTag!==this.props.selectedTag){  
 
             this.setState({objects:this.getObjects(nextProps, this.n, events), enter:1}); 
-
-        }  
+        }   
     } 
 
 
@@ -398,27 +435,64 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             dayName
                         }
                     </div> 
-                </div>  
-
-                <div style={{display:'flex', flexDirection:"column"}}> 
-                    {selectedEvents.map( (event) => event.summary )}
+                </div>   
+                <div style={{
+                    display:'flex', 
+                    flexDirection:"column", 
+                    alignItems:"flex-start", 
+                    justifyContent:"flex-start"
+                }}>  
+                    {
+                        uniq(map((event:any) : string => event.summary, selectedEvents))
+                        .map((summary:string) : JSX.Element => 
+                            <div    
+                                key={summary}
+                                style={{ 
+                                    display:"flex",
+                                    height:"20px",
+                                    paddingTop:"5px", 
+                                    paddingBottom:"5px", 
+                                    alignItems:"center"
+                                }}
+                            >
+                                <div  
+                                    style={{
+                                        paddingRight:"5px",
+                                        height:"100%",
+                                        backgroundColor:"dimgray"
+                                    }}
+                                >
+                                </div>
+                                <div 
+                                    style={{
+                                        fontSize:"14px",
+                                        userSelect:"none",
+                                        cursor:"default",
+                                        paddingLeft:"5px" 
+                                    }}
+                                > 
+                                    {summary}
+                                </div>  
+                            </div>
+                        )
+                    }
                 </div>
- 
                 {
                     scheduledProjects.length===0 ? null :
- 
-                    <div style={{
-                        display:"flex", 
-                        flexDirection:"column", 
-                        width:"100%",
-                        paddingTop : "10px",
-                        paddingBottom : "10px"
-                    }}>    
+                    <div 
+                        style={{
+                            display:"flex", 
+                            flexDirection:"column", 
+                            width:"100%",
+                            paddingTop : "10px",
+                            paddingBottom : "10px"
+                        }}
+                    >    
                         { 
                             scheduledProjects.map(
-                                (p:Project, index:number) : JSX.Element =>
-                                    <div key={p._id}>
-                                        <ProjectLink
+                                (p:Project, index:number) : JSX.Element => {
+                                    return <div key={p._id}>
+                                        <ProjectLink 
                                             dispatch={dispatch}
                                             index={index}
                                             selectedCategory={this.props.selectedCategory as Category}
@@ -427,6 +501,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                             todos={todos}
                                         /> 
                                     </div>
+                                }
                             )     
                         }      
                     </div> 

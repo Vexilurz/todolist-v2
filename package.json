@@ -52,7 +52,7 @@
     "material-ui": "^0.19.4",
     "moment": "^2.19.3",
     "path": "^0.12.7",
-    "pouchdb-browser": "^6.3.4",
+    "pouchdb-browser": "^6.4.2",
     "prop-types": "^15.6.0",
     "ramda": "^0.25.0",
     "random-word": "^2.0.0",

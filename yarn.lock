@@ -883,13 +883,7 @@ bindings@^1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.3.0.tgz#b346f6ecf6a95f5a815c5839fc7cdb22502f1ed7"
 
-bl@^1.0.0:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/bl/-/bl-1.2.1.tgz#cac328f7bee45730d404b692203fcb590e172d5e"
-  dependencies:
-    readable-stream "^2.0.5"
-
-bl@~1.0.0:
+bl@^1.0.0, bl@~1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/bl/-/bl-1.0.3.tgz#fc5421a28fd4226036c3b3891a66a25bc64d226e"
   dependencies:
@@ -1723,7 +1717,7 @@ date-now@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
 
-debug@*, debug@^3.0.0, debug@^3.1.0:
+debug@*, debug@3.1.0, debug@^3.0.0, debug@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
   dependencies:
@@ -1734,12 +1728,6 @@ debug@2.2.0:
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.2.0.tgz#f87057e995b1a1f6ae6a4960664137bc56f039da"
   dependencies:
     ms "0.7.1"
-
-debug@2.6.4:
-  version "2.6.4"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.4.tgz#7586a9b3c39741c0282ae33445c4e8ac74734fe0"
-  dependencies:
-    ms "0.7.3"
 
 debug@^2.1.3, debug@^2.2.0, debug@^2.3.3, debug@^2.6.8:
   version "2.6.8"
@@ -2880,13 +2868,13 @@ inflight@^1.0.4:
     once "^1.3.0"
     wrappy "1"
 
-inherits@2, inherits@2.0.3, inherits@^2.0.1, inherits@^2.0.3, inherits@~2.0.0, inherits@~2.0.1, inherits@~2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.3.tgz#633c2c83e3da42a502f52466022480f4208261de"
-
-inherits@2.0.1:
+inherits@2, inherits@2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.1.tgz#b17d08d326b4423e568eff719f91b0b1cbdf69f1"
+
+inherits@2.0.3, inherits@^2.0.1, inherits@^2.0.3, inherits@~2.0.0, inherits@~2.0.1, inherits@~2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.3.tgz#633c2c83e3da42a502f52466022480f4208261de"
 
 ini@^1.3.4, ini@^1.3.5, ini@~1.3.0:
   version "1.3.5"
@@ -3668,10 +3656,6 @@ ms@0.7.1:
   version "0.7.1"
   resolved "https://registry.yarnpkg.com/ms/-/ms-0.7.1.tgz#9cd13c03adbff25b65effde7ce864ee952017098"
 
-ms@0.7.3:
-  version "0.7.3"
-  resolved "https://registry.yarnpkg.com/ms/-/ms-0.7.3.tgz#708155a5e44e33f5fd0fc53e81d0d40a91be1fff"
-
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
@@ -4427,17 +4411,17 @@ postcss@^6.0.1:
     source-map "^0.6.1"
     supports-color "^4.4.0"
 
-pouchdb-browser@^6.3.4:
-  version "6.3.4"
-  resolved "https://registry.yarnpkg.com/pouchdb-browser/-/pouchdb-browser-6.3.4.tgz#f3d40494d159931b7f96fb9afda8911c47cb9faf"
+pouchdb-browser@^6.4.2:
+  version "6.4.2"
+  resolved "https://registry.yarnpkg.com/pouchdb-browser/-/pouchdb-browser-6.4.2.tgz#48dc34f9cd3b7a268230b9081e0781ec3ad0ea76"
   dependencies:
     argsarray "0.0.1"
-    debug "2.6.4"
+    debug "3.1.0"
     immediate "3.0.6"
     inherits "2.0.3"
     lie "3.1.1"
     spark-md5 "3.0.0"
-    uuid "^3.1.0"
+    uuid "3.2.1"
     vuvuzela "1.0.3"
 
 prebuild-install@^2.3.0:
@@ -5016,7 +5000,7 @@ repeating@^2.0.0:
   dependencies:
     is-finite "^1.0.0"
 
-request@2.68.0:
+request@2.68.0, request@^2.45.0:
   version "2.68.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.68.0.tgz#35fe6a5cd184393a477c95b0725604d822fb9105"
   dependencies:
@@ -5068,7 +5052,7 @@ request@2.81.0:
     tunnel-agent "^0.6.0"
     uuid "^3.0.0"
 
-request@^2.45.0, request@^2.79.0:
+request@^2.79.0:
   version "2.83.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.83.0.tgz#ca0b65da02ed62935887808e6f510381034e3356"
   dependencies:
@@ -5857,11 +5841,11 @@ underscore.string@~2.4.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/underscore.string/-/underscore.string-2.4.0.tgz#8cdd8fbac4e2d2ea1e7e2e8097c42f442280f85b"
 
-underscore@1.4.x:
+underscore@1.4.x, "underscore@>= 1.3.3":
   version "1.4.4"
   resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.4.4.tgz#61a6a32010622afa07963bf325203cf12239d604"
 
-"underscore@>= 1.3.3", underscore@~1.7.0:
+underscore@~1.7.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.7.0.tgz#6bbaf0877500d36be34ecaa584e0db9fef035209"
 
@@ -5998,6 +5982,10 @@ utile@~0.1.7:
     mkdirp "0.x.x"
     ncp "0.2.x"
     rimraf "1.x.x"
+
+uuid@3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.2.1.tgz#12c528bb9d58d0b9265d9a2f6f0fe8be17ff1f14"
 
 uuid@^3.0.0, uuid@^3.1.0:
   version "3.1.0"

@@ -333,9 +333,9 @@ export class Today extends Component<TodayProps,TodayState>{
         let empty = generateEmptyTodo(generateId(), "today", 0);  
 
 
-        let {today} = calculateAmount(areas,projects,todos); 
+        let {today} = calculateAmount(areas,projects,todos);  
 
-        if(isDev() && selectedTag==="All"){    
+        if(isDev() && selectedTag==="All" && items.length>0 && today>0){       
             assert(
              (today)===(items.length-1), 
                `
@@ -386,7 +386,8 @@ export class Today extends Component<TodayProps,TodayState>{
                         tags={tags} 
                         selectedTag={this.props.selectedTag}
                         show={true}  
-                    />   
+                    />    
+                    <TodaySchedule show={true}/>
                 <div   
                     id="todos" 
                     style={{marginBottom: "50px", marginTop:"20px"}} 
@@ -466,12 +467,27 @@ export class TodaySchedule extends Component<TodayScheduleProps,any>{
             <div style={{padding:"10px"}}>
 
                 <div style={{
-                    borderLeft:"4px solid dimgray", 
-                    fontSize:"14px", 
-                    color:"rgba(100,100,100,0.6)"
-                }}> 
-                    {" Paul Martin's Birthday"}
+                    display:"flex",
+                    height:"20px",
+                    alignItems:"center"
+                }}>
+                    <div style={{
+                        paddingRight:"5px",
+                        height:"100%",
+                        backgroundColor:"dimgray"
+                    }}>
+                    </div>
+                    <div style={{
+                        fontSize:"14px",
+                        userSelect:"none",
+                        cursor:"default",
+                        paddingLeft:"5px" 
+                    }}> 
+                        {" Paul Martin's Birthday"}
+                    </div>
                 </div>
+                
+
 
                 <div style={{  
                     fontSize:"14px", 

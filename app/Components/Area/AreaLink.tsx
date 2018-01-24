@@ -78,7 +78,7 @@ export let getAreaLink = (
                         onClick={(e) => restoreArea(a)}  
                         style={{ 
                             display:"flex",
-                            cursor:"pointer",
+                            cursor:"default",
                             alignItems:"center",
                             height:"14px",
                             paddingLeft:"20px",
@@ -88,21 +88,22 @@ export let getAreaLink = (
                         <Restore style={{width:"20px", height:"20px"}}/> 
                     </div>  
                 }  
-
-                <IconButton  
-                    style={{
-                        width:"26px", height:"26px", padding: "0px",
-                        display: "flex", alignItems: "center", justifyContent: "center"
-                    }}    
-                    iconStyle={{color:"lightblue", width:"26px", height:"26px"}}  
-                >    
-                    <NewAreaIcon /> 
-                </IconButton>   
+                <div style={{marginLeft:"15px"}}>
+                    <IconButton  
+                        style={{
+                            width:"26px", height:"26px", padding: "0px",
+                            display: "flex", alignItems: "center", justifyContent: "center"
+                        }}    
+                        iconStyle={{color:"lightblue", width:"26px", height:"26px"}}  
+                    >    
+                        <NewAreaIcon /> 
+                    </IconButton>  
+                </div> 
             </div>
 
             <div style={{
                 fontFamily: "sans-serif",
-                fontSize: "15px",    
+                fontSize: "15px",     
                 cursor: "default",
                 paddingLeft: "5px", 
                 WebkitUserSelect: "none",
