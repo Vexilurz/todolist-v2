@@ -41,8 +41,11 @@ let Hot = (hot:number) : JSX.Element =>
         color: "white"
     }}>   
         <div style={{
-            padding: "2px",
-            width: "100%",
+            paddingTop:"2px",
+            paddingBottom:"2px", 
+            paddingLeft:"5px",
+            paddingRight:"5px",
+            width: "100%",  
             textAlign: "center"  
         }}>
             {hot}

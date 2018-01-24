@@ -9,6 +9,7 @@ body{
   margin : 0; 
 } 
 
+
 *::-webkit-input-placeholder {
   color: rgba(0, 0, 0, 0.4);
 } 
@@ -40,6 +41,11 @@ li{
   margin-right:5px !important;
   margin-top:0px !important;
   margin-bottom:0px !important; 
+}
+
+
+.settingsSection:hover{
+  background-color:rgba(100,100,100,0.1)
 }
 
 .suggestionsList{ 

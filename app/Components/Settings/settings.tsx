@@ -12,7 +12,7 @@ import General from 'material-ui/svg-icons/action/description';
 import Cloud from 'material-ui/svg-icons/file/cloud';   
 import QuickEntry from 'material-ui/svg-icons/content/add-box';  
 import CalendarEvents from 'material-ui/svg-icons/action/date-range';  
-import Siri from 'material-ui/svg-icons/av/mic';     
+import Folder from 'material-ui/svg-icons/file/folder';     
        
 
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
@@ -24,12 +24,13 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx'; 
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
+import { Checkbox } from '../TodoInput/TodoInput';
  
 interface SettingsProps{
 
 }
 
-type section = 'General' | 'Cloud' | 'QuickEntry' | 'CalendarEvents' | 'Siri';
+type section = 'General' | 'Cloud' | 'QuickEntry' | 'CalendarEvents' | 'DataFolder';
  
 interface SettingsState{
     section:section
@@ -47,31 +48,59 @@ export class Settings extends Component<SettingsProps,SettingsState>{
     render(){
         let {section} = this.state;
         let height = window.innerHeight/2;
-        let width = window.innerWidth/2;
-        let title = ``;
+        let width = window.innerWidth/1.5;
+        let title =  {
+            'General' : 'General',
+            'Cloud' : 'Cloud',
+            'QuickEntry' : 'Quick Entry',
+            'CalendarEvents' : 'Calendar Events',
+            'DataFolder' : 'Data folder'
+        }[section]
 
-        return <div style={{display:"flex", flexDirection:"column", height:height, width:width}}>
-            <div style={{height:"30%", width:"100%"}}>
+
+        return <div style={{
+            display:"flex", 
+            flexDirection:"column", 
+            height:height, 
+            width:width,
+            borderRadius:"20px",
+            backgroundColor:"white",
+            boxShadow:"0 0 18px rgba(0,0,0,0.5)", 
+        }}>
+            <div style={{
+                height: "30%",
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "column",
+                background: "-webkit-linear-gradient(top, #eeeeee 0%,#cccccc 100%)"
+            }}>
                 <div style={{
-                    height:"20%", 
-                    width:"100%", 
-                    display:"flex", 
-                    alignItems:"center"
+                    height: "20%",
+                    width: "100%",
+                    display: "flex",
+                    fontWeight: "bold",
+                    alignItems: "center",
+                    color: "rgba(10,10,10,0.8)",
+                    justifyContent: "center",
+                    cursor: "default"  
                 }}>
                     {title} 
-                </div>
+                </div> 
  
-                <div style={{display:"flex", justifyContent:"space-between", width:"100%"}}>
+                <div style={{ 
+                    display:"flex",
+                    justifyContent:"space-around",
+                    alignItems:"center", 
+                    width:"80%", 
+                    height:"80%"
+                }}>
                     <Section  
                         onClick={() => this.setState({section:'General'})} 
                         icon={<General style={{color:"dimgray", height:40, width:40}}/>}
                         name={'General'}
-                    />
-                    <Section
-                        onClick={() => this.setState({section:'Cloud'})} 
-                        icon={<Cloud style={{color:"rgba(10,50,240,0.8)", height:40, width:40}}/>}
-                        name={'Cloud'}
-                    />
+                    /> 
                     <Section
                         onClick={() => this.setState({section:'QuickEntry'})} 
                         icon={<QuickEntry style={{color:"rgba(100,100,100,0.8)", height:40, width:40}}/>}
@@ -83,20 +112,25 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         name={'Calendar Events'}
                     />
                     <Section
-                        onClick={() => this.setState({section:'Siri'})} 
-                        icon={<Siri style={{color:"rgba(10,10,10,0.8)", height:40, width:40}}/>}
-                        name={'Siri'} 
+                        onClick={() => this.setState({section:'DataFolder'})} 
+                        icon={<Folder style={{color:"rgba(10,10,10,0.8)", height:40, width:40}}/>}
+                        name={'Data folder'} 
                     /> 
                 </div>    
             </div>
-            <div style={{height:"70%", width:"100%"}}>
+            <div style={{
+                height:"70%", 
+                width:"100%",
+                cursor:"default",  
+                backgroundColor:"rgba(200,200,200,0.3)"
+            }}>
                 {
                     {
                         General : <GeneralSettings />,
                         Cloud : <CloudSettings />, 
                         QuickEntry : <QuickEntrySettings />, 
                         CalendarEvents : <CalendarEventsSettings />, 
-                        Siri : <SiriSettings />
+                        DataFolder : <DataFolderSettings />
                     }[section] 
                 }
             </div>
@@ -115,26 +149,34 @@ interface SectionProps{
 class Section extends Component<SectionProps,{}>{
 
     render(){
-        let {icon,name,onClick} = this.props;
-        
-        return <div style={{
-            display:'flex', 
-            flexDirection:"column", 
-            alignItems:"center", 
-            justifyContent:"center"
-        }}>
+
+        let {icon, name, onClick} = this.props;
+         
+        return <div  
+            className="settingsSection"
+            onClick={() => onClick()}
+            style={{
+                display:'flex', 
+                flexDirection:"column", 
+                alignItems:"center", 
+                minWidth:"80px",
+                height:"80px",
+                justifyContent:"center", 
+                cursor:"pointer"  
+            }}
+        >
             <div style={{
-                display:"flex",
-                alignItems:"center",   
-                justifyContent:"center"
-            }}>
+              display:"flex",
+              alignItems:"center",   
+              justifyContent:"center"
+            }}> 
                 {icon}
             </div>
             <div style={{
-                color:"black", fontWeight:"bold", fontSize:"16px", 
-                width:"100%", display:"flex", alignItems:"center",
-                justifyContent:"center"
-            }}> 
+                color:"black", fontSize:"14px", whiteSpace:"nowrap",  
+                display:"flex", alignItems:"center", justifyContent:"center", 
+                textAlign:"center"
+            }}>   
                 {name}
             </div>
         </div>
@@ -156,28 +198,102 @@ class GeneralSettings extends Component<GeneralSettingsProps,GeneralSettingsStat
     }
 
     render(){
-        return <div> </div>
+        return <div style={{
+            display:"flex", 
+            flexDirection:"column", 
+            height:"100%",
+            justifyContent:"space-around" 
+        }}>
+
+
+
+            <div style={{display:"flex", height:"50%", width:"100%"}}>
+
+                <div style={{ 
+                    display:"flex", alignItems:"flex-end",  
+                    width:"50%", flexDirection:"column",
+                    justifyContent:"space-around", fontSize:"14px" 
+                }}>      
+                    <div>Move completed items to Logbook:</div>
+                    <div>Dock count:</div>  
+                </div>   
+
+                <div style={{  
+                    display:"flex", alignItems:"flex-start", 
+                    width:"50%", flexDirection:"column",
+                    justifyContent:"space-around" 
+                }}> 
+                    <div style={{paddingLeft:"20px"}}>     
+                        <select 
+                            style={{
+                                backgroundColor:"white",
+                                outline:"none",
+                                borderRadius:"4px"
+                            }}  
+                            name="text" 
+                            value={"immediately"}
+                            onChange={(event) => this.setState({})}  
+                        >  
+                            <option value="immediately">Immediately</option> 
+                        </select>   
+                    </div>
+
+                    <div style={{paddingLeft:"20px"}}>
+                        <select   
+                            style={{
+                                backgroundColor:"white",
+                                outline:"none",
+                                borderRadius:"4px"
+                            }}  
+                            name="text"
+                            value={"duetoday"}
+                            onChange={(event) => this.setState({})}  
+                        >   
+                            <option value="duetoday">Due + Today</option> 
+                        </select>
+                    </div>  
+                </div>
+            </div>
+
+
+
+            <div 
+                style={{
+                    outline:"none",
+                    position:"relative",
+                    width:"100%",
+                    borderBottom:"1px solid rgba(100,100,100,0.2)"
+                }}
+            >
+            </div> 
+
+
+            <div style={{
+                width:"100%", 
+                display:"flex",  
+                height:"50%",
+                flexDirection:"column", 
+                justifyContent:"space-around"
+            }}> 
+                <div style={{display:"flex",alignItems:"center", paddingLeft:"30px"}}>
+                    <Checkbox
+                        checked={false}
+                        onClick={() => {}} 
+                    />
+                    <div style={{paddingLeft:"10px"}}>Group to-dos in the Today list by project or area</div>
+                </div> 
+
+                <div style={{display:"flex",alignItems:"center", paddingLeft:"30px"}}>
+                    <Checkbox
+                        checked={true} 
+                        onClick={() => {}} 
+                    />
+                    <div style={{paddingLeft:"10px"}}>Preserve window width when resizing sidebar</div>
+                </div>
+            </div> 
+        </div>
     }
-}
-
-
-
-
-interface CloudSettingsProps{}
-
-interface CloudSettingsState{}
-
-class CloudSettings extends Component<CloudSettingsProps,CloudSettingsState>{
-
-    constructor(props){
-        super(props);
-    }
-
-    render(){
-        return <div> </div>
-    }
-}
-
+} 
 
 
 
@@ -192,10 +308,66 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
     }
 
     render(){
-        return <div> </div>
-    }
-}
+        return <div style={{
+            height:"100%",
+            display:"flex",
+            flexDirection:"column",
+            alignItems:"flex-start",
+            justifyContent:"space-around"
+        }}>
 
+            <div style={{width:"100%"}}>
+                <div style={{display:"flex",alignItems:"center", paddingLeft:"30px"}}>
+                    <Checkbox
+                        checked={false}
+                        onClick={() => {}} 
+                    />
+                    <div style={{paddingLeft:"10px"}}>Enable shortcut for Quick Entry</div>
+                </div> 
+                <div style={{
+                    paddingLeft:"55px",
+                    fontSize:"13px",
+                    width:"80%",
+                    color:"rgba(100,100,100,0.9)",
+                    cursor:"default" 
+                }}>
+                    The Quick Entry window lets you enter new to-dos into Things from anywhere
+                    without having to switch applications. Use the keyboard shortcut to make 
+                    the window appear.
+                </div>
+            </div>
+
+            <div 
+                style={{
+                    width:"350px",
+                    display:"flex",
+                    fontSize:"15px",
+                    color:"rgba(10,10,10,0.8)",
+                    fontWeight:"bold", 
+                    justifyContent:"space-around",
+                    paddingLeft:"25px" 
+                }}   
+            > 
+                <div>Quick Entry saves to</div>
+ 
+                <select   
+                    style={{
+                        backgroundColor:"white",
+                        outline:"none",
+                        borderRadius:"4px"
+                    }}  
+                    name="text" 
+                    value={"inbox"}
+                    onChange={(event) => this.setState({})}  
+                >   
+                    <option value="inbox">Inbox</option> 
+                </select>
+
+                <div>by default</div>
+            </div>
+        </div>
+    }   
+}
 
 
 
@@ -210,18 +382,53 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
     }
 
     render(){
-        return <div> </div>
+        return <div style={{paddingTop:"20px"}}>
+            <div style={{display:"flex", alignItems:"center", paddingLeft:"30px"}}>
+                <Checkbox
+                    checked={false}
+                    onClick={() => {}} 
+                />
+                <div style={{paddingLeft:"10px"}}>Show Calendar Events in Today and Upcoming lists</div>
+            </div>  
+
+            <div style={{
+                display:"flex", 
+                paddingLeft:"40px",
+                paddingRight:"40px",
+                paddingTop:"20px",
+                flexDirection:"column"
+            }}>  
+                {
+                    ["Home", "Work", "Birthdays","Facebook Events"]
+                    .map(
+                        (name,index) => <div 
+                            style={{
+                                display:"flex", 
+                                alignItems:"center", 
+                                padding:"10px",  
+                                backgroundColor:index%2 ? "white" : "rgba(200,200,200,0.5)"
+                            }}
+                        >  
+                            <Checkbox
+                                checked={false}   
+                                onClick={() => {}} 
+                            />
+                            <div style={{paddingLeft:"10px"}}>{name}</div>
+                        </div> 
+                    )
+                }
+            </div> 
+        </div>
     }
 }
 
-
  
 
-interface SiriSettingsProps{}
+interface DataFolderProps{}
 
-interface SiriSettingsState{}
+interface DataFolderState{}
 
-class SiriSettings extends Component<SiriSettingsProps,SiriSettingsState>{
+class DataFolderSettings extends Component<DataFolderProps,DataFolderState>{
 
     constructor(props){
         super(props);
@@ -230,4 +437,21 @@ class SiriSettings extends Component<SiriSettingsProps,SiriSettingsState>{
     render(){
         return <div> </div>
     } 
+}
+
+
+
+interface CloudSettingsProps{} 
+
+interface CloudSettingsState{} 
+
+class CloudSettings extends Component<CloudSettingsProps,CloudSettingsState>{
+
+    constructor(props){
+        super(props);
+    }
+
+    render(){
+        return <div> </div>
+    }
 }
