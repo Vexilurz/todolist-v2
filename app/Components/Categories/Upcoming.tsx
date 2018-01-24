@@ -27,10 +27,10 @@ import {
     getMonthName,
     isTodo,
 } from '../../utils';  
-import { allPass, uniq, isNil, compose, not, last, isEmpty } from 'ramda';
+import { allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category } from '../MainContainer';
-  
+let ical = require('ical');
 
 type Item = Project | Todo;
  
@@ -40,7 +40,10 @@ interface objectsByDate{
 }  
 
 
-let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
+let getIcalData = (url:string) => new Promise( resolve => ical.fromURL( url, {}, (err, data) => resolve(data) ) );
+
+
+let objectsToHashTableByDate = (props:UpcomingProps,events:any[]) : objectsByDate => {
      
     let todos : Todo[] = props.todos;
     let projects : Project[] = props.projects; 
@@ -60,8 +63,9 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
         byNotDeleted  
     ];       
 
-    let objects = [...todos, ...projects].filter(i => allPass(filters)(i)); 
- 
+    let items = [...todos, ...projects].filter(i => allPass(filters)(i)); 
+    let objects = [...items,...events];
+    
     let objectsByDate : objectsByDate = {};
 
     if(objects.length===0){ 
@@ -69,8 +73,8 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
     }
   
     for(let i=0; i<objects.length; i++){
-        let date : Date = getDateFromObject(objects[i]); //attachedDate or Deadline
-
+        let date : Date = getDateFromObject(objects[i]); //attachedDate or Deadline or start
+         
         if(isNil(date)){ continue }  
 
         let key : string = keyFromDate(date);
@@ -106,7 +110,8 @@ interface UpcomingProps{
 
 interface UpcomingState{
     objects : {date:Date, todos:Todo[], projects:Project[]}[],
-    enter : number
+    enter : number,
+    events : any[]
 }
 
 
@@ -118,45 +123,57 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     constructor(props){
         super(props);
         this.n = 15; 
-        this.state = {objects:[], enter:1}; 
+        this.state = {objects:[], enter:1, events:[]}; 
     }  
     
     onError = (e) => console.log(e);
 
-    getObjects = (props:UpcomingProps,n:number) : {
+    getObjects = (props:UpcomingProps,n:number,events:any[]) : { 
         date: Date;
-        todos: Todo[];
+        todos: Todo[]; 
         projects: Project[];
+        events: any[]
     }[] => { 
-        let objectsByDate = objectsToHashTableByDate(props);
+        let objectsByDate = objectsToHashTableByDate(props,events);
         let range = getDatesRange(new Date(), n, true, true); 
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
         return objects;
     }
     
+ 
     componentDidMount(){
-        this.setState({objects:this.getObjects(this.props,this.n)}); 
-    }  
+        getIcalData("https://www.calendarlabs.com/ical-calendar/ics/76/US_Holidays.ics")
+        .then(compose(map(pair => pair[1]), toPairs)) 
+        .then(
+          (events:any[]) =>  this.setState({objects:this.getObjects(this.props,this.n,events),events}) 
+        ) 
+    }    
     
-    componentWillReceiveProps(nextProps:UpcomingProps){
-        if(
+    
+    componentWillReceiveProps(nextProps:UpcomingProps,nextState:UpcomingState){
+        let {events} = nextState;
+
+        if( 
             nextProps.projects!==this.props.projects ||
             nextProps.todos!==this.props.todos ||
             nextProps.areas!==this.props.areas 
         ){
+            
+            this.setState({objects:this.getObjects(nextProps, this.n * this.state.enter, events)});
 
-            this.setState({objects:this.getObjects(nextProps,this.n * this.state.enter)});
+        }else if(nextProps.selectedTag!==this.props.selectedTag){  
 
-        }else if(nextProps.selectedTag!==this.props.selectedTag){
-
-            this.setState({objects:this.getObjects(nextProps,this.n), enter:1}); 
+            this.setState({objects:this.getObjects(nextProps, this.n, events), enter:1}); 
 
         }  
     } 
 
+
     onEnter = ({ previousPosition, currentPosition }) => { 
-        let objectsByDate = objectsToHashTableByDate(this.props);
+        let objectsByDate = objectsToHashTableByDate(this.props,this.state.events);
         let from = last(this.state.objects);
+
+        if(isNil(from)){ return }
 
         assert(isDate(from.date), `from.date is not Date. ${JSON.stringify(from)}. onEnter.`);
 
@@ -170,7 +187,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     generateCalendarObjectsFromRange = ( 
         range:Date[], 
         objectsByDate:objectsByDate   
-    ) : {date:Date, todos:Todo[], projects:Project[]}[] => {
+    ) : {date:Date, todos:Todo[], projects:Project[], events:any[]}[] => {
 
         let objects = [];
 
@@ -179,7 +196,8 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             let object = {
                 date : range[i], 
                 todos : [], 
-                projects : [] 
+                projects : [],
+                events : [] 
             }
  
             let key : string = keyFromDate(range[i]);
@@ -190,7 +208,8 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             }else{
                object.todos = entry.filter((el:Todo) => el.type==="todo"); 
                object.projects = entry.filter((el:Project) => el.type==="project"); 
-               objects.push(object);
+               object.events = entry.filter((el:any) => isDate(el.start)); 
+               objects.push(object); 
             }
         } 
          
@@ -199,7 +218,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
 
     objectToComponent = (
-        object : { date : Date, todos:Todo[], projects:Project[] }, 
+        object : { date : Date, todos:Todo[], projects:Project[], events : any[] }, 
         idx:number
     ) : JSX.Element => {
 
@@ -210,7 +229,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         return <div  style={{WebkitUserSelect:"none"}} key={idx}>
 
             { 
-                not(showMonth) ? null :
+                not(showMonth) ? null : 
                 <div 
                     style={{
                         WebkitUserSelect: "none", 
@@ -231,6 +250,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 searched={this.props.searched}
                 dayName={getDayName(object.date)}
                 selectedTodos={object.todos} 
+                selectedEvents={object.events}
                 todos={this.props.todos}
                 areas={this.props.areas}
                 scheduledProjects={object.projects}  
@@ -305,6 +325,7 @@ interface CalendarDayProps{
     areas:Area[], 
     searched:boolean, 
     selectedTodos:Todo[],
+    selectedEvents:any[],
     todos:Todo[], 
     dispatch:Function, 
     selectedTodoId:string,
@@ -330,7 +351,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
         let {
             selectedTodos,todos,scheduledProjects,
-            day,idx,dayName,dispatch
+            day,idx,dayName,dispatch,selectedEvents
         } = this.props; 
 
         return <div style={{
@@ -378,6 +399,11 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         }
                     </div> 
                 </div>  
+
+                <div style={{display:'flex', flexDirection:"column"}}> 
+                    {selectedEvents.map( (event) => event.summary )}
+                </div>
+ 
                 {
                     scheduledProjects.length===0 ? null :
  
@@ -388,17 +414,19 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         paddingTop : "10px",
                         paddingBottom : "10px"
                     }}>    
-                        {
+                        { 
                             scheduledProjects.map(
                                 (p:Project, index:number) : JSX.Element =>
-                                    <ProjectLink
-                                        dispatch={dispatch}
-                                        index={index}
-                                        selectedCategory={this.props.selectedCategory as Category}
-                                        project={p}
-                                        simple={true}
-                                        todos={todos}
-                                    /> 
+                                    <div key={p._id}>
+                                        <ProjectLink
+                                            dispatch={dispatch}
+                                            index={index}
+                                            selectedCategory={this.props.selectedCategory as Category}
+                                            project={p}
+                                            simple={true}
+                                            todos={todos}
+                                        /> 
+                                    </div>
                             )     
                         }      
                     </div> 

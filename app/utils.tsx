@@ -1272,25 +1272,22 @@ export let isToday = (date : Date) => {
 
 
 export let getDateFromObject = (i) : Date => {
-    if(i.type!=="todo" && i.type!=="project"){
-        if(isDev()){ 
-           throw new Error(`Input value have incorrect type. ${i}. getDateFromObject.`);
-        }
-    }
-
-    assert(
-        i.type==="todo" || i.type==="project", 
-        `items is not of type project or todo ${JSON.stringify(i)}`
-    );
 
     if(i.type==="todo"){ 
+
         if(!isNil(i.attachedDate)){
            return i.attachedDate; 
         }else if(!isNil(i.deadline)){
            return i.deadline;  
         } 
+
     }else if(i.type==="project"){ 
+
         return i.deadline;
+
+    }else if(isDate(i.start)){
+
+        return i.start;
     } 
 }
 
