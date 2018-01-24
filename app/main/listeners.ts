@@ -81,6 +81,28 @@ let onCloneWindow = (event, store, spawnedWindows:BrowserWindow[]) : void => {
 
 
 
+let selectFolder = () : Promise<string> =>
+    new Promise(
+        (resolve,reject) => {
+
+            dialog.showOpenDialog( 
+                mainWindow,
+                { 
+                    title:`Select data folder`,
+                    buttonLabel:'Select',
+                    properties:['openDirectory']
+                },  
+                (value) => {
+
+                    if(value)   
+                       resolve(value[0]); 
+                    else
+                       resolve(undefined);
+                }
+            ); 
+        }   
+    );  
+
 
 
 
@@ -113,8 +135,12 @@ export class Listeners{
             { 
                 name : "action", 
                 callback : (event, action : any, id : number) => onAction(event,action,id,this.spawnedWindows)
-            }
-        ];    
+            },
+            {
+                name:"folder",
+                callback : (event) => selectFolder().then((path:string) => event.sender.send("folder", {foldername:path}))  
+            }, 
+        ];     
       
         this.startToListenOnAllChannels(); 
     } 

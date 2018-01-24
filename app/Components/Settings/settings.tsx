@@ -6,7 +6,7 @@ import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
 import { Provider, connect } from "react-redux";
 import ClearArrow from 'material-ui/svg-icons/content/backspace';  
-
+import FlatButton from 'material-ui/FlatButton';
 
 import General from 'material-ui/svg-icons/action/description';   
 import Cloud from 'material-ui/svg-icons/file/cloud';   
@@ -18,7 +18,7 @@ import Folder from 'material-ui/svg-icons/file/folder';
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { remove, isNil, not } from 'ramda';
+import { remove, isNil, not, isEmpty } from 'ramda';
 let uniqid = require("uniqid");    
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx'; 
@@ -30,7 +30,7 @@ interface SettingsProps{
 
 }
 
-type section = 'General' | 'Cloud' | 'QuickEntry' | 'CalendarEvents' | 'DataFolder';
+type section = 'General' | 'QuickEntry' | 'CalendarEvents' | 'DataFolder';
  
 interface SettingsState{
     section:section
@@ -95,39 +95,42 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     alignItems:"center", 
                     width:"80%", 
                     height:"80%"
-                }}>
+                }}> 
                     <Section  
                         onClick={() => this.setState({section:'General'})} 
                         icon={<General style={{color:"dimgray", height:40, width:40}}/>}
                         name={'General'}
+                        selected={section==='General'}
                     /> 
                     <Section
                         onClick={() => this.setState({section:'QuickEntry'})} 
                         icon={<QuickEntry style={{color:"rgba(100,100,100,0.8)", height:40, width:40}}/>}
                         name={'Quick Entry'}
+                        selected={section==='QuickEntry'}
                     />
                     <Section
                         onClick={() => this.setState({section:'CalendarEvents'})} 
                         icon={<CalendarEvents style={{color:"rgba(150,10,10,0.8)", height:40, width:40}}/>}
                         name={'Calendar Events'}
+                        selected={section==='CalendarEvents'}
                     />
                     <Section
                         onClick={() => this.setState({section:'DataFolder'})} 
                         icon={<Folder style={{color:"rgba(10,10,10,0.8)", height:40, width:40}}/>}
                         name={'Data folder'} 
-                    /> 
-                </div>    
+                        selected={section==='DataFolder'}
+                    />  
+                </div>     
             </div>
             <div style={{
                 height:"70%", 
-                width:"100%",
+                width:"100%", 
                 cursor:"default",  
                 backgroundColor:"rgba(200,200,200,0.3)"
             }}>
                 {
                     {
                         General : <GeneralSettings />,
-                        Cloud : <CloudSettings />, 
                         QuickEntry : <QuickEntrySettings />, 
                         CalendarEvents : <CalendarEventsSettings />, 
                         DataFolder : <DataFolderSettings />
@@ -138,25 +141,27 @@ export class Settings extends Component<SettingsProps,SettingsState>{
     }
 }
 
-
+ 
 
 interface SectionProps{
     onClick:() => void,
     icon:JSX.Element,
-    name:string
+    name:string,
+    selected:boolean
 }
 
 class Section extends Component<SectionProps,{}>{
 
     render(){
 
-        let {icon, name, onClick} = this.props;
-         
+        let {icon, name, onClick, selected} = this.props;
+          
         return <div  
-            className="settingsSection"
+            className={selected ? '' : "settingsSection"}
             onClick={() => onClick()}
             style={{
                 display:'flex', 
+                backgroundColor:selected ? "rgba(100,100,100,0.1)" : '',
                 flexDirection:"column", 
                 alignItems:"center", 
                 minWidth:"80px",
@@ -395,13 +400,14 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
                 display:"flex", 
                 paddingLeft:"40px",
                 paddingRight:"40px",
-                paddingTop:"20px",
+                paddingTop:"20px", 
                 flexDirection:"column"
             }}>  
                 {
                     ["Home", "Work", "Birthdays","Facebook Events"]
                     .map(
                         (name,index) => <div 
+                            key={name}
                             style={{
                                 display:"flex", 
                                 alignItems:"center", 
@@ -424,34 +430,76 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
 
  
 
+let selectFolder = () => new Promise(
+    resolve => { 
+        ipcRenderer.removeAllListeners("folder");  
+        ipcRenderer.send("folder");
+        ipcRenderer.on("folder", (event,data) => {
+            let {foldername} = data;
+            resolve(foldername)
+        })
+    } 
+)
+
+
+
 interface DataFolderProps{}
 
-interface DataFolderState{}
+interface DataFolderState{
+    folder:string
+}
 
 class DataFolderSettings extends Component<DataFolderProps,DataFolderState>{
 
     constructor(props){
         super(props);
+        this.state={ 
+            folder:'...'
+        };  
     }
 
-    render(){
-        return <div> </div>
-    } 
+    onSelectFolder = () => selectFolder().then(
+        (folder:string) => isNil(folder) ? null : 
+                           isEmpty(folder) ? null :
+                           this.setState({folder})
+    )
+      
+    render(){  
+        let {folder} = this.state;
+
+        return <div
+            style={{
+                display:"flex",
+                alignItems:"center",
+                justifyContent:"center",
+                height:"50%"
+            }}
+        >   
+            <div style={{  
+                width:"80%",
+                display:"flex",
+                alignItems:"center",
+                justifyContent:"space-around"  
+            }}>
+                <div style={{
+                    backgroundColor:"white",
+                    color:"rgba(100, 100, 100, 0.9)",
+                    minWidth:"200px",
+                    alignItems:"center",
+                    display:"flex",
+                    justifyContent:"center",
+                    height:"30px",
+                    paddingLeft:"5px",
+                    borderRadius:"4px",
+                    paddingRight:"5px",
+                    border:"1px solid rgba(100,100,100,0.3)"
+                }}>           
+                   {folder}
+                </div>
+                <FlatButton onClick={this.onSelectFolder} label="Select" />
+            </div>
+        </div>
+    }   
 }
 
 
-
-interface CloudSettingsProps{} 
-
-interface CloudSettingsState{} 
-
-class CloudSettings extends Component<CloudSettingsProps,CloudSettingsState>{
-
-    constructor(props){
-        super(props);
-    }
-
-    render(){
-        return <div> </div>
-    }
-}
