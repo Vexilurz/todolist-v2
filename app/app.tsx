@@ -18,7 +18,7 @@ import { Provider, connect } from "react-redux";
 import './assets/fonts/index.css'; 
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer, Category } from './Components/MainContainer';
-import { Project, Area, Todo, removeProject, addProject, removeArea, updateProject, addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, removeProjects, updateAreas, updateProjects, addTodos } from './database';
+import { Project, Area, Todo, removeProject, addProject, removeArea, updateProject, addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, removeProjects, updateAreas, updateProjects, addTodos, Calendar } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
 import { TodoInputPopup } from './Components/TodoInput/TodoInputPopup';
@@ -187,7 +187,7 @@ export let initListeners = (props:AppProps) : void => {
         "action", 
         (event, action:{type:string, kind:string, load:any}) => { 
 
-            if(not(clone)){ return }  //TODO
+            if(not(clone)){ return }  
 
             dispatch(assoc("load", transformLoadDates(action.load), action));      
         }
@@ -352,10 +352,10 @@ export interface Store{
     rightClickMenuX : number,
     rightClickMenuY : number,
     windowId : number,
-    calendars : ({url:string,active:boolean,events:any[]})[]
+    calendars : Calendar[],
     projects : Project[],
     areas : Area[], 
-    todos : Todo[],
+    todos : Todo[], 
     tags : string[],
     clone? : boolean,
     dispatch? : Function

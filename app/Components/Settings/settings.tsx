@@ -27,6 +27,8 @@ import { Subscription } from 'rxjs/Rx';
 import { Checkbox } from '../TodoInput/TodoInput';
 import { attachDispatchToProps, getIcalData, isString, debounce } from '../../utils';
 import { Store } from '../../app';
+import { generateId, Calendar } from '../../database';
+import { isDate } from 'util';
 
 //https://www.calendarlabs.com/ical-calendar/ics/76/US_Holidays.ics
 //https://www.calendarlabs.com/ical-calendar/ics/55/Jewish_Holidays.ics
@@ -389,9 +391,7 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
 
 
 
-interface CalendarEventsSettingsProps extends Store{
-    
-}
+interface CalendarEventsSettingsProps extends Store{}
 
 interface CalendarEventsSettingsState{
     url:string,
@@ -415,17 +415,18 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
 
 
     onUrlSubmit = (e) => {
-        let {url,error} = this.state;
-        let {calendars,dispatch} = this.props;
+        let { url, error } = this.state;
+        let { calendars, dispatch } = this.props;
         let urls = calendars.map( c => c.url );
-
+ 
         if(isEmpty(url)){ return null }
         if(contains(url)(urls)){ return null }
 
         getIcalData(url)
         .then(
            (result:any) => { 
-               
+                let msg = "404 Page Not Found";
+                
                 if(isNil(result)){ return null }
 
                 if(result.name==="Error"){  
@@ -433,9 +434,33 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
                    return null;  
                 }
                 
-                let events = compose(map(pair => pair[1]), toPairs)(result);
+                let events = compose(map(pair => pair[1]), toPairs)(result) as any[]; 
 
-                dispatch({type:'addCalendar', load:{ url, active:true, events }})
+                if(isEmpty(events)){
+                    this.setState({error:'Calendar empty.'});
+                    return null;  
+                }
+
+                for(let i=0; i<events.length; i++){
+                    if(!isNil(events[i])){
+                        if(typeof events[i].includes==="function"){
+                            if(events[i].includes(msg)){ 
+                               this.setState({error:msg});
+                               return null;    
+                            }  
+                        }
+                    } 
+                } 
+
+                if( !isDate(events[0].start) ){
+                    this.setState({error:'Invalid data type.'});
+                    return null; 
+                }   
+
+                
+                let calendar : Calendar = { _id:generateId(), url, active:true, events, type:"calendar" };
+
+                dispatch({type:'addCalendar', load:calendar})
 
                 this.setState({url:'', error:''});
             } 
@@ -443,24 +468,24 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
     } 
     
 
-    onItemCheck = (calendar:{url:string,active:boolean,events:any[]}) : void => {
-        let {dispatch} = this.props;
+    onItemCheck = debounce(
+        (calendar:Calendar) : void => {
+            let {dispatch} = this.props;
 
-        dispatch({
-          type:"updateCalendar",
-          load:{ ...calendar, active:!calendar.active }
-        });  
-    }   
-
+            dispatch({
+                type:"updateCalendar",
+                load:{ ...calendar, active:!calendar.active }
+            });  
+        }, 
+        50
+    )     
+ 
 
     onShowCalendarEvents = debounce(
         (e) => {
             let {showCalendarEvents,dispatch} = this.props;
 
-            dispatch({
-                type:"showCalendarEvents", 
-                load:!showCalendarEvents
-            });
+            dispatch({type:"showCalendarEvents", load:!showCalendarEvents});
         },
         50
     ) 
@@ -558,7 +583,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
                             </div>
                         </div> 
                     )
-                }
+                } 
             </div> 
         </div>
     }

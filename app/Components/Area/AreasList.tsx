@@ -537,7 +537,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         let {project, selectedProjectId, selectedCategory, todos} = this.props;
         let selected = project._id===selectedProjectId && selectedCategory==="project";
         let {done, left} = getProgressStatus(project,todos);
-          
+
         return <li  
             style={{WebkitUserSelect:"none",width:"100%"}}  
             key={this.props.index}
@@ -549,14 +549,14 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                 id = {this.props.project._id}
                 className={selected ? "" : "leftpanelmenuitem"}  
                 style={{     
-                    borderRadius: this.state.highlight || selected ? "5px" : "0px", 
-                    backgroundColor: this.state.highlight ? "rgba(0,200,0,0.3)" :
-                                     selected ? "rgba(228,230,233,1)" : 
-                                     "",   
-                    height:"25px",  
-                    paddingLeft:"4px", 
-                    display:"flex",
-                    alignItems:"center" 
+                  borderRadius: this.state.highlight || selected ? "5px" : "0px", 
+                  backgroundColor: this.state.highlight ? "rgba(0,200,0,0.3)" :
+                                   selected ? "rgba(228,230,233,1)" : 
+                                   "",   
+                  height:"25px",  
+                  paddingLeft:"4px",   
+                  display:"flex",
+                  alignItems:"center"  
                 }} 
             >     
                     <div style={{    
@@ -582,14 +582,14 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                                 animate={false}    
                                 totalValue={done+left}
                                 data={[{     
-                                    value:done,  
+                                    value:done,   
                                     key:1,    
                                     color:"rgba(159, 159, 159, 1)" 
                                 }]}    
-                                style={{ 
+                                style={{   
                                     color:"rgba(159, 159, 159, 1)",
-                                    width:"12px", 
-                                    height:"12px",
+                                    width:12,   
+                                    height:12,
                                     position:"absolute",
                                     display:"flex",
                                     alignItems:"center",

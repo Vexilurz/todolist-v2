@@ -4,7 +4,8 @@ import {
     Project, Area, Todo, removeProject, generateId, addProject, 
     removeArea, updateProject, addTodo, updateArea, updateTodo, 
     addArea, removeTodo, removeAreas, removeTodos, removeProjects, 
-    updateAreas, updateProjects, addTodos, addProjects, addAreas, updateTodos, addCalendar 
+    updateAreas, updateProjects, addTodos, addProjects, addAreas, 
+    updateTodos, addCalendar, Calendar, updateCalendar 
 } from './database';
 import { 
     getTagsFromItems, defaultTags, removeDeletedProjects, 
@@ -30,50 +31,42 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
             (action:{ 
                 type:string,
-                load:{ 
-                  url:string,
-                  active:boolean,
-                  events:any[]
-                }[]
+                load:Calendar[]
             }):Store => ({...state, calendars:action.load})
         ],  
 
         [  
             (action:{type:string}) : boolean => "addCalendar"===action.type,  
 
-            (action:{ 
-                type:string,
-                load:{ 
-                  url:string,
-                  active:boolean,
-                  events:any[]
-                }
-            }):Store => { 
+            (action:{type:string,load:Calendar}):Store => { 
+
                 if(shouldAffectDatabase){
-                    addCalendar(onError,action.load);
-                }
+                   addCalendar(onError,action.load);
+                }  
 
                 return {...state, calendars:[action.load,...state.calendars]};
             }
         ],   
-        
+         
         [ 
             (action:{type:string}) : boolean => "updateCalendar"===action.type,  
 
             (action:{ 
                 type:string,
-                load:{ 
-                  url:string,
-                  active:boolean,
-                  events:any[]
-                }
+                load:Calendar
             }):Store => { 
                 let calendars = [...state.calendars];
                 let idx = calendars.findIndex(c => c.url===action.load.url);
 
                 assert(idx!==-1, `calendar does not exist.updateCalendar.${JSON.stringify(action.load)}`);
            
-                return {...state, calendars:adjust(() => action.load, idx, calendars)};
+                if(shouldAffectDatabase){
+                   updateCalendar(action.load._id, action.load, onError)
+                }  
+
+                calendars[idx] = action.load;
+                    
+                return {...state, calendars:[...calendars]};
             }
         ],  
 

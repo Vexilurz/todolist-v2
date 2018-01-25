@@ -15,7 +15,7 @@ import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects, 
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, 
     removeProject, destroyEverything, addArea, addProject, generateId, addTodos, 
-    addProjects, addAreas, Heading, LayoutItem, getCalendars, CalendarItem } from '.././database';
+    addProjects, addAreas, Heading, LayoutItem, getCalendars, Calendar} from '.././database';
 import { Store, isDev, convertDates, convertTodoDates, convertProjectDates, convertAreaDates } from '.././app';   
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import { AreaComponent } from './Area/Area';
@@ -129,12 +129,15 @@ export class MainContainer extends Component<Store,MainContainerState>{
     rootRef:HTMLElement; 
     limit:number;
     subscriptions:Subscription[]; 
+    events:number;  
       
     constructor(props){
 
         super(props);  
 
         this.limit = 100000;
+
+        this.events = null; 
 
         this.subscriptions = [];
 
@@ -186,7 +189,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         }
     }
 
-
+    
     updateLeftPanelWidth = () => {
         this.props.dispatch({type:"leftPanelWidth", load:window.innerWidth/3.7})
     } 
@@ -198,10 +201,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
         if(clone){ return }
          
         getCalendars(this.onError)(true,this.limit)
-        .then((calendars:CalendarItem[]) => updateCalendars(calendars))
-        .then((calendars:CalendarItem[]) => dispatch({type:"setCalendars", load:calendars})) 
+        .then((calendars:Calendar[]) => updateCalendars(calendars))
+        .then((calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars})) 
    
-
+        
         getTodos(this.onError)(true,this.limit)
         .then((todos:Todo[]) => todos.map(convertTodoDates))
         .then((todos:Todo[]) => dispatch({type:"setTodos", load:todos}))
@@ -216,10 +219,26 @@ export class MainContainer extends Component<Store,MainContainerState>{
         .then((areas:Area[]) => areas.map(convertAreaDates))
         .then((areas:Area[]) => dispatch({type:"setAreas", load:areas}))  
     } 
-        
     
-    componentDidMount(){
+    
+    refreshEvents = () => {
+        let {calendars, dispatch} = this.props;
 
+        console.log("update calendar events");
+
+        updateCalendars(calendars)
+        .then( 
+            (calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars})
+        )  
+    }
+
+    
+    componentDidMount(){ 
+
+        let delay = 1000 * 5 * 60;
+        
+        this.events = setInterval(this.refreshEvents,delay) as any;
+ 
         let resize = Observable
                     .fromEvent(window,"resize")
                     .debounceTime(100) 
@@ -230,11 +249,15 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     .debounceTime(100)
                     .subscribe(this.closeRightClickMenu);
         
+
         this.subscriptions.push(resize,click);
     }      
      
 
     componentWillUnmount(){ 
+
+        if(this.events){ clearInterval(this.events) }
+
         this.subscriptions.map( s => s.unsubscribe() );
     }  
       
@@ -335,6 +358,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 rootRef={this.rootRef}
                                 todos={this.props.todos}
                                 tags={this.props.tags}
+                                showCalendarEvents={this.props.showCalendarEvents}
                                 calendars={this.props.calendars}
                             />,
   
@@ -351,8 +375,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 rootRef={this.rootRef}
                                 todos={this.props.todos}
                                 tags={this.props.tags} 
+                                showCalendarEvents={this.props.showCalendarEvents}
                                 calendars={this.props.calendars}
-                            />,
+                            />, 
 
                             upcoming : <Upcoming 
                                 dispatch={this.props.dispatch}
@@ -367,6 +392,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedTag={this.props.selectedTag}
                                 tags={this.props.tags} 
                                 rootRef={this.rootRef}
+                                showCalendarEvents={this.props.showCalendarEvents}
                                 calendars={this.props.calendars} 
                             />,  
  

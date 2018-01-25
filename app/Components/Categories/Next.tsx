@@ -193,7 +193,8 @@ export class Next extends Component<NextProps, NextState>{
         this.todosFilters = [
             (t:Todo) => not(isToday(t.attachedDate)) && not(isToday(t.deadline)),
             (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
-            byNotCompleted, 
+            (t:Todo) => t.category!=="inbox",  
+            byNotCompleted,  
             byNotDeleted 
         ];
     }

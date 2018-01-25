@@ -36,7 +36,10 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
-import { getTodos, queryToTodos, Todo, updateTodo, generateId, Project, Area, removeTodos, removeProjects, removeAreas, updateProjects, updateTodos, updateAreas, Heading, LayoutItem, CalendarItem } from './database';
+import { 
+    getTodos, queryToTodos, Todo, updateTodo, generateId, Project, Area, 
+    removeTodos, removeProjects, removeAreas, updateProjects, updateTodos, 
+    updateAreas, Heading, LayoutItem, Calendar } from './database';
 import { Category } from './Components/MainContainer';
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 let moment = require("moment");
@@ -157,8 +160,7 @@ export let keyFromDate = (date:Date) : string => {
     let year = date.getFullYear();
     let day = date.getDate(); 
     let month = date.getMonth();
-    return [year,month+1,day].join('-');
-         
+    return [year,month+1,day].join('-'); 
 }
 
 
@@ -176,12 +178,12 @@ export let getIcalData = (url:string) => new Promise(
 );
 
  
-export let updateCalendars = (calendars:CalendarItem[]) : Promise<CalendarItem[]> => {
+export let updateCalendars = (calendars:Calendar[]) : Promise<Calendar[]> => {
     return Promise.all(
         calendars.map(
-            (c:CalendarItem) => getIcalData(c.url)
-                                .then(compose(map(pair => pair[1]), toPairs)) 
-                                .then((events:any[]) : CalendarItem => ({...c,events}))    
+            (c:Calendar) => getIcalData(c.url)
+                            .then(compose(map(pair => pair[1]), toPairs)) 
+                            .then((events:any[]) : Calendar => ({...c,events}))    
         )
     )
 }

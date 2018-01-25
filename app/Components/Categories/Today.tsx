@@ -7,11 +7,14 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, generateEmptyTodo, isToday, daysRemaining, isTodo, assert, makeChildrensVisible, hideChildrens, generateDropStyle, arrayMove 
+    chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, generateEmptyTodo, isToday, daysRemaining, isTodo, assert, makeChildrensVisible, hideChildrens, generateDropStyle, arrayMove, keyFromDate 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area, generateId, CalendarItem } from '../../database';
+import { 
+    queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, 
+    Project, Area, generateId, Calendar
+} from '../../database'; 
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
@@ -37,6 +40,7 @@ import { TodoInput } from '../TodoInput/TodoInput';
 import { Category } from '../MainContainer';
 import { SortableContainer } from '../../sortable/CustomSortableContainer';
 import { calculateAmount } from '../LeftPanel/LeftPanel';
+import { isDate } from 'util';
  
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map((item,index:number) => assoc("priority",index,item)) 
@@ -108,12 +112,13 @@ class ThisEveningSeparator extends Component<{},{}>{
 
 interface TodayProps{  
     dispatch:Function,
+    showCalendarEvents:boolean,  
     selectedTodoId:string,
     selectedProjectId:string, 
     selectedAreaId:string, 
     selectedCategory:string,  
     areas:Area[],
-    calendars:CalendarItem[],  
+    calendars:Calendar[],  
     searched:boolean, 
     projects:Project[],
     selectedTag:string,
@@ -155,8 +160,10 @@ export class Today extends Component<TodayProps,TodayState>{
             this.props.selectedTag!==nextProps.selectedTag ||
             this.props.rootRef!==nextProps.rootRef ||
             this.props.todos!==nextProps.todos ||
-            this.props.tags!==nextProps.tags
-        ){ 
+            this.props.tags!==nextProps.tags ||
+            this.props.showCalendarEvents!==nextProps.showCalendarEvents ||
+            this.props.calendars!==nextProps.calendars
+        ){   
             return true
         }
 
@@ -329,7 +336,7 @@ export class Today extends Component<TodayProps,TodayState>{
 
     render(){
          
-        let { todos, selectedTag, areas, projects } = this.props;
+        let { todos, selectedTag, areas, projects, calendars, showCalendarEvents } = this.props;
         let { items, tags } = this.getItems();
         let empty = generateEmptyTodo(generateId(), "today", 0);  
 
@@ -344,7 +351,7 @@ export class Today extends Component<TodayProps,TodayState>{
                  items : ${items.length}; 
                  today : ${today}; 
                `
-            );   
+            );    
         }
 
         let decorators = [{  
@@ -352,7 +359,32 @@ export class Today extends Component<TodayProps,TodayState>{
             decorator:generateDropStyle("nested"),
             id:"default"
         }];    
+
+        let events = [];
+
+        if(showCalendarEvents){
+
+            let todayKey : string = keyFromDate(new Date()); 
+
+            calendars 
+            .filter((calendar:Calendar) => calendar.active)
+            .forEach( 
+                (calendar:Calendar) => {
+                    let selected : any[] = calendar.events.filter( 
+                        (event:any) : boolean => 
+                            isNil(event) ? false :
+                            not(isDate(event.start)) ? false :
+                            todayKey===keyFromDate(event.start)
+                    );
+
+                    if(!isEmpty(selected)){
+                        events.push(...selected); 
+                    }; 
+                } 
+            ) 
+        }
          
+
         return <div style={{
             disaply:"flex", 
             flexDirection:"column"
@@ -387,8 +419,8 @@ export class Today extends Component<TodayProps,TodayState>{
                         tags={tags} 
                         selectedTag={this.props.selectedTag}
                         show={true}  
-                    />    
-                    <TodaySchedule show={true}/>
+                    />     
+                    <TodaySchedule show={showCalendarEvents} events={events}/>  
                 <div   
                     id="todos" 
                     style={{marginBottom: "50px", marginTop:"20px"}} 
@@ -439,18 +471,20 @@ export class Today extends Component<TodayProps,TodayState>{
 
 
 interface TodayScheduleProps{
-    show:boolean  
+    show:boolean,
+    events:string[]  
 }
 
-export class TodaySchedule extends Component<TodayScheduleProps,any>{
+export class TodaySchedule extends Component<TodayScheduleProps,{}>{
 
     constructor(props){
         super(props);
     }
 
     render(){
+        let {show, events} = this.props;
 
-        return !this.props.show ? null : 
+        return not(show) ? null : 
         <div style={{paddingTop:"20px"}}>   
             <div style={{          
                 display:"flex",
@@ -460,30 +494,33 @@ export class TodaySchedule extends Component<TodayScheduleProps,any>{
                 width:"100%",
                 fontFamily: "sans-serif", 
                 height:"auto"
-            }}>  
-                <div style={{padding:"10px"}}>
-                    <div style={{
-                        display:"flex",
-                        height:"20px",
-                        alignItems:"center"
-                    }}>
+            }}>{
+                events.map(  
+                    (event) => 
+                    <div style={{padding:"10px"}}>
                         <div style={{
-                            paddingRight:"5px",
-                            height:"100%", 
-                            backgroundColor:"dimgray"
+                            display:"flex",
+                            height:"20px",
+                            alignItems:"center"
                         }}>
+                            <div style={{
+                                paddingRight:"5px",
+                                height:"100%", 
+                                backgroundColor:"dimgray"
+                            }}>
+                            </div>
+                            <div style={{
+                                fontSize:"14px",
+                                userSelect:"none",
+                                cursor:"default",
+                                paddingLeft:"5px" 
+                            }}>   
+                                {event}
+                            </div>
                         </div>
-                        <div style={{
-                            fontSize:"14px",
-                            userSelect:"none",
-                            cursor:"default",
-                            paddingLeft:"5px" 
-                        }}> 
-                            {" Paul Martin's Birthday"}
-                        </div>
-                    </div>
-                </div> 
-            </div>
+                    </div> 
+                ) 
+            }</div>
         </div>
     }   
 }

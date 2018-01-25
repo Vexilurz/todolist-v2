@@ -7,7 +7,7 @@ import { Provider, connect } from "react-redux";
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
 import { TodosList } from '../../Components/TodosList';
-import { Todo,Project, Area, CalendarItem } from '../../database';
+import { Todo,Project, Area, Calendar } from '../../database';
 let moment = require("moment");
 import * as Waypoint from 'react-waypoint';
 import { ContainerHeader } from '.././ContainerHeader';
@@ -41,11 +41,9 @@ interface objectsByDate{
 
 
 let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
-     
-    let todos : Todo[] = props.todos;
-    let projects : Project[] = props.projects; 
-    let events : any[] = flatten(props.calendars.map( (c:CalendarItem) => c.events ));
- 
+    
+    let {showCalendarEvents,todos,projects,calendars} = props;
+
     let haveDate = (item : Project | Todo) : boolean => {  
         if(item.type==="project"){  
            return not(isNil(item.deadline)); 
@@ -62,24 +60,30 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
     ];       
 
     let items = [...todos, ...projects].filter(i => allPass(filters)(i)); 
-    let objects = [...items,...events];
     
+    if(showCalendarEvents){
+        calendars
+        .filter((c:Calendar) => c.active)
+        .forEach((c:Calendar) => items.push(...c.events))
+    }
+
     let objectsByDate : objectsByDate = {};
 
-    if(objects.length===0){ 
+
+    if(items.length===0){  
        return {objectsByDate:[],tags:[]};
     }
   
-    for(let i=0; i<objects.length; i++){
-
-        let item = objects[i]; 
+    for(let i=0; i<items.length; i++){
+        
+        let item = items[i] as any; 
         let keys = [];
         
         if(isDate(item.attachedDate)){
             keys.push(keyFromDate(item.attachedDate));
         }   
 
-        if(isDate(item.deadline)){
+        if(isDate(item.deadline)){ 
             keys.push(keyFromDate(item.deadline));
         } 
 
@@ -87,12 +91,13 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
             keys.push(keyFromDate(item.start));
         } 
 
-        uniq(keys).map( 
+        uniq(keys)
+        .map(  
             (key:string) => {
                 if(isNil(objectsByDate[key])){
-                    objectsByDate[key] = [objects[i]];
+                    objectsByDate[key] = [items[i]];
                 }else{
-                    objectsByDate[key].push(objects[i]);
+                    objectsByDate[key].push(items[i]);
                 }
             } 
         )
@@ -105,11 +110,12 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
 
 interface UpcomingProps{
     dispatch:Function,
+    showCalendarEvents:boolean,
     selectedTodoId:string,
     selectedCategory:string, 
     searched:boolean, 
     todos:Todo[],
-    calendars:CalendarItem[], 
+    calendars:Calendar[], 
     projects:Project[], 
     selectedAreaId:string,
     selectedProjectId:string, 
@@ -162,8 +168,9 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             nextProps.projects!==this.props.projects ||
             nextProps.todos!==this.props.todos ||
             nextProps.areas!==this.props.areas ||
-            nextProps.calendars!==this.props.calendars
-        ){
+            nextProps.calendars!==this.props.calendars ||
+            nextProps.showCalendarEvents!==this.props.showCalendarEvents
+        ){       
             
             this.setState({objects:this.getObjects(nextProps, this.n * this.state.enter)});
 
@@ -234,7 +241,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         return <div  style={{WebkitUserSelect:"none"}} key={idx}>
 
             { 
-                not(showMonth) ? null : 
+                not(showMonth) ? null :  
                 <div 
                     style={{
                         WebkitUserSelect: "none", 

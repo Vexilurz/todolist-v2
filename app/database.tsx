@@ -38,13 +38,15 @@ Date.prototype["addDays"] = function(days){
 
  
 
-export type ObjectType = "heading" | "project" | "todo" | "area"; 
+export type ObjectType = "heading" | "project" | "todo" | "area" | "calendar"; 
 
-export interface CalendarItem{
-  url:string,
+export interface Calendar{
+  url:string, 
   active:boolean,
-  events:any[]
-} 
+  events:any[],
+  type:ObjectType, 
+  _id:string
+}  
 
 
  
@@ -575,10 +577,23 @@ export let addTodo = (onError:Function, todo : Todo) : Promise<void> => {
 
 
 
-export let addCalendar = (onError:Function, calendar:CalendarItem) : Promise<void> => {
-  return setItemToDatabase<CalendarItem>((e) => console.log(e),calendars_db)(calendar);
+export let addCalendar = (onError:Function, calendar:Calendar) : Promise<void> => {
+  return setItemToDatabase<Calendar>(
+    (e) => console.log(e),
+    calendars_db
+  )(calendar);
 }
  
+
+export let updateCalendar = (_id:string, replacement:Calendar, onError:Function) : Promise<Calendar> => {
+  return updateItemInDatabase<Calendar>(  
+    () => {},
+    (e) => console.log(e), 
+    calendars_db
+  )(_id, replacement);    
+}
+
+
 
 export let addTodos = (onError:Function, todos : Todo[]) : Promise<void> => {
 
@@ -653,17 +668,17 @@ let debounce = (fun, mil=50) => {
 export let updateTodo = debounce(
     (_id : string, replacement : Todo, onError:Function) : Promise<Todo> => {
 
-          assert(isTodo(replacement), `Input value is not of type Todo ${JSON.stringify(replacement)}. updateTodo.`);
+      assert(isTodo(replacement), `Input value is not of type Todo ${JSON.stringify(replacement)}. updateTodo.`);
 
-          return updateItemInDatabase<Todo>(  
-            () => {},
-            (e) => console.log(e), 
-            todos_db
-          )(_id, replacement);    
+      return updateItemInDatabase<Todo>(  
+        () => {},
+        (e) => console.log(e), 
+        todos_db
+      )(_id, replacement);    
     },
     50
 )  
- 
+  
 
 
 export let getTodos = (onError:Function) => (descending,limit) : Promise<Todo[]> => {
@@ -680,9 +695,9 @@ export let getTodos = (onError:Function) => (descending,limit) : Promise<Todo[]>
 
 
 
-export let getCalendars = (onError:Function) => (descending,limit) : Promise<CalendarItem[]> => {
+export let getCalendars = (onError:Function) => (descending,limit) : Promise<Calendar[]> => {
 
-  return getItems<CalendarItem>(
+  return getItems<Calendar>(
     onError, 
     calendars_db
   )( 
@@ -709,7 +724,7 @@ export let removeTodos = (todos : Todo[]) : Promise<any[]> => {
     todos_db
   )(todos.map( t => ({...t, _deleted: true}) ))
   
-}    
+}     
 
 
 
@@ -720,18 +735,16 @@ export let updateTodos = (todos : Todo[], onError : Function) : Promise<any[]> =
       throw new Error(`Not all input values are of type Todo ${JSON.stringify(todos)}. updateTodos.`);
     }
   } 
-  
   return updateItemsInDatabase<Todo>( 
     (db, value) => console.log(db,value), 
     (e) => console.log(e),
     todos_db       
   )(todos)
-
 } 
   
 
 
-export let queryToCalendars = (query:Query<CalendarItem>) : CalendarItem[] => queryToObjects<CalendarItem>(query); 
+export let queryToCalendars = (query:Query<Calendar>) : Calendar[] => queryToObjects<Calendar>(query); 
 
 export let queryToTodos = (query:Query<Todo>) : Todo[] => queryToObjects<Todo>(query); 
 
