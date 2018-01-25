@@ -210,13 +210,15 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }   
  
 
-    onFieldsContainerClick = () => {        
+    onFieldsContainerClick = (e) => {    
+        console.log("onFieldsContainerClick") 
+        e.stopPropagation();     
         this.preventDragOfThisItem();
         if(!this.state.open){  
             this.setState({ 
                 open:true, 
                 showAdditionalTags:false 
-            });    
+            });     
         }
     }  
      
@@ -684,7 +686,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     paddingBottom:padding, 
                     caretColor:"cornflowerblue",   
                     display:"flex"
-                }}     
+                }}        
                 onClick={this.onFieldsContainerClick} 
             >          
             <div style={{display:"flex", flexDirection:"column",  padding:"2px", width:"100%"}}>

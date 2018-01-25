@@ -226,8 +226,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         this.deltaX=0;
         this.deltaY=0;
 
-        this.scroll=null;
-
+        this.scroll=null; 
         this.decorator=null;
 
         this.initial = {
@@ -237,7 +236,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             initialRect:null
         }
     }
-
+    
 
     onError = (error) => console.log(error)
 
@@ -283,17 +282,19 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     init = () => {
 
         let { scrollableContainer, shouldCancelStart, items } = this.props;
-        let dragStartThreshold = 15; 
+        let dragStartThreshold = 5; 
 
 
         let byExceedThreshold = (event:any) => {
             let { initialX,initialY, initialIndex } = this.initial;
+
             let x = Math.abs(event.clientX-initialX);
             let y = Math.abs(event.clientY-initialY);
 
             let canStartDrag = y > dragStartThreshold || x > dragStartThreshold;
 
-            return canStartDrag;     
+            return !canStartDrag;    
+            //skipWhile -> Skip emitted items from source until provided expression is false...    
         }
            
          
@@ -325,7 +326,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                                         .skipWhile(byExceedThreshold)
                                         .takeUntil(dragEnd) 
                             }
-                        }
+                        } 
                                     
                     )    
                     .subscribe(this.onDragMove, this.onError);   
@@ -339,7 +340,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     onDragStart = (event:any) : void => {
        let { selectElements, items, onSortStart } = this.props; 
        let initialIndex = this.initial.initialIndex;
-        
+
        let nodes = getNodes(this.ref); //collect children
 
        let indices : number[] = selectElements(initialIndex,items); //get indices of target elements

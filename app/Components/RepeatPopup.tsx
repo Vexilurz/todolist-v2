@@ -148,12 +148,6 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         let load = repeatTodo(this.state, todo, group);
              
 
-        console.log(`
-            state : ${JSON.stringify(this.state)}  
-            todo : ${JSON.stringify(todo)}
-        `);
-        
-
         this.props.dispatch({type:"addTodos", load});
         this.props.dispatch({type:"updateTodo", load:{...todo, group} }); 
         this.close();
@@ -250,7 +244,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         }}> 
             <div style={{
                 padding:"10px",
-                height:"300px",
+                height:"250px",
                 justifyContent:"space-between",
                 display:"flex",
                 flexDirection:"column"
@@ -267,7 +261,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     justifyContent:"flex-start"
                 }}
             >
-                Custom repeat
+                Repeat task
             </div>
  
             <div style={{display:"flex", alignItems:"center"}}>
@@ -301,8 +295,10 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     <option value="month"> Month </option>
                     <option value="year"> Year </option>
                 </select>   
-            </div>  
+            </div>   
 
+
+            {/*       
             <div style={{display:"flex", flexDirection:"column", width:"100%"}}>
                 <div style={{fontSize:"14px"}}>Repeat on</div> 
                 
@@ -337,6 +333,8 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                 }
                 </div>
             </div>
+            */} 
+
 
             <div style={{
                 height:"100px",
