@@ -6,16 +6,17 @@ import { ipcRenderer, remote } from 'electron';
 import IconButton from 'material-ui/IconButton';  
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, debounce, byTags, byCategory, generateEmptyTodo, isArray, isTodo, isProject, isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos, assert 
+    attachDispatchToProps, uppercase, insideTargetArea, getIcalData,
+    chooseIcon, debounce, byTags, byCategory, generateEmptyTodo, isArray, isTodo, isProject, 
+    isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos, assert, updateCalendars
 } from "../utils";  
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects, 
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, 
     removeProject, destroyEverything, addArea, addProject, generateId, addTodos, 
-    addProjects, addAreas, Heading, LayoutItem } from '.././database';
-import { Store, isDev, convertDates } from '.././app';   
+    addProjects, addAreas, Heading, LayoutItem, getCalendars, CalendarItem } from '.././database';
+import { Store, isDev, convertDates, convertTodoDates, convertProjectDates, convertAreaDates } from '.././app';   
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import { AreaComponent } from './Area/Area';
 import { ProjectComponent } from './Project/Project';
@@ -29,15 +30,15 @@ import { Inbox } from './Categories/Inbox';
 import { QuickSearch } from './Search';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { generateRandomDatabase } from '../generateRandomObjects';
-import { isEmpty, last, isNil, contains, all, not, assoc } from 'ramda';
+import { isEmpty, last, isNil, contains, all, not, assoc, flatten, toPairs, map, compose } from 'ramda';
 import { isString } from 'util';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
-import { Subscriber } from "rxjs/Subscriber";
+import { Subscriber } from "rxjs/Subscriber"; 
 import { Subscription } from 'rxjs/Rx';
 import { RightClickMenu } from './RightClickMenu';
 import { RepeatPopup } from './RepeatPopup';
- 
+let ical = require('ical');    
  
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | "deadline"; 
@@ -116,7 +117,11 @@ export let createHeading = (e, props:Store) : void => {
         props.dispatch({ type:"updateProject", load });
 }
 
-   
+
+
+
+
+
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
 export class MainContainer extends Component<Store,MainContainerState>{
@@ -185,26 +190,33 @@ export class MainContainer extends Component<Store,MainContainerState>{
     updateLeftPanelWidth = () => {
         this.props.dispatch({type:"leftPanelWidth", load:window.innerWidth/3.7})
     } 
-    
+
 
     fetchData = () => { 
+        let {clone,dispatch} = this.props;
         
-        if(this.props.clone){ return }
+        if(clone){ return }
+         
+        getCalendars(this.onError)(true,this.limit)
+        .then((calendars:CalendarItem[]) => updateCalendars(calendars))
+        .then((calendars:CalendarItem[]) => dispatch({type:"setCalendars", load:calendars})) 
+   
 
-        Promise.all([  
-            getTodos(this.onError)(true,this.limit),
-            getProjects(this.onError)(true,this.limit), 
-            getAreas(this.onError)(true,this.limit)
-        ])
-        .then(convertDates) 
-        .then(
-            ([todos, projects, areas]) => this.props.dispatch({ 
-                    type:"setAllTypes", 
-                    load:{todos,projects,areas}
-            })  
-        ) 
+        getTodos(this.onError)(true,this.limit)
+        .then((todos:Todo[]) => todos.map(convertTodoDates))
+        .then((todos:Todo[]) => dispatch({type:"setTodos", load:todos}))
+
+
+        getProjects(this.onError)(true,this.limit)
+        .then((projects:Project[]) => projects.map(convertProjectDates))
+        .then((projects:Project[]) => dispatch({type:"setProjects", load:projects}))
+
+
+        getAreas(this.onError)(true,this.limit)
+        .then((areas:Area[]) => areas.map(convertAreaDates))
+        .then((areas:Area[]) => dispatch({type:"setAreas", load:areas}))  
     } 
-     
+        
     
     componentDidMount(){
 
@@ -323,6 +335,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 rootRef={this.rootRef}
                                 todos={this.props.todos}
                                 tags={this.props.tags}
+                                calendars={this.props.calendars}
                             />,
   
                             evening : <Today 
@@ -337,7 +350,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedTag={this.props.selectedTag}
                                 rootRef={this.rootRef}
                                 todos={this.props.todos}
-                                tags={this.props.tags}
+                                tags={this.props.tags} 
+                                calendars={this.props.calendars}
                             />,
 
                             upcoming : <Upcoming 
@@ -353,6 +367,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 selectedTag={this.props.selectedTag}
                                 tags={this.props.tags} 
                                 rootRef={this.rootRef}
+                                calendars={this.props.calendars} 
                             />,  
  
                             logbook : <Logbook   

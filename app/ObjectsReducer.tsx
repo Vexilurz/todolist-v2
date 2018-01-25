@@ -4,13 +4,13 @@ import {
     Project, Area, Todo, removeProject, generateId, addProject, 
     removeArea, updateProject, addTodo, updateArea, updateTodo, 
     addArea, removeTodo, removeAreas, removeTodos, removeProjects, 
-    updateAreas, updateProjects, addTodos, addProjects, addAreas, updateTodos 
+    updateAreas, updateProjects, addTodos, addProjects, addAreas, updateTodos, addCalendar 
 } from './database';
 import { 
     getTagsFromItems, defaultTags, removeDeletedProjects, 
     removeDeletedAreas, removeDeletedTodos, Item, ItemWithPriority, byNotDeleted, isTodo, assert 
 } from './utils';
-import { adjust, cond, equals, all, clone, isEmpty, contains, not, remove } from 'ramda';
+import { adjust, cond, equals, all, clone, isEmpty, contains, not, remove, uniq } from 'ramda';
 
 let onError = (e) => {
     console.log(e); 
@@ -24,6 +24,115 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
  
     newState = cond([  
+
+        [ 
+            (action:{type:string}) : boolean => 'setCalendars'===action.type,  
+
+            (action:{ 
+                type:string,
+                load:{ 
+                  url:string,
+                  active:boolean,
+                  events:any[]
+                }[]
+            }):Store => ({...state, calendars:action.load})
+        ],  
+
+        [  
+            (action:{type:string}) : boolean => "addCalendar"===action.type,  
+
+            (action:{ 
+                type:string,
+                load:{ 
+                  url:string,
+                  active:boolean,
+                  events:any[]
+                }
+            }):Store => { 
+                if(shouldAffectDatabase){
+                    addCalendar(onError,action.load);
+                }
+
+                return {...state, calendars:[action.load,...state.calendars]};
+            }
+        ],   
+        
+        [ 
+            (action:{type:string}) : boolean => "updateCalendar"===action.type,  
+
+            (action:{ 
+                type:string,
+                load:{ 
+                  url:string,
+                  active:boolean,
+                  events:any[]
+                }
+            }):Store => { 
+                let calendars = [...state.calendars];
+                let idx = calendars.findIndex(c => c.url===action.load.url);
+
+                assert(idx!==-1, `calendar does not exist.updateCalendar.${JSON.stringify(action.load)}`);
+           
+                return {...state, calendars:adjust(() => action.load, idx, calendars)};
+            }
+        ],  
+
+
+
+        [ 
+            (action:{type:string}) : boolean => "setTodos"===action.type,  
+
+            (action:{
+                type:string,
+                load:Todo[]
+            }) : Store => ({  
+                ...state,
+                todos : action.load,
+                tags : uniq([   
+                    ...state.tags,
+                    ...defaultTags, 
+                    ...getTagsFromItems(action.load)
+                ])
+            })
+        ], 
+
+
+        [ 
+            (action:{type:string}) : boolean => "setProjects"===action.type,  
+
+            (action:{
+                type:string, 
+                load:Project[]
+            }) : Store => ({  
+                ...state,
+                projects : action.load,
+                tags : uniq([  
+                    ...state.tags,
+                    ...defaultTags, 
+                    ...getTagsFromItems(action.load)
+                ])
+            })
+        ], 
+
+        [ 
+            (action:{type:string}) : boolean => "setAreas"===action.type,  
+
+            (action:{
+                type:string,
+                load:Area[]
+            }) : Store => ({  
+                ...state,
+                areas : action.load,
+                tags : uniq([  
+                    ...state.tags,
+                    ...defaultTags, 
+                    ...getTagsFromItems(action.load)
+                ])
+            })
+        ], 
+
+
+
         [ 
             (action:{type:string}) : boolean => "setAllTypes"===action.type,  
 

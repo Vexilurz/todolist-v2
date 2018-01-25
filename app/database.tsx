@@ -10,20 +10,20 @@ import { isNil, all } from 'ramda';
 import { isDev } from './app';
 let uniqid = require("uniqid"); 
 let path = require('path');
- 
   
  
 let todos_db;
 let projects_db; 
 let areas_db;
+let calendars_db;
  
  
 export let initDB = () => { 
+  calendars_db = new PouchDB('calendars'); 
   todos_db = new PouchDB('todos');   
   projects_db = new PouchDB('projects');
   areas_db = new PouchDB('areas'); 
 } 
-
 
    
 initDB(); 
@@ -40,7 +40,13 @@ Date.prototype["addDays"] = function(days){
 
 export type ObjectType = "heading" | "project" | "todo" | "area"; 
 
- 
+export interface CalendarItem{
+  url:string,
+  active:boolean,
+  events:any[]
+} 
+
+
  
 export interface Heading{
   title : string, 
@@ -154,7 +160,6 @@ function queryToObjects<T>(query:Query<T>){
     }
 
     return docs;
-
 };
 
 
@@ -166,7 +171,6 @@ function setItemToDatabase<T>(
   return function(item:T) : Promise<void>{
 
       return db.put(item).catch(onError);
-
   }  
 }  
  
@@ -179,7 +183,6 @@ function setItemsToDatabase<T>(
   return function(items:T[]) : Promise<void>{
 
     return db.bulkDocs(items).catch(onError); 
- 
   }  
 }  
  
@@ -197,7 +200,6 @@ export function removeObject<T>(
       onError, 
       db 
     )(_id, {_deleted: true})
-
   }  
 }  
 
@@ -210,7 +212,6 @@ function getItemFromDatabase<T>(
   return function(_id:string) : Promise<T>{
         
     return db.get(_id).catch(onError);  
- 
   }
 } 
 
@@ -562,9 +563,9 @@ export let updateProjects = (projects : Project[], onError : Function) : Promise
 export let addTodo = (onError:Function, todo : Todo) : Promise<void> => {
 
       if(todo.type!=="todo"){  
-        if(isDev()){ 
-           throw new Error(`Input value is not of type Todo ${JSON.stringify(todo)}. addTodo.`);
-        }
+         if(isDev()){ 
+            throw new Error(`Input value is not of type Todo ${JSON.stringify(todo)}. addTodo.`);
+         }
       }    
   
       return setItemToDatabase<Todo>((e) => console.log(e),todos_db)(todo);
@@ -572,6 +573,12 @@ export let addTodo = (onError:Function, todo : Todo) : Promise<void> => {
 }
  
 
+
+
+export let addCalendar = (onError:Function, calendar:CalendarItem) : Promise<void> => {
+  return setItemToDatabase<CalendarItem>((e) => console.log(e),calendars_db)(calendar);
+}
+ 
 
 export let addTodos = (onError:Function, todos : Todo[]) : Promise<void> => {
 
@@ -604,6 +611,16 @@ export let removeTodo = (_id:string) : Promise<void> => {
         todos_db
       )(_id); 
 
+}
+ 
+
+export let removeCalendar = (_id:string) : Promise<void> => {
+
+      return removeObject<string>(
+        () => {},
+        (e) => console.log(e), 
+        calendars_db
+      )(_id); 
 }
    
 
@@ -663,6 +680,20 @@ export let getTodos = (onError:Function) => (descending,limit) : Promise<Todo[]>
 
 
 
+export let getCalendars = (onError:Function) => (descending,limit) : Promise<CalendarItem[]> => {
+
+  return getItems<CalendarItem>(
+    onError, 
+    calendars_db
+  )( 
+    descending,
+    limit 
+  ).then(queryToCalendars)
+
+}
+
+
+
 export let removeTodos = (todos : Todo[]) : Promise<any[]> => {
 
   if(!all( t => t.type==="todo", todos)){  
@@ -697,15 +728,10 @@ export let updateTodos = (todos : Todo[], onError : Function) : Promise<any[]> =
   )(todos)
 
 } 
-
-
-
-
-
-
-
   
 
+
+export let queryToCalendars = (query:Query<CalendarItem>) : CalendarItem[] => queryToObjects<CalendarItem>(query); 
 
 export let queryToTodos = (query:Query<Todo>) : Todo[] => queryToObjects<Todo>(query); 
 
@@ -718,6 +744,15 @@ export let queryToAreas = (query:Query<Area>) : Area[] => queryToObjects<Area>(q
 export let destroyEverything = () : Promise<void[]> => 
 
   Promise.all([ 
+
+      new PouchDB('calendars')
+      .destroy()
+      .then(function () {
+        // database destroyed
+      })
+      .catch(function (err) {
+        // error occurred
+      }), 
 
       new PouchDB('todos')
       .destroy()

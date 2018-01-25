@@ -8,6 +8,14 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
    
        switch(action.type){ 
 
+            case "showCalendarEvents":
+                newState = { 
+                    ...state,
+                    showCalendarEvents : action.load,
+                };  
+                break;
+ 
+
             case "openSettings":
                 newState = { 
                     ...state,

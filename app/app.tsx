@@ -187,7 +187,7 @@ export let initListeners = (props:AppProps) : void => {
         "action", 
         (event, action:{type:string, kind:string, load:any}) => { 
 
-            if(not(clone) && action.type==="setAllTypes"){ return } 
+            if(not(clone)){ return }  //TODO
 
             dispatch(assoc("load", transformLoadDates(action.load), action));      
         }
@@ -317,7 +317,7 @@ class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupState>{
 
 
 
-
+ 
 
 
  
@@ -331,6 +331,7 @@ export interface Store{
     openRightClickMenu : any, 
     openRepeatPopup : any, 
     showRepeatPopup : boolean,
+    showCalendarEvents : boolean,  
     repeatTodoId : string,
     repeatPopupX : number,
     repeatPopupY : number,
@@ -345,12 +346,13 @@ export interface Store{
     leftPanelWidth : number,
     closeAllItems : any,
     dragged : string,
-    selectedProjectId : string,
+    selectedProjectId : string, 
     selectedAreaId : string,
     rightClickedTodoId : string,
     rightClickMenuX : number,
     rightClickMenuY : number,
     windowId : number,
+    calendars : ({url:string,active:boolean,events:any[]})[]
     projects : Project[],
     areas : Area[], 
     todos : Todo[],
@@ -369,9 +371,11 @@ export let defaultStoreItems : Store = {
     repeatPopupX : 0, 
     repeatPopupY : 0,
     showScheduled : true,
+    showCalendarEvents : true,
     showCompleted : false,
     windowId:null, 
     searched:false, 
+    calendars:[],
     selectedCategory : "inbox",
     showTrashPopup : false, 
     openSearch : false, 

@@ -7,11 +7,11 @@ import { Provider, connect } from "react-redux";
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
 import { TodosList } from '../../Components/TodosList';
-import { Todo,Project, Area } from '../../database';
+import { Todo,Project, Area, CalendarItem } from '../../database';
 let moment = require("moment");
 import * as Waypoint from 'react-waypoint';
 import { ContainerHeader } from '.././ContainerHeader';
-import { 
+import {  
     byTags, 
     getDayName, 
     getDatesRange, 
@@ -29,7 +29,7 @@ import {
 import { allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map, flatten, prop } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category } from '../MainContainer';
-let ical = require('ical');
+
 
 type Item = Project | Todo;
  
@@ -39,14 +39,13 @@ interface objectsByDate{
 }  
 
 
-let getIcalData = (url:string) => new Promise( resolve => ical.fromURL( url, {}, (err, data) => resolve(data) ) );
 
-
-let objectsToHashTableByDate = (props:UpcomingProps, events:any[]) : objectsByDate => {
+let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
      
     let todos : Todo[] = props.todos;
     let projects : Project[] = props.projects; 
-
+    let events : any[] = flatten(props.calendars.map( (c:CalendarItem) => c.events ));
+ 
     let haveDate = (item : Project | Todo) : boolean => {  
         if(item.type==="project"){  
            return not(isNil(item.deadline)); 
@@ -74,51 +73,31 @@ let objectsToHashTableByDate = (props:UpcomingProps, events:any[]) : objectsByDa
     for(let i=0; i<objects.length; i++){
 
         let item = objects[i]; 
+        let keys = [];
         
-        if(item.type==="todo"){  
+        if(isDate(item.attachedDate)){
+            keys.push(keyFromDate(item.attachedDate));
+        }   
 
-            if(!isNil(item.attachedDate)){
-                let key : string = keyFromDate(item.attachedDate);
+        if(isDate(item.deadline)){
+            keys.push(keyFromDate(item.deadline));
+        } 
 
+        if(isDate(item.start)){
+            keys.push(keyFromDate(item.start));
+        } 
+
+        uniq(keys).map( 
+            (key:string) => {
                 if(isNil(objectsByDate[key])){
                     objectsByDate[key] = [objects[i]];
                 }else{
                     objectsByDate[key].push(objects[i]);
                 }
             } 
-
-            if(!isNil(item.deadline)){
-                let key : string = keyFromDate(item.deadline);
-
-                if(isNil(objectsByDate[key])){
-                    objectsByDate[key] = [objects[i]];
-                }else{
-                    objectsByDate[key].push(objects[i]);
-                }  
-            } 
-        }else if(item.type==="project"){ 
-
-
-            let key : string = keyFromDate(item.deadline);
-
-            if(isNil(objectsByDate[key])){
-               objectsByDate[key] = [objects[i]];
-            }else{
-               objectsByDate[key].push(objects[i]);
-            }
-        }else if(isDate(item.start)){
-
-
-            let key : string = keyFromDate(item.start);
-
-            if(isNil(objectsByDate[key])){
-               objectsByDate[key] = [objects[i]];
-            }else{
-               objectsByDate[key].push(objects[i]);
-            }
-        } 
+        )
     }    
-
+    
     return objectsByDate; 
 }   
 
@@ -130,7 +109,8 @@ interface UpcomingProps{
     selectedCategory:string, 
     searched:boolean, 
     todos:Todo[],
-    projects:Project[],
+    calendars:CalendarItem[], 
+    projects:Project[], 
     selectedAreaId:string,
     selectedProjectId:string, 
     areas:Area[], 
@@ -143,8 +123,7 @@ interface UpcomingProps{
 
 interface UpcomingState{
     objects : {date:Date, todos:Todo[], projects:Project[]}[],
-    enter : number,
-    events : any[]
+    enter : number
 }
 
 
@@ -156,58 +135,47 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     constructor(props){
         super(props);
         this.n = 15; 
-        this.state = {objects:[], enter:1, events:[]}; 
+        this.state = {objects:[], enter:1}; 
     }  
     
     onError = (e) => console.log(e);
 
-    getObjects = (props:UpcomingProps,n:number,events:any[]) : { 
+    getObjects = (props:UpcomingProps,n:number) : { 
         date: Date;
         todos: Todo[]; 
         projects: Project[];
         events: any[]
     }[] => { 
-        let objectsByDate = objectsToHashTableByDate(props,events);
+        let objectsByDate = objectsToHashTableByDate(props);
         let range = getDatesRange(new Date(), n, true, true); 
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
         return objects;
-    }
-    
- 
-    componentDidMount(){
-        Promise.all([
-            getIcalData("https://www.calendarlabs.com/ical-calendar/ics/39/Canada_Holidays.ics"),
-            getIcalData("https://www.calendarlabs.com/ical-calendar/ics/76/US_Holidays.ics")
-        ])
-        .then( map(compose(map(pair => pair[1]), toPairs)) )
-        .then( (events:any[][]) => flatten(events) )  
-        .then(
-          (events:any[]) =>  this.setState({objects:this.getObjects(this.props,this.n,events),events}) 
-        ) 
-    }    
-    
-    
-    
-    componentWillReceiveProps(nextProps:UpcomingProps,nextState:UpcomingState){
-        let {events} = nextState;
+    }   
 
+    componentDidMount(){
+        this.setState({objects:this.getObjects(this.props,this.n)})
+    }
+     
+    
+    componentWillReceiveProps(nextProps:UpcomingProps){
         if( 
             nextProps.projects!==this.props.projects ||
             nextProps.todos!==this.props.todos ||
-            nextProps.areas!==this.props.areas 
+            nextProps.areas!==this.props.areas ||
+            nextProps.calendars!==this.props.calendars
         ){
             
-            this.setState({objects:this.getObjects(nextProps, this.n * this.state.enter, events)});
+            this.setState({objects:this.getObjects(nextProps, this.n * this.state.enter)});
 
         }else if(nextProps.selectedTag!==this.props.selectedTag){  
 
-            this.setState({objects:this.getObjects(nextProps, this.n, events), enter:1}); 
+            this.setState({objects:this.getObjects(nextProps, this.n), enter:1}); 
         }   
     } 
 
 
     onEnter = ({ previousPosition, currentPosition }) => { 
-        let objectsByDate = objectsToHashTableByDate(this.props,this.state.events);
+        let objectsByDate = objectsToHashTableByDate(this.props);
         let from = last(this.state.objects);
 
         if(isNil(from)){ return }

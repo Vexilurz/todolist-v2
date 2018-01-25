@@ -13,7 +13,7 @@ import spacing from 'material-ui/styles/spacing';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
-
+let ical = require('ical');
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
@@ -36,13 +36,16 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
-import { getTodos, queryToTodos, Todo, updateTodo, generateId, Project, Area, removeTodos, removeProjects, removeAreas, updateProjects, updateTodos, updateAreas, Heading, LayoutItem } from './database';
+import { getTodos, queryToTodos, Todo, updateTodo, generateId, Project, Area, removeTodos, removeProjects, removeAreas, updateProjects, updateTodos, updateAreas, Heading, LayoutItem, CalendarItem } from './database';
 import { Category } from './Components/MainContainer';
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 let moment = require("moment");
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { TodoInput } from './Components/TodoInput/TodoInput';
-import { contains, isNil, all, prepend, not } from 'ramda';
+import { 
+    contains, isNil, all, prepend, isEmpty, last,
+    not, assoc, flatten, toPairs, map, compose 
+} from 'ramda'; 
 import { isDev } from './app';
 
 
@@ -157,7 +160,35 @@ export let keyFromDate = (date:Date) : string => {
     return [year,month+1,day].join('-');
          
 }
-     
+
+
+export let getIcalData = (url:string) => new Promise( 
+    resolve => {
+        ical.fromURL( 
+            url, 
+            {}, 
+            (err, data) => {
+                if(!isNil(err)){ resolve(err); } 
+                else{ resolve(data) } 
+            }
+        ) 
+    }
+);
+
+ 
+export let updateCalendars = (calendars:CalendarItem[]) : Promise<CalendarItem[]> => {
+    return Promise.all(
+        calendars.map(
+            (c:CalendarItem) => getIcalData(c.url)
+                                .then(compose(map(pair => pair[1]), toPairs)) 
+                                .then((events:any[]) : CalendarItem => ({...c,events}))    
+        )
+    )
+}
+    
+ 
+
+
 
 export type ItemWithPriority = Area | Project | Todo | Heading; 
 

@@ -11,7 +11,7 @@ import {
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area, generateId } from '../../database';
+import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area, generateId, CalendarItem } from '../../database';
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
@@ -113,6 +113,7 @@ interface TodayProps{
     selectedAreaId:string, 
     selectedCategory:string,  
     areas:Area[],
+    calendars:CalendarItem[],  
     searched:boolean, 
     projects:Project[],
     selectedTag:string,
@@ -449,88 +450,42 @@ export class TodaySchedule extends Component<TodayScheduleProps,any>{
 
     render(){
 
-        return !this.props.show ? null :
-           
-        <div style={{    
-            paddingTop: "10px", 
-            paddingBottom: "10px", 
-            marginBottom: "20px", 
-            display:"flex",
-            flexDirection:"column",
-            borderRadius:"10px", 
-            backgroundColor:"rgba(100,100,100,0.1)",
-            width:"100%",
-            fontFamily: "sans-serif", 
-            height:"auto"
-        }}> 
-
-            <div style={{padding:"10px"}}>
-
-                <div style={{
-                    display:"flex",
-                    height:"20px",
-                    alignItems:"center"
-                }}>
+        return !this.props.show ? null : 
+        <div style={{paddingTop:"20px"}}>   
+            <div style={{          
+                display:"flex",
+                flexDirection:"column",
+                borderRadius:"10px", 
+                backgroundColor:"rgba(100,100,100,0.1)",
+                width:"100%",
+                fontFamily: "sans-serif", 
+                height:"auto"
+            }}>  
+                <div style={{padding:"10px"}}>
                     <div style={{
-                        paddingRight:"5px",
-                        height:"100%",
-                        backgroundColor:"dimgray"
+                        display:"flex",
+                        height:"20px",
+                        alignItems:"center"
                     }}>
+                        <div style={{
+                            paddingRight:"5px",
+                            height:"100%", 
+                            backgroundColor:"dimgray"
+                        }}>
+                        </div>
+                        <div style={{
+                            fontSize:"14px",
+                            userSelect:"none",
+                            cursor:"default",
+                            paddingLeft:"5px" 
+                        }}> 
+                            {" Paul Martin's Birthday"}
+                        </div>
                     </div>
-                    <div style={{
-                        fontSize:"14px",
-                        userSelect:"none",
-                        cursor:"default",
-                        paddingLeft:"5px" 
-                    }}> 
-                        {" Paul Martin's Birthday"}
-                    </div>
-                </div>
-                
-
-
-                <div style={{  
-                    fontSize:"14px", 
-                    color:"rgba(100, 100, 100, 0.9)",
-                    paddingTop:"5px",
-                    
-                }}> 
-                    {"08:30 Blinkist // Quora"}
-                </div>
-
-
-                <div style={{
-                    fontSize:"14px", 
-                    color:"rgba(100, 100, 100, 0.9)",
-                    paddingTop:"5px",
-                }}>
-                    {"11:00 Newton // Marketing"}
-                </div>
-
-
-                <div style={{
-                    fontSize:"14px", 
-                    color:"rgba(100, 100, 100, 0.9)",
-                    paddingTop:"5px",
-                }}>
-                    {"12:00 FlashSticks // Marketing"}
-                </div>
- 
-
-                <div style={{
-                    fontSize:"14px", 
-                    color:"rgba(100, 100, 100, 0.9)",
-                    paddingTop:"5px",
-                }}>
-                    {"18:00 Scott Woods"}
                 </div> 
-
-            </div> 
-                
+            </div>
         </div>
-
-    }
-
+    }   
 }
 
 

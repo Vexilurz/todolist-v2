@@ -13,25 +13,32 @@ import Cloud from 'material-ui/svg-icons/file/cloud';
 import QuickEntry from 'material-ui/svg-icons/content/add-box';  
 import CalendarEvents from 'material-ui/svg-icons/action/date-range';  
 import Folder from 'material-ui/svg-icons/file/folder';     
-       
+let ical = require('ical');      
 
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { remove, isNil, not, isEmpty } from 'ramda';
+import { remove, isNil, not, isEmpty, compose, toPairs, map, contains } from 'ramda';
 let uniqid = require("uniqid");    
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx'; 
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { Checkbox } from '../TodoInput/TodoInput';
- 
-interface SettingsProps{
+import { attachDispatchToProps, getIcalData, isString, debounce } from '../../utils';
+import { Store } from '../../app';
 
-}
+//https://www.calendarlabs.com/ical-calendar/ics/76/US_Holidays.ics
+//https://www.calendarlabs.com/ical-calendar/ics/55/Jewish_Holidays.ics
+//https://www.calendarlabs.com/ical-calendar/ics/58/Malaysia_Holidays.ics
+//https://www.calendarlabs.com/ical-calendar/ics/33/India_Holidays.ics
+//https://www.calendarlabs.com/ical-calendar/ics/39/Canada_Holidays.ics
+//https://www.calendarlabs.com/ical-calendar/ics/35/Australia_Holidays.ics
+ 
+interface SettingsProps{}
 
 type section = 'General' | 'QuickEntry' | 'CalendarEvents' | 'DataFolder';
- 
+  
 interface SettingsState{
     section:section
 }
@@ -49,7 +56,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
         let {section} = this.state;
         let height = window.innerHeight/2;
         let width = window.innerWidth/1.5;
-        let title =  {
+        let title = { 
             'General' : 'General',
             'Cloud' : 'Cloud',
             'QuickEntry' : 'Quick Entry',
@@ -63,7 +70,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
             flexDirection:"column", 
             height:height, 
             width:width,
-            borderRadius:"20px",
+            borderRadius:"5px",
             backgroundColor:"white",
             boxShadow:"0 0 18px rgba(0,0,0,0.5)", 
         }}>
@@ -122,20 +129,23 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     />  
                 </div>     
             </div>
-            <div style={{
+            <div 
+              className="scroll"  
+              style={{
                 height:"70%", 
                 width:"100%", 
                 cursor:"default",  
                 backgroundColor:"rgba(200,200,200,0.3)"
-            }}>
+              }}
+            > 
                 {
                     {
                         General : <GeneralSettings />,
                         QuickEntry : <QuickEntrySettings />, 
-                        CalendarEvents : <CalendarEventsSettings />, 
+                        CalendarEvents : <CalendarEventsSettings {...{} as any} />, 
                         DataFolder : <DataFolderSettings />
                     }[section] 
-                }
+                } 
             </div>
         </div>
     }
@@ -376,22 +386,143 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
 
 
 
-interface CalendarEventsSettingsProps{}
 
-interface CalendarEventsSettingsState{}
 
+
+interface CalendarEventsSettingsProps extends Store{
+    
+}
+
+interface CalendarEventsSettingsState{
+    url:string,
+    error:string 
+}
+
+
+@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
 class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,CalendarEventsSettingsState>{
 
     constructor(props){
         super(props);
+        this.state = {
+            url:'',
+            error:''
+        }
     }
 
+
+    onUrlChange = (e) => this.setState({url:e.target.value, error:''})
+
+
+    onUrlSubmit = (e) => {
+        let {url,error} = this.state;
+        let {calendars,dispatch} = this.props;
+        let urls = calendars.map( c => c.url );
+
+        if(isEmpty(url)){ return null }
+        if(contains(url)(urls)){ return null }
+
+        getIcalData(url)
+        .then(
+           (result:any) => { 
+               
+                if(isNil(result)){ return null }
+
+                if(result.name==="Error"){  
+                   this.setState({error:result.message});
+                   return null;  
+                }
+                
+                let events = compose(map(pair => pair[1]), toPairs)(result);
+
+                dispatch({type:'addCalendar', load:{ url, active:true, events }})
+
+                this.setState({url:'', error:''});
+            } 
+        )   
+    } 
+    
+
+    onItemCheck = (calendar:{url:string,active:boolean,events:any[]}) : void => {
+        let {dispatch} = this.props;
+
+        dispatch({
+          type:"updateCalendar",
+          load:{ ...calendar, active:!calendar.active }
+        });  
+    }   
+
+
+    onShowCalendarEvents = debounce(
+        (e) => {
+            let {showCalendarEvents,dispatch} = this.props;
+
+            dispatch({
+                type:"showCalendarEvents", 
+                load:!showCalendarEvents
+            });
+        },
+        50
+    ) 
+    
+
     render(){
-        return <div style={{paddingTop:"20px"}}>
+        let {calendars,showCalendarEvents} = this.props; 
+        let {error} = this.state;
+
+        return <div>
+            <div
+                style={{ 
+                    paddingTop:"10px",
+                    paddingBottom:"10px",
+                    paddingLeft:"30px"  
+                }}
+            >
+                <div style={{   
+                    display:"flex", 
+                    alignItems:"center"
+                }}>
+                    <div style={{width:"60%", paddingRight:"15px"}}>
+                        <input 
+                            type="url"     
+                            value={this.state.url}
+                            style={{
+                                backgroundColor:"white",
+                                color:"rgba(100, 100, 100, 0.9)",   
+                                outline:"none",
+                                textAlign:"center",
+                                alignItems:"center",
+                                display:"flex",
+                                justifyContent:"center",
+                                height:"30px",
+                                width:"100%",  
+                                borderRadius:"4px",  
+                                border:"1px solid rgba(100,100,100,0.3)"
+                            }}
+                            onChange={this.onUrlChange}
+                        />  
+                    </div>
+                    <FlatButton onClick={this.onUrlSubmit} label="Load"/>
+                </div> 
+            </div>
+
+            {
+                isEmpty(error) ? null :
+                <div style={{
+                   paddingLeft:"30px",
+                   paddingBottom:"10px",
+                   fontSize:"15px",
+                   color:"red",
+                   userSelect:"none"
+                }}>  
+                    {error}
+                </div> 
+            }  
+
             <div style={{display:"flex", alignItems:"center", paddingLeft:"30px"}}>
                 <Checkbox
-                    checked={false}
-                    onClick={() => {}} 
+                    checked={showCalendarEvents}
+                    onClick={this.onShowCalendarEvents} 
                 />
                 <div style={{paddingLeft:"10px"}}>Show Calendar Events in Today and Upcoming lists</div>
             </div>  
@@ -404,22 +535,27 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
                 flexDirection:"column"
             }}>  
                 {
-                    ["Home", "Work", "Birthdays","Facebook Events"]
-                    .map(
-                        (name,index) => <div 
-                            key={name}
+                    calendars
+                    .map( 
+                        (calendar,index) => <div 
+                            key={index}
                             style={{
                                 display:"flex", 
                                 alignItems:"center", 
                                 padding:"10px",  
-                                backgroundColor:index%2 ? "white" : "rgba(200,200,200,0.5)"
+                                backgroundColor:index%2 ? "white" : "rgba(200,200,200,0.3)",
+                                overflowX:"hidden"
                             }}
-                        >  
-                            <Checkbox
-                                checked={false}   
-                                onClick={() => {}} 
-                            />
-                            <div style={{paddingLeft:"10px"}}>{name}</div>
+                        >   
+                            <div>
+                                <Checkbox 
+                                  checked={calendar.active}   
+                                  onClick={() => this.onItemCheck(calendar)} 
+                                />   
+                            </div>
+                            <div style={{paddingLeft:"10px", whiteSpace:"nowrap"}}>
+                              {calendar.url}
+                            </div>
                         </div> 
                     )
                 }
