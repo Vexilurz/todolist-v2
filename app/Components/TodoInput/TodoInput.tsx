@@ -13,6 +13,7 @@ import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank'
 import CheckBox from 'material-ui/svg-icons/toggle/check-box'; 
 import BusinessCase from 'material-ui/svg-icons/places/business-center';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
+import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Checked from 'material-ui/svg-icons/navigation/check';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
 import Layers from 'material-ui/svg-icons/maps/layers';
@@ -213,26 +214,29 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onFieldsContainerClick = (e) => {    
         e.stopPropagation();     
         this.preventDragOfThisItem();
-        if(!this.state.open){  
-            this.setState({ 
-                open:true, 
-                showAdditionalTags:false 
-            });     
-        }
+
+        if(!this.state.open){    
+            this.setState({open:true, showAdditionalTags:false});   
+            this.props.dispatch({type:"showRepeatPopup", load:false});
+            this.props.dispatch({type:"showRightClickMenu", load:false});
+        }   
     }  
      
 
-    onWindowEnterPress = (e) => { 
+    onWindowEnterPress = (e) => {  
         if(e.keyCode===13){  
-            if(this.props.creation && this.state.open){
-               this.addTodo();
-               this.resetCreationForm(); 
-            }else if(this.state.open){
-               this.updateTodo();
-               this.setState({open:false}, () => this.props.dispatch({type:"selectedTodoId", load:null})); 
-            }   
+           if(this.props.creation && this.state.open){
+              this.addTodo();
+              this.resetCreationForm(); 
+           }else if(this.state.open){
+              this.updateTodo();
+              this.setState(
+                  {open:false}, 
+                  () => this.props.dispatch({type:"selectedTodoId", load:null})
+              ); 
+           }   
         }   
-    }      
+    }        
     
 
     onOutsideClick = (e) => {
@@ -481,16 +485,17 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     
     onRightClickMenu = (e) => { 
         if(!this.state.open){
-
             this.props.dispatch({ 
                 type:"openRightClickMenu",  
-                load:{  
-                  showRightClickMenu:true,
-                  rightClickedTodoId:this.props.todo._id, 
-                  rightClickMenuX:e.clientX-this.props.rootRef.offsetLeft,
-                  rightClickMenuY:e.clientY+this.props.rootRef.scrollTop 
+                load:{   
+                   showRightClickMenu:true, 
+                   rightClickedTodoId:this.props.todo._id, 
+                   rightClickMenuX:e.clientX-this.props.rootRef.offsetLeft,
+                   rightClickMenuY:e.clientY+this.props.rootRef.scrollTop 
                 } 
-            });   
+            });     
+
+            this.props.dispatch({type:"showRepeatPopup", load:false});
         }     
     }  
 
@@ -509,41 +514,63 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         }
     }   
 
-
  
-    onChecklistButtonClick = (e) => this.setState({showChecklist:true}) 
+    onChecklistButtonClick = (e) => {
+        e.stopPropagation();
+        this.setState({showChecklist:true});
+    } 
       
 
-    onFlagButtonClick = (e) => this.setState({showDeadlineCalendar:true})
+    onFlagButtonClick = (e) => {
+        e.stopPropagation();
+        this.setState({showDeadlineCalendar:true});
+    }
 
 
-    closeDeadlineCalendar = (e) => this.setState({showDeadlineCalendar:false})
+    closeDeadlineCalendar = () => {
+        this.setState({showDeadlineCalendar:false});
+    }
  
 
-    onCalendarButtonClick = (e) => this.setState({showDateCalendar:true})
+    onCalendarButtonClick = (e) => {
+        e.stopPropagation();
+        this.setState({showDateCalendar:true});
+    }
     
 
-    closeDateCalendar = (e) => this.setState({showDateCalendar:false})
+    closeDateCalendar = () => {
+        this.setState({showDateCalendar:false});
+    }
     
 
-    onTagsButtonClick = (e) => this.setState({showTagsSelection:true})
+    onTagsButtonClick = (e) => {
+        e.stopPropagation();
+        this.setState({showTagsSelection:true});
+    }
 
 
-    closeTagsSelection = (e) => this.setState({showTagsSelection:false})
+    closeTagsSelection = (e) => {
+        this.setState({showTagsSelection:false});
+    }
 
 
     onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         let remaining = daysRemaining(day);
-            
-        if(remaining>=0)
-           this.setState({deadline:day}); 
+        e.stopPropagation();
+        if(remaining>=0){
+           this.setState({deadline:day})
+        }
     }
 
  
-    onDeadlineCalendarClear = (e:any) : void => this.setState({deadline:null})
+    onDeadlineCalendarClear = (e:any) : void => {
+        e.stopPropagation();
+        this.setState({deadline:null})
+    }
     
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
+        e.stopPropagation(); 
         this.setState({
             attachedDate:day,
             category:isToday(day) ? "today" : "next"
@@ -562,24 +589,36 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }  
     
 
-    onCalendarSomedayClick = (e) => this.setState({category:"someday", attachedDate:null})
+    onCalendarSomedayClick = (e) => {
+        e.stopPropagation();
+        this.setState({category:"someday", attachedDate:null});
+    }
 
 
-    onCalendarTodayClick = (e) => this.setState({category:"today", attachedDate:new Date()}) 
+    onCalendarTodayClick = (e) => {
+        e.stopPropagation();
+        this.setState({category:"today", attachedDate:new Date()});
+    } 
 
 
-    onCalendarThisEveningClick = (e) => this.setState({category:"evening", attachedDate:new Date()}) 
+    onCalendarThisEveningClick = (e) => {
+        e.stopPropagation();
+        this.setState({category:"evening", attachedDate:new Date()});
+    } 
 
 
     onCalendarAddReminderClick = (reminder:Date) : void => this.setState({reminder, attachedDate:reminder})
 
 
-    onCalendarClear = (e) => this.setState({  
-        category:this.props.todo.category as Category,
-        attachedDate:null, 
-        reminder:null 
-    }) 
- 
+    onCalendarClear = (e) => {
+        e.stopPropagation();
+        this.setState({  
+            category:this.props.todo.category as Category,
+            attachedDate:null, 
+            reminder:null 
+        }) 
+    }
+  
 
     onRestoreButtonClick = debounce(() => {
         this.setState( 
@@ -587,9 +626,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             () => this.updateTodo()  
         )    
     },50)
+    
 
-
-    onRepeatTodo = (top:number, left:number) => {  
+    onRepeatTodo = (top:number, left:number) => {   
         let {todo, rootRef} = this.props;
         let id = todo._id;  
         let containerClientRect = rootRef.getBoundingClientRect();
@@ -626,10 +665,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             open, deleted, checked, 
             attachedDate, title, showAdditionalTags, 
             attachedTags, note, deadline, showChecklist,
-            checklist, category, completed    
+            checklist, category, completed   
         } = this.state;
- 
-        let {selectedCategory, id, todo} = this.props; 
+  
+        let {selectedCategory, id, todo, creation} = this.props; 
 
         
         let todayCategory : boolean = category==="evening" || category==="today";   
@@ -642,12 +681,13 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let flagColor = "rgba(100,100,100,0.7)";
 
 
-        if(!isNil(deadline)){     
-            daysLeft = daysRemaining(deadline);      
-            flagColor = daysLeft <= 1  ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
-        }   
+        if(!isNil(deadline)){      
+            daysLeft = daysRemaining(deadline);        
+            flagColor = daysLeft <= 1 ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
+        }        
         
-
+        let canRepeat = not(creation) && isNil(todo.group); 
+ 
         return  <div       
             id={id}    
             onKeyDown={this.onWindowEnterPress}  
@@ -830,7 +870,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 onDayClick = {this.onCalendarDayClick}
                 onSomedayClick = {this.onCalendarSomedayClick}
                 onTodayClick = {this.onCalendarTodayClick} 
-                onRepeatTodo = {this.props.creation ? null : this.onRepeatTodo}
+                onRepeatTodo = {canRepeat ? this.onRepeatTodo : null}
                 onThisEveningClick = {this.onCalendarThisEveningClick}
                 onAddReminderClick = {this.onCalendarAddReminderClick}
                 onClear = {this.onCalendarClear}  
@@ -1358,17 +1398,14 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
             style={{display:"flex", flexDirection:"column"}}  
         >  
             <div style={{
-                display:"flex",    
-                alignItems:this.state.overflow ? "flex-start" : "center", 
-                flexDirection:this.state.overflow ? "column" : "row",
-                overflow: this.state.overflow ? "hidden" : "visible"
+              display:"flex",    
+              alignItems:this.state.overflow ? "flex-start" : "center", 
+              flexDirection:this.state.overflow ? "column" : "row",
+              overflow: this.state.overflow ? "hidden" : "visible"
             }}>    
                 <div  
                   ref={(e) => {this.inputRef=e;}}
-                  style={{
-                    display:"flex", 
-                    alignItems:"center"
-                  }}  
+                  style={{display:"flex", alignItems:"center"}}  
                 >
                     {
                         isNil(deleted) ? null :      
@@ -1404,7 +1441,28 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                             completed={completed} 
                             selectedCategory={selectedCategory}
                         />
-                    }  
+                    } 
+                    {   
+                        isNil(todo.group) ? null :
+                        <div 
+                          style={{
+                            display:"flex",
+                            alignItems:"center",
+                            justifyContent:"center"
+                          }}
+                        > 
+                            <Refresh 
+                              style={{     
+                                width:18,   
+                                height:18, 
+                                marginLeft:"3px", 
+                                color:"black", 
+                                cursor:"default", 
+                                marginRight:"5px"  
+                              }} 
+                            />
+                        </div>
+                    } 
                     <div ref={this.props.setInputRef}>     
                         <AutosizeInput   
                             type="text"

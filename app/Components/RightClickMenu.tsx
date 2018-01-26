@@ -335,10 +335,10 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         let projectSelected = this.props.selectedCategory==="project" && !!this.props.selectedProjectId;
         let areaSelected = this.props.selectedCategory==="area" && !!this.props.selectedAreaId;                          
         let canWhen = false; 
-        let canMove = false;  
+        let canMove = false;   
         let canComplete = isNil(todo.deleted) && isNil(todo.completed);
-        let canShortcuts = false;  
-        let canRepeat = isNil(todo.deleted);
+        let canShortcuts = false;   
+        let canRepeat = isNil(todo.deleted) && isNil(todo.group);
         let canDuplicate = isNil(todo.deleted); 
         let canConvert = isNil(todo.deleted);
         let canDelete = isNil(todo.deleted); 

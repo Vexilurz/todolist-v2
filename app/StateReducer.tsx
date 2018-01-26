@@ -22,7 +22,15 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                     openSettings : action.load,
                 };  
                 break;
+
                 
+            case "showRepeatPopup":
+                newState = {
+                    ...state,
+                    showRepeatPopup : action.load,
+                }
+                break; 
+
 
             case "openRepeatPopup":
                 newState = { 

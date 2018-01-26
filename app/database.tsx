@@ -98,6 +98,9 @@ export interface Area{
 export interface Group{
    _id:string,  
    type:'never'|'on'|'after',
+    
+   range?:{start?:Date,end?:Date}
+   prototype?:boolean,  
    count?:number
 } 
 

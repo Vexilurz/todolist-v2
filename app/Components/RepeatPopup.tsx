@@ -9,12 +9,12 @@ import ClearArrow from 'material-ui/svg-icons/content/backspace';
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { attachDispatchToProps, insideTargetArea, assert, isTodo, isDate } from '../utils';
+import { attachDispatchToProps, insideTargetArea, assert, isTodo, isDate, getMonthName } from '../utils';
 import { Todo, removeTodo, addTodo, generateId, Project, Area, LayoutItem, Group } from '../database';
 import { Store, isDev } from '../app';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { Category } from './MainContainer';
-import { remove, isNil, not } from 'ramda';
+import { remove, isNil, not, isEmpty, last } from 'ramda';
 let uniqid = require("uniqid");    
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -76,27 +76,35 @@ let getRangeRepetitions = (start:Date, repetitions:number, step:number) : Date[]
     return dates;
 }
 
-/*
-let repeatTodo = (data:RepeatPopupState, todo:Todo, group:string) : Todo[] => {
 
-    let dates = getRepeatRange(data,todo);
+let selectedDatesToTodos = (todo:Todo, data:{dates:Date[],group:Group}) : Todo[] => {
+    let { dates, group } = data;
 
-    let todos = dates.map( date => ({ ...todo, deadline:null, _id:generateId(), attachedDate:date, group }) )
+    return dates.map( 
+        (date:Date,index:number) : Todo => {
+            let withoutRev : any = {...todo, _rev:undefined};
+            delete withoutRev["_rev"];
 
-    return todos; 
-}   
-*/ 
+            return { 
+              ...withoutRev, 
+              deadline : null, 
+              category : "upcoming",
+              _id : generateId(), 
+              attachedDate : date, 
+              group : {...group, count:index},
+              priority:index,       
+              reminder:null,  
+              created:new Date(),
+              deleted:undefined, 
+              completed:undefined,
+              checked:false
+            } as Todo
+        }
+    )
+}
+  
 
-
-
-let getMonth = (date:Date) : number => date.getMonth() + 1; //1 - 12
-
-let getYear = (date:Date) : number => date.getFullYear();
-
-let daysInMonth = (month:number, year:number) => new Date(year, month, 0).getDate();
-
-
-
+let daysInMonth = (date:Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 
 
 let handleDay = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Group} => {
@@ -137,10 +145,7 @@ let handleDay = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Grou
         let step = repeatEveryN;
         let dates : Date[] = getRangeRepetitions(start, 1000, step); 
         return {dates,group};
-
      }
-
-
 }
 
 
@@ -190,7 +195,7 @@ let handleWeek = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gro
     }
 }
 
-
+ 
 let handleMonth = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Group} => {
 
     let {
@@ -207,88 +212,98 @@ let handleMonth = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gr
                        new Date();
 
     if(selectedOption==='on'){
+
         let group : Group = {type:'on', _id:groupId};
         let ends : Date = endsDate;
-        let step = repeatEveryN;
         assert(isDate(ends), 'endsDate is not of type Date.');
-
         let dayOfTheMonth : number = start.getDate();
-        let daysInSelectedMonth : number = daysInMonth(getMonth(start), getYear(start));
-
+        let daysInSelectedMonth : number = daysInMonth(start);
+        let initialMonth : number = start.getMonth();
         let dates = [];
 
-        let last = dateToYearMonthDay(start);
-        let end = dateToYearMonthDay(ends); 
+        let last = new Date(start.getTime());
+ 
+        for(let i = 1; last.getTime() < ends.getTime(); i++){
 
-        for(let i = 1; last.getTime() <= end.getTime(); i++){
             let next = new Date(start.getTime());
-            let month = getMonth(start);
+            next.setDate(1);
 
-            next.setMonth( (i*step) + month );
-            let daysInNextMonth : number = daysInMonth(getMonth(next), getYear(next));
+            let nextMonth : number = (i*repeatEveryN) + initialMonth;
+ 
+            next.setMonth(nextMonth);
+
+            let daysInNextMonth : number = daysInMonth(next);
 
             if(dayOfTheMonth>daysInNextMonth){
-                next.setDate(daysInNextMonth);
+               next.setDate(daysInNextMonth);
             }else{
-                next.setDate(dayOfTheMonth);
-            }   
-
-            last = next;
+               next.setDate(dayOfTheMonth);
+            }     
+   
+            last = new Date(next.getTime()); 
             dates.push(next);
         }
 
         return {dates,group};
 
     }else if(selectedOption==='after'){
+
         let group : Group = {type:'after', _id:groupId};
         let repetitions : number = endsAfter;
-        let step = repeatEveryN;
         let dayOfTheMonth : number = start.getDate();
-        let daysInSelectedMonth : number = daysInMonth(getMonth(start), getYear(start));
-
+        let daysInSelectedMonth : number = daysInMonth(start);
+        let initialMonth : number = start.getMonth();
         let dates = [];
 
-        for(let i = 0; i<repetitions; i++){
+        for(let i = 1; i<repetitions; i++){
+
             let next = new Date(start.getTime());
-            let month = getMonth(start);
+            next.setDate(1);
+
+            let nextMonth : number = (i*repeatEveryN) + initialMonth;
  
-            next.setMonth( (i*step) + month ); 
-            let daysInNextMonth : number = daysInMonth(getMonth(next), getYear(next));
+            next.setMonth(nextMonth);
 
-            if(dayOfTheMonth>daysInNextMonth){  
-                next.setDate(daysInNextMonth);
+            let daysInNextMonth : number = daysInMonth(next);
+
+            if(dayOfTheMonth>daysInNextMonth){
+               next.setDate(daysInNextMonth);
             }else{
-                next.setDate(dayOfTheMonth);
-            }
-
+               next.setDate(dayOfTheMonth);
+            }     
+   
             dates.push(next);
-        } 
+        }
 
         return {dates,group};
-    }else if(selectedOption==='never'){
-        let group : Group = {type:'never', _id:groupId};
 
-        let step = repeatEveryN;
+    }else if(selectedOption==='never'){ 
+        let group : Group = {type:'after', _id:groupId};
+        let repetitions : number = endsAfter;
         let dayOfTheMonth : number = start.getDate();
-        let daysInSelectedMonth : number = daysInMonth(getMonth(start), getYear(start));
-
+        let daysInSelectedMonth : number = daysInMonth(start);
+        let initialMonth : number = start.getMonth();
         let dates = [];
 
         for(let i = 1; i<1000; i++){
-            let next = new Date(start.getTime());
-            let month = getMonth(start);
 
-            next.setMonth( (i*step) + month ); 
-            let daysInNextMonth : number = daysInMonth(getMonth(next), getYear(next));
+            let next = new Date(start.getTime()); 
+            next.setDate(1);
+
+            let nextMonth : number = (i*repeatEveryN) + initialMonth;
+ 
+            next.setMonth(nextMonth);
+
+            let daysInNextMonth : number = daysInMonth(next);
 
             if(dayOfTheMonth>daysInNextMonth){
-                next.setDate(daysInNextMonth);
+               next.setDate(daysInNextMonth);
             }else{
-                next.setDate(dayOfTheMonth);
-            } 
-
+               next.setDate(dayOfTheMonth);
+            }     
+   
             dates.push(next);
-        } 
+        }
 
         return {dates,group};
     }
@@ -369,41 +384,47 @@ let handleYear = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gro
 
  
 
-let repeat = (options:RepeatPopupState, todo:Todo) : void => {
+let repeat = (options:RepeatPopupState, todo:Todo) : {todos:Todo[], group:Group, dates:Date[]} => {
 
     assert(isTodo(todo), 'todo is not of type Todo. repeat.');
     
-    if(!isNil(todo.group)){ return }
+    if(!isNil(todo.group)){ return } 
     
     let { repeatEveryInterval } = options;     
     
     let dates = [];
-
+    
     if(repeatEveryInterval==='day'){
 
         let {dates,group} = handleDay(options, todo);
 
-        console.log(dates,group)
+        console.log(dates,group);
+
+        return {todos:selectedDatesToTodos(todo, {dates,group}), group, dates};
         
     }else if(repeatEveryInterval==='week'){
 
         let { dates,group } = handleWeek(options,todo);
 
-        console.log(dates,group)
+        console.log(dates,group);
         
+        return {todos:selectedDatesToTodos(todo, {dates,group}), group, dates};
 
     }else if(repeatEveryInterval==='month'){
 
         let { dates,group } = handleMonth(options,todo);
 
-        console.log(dates,group) 
+        console.log(dates,group); 
         
-        
+        return {todos:selectedDatesToTodos(todo, {dates,group}), group, dates};
+
     }else if(repeatEveryInterval==='year'){
 
         let { dates,group } = handleYear(options,todo);
-
-        console.log(dates,group);      
+        
+        console.log(dates,group); 
+        
+        return {todos:selectedDatesToTodos(todo, {dates,group}), group, dates};
     }   
 } 
 
@@ -427,7 +448,8 @@ interface RepeatPopupState{
     repeatEveryInterval : 'week' | 'day' | 'month' | 'year',
     endsDate : Date,
     endsAfter : number,
-    selectedOption : 'on' | 'after' | 'never'
+    selectedOption : 'on' | 'after' | 'never',
+    error:string
 }  
  
 const initialState : RepeatPopupState = {
@@ -435,7 +457,8 @@ const initialState : RepeatPopupState = {
     repeatEveryInterval:'day',
     endsDate:oneDayAhead(),
     endsAfter:1,
-    selectedOption:'never'
+    selectedOption:'never',
+    error:''
 };   
 
 @connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
@@ -458,15 +481,23 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
         if(!isNil(todo.group)){ return }
    
-        let load = repeat(this.state, todo);
-        //this.props.dispatch({type:"addTodos", load});
-        //this.props.dispatch({type:"updateTodo", load:{...todo, group} }); 
-        this.close();
-    } 
+        let result = repeat(this.state, todo);  
+        
+        if(isEmpty(result.todos)){ this.close(); return; }
+
+        let start : Date = result.dates[0];
+        let end : Date = last(result.dates); 
+        let group : Group = { ...result.group, prototype:true, range:{start,end} };
+        
+        this.props.dispatch({type:"addTodos", load:result.todos}); 
+        this.props.dispatch({type:"updateTodo", load:{...todo, group }}); 
+              
+        this.close();  
+    }    
 
 
     componentDidMount(){  
-        let click = Observable 
+        let click = Observable  
                     .fromEvent(window, "click")
                     .subscribe(this.onOutsideClick);
 
