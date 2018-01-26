@@ -42,11 +42,10 @@ interface DateCalendarProps{
     onTodayClick : (e:any) => void, 
     onThisEveningClick : (e:any) => void, 
     onAddReminderClick : (reminder:Date) => void,
-    onRepeatTodo : (top:number,left:number) => void, 
     onClear : (e:any) => void,
-    hideRepeatButton? : boolean   
+    onRepeatTodo? : (top:number,left:number) => void
 }           
- 
+  
 
 interface DateCalendarState{}
   
@@ -92,7 +91,8 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                
      
     render(){    
-        let {hideRepeatButton} = this.props;
+        let {onRepeatTodo, close} = this.props;
+        let hideRepeatButton = typeof onRepeatTodo !== "function";
 
         return <Popover 
             open={this.props.open}
@@ -218,9 +218,9 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                     <div  
                         className="hoverDateType"
                         onClick={() => {
-                            let {top, left}= this.ref.getBoundingClientRect();
-                            this.props.onRepeatTodo(top,left);
-                            this.props.close();   
+                            let { top, left } = this.ref.getBoundingClientRect();
+                            onRepeatTodo(top,left);  
+                            close(); 
                         }}
                         style={{
                             display: "flex",

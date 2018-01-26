@@ -70,9 +70,9 @@ export type Item = Area | Project | Todo;
 export let isItem = (item:Item) : boolean => item.type==="project" || item.type==="area" || item.type==="todo";
 
 export let isArray = (item:any[]) : boolean => Array.isArray(item); 
-
-export let isDate = (date) : boolean => date instanceof Date; 
-
+ 
+export let isDate = (date) : boolean => (date instanceof Date) && !isNaN( date.getTime() ); 
+ 
 export let isFunction = (item) : boolean => typeof item==="function"; 
 
 export let isString = (item) : boolean => typeof item==="string"; 

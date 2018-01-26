@@ -303,12 +303,12 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
     onMove = (e) => {}
     onShortcuts = (e) => {}
       
-
-    onRepeat = (e) => {
+ 
+    onRepeatTodo = (e) => {
         let {
             rightClickedTodoId,
             rightClickMenuX,
-            rightClickMenuY
+            rightClickMenuY 
         } = this.props;   
 
         this.props.dispatch({
@@ -422,11 +422,11 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                         <RightClickMenuItem 
                             title={"Repeat..."} 
                             dispatch={this.props.dispatch}
-                            onClick = {this.onRepeat}
+                            onClick = {this.onRepeatTodo}
                             disabled={!canRepeat}
                             icon={null} 
                         />
-                                
+                                 
 
                         <RightClickMenuItem 
                             title={"Duplicate To-Do"}

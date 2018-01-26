@@ -457,11 +457,7 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
     onWindowEnterPress = (e) => {  
         if(e.keyCode===13){ this.onSave() }    
     }       
-    
-      
-    onRepeatTodo = (top:number,left:number) => {
-        
-    }
+   
      
 
     render(){  
@@ -680,11 +676,9 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                     onDayClick = {this.onCalendarDayClick}
                     onSomedayClick = {this.onCalendarSomedayClick}
                     onTodayClick = {this.onCalendarTodayClick}
-                    onRepeatTodo = {this.onRepeatTodo}
                     onThisEveningClick = {this.onCalendarThisEveningClick}
                     onAddReminderClick = {this.onCalendarAddReminderClick}
                     onClear = {this.onCalendarClear} 
-                    hideRepeatButton={true}
                 />   
 
                 <TagsPopup   

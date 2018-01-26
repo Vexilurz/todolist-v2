@@ -211,7 +211,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
  
 
     onFieldsContainerClick = (e) => {    
-        console.log("onFieldsContainerClick") 
         e.stopPropagation();     
         this.preventDragOfThisItem();
         if(!this.state.open){  
@@ -820,22 +819,22 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             }  
             
             <DateCalendar 
-                close={this.closeDateCalendar}
-                open={this.state.showDateCalendar}
+                close = {this.closeDateCalendar}
+                open = {this.state.showDateCalendar}
                 origin = {{vertical: "center", horizontal: "right"}} 
                 point = {{vertical: "center", horizontal: "right"}}  
-                anchorEl={this.calendar}
+                anchorEl = {this.calendar}
                 rootRef = {this.props.rootRef}
-                reminder={this.state.reminder} 
-                attachedDate={this.state.attachedDate}
+                reminder = {this.state.reminder} 
+                attachedDate = {this.state.attachedDate}
                 onDayClick = {this.onCalendarDayClick}
                 onSomedayClick = {this.onCalendarSomedayClick}
-                onTodayClick = {this.onCalendarTodayClick}
-                onRepeatTodo = {this.onRepeatTodo}
+                onTodayClick = {this.onCalendarTodayClick} 
+                onRepeatTodo = {this.props.creation ? null : this.onRepeatTodo}
                 onThisEveningClick = {this.onCalendarThisEveningClick}
                 onAddReminderClick = {this.onCalendarAddReminderClick}
-                onClear = {this.onCalendarClear}
-            /> 
+                onClear = {this.onCalendarClear}  
+            />  
             <TagsPopup  
                 tags = {this.props.tags}
                 attachTag = {this.onAttachTag}

@@ -95,6 +95,11 @@ export interface Area{
   attachedProjectsIds : string[],
 };  
 
+export interface Group{
+   _id:string,  
+   type:'never'|'on'|'after',
+   count?:number
+} 
 
 
 export interface Todo{ 
@@ -113,8 +118,8 @@ export interface Todo{
   attachedTags : string[], 
   completed : Date, 
   checked : boolean,
-  group?:string 
-};
+  group?:Group
+}; 
   
 
 
