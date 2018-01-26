@@ -8,6 +8,7 @@ import { Category } from './Components/MainContainer';
 import { randomArrayMember, randomInteger, randomDate, isString, isTodo, assert } from './utils';
 import { isNil, all } from 'ramda';
 import { isDev } from './app';
+import { RepeatPopupState } from './Components/RepeatPopup';
 let uniqid = require("uniqid"); 
 let path = require('path');
   
@@ -92,15 +93,16 @@ export interface Area{
   description : string,
   attachedTags : string[], 
   attachedTodosIds : string[], 
-  attachedProjectsIds : string[],
+  attachedProjectsIds : string[], 
 };  
 
 export interface Group{
    _id:string,  
    type:'never'|'on'|'after',
-    
+   options?:RepeatPopupState,  
    range?:{start?:Date,end?:Date}
    prototype?:boolean,  
+   last?:boolean,
    count?:number
 } 
 

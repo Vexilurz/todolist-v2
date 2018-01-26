@@ -360,7 +360,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         attachedDate : this.state.attachedDate,  
         attachedTags : this.state.attachedTags, 
         completed : this.state.completed, 
-        checked : this.state.checked
+        checked : this.state.checked,
+
+        group:this.props.todo.group   
     }) 
 
 
@@ -571,10 +573,14 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         e.stopPropagation(); 
-        this.setState({
-            attachedDate:day,
-            category:isToday(day) ? "today" : "next"
-        });   
+        let {creation} = this.props;
+        this.setState(
+            {
+                attachedDate:day,
+                category:isToday(day) ? "today" : "next"
+            }, 
+            () =>  creation ? null : this.updateTodo()  
+        )   
     }
     
 

@@ -29,6 +29,7 @@ import {
 import { allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map, flatten, prop } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category } from '../MainContainer';
+import { repeat } from '../RepeatPopup';
 
 
 type Item = Project | Todo;
@@ -357,6 +358,41 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
     constructor(props){
         super(props)
+    }
+
+    componentDidMount(){
+        let {selectedTodos} = this.props;
+        let last = selectedTodos.filter( 
+            (todo:Todo) => isNil(todo.group) ? false :
+                           todo.group.type!=="never" ? false :
+                           todo.group.last 
+        );
+
+        console.log(JSON.stringify(last));
+
+        if(!isEmpty(last)){ 
+            last.forEach(
+                (t:Todo) => {
+                    let result = repeat(t.group.options, t);
+
+                    if(isNil(result)){ return } 
+                    if(isEmpty(result.todos)){ return }
+
+                    let lastTodo = result.todos[result.todos.length-1];
+
+                    result.todos[result.todos.length-1] = {
+                        ...lastTodo,
+                        group:{...lastTodo.group, last:true, options:t.group.options}
+                    };
+
+                    this.props.dispatch({type:"addTodos", load:result.todos}); 
+
+                    this.props.dispatch({type:"updateTodo", load:{...t, group:{...t.group,last:false} }}); 
+                    
+                    console.log("request additional items...");    
+                }
+            )
+        }
     }
 
     render(){   

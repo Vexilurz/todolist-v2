@@ -143,7 +143,7 @@ let handleDay = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Grou
 
         let group : Group = {type:'never', _id:groupId}; 
         let step = repeatEveryN;
-        let dates : Date[] = getRangeRepetitions(start, 1000, step); 
+        let dates : Date[] = getRangeRepetitions(start, 10, step); 
         return {dates,group};
      }
 }
@@ -190,7 +190,7 @@ let handleWeek = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gro
         let group : Group = {type:'never', _id:groupId};
         let weekLength = 7;
         let step = repeatEveryN * weekLength;
-        let dates : Date[] = getRangeRepetitions(start, 1000, step); 
+        let dates : Date[] = getRangeRepetitions(start, 10, step); 
         return {dates,group};
     }
 }
@@ -384,11 +384,13 @@ let handleYear = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gro
 
  
 
-let repeat = (options:RepeatPopupState, todo:Todo) : {todos:Todo[], group:Group, dates:Date[]} => {
+export let repeat = (options:RepeatPopupState, todo:Todo) : {todos:Todo[], group:Group, dates:Date[]} => {
 
     assert(isTodo(todo), 'todo is not of type Todo. repeat.');
     
-    if(!isNil(todo.group)){ return } 
+    if(!isNil(todo.group)){ 
+       if(not(todo.group.last)){ return }
+    }  
     
     let { repeatEveryInterval } = options;     
     
@@ -443,16 +445,16 @@ let oneDayAhead = () : Date => {
     
 interface RepeatPopupProps extends Store{}
  
-interface RepeatPopupState{
+export interface RepeatPopupState{
     repeatEveryN : number,
     repeatEveryInterval : 'week' | 'day' | 'month' | 'year',
     endsDate : Date,
     endsAfter : number,
     selectedOption : 'on' | 'after' | 'never',
-    error:string
+    error:string 
 }  
  
-const initialState : RepeatPopupState = {
+const initialState : RepeatPopupState = { 
     repeatEveryN:1,
     repeatEveryInterval:'day',
     endsDate:oneDayAhead(),
@@ -487,8 +489,13 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
         let start : Date = result.dates[0];
         let end : Date = last(result.dates); 
-        let group : Group = { ...result.group, prototype:true, range:{start,end} };
+        let group : Group = result.group;
+         
+        let lastTodo = result.todos[result.todos.length-1];
+
+        result.todos[result.todos.length-1] = {...lastTodo,group: {...lastTodo.group,last:true,options:this.state} }
         
+
         this.props.dispatch({type:"addTodos", load:result.todos}); 
         this.props.dispatch({type:"updateTodo", load:{...todo, group }}); 
               
