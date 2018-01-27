@@ -272,9 +272,9 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
     }   
 
     onDone = (e) => {  
-        let { todos, repeatTodoId, dispatch } = this.props;
-        let todo = todos.find(todo => todo._id===repeatTodoId);
-        let options = this.state;
+        let { todos, repeatTodo, dispatch } = this.props;
+        let todo = { ...repeatTodo};
+        let options = this.state; 
  
         if(!isNil(todo.group)){
             options = todo.group.options ? todo.group.options : this.state;
@@ -320,9 +320,9 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
             type: "openRepeatPopup",
             load: {
                 showRepeatPopup : false,
-                repeatTodoId : null,
+                repeatTodo : null,
                 repeatPopupX : 0, 
-                repeatPopupY : 0
+                repeatPopupY : 0 
             }
         }); 
     } 

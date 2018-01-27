@@ -37,7 +37,11 @@ import { isString } from 'util';
 import { contains, isNil, allPass } from 'ramda';
 import { isDev } from '../../app';
 import { Category } from '../MainContainer';
-   
+import Hide from 'material-ui/svg-icons/action/visibility-off';
+import One from 'material-ui/svg-icons/image/looks-one'; 
+
+
+
 
 
 export let getProgressStatus = (p:Project, todos:Todo[]) : {done:number,left:number} => {
@@ -62,7 +66,6 @@ export let getProgressStatus = (p:Project, todos:Todo[]) : {done:number,left:num
     return {done,left};
 }  
 
-
 interface ProjectLinkProps{
     dispatch:Function,
     index:number,
@@ -73,11 +76,8 @@ interface ProjectLinkProps{
 }
 
 interface ProjectLinkState{
-    open:boolean
+    open:boolean 
 }
-
- 
-
 
 export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
     actionsAnchor:HTMLElement;
@@ -92,17 +92,40 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
 
         let relatedTodosIds : string[] = p.layout.filter(isString);
 
-        let selectedTodos : Todo[] = todos.filter(
-            (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
-        );   
+        let selectedTodos : Todo[] = todos.filter( (t:Todo) : boolean => contains(t._id)(relatedTodosIds) );  
+
         dispatch({
             type:"updateTodos", 
             load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))
-        })
-        dispatch({type:"updateProject", load:{...p,deleted:undefined}});
+        });
+
+        dispatch({
+            type:"updateProject", 
+            load:{...p,deleted:undefined}
+        });
     }
 
+    onHideFrom = () => {
+        let {dispatch,index,project,todos,selectedCategory,simple} = this.props;
+         
+        let hide = isNil(project.hide) ? [selectedCategory] : 
+                   contains(selectedCategory)(project.hide) ? project.hide :
+                   [...project.hide,selectedCategory]; 
+ 
+        dispatch({type:"updateProject", load:{...project,hide}});
+        this.setState({open:false}); 
+    }  
 
+    onShowOnlyOne = () => {
+        let {dispatch,index,project,todos,selectedCategory,simple} = this.props;
+        
+        let expand =  isNil(project.expand) ? 1 : 
+                      project.expand===3 ? 1 :
+                      3 
+
+        dispatch({type:"updateProject", load:{...project,expand}});
+        this.setState({open:false});  
+    }
 
     render(){
         let {dispatch,index,project,todos,selectedCategory,simple} = this.props;
@@ -147,10 +170,6 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                         <Restore style={{width:"20px", height:"20px"}}/> 
                     </div>  
                 } 
-                
-
-
-
 
                 {
                     isNil(project.completed) ? 
@@ -220,14 +239,6 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                         </div>
                     </div> 
                 } 
-
-                
-
-
-
-
-
-
 
                 <div   
                     id = {project._id}   
@@ -307,51 +318,43 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                     }} 
                 >    
                     <div  
-                      onClick={() => {
-                          let hide = isNil(project.hide) ? [selectedCategory] : 
-                                     contains(selectedCategory)(project.hide) ? project.hide :
-                                     [...project.hide,selectedCategory]; 
-
-                          dispatch({type:"updateProject", load:{...project,hide}});
-                          this.setState({open:false}); 
-                      }} 
+                      onClick={this.onHideFrom} 
                       className={"tagItem"} 
-                      style={{
-                        display:"flex",  
-                        height:"auto",
-                        alignItems:"center",
-                        padding:"5px"
-                      }}
+                      style={{ 
+                         display:"flex",  
+                         height:"auto",
+                         alignItems:"center",
+                         padding:"5px"
+                      }} 
                     >   
+                        <div>
+                           <Hide style={{color:"rgb(69, 95, 145)"}}/>
+                        </div>  
                         <div style={{color:"gainsboro",marginLeft:"5px",marginRight:"5px"}}>
                             Hide from {uppercase(selectedCategory)}
                         </div>        
                     </div> 
- 
+                 
                     <div   
-                      onClick={() => {
-                         let expand =  isNil(project.expand) ? 1 : 
-                                       project.expand===3 ? 1 :
-                                       3 
-
-                         dispatch({type:"updateProject", load:{...project,expand}});
-                         this.setState({open:false});  
-                      }} 
+                      onClick={this.onShowOnlyOne} 
                       className={"tagItem"} 
-                      style={{
-                        display:"flex", 
-                        height:"auto",
-                        alignItems:"center",
-                        padding:"5px"
-                      }}
+                      style={{ 
+                         display:"flex", 
+                         height:"auto",
+                         alignItems:"center",
+                         padding:"5px"
+                      }} 
                     >  
-                        <div style={{color:"gainsboro",marginLeft:"5px",marginRight:"5px"}}>
-                            Show {
+                        <div>
+                           <One style={{color:"rgb(69, 95, 145)"}}/>
+                        </div>  
+                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                            Show {  
                                 isNil(project.expand) ? 'one' : 
                                 project.expand===3 ? 'one' :
-                                'three'
+                                'three'  
                             } todo
-                        </div>     
+                        </div>      
                     </div>
                 </div> 
             </Popover> 

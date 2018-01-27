@@ -82,21 +82,15 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
     onDeleteToDo = (e) => {
 
-        let todo : Todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId );
-        
-        if(!todo){
-            if(isDev()){ 
-                throw new Error(`
-                    Todo with id rightClickedTodoId does not exist. 
-                    onDeleteToDo.
-                    ${JSON.stringify(todo)}
-                `);
-            }
-        }   
-
-  
-        this.props.dispatch({type:"updateTodo", load:{...todo,deleted:new Date()}});
-
+        let { todos, dispatch, rightClickedTodoId } = this.props; 
+           
+        let todo : Todo = todos.find( (t:Todo) => t._id===rightClickedTodoId );
+         
+        if(!isNil(todo.group)){  
+           dispatch({type:"openChangeGroupPopup", load:true});         
+        }else{ 
+           dispatch({type:"updateTodo", load:{...todo,deleted:new Date()}});
+        } 
     }  
 
  
@@ -308,14 +302,17 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         let {
             rightClickedTodoId,
             rightClickMenuX,
-            rightClickMenuY 
+            rightClickMenuY,
+            todos 
         } = this.props;   
 
+        let repeatTodo : Todo = todos.find( t => t._id===rightClickedTodoId );
+        
         this.props.dispatch({
             type : "openRepeatPopup",
             load : {
                 showRepeatPopup : true, 
-                repeatTodoId : rightClickedTodoId,
+                repeatTodo,
                 repeatPopupX : rightClickMenuX, 
                 repeatPopupY : rightClickMenuY,
                 showRightClickMenu : false

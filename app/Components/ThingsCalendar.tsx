@@ -495,43 +495,42 @@ class AddReminderButton extends Component<any,{}>{
         super(props);
     }
 
- 
     render(){
+        let {disabled,openReminderInput} = this.props;
+
         return <div  
-            className={this.props.disabled ? "" : "hoverDateType"}
-            onClick = {(e) => { 
-                this.props.disabled ? null : 
-                this.props.openReminderInput(e);
-            }} 
+            className={disabled ? "" : "hoverDateType"}
+            onClick={(e) => disabled ? null : openReminderInput(e)} 
             style={{
-                display:"flex", 
-                cursor:"default", 
-                alignItems:"center",    
-                marginLeft:"15px", 
-                marginRight:"15px"  
+              display:"flex", 
+              cursor:"default", 
+              alignItems:"center",    
+              marginLeft:"15px", 
+              marginRight:"15px"  
             }}  
         >       
-            <Plus  style={{       
-                color: this.props.disabled ? "rgba(70,70,70,0.5)" : "white",    
-                width:"25px", 
-                height:"25px"     
-            }}/>   
+            <Plus  
+                style={{       
+                  color:disabled ? "rgba(70,70,70,0.5)" : "white",    
+                  width:"25px", 
+                  height:"25px"     
+                }} 
+            />   
             <div style={{
-                fontFamily: "sans-serif",
-                fontWeight: 600, 
-                color: this.props.disabled ? "rgba(70,70,70,0.5)" : "white",  
-                fontSize: "15px",  
-                cursor: "default",
-                WebkitUserSelect: "none"   
+                fontFamily:"sans-serif",
+                fontWeight:600, 
+                color:disabled ? "rgba(70,70,70,0.5)" : "white",  
+                fontSize:"15px",  
+                cursor:"default",
+                WebkitUserSelect:"none"   
             }}> 
                 Add reminder  
             </div>      
         </div>  
     }
-
 } 
  
-
+ 
 interface DeadlineCalendarProps{   
     close : Function,
     open : boolean,
@@ -542,11 +541,14 @@ interface DeadlineCalendarProps{
     onClear : (e:any) => void,
     rootRef : HTMLElement 
 }   
- 
+  
+
 interface DeadlineCalendarState{} 
   
 export class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCalendarState>{
+
     ref:HTMLElement;
+
     constructor(props){
         super(props);
     }   

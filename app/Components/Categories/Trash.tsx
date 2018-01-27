@@ -320,7 +320,7 @@ export class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
     }   
 
     render(){ 
-        return <SimplePopup     
+        return <SimplePopup      
             show={this.props.showTrashPopup}
             onOutsideClick={this.onCancel}
         > 
@@ -408,6 +408,6 @@ export class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
                 </div>
             </div>
         </div>   
-        </SimplePopup>
+        </SimplePopup> 
     }
 }

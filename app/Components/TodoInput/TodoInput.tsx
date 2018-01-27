@@ -282,6 +282,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         }   
     } 
 
+
     addTodo = () => {
         let todo : Todo = this.todoFromState();  
 
@@ -425,13 +426,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     } 
 
 
-
     onNoteChange = (event,newValue:string) : void => this.setState({note:newValue})
 
 
     onTitleChange = (event) :void => this.setState({title:event.target.value})
     
-
 
     animateSlideAway = () : Promise<void> => new Promise(resolve => {
         let step = () => {
@@ -573,14 +572,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         e.stopPropagation(); 
-        let {creation} = this.props;
-        this.setState(
-            {
-                attachedDate:day,
-                category:isToday(day) ? "today" : "next"
-            }, 
-            () =>  creation ? null : this.updateTodo()  
-        )   
+        let {creation} = this.props; 
+        this.setState({attachedDate:day, category:isToday(day) ? "today" : "next"});   
     }
     
 
@@ -621,7 +614,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         this.setState({  
             category:this.props.todo.category as Category,
             attachedDate:null, 
-            reminder:null 
+            reminder:null  
         }) 
     }
   
@@ -632,20 +625,20 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             () => this.updateTodo()  
         )    
     },50)
-    
+     
 
     onRepeatTodo = (top:number, left:number) => {   
-        let {todo, rootRef} = this.props;
-        let id = todo._id;  
+        let {rootRef} = this.props;
         let containerClientRect = rootRef.getBoundingClientRect();
-         
+        let repeatTodo : Todo = this.todoFromState();   
+
         this.props.dispatch({
             type : "openRepeatPopup",
             load : { 
-                showRepeatPopup : true, 
-                repeatTodoId : id,
-                repeatPopupX : left-containerClientRect.left,    
-                repeatPopupY : top+rootRef.scrollTop 
+              showRepeatPopup : true, 
+              repeatTodo, 
+              repeatPopupX : left - containerClientRect.left,    
+              repeatPopupY : top + rootRef.scrollTop 
             }    
         });  
     }

@@ -714,7 +714,7 @@ export let getCalendars = (onError:Function) => (descending,limit) : Promise<Cal
 }
 
 
-
+  
 export let removeTodos = (todos : Todo[]) : Promise<any[]> => {
 
   if(!all( t => t.type==="todo", todos)){  

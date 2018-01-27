@@ -589,13 +589,17 @@ class Hint extends Component<HintProps,HintState>{
             flexDirection:"column",
             borderRadius:"5px",
             height:"160px", 
+            cursor:"default",
+            userSelect:"none", 
             backgroundColor:"rgb(238, 237, 239)"
-        }}>   
-            <div style={{
-                display:"flex", 
-                alignItems:"center",
-                height: "50%"
-            }}>  
+        }}>    
+            <div style={{  
+                display:"flex",
+                flexDirection:"column",
+                alignItems:"flex-start",
+                justifyContent:"flex-start",
+                padding:"10px" 
+            }}> 
                 <div style={{
                     display:"flex",
                     justifyContent:"center",
@@ -605,27 +609,21 @@ class Hint extends Component<HintProps,HintState>{
                 }}>  
                     { chooseIcon({width:"40px", height:"40px"}, "upcoming") }  
                 </div>
-                <div style={{  
-                    display:"flex",
-                    flexDirection:"column",
-                    alignItems:"flex-start",
-                    justifyContent:"flex-start",
-                    padding:"10px" 
-                }}>
-                    <div style={{
-                        paddingBottom:"10px", 
-                        fontWeight:"bold", 
-                        fontSize:"15px", 
-                        color:"rgba(0,0,0,1)"
-                    }}>   
-                        Calendar events
-                    </div>
-                    <div style={{fontSize:"14px", color:"rgba(0,0,0,1)"}}>
-                        You can load calendar events, they will be displayed in upcoming and today section.
-                        Do you want to do it now ?   
-                    </div>
+                <div style={{
+                    paddingBottom:"10px", 
+                    fontWeight:"bold", 
+                    fontSize:"15px", 
+                    color:"rgba(0,0,0,1)"
+                }}>   
+                    Calendar events
                 </div>
             </div>
+
+            <div style={{fontSize:"14px", color:"rgba(0,0,0,1)"}}>
+                You can load calendar events, they will be displayed in upcoming and today section.
+                Do you want to do it now ?   
+            </div>
+
             <div style={{  
                 display:"flex",  
                 alignItems: "flex-end", 

@@ -11,7 +11,7 @@ import {
     getTagsFromItems, defaultTags, removeDeletedProjects, 
     removeDeletedAreas, removeDeletedTodos, Item, ItemWithPriority, byNotDeleted, isTodo, assert 
 } from './utils';
-import { adjust, cond, equals, all, clone, isEmpty, contains, not, remove, uniq } from 'ramda';
+import { adjust, cond, equals, all, clone, isEmpty, contains, not, remove, uniq, isNil } from 'ramda';
 
 let onError = (e) => {
     console.log(e); 
@@ -147,6 +147,45 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 ]
             })
         ], 
+        [  
+            (action:{type:string, kind:string}) : boolean => "removeGroup"===action.type, 
+
+            (action:{
+                type:string, 
+                kind:string, 
+                load:string  
+            }) : Store => {  
+               
+                let groupId : string = action.load;
+                let group : Todo[] = [];
+                let todos : Todo[] = [];
+
+                for(let i=0; i<state.todos.length; i++){
+                    let todo : Todo = state.todos[i];
+
+                    if(isNil(todo.group)){ 
+                        todos.push(todo);
+                    }else if(todo.group._id!==groupId){
+                        todos.push(todo);
+                    }else{
+                        group.push(todo);
+                    }
+                }
+  
+                if(shouldAffectDatabase){
+                   removeTodos(group); 
+                } 
+
+                return {  
+                    ...state,
+                    todos,
+                    tags:[ 
+                      ...defaultTags, 
+                      ...getTagsFromItems(todos)
+                    ]
+                } 
+            }
+        ],
 
         [
             (action:{type:string, kind:string}) : boolean => "removeDeleted"===action.type, 
@@ -173,8 +212,8 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                     projects,
                     areas,
                     tags:[ 
-                      ...defaultTags,
-                      ...getTagsFromItems([...todos, ...projects, ...areas])
+                      ...defaultTags, 
+                      ...getTagsFromItems(todos)
                     ]
                 } 
             }

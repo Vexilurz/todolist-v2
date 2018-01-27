@@ -6,7 +6,14 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
     
        let newState = undefined;
    
-       switch(action.type){ 
+       switch(action.type){
+             
+            case "openChangeGroupPopup":
+                newState = { 
+                    ...state,
+                    openChangeGroupPopup : action.load,
+                };  
+                break; 
  
             case "selectedSettingsSection":
                 newState = { 
@@ -43,11 +50,11 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                 newState = { 
                     ...state,
                     showRepeatPopup : action.load.showRepeatPopup,
-                    repeatTodoId : action.load.repeatTodoId,
+                    repeatTodo : action.load.repeatTodo,
                     repeatPopupX : action.load.repeatPopupX, 
                     repeatPopupY : action.load.repeatPopupY
                 };  
-                break;
+                break; 
 
 
             case "openTodoInputPopup": 

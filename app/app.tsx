@@ -26,6 +26,7 @@ import { cond, assoc, isNil, not } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { Settings, section } from './Components/Settings/settings';
 import { SimplePopup } from './Components/SimplePopup';
+import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
   
 
 injectTapEventPlugin(); 
@@ -264,16 +265,17 @@ export class App extends Component<AppProps,{}>{
                     <MainContainer {...{windowId} as any}/>  
                 </div>  
                 <SettingsPopup {...{} as any} />      
-                <TodoInputPopup {...{} as any} />
-                <TrashPopup  
+                <TodoInputPopup {...{} as any} />  
+                <ChangeGroupPopup {...{} as any} />
+                <TrashPopup   
                     dispatch={this.props.dispatch}
                     showTrashPopup={this.props.showTrashPopup}
                 />
             </div>           
-        );   
-    }         
+        );    
+    }           
 };              
-   
+    
   
 
 ipcRenderer.on( 
@@ -314,7 +316,7 @@ class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupState>{
            show={openSettings} 
            onOutsideClick={() => dispatch({type:"openSettings",load:false})}
         >
-            <Settings {...{} as any} />
+            <Settings {...{} as any}/> 
         </SimplePopup>    
     } 
 }
@@ -322,6 +324,7 @@ class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupState>{
 
 
 export interface Store{
+    openChangeGroupPopup : boolean,
     selectedSettingsSection : section, 
     openSettings : boolean,
     showScheduled : boolean,
@@ -332,7 +335,7 @@ export interface Store{
     openRepeatPopup : any, 
     showRepeatPopup : boolean,
     showCalendarEvents : boolean,  
-    repeatTodoId : string,
+    repeatTodo : Todo,
     repeatPopupX : number,
     repeatPopupY : number,
     showRightClickMenu : boolean, 
@@ -361,14 +364,15 @@ export interface Store{
     dispatch? : Function
 } 
  
-   
+    
  
 export let defaultStoreItems : Store = {
+    openChangeGroupPopup : false, 
     selectedSettingsSection : "General",
-    openSettings : false, 
+    openSettings : false,   
     openRepeatPopup : null, 
     showRepeatPopup : false,
-    repeatTodoId : null,
+    repeatTodo : null, 
     repeatPopupX : 0, 
     repeatPopupY : 0,
     showScheduled : true,
