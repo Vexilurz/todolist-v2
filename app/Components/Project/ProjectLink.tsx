@@ -326,8 +326,8 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                          alignItems:"center",
                          padding:"5px"
                       }} 
-                    >   
-                        <div>
+                    >    
+                        <div style={{display:"flex", alignItems:"center", justifyContent:"center"}}>
                            <Hide style={{color:"rgb(69, 95, 145)"}}/>
                         </div>  
                         <div style={{color:"gainsboro",marginLeft:"5px",marginRight:"5px"}}>
@@ -342,10 +342,10 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                          display:"flex", 
                          height:"auto",
                          alignItems:"center",
-                         padding:"5px"
+                         padding:"5px" 
                       }} 
                     >  
-                        <div>
+                        <div style={{display:"flex", alignItems:"center", justifyContent:"center"}}>
                            <One style={{color:"rgb(69, 95, 145)"}}/>
                         </div>  
                         <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
@@ -354,7 +354,7 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                                 project.expand===3 ? 'one' :
                                 'three'  
                             } todo
-                        </div>      
+                        </div>       
                     </div>
                 </div> 
             </Popover> 

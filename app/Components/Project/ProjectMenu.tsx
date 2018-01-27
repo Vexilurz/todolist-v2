@@ -28,8 +28,8 @@ import { Todo, Project, Heading, generateId, addProject, removeProject } from '.
 import { uppercase, debounce, attachDispatchToProps, assert } from '../../utils';
 import { Store, isDev } from '../../app';
 import { isString } from 'util'; 
-import { contains, not, isNil, isEmpty } from 'ramda';
-import { createHeading } from '../MainContainer';
+import { contains, not, isNil, isEmpty, remove } from 'ramda';
+import { createHeading, Category } from '../MainContainer';
 
  
 
@@ -179,6 +179,19 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         this.props.dispatch({type:"showScheduled", load:!this.props.showScheduled});
         this.closeMenu(); 
     }
+
+    onRestoreVisibility = (category:Category, project:Project) => {
+        let hide = [...project.hide];
+        let idx = hide.indexOf(category);
+        if(idx===-1){ return }
+        this.props.dispatch({
+            type:"updateProject", 
+            load:{ 
+                ...project,
+                hide:remove(idx, 1, [...project.hide]) 
+            }
+        })
+    }
      
  
     render(){  
@@ -308,25 +321,31 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                                 {`${this.props.showCompleted ? 'Hide' : 'Show'} completed to-dos`}
                             </div>     
                         </div>
-                    }
-
+                    }   
+     
                     {
                         isNil(project.hide) ? null :
                         isEmpty(project.hide) ? null :
-                        <div  
-                            onClick={() => this.props.dispatch({type:"updateProject", load:{...project,hide:[]}})}  
-                            className={"tagItem"} 
-                            style={{ 
-                                display:"flex", 
-                                height:"auto",
-                                alignItems:"center",
-                                padding:"5px"
-                            }}
-                        >  
-                            <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                                 Show in related categories
-                            </div>      
-                        </div>
+                        project.hide.map(
+                            (category:Category) => {
+                                return <div   
+                                    key={category}
+                                    onClick={() => this.onRestoreVisibility(category,project)}  
+                                    className={"tagItem"} 
+                                    style={{    
+                                      display:"flex", 
+                                      height:"auto", 
+                                      alignItems:"center",
+                                      padding:"5px"
+                                    }} 
+                                >   
+                                    <Show style={{color:"rgb(69, 95, 145)"}}/>
+                                    <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                                        Show in {uppercase(category)} 
+                                    </div>       
+                                </div>
+                            }
+                        )
                     }
 
                     { 

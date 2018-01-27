@@ -585,44 +585,50 @@ class Hint extends Component<HintProps,HintState>{
     render(){
         return <div style={{
             display:"flex",
-            padding:"10px",
+            padding:"20px",
             flexDirection:"column",
             borderRadius:"5px",
             height:"160px", 
             cursor:"default",
             userSelect:"none", 
+            alignItems:"center",
             backgroundColor:"rgb(238, 237, 239)"
         }}>    
             <div style={{  
                 display:"flex",
-                flexDirection:"column",
-                alignItems:"flex-start",
+                flexDirection:"row",
                 justifyContent:"flex-start",
-                padding:"10px" 
+                width:"100%",
+                alignItems:"flex-end" 
             }}> 
                 <div style={{
                     display:"flex",
                     justifyContent:"center",
-                    paddingTop:"10px",
                     height:"100%",
-                    alignItems:"flex-start"
+                    alignItems:"flex-start"  
                 }}>  
                     { chooseIcon({width:"40px", height:"40px"}, "upcoming") }  
                 </div>
                 <div style={{
-                    paddingBottom:"10px", 
+                    paddingBottom:"10px",
+                    paddingLeft:"10px", 
                     fontWeight:"bold", 
                     fontSize:"15px", 
                     color:"rgba(0,0,0,1)"
                 }}>   
                     Calendar events
                 </div>
-            </div>
-
-            <div style={{fontSize:"14px", color:"rgba(0,0,0,1)"}}>
+            </div> 
+            <div style={{
+                fontSize:"14px",
+                color:"rgb(0, 0, 0)",
+                width:"100%",
+                padding:"10px",
+                textAlign:"start" 
+            }}>
                 You can load calendar events, they will be displayed in upcoming and today section.
                 Do you want to do it now ?   
-            </div>
+            </div>  
 
             <div style={{  
                 display:"flex",  
