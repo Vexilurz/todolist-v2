@@ -50,6 +50,220 @@ import {
     not, assoc, flatten, toPairs, map, compose 
 } from 'ramda'; 
 import { isDev } from './app';
+import { setRepeatedTodos, repeat } from './Components/RepeatPopup';
+
+
+export let selectNeverTodos = (todos:Todo[]) : Todo[] => {
+    return todos.filter( 
+        (todo:Todo) => isNil(todo.group) ? false :
+                       todo.group.type!=="never" ? false :
+                       (
+                           todo.group.last &&
+                           !isNil(todo.group.options)
+                       )
+    );
+} 
+  
+
+export let updateNeverTodos = (dispatch:Function,never:Todo[]) => {
+
+    if(isEmpty(never)){ return }
+
+    for(let i=0; i<never.length; i++){
+        let todo :Todo = never[i];
+        let {options} = todo.group; 
+        let repeatedTodos : Todo[] = repeat(options, todo);
+
+        setRepeatedTodos({dispatch,todo,repeatedTodos,options});
+ 
+        console.log("request additional items...");    
+    }
+}
+
+
+export let getRangeYearUntilDate = (start:Date,endsDate:Date,repeatEveryN:number) : Date[] => {
+    //waht is leap year? TODO 
+    let last = start;
+    let dates = [];
+
+    for(let i = 1; last.getTime() < endsDate.getTime(); i++){
+        let next = new Date(start.getTime());
+        let year = next.getFullYear();
+        next.setFullYear(year + (i*repeatEveryN));
+        last = next;
+        dates.push(next);
+    } 
+    return dates;
+} 
+
+
+export let getRangeYearRepetitions = (start:Date,endsAfter:number,repeatEveryN:number) : Date[] => {
+    let dates = [];
+    
+    for(let i = 1; i<endsAfter; i++){
+        let next = new Date(start.getTime());
+        let year = next.getFullYear();
+        next.setFullYear(year + (i*repeatEveryN));
+        dates.push(next);
+    }
+
+    return dates;
+} 
+
+
+
+export let getRangeMonthUntilDate = (start:Date, ends:Date, repeatEveryN:number) : Date[] => { 
+
+    let dates = [];
+    let last = new Date(start.getTime());
+    let dayOfTheMonth : number = start.getDate();
+    let initialMonth : number = start.getMonth();
+
+    for(let i = 1; last.getTime() < ends.getTime(); i++){
+
+        let next = new Date(start.getTime());
+        next.setDate(1);
+
+        let nextMonth : number = (i*repeatEveryN) + initialMonth;
+
+        next.setMonth(nextMonth);
+
+        let daysInNextMonth : number = daysInMonth(next);
+
+        if(dayOfTheMonth>daysInNextMonth){
+           next.setDate(daysInNextMonth);
+        }else{
+           next.setDate(dayOfTheMonth);
+        }     
+
+        last = new Date(next.getTime()); 
+        dates.push(next);
+    }
+    return dates;
+}
+
+
+export let getRangeMonthRepetitions = (start:Date, endsAfter:number, repeatEveryN:number) : Date[] => {
+    let dayOfTheMonth : number = start.getDate();
+    let initialMonth : number = start.getMonth();
+    let dates = [];
+
+    for(let i = 1; i<endsAfter; i++){
+        let next = new Date(start.getTime());
+        next.setDate(1);
+
+        let nextMonth : number = (i*repeatEveryN) + initialMonth;
+
+        next.setMonth(nextMonth);
+
+        let daysInNextMonth : number = daysInMonth(next);
+
+        if(dayOfTheMonth>daysInNextMonth){
+           next.setDate(daysInNextMonth);
+        }else{
+           next.setDate(dayOfTheMonth);
+        }     
+
+        dates.push(next);
+    }
+
+    return dates;
+}
+
+
+export let getRangeDays = (start:Date, endDate:Date, step:number) : Date[] => {
+
+    Date.prototype["addDays"] = function(days) {
+      let date = new Date(this.valueOf());
+      date.setDate(date.getDate() + days);
+      return date;
+    }
+   
+    let dates = [];
+    let last = dateToYearMonthDay(start);
+    let end = dateToYearMonthDay(endDate); 
+    
+    while(last.getTime() < end.getTime()){
+      let next = new Date(last.getTime())["addDays"]( step );
+      dates.push(next);
+      last = dateToYearMonthDay(next);
+    } 
+
+    return dates; 
+}
+ 
+
+export let getRangeRepetitions = (start:Date, repetitions:number, step:number) : Date[] => {
+
+    Date.prototype["addDays"] = function(days){
+      let date = new Date(this.valueOf());
+      date.setDate(date.getDate() + days);
+      return date;
+    }
+   
+    let dates = [];
+
+    for(let i = 1; i <= repetitions; i++){
+        let next = new Date(start.getTime())["addDays"]( step*i );
+        dates.push(next);
+    }
+
+    return dates;
+}
+
+ 
+export let dateInputUpperLimit = (limit = 2070) : string => {
+    let now = new Date();  
+    let month = now.getUTCMonth() + 1; 
+    let d = now.getUTCDate();
+    let year = now.getUTCFullYear();
+
+    d = d < 10 ? `0${d}` : d.toString() as any;
+    month = month < 10 ? `0${month}` : month.toString() as any;
+    let end = String(limit) + "-" + month + "-" + d; 
+
+    return end;
+} 
+
+
+export let daysInMonth = (date:Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+
+
+export let dateToYearMonthDay = (date:Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+
+export let oneDayAhead = () : Date => { 
+
+    Date.prototype["addDays"] = function(days) {
+        let date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;   
+    }
+      
+    return new Date()["addDays"](1);
+}
+
+export let oneDayBehind = () : Date => { 
+
+    Date.prototype["addDays"] = function(days) {
+        let date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;   
+    } 
+      
+    return new Date()["addDays"](-1);
+} 
+
+export let dateToDateInputValue = (date:Date) : string => {
+    let month = date.getUTCMonth() + 1; 
+    let d = date.getUTCDate();
+    let year = date.getUTCFullYear();
+
+    d = d < 10 ? `0${d}` : d.toString() as any;
+    month = month < 10 ? `0${month}` : month.toString() as any;
+
+    return year + "-" + month + "-" + d;
+}
+
 
 
 export function arrayMove(arr, previousIndex, newIndex) {
@@ -1187,7 +1401,6 @@ export let generateTagElement = (tag:string,idx:number) => {
             </div>
         </div>
     </div>
-
 }
 
 

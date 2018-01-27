@@ -8,7 +8,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, getIcalData,
     chooseIcon, debounce, byTags, byCategory, generateEmptyTodo, isArray, isTodo, isProject, 
-    isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos, assert, updateCalendars
+    isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos, assert, updateCalendars, selectNeverTodos, updateNeverTodos, oneDayBehind, oneDayAhead
 } from "../utils";  
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -39,6 +39,7 @@ import { Subscription } from 'rxjs/Rx';
 import { RightClickMenu } from './RightClickMenu';
 import { RepeatPopup } from './RepeatPopup';
 let ical = require('ical');    
+ 
  
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | "deadline"; 
@@ -249,10 +250,22 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     .debounceTime(100)
                     .subscribe(this.closeRightClickMenu);
         
+        this.updateNeverTodos();  
 
         this.subscriptions.push(resize,click);
     }      
      
+    updateNeverTodos = () => { 
+        let {todos, dispatch} = this.props;
+        let tomorrow : Date = oneDayAhead();
+
+        let never = selectNeverTodos(todos) //last === true
+                    .filter(
+                      (todo:Todo) => todo.attachedDate.getTime() <= tomorrow.getTime()
+                    );   
+ 
+        if(!isEmpty(never)){ updateNeverTodos(dispatch,never) }
+    }
 
     componentWillUnmount(){ 
 

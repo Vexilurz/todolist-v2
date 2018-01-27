@@ -25,11 +25,13 @@ import {
     isDate,
     getMonthName,
     isTodo,
+    selectNeverTodos,
+    updateNeverTodos,
 } from '../../utils';  
 import { allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map, flatten, prop } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category } from '../MainContainer';
-import { repeat } from '../RepeatPopup';
+import { repeat, setRepeatedTodos } from '../RepeatPopup';
 
 
 type Item = Project | Todo;
@@ -81,16 +83,16 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
         let keys = [];
         
         if(isDate(item.attachedDate)){
-            keys.push(keyFromDate(item.attachedDate));
+           keys.push(keyFromDate(item.attachedDate));
         }   
 
         if(isDate(item.deadline)){ 
-            keys.push(keyFromDate(item.deadline));
+           keys.push(keyFromDate(item.deadline));
         } 
 
         if(isDate(item.start)){
-            keys.push(keyFromDate(item.start));
-        } 
+           keys.push(keyFromDate(item.start));
+        }  
 
         uniq(keys)
         .map(  
@@ -106,7 +108,6 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
     
     return objectsByDate; 
 }   
-
 
 
 interface UpcomingProps{
@@ -125,14 +126,12 @@ interface UpcomingProps{
     tags:string[],
     rootRef:HTMLElement 
 } 
- 
- 
+  
 
 interface UpcomingState{
     objects : {date:Date, todos:Todo[], projects:Project[]}[],
     enter : number
 }
-
 
  
 export class Upcoming extends Component<UpcomingProps,UpcomingState>{
@@ -141,7 +140,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
     constructor(props){
         super(props);
-        this.n = 15; 
+        this.n = 10;  
         this.state = {objects:[], enter:1}; 
     }  
     
@@ -185,6 +184,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     onEnter = ({ previousPosition, currentPosition }) => { 
         let objectsByDate = objectsToHashTableByDate(this.props);
         let from = last(this.state.objects);
+        let {dispatch} = this.props;
 
         if(isNil(from)){ return }
 
@@ -192,10 +192,17 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
         let range = getDatesRange(from.date, this.n, false, true);
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
+
+        let todos = flatten(objects.map((object) => object.todos));
+        let never = selectNeverTodos(todos);
  
-        this.setState({objects:[...this.state.objects,...objects], enter:this.state.enter+1});
-    } 
-     
+        if(isEmpty(never)){
+            this.setState({objects:[...this.state.objects,...objects], enter:this.state.enter+1});
+        }else{
+            this.setState({enter:this.state.enter+1}, () => updateNeverTodos(dispatch,never));
+        }   
+    }   
+       
 
     generateCalendarObjectsFromRange = ( 
         range:Date[], 
@@ -228,6 +235,10 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
          
         return objects; 
     }
+
+
+ 
+    
 
 
     objectToComponent = (
@@ -360,40 +371,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
         super(props)
     }
 
-    componentDidMount(){
-        let {selectedTodos} = this.props;
-        let last = selectedTodos.filter( 
-            (todo:Todo) => isNil(todo.group) ? false :
-                           todo.group.type!=="never" ? false :
-                           todo.group.last 
-        );
-
-        console.log(JSON.stringify(last));
-
-        if(!isEmpty(last)){ 
-            last.forEach(
-                (t:Todo) => {
-                    let result = repeat(t.group.options, t);
-
-                    if(isNil(result)){ return } 
-                    if(isEmpty(result.todos)){ return }
-
-                    let lastTodo = result.todos[result.todos.length-1];
-
-                    result.todos[result.todos.length-1] = {
-                        ...lastTodo,
-                        group:{...lastTodo.group, last:true, options:t.group.options}
-                    };
-
-                    this.props.dispatch({type:"addTodos", load:result.todos}); 
-
-                    this.props.dispatch({type:"updateTodo", load:{...t, group:{...t.group,last:false} }}); 
-                    
-                    console.log("request additional items...");    
-                }
-            )
-        }
-    }
+    
 
     render(){   
 

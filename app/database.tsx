@@ -100,12 +100,9 @@ export interface Group{
    _id:string,  
    type:'never'|'on'|'after',
    options?:RepeatPopupState,  
-   range?:{start?:Date,end?:Date}
-   prototype?:boolean,  
-   last?:boolean,
-   count?:number
+   last?:boolean
 } 
-
+ 
 
 export interface Todo{ 
   _id : string,

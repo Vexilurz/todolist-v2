@@ -9,7 +9,7 @@ import ClearArrow from 'material-ui/svg-icons/content/backspace';
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { attachDispatchToProps, insideTargetArea, assert, isTodo, isDate, getMonthName } from '../utils';
+import { attachDispatchToProps, insideTargetArea, assert, isTodo, isDate, getMonthName, dateToYearMonthDay, getRangeDays, getRangeRepetitions, daysInMonth, getRangeMonthUntilDate, getRangeMonthRepetitions, getRangeYearUntilDate, getRangeYearRepetitions, oneDayAhead, dateToDateInputValue, dateInputUpperLimit } from '../utils';
 import { Todo, removeTodo, addTodo, generateId, Project, Area, LayoutItem, Group } from '../database';
 import { Store, isDev } from '../app';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
@@ -22,63 +22,14 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import FlatButton from 'material-ui/FlatButton';
 
-let dateToDateInputValue = (date:Date) : string => {
-    let month = date.getUTCMonth() + 1; 
-    let d = date.getUTCDate();
-    let year = date.getUTCFullYear();
-
-    d = d < 10 ? `0${d}` : d.toString() as any;
-    month = month < 10 ? `0${month}` : month.toString() as any;
-
-    return year + "-" + month + "-" + d;
-}
-
-
-let dateToYearMonthDay = (date:Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
-
-let getRangeDays = (start:Date, endDate:Date, step:number) : Date[] => {
-
-    Date.prototype["addDays"] = function(days) {
-      let date = new Date(this.valueOf());
-      date.setDate(date.getDate() + days);
-      return date;
-    }
-   
-    let dates = [];
-    let last = dateToYearMonthDay(start);
-    let end = dateToYearMonthDay(endDate); 
-    
-    while(last.getTime() < end.getTime()){
-      let next = new Date(last.getTime())["addDays"]( step );
-      dates.push(next);
-      last = dateToYearMonthDay(next);
-    } 
-
-    return dates;
-}
-
-
-let getRangeRepetitions = (start:Date, repetitions:number, step:number) : Date[] => {
-
-    Date.prototype["addDays"] = function(days){
-      let date = new Date(this.valueOf());
-      date.setDate(date.getDate() + days);
-      return date;
-    }
-   
-    let dates = [];
-
-    for(let i = 1; i <= repetitions; i++){
-        let next = new Date(start.getTime())["addDays"]( step*i );
-        dates.push(next);
-    }
-
-    return dates;
-}
+ 
+const never : number = 1000; 
 
 
 let selectedDatesToTodos = (todo:Todo, data:{dates:Date[],group:Group}) : Todo[] => {
     let { dates, group } = data;
+
+    console.log(dates);
 
     return dates.map( 
         (date:Date,index:number) : Todo => {
@@ -90,8 +41,8 @@ let selectedDatesToTodos = (todo:Todo, data:{dates:Date[],group:Group}) : Todo[]
               deadline : null, 
               category : "upcoming",
               _id : generateId(), 
-              attachedDate : date, 
-              group : {...group, count:index},
+              attachedDate : date,  
+              group : {...group},
               priority:index,       
               reminder:null,  
               created:new Date(),
@@ -102,349 +53,175 @@ let selectedDatesToTodos = (todo:Todo, data:{dates:Date[],group:Group}) : Todo[]
         }
     )
 }
-  
+   
 
-let daysInMonth = (date:Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+let getStartDate = (todo:Todo) : Date => 
+    isNil(todo.attachedDate) ? new Date() :
+    isDate(todo.attachedDate) ? todo.attachedDate :
+    new Date();
 
 
 let handleDay = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Group} => {
 
-    let {
-        repeatEveryN,
-        repeatEveryInterval,
-        endsDate,
-        endsAfter,
-        selectedOption 
-    } = options;       
-    
+    let {repeatEveryN,endsDate,endsAfter,selectedOption} = options;       
+     
     let groupId : string = generateId();
-    let start : Date = isNil(todo.attachedDate) ? new Date() :
-                       isDate(todo.attachedDate) ? todo.attachedDate :
-                       new Date();
-
-    if(selectedOption==='on'){
-
-        let group : Group = {type:'on', _id:groupId};
-        let ends : Date = endsDate;
-        let step = repeatEveryN;
-        assert(isDate(ends), 'endsDate is not of type Date.');
-        let dates : Date[] = getRangeDays(start,ends,step);
-        return {dates,group};
-
-     }else if(selectedOption==='after'){
-
-        let group : Group = {type:'after', _id:groupId};
-        let step = repeatEveryN;
-        let repetitions = endsAfter;
-        let dates : Date[] = getRangeRepetitions(start, repetitions, step); 
-        return {dates,group};
-
-     }else if(selectedOption==='never'){
-
-        let group : Group = {type:'never', _id:groupId}; 
-        let step = repeatEveryN;
-        let dates : Date[] = getRangeRepetitions(start, 10, step); 
-        return {dates,group};
-     }
+    let start : Date = getStartDate(todo);
+ 
+    switch(selectedOption){
+        case "on":
+            return {
+                dates : getRangeDays(start,endsDate,repeatEveryN),
+                group : { type:selectedOption, _id:groupId }
+            };
+        case "after": 
+            return {
+                dates:getRangeRepetitions(start, endsAfter, repeatEveryN),
+                group:{ type:selectedOption, _id:groupId }
+            }; 
+        case "never":
+            return {
+                dates:getRangeRepetitions(start, never, repeatEveryN),
+                group:{ type:selectedOption, _id:groupId }
+            };
+    }  
 }
-
-
 
 
 let handleWeek = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Group} => {
 
-    let {
-        repeatEveryN,
-        repeatEveryInterval,
-        endsDate,
-        endsAfter,
-        selectedOption 
-    } = options;       
+    let {repeatEveryN, endsDate, endsAfter, selectedOption} = options;       
     
     let groupId : string = generateId();
-    let start : Date = isNil(todo.attachedDate) ? new Date() :
-                       isDate(todo.attachedDate) ? todo.attachedDate :
-                       new Date();
+    let start : Date = getStartDate(todo);
 
-    if(selectedOption==='on'){
-
-        let group : Group = {type:'on', _id:groupId};
-        let ends : Date = endsDate;
-        let weekLength = 7;
-        let step = repeatEveryN * weekLength;
-        assert(isDate(ends), 'endsDate is not of type Date.');
-        let dates : Date[] = getRangeDays(start,ends,step);
-        return {dates,group};
-
-    }else if(selectedOption==='after'){
-
-        let group : Group = {type:'after', _id:groupId};
-        let weekLength = 7;
-        let step = repeatEveryN * weekLength;
-        let repetitions = endsAfter;
-        let dates : Date[] = getRangeRepetitions(start, repetitions, step); 
-        return {dates,group};
-
-    }else if(selectedOption==='never'){
-
-        let group : Group = {type:'never', _id:groupId};
-        let weekLength = 7;
-        let step = repeatEveryN * weekLength;
-        let dates : Date[] = getRangeRepetitions(start, 10, step); 
-        return {dates,group};
+    switch(selectedOption){
+        case "on":
+            return {
+                dates:getRangeDays( start, endsDate, repeatEveryN * 7 ),
+                group:{type:selectedOption, _id:groupId}
+            };
+        case "after":
+            return {
+                dates:getRangeRepetitions(start, endsAfter, repeatEveryN * 7),
+                group:{type:selectedOption, _id:groupId}
+            }; 
+        case "never":
+            return {
+                dates:getRangeRepetitions(start, never, repeatEveryN * 7),
+                group:{type:selectedOption, _id:groupId}
+            };  
     }
 }
 
- 
+
 let handleMonth = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Group} => {
 
-    let {
-        repeatEveryN,
-        repeatEveryInterval,
-        endsDate,
-        endsAfter,
-        selectedOption 
-    } = options;       
+    let {repeatEveryN,endsDate,endsAfter,selectedOption} = options;       
     
     let groupId : string = generateId();
-    let start : Date = isNil(todo.attachedDate) ? new Date() :
-                       isDate(todo.attachedDate) ? todo.attachedDate :
-                       new Date();
+    let start : Date = getStartDate(todo);
 
-    if(selectedOption==='on'){
-
-        let group : Group = {type:'on', _id:groupId};
-        let ends : Date = endsDate;
-        assert(isDate(ends), 'endsDate is not of type Date.');
-        let dayOfTheMonth : number = start.getDate();
-        let daysInSelectedMonth : number = daysInMonth(start);
-        let initialMonth : number = start.getMonth();
-        let dates = [];
-
-        let last = new Date(start.getTime());
+    switch(selectedOption){
+        case "on":
+            return {
+                dates:getRangeMonthUntilDate(start, endsDate, repeatEveryN),
+                group:{type:selectedOption, _id:groupId}
+            };
+        case "after":
+            return {
+                dates:getRangeMonthRepetitions(start, endsAfter, repeatEveryN),
+                group:{type:selectedOption, _id:groupId}
+            };
+        case "never":
+            return {
+                dates:getRangeMonthRepetitions(start, never, repeatEveryN),
+                group:{type:selectedOption, _id:groupId}
+            };
+    } 
+} 
  
-        for(let i = 1; last.getTime() < ends.getTime(); i++){
-
-            let next = new Date(start.getTime());
-            next.setDate(1);
-
-            let nextMonth : number = (i*repeatEveryN) + initialMonth;
- 
-            next.setMonth(nextMonth);
-
-            let daysInNextMonth : number = daysInMonth(next);
-
-            if(dayOfTheMonth>daysInNextMonth){
-               next.setDate(daysInNextMonth);
-            }else{
-               next.setDate(dayOfTheMonth);
-            }     
-   
-            last = new Date(next.getTime()); 
-            dates.push(next);
-        }
-
-        return {dates,group};
-
-    }else if(selectedOption==='after'){
-
-        let group : Group = {type:'after', _id:groupId};
-        let repetitions : number = endsAfter;
-        let dayOfTheMonth : number = start.getDate();
-        let daysInSelectedMonth : number = daysInMonth(start);
-        let initialMonth : number = start.getMonth();
-        let dates = [];
-
-        for(let i = 1; i<repetitions; i++){
-
-            let next = new Date(start.getTime());
-            next.setDate(1);
-
-            let nextMonth : number = (i*repeatEveryN) + initialMonth;
- 
-            next.setMonth(nextMonth);
-
-            let daysInNextMonth : number = daysInMonth(next);
-
-            if(dayOfTheMonth>daysInNextMonth){
-               next.setDate(daysInNextMonth);
-            }else{
-               next.setDate(dayOfTheMonth);
-            }     
-   
-            dates.push(next);
-        }
-
-        return {dates,group};
-
-    }else if(selectedOption==='never'){ 
-        let group : Group = {type:'after', _id:groupId};
-        let repetitions : number = endsAfter;
-        let dayOfTheMonth : number = start.getDate();
-        let daysInSelectedMonth : number = daysInMonth(start);
-        let initialMonth : number = start.getMonth();
-        let dates = [];
-
-        for(let i = 1; i<1000; i++){
-
-            let next = new Date(start.getTime()); 
-            next.setDate(1);
-
-            let nextMonth : number = (i*repeatEveryN) + initialMonth;
- 
-            next.setMonth(nextMonth);
-
-            let daysInNextMonth : number = daysInMonth(next);
-
-            if(dayOfTheMonth>daysInNextMonth){
-               next.setDate(daysInNextMonth);
-            }else{
-               next.setDate(dayOfTheMonth);
-            }     
-   
-            dates.push(next);
-        }
-
-        return {dates,group};
-    }
-}
-
-
-
 
 let handleYear = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Group} => {
 
-    let {
-        repeatEveryN,
-        repeatEveryInterval,
-        endsDate,
-        endsAfter,
-        selectedOption 
-    } = options;       
+    let {repeatEveryN,endsDate,endsAfter,selectedOption} = options;       
     
     let groupId : string = generateId();
-    let start : Date = isNil(todo.attachedDate) ? new Date() :
-                       isDate(todo.attachedDate) ? todo.attachedDate :
-                       new Date();
+    let start : Date = getStartDate(todo); 
 
-    if(selectedOption==='on'){
-        let group : Group = {type:'on', _id:groupId};
-        //leap year ? TODO 
-        let ends : Date = endsDate;
-        let step : number = repeatEveryN;
-        assert(isDate(ends), 'endsDate is not of type Date.');
-
-        let last = start;
-        let dates = [];
-
-        for(let i = 1; last.getTime() <= ends.getTime(); i++){
-            let next = new Date(start.getTime());
-            let year = next.getFullYear();
-            next.setFullYear(year + (i*step));
-            last = next;
-            dates.push(next);
-        } 
-         
-        return {dates,group};
-
-    }else if(selectedOption==='after'){
-
-        let group : Group = {type:'after', _id:groupId};
-
-        let repetitions : number = endsAfter;
-        let step = repeatEveryN;
-        let dates = [];
-
-        for(let i = 1; i<=repetitions; i++){
-            let next = new Date(start.getTime());
-            let year = next.getFullYear();
-            next.setFullYear(year + (i*step));
-            dates.push(next);
-        }
-
-        return {dates,group};
-
-    }else if(selectedOption==='never'){
-        
-        let group : Group = {type:'never', _id:groupId};
-
-        let step = repeatEveryN;
-        let dates = [];
-
-        for(let i = 1; i<=100; i++){
-            let next = new Date(start.getTime());
-            let year = next.getFullYear();
-            next.setFullYear(year + (i*step));
-            dates.push(next);
-        }
-
-        return {dates,group};
+    switch(selectedOption){
+        case 'on':
+            return {
+                dates:getRangeYearUntilDate(start,endsDate,repeatEveryN),
+                group:{type:selectedOption, _id:groupId}
+            };
+        case 'after':
+            return {
+                dates:getRangeYearRepetitions(start,endsAfter,repeatEveryN),
+                group:{type:selectedOption, _id:groupId} 
+            };
+        case 'never': 
+            return {
+                dates:getRangeYearRepetitions(start,never,repeatEveryN),
+                group:{type:selectedOption, _id:groupId} 
+            };
     }
 }
 
- 
 
-export let repeat = (options:RepeatPopupState, todo:Todo) : {todos:Todo[], group:Group, dates:Date[]} => {
+export let repeat = (options:RepeatPopupState, todo:Todo) : Todo[] => {
 
     assert(isTodo(todo), 'todo is not of type Todo. repeat.');
     
-    if(!isNil(todo.group)){ 
-       if(not(todo.group.last)){ return }
-    }  
-    
     let { repeatEveryInterval } = options;     
-    
-    let dates = [];
-    
-    if(repeatEveryInterval==='day'){
 
-        let {dates,group} = handleDay(options, todo);
-
-        console.log(dates,group);
-
-        return {todos:selectedDatesToTodos(todo, {dates,group}), group, dates};
-        
-    }else if(repeatEveryInterval==='week'){
-
-        let { dates,group } = handleWeek(options,todo);
-
-        console.log(dates,group);
-        
-        return {todos:selectedDatesToTodos(todo, {dates,group}), group, dates};
-
-    }else if(repeatEveryInterval==='month'){
-
-        let { dates,group } = handleMonth(options,todo);
-
-        console.log(dates,group); 
-        
-        return {todos:selectedDatesToTodos(todo, {dates,group}), group, dates};
-
-    }else if(repeatEveryInterval==='year'){
-
-        let { dates,group } = handleYear(options,todo);
-        
-        console.log(dates,group); 
-        
-        return {todos:selectedDatesToTodos(todo, {dates,group}), group, dates};
-    }   
+    switch(repeatEveryInterval){
+        case "day":
+            return selectedDatesToTodos(todo, handleDay(options, todo));
+        case "week":
+            return selectedDatesToTodos(todo, handleWeek(options,todo));
+        case "month":
+            return selectedDatesToTodos(todo, handleMonth(options,todo));
+        case "year":
+            return selectedDatesToTodos(todo, handleYear(options,todo));
+    }
 } 
 
 
-let oneDayAhead = () : Date => { 
+export let setRepeatedTodos = ({
+    dispatch,
+    todo, 
+    repeatedTodos,
+    options
+}) : void => { 
 
-    Date.prototype["addDays"] = function(days) {
-        let date = new Date(this.valueOf());
-        date.setDate(date.getDate() + days);
-        return date;   
-    }
-      
-    return new Date()["addDays"](1);
+    if(isEmpty(repeatedTodos)){ return }
+ 
+    let newLastTodo : Todo = repeatedTodos[repeatedTodos.length - 1];
+
+    let oldLastTodoGroup = {
+        _id:newLastTodo.group._id,  
+        type:newLastTodo.group.type,  
+        last:false
+    };
+
+    let newLastTodoGroup = {
+        _id:newLastTodo.group._id,   
+        type:newLastTodo.group.type, 
+        last:true,
+        options
+    };
+    
+    repeatedTodos[repeatedTodos.length - 1] = {...newLastTodo, group:newLastTodoGroup};    
+    
+    dispatch({type:"addTodos", load:repeatedTodos});  
+    dispatch({type:"updateTodo", load:{...todo, group:oldLastTodoGroup}}); 
 }
 
     
 interface RepeatPopupProps extends Store{}
  
+
 export interface RepeatPopupState{
     repeatEveryN : number,
     repeatEveryInterval : 'week' | 'day' | 'month' | 'year',
@@ -452,8 +229,9 @@ export interface RepeatPopupState{
     endsAfter : number,
     selectedOption : 'on' | 'after' | 'never',
     error:string 
-}  
+}   
  
+
 const initialState : RepeatPopupState = { 
     repeatEveryN:1,
     repeatEveryInterval:'day',
@@ -461,14 +239,14 @@ const initialState : RepeatPopupState = {
     endsAfter:1,
     selectedOption:'never',
     error:''
-};   
+}    
 
+ 
 @connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
 export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
     ref:HTMLElement;  
     subscriptions:Subscription[];  
-
 
     constructor(props){
         super(props);
@@ -476,28 +254,18 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         this.state = {...initialState};
     }   
 
-
     onDone = (e) => {  
-        let { todos, repeatTodoId } = this.props;
+        let { todos, repeatTodoId, dispatch } = this.props;
         let todo = todos.find(todo => todo._id===repeatTodoId);
+        let options = this.state;
+ 
+        if(!isNil(todo.group)){
+            options = todo.group.options ? todo.group.options : this.state;
+        }
 
-        if(!isNil(todo.group)){ return }
-   
-        let result = repeat(this.state, todo);  
-        
-        if(isEmpty(result.todos)){ this.close(); return; }
+        let repeatedTodos : Todo[] = repeat(this.state, todo);  
 
-        let start : Date = result.dates[0];
-        let end : Date = last(result.dates); 
-        let group : Group = result.group;
-         
-        let lastTodo = result.todos[result.todos.length-1];
-
-        result.todos[result.todos.length-1] = {...lastTodo,group: {...lastTodo.group,last:true,options:this.state} }
-        
-
-        this.props.dispatch({type:"addTodos", load:result.todos}); 
-        this.props.dispatch({type:"updateTodo", load:{...todo, group }}); 
+        setRepeatedTodos({dispatch,todo,repeatedTodos,options});
               
         this.close();  
     }    
@@ -567,8 +335,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         let endsAfterValid = !isNaN(endsAfter) && endsAfter>0;
 
         let selectedOptionValid = selectedOption==='on' || selectedOption==='after' || selectedOption==='never';
-              
-        
+               
         let valid = repeatEveryIntervalValid &&
                     repeatEveryNValid &&
                     endsDateValid &&
@@ -580,31 +347,14 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
 
     render(){
-        let now = new Date(); 
-        let month = now.getUTCMonth() + 1; //months from 1-12
-        let d = now.getUTCDate();
-        let year = now.getUTCFullYear();
-
-        d = d < 10 ? `0${d}` : d.toString() as any;
-        month = month < 10 ? `0${month}` : month.toString() as any;
-        
         let start = dateToDateInputValue(new Date());
-        let end = '2070' + "-" + month + "-" + d; 
-
-        let {  
-            repeatEveryN,
-            repeatEveryInterval,
-            endsDate,
-            endsAfter,
-            selectedOption
-        } = this.state; 
-
-        return !this.props.showRepeatPopup ? null : 
+        let end = dateInputUpperLimit(); 
+        let {repeatEveryN,repeatEveryInterval,endsDate,endsAfter,selectedOption} = this.state; 
+        let {showRepeatPopup} = this.props;
+ 
+        return not(showRepeatPopup) ? null : 
         <div 
-            onClick = {(e) =>  { 
-                e.stopPropagation();
-                e.preventDefault(); 
-            }}  
+            onClick = {(e) => {e.stopPropagation(); e.preventDefault();}}  
             ref={ e => {this.ref=e;}}
             style={{
                 WebkitUserSelect:"none", 
@@ -677,88 +427,36 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     <option value="month"> Month </option>
                     <option value="year"> Year </option>
                 </select>   
-            </div>   
-
-
-            {/*       
-            <div style={{display:"flex", flexDirection:"column", width:"100%"}}>
-                <div style={{fontSize:"14px"}}>Repeat on</div> 
-                
-                <div style={{display:"flex", paddingTop:"5px"}}>
-                {  
-                    ['M','T','W','T','F','S','S']
-                    .map(
-                      (value:string, index:number) => {
-                            return <div
-                                key={index}
-                                onClick={(e) => this.setState({repeatOnDay:index})}    
-                                style={{   
-                                    backgroundColor:repeatOnDay===index ? 'rgb(10, 100, 240)' : 'rgba(235,235,235,1)',
-                                    color:repeatOnDay===index ? "white" : 'rgb(100,100,100)',
-                                    width:"20px",  
-                                    height:"20px",
-                                    alignItems:"center",
-                                    borderRadius:"50px",
-                                    display:"flex",
-                                    fontSize:"13px",
-                                    justifyContent:"center",
-                                    position:"relative", 
-                                    boxSizing:"border-box",  
-                                    marginRight:"5px",  
-                                    marginLeft:"5px" 
-                                }}
-                            >
-                                {value}
-                            </div> 
-                      } 
-                    )
-                }
-                </div>
-            </div>
-            */} 
-
-
-            <div style={{
-                height:"100px",
-                display:"flex",
-                flexDirection:"column",  
-                justifyContent:"space-between"
-            }}>
-
+            </div> 
+            
+            <div style={{height:"100px",display:"flex",flexDirection:"column",justifyContent:"space-between"}}>
                 <div style={{fontSize:"14px"}}>Ends</div> 
-
                 {
-                <div style={{display:"flex", alignItems:"center"}}>    
-                    <div>
-                        <div onClick={(e) => {
-                           this.setState({selectedOption:'never', endsAfter:1, endsDate:oneDayAhead()})
-                        }}
-                             style={{ 
-                                backgroundColor:selectedOption==='never' ? 'rgb(10, 100, 240)' : '',
-                                width:"15px",   
-                                height:"15px", 
-                                borderRadius:"50px", 
-                                display:"flex",
-                                justifyContent:"center",  
-                                position:"relative", 
-                                border:selectedOption==='never' ? '' : "2px solid rgb(10, 100, 240)",
-                                boxSizing:"border-box",
-                                marginRight:"5px",
-                                marginLeft:"5px" 
-                             }}    
-                        >        
-                        </div>  
+                    <div style={{display:"flex", alignItems:"center"}}>    
+                        <div>
+                            <div onClick={(e) => {
+                            this.setState({selectedOption:'never', endsAfter:1, endsDate:oneDayAhead()})
+                            }}
+                                style={{ 
+                                    backgroundColor:selectedOption==='never' ? 'rgb(10, 100, 240)' : '',
+                                    width:"15px",   
+                                    height:"15px", 
+                                    borderRadius:"50px", 
+                                    display:"flex",
+                                    justifyContent:"center",  
+                                    position:"relative", 
+                                    border:selectedOption==='never' ? '' : "2px solid rgb(10, 100, 240)",
+                                    boxSizing:"border-box",
+                                    marginRight:"5px",
+                                    marginLeft:"5px" 
+                                }}    
+                            >        
+                            </div>  
+                        </div> 
+                        <div style={{fontSize:"14px"}}>Never</div> 
                     </div> 
-                    <div style={{fontSize:"14px"}}>Never</div> 
-                </div>
-                }     
-    
- 
-                <div style={{
-                   display:"flex",
-                   justifyContent:"space-between", 
-                   alignItems:"center"
-                }}>
+                } 
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                     <div style={{display:"flex", alignItems:"center"}}>     
                         <div>
                             <div    
@@ -823,7 +521,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                         </div> 
                         <div style={{fontSize:"14px"}}>After</div> 
                     </div>  
-                      
+                       
                     <div>  
                         <div style={{display:"flex", backgroundColor:"rgba(235,235,235,1)"}}>
                             <div style={{width:"50px"}}> 
@@ -843,23 +541,15 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                                     type="number" 
                                 />  
                             </div>    
-                            <div style={{
-                                paddingLeft:"5px",
-                                paddingRight:"5px",
-                                backgroundColor:"rgba(0,0,0,0)"
-                            }}>
+                            <div style={{paddingLeft:"5px", paddingRight:"5px", backgroundColor:"rgba(0,0,0,0)"}}>
                                 repetitions
-                            </div>
+                            </div> 
                         </div>
                     </div>
                 </div> 
             </div>  
 
-            <div style={{
-                display:"flex", 
-                justifyContent:"space-around",
-                alignItems:"center"
-            }}>
+            <div style={{display:"flex", justifyContent:"space-around", alignItems:"center"}}>
                 <div>  
                     <FlatButton 
                         onClick={() => this.setState({...initialState}, () => this.close())} 
@@ -876,7 +566,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     /> 
                 </div>
             </div>   
-            </div>  
+            </div>   
         </div>
         </div>
     }
