@@ -8,7 +8,8 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, getIcalData,
     chooseIcon, debounce, byTags, byCategory, generateEmptyTodo, isArray, isTodo, isProject, 
-    isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos, assert, updateCalendars, selectNeverTodos, updateNeverTodos, oneDayBehind, oneDayAhead
+    isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos, assert, updateCalendars, 
+    selectNeverTodos, updateNeverTodos, oneDayBehind, 
 } from "../utils";  
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -16,7 +17,9 @@ import { getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects,
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, 
     removeProject, destroyEverything, addArea, addProject, generateId, addTodos, 
     addProjects, addAreas, Heading, LayoutItem, getCalendars, Calendar} from '.././database';
-import { Store, isDev, convertDates, convertTodoDates, convertProjectDates, convertAreaDates } from '.././app';   
+import { 
+    Store, isDev, convertDates, convertTodoDates, convertProjectDates, convertAreaDates 
+} from '.././app';    
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import { AreaComponent } from './Area/Area';
 import { ProjectComponent } from './Project/Project';
@@ -45,12 +48,21 @@ export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" |
                        "logbook" | "trash" | "project" | "area" | "evening" | "deadline"; 
 
              
-
+             
 interface MainContainerState{ 
     fullWindowSize:boolean
 }
 
-
+let oneDayAhead = () : Date => { 
+ 
+    Date.prototype["addDays"] = function(days) {
+        let date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;    
+    }
+      
+    return new Date()["addDays"](1);
+}
    
 export let createHeading = (e, props:Store) : void => {
      
@@ -263,7 +275,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     .filter(
                       (todo:Todo) => todo.attachedDate.getTime() <= tomorrow.getTime()
                     );   
- 
+  
         if(!isEmpty(never)){ updateNeverTodos(dispatch,never) }
     }
 
@@ -452,29 +464,23 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 projects={this.props.projects} 
                                 todos={this.props.todos}
                                 tags={this.props.tags}
-                            />,  
+                            />,   
        
-                            trash : <div>
-                                <TrashPopup  
-                                    dispatch={this.props.dispatch}
-                                    showTrashPopup={this.props.showTrashPopup}
-                                />
-                                <Trash   
-                                    dispatch={this.props.dispatch}
-                                    tags={this.props.tags}
-                                    searched={this.props.searched}
-                                    selectedCategory={this.props.selectedCategory}
-                                    selectedTag={this.props.selectedTag}
-                                    selectedTodoId={this.props.selectedTodoId}  
-                                    showTrashPopup={this.props.showTrashPopup}
-                                    todos={this.props.todos}
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    selectedAreaId={this.props.selectedAreaId} 
-                                    projects={this.props.projects}
-                                    areas={this.props.areas}
-                                    rootRef={this.rootRef}      
-                                />
-                            </div>, 
+                            trash : <Trash     
+                                dispatch={this.props.dispatch}
+                                tags={this.props.tags}
+                                searched={this.props.searched}
+                                selectedCategory={this.props.selectedCategory}
+                                selectedTag={this.props.selectedTag}
+                                selectedTodoId={this.props.selectedTodoId}  
+                                showTrashPopup={this.props.showTrashPopup}
+                                todos={this.props.todos}
+                                selectedProjectId={this.props.selectedProjectId}
+                                selectedAreaId={this.props.selectedAreaId} 
+                                projects={this.props.projects}
+                                areas={this.props.areas}
+                                rootRef={this.rootRef}      
+                            />, 
                              
                             project : <ProjectComponent 
                                 dispatch={this.props.dispatch} 

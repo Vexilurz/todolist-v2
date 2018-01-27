@@ -41,7 +41,7 @@ import { Category } from '../MainContainer';
 import { SortableContainer } from '../../sortable/CustomSortableContainer';
 import { calculateAmount } from '../LeftPanel/LeftPanel';
 import { isDate } from 'util';
- 
+import { ipcRenderer, remote } from 'electron';
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map((item,index:number) => assoc("priority",index,item)) 
 }
@@ -129,7 +129,9 @@ interface TodayProps{
    
 
  
-interface TodayState{}
+interface TodayState{
+    showHint:boolean
+}
  
  
 type Evening = "evening";
@@ -141,12 +143,24 @@ interface TodaySeparator{
     priority:number,
     _id:string 
 }
+
+
  
 export class Today extends Component<TodayProps,TodayState>{
 
 
     constructor(props){
         super(props);
+        this.state = {
+            showHint:true 
+        }
+    }  
+
+    componentDidMount(){
+        showHint()
+        .then( 
+            show => this.setState({showHint:show}) 
+        )
     } 
 
     
@@ -421,12 +435,14 @@ export class Today extends Component<TodayProps,TodayState>{
                         show={true}  
                     />     
                     <TodaySchedule show={showCalendarEvents} events={events}/>  
+  
+                    <Hint {...{} as any} /> 
                 <div   
                     id="todos" 
                     style={{marginBottom: "50px", marginTop:"20px"}} 
                 >         
                     <TodoInput   
-                        id={empty._id}
+                        id={empty._id}  
                         key={"today-todo-creation-form"} 
                         dispatch={this.props.dispatch}  
                         selectedProjectId={this.props.selectedProjectId}
@@ -519,7 +535,7 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                             </div>
                         </div>
                     </div> 
-                ) 
+                )  
             }</div>
         </div>
     }   
@@ -527,4 +543,172 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
 
 
 
- 
+let setToJsonStorage = (key:string,json:any) : Promise<void> => new Promise(
+    resolve => {
+        ipcRenderer.removeAllListeners("setStorage"); 
+
+        ipcRenderer.send("setStorage",{key, json});
+        ipcRenderer.on(
+            "setStorage",
+            (event) => resolve()
+        );
+    } 
+) 
+
+let getFromJsonStorage = (key:string) : Promise<any> => new Promise(
+    resolve => {
+        ipcRenderer.removeAllListeners("getStorage"); 
+
+        ipcRenderer.send("getStorage",key); 
+        ipcRenderer.on(
+            "getStorage",
+            (event, data) => resolve(data)
+        );
+    }
+)
+
+
+let setShowHint = (show:boolean) : Promise<void> => {
+    return setToJsonStorage("showHint",{showHint:show}) 
+} 
+
+let showHint = () : Promise<boolean> => {
+    return getFromJsonStorage("showHint")
+           .then((data) => data.showHint)      
+}
+
+
+interface HintProps extends Store{}
+
+interface HintState{} 
+
+@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
+class Hint extends Component<HintProps,HintState>{
+
+    constructor(props){
+        super(props);
+    }
+
+    onLoad = (e) => {
+        setShowHint(false)
+        .then(
+            () => showHint()
+                  .then( 
+                      show => console.log(`set show hint ${show}`) 
+                   )
+        ) 
+    }
+
+    onClose = (e) => { 
+        setShowHint(false)
+        .then(
+            () => showHint()
+                  .then( 
+                      show => console.log(`set show hint ${show}`) 
+                   )
+        ) 
+    }
+
+    render(){
+        return <div style={{
+            display:"flex",
+            padding:"10px",
+            flexDirection:"column",
+            borderRadius:"5px",
+            height:"160px", 
+            backgroundColor:"rgb(238, 237, 239)"
+        }}>   
+            <div style={{
+                display:"flex", 
+                alignItems:"center",
+                height: "50%"
+            }}>  
+                <div style={{
+                    display:"flex",
+                    justifyContent:"center",
+                    paddingTop:"10px",
+                    height:"100%",
+                    alignItems:"flex-start"
+                }}>  
+                    { chooseIcon({width:"40px", height:"40px"}, "upcoming") }  
+                </div>
+                <div style={{  
+                    display:"flex",
+                    flexDirection:"column",
+                    alignItems:"flex-start",
+                    justifyContent:"flex-start",
+                    padding:"10px" 
+                }}>
+                    <div style={{
+                        paddingBottom:"10px", 
+                        fontWeight:"bold", 
+                        fontSize:"15px", 
+                        color:"rgba(0,0,0,1)"
+                    }}>   
+                        Calendar events
+                    </div>
+                    <div style={{fontSize:"14px", color:"rgba(0,0,0,1)"}}>
+                        You can load calendar events, they will be displayed in upcoming and today section.
+                        Do you want to do it now ?   
+                    </div>
+                </div>
+            </div>
+            <div style={{  
+                display:"flex",  
+                alignItems: "flex-end", 
+                justifyContent: "space-around",
+                height: "50%"
+            }}>
+                <div style={{padding: "10px"}}>
+                    <div     
+                        onClick={this.onLoad}
+                        style={{      
+                            width:"130px",
+                            display:"flex",
+                            alignItems:"center",
+                            cursor:"pointer",
+                            justifyContent:"center",
+                            borderRadius:"5px",
+                            height:"35px",   
+                            border:"1px solid rgba(100,100,100,0.5)",
+                            backgroundColor:"rgb(10, 90, 250)"  
+                        }}
+                    > 
+                        <div style={{
+                            color:"white",
+                            fontSize:"15px",
+                            whiteSpace:"nowrap"  
+                        }}>    
+                            Load events
+                        </div>   
+                    </div> 
+                </div>
+
+                <div style={{padding: "10px"}}>
+                    <div     
+                        onClick={this.onClose} 
+                        style={{      
+                            width:"130px",
+                            display:"flex",
+                            alignItems:"center",
+                            cursor:"pointer",
+                            justifyContent:"center",
+                            borderRadius:"5px",
+                            height:"35px",   
+                            border:"1px solid rgba(100,100,100,0.5)",
+                            backgroundColor:"white"  
+                        }}
+                    > 
+                        <div style={{
+                            color:"black",
+                            fontSize:"15px",
+                            whiteSpace:"nowrap"  
+                        }}>    
+                            Later
+                        </div>   
+                    </div> 
+                </div> 
+            </div>
+        </div>  
+    }
+} 

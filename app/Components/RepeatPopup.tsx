@@ -9,7 +9,12 @@ import ClearArrow from 'material-ui/svg-icons/content/backspace';
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { attachDispatchToProps, insideTargetArea, assert, isTodo, isDate, getMonthName, dateToYearMonthDay, getRangeDays, getRangeRepetitions, daysInMonth, getRangeMonthUntilDate, getRangeMonthRepetitions, getRangeYearUntilDate, getRangeYearRepetitions, oneDayAhead, dateToDateInputValue, dateInputUpperLimit } from '../utils';
+import { 
+    attachDispatchToProps, insideTargetArea, assert, isTodo, isDate, getMonthName, 
+    dateToYearMonthDay, getRangeDays, getRangeRepetitions, daysInMonth, getRangeMonthUntilDate, 
+    getRangeMonthRepetitions, getRangeYearUntilDate, getRangeYearRepetitions, 
+    dateToDateInputValue, dateInputUpperLimit 
+} from '../utils'; 
 import { Todo, removeTodo, addTodo, generateId, Project, Area, LayoutItem, Group } from '../database';
 import { Store, isDev } from '../app';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
@@ -24,6 +29,18 @@ import FlatButton from 'material-ui/FlatButton';
 
  
 const never : number = 1000; 
+
+
+let oneDayAhead = () : Date => { 
+
+    Date.prototype["addDays"] = function(days) {
+        let date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;   
+    }
+      
+    return new Date()["addDays"](1);
+}
 
 
 let selectedDatesToTodos = (todo:Todo, data:{dates:Date[],group:Group}) : Todo[] => {

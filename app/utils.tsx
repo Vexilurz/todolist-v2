@@ -231,16 +231,6 @@ export let daysInMonth = (date:Date) => new Date(date.getFullYear(), date.getMon
 
 export let dateToYearMonthDay = (date:Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
 
-export let oneDayAhead = () : Date => { 
-
-    Date.prototype["addDays"] = function(days) {
-        let date = new Date(this.valueOf());
-        date.setDate(date.getDate() + days);
-        return date;   
-    }
-      
-    return new Date()["addDays"](1);
-}
 
 export let oneDayBehind = () : Date => { 
 

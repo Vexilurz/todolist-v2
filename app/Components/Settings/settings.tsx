@@ -18,7 +18,7 @@ let ical = require('ical');
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { remove, isNil, not, isEmpty, compose, toPairs, map, contains } from 'ramda';
+import { remove, isNil, not, isEmpty, compose, toPairs, map, contains, last } from 'ramda';
 let uniqid = require("uniqid");    
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx'; 
@@ -422,6 +422,13 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
         if(isEmpty(url)){ return null }
         if(contains(url)(urls)){ return null }
 
+        let extension = last(url.split('.'));
+
+        if(extension!=='ics'){    
+           this.setState({error:"Incorrect format. Only ics extension supported."});
+           return null;    
+        }
+        
         getIcalData(url)
         .then(
            (result:any) => { 

@@ -583,7 +583,6 @@ export let addTodo = (onError:Function, todo : Todo) : Promise<void> => {
  
 
 
-
 export let addCalendar = (onError:Function, calendar:Calendar) : Promise<void> => {
   return setItemToDatabase<Calendar>(
     (e) => console.log(e),

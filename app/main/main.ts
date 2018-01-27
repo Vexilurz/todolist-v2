@@ -6,8 +6,10 @@ import { Listeners } from "./listeners";
 import { initWindow } from "./initWindow";
 import { autoUpdater } from "electron-updater";
 import { isNil } from 'ramda';
-
-
+const os = require('os');
+const storage = require('electron-json-storage');
+storage.setDataPath(os.tmpdir());
+ 
 class AppUpdater {
     constructor() {
         const log = require("electron-log");

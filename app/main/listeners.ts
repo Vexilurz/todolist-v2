@@ -6,7 +6,11 @@ import { initWindow } from './initWindow';
 import { remove } from 'ramda';
 let uniqid = require("uniqid");
 const {shell} = require('electron');   
+const os = require('os');
+const storage = require('electron-json-storage');
+storage.setDataPath(os.tmpdir());
 
+  
 type kind = "external";
 
 
@@ -112,6 +116,7 @@ interface RegisteredListener{
 }; 
   
 
+let onError = (e) => console.log(e);
 
 
  
@@ -140,6 +145,28 @@ export class Listeners{
                 name:"folder",
                 callback : (event) => selectFolder().then((path:string) => event.sender.send("folder", {foldername:path}))  
             }, 
+            {
+                name:"setStorage",
+                callback : (event,data) => {
+                    let {key, json} = data;
+                    storage.set(key, json, (error) => {
+                        if(error) onError(error);
+                        event.sender.send("setStorage");
+                    });
+                }
+            }, 
+            { 
+                name:"getStorage",
+                callback : (event, key:string) => {
+                    storage.get(
+                        key, 
+                        (error, data) => {
+                            if (error){ onError(error) }   
+                            event.sender.send("getStorage", data);
+                        }
+                    );
+                }
+            } 
         ];     
       
         this.startToListenOnAllChannels(); 

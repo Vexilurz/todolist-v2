@@ -265,8 +265,12 @@ export class App extends Component<AppProps,{}>{
                 </div>  
                 <SettingsPopup {...{} as any} />      
                 <TodoInputPopup {...{} as any} />
+                <TrashPopup  
+                    dispatch={this.props.dispatch}
+                    showTrashPopup={this.props.showTrashPopup}
+                />
             </div>           
-        );  
+        );   
     }         
 };              
    
