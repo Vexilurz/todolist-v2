@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, generateEmptyTodo, isToday, daysRemaining, isTodo, assert, makeChildrensVisible, hideChildrens, generateDropStyle, arrayMove, keyFromDate 
+    chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, generateEmptyTodo, isToday, daysRemaining, isTodo, assert, makeChildrensVisible, hideChildrens, generateDropStyle, arrayMove, keyFromDate, setToJsonStorage, getFromJsonStorage 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -42,10 +42,11 @@ import { SortableContainer } from '../../sortable/CustomSortableContainer';
 import { calculateAmount } from '../LeftPanel/LeftPanel';
 import { isDate } from 'util';
 import { ipcRenderer, remote } from 'electron';
+
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map((item,index:number) => assoc("priority",index,item)) 
 }
-
+ 
 
 
 class ThisEveningSeparator extends Component<{},{}>{
@@ -152,17 +153,16 @@ export class Today extends Component<TodayProps,TodayState>{
     constructor(props){
         super(props);
         this.state = {
-            showHint:true 
+            showHint:false
         }
     }  
 
-    componentDidMount(){
-        showHint()
-        .then( 
-            show => this.setState({showHint:show}) 
-        )
-    } 
-
+    
+    componentDidMount(){ 
+        hideHint()
+        .then( (hide) => this.setState({showHint:!hide}) )     
+    }     
+  
     
     shouldComponentUpdate(nextProps:TodayProps,nextState:TodayState){
 
@@ -171,13 +171,14 @@ export class Today extends Component<TodayProps,TodayState>{
             this.props.selectedCategory!==nextProps.selectedCategory || 
             this.props.searched!==nextProps.searched ||
             this.props.projects!==nextProps.projects ||
-            this.props.selectedTag!==nextProps.selectedTag ||
+            this.props.selectedTag!==nextProps.selectedTag || 
             this.props.rootRef!==nextProps.rootRef ||
             this.props.todos!==nextProps.todos ||
             this.props.tags!==nextProps.tags ||
             this.props.showCalendarEvents!==nextProps.showCalendarEvents ||
-            this.props.calendars!==nextProps.calendars
-        ){   
+            this.props.calendars!==nextProps.calendars ||
+            this.state.showHint!==nextState.showHint
+        ){     
             return true
         }
 
@@ -436,7 +437,15 @@ export class Today extends Component<TodayProps,TodayState>{
                     />     
                     <TodaySchedule show={showCalendarEvents} events={events}/>  
   
-                    <Hint {...{} as any} /> 
+                    {   
+                        this.state.showHint ? 
+                        <Hint {
+                            ...{
+                                hideHint:() => this.setState({showHint:false})
+                            } as any 
+                        }/> : 
+                        null
+                    } 
                 <div   
                     id="todos" 
                     style={{marginBottom: "50px", marginTop:"20px"}} 
@@ -459,7 +468,7 @@ export class Today extends Component<TodayProps,TodayState>{
                     />   
 
                     <div style={{position:"relative"}}>   
-                        <SortableContainer
+                        <SortableContainer  
                             items={items}
                             scrollableContainer={this.props.rootRef}
                             selectElements={(index:number,items:any[]) => [index]}
@@ -543,45 +552,15 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
 
 
 
-let setToJsonStorage = (key:string,json:any) : Promise<void> => new Promise(
-    resolve => {
-        ipcRenderer.removeAllListeners("setStorage"); 
+let setHideHint = (hide:boolean) : Promise<void> => setToJsonStorage("hideHint", {hideHint:hide}); 
 
-        ipcRenderer.send("setStorage",{key, json});
-        ipcRenderer.on(
-            "setStorage",
-            (event) => resolve()
-        );
-    } 
-) 
-
-let getFromJsonStorage = (key:string) : Promise<any> => new Promise(
-    resolve => {
-        ipcRenderer.removeAllListeners("getStorage"); 
-
-        ipcRenderer.send("getStorage",key); 
-        ipcRenderer.on(
-            "getStorage",
-            (event, data) => resolve(data)
-        );
-    }
-)
-
-
-let setShowHint = (show:boolean) : Promise<void> => {
-    return setToJsonStorage("showHint",{showHint:show}) 
-} 
-
-let showHint = () : Promise<boolean> => {
-    return getFromJsonStorage("showHint")
-           .then((data) => data.showHint)      
-}
-
-
-interface HintProps extends Store{}
+let hideHint = () : Promise<boolean> => getFromJsonStorage("hideHint")
+                                        .then((data) => data ? data.hideHint : null);       
+ 
+interface HintProps extends Store{ hideHint : Function }
 
 interface HintState{} 
-
+ 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
 class Hint extends Component<HintProps,HintState>{
 
@@ -589,24 +568,18 @@ class Hint extends Component<HintProps,HintState>{
         super(props);
     }
 
-    onLoad = (e) => {
-        setShowHint(false)
-        .then(
-            () => showHint()
-                  .then( 
-                      show => console.log(`set show hint ${show}`) 
-                   )
-        ) 
+    onLoad = (e) => { 
+        let {hideHint,dispatch} = this.props;
+        hideHint();
+        setHideHint(true);
+        dispatch({type:"selectedSettingsSection", load:'CalendarEvents'});
+        dispatch({type:"openSettings",load:true}); 
     }
-
+    
     onClose = (e) => { 
-        setShowHint(false)
-        .then(
-            () => showHint()
-                  .then( 
-                      show => console.log(`set show hint ${show}`) 
-                   )
-        ) 
+        let {hideHint,dispatch} = this.props;
+        hideHint(); 
+        setHideHint(true);
     }
 
     render(){

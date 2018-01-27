@@ -7,6 +7,13 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
        let newState = undefined;
    
        switch(action.type){ 
+ 
+            case "selectedSettingsSection":
+                newState = { 
+                    ...state,
+                    selectedSettingsSection : action.load,
+                };  
+                break; 
 
             case "showCalendarEvents":
                 newState = { 

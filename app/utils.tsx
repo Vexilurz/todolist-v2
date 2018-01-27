@@ -51,7 +51,7 @@ import {
 } from 'ramda'; 
 import { isDev } from './app';
 import { setRepeatedTodos, repeat } from './Components/RepeatPopup';
-
+import { ipcRenderer, remote } from 'electron';
 
 export let selectNeverTodos = (todos:Todo[]) : Todo[] => {
     return todos.filter( 
@@ -1697,3 +1697,27 @@ export let generateEmptyArea = () : Area => ({
     attachedProjectsIds : [],
 });
     
+ 
+export let setToJsonStorage = (key:string,json:any) : Promise<void> => new Promise(
+    resolve => {
+        ipcRenderer.removeAllListeners("setStorage"); 
+
+        ipcRenderer.send("setStorage",{key, json});
+        ipcRenderer.on(
+            "setStorage",
+            (event) => resolve()
+        );
+    } 
+) 
+
+export let getFromJsonStorage = (key:string) : Promise<any> => new Promise(
+    resolve => {
+        ipcRenderer.removeAllListeners("getStorage"); 
+
+        ipcRenderer.send("getStorage",key); 
+        ipcRenderer.on(
+            "getStorage",
+            (event, data) => resolve(data)
+        );
+    }
+)

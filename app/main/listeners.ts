@@ -85,7 +85,7 @@ let onCloneWindow = (event, store, spawnedWindows:BrowserWindow[]) : void => {
 
 
 
-let selectFolder = () : Promise<string> =>
+let selectFolder = () : Promise<string> => 
     new Promise(
         (resolve,reject) => {
 
@@ -133,17 +133,22 @@ export class Listeners{
       this.registeredListeners = [   
             { 
                 name : "cloneWindow", 
-                callback : (event, store)  => onCloneWindow(event,store,this.spawnedWindows)},  
+                callback : (event, store)  => onCloneWindow(event,store,this.spawnedWindows)
+            },  
             { 
                 name : "reload", 
-                callback : (event, id:number) => onReload(event,id,this.spawnedWindows)},  
+                callback : (event, id:number) => onReload(event,id,this.spawnedWindows)
+            },  
             { 
                 name : "action", 
                 callback : (event, action : any, id : number) => onAction(event,action,id,this.spawnedWindows)
-            },
+            }, 
             {
                 name:"folder",
-                callback : (event) => selectFolder().then((path:string) => event.sender.send("folder", {foldername:path}))  
+                callback : (event) => selectFolder()
+                                      .then(
+                                        (path:string) => event.sender.send("folder", {foldername:path})
+                                      )  
             }, 
             {
                 name:"setStorage",
@@ -166,7 +171,19 @@ export class Listeners{
                         }
                     );
                 }
-            } 
+            }, 
+            {
+                name:"clearStorage",
+                callback : (event) => {
+                    storage.clear(
+                       (error) => {
+                            if (error){ onError(error) }   
+                            event.sender.send("clearStorage"); 
+                        }
+                    );  
+                }
+            }
+
         ];     
       
         this.startToListenOnAllChannels(); 

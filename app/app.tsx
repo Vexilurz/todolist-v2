@@ -24,7 +24,7 @@ import { applicationObjectsReducer } from './ObjectsReducer';
 import { TodoInputPopup } from './Components/TodoInput/TodoInputPopup';
 import { cond, assoc, isNil, not } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
-import { Settings } from './Components/Settings/settings';
+import { Settings, section } from './Components/Settings/settings';
 import { SimplePopup } from './Components/SimplePopup';
   
 
@@ -314,22 +314,18 @@ class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupState>{
            show={openSettings} 
            onOutsideClick={() => dispatch({type:"openSettings",load:false})}
         >
-            <Settings />
+            <Settings {...{} as any} />
         </SimplePopup>    
     } 
 }
 
 
 
- 
-
-
- 
-
 export interface Store{
+    selectedSettingsSection : section, 
     openSettings : boolean,
     showScheduled : boolean,
-    showCompleted : boolean,
+    showCompleted : boolean, 
     openSearch : boolean, 
     openTodoInputPopup : boolean, 
     openRightClickMenu : any, 
@@ -366,8 +362,9 @@ export interface Store{
 } 
  
    
-
+ 
 export let defaultStoreItems : Store = {
+    selectedSettingsSection : "General",
     openSettings : false, 
     openRepeatPopup : null, 
     showRepeatPopup : false,

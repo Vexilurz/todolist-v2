@@ -29,7 +29,7 @@ import { attachDispatchToProps, getIcalData, isString, debounce } from '../../ut
 import { Store } from '../../app';
 import { generateId, Calendar } from '../../database';
 import { isDate } from 'util';
-
+ 
 //https://www.calendarlabs.com/ical-calendar/ics/76/US_Holidays.ics
 //https://www.calendarlabs.com/ical-calendar/ics/55/Jewish_Holidays.ics
 //https://www.calendarlabs.com/ical-calendar/ics/58/Malaysia_Holidays.ics
@@ -37,25 +37,21 @@ import { isDate } from 'util';
 //https://www.calendarlabs.com/ical-calendar/ics/39/Canada_Holidays.ics
 //https://www.calendarlabs.com/ical-calendar/ics/35/Australia_Holidays.ics
  
-interface SettingsProps{}
+interface SettingsProps extends Store{}
 
-type section = 'General' | 'QuickEntry' | 'CalendarEvents' | 'DataFolder';
+export type section =  'General' | 'QuickEntry' | 'CalendarEvents' | 'DataFolder';
   
-interface SettingsState{
-    section:section
-}
+interface SettingsState{}
 
+@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
 export class Settings extends Component<SettingsProps,SettingsState>{
 
     constructor(props){
         super(props);
-        this.state={
-            section:'General'
-        }
     }
-
+ 
     render(){
-        let {section} = this.state;
+        let {selectedSettingsSection, dispatch} = this.props;
         let height = window.innerHeight/2;
         let width = window.innerWidth/1.5;
         let title = { 
@@ -64,7 +60,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
             'QuickEntry' : 'Quick Entry',
             'CalendarEvents' : 'Calendar Events',
             'DataFolder' : 'Data folder'
-        }[section]
+        }[selectedSettingsSection]
 
 
         return <div style={{
@@ -106,28 +102,28 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     height:"80%"
                 }}> 
                     <Section  
-                        onClick={() => this.setState({section:'General'})} 
+                        onClick={() => dispatch({type:"selectedSettingsSection", load:'General'})} 
                         icon={<General style={{color:"dimgray", height:40, width:40}}/>}
                         name={'General'}
-                        selected={section==='General'}
+                        selected={selectedSettingsSection==='General'}
                     /> 
                     <Section
-                        onClick={() => this.setState({section:'QuickEntry'})} 
+                        onClick={() => dispatch({type:"selectedSettingsSection", load:'QuickEntry'})} 
                         icon={<QuickEntry style={{color:"rgba(100,100,100,0.8)", height:40, width:40}}/>}
                         name={'Quick Entry'}
-                        selected={section==='QuickEntry'}
+                        selected={selectedSettingsSection==='QuickEntry'}
                     />
                     <Section
-                        onClick={() => this.setState({section:'CalendarEvents'})} 
+                        onClick={() => dispatch({type:"selectedSettingsSection", load:'CalendarEvents'})} 
                         icon={<CalendarEvents style={{color:"rgba(150,10,10,0.8)", height:40, width:40}}/>}
                         name={'Calendar Events'}
-                        selected={section==='CalendarEvents'}
+                        selected={selectedSettingsSection==='CalendarEvents'}
                     />
                     <Section
-                        onClick={() => this.setState({section:'DataFolder'})} 
+                        onClick={() => dispatch({type:"selectedSettingsSection", load:'DataFolder'})} 
                         icon={<Folder style={{color:"rgba(10,10,10,0.8)", height:40, width:40}}/>}
                         name={'Data folder'} 
-                        selected={section==='DataFolder'}
+                        selected={selectedSettingsSection==='DataFolder'}
                     />  
                 </div>     
             </div>
@@ -146,8 +142,8 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         QuickEntry : <QuickEntrySettings />, 
                         CalendarEvents : <CalendarEventsSettings {...{} as any} />, 
                         DataFolder : <DataFolderSettings />
-                    }[section] 
-                } 
+                    }[selectedSettingsSection] 
+                }   
             </div>
         </div>
     }

@@ -132,7 +132,15 @@ export let createHeading = (e, props:Store) : void => {
 
 
 
-
+let clearStorage = () : Promise<void> => 
+    new Promise( 
+        (resolve) => { 
+           ipcRenderer.removeAllListeners("clearStorage"); 
+           ipcRenderer.send("clearStorage");
+           ipcRenderer.on("clearStorage", (event) => resolve());
+        }
+    )
+  
 
 
 
@@ -167,14 +175,15 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
                     let fakeData = generateRandomDatabase({todos:150, projects:38, areas:15});      
                      
-                    let todos = fakeData.todos;
+                    let todos = fakeData.todos; 
                     let projects = fakeData.projects; 
                     let areas = fakeData.areas; 
                      
                     Promise.all([
                         addTodos(this.onError,todos),    
                         addProjects(this.onError,projects), 
-                        addAreas(this.onError,areas)      
+                        addAreas(this.onError,areas),  
+                        clearStorage()     
                     ]) 
                     .then(() => this.fetchData())    
                 });
