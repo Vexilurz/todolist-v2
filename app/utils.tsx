@@ -82,7 +82,7 @@ export let updateNeverTodos = (dispatch:Function,never:Todo[]) => {
 
 
 export let getRangeYearUntilDate = (start:Date,endsDate:Date,repeatEveryN:number) : Date[] => {
-    //waht is leap year? TODO 
+    //what is leap year? TODO 
     let last = start;
     let dates = [];
 
@@ -91,16 +91,16 @@ export let getRangeYearUntilDate = (start:Date,endsDate:Date,repeatEveryN:number
         let year = next.getFullYear();
         next.setFullYear(year + (i*repeatEveryN));
         last = next;
-        dates.push(next);
-    } 
-    return dates;
+        if(next.getTime()<=endsDate.getTime()){ dates.push(next) }
+    }   
+    return dates;  
 } 
 
 
 export let getRangeYearRepetitions = (start:Date,endsAfter:number,repeatEveryN:number) : Date[] => {
     let dates = [];
     
-    for(let i = 1; i<endsAfter; i++){
+    for(let i = 1; i<=endsAfter; i++){
         let next = new Date(start.getTime());
         let year = next.getFullYear();
         next.setFullYear(year + (i*repeatEveryN));
@@ -136,8 +136,9 @@ export let getRangeMonthUntilDate = (start:Date, ends:Date, repeatEveryN:number)
            next.setDate(dayOfTheMonth);
         }     
 
-        last = new Date(next.getTime()); 
-        dates.push(next);
+        last = new Date(next.getTime());  
+
+        if(next.getTime()<=ends.getTime()){ dates.push(next) }
     }
     return dates;
 }
@@ -148,7 +149,7 @@ export let getRangeMonthRepetitions = (start:Date, endsAfter:number, repeatEvery
     let initialMonth : number = start.getMonth();
     let dates = [];
 
-    for(let i = 1; i<endsAfter; i++){
+    for(let i=1; i<=endsAfter; i++){
         let next = new Date(start.getTime());
         next.setDate(1);
 
@@ -182,11 +183,12 @@ export let getRangeDays = (start:Date, endDate:Date, step:number) : Date[] => {
     let dates = [];
     let last = dateToYearMonthDay(start);
     let end = dateToYearMonthDay(endDate); 
-    
+
     while(last.getTime() < end.getTime()){
       let next = new Date(last.getTime())["addDays"]( step );
-      dates.push(next);
-      last = dateToYearMonthDay(next);
+
+      if(next.getTime()<=end.getTime()){ dates.push(next) }
+      last = dateToYearMonthDay(next); 
     } 
 
     return dates; 
@@ -203,7 +205,7 @@ export let getRangeRepetitions = (start:Date, repetitions:number, step:number) :
    
     let dates = [];
 
-    for(let i = 1; i <= repetitions; i++){
+    for(let i=1; i <=repetitions; i++){
         let next = new Date(start.getTime())["addDays"]( step*i );
         dates.push(next);
     }
@@ -212,7 +214,7 @@ export let getRangeRepetitions = (start:Date, repetitions:number, step:number) :
 }
 
  
-export let dateInputUpperLimit = (limit = 2070) : string => {
+export let dateInputUpperLimit = (limit = 2050) : string => {
     let now = new Date();  
     let month = now.getUTCMonth() + 1; 
     let d = now.getUTCDate();

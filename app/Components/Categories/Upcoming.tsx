@@ -32,6 +32,7 @@ import { allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map, flatte
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category } from '../MainContainer';
 import { repeat, setRepeatedTodos } from '../RepeatPopup';
+import { Hint, hideHint } from './Today';
 
 
 type Item = Project | Todo;
@@ -130,7 +131,8 @@ interface UpcomingProps{
 
 interface UpcomingState{
     objects : {date:Date, todos:Todo[], projects:Project[]}[],
-    enter : number
+    enter : number,
+    showHint : boolean 
 }
 
  
@@ -141,7 +143,11 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     constructor(props){
         super(props);
         this.n = 10;  
-        this.state = {objects:[], enter:1}; 
+        this.state = {
+            objects:[], 
+            enter:1,
+            showHint:false
+        }; 
     }  
     
     onError = (e) => console.log(e);
@@ -159,6 +165,8 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     }   
 
     componentDidMount(){
+        hideHint().then( (hide) => this.setState({showHint:!hide}) )     
+         
         this.setState({objects:this.getObjects(this.props,this.n)})
     }
      
@@ -324,6 +332,18 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                         selectedTag={selectedTag}
                     />
                 </div>
+
+                {   
+                    this.state.showHint ? 
+                    <Hint {
+                        ...{
+                            hideHint:() => this.setState({showHint:false}),
+                            text:`These are your tasks for the next days. 
+                            Do you also want to include the events from your calendar?`
+                        } as any  
+                    }/> :  
+                    null
+                } 
    
                 <div>{this.state.objects.map(this.objectToComponent)}</div>
 

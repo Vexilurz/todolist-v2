@@ -9,6 +9,26 @@ import { isNil } from 'ramda';
 const os = require('os');
 const storage = require('electron-json-storage');
 storage.setDataPath(os.tmpdir());
+
+
+ 
+/*
+var PouchDB = require('pouchdb');
+PouchDB.plugin(require('pouchdb-adapter-leveldb'));
+
+var db = new PouchDB('my_db', {adapter: 'leveldb'});
+
+db.info().then(function (info) {
+  console.log('works', info)
+}).catch(function (err) {
+  console.log('doesnt work',err)
+});
+*/ 
+
+
+
+
+
  
 class AppUpdater {
     constructor() {

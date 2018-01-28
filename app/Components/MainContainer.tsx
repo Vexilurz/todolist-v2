@@ -156,7 +156,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
         super(props);  
 
-        this.limit = 100000;
+        this.limit = 5000;
 
         this.events = null; 
 
@@ -259,7 +259,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
         let delay = 1000 * 5 * 60;
         
-        this.events = setInterval(this.refreshEvents,delay) as any;
+        if(isNil(this.events)){
+           this.events = setInterval(this.refreshEvents,delay) as any;
+        } 
  
         let resize = Observable
                     .fromEvent(window,"resize")

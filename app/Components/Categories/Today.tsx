@@ -441,8 +441,10 @@ export class Today extends Component<TodayProps,TodayState>{
                         this.state.showHint ? 
                         <Hint {
                             ...{
-                                hideHint:() => this.setState({showHint:false})
-                            } as any 
+                                hideHint:() => this.setState({showHint:false}),
+                                text:`These are your tasks for today. 
+                                Do you also want to include the events from your calendar?`
+                            } as any  
                         }/> : 
                         null
                     } 
@@ -548,21 +550,21 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
             }</div>
         </div>
     }   
-}
+} 
 
 
 
 let setHideHint = (hide:boolean) : Promise<void> => setToJsonStorage("hideHint", {hideHint:hide}); 
 
-let hideHint = () : Promise<boolean> => getFromJsonStorage("hideHint")
+export let hideHint = () : Promise<boolean> => getFromJsonStorage("hideHint")
                                         .then((data) => data ? data.hideHint : null);       
  
-interface HintProps extends Store{ hideHint : Function }
+interface HintProps extends Store{ hideHint : Function, text : string }
 
 interface HintState{} 
  
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
-class Hint extends Component<HintProps,HintState>{
+export class Hint extends Component<HintProps,HintState>{
 
     constructor(props){
         super(props);
@@ -588,79 +590,28 @@ class Hint extends Component<HintProps,HintState>{
             padding:"20px",
             flexDirection:"column",
             borderRadius:"5px",
-            height:"160px", 
+            height:"120px",
+            justifyContent:"space-between",
             cursor:"default",
-            userSelect:"none", 
+            userSelect:"none",
             alignItems:"center",
-            backgroundColor:"rgb(238, 237, 239)"
-        }}>    
-            <div style={{  
-                display:"flex",
-                flexDirection:"row",
-                justifyContent:"flex-start",
-                width:"100%",
-                alignItems:"flex-end" 
-            }}> 
-                <div style={{
-                    display:"flex",
-                    justifyContent:"center",
-                    height:"100%",
-                    alignItems:"flex-start"  
-                }}>  
-                    { chooseIcon({width:"40px", height:"40px"}, "upcoming") }  
-                </div>
-                <div style={{
-                    paddingBottom:"10px",
-                    paddingLeft:"10px", 
-                    fontWeight:"bold", 
-                    fontSize:"15px", 
-                    color:"rgba(0,0,0,1)"
-                }}>   
-                    Calendar events
-                </div>
-            </div> 
+            backgroundColor:"rgb(238, 237, 239)" 
+        }}>   
             <div style={{
-                fontSize:"14px",
-                color:"rgb(0, 0, 0)",
-                width:"100%",
-                padding:"10px",
-                textAlign:"start" 
+                fontSize:"15px",
+                fontWeight:500,
+                color:"rgba(100, 100, 100,0.9)",
+                width:"90%",
+                textAlign:"center"
             }}>
-                You can load calendar events, they will be displayed in upcoming and today section.
-                Do you want to do it now ?   
-            </div>  
-
+                {this.props.text}
+            </div>   
             <div style={{  
                 display:"flex",  
                 alignItems: "flex-end", 
                 justifyContent: "space-around",
                 height: "50%"
             }}>
-                <div style={{padding: "10px"}}>
-                    <div     
-                        onClick={this.onLoad}
-                        style={{      
-                            width:"130px",
-                            display:"flex",
-                            alignItems:"center",
-                            cursor:"pointer",
-                            justifyContent:"center",
-                            borderRadius:"5px",
-                            height:"35px",   
-                            border:"1px solid rgba(100,100,100,0.5)",
-                            backgroundColor:"rgb(10, 90, 250)"  
-                        }}
-                    > 
-                        <div style={{
-                            color:"white",
-                            fontSize:"15px",
-                            whiteSpace:"nowrap"  
-                        }}>    
-                            Load events
-                        </div>   
-                    </div> 
-                </div>
-
                 <div style={{padding: "10px"}}>
                     <div     
                         onClick={this.onClose} 
@@ -671,20 +622,44 @@ class Hint extends Component<HintProps,HintState>{
                             cursor:"pointer",
                             justifyContent:"center",
                             borderRadius:"5px",
-                            height:"35px",   
-                            border:"1px solid rgba(100,100,100,0.5)",
-                            backgroundColor:"white"  
-                        }}
+                            height:"35px",
+                            backgroundColor:"rgb(81, 151, 246)" 
+                        }}   
                     > 
                         <div style={{
-                            color:"black",
+                            color:"white",
                             fontSize:"15px",
+                            fontWeight:500,
                             whiteSpace:"nowrap"  
                         }}>    
-                            Later
+                            No
                         </div>   
                     </div> 
                 </div> 
+                <div style={{padding: "10px"}}>
+                    <div     
+                        onClick={this.onLoad}
+                        style={{      
+                            width:"130px",
+                            display:"flex",
+                            alignItems:"center",
+                            cursor:"pointer",
+                            justifyContent:"center",
+                            borderRadius:"5px",
+                            height:"35px",
+                            backgroundColor:"rgb(81, 151, 246)" 
+                        }}
+                    > 
+                        <div style={{
+                            color:"white",
+                            fontSize:"15px",
+                            fontWeight:500,
+                            whiteSpace:"nowrap"  
+                        }}>    
+                            Include Events
+                        </div>   
+                    </div> 
+                </div>
             </div>
         </div>  
     }

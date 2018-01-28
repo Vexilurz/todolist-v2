@@ -27,7 +27,22 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import FlatButton from 'material-ui/FlatButton';
 
- 
+let limit = (down:number,up:number) => 
+            (value:number) => value<down ? down :
+                              value>up ? up :
+                              value;
+
+let limitInput = limit(1,1000);
+
+let limitDate = (date:Date) : Date => {
+    let end = new Date(2050, 12, 0);
+    let start = new Date();
+
+    return date.getTime() > end.getTime() ? end :
+           date.getTime() < start.getTime() ? start :
+           date;  
+}
+                              
 const never : number = 1000; 
 
 
@@ -41,7 +56,7 @@ let oneDayAhead = () : Date => {
       
     return new Date()["addDays"](1);
 }
-
+ 
 
 let selectedDatesToTodos = (todo:Todo, data:{dates:Date[],group:Group}) : Todo[] => {
     let { dates, group } = data;
@@ -106,6 +121,11 @@ let handleDay = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Grou
 
 
 let handleWeek = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Group} => {
+    Date.prototype["addDays"] = function(days) {
+        let date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;
+    }
 
     let {repeatEveryN, endsDate, endsAfter, selectedOption} = options;       
     
@@ -139,8 +159,8 @@ let handleMonth = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gr
     let groupId : string = generateId();
     let start : Date = getStartDate(todo);
 
-    switch(selectedOption){
-        case "on":
+    switch(selectedOption){  
+        case "on": 
             return {
                 dates:getRangeMonthUntilDate(start, endsDate, repeatEveryN),
                 group:{type:selectedOption, _id:groupId}
@@ -274,17 +294,20 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
     onDone = (e) => {  
         let { todos, repeatTodo, dispatch } = this.props;
         let todo = { ...repeatTodo};
-        let options = this.state; 
+        let options = { 
+            ...this.state,
+            endsDate:limitDate(this.state.endsDate)
+        }; 
  
         if(!isNil(todo.group)){
             options = todo.group.options ? todo.group.options : this.state;
         }
 
-        let repeatedTodos : Todo[] = repeat(this.state, todo);  
+        let repeatedTodos : Todo[] = repeat(options, todo);  
 
         setRepeatedTodos({dispatch,todo,repeatedTodos,options});
-              
-        this.close();  
+                
+        this.close();   
     }    
 
 
@@ -365,7 +388,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
     render(){
         let start = dateToDateInputValue(new Date());
-        let end = dateInputUpperLimit(); 
+        let end = dateInputUpperLimit();  
         let {repeatEveryN,repeatEveryInterval,endsDate,endsAfter,selectedOption} = this.state; 
         let {showRepeatPopup} = this.props;
  
@@ -428,9 +451,9 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                             width:"100%"  
                         }} 
                         min="1"
-                        max="10000"
-                        onChange={(event) => this.setState({repeatEveryN:Number(event.target.value)})}
-                        type="number" 
+                        max="1000"
+                        onChange={(event) => this.setState({repeatEveryN:limitInput( Number(event.target.value) )})}
+                        type="number"  
                     />
                 </div>
                 <select 
@@ -452,7 +475,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     <div style={{display:"flex", alignItems:"center"}}>    
                         <div>
                             <div onClick={(e) => {
-                            this.setState({selectedOption:'never', endsAfter:1, endsDate:oneDayAhead()})
+                                this.setState({selectedOption:'never', endsAfter:1, endsDate:oneDayAhead()})
                             }}
                                 style={{ 
                                     backgroundColor:selectedOption==='never' ? 'rgb(10, 100, 240)' : '',
@@ -503,7 +526,11 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                             disabled={selectedOption!=='on'}
                             max={end}
                             value={dateToDateInputValue(this.state.endsDate)}
-                            onChange={(event) => this.setState({endsDate:new Date(event.target.value)})}
+                            onChange={(event) => { 
+                                let endsDate = new Date(event.target.value);
+                                 
+                                if(isDate(endsDate)){ this.setState({endsDate}) } 
+                            }} 
                             style={{         
                                outline:"none",  
                                backgroundColor:"rgba(235,235,235,1)",
@@ -543,17 +570,19 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                         <div style={{display:"flex", backgroundColor:"rgba(235,235,235,1)"}}>
                             <div style={{width:"50px"}}> 
                                 <input   
-                                    onChange={(event) => this.setState({endsAfter:Number(event.target.value)})}
+                                    onChange={(event) => this.setState({
+                                        endsAfter:limitInput( Number(event.target.value) )
+                                    })}
                                     disabled={selectedOption!=='after'}
                                     value={String(this.state.endsAfter)}
                                     min="1"  
-                                    max="10000"
+                                    max="1000"
                                     style={{   
-                                        outline:"none",  
-                                        backgroundColor:"rgba(0,0,0,0)",
-                                        border:"none",
-                                        textAlign:"center",
-                                        width:"100%"    
+                                      outline:"none",  
+                                      backgroundColor:"rgba(0,0,0,0)",
+                                      border:"none",
+                                      textAlign:"center",
+                                      width:"100%"    
                                     }}   
                                     type="number" 
                                 />  

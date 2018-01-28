@@ -37,6 +37,9 @@ import { isDate } from 'util';
 //https://www.calendarlabs.com/ical-calendar/ics/39/Canada_Holidays.ics
 //https://www.calendarlabs.com/ical-calendar/ics/35/Australia_Holidays.ics
  
+//http://ical.mac.com/ical/Dutch32Holidays.ics
+
+
 interface SettingsProps extends Store{}
 
 export type section =  'General' | 'QuickEntry' | 'CalendarEvents' | 'DataFolder';
@@ -420,11 +423,16 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
 
         let extension = last(url.split('.'));
 
+        
         if(extension!=='ics'){    
            this.setState({error:"Incorrect format. Only ics extension supported."});
            return null;    
         }
         
+        if(url.startsWith("webcal")){
+           url = url.replace("webcal","http");
+        }
+         
         getIcalData(url)
         .then(
            (result:any) => { 
