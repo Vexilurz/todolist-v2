@@ -46,6 +46,7 @@
     "electron-json-storage": "^4.0.2",
     "electron-log": "^2.2.13",
     "electron-updater": "^2.17.6",
+    "fast.js": "^0.1.1",
     "file-loader": "^0.11.2",
     "filereader": "^0.10.3",
     "font-loader": "^0.1.2",

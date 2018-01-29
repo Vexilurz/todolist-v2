@@ -22,7 +22,7 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
-import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
+import { Todo, Project, Heading, LayoutItem, Area, getTodoById } from '../../database'; 
 import { 
     uppercase, debounce, byNotDeleted, byNotCompleted, byTags, assert, 
     isProject, isTodo, byHaveAttachedDate, byNotSomeday, isString, 
@@ -30,8 +30,8 @@ import {
 } from '../../utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
-import { adjust, remove, allPass, uniq, isNil, not, contains, isEmpty } from 'ramda';
-import { isDev } from '../../app';
+import { adjust, remove, allPass, uniq, isNil, not, contains, isEmpty, filter, map } from 'ramda';
+import { isDev, convertTodoDates } from '../../app';
 import { getProgressStatus } from './ProjectLink';
 
 
@@ -70,35 +70,70 @@ interface ProjectComponentProps{
   
 
 
-interface ProjectComponentState{}   
+interface ProjectComponentState{
+    toProjectHeader:Todo[],
+    toProjectBody:(Todo|Heading)[],  
+    project:Project
+}   
  
  
  
 export class ProjectComponent extends Component<ProjectComponentProps,ProjectComponentState>{
 
-
     constructor(props){
         super(props); 
+        this.state={
+            toProjectHeader:[],
+            toProjectBody:[],  
+            project:null
+        };
     }   
 
-
-    getItems = (props:ProjectComponentProps) => {
+    getItems = (props:ProjectComponentProps) : Promise<{
+        toProjectHeader:Todo[];
+        toProjectBody:any;
+        project:Project;
+    }> => {
         let project = props.projects.find((p:Project) => props.selectedProjectId===p._id);
-        let items = this.selectItems( 
+        
+        return this.selectItems( 
             project.layout,
             props.todos,
             props.showCompleted, 
             props.showScheduled
-        );  
+        ).then(
+            (items:(Todo|Heading)[]) => {
+                let toProjectHeader = items.filter( isTodo ) as Todo[];
+                let toProjectBody = items.filter((i:Todo) => isTodo(i) ? byTags(props.selectedTag)(i) : true);
+                
+                return {
+                    toProjectHeader,
+                    toProjectBody,
+                    project
+                }
+            }
+        )
+    } 
 
-        let toProjectHeader = items.filter( isTodo ) as Todo[];
-        let toProjectBody = items.filter((i:Todo) => isTodo(i) ? byTags(props.selectedTag)(i) : true);
-        
-        return {
-            toProjectHeader,
-            toProjectBody,
-            project
-        }
+    componentDidMount(){
+        this.getItems(this.props) 
+        .then( 
+            ({toProjectHeader,toProjectBody,project}) => 
+            this.setState({
+                toProjectHeader, toProjectBody, project
+            })  
+        )
+    }
+
+
+    componentWillReciveProps(nextProps:ProjectComponentProps){
+        this.getItems(nextProps) 
+        .then( 
+            ({toProjectHeader,toProjectBody,project}) => 
+            this.setState({
+                toProjectHeader, toProjectBody, project
+            })
+        )
     }
 
 
@@ -114,15 +149,17 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
             nextProps.showScheduled!==this.props.showScheduled ||  
                                                            
-            nextProps.showCompleted!==this.props.showCompleted 
-        ){
-            
-            return true;
+            nextProps.showCompleted!==this.props.showCompleted ||
 
-        }else{
+            nextState.toProjectHeader !== this.state.toProjectHeader ||
+
+            nextState.toProjectBody !== this.state.toProjectBody ||
+
+            nextState.project !== this.state.project
+
+        ){ return true }
             
-            return false;
-        }
+        return false
     } 
      
 
@@ -258,15 +295,12 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         todos:Todo[], 
         showCompleted:boolean, 
         showScheduled:boolean
-    ) : (Todo | Heading)[] => { 
+    ) : Promise<(Todo | Heading)[]> => { 
 
-        let items = [];  
-
+        let onError = (error) => console.log(error);
 
         let byNotFuture = (t:Todo) => isNil(t.attachedDate) ? true : daysRemaining(t.attachedDate)<=0;
-
-        
-              
+ 
         let filters = [
             byNotDeleted, 
             showCompleted ? null : byNotCompleted, 
@@ -276,28 +310,16 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         ].filter( f => f );  
 
 
-        
-
-
-        let filteredTodos:Todo[] = todos.filter(allPass(filters));
-    
-        for(let i=0; i<layout.length; i++){ 
-            let item : LayoutItem = layout[i];  
-            
-            assert(not(isNil(item)), `Layout item is Nil ${JSON.stringify(layout)}`);
- 
-            if(typeof item === "string"){
-                let todo : Todo = filteredTodos.find( (t:Todo) => t._id===item );
-                
-                if(todo){ 
-                   items.push(todo);  
-                } 
-            }else if(item.type==="heading"){
-                items.push(item);
-            }
-        }
-        return items; 
-    }   
+        return Promise.all( 
+            layout.map(
+                (item) => isString(item) ? 
+                          getTodoById(onError,item as string) : 
+                          new Promise(resolve => resolve(item))
+            )
+        )
+        .then(filter((item:any) => isTodo(item) ? allPass(filters)(item) : true))
+        .then(map((item:any) => isTodo(item) ? convertTodoDates(item) : item) as any) 
+    }    
 
      
     render(){   
@@ -306,7 +328,9 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             toProjectHeader,
             toProjectBody,  
             project
-        } = this.getItems(this.props); 
+        } = this.state;  
+ 
+        if(isNil(project)){ return null }
 
         let progress = getProgressStatus(project,todos);
 
@@ -356,7 +380,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             dispatch={this.props.dispatch} 
                         />  
                     </div>   
-  
                     {  
                         not(haveScheduledTodos(project, this.props.todos)) ? null :
                         <div 
