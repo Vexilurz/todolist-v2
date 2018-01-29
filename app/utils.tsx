@@ -4,7 +4,7 @@ import * as ReactDOM from 'react-dom';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import {  
   cyan500, cyan700,   
-  pinkA200, 
+  pinkA200,  
   grey100, grey300, grey400, grey500,
   white, darkBlack, fullBlack,   
 } from 'material-ui/styles/colors'; 
@@ -49,7 +49,7 @@ import {
     contains, isNil, all, prepend, isEmpty, last,
     not, assoc, flatten, toPairs, map, compose 
 } from 'ramda'; 
-import { isDev } from './app';
+import { isDev, Store } from './app';
 import { setRepeatedTodos, repeat } from './Components/RepeatPopup';
 import { ipcRenderer, remote } from 'electron';
 
@@ -76,13 +76,14 @@ export let updateNeverTodos = (dispatch:Function,never:Todo[]) => {
 
         setRepeatedTodos({dispatch,todo,repeatedTodos,options});
  
-        console.log("request additional items...");    
+        console.log("request additional items...");     
     }
 }
-
+ 
+ 
 
 export let getRangeYearUntilDate = (start:Date,endsDate:Date,repeatEveryN:number) : Date[] => {
-    //what is leap year? TODO 
+    //what if leap year? TODO 
     let last = start;
     let dates = [];
 
@@ -95,6 +96,7 @@ export let getRangeYearUntilDate = (start:Date,endsDate:Date,repeatEveryN:number
     }   
     return dates;  
 } 
+
 
 
 export let getRangeYearRepetitions = (start:Date,endsAfter:number,repeatEveryN:number) : Date[] => {
@@ -233,6 +235,16 @@ export let daysInMonth = (date:Date) => new Date(date.getFullYear(), date.getMon
 
 export let dateToYearMonthDay = (date:Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
 
+export let oneDayAhead = () : Date => { 
+
+    Date.prototype["addDays"] = function(days) {
+        let date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;   
+    }
+      
+    return new Date()["addDays"](1);
+} 
 
 export let oneDayBehind = () : Date => { 
 
@@ -1723,3 +1735,195 @@ export let getFromJsonStorage = (key:string) : Promise<any> => new Promise(
         );
     }
 )
+
+
+
+
+export let transformLoadDates = (load) : any => {
+
+    let converted = load;
+
+    if(isTodo(load)){
+        converted = convertTodoDates(load);
+    }else if(isProject(load)){
+        converted = convertProjectDates(load);
+    }else if(isArea(load)){
+        converted = convertAreaDates(load); 
+    }else if(isArray(load)){
+        if(isArrayOfAreas(load)){
+            converted = load.map(convertAreaDates);
+        }else if(isArrayOfProjects(load)){
+            converted = load.map(convertProjectDates);
+        }else if(isArrayOfTodos(load)){
+            converted = load.map(convertTodoDates);
+        }   
+    }    
+
+    if(!isNil(load.todos)){
+        if(isArrayOfTodos(load.todos)){
+           load.todos = load.todos.map(convertTodoDates);
+        } 
+    }
+
+    if(!isNil(load.projects)){
+        if(isArrayOfProjects(load.projects)){
+           load.projects = load.projects.map(convertProjectDates);
+        }
+    }
+
+    if(!isNil(load.areas)){
+        if(isArrayOfAreas(load.areas)){
+           load.areas = load.areas.map(convertAreaDates);
+        } 
+    }
+ 
+    return  converted;  
+}
+
+
+
+
+export let convertTodoDates = (t:Todo) : Todo => ({
+    ...t, 
+    reminder : !t.reminder ? undefined :  
+                typeof t.reminder==="string" ? new Date(t.reminder) : 
+                t.reminder,
+
+    deadline : !t.deadline ? undefined : 
+                typeof t.deadline==="string" ? new Date(t.deadline) : 
+                t.deadline,
+    
+    created : !t.created ? undefined : 
+               typeof t.created==="string" ? new Date(t.created) : 
+               t.created,
+    
+    deleted : !t.deleted ? undefined : 
+               typeof t.deleted==="string" ? new Date(t.deleted) : 
+               t.deleted,
+    
+    attachedDate : !t.attachedDate ? undefined : 
+                    typeof t.attachedDate==="string" ? new Date(t.attachedDate) : 
+                    t.attachedDate,
+    
+    completed : !t.completed ? undefined : 
+                typeof t.completed==="string" ? new Date(t.completed) : 
+                t.completed
+})
+
+
+export let convertProjectDates = (p:Project) : Project => ({
+    ...p,
+    created : !p.created ? undefined : 
+               typeof p.created==="string" ? new Date(p.created) : 
+               p.created,
+
+    deadline : !p.deadline ? undefined : 
+                typeof p.deadline==="string" ? new Date(p.deadline) : 
+                p.deadline,
+
+    deleted : !p.deleted ? undefined : 
+               typeof p.deleted==="string" ? new Date(p.deleted) : 
+               p.deleted,
+
+    completed : !p.completed ? undefined : 
+                 typeof p.completed==="string" ? new Date(p.completed) : 
+                 p.completed  
+})
+
+
+export let convertAreaDates = (a:Area) : Area => ({
+    ...a, 
+    created : !a.created ? undefined : 
+               typeof a.created==="string" ? new Date(a.created) : 
+               a.created,
+
+    deleted : !a.deleted ? undefined : 
+               typeof a.deleted==="string" ? new Date(a.deleted) : 
+               a.deleted,
+})
+
+
+export let convertDates = ([todos, projects, areas]) => [ 
+    todos.map(convertTodoDates),
+    projects.map(convertProjectDates),
+    areas.map(convertAreaDates)     
+]  
+
+
+export let createHeading = (e, props:Store) : void => {
+     
+    let id : string = props.selectedProjectId;
+
+
+    assert(
+        props.selectedCategory==="project",   
+        `Attempt to create heading outside of project template. 
+        ${props.selectedCategory}. 
+        createHeading.`
+    )
+
+    assert(not(isNil(id)), `selectedProjectId undefined ${id}. createHeading.`);
+
+  
+    let project = props.projects.find( (p:Project) => p._id===id );
+
+
+    assert( 
+        isProject(project),   
+        `this.props.selectedProjectId ${props.selectedProjectId} do not correspond to existing project.
+        ${JSON.stringify(props.projects)}. createHeading`
+    )
+
+
+    let priority = 0; 
+
+
+    if(!isEmpty(project.layout)){
+        let item : LayoutItem = last(project.layout);
+
+        if(isString(item)){ 
+
+            let todo = props.todos.find( (t:Todo) => t._id===item );
+            assert(
+                isTodo(todo), 
+                `todo is not of type Todo. 
+                 todo : ${JSON.stringify(todo)}. 
+                 item : ${JSON.stringify(item)}. 
+                 createHeading.`
+            )
+        
+            priority = todo.priority + 1; 
+             
+        }else if(item["type"]==="heading"){
+ 
+            let heading : Heading = item as Heading; 
+            priority = heading.priority + 1;
+
+        } 
+    }
+
+
+    let heading : Heading = {
+        type : "heading", 
+        priority,
+        title : '',   
+        _id : generateId(), 
+        key : generateId()
+    }; 
+
+    let load = {...project, layout:[heading,...project.layout]};
+    
+    props.dispatch({ type:"updateProject", load });
+}
+
+ 
+export let clearStorage = () : Promise<void> => { 
+    return new Promise( 
+        (resolve) => { 
+           ipcRenderer.removeAllListeners("clearStorage"); 
+           ipcRenderer.send("clearStorage");
+           ipcRenderer.on("clearStorage", (event) => resolve());
+        }
+    )
+}  
+ 

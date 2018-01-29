@@ -299,13 +299,10 @@ export class Trash extends Component<TrashProps,TrashState>{
  
       
 
-interface TrashPopupProps{
-    dispatch:Function,
-    showTrashPopup:boolean
-}  
-
+interface TrashPopupProps extends Store{}   
 interface TrashPopupState{}  
 
+@connect((store,props) => ({...store, ...props}), attachDispatchToProps)
 export class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
 
     onCancel = () => { 

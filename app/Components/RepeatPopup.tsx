@@ -9,11 +9,11 @@ import ClearArrow from 'material-ui/svg-icons/content/backspace';
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { 
+import {  
     attachDispatchToProps, insideTargetArea, assert, isTodo, isDate, getMonthName, 
     dateToYearMonthDay, getRangeDays, getRangeRepetitions, daysInMonth, getRangeMonthUntilDate, 
     getRangeMonthRepetitions, getRangeYearUntilDate, getRangeYearRepetitions, 
-    dateToDateInputValue, dateInputUpperLimit 
+    dateToDateInputValue, dateInputUpperLimit, oneDayAhead 
 } from '../utils'; 
 import { Todo, removeTodo, addTodo, generateId, Project, Area, LayoutItem, Group } from '../database';
 import { Store, isDev } from '../app';
@@ -27,12 +27,17 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import FlatButton from 'material-ui/FlatButton';
 
+const never : number = 100;
+
+
 let limit = (down:number,up:number) => 
             (value:number) => value<down ? down :
                               value>up ? up :
                               value;
 
-let limitInput = limit(1,1000);
+                              
+let limitInput = limit(1,1000); 
+
 
 let limitDate = (date:Date) : Date => {
     let end = new Date(2050, 12, 0);
@@ -42,21 +47,7 @@ let limitDate = (date:Date) : Date => {
            date.getTime() < start.getTime() ? start :
            date;  
 }
-                              
-const never : number = 1000; 
 
-
-let oneDayAhead = () : Date => { 
-
-    Date.prototype["addDays"] = function(days) {
-        let date = new Date(this.valueOf());
-        date.setDate(date.getDate() + days);
-        return date;   
-    }
-      
-    return new Date()["addDays"](1);
-}
- 
 
 let selectedDatesToTodos = (todo:Todo, data:{dates:Date[],group:Group}) : Todo[] => {
     let { dates, group } = data;
@@ -177,7 +168,7 @@ let handleMonth = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gr
             };
     } 
 } 
- 
+  
 
 let handleYear = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Group} => {
 
@@ -204,7 +195,7 @@ let handleYear = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gro
             };
     }
 }
-
+ 
 
 export let repeat = (options:RepeatPopupState, todo:Todo) : Todo[] => {
 

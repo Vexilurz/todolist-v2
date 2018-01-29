@@ -8,10 +8,11 @@ import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
-import { Component } from "react"; 
-import {  
+import { Component } from "react";  
+import {   
     wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, 
-    getTagsFromItems, defaultTags, isTodo, isProject, isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos, isArray
+    getTagsFromItems, defaultTags, isTodo, isProject, isArea, isArrayOfAreas, 
+    isArrayOfProjects, isArrayOfTodos, isArray, transformLoadDates, convertDates
 } from "./utils";  
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
@@ -24,303 +25,24 @@ import { applicationObjectsReducer } from './ObjectsReducer';
 import { TodoInputPopup } from './Components/TodoInput/TodoInputPopup';
 import { cond, assoc, isNil, not } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
-import { Settings, section } from './Components/Settings/settings';
+import { Settings, section, SettingsPopup } from './Components/Settings/settings';
 import { SimplePopup } from './Components/SimplePopup';
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
   
+injectTapEventPlugin() 
 
-injectTapEventPlugin(); 
 
  
-export let isDev = () => true;  
+export let isDev = () => { return true } 
+
 
 
 (() => {     
     let app=document.createElement('div'); 
     app.id='application';     
     document.body.appendChild(app);    
-})();  
+})()
  
-
-
-
-export let transformLoadDates = (load) : any => {
-
-    let converted = load;
-
-    if(isTodo(load)){
-        converted = convertTodoDates(load);
-    }else if(isProject(load)){
-        converted = convertProjectDates(load);
-    }else if(isArea(load)){
-        converted = convertAreaDates(load); 
-    }else if(isArray(load)){
-        if(isArrayOfAreas(load)){
-            converted = load.map(convertAreaDates);
-        }else if(isArrayOfProjects(load)){
-            converted = load.map(convertProjectDates);
-        }else if(isArrayOfTodos(load)){
-            converted = load.map(convertTodoDates);
-        }   
-    }    
-
-    if(!isNil(load.todos)){
-        if(isArrayOfTodos(load.todos)){
-           load.todos = load.todos.map(convertTodoDates);
-        } 
-    }
-
-    if(!isNil(load.projects)){
-        if(isArrayOfProjects(load.projects)){
-           load.projects = load.projects.map(convertProjectDates);
-        }
-    }
-
-    if(!isNil(load.areas)){
-        if(isArrayOfAreas(load.areas)){
-           load.areas = load.areas.map(convertAreaDates);
-        } 
-    }
- 
-    return  converted;  
-}
-
-
-
-
-export let convertTodoDates = (t:Todo) : Todo => ({
-    ...t, 
-    reminder : !t.reminder ? undefined :  
-                typeof t.reminder==="string" ? new Date(t.reminder) : 
-                t.reminder,
-
-    deadline : !t.deadline ? undefined : 
-                typeof t.deadline==="string" ? new Date(t.deadline) : 
-                t.deadline,
-    
-    created : !t.created ? undefined : 
-               typeof t.created==="string" ? new Date(t.created) : 
-               t.created,
-    
-    deleted : !t.deleted ? undefined : 
-               typeof t.deleted==="string" ? new Date(t.deleted) : 
-               t.deleted,
-    
-    attachedDate : !t.attachedDate ? undefined : 
-                    typeof t.attachedDate==="string" ? new Date(t.attachedDate) : 
-                    t.attachedDate,
-    
-    completed : !t.completed ? undefined : 
-                typeof t.completed==="string" ? new Date(t.completed) : 
-                t.completed
-})
-
-
-
-
-
-export let convertProjectDates = (p:Project) : Project => ({
-    ...p,
-    created : !p.created ? undefined : 
-               typeof p.created==="string" ? new Date(p.created) : 
-               p.created,
-
-    deadline : !p.deadline ? undefined : 
-                typeof p.deadline==="string" ? new Date(p.deadline) : 
-                p.deadline,
-
-    deleted : !p.deleted ? undefined : 
-               typeof p.deleted==="string" ? new Date(p.deleted) : 
-               p.deleted,
-
-    completed : !p.completed ? undefined : 
-                 typeof p.completed==="string" ? new Date(p.completed) : 
-                 p.completed  
-})
-
-
-
-
-
-export let convertAreaDates = (a:Area) : Area => ({
-    ...a, 
-    created : !a.created ? undefined : 
-               typeof a.created==="string" ? new Date(a.created) : 
-               a.created,
-
-    deleted : !a.deleted ? undefined : 
-               typeof a.deleted==="string" ? new Date(a.deleted) : 
-               a.deleted,
-})
-
-
-
-
-
-
-export let convertDates = ([todos, projects, areas]) => [ 
-    todos.map(convertTodoDates),
-    projects.map(convertProjectDates),
-    areas.map(convertAreaDates)     
-]  
-
-
-
-
-
-export let initListeners = (props:AppProps) : void => {
-    ipcRenderer.removeAllListeners("action");  
-    ipcRenderer.removeAllListeners("Ctrl+Alt+T"); 
-   
-    let {dispatch,clone} = props;
-
-    ipcRenderer.on(
-        "Ctrl+Alt+T", 
-        (event) => {
-           dispatch({type:"openNewProjectAreaPopup", load:false});
-           dispatch({type:"showTrashPopup", load:false});
-           dispatch({type:"openTodoInputPopup", load:true});
-        }
-    ) 
-     
-
-    ipcRenderer.on(
-        "action", 
-        (event, action:{type:string, kind:string, load:any}) => { 
-
-            if(not(clone)){ return }  
-
-            dispatch(assoc("load", transformLoadDates(action.load), action));      
-        }
-    )   
-}
-
-
- 
- 
- 
- 
-interface AppProps extends Store{
-    initialLoad:{type:string,load:any}
-}
-
-@connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
-export class App extends Component<AppProps,{}>{
-
-    constructor(props){  
-        super(props);   
-        initListeners(props);
-    }
-    
-    componentDidMount(){ 
-
-        let {initialLoad,dispatch} = this.props; 
-
-        cond([
-            [
-                (action:{type:string}) : boolean => "open"===action.type,  
-                (action:{type:string, load:string}) : void => { 
-
-                    dispatch({type:"windowId", load:action.load});
-                }   
-            ], 
-            [
-                (action:{type:string}) : boolean => "clone"===action.type,  
-                (action:{type:string, load:Store}) : void => { 
-
-                    dispatch({type:"newStore", load:assoc("clone", true, action.load)});
-                } 
-            ],   
-            [ 
-                (action:{type:string}) : boolean => "reload"===action.type,  
-                (action:{type:string, load:string}) : void => { 
-
-                    dispatch({type:"windowId", load:action.load});
-                }   
-            ]
-        ])(initialLoad)
-    }   
- 
-
-
-    render(){     
-        let { initialLoad, clone } = this.props;
-        let { type,load } = initialLoad;
-        let windowId = null;
-
-        if(type==="open" || type==="reload"){
-           windowId=load; 
-        }
-        
-        return wrapMuiThemeLight(
-            <div style={{
-                backgroundColor:"white",
-                width:"100%",
-                height:"100%", 
-                scroll:"none",  
-                zIndex:2001,  
-            }}>  
-                <div style={{display:"flex", width:"inherit", height:"inherit"}}>  
-                    { clone ? null : <LeftPanel {...{} as any}/> }
-                    <MainContainer {...{windowId} as any}/>  
-                </div>  
-                <SettingsPopup {...{} as any} />      
-                <TodoInputPopup {...{} as any} />  
-                <ChangeGroupPopup {...{} as any} />
-                <TrashPopup   
-                    dispatch={this.props.dispatch}
-                    showTrashPopup={this.props.showTrashPopup}
-                />
-            </div>           
-        );    
-    }           
-};              
-    
-  
-
-ipcRenderer.on( 
-    'loaded',     
-    (event, {type, load} : {type:string,load:any}) => { 
-        
-        ReactDOM.render(  
-            <Provider store={store}>   
-                <App {...{initialLoad:{type,load}} as any} />
-            </Provider>,
-            document.getElementById('application')
-        )  
-    }
-);    
-   
-
-
-interface SettingsPopupProps extends Store{
-
-}
-
-interface SettingsPopupState{
-
-}
- 
-
-@connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
-class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupState>{
-
-    constructor(props){
-        super(props);
-    }
-
-    render(){
-        let {openSettings,dispatch} = this.props;
-
-        return <SimplePopup
-           show={openSettings} 
-           onOutsideClick={() => dispatch({type:"openSettings",load:false})}
-        >
-            <Settings {...{} as any}/> 
-        </SimplePopup>    
-    } 
-}
-
 
 
 export interface Store{
@@ -406,6 +128,136 @@ export let defaultStoreItems : Store = {
     tags:[...defaultTags]
 };      
      
+
+
+interface AppProps extends Store{
+    initialLoad:{type:string,load:any}
+}
+
+ 
+
+@connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
+export class App extends Component<AppProps,{}>{
+
+    constructor(props){  
+        super(props);  
+    }
+
+
+    init = () : void => {
+        let {initialLoad,dispatch} = this.props; 
+        let {type,load} = initialLoad;
+
+        switch(type){
+            case "open":
+                dispatch({type:"windowId", load});
+                break;
+            case "reload":
+                dispatch({type:"windowId", load});
+                break;    
+            case "clone":
+                dispatch({type:"newStore", load:assoc("clone", true, load)});
+                break;
+        }
+    }
+
+
+    initCtrlAltTListener = () => {
+        let {dispatch} = this.props;
+        ipcRenderer.removeAllListeners("Ctrl+Alt+T"); 
+        ipcRenderer.on( 
+            "Ctrl+Alt+T", 
+            (event) => {
+               dispatch({type:"openNewProjectAreaPopup", load:false});
+               dispatch({type:"showTrashPopup", load:false});
+               dispatch({type:"openTodoInputPopup", load:true});
+            }
+        ); 
+    }
+
+
+    initActionListener = () => {
+        let {dispatch,clone} = this.props;
+        ipcRenderer.removeAllListeners("action");  
+        ipcRenderer.on(
+            "action", 
+            (event, action:{type:string, kind:string, load:any}) => { 
+    
+                if(not(clone)){ return }  
+    
+                dispatch(assoc("load", transformLoadDates(action.load), action));      
+            }
+        );  
+    } 
+
+
+    initListeners = () : void => {
+         this.initCtrlAltTListener();
+         this.initActionListener();
+    }
+
+
+    suspendListeners = () : void => {
+        ipcRenderer.removeAllListeners("Ctrl+Alt+T"); 
+        ipcRenderer.removeAllListeners("action"); 
+    }
+
+     
+    componentDidMount(){  
+        this.init();
+        this.initListeners();
+    }   
+
+
+    componentWillUnmount(){
+        this.suspendListeners();  
+    }
+ 
+  
+    render(){     
+        let { initialLoad, clone } = this.props;
+        let { type,load } = initialLoad;
+        let windowId = null;
+
+        if(type==="open" || type==="reload"){
+           windowId=load; 
+        }
+        
+        return wrapMuiThemeLight(
+            <div style={{
+                backgroundColor:"white",
+                width:"100%",
+                height:"100%", 
+                scroll:"none",  
+                zIndex:2001,  
+            }}>   
+                <div style={{display:"flex", width:"inherit", height:"inherit"}}>  
+                    { clone ? null : <LeftPanel {...{} as any}/> }
+                    <MainContainer {...{windowId} as any}/>  
+                </div>   
+                <SettingsPopup {...{} as any} />      
+                <TodoInputPopup {...{} as any} />  
+                <ChangeGroupPopup {...{} as any} />
+                <TrashPopup {...{} as any} />
+            </div>           
+        );    
+    }           
+};              
+     
+  
+
+ipcRenderer.on( 
+    'loaded',     
+    (event, {type, load} : {type:string,load:any}) => { 
+        
+        ReactDOM.render(  
+            <Provider store={store}>   
+                <App {...{initialLoad:{type,load}} as any} />
+            </Provider>,
+            document.getElementById('application')
+        )  
+    }
+)    
  
 
 let reducer = (reducers) => (state:Store, action) => {

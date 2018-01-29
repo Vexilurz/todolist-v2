@@ -29,15 +29,32 @@ import { attachDispatchToProps, getIcalData, isString, debounce } from '../../ut
 import { Store } from '../../app';
 import { generateId, Calendar } from '../../database';
 import { isDate } from 'util';
+import { SimplePopup } from '../SimplePopup';
+
+
+
+interface SettingsPopupProps extends Store{}
+
+interface SettingsPopupState{}
  
-//https://www.calendarlabs.com/ical-calendar/ics/76/US_Holidays.ics
-//https://www.calendarlabs.com/ical-calendar/ics/55/Jewish_Holidays.ics
-//https://www.calendarlabs.com/ical-calendar/ics/58/Malaysia_Holidays.ics
-//https://www.calendarlabs.com/ical-calendar/ics/33/India_Holidays.ics
-//https://www.calendarlabs.com/ical-calendar/ics/39/Canada_Holidays.ics
-//https://www.calendarlabs.com/ical-calendar/ics/35/Australia_Holidays.ics
- 
-//http://ical.mac.com/ical/Dutch32Holidays.ics
+@connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
+export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupState>{
+
+    constructor(props){
+        super(props);
+    }
+
+    render(){
+        let {openSettings,dispatch} = this.props;
+
+        return <SimplePopup
+           show={openSettings} 
+           onOutsideClick={() => dispatch({type:"openSettings",load:false})}
+        >
+            <Settings {...{} as any}/> 
+        </SimplePopup>    
+    }  
+} 
 
 
 interface SettingsProps extends Store{}
