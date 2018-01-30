@@ -1113,7 +1113,7 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                                 )
                                 .map( 
                                     (p:Project) => { 
-                                        let {done, left} = getProgressStatus(p,todos);
+                                        let {done, left} = getProgressStatus(todos);
                                          
                                         return <div    
                                             key = {`${p._id}-project`}
@@ -1261,7 +1261,7 @@ let selectButtonContent = ({
 
     }else if(!isNil(project)){
 
-        let {done, left} = getProgressStatus(project,todos);
+        let {done, left} = getProgressStatus(todos);
 
         return <div   
             style={{

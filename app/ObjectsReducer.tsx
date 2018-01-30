@@ -13,9 +13,9 @@ import {
 } from './utils';
 import { adjust, cond, equals, all, clone, isEmpty, contains, not, remove, uniq, isNil } from 'ramda';
 
-let onError = (e) => {
-    console.log(e); 
-}
+
+let onError = (e) => { console.log(e) }
+
 
 export let applicationObjectsReducer = (state:Store, action) : Store => { 
 
@@ -34,7 +34,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 load:Calendar[]
             }):Store => ({...state, calendars:action.load})
         ],  
-
         [  
             (action:{type:string}) : boolean => "addCalendar"===action.type,  
 
@@ -47,7 +46,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 return {...state, calendars:[action.load,...state.calendars]};
             }
         ],   
-         
         [ 
             (action:{type:string}) : boolean => "updateCalendar"===action.type,  
 
@@ -69,9 +67,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 return {...state, calendars:[...calendars]};
             }
         ],  
-
-
-
         [ 
             (action:{type:string}) : boolean => "setTodos"===action.type,  
 
@@ -88,8 +83,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 ])
             })
         ], 
-
-
         [ 
             (action:{type:string}) : boolean => "setProjects"===action.type,  
 
@@ -106,7 +99,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 ])
             })
         ], 
-
         [ 
             (action:{type:string}) : boolean => "setAreas"===action.type,  
 
@@ -123,9 +115,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 ])
             })
         ], 
-
-
-
         [ 
             (action:{type:string}) : boolean => "setAllTypes"===action.type,  
 
@@ -186,7 +175,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 } 
             }
         ],
-
         [
             (action:{type:string, kind:string}) : boolean => "removeDeleted"===action.type, 
 
@@ -218,7 +206,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 } 
             }
         ], 
-
         [
             (action:{type:string}) : boolean => "addTodo"===action.type,
 
@@ -243,8 +230,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 } 
             } 
         ], 
-
-
         [ 
             (action:{type:string}) => "updateTodo"===action.type,
 
@@ -278,8 +263,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 } 
             }
         ],
-
-
         [
             (action:{type:string}) : boolean => "addProject"===action.type,
 
@@ -301,7 +284,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 }   
             }
         ], 
-
         [
             (action:{type:string}) : boolean => "addArea"===action.type,
 
@@ -322,7 +304,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 } 
             }    
         ],
-
         [
             (action:{type:string}) => "attachTodoToProject"===action.type,
 
@@ -349,7 +330,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 }
             }
         ],
- 
         [
             (action:{type:string}) => "attachTodoToArea"===action.type,
 
@@ -376,7 +356,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 } 
             } 
         ],  
-
         [ 
             (action:{type:string}) => "updateProject"===action.type,
 
@@ -406,7 +385,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 }
             }
         ],
-
         [ 
             (action:{type:string}) => "updateArea"===action.type,
 
@@ -436,7 +414,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 }
             } 
         ],
-
         [ 
             (action:{type:string}) => "updateTodos"===action.type,
  
@@ -454,7 +431,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 return {...state, todos}
             } 
         ],
-
         [ 
             (action:{type:string}) => "updateProjects"===action.type,
  
@@ -473,7 +449,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 }
             }
         ],
-
         [ 
             (action:{type:string}) => "updateAreas"===action.type,
  
@@ -492,7 +467,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 }
             }
         ],
-
         [ 
             (action:{type:string}) => "addTodos"===action.type,
  
@@ -508,7 +482,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 }
             }
         ],
-
         [ 
             (action:{type:string}) => "addProjects"===action.type,
  
@@ -524,7 +497,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 }
             }
         ],
-
         [ 
             (action:{type:string}) => "addAreas"===action.type,
  
@@ -539,8 +511,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                     areas:[...action.load,...state.areas]
                 }
             }
-        ], 
-
+        ]
     ])(action);
 
     

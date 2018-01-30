@@ -44,26 +44,15 @@ import One from 'material-ui/svg-icons/image/looks-one';
 
 
 
-export let getProgressStatus = (p:Project, todos:Todo[]) : {done:number,left:number} => {
+export let getProgressStatus = (todos:Todo[]) : {done:number,left:number} => {
 
-    if(isDev()){
-       assert(isProject(p),`p is not of type Project. ${JSON.stringify(p)}.getProgressStatus.`);
-       assert(isArrayOfTodos(todos),`todos is not of type Todo[]. ${JSON.stringify(todos)}`);  
-    } 
-
-    let todosIds = p.layout.filter(isString) as string[];
-    let relatedTodos = todos.filter(allPass([
-        byNotDeleted, 
-        (todo:Todo) => contains(todo._id)(todosIds)
-    ]));
-
-    let done : number = relatedTodos.filter(byCompleted).length;
-    let left : number = relatedTodos.length - done; 
-    
+    let done : number = todos.filter(byCompleted).length;
+    let left : number = todos.length - done; 
+     
     assert(done>=0, `Done - negative value. getProgressStatus.`);
     assert(left>=0, `Left - negative value. getProgressStatus.`);
     
-    return {done,left};
+    return {done,left}; 
 }  
 
 interface ProjectLinkProps{
@@ -127,9 +116,9 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
         this.setState({open:false});  
     }
 
-    render(){
+    render(){ 
         let {dispatch,index,project,todos,selectedCategory,simple} = this.props;
-        let {done,left} = getProgressStatus(project,todos);
+        let {done,left} = getProgressStatus(todos); //TODO 
 
         return <li  
             onClick={(e) => {

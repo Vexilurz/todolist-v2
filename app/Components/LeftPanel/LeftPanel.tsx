@@ -49,72 +49,11 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 
 const ctrlKeyCode = 17;
+
 const bKeyCode = 66;
  
-interface ItemsAmount{
-    inbox:number,
-    today:number,
-    hot:number,
-    trash:number,
-    logbook:number  
-}
-
-  
+interface LeftPanelState{ collapsed:boolean }
  
-
-export let calculateAmount = (areas:Area[], projects:Project[], todos:Todo[]) : ItemsAmount => {
- 
-    let isDeadlineTodayOrPast = (deadline:Date) : boolean => isNil(deadline) ? 
-                                                             false : 
-                                                             daysRemaining(deadline)<=0;
-        
-     let isTodayOrPast = (date:Date) : boolean => 
-         isNil(date) ?    
-         false :  
-         daysRemaining(date)<=0; 
- 
-    let todayFilters = [   
-        (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
-        byNotCompleted,  
-        byNotDeleted   
-    ];    
-
-    let hotFilters = [
-        (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
-        byNotCompleted,  
-        byNotDeleted  
-    ];
-    
-    let inboxFilters = [  
-        (todo:Todo) => not(byAttachedToArea(areas)(todo)), 
-        (todo:Todo) => not(byAttachedToProject(projects)(todo)), 
-        (todo:Todo) => isNil(todo.attachedDate), 
-        (todo:Todo) => isNil(todo.deadline), 
-        byCategory("inbox"),  
-        byNotCompleted,    
-        byNotDeleted 
-    ]; 
- 
-    let trashFilters = [byDeleted];
-
-    let logbookFilters = [byCompleted, byNotDeleted]; 
-        
-    return {      
-       inbox:todos.filter((t:Todo) => allPass(inboxFilters)(t)).length,
-       today:todos.filter((t:Todo) => allPass(todayFilters)(t)).length,
-       hot:todos.filter((t:Todo) => allPass(hotFilters)(t)).length,
-       trash:todos.filter((t:Todo) => allPass(trashFilters)(t)).length, 
-       logbook:todos.filter((t:Todo) => allPass(logbookFilters)(t)).length
-    }   
-} 
- 
-
-  
-interface LeftPanelState{ 
-    collapsed:boolean 
-}
- 
-
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
 export class LeftPanel extends Component<Store,LeftPanelState>{
     anchor:HTMLElement;
@@ -124,32 +63,34 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
     constructor(props){  
         super(props);   
         this.subscriptions = [];    
-        this.state = { 
-            collapsed:false 
-        }     
-    }   
+        this.state = { collapsed:false };      
+    }
     
     
-    componentDidMount(){
-
+    initCtrlB = () => {
         let ctrlBPress = Observable
                          .fromEvent(window,"keydown")
                          .filter((e:any) => e.keyCode===ctrlKeyCode)
                          .switchMap(
                             () => Observable
-                                .fromEvent(window, "keydown")
-                                .filter((e:any) => e.keyCode===bKeyCode)
-                                .takeUntil(
-                                    Observable
-                                    .fromEvent(window,"keyup")
-                                    .filter((e:any) => e.keyCode===ctrlKeyCode)
-                                )
-                         ).subscribe(
-                            () => this.setState({collapsed:!this.state.collapsed})
+                                  .fromEvent(window, "keydown")
+                                  .filter((e:any) => e.keyCode===bKeyCode)
+                                  .takeUntil(
+                                     Observable
+                                     .fromEvent(window,"keyup")
+                                     .filter((e:any) => e.keyCode===ctrlKeyCode)
+                                  )
                          )
+                         .subscribe(
+                            () => this.setState({collapsed:!this.state.collapsed})
+                         );
         
-
-        this.subscriptions.push(ctrlBPress)
+        this.subscriptions.push(ctrlBPress); 
+    }
+    
+     
+    componentDidMount(){
+        this.initCtrlB(); 
     }  
          
 
@@ -194,71 +135,77 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
   
     render(){      
         let {collapsed} = this.state;
-        let {areas,projects,todos,leftPanelWidth} = this.props; 
-        let {inbox,today,hot,trash,logbook} : ItemsAmount = calculateAmount(areas,projects,todos);
+        let {
+            areas,
+            projects,
+            todos,  
+            leftPanelWidth
+        } = this.props; 
 
-                   
+
+        
         return  <div style={{display: "flex",flexDirection: "row-reverse", height:window.innerHeight}}> 
-                {   collapsed ? null : <ResizableHandle onDrag={this.onResizableHandleDrag}/>   }
-                <div       
-                    id="leftpanel"
-                    ref={(e) => { this.leftPanelRef=e; }}
-                    className="scroll"
-                    style={{ 
-                        WebkitUserSelect:"none", 
-                        transition: "width 0.2s ease-in-out", 
-                        width:collapsed ? "0px" : `${leftPanelWidth}px`,
-                        height:`100%`,      
-                        backgroundColor:"rgb(248, 248, 248)"  
-                    }}      
-                >         
+            {   
+                not(collapsed) ? 
+                <ResizableHandle onDrag={this.onResizableHandleDrag}/> : 
+                null  
+            } 
+            <div        
+                id="leftpanel"
+                ref={(e) => { this.leftPanelRef=e; }} 
+                className="scroll"
+                style={{ 
+                    WebkitUserSelect:"none", 
+                    transition: "width 0.2s ease-in-out", 
+                    width:collapsed ? "0px" : `${leftPanelWidth}px`,
+                    height:`100%`,      
+                    backgroundColor:"rgb(248, 248, 248)"  
+                }}      
+            >      
+                <QuickSearch {...{} as any}/>  
 
-                    <QuickSearch {...{} as any}/> 
+                <LeftPanelMenu   
+                    dragged={this.props.dragged}
+                    dispatch={this.props.dispatch} 
+                    selectedCategory={this.props.selectedCategory}
+                    inbox={inboxAmount} 
+                    today={todayAmount} 
+                    hot={hotAmount} 
+                    trash={0}
+                    logbook={0} 
+                />   
 
-                    <LeftPanelMenu   
-                        dragged={this.props.dragged}
-                        dispatch={this.props.dispatch} 
-                        selectedCategory={this.props.selectedCategory}
-                        inbox={inbox} 
-                        today={today} 
-                        hot={hot} 
-                        trash={trash}
-                        logbook={logbook}
-                    />  
+                <AreasList   
+                    leftPanelWidth={this.props.leftPanelWidth}
+                    leftPanelRef={this.leftPanelRef} 
+                    dragged={this.props.dragged} 
+                    dispatch={this.props.dispatch}   
+                    areas={this.props.areas}
+                    selectedProjectId={this.props.selectedProjectId}
+                    selectedAreaId={this.props.selectedAreaId}
+                    selectedCategory={this.props.selectedCategory}
+                    projects={this.props.projects} 
+                />
 
-                    <AreasList  
-                        leftPanelWidth={this.props.leftPanelWidth}
-                        leftPanelRef={this.leftPanelRef}
-                        dragged={this.props.dragged} 
-                        todos={this.props.todos} 
-                        dispatch={this.props.dispatch}   
-                        areas={this.props.areas}
-                        selectedProjectId={this.props.selectedProjectId}
-                        selectedAreaId={this.props.selectedAreaId}
-                        selectedCategory={this.props.selectedCategory}
-                        projects={this.props.projects} 
-                    />
-
-                    <LeftPanelFooter  
-                        width={ leftPanelWidth }  
-                        collapsed={ collapsed }
-                        openSettings={(e) => {  
-                            e.stopPropagation();  
-                            this.props.dispatch({type:"openSettings",load:true}); 
-                        }}
-                        openNewProjectAreaPopup={ this.openNewProjectAreaPopup }
-                        setNewProjectAnchor={(e) => {this.anchor=e}}  
-                    /> 
-                    
-                    <NewProjectAreaPopup   
-                        anchor={this.anchor}
-                        open={this.props.openNewProjectAreaPopup}
-                        close={() => this.props.dispatch({type:"openNewProjectAreaPopup",load:false})} 
-                        onNewProjectClick={this.onNewProjectClick}
-                        onNewAreaClick={this.onNewAreaClick}
-                    />   
-        </div>   
-        </div>   
+                <LeftPanelFooter  
+                    width={ leftPanelWidth }  
+                    collapsed={ collapsed }
+                    openSettings={(e) => {  
+                        e.stopPropagation();  
+                        this.props.dispatch({type:"openSettings",load:true}); 
+                    }}
+                    openNewProjectAreaPopup={ this.openNewProjectAreaPopup }
+                    setNewProjectAnchor={(e) => {this.anchor=e}}  
+                /> 
+                <NewProjectAreaPopup   
+                    anchor={this.anchor}
+                    open={this.props.openNewProjectAreaPopup}
+                    close={() => this.props.dispatch({type:"openNewProjectAreaPopup",load:false})} 
+                    onNewProjectClick={this.onNewProjectClick}
+                    onNewAreaClick={this.onNewAreaClick}
+                />   
+        </div>    
+        </div>    
     };    
 };  
  

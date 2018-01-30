@@ -46,18 +46,16 @@ interface ProjectBodyProps{
     archiveHeading:(heading_id:string) => void,
     moveHeading:(heading_id:string) => void,  
     removeHeading:(heading_id:string) => void,
+    todos:Todo[], 
     searched:boolean,
     selectedTag:string,
-    showScheduled : boolean,
-    showCompleted : boolean,
     areas:Area[],
     dragged:string, 
     projects:Project[], 
     selectedProjectId:string,
     selectedAreaId:string,  
     selectedTodoId:string, 
-    todos:Todo[], 
-    tags:string[],
+    tags:string[], 
     rootRef:HTMLElement,
     dispatch:Function
 } 
@@ -74,38 +72,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         super(props);
     }  
     
-
-
-    shouldComponentUpdate(nextProps:ProjectBodyProps,nextState:ProjectBodyState){
-        let should = false;
-
-        if(layoutOrderChanged(this.props.items,nextProps.items)){
-           should = true;  
-        }
-
-        if(this.props.showScheduled!==nextProps.showScheduled)
-           should = true; 
-        if(this.props.showCompleted!==nextProps.showCompleted)
-           should = true;  
-        
-        if(this.props.searched!==nextProps.searched)
-           should = true; 
-        if(this.props.areas!==nextProps.areas)
-           should = true; 
-        if(this.props.selectedProjectId!==nextProps.selectedProjectId)
-           should = true; 
-        if(this.props.selectedTodoId!==nextProps.selectedTodoId)
-           should = true; 
-        if(this.props.todos!==nextProps.todos)
-           should = true; 
-        if(this.props.tags!==nextProps.tags)
-           should = true; 
-        if(this.props.selectedTag!==nextProps.selectedTag)
-           should = true;  
-
-        return should;     
-    }
-  
 
 
     getElement = (value:Heading | Todo, index:number) : JSX.Element => { 

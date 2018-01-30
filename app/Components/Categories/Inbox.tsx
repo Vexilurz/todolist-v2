@@ -11,50 +11,56 @@ import {
     generateEmptyTodo, attachEmptyTodo, byAttachedToProject, byAttachedToArea 
 } from '../../utils'; 
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { compose, filter, allPass, prepend, contains, not, isNil } from 'ramda';
+import { compose, filter, allPass, prepend, contains, not, isNil, isEmpty } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { isString } from 'util';
+import { Category } from '../MainContainer';
 
  
  
 interface InboxProps{ 
     dispatch:Function,
     selectedTodoId:string, 
-    selectedProjectId:string,
+    selectedProjectId:string, 
     selectedAreaId:string,  
     selectedTag:string,
     searched:boolean, 
-    selectedCategory:string, 
+    selectedCategory:Category, 
     areas:Area[],
     projects:Project[],  
     rootRef:HTMLElement,
     todos:Todo[],
-    tags:string[]
+    tags:string[] 
 } 
  
  
 
-interface InboxState{
-    empty:boolean
-}
+interface InboxState{}
 
-  
+   
 
 export class Inbox extends Component<InboxProps, InboxState>{
 
     constructor(props){
         super(props);
-        this.state={empty:false};
     }   
 
-    render(){ 
+    componentDidMount(){
+        this.props.dispatch({type:"inboxAmount",load:this.props.todos.length});
+    }
+
+    componentWillReceiveProps(nextProps:InboxProps){ 
+        this.props.dispatch({type:"inboxAmount",load:nextProps.todos.length});
+    }
+
+    render(){  
 
         let empty = generateEmptyTodo(generateId(),"inbox",0);
 
         return <div style={{WebkitUserSelect:"none"}}>  
             <ContainerHeader  
-                selectedCategory={"inbox"} 
-                dispatch={this.props.dispatch}  
+                selectedCategory={this.props.selectedCategory} 
+                dispatch={this.props.dispatch}   
                 tags={[]}  
                 showTags={false} 
                 selectedTag={this.props.selectedTag} 
@@ -62,10 +68,10 @@ export class Inbox extends Component<InboxProps, InboxState>{
  
             <FadeBackgroundIcon    
                 container={this.props.rootRef} 
-                selectedCategory={"inbox"}  
-                show={this.state.empty}
+                selectedCategory={this.props.selectedCategory}  
+                show={isEmpty(this.props.todos)}
             />  
-  
+   
             <div    
                 className="unselectable" 
                 id="todos" 
@@ -76,7 +82,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     key={"inbox-todo-creation-form"}  
                     searched={this.props.searched}
                     dispatch={this.props.dispatch}  
-                    selectedCategory={"inbox"} 
+                    selectedCategory={this.props.selectedCategory} 
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos} 
@@ -84,28 +90,18 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     tags={this.props.tags} 
                     projects={this.props.projects}
                     rootRef={this.props.rootRef}  
-                    todo={empty}
-                    creation={true}
+                    todo={empty} 
+                    creation={true} 
                 />  
-                <TodosList    
-                    filters={[   
-                        (todo:Todo) => not(byAttachedToArea(this.props.areas)(todo)), 
-                        (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
-                        (todo:Todo) => isNil(todo.attachedDate), 
-                        (todo:Todo) => isNil(todo.deadline), 
-                        byCategory("inbox"), 
-                        byNotCompleted,  
-                        byNotDeleted 
-                    ]}       
+                <TodosList          
                     selectedAreaId={this.props.selectedAreaId}
                     selectedProjectId={this.props.selectedProjectId}
                     searched={this.props.searched}
                     areas={this.props.areas}
                     projects={this.props.projects}  
-                    selectedTodoId={this.props.selectedTodoId}
-                    isEmpty={(empty:boolean) => this.setState({empty})}
-                    dispatch={this.props.dispatch}    
-                    selectedCategory={"inbox"} 
+                    selectedTodoId={this.props.selectedTodoId} 
+                    dispatch={this.props.dispatch}     
+                    selectedCategory={this.props.selectedCategory} 
                     selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}
                     todos={this.props.todos}   

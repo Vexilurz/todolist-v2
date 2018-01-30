@@ -25,11 +25,11 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui'; 
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, generateId, addProject, removeProject } from '../../database';
-import { uppercase, debounce, attachDispatchToProps, assert } from '../../utils';
+import { uppercase, debounce, attachDispatchToProps, assert, createHeading } from '../../utils';
 import { Store, isDev } from '../../app';
 import { isString } from 'util'; 
 import { contains, not, isNil, isEmpty, remove } from 'ramda';
-import { createHeading, Category } from '../MainContainer';
+import { Category } from '../MainContainer';
 
  
 

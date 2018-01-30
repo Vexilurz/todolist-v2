@@ -28,13 +28,14 @@ import { uppercase, debounce, assert, isArea } from '../../utils';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import { ProjectMenuPopover } from '../Project/ProjectMenu';
-import { contains, isEmpty } from 'ramda';
+import { contains, isEmpty, isNil } from 'ramda';
 import { TagsPopup } from '../TodoInput/TodoTags';
 import { isDev } from '../../app';
 
 
 
 interface AreaHeaderProps{
+    area:Area,
     name:string, 
     selectedAreaId:string,
     areas:Area[],
@@ -77,11 +78,11 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
 
     componentDidMount(){
         if(this.inputRef && isEmpty(this.state.name)){
-           this.inputRef.focus();  
+           this.inputRef.focus()  
         }
 
         if(this.menuAnchor){
-           this.setState({menuAnchor:this.menuAnchor});
+           this.setState({menuAnchor:this.menuAnchor})
         }
     }
 
@@ -96,11 +97,11 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
     }
 
     openMenu = () => {
-        this.setState({openMenu:true});
+        this.setState({openMenu:true})
     }
  
     closeMenu = () => { 
-        this.setState({openMenu:false});
+        this.setState({openMenu:false})
     } 
  
     onAddTags = () => {
@@ -111,15 +112,9 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
     onDeleteArea = () => {
         this.closeMenu();  
 
-        let area = this.props.areas.find( (a:Area) => a._id===this.props.selectedAreaId ); 
+        let {area} = this.props; 
 
-        assert(
-            isArea(area), 
-            `Area with selectedAreaId does not exist or not an area. 
-             ${JSON.stringify(area)}.
-             ${JSON.stringify(this.props.areas)}.
-             ${this.props.selectedAreaId}.` 
-        ) 
+        if(isNil(area)){ return }
 
         let relatedTodosIds : string[] = area.attachedTodosIds;
            
@@ -154,7 +149,7 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
         this.setState(
             {name:event.target.value},  
             () => this.props.updateAreaName(this.state.name) 
-        ); 
+        )
     }
   
     render(){ 
@@ -286,32 +281,6 @@ export class AreaMenu extends Component<AreaMenuProps,AreaMenuState>{
                     cursor:"pointer" 
                   }} 
             >      
-
-                {/*
-                    <div   
-                        onClick={this.props.onAddTags as any} 
-                        className={"tagItem"} 
-                        style={{ 
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
-                    >  
-                        <TriangleLabel style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                            Add tags  
-                        </div>     
-                    </div>
-                    <div style={{
-                        border:"1px solid rgba(200,200,200,0.1)",
-                        marginTop: "5px",
-                        marginBottom: "5px"
-                    }}>
-                    </div> 
-                */} 
-
-                    
                     <div    
                         onClick={this.props.onDeleteArea as any} 
                         className={"tagItem"} style={{

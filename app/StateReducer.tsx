@@ -6,14 +6,38 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
     
        let newState = undefined;
    
-       switch(action.type){
-             
+       switch(action.type){ 
+        
+            case "inboxAmount":
+                newState = { 
+                    ...state,
+                    inboxAmount : action.load,
+                };  
+                break; 
+ 
+
+            case "todayAmount":
+                newState = { 
+                    ...state,
+                    todayAmount : action.load,
+                };  
+                break; 
+
+
+            case "hotAmount":
+                newState = { 
+                    ...state,
+                    hotAmount : action.load,
+                };  
+                break; 
+
             case "openChangeGroupPopup":
                 newState = { 
                     ...state,
                     openChangeGroupPopup : action.load,
                 };  
                 break; 
+
  
             case "selectedSettingsSection":
                 newState = { 
@@ -21,6 +45,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                     selectedSettingsSection : action.load,
                 };  
                 break; 
+
 
             case "showCalendarEvents":
                 newState = { 

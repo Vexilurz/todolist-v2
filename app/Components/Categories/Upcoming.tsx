@@ -115,7 +115,7 @@ interface UpcomingProps{
     dispatch:Function,
     showCalendarEvents:boolean,
     selectedTodoId:string,
-    selectedCategory:string, 
+    selectedCategory:Category, 
     searched:boolean, 
     todos:Todo[],
     calendars:Calendar[], 
@@ -301,31 +301,14 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
  
     render(){ 
-        
-        let {todos,projects,selectedTag,dispatch} = this.props;
-
-        let byScheduled = (item : Todo) : boolean => {
-            if(isNil(item)){ return false } 
-            return !isNil(item.deadline) || !isNil(item.attachedDate); 
-        }   
-
-        let tags = compose( 
-            getTagsFromItems,
-            (items : Item[]) => items.filter(
-                allPass([
-                    (t:Todo) => t.category!=="inbox",  
-                    byScheduled,
-                    byNotCompleted,  
-                    byNotDeleted  
-                ])  
-            )
-        )([...todos, ...projects]); 
-
+        let {showHint} = this.state;
+        let {todos,projects,selectedTag,dispatch,selectedCategory} = this.props;
+        let tags = getTagsFromItems(todos);
 
         return <div style={{WebkitUserSelect:"none"}}> 
                 <div style={{paddingBottom:"20px"}}>
                     <ContainerHeader 
-                        selectedCategory={"upcoming"} 
+                        selectedCategory={selectedCategory} 
                         dispatch={dispatch}  
                         tags={tags}
                         showTags={true} 
@@ -334,15 +317,14 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 </div>
 
                 {   
-                    this.state.showHint ? 
+                    not(showHint) ? null : 
                     <Hint {
                         ...{
                             hideHint:() => this.setState({showHint:false}),
                             text:`These are your tasks for the next days. 
                             Do you also want to include the events from your calendar?`
                         } as any  
-                    }/> :  
-                    null
+                    }/> 
                 } 
    
                 <div>{this.state.objects.map(this.objectToComponent)}</div>
@@ -510,7 +492,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                             todos={todos}
                                         /> 
                                     </div>
-                                }
+                                } 
                             )     
                         }      
                     </div> 
@@ -525,12 +507,10 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         paddingBottom : "10px" 
                     }}>   
                         <TodosList    
-                            filters={[]}    
-                            isEmpty={(empty:boolean) => {}} 
                             dispatch={this.props.dispatch}     
                             selectedTodoId={this.props.selectedTodoId} 
                             searched={this.props.searched} 
-                            selectedCategory={"upcoming"}
+                            selectedCategory={this.props.selectedCategory}
                             selectedAreaId={this.props.selectedAreaId}
                             selectedProjectId={this.props.selectedProjectId}
                             selectedTag={this.props.selectedTag}  

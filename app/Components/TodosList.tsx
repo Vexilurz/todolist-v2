@@ -23,8 +23,7 @@ import { TodoInput } from './TodoInput/TodoInput';
 import { allPass, isNil, prepend, isEmpty, compose, map, assoc, contains, remove, not, equals } from 'ramda';
 import { Category } from './MainContainer';
 import { isDev } from '../app';
-import { calculateAmount } from './LeftPanel/LeftPanel';
-import { indexToPriority } from './Categories/Today';
+import { indexToPriority } from './Categories/Today'; 
 import { SortableContainer } from '../sortable/CustomSortableContainer';
 
 
@@ -282,14 +281,12 @@ export let onDrop = (
 
 
 interface TodosListProps{ 
-    dispatch:Function,
-    filters:( (t:Todo) => boolean )[],
+    dispatch:Function, 
     selectedTodoId:string, 
     searched:boolean, 
     projects:Project[],
     areas:Area[],
     selectedCategory:Category,
-    isEmpty:(empty:boolean) => void,
     selectedTag:string,  
     selectedProjectId:string,
     selectedAreaId:string,  
@@ -308,22 +305,9 @@ interface TodosListState{}
 export class TodosList extends Component<TodosListProps, TodosListState>{
 
     constructor(props){ 
-        super(props);
+        super(props); 
     }   
       
-    shouldComponentUpdate(nextProps:TodosListProps, nextState:TodosListState){
-
-        if(
-            this.props.todos!==nextProps.todos ||
-            this.props.projects!==nextProps.projects ||
-            this.props.areas!==nextProps.areas ||
-            this.props.selectedTag!==nextProps.selectedTag 
-        ){  
-            return true  
-        }
-           
-        return false 
-    }   
     
     getTodoElement = (value:Todo, index:number) => {
         return <div   
@@ -364,23 +348,22 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
     }  
      
 
-
     onSortStart = (oldIndex:number,event:any) : void => { 
         let {dispatch} = this.props;
         dispatch({type:"dragged",load:"todo"}); 
     }
 
+
     onSortMove = (oldIndex:number,event:any) => {}
 
+    
     onSortEnd = (oldIndex:number,newIndex:number,event:any,item?:any) => { 
 
-        let {todos, filters, dispatch, areas, projects} = this.props;
+        let {todos, dispatch, areas, projects} = this.props;
         let x = event.clientX; 
         let y = event.clientY;   
-        let selected = todos
-                       .filter(allPass(filters))
-                       .sort((a:Todo,b:Todo) => a.priority-b.priority); 
-
+        let selected = todos.sort((a:Todo,b:Todo) => a.priority-b.priority); 
+ 
         dispatch({type:"dragged",load:null}); 
 
         let draggedTodo = item;
@@ -408,10 +391,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
         }else{     
             if(oldIndex===newIndex){ return }
-
             this.changeOrder(oldIndex,newIndex,selected) 
         }    
-    }  
+    }   
     
     
     changeOrder = (oldIndex,newIndex,selected) => {
@@ -422,15 +404,15 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
   
         
     render(){    
-        let {todos, filters, selectedCategory} = this.props;
+        let {todos, selectedCategory} = this.props;
+
         let decorators = [{  
             area:document.getElementById("leftpanel"),  
             decorator:generateDropStyle("nested"),
             id:"default"
         }];    
-        let selected = todos
-                       .filter(allPass(filters))
-                       .sort((a:Todo,b:Todo) => a.priority-b.priority); 
+
+        let selected = todos.sort((a:Todo,b:Todo) => a.priority-b.priority); 
         
         return <div style={{WebkitUserSelect:"none",position:"relative"}}>   
                 <SortableContainer
@@ -450,7 +432,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 }    
  
 
-
+ 
 interface PlaceholderProps{
     offset:number,
     height:number,

@@ -22,35 +22,50 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
-import { Todo, Project, Heading, LayoutItem, Area, getTodoById } from '../../database'; 
+import { Todo, Project, Heading, LayoutItem, Area, getTodoById, todos_db, queryToTodos } from '../../database'; 
 import { 
     uppercase, debounce, byNotDeleted, byNotCompleted, byTags, assert, 
-    isProject, isTodo, byHaveAttachedDate, byNotSomeday, isString, 
-    byScheduled, bySomeday, daysRemaining 
+    isProject, isTodo, byHaveAttachedDate, byNotSomeday, isString,  
+    byScheduled, bySomeday, daysRemaining, convertTodoDates 
 } from '../../utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
-import { adjust, remove, allPass, uniq, isNil, not, contains, isEmpty, filter, map } from 'ramda';
-import { isDev, convertTodoDates } from '../../app';
+import { adjust, remove, allPass, uniq, isNil, not, contains, isEmpty, map } from 'ramda';
+import { isDev } from '../../app';
 import { getProgressStatus } from './ProjectLink';
+import { filter } from '../MainContainer';
+let Promise = require('bluebird'); 
 
 
-let haveScheduledTodos = (project:Project, todos:Todo[]) : boolean => {
-    let todosIds = project.layout.filter(isString) as string[];
-    let filters = [
-        byNotDeleted,
-        byNotCompleted,
-        (todo:Todo) => byScheduled(todo) || bySomeday(todo),
-        (todo:Todo) => contains(todo._id)(todosIds) 
-    ];
-
-    let filtered : Todo[] = todos.filter(allPass(filters));
-
+let haveScheduledTodos = (todos:Todo[]) : boolean => {
+    let filtered : Todo[] = filter(
+        todos, 
+        (todo:Todo) => byScheduled(todo) || bySomeday(todo), 
+        "haveScheduledTodos"
+    );
     return not(isEmpty(filtered)); 
-}
+} 
 
+
+let getTodosForProject = (project:Project, showCompleted:boolean, showScheduled:boolean): Promise<Todo[]> => {
+        
+    return todos_db
+            .allDocs({ 
+                include_docs : true,  
+                conflicts : true,
+                descending : true,
+                limit : 1000,
+                keys : project.layout.filter(isString)
+            }) 
+            .then(queryToTodos) 
+            .then(map(convertTodoDates)) 
+            .catch((error) => console.log(error))
+}
+ 
 
 interface ProjectComponentProps{ 
+    project:Project, 
+    todos:Todo[],
     projects:Project[], 
     selectedTag:string, 
     dragged:string, 
@@ -62,106 +77,20 @@ interface ProjectComponentProps{
     selectedTodoId:string, 
     showScheduled:boolean,
     showCompleted:boolean,
-    todos:Todo[], 
     tags:string[],
     rootRef:HTMLElement,
     dispatch:Function
 }
   
 
-
-interface ProjectComponentState{
-    toProjectHeader:Todo[],
-    toProjectBody:(Todo|Heading)[],  
-    project:Project
-}   
- 
+interface ProjectComponentState{}   
  
  
 export class ProjectComponent extends Component<ProjectComponentProps,ProjectComponentState>{
 
     constructor(props){
         super(props); 
-        this.state={
-            toProjectHeader:[],
-            toProjectBody:[],  
-            project:null
-        };
     }   
-
-    getItems = (props:ProjectComponentProps) : Promise<{
-        toProjectHeader:Todo[];
-        toProjectBody:any;
-        project:Project;
-    }> => {
-        let project = props.projects.find((p:Project) => props.selectedProjectId===p._id);
-        
-        return this.selectItems( 
-            project.layout,
-            props.todos,
-            props.showCompleted, 
-            props.showScheduled
-        ).then(
-            (items:(Todo|Heading)[]) => {
-                let toProjectHeader = items.filter( isTodo ) as Todo[];
-                let toProjectBody = items.filter((i:Todo) => isTodo(i) ? byTags(props.selectedTag)(i) : true);
-                
-                return {
-                    toProjectHeader,
-                    toProjectBody,
-                    project
-                }
-            }
-        )
-    } 
-
-    componentDidMount(){
-        this.getItems(this.props) 
-        .then( 
-            ({toProjectHeader,toProjectBody,project}) => 
-            this.setState({
-                toProjectHeader, toProjectBody, project
-            })  
-        )
-    }
-
-
-    componentWillReciveProps(nextProps:ProjectComponentProps){
-        this.getItems(nextProps) 
-        .then( 
-            ({toProjectHeader,toProjectBody,project}) => 
-            this.setState({
-                toProjectHeader, toProjectBody, project
-            })
-        )
-    }
-
-
-    shouldComponentUpdate(nextProps:ProjectComponentProps,nextState:ProjectComponentState){
-        if(
-            nextProps.projects!==this.props.projects ||
-
-            nextProps.selectedProjectId!==this.props.selectedProjectId ||
-
-            nextProps.selectedTag !== this.props.selectedTag || 
-
-            nextProps.todos!==this.props.todos ||
-
-            nextProps.showScheduled!==this.props.showScheduled ||  
-                                                           
-            nextProps.showCompleted!==this.props.showCompleted ||
-
-            nextState.toProjectHeader !== this.state.toProjectHeader ||
-
-            nextState.toProjectBody !== this.state.toProjectBody ||
-
-            nextState.project !== this.state.project
-
-        ){ return true }
-            
-        return false
-    } 
-     
 
 
     updateProject = (updatedProps) : void => { 
@@ -173,29 +102,17 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
            isProject(load), 
           `load is not a project. ${JSON.stringify(load)}. updateProject. ProjectComponent.`
         );  
- 
+    
         this.props.dispatch({type, load}); 
     } 
+ 
 
-
-
-    updateProjectName = debounce(
-        (value:string) : void => {
-            this.updateProject({name:value});
-        },
-        50
-    )
-
+    updateProjectName = debounce((value:string) : void => this.updateProject({name:value}), 50)
 
      
-    updateProjectDescription = debounce(
-        (value:string) : void => {
-            this.updateProject({description:value});
-        },
-        50
-    )
+    updateProjectDescription = debounce((value:string) : void => this.updateProject({description:value}), 50)
 
- 
+    
     updateHeading = debounce(
         (heading_id:string, newValue:string) => { 
             let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
@@ -218,39 +135,39 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         50
     ) 
     
- 
      
     updateLayoutOrder = (layout:LayoutItem[]) => {
-        let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
+        let { project } = this.props; 
         let previousLayout = [...project.layout]; 
         let allLayoutItemsPresent : boolean = previousLayout.length===layout.length;
+      
+        if(allLayoutItemsPresent){ 
 
-        if(allLayoutItemsPresent){
-            this.updateProject({layout}); 
-        }else{
+            this.updateProject({layout});
+        }else{ 
+
             let fixed = previousLayout.filter(
                 (item:LayoutItem) => -1===layout.findIndex((updated:LayoutItem) => 
                     typeof item==="string" ? 
                     item===updated : 
                     item["_id"]===updated["_id"]
                 ) 
-            );  
+            );   
 
             let newLayout : LayoutItem[] = [...fixed,...layout];
-               
-            assert(
+            
+            assert( 
                 newLayout.length===project.layout.length, 
                 `Updated layout has incorrect length.
                 ${JSON.stringify(newLayout)}.
                 ${JSON.stringify(project.layout)}.
-                updateLayoutOrder.` 
-            );   
- 
+                updateLayoutOrder.`  
+            );    
+
             this.updateProject({layout:newLayout});
-        }
+        }   
     }
      
-
 
     removeHeading = (heading_id:string) => {
         let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
@@ -265,15 +182,13 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             ${JSON.stringify(layout)}
             `
         ) 
+
         this.updateProject({layout:remove(idx,1,layout)});
     }
 
-
     
-    updateProjectDeadline = (value:Date) => {
-        this.updateProject({deadline:value});
-    }
-
+    updateProjectDeadline = (value:Date) => this.updateProject({deadline:value});
+    
 
     attachTagToProject = (tag:string) => {
         let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
@@ -289,54 +204,24 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     moveHeading = (heading_id:string) => {}
     
-
-    selectItems = (
-        layout:LayoutItem[], 
-        todos:Todo[], 
-        showCompleted:boolean, 
-        showScheduled:boolean
-    ) : Promise<(Todo | Heading)[]> => { 
-
-        let onError = (error) => console.log(error);
-
-        let byNotFuture = (t:Todo) => isNil(t.attachedDate) ? true : daysRemaining(t.attachedDate)<=0;
- 
-        let filters = [
-            byNotDeleted, 
-            showCompleted ? null : byNotCompleted, 
-
-            showScheduled ? null : byNotFuture,
-            showScheduled ? null : byNotSomeday
-        ].filter( f => f );  
-
-
-        return Promise.all( 
-            layout.map(
-                (item) => isString(item) ? 
-                          getTodoById(onError,item as string) : 
-                          new Promise(resolve => resolve(item))
-            )
-        )
-        .then(filter((item:any) => isTodo(item) ? allPass(filters)(item) : true))
-        .then(map((item:any) => isTodo(item) ? convertTodoDates(item) : item) as any) 
-    }    
-
      
     render(){   
-        let {todos} = this.props;
-        let { 
-            toProjectHeader,
-            toProjectBody,  
-            project
-        } = this.state;  
+        let { selectedTag, project, showCompleted, showScheduled, todos } = this.props;
+
+        if(isNil(project)){ return null } 
+
+        let layout = project.layout.map( 
+                       (item:LayoutItem) => isString(item) ? 
+                                            todos.find(todo => todo._id===item) : 
+                                            item 
+                     ).filter( v => v ) as (Todo | Heading)[] 
+        
+        let toProjectHeader = layout.filter( isTodo ) as Todo[];
+        let toProjectBody = layout.filter( (i:Todo) => isTodo(i) ? byTags(selectedTag)(i) : true );
+        
+        let progress = getProgressStatus(toProjectHeader);
  
-        if(isNil(project)){ return null }
-
-        let progress = getProgressStatus(project,todos);
-
-
-        return  isNil(project) ? null : 
-                <div>      
+        return <div>      
                     <div className="unselectable">     
                         <ProjectHeader 
                             rootRef={this.props.rootRef}
@@ -354,7 +239,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             updateProjectDescription={this.updateProjectDescription} 
                             todos={toProjectHeader} 
                             dispatch={this.props.dispatch}   
-                        />          
+                        />           
                     </div>   
                     <div>   
                         <ProjectBody    
@@ -366,22 +251,20 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             archiveHeading={this.archiveHeading}
                             moveHeading={this.moveHeading}   
                             selectedTag={this.props.selectedTag}    
-                            showScheduled={this.props.showScheduled}
-                            showCompleted={this.props.showCompleted}
                             areas={this.props.areas}      
                             selectedProjectId={this.props.selectedProjectId}
                             selectedAreaId={this.props.selectedAreaId}  
                             projects={this.props.projects}
                             selectedTodoId={this.props.selectedTodoId} 
                             searched={this.props.searched}
-                            todos={this.props.todos}  
+                            todos={toProjectBody as Todo[]}  
                             tags={this.props.tags}
                             rootRef={this.props.rootRef}
                             dispatch={this.props.dispatch} 
                         />  
                     </div>   
                     {  
-                        not(haveScheduledTodos(project, this.props.todos)) ? null :
+                        not(haveScheduledTodos(toProjectBody as Todo[])) ? null :
                         <div 
                             className="noselection"
                             style={{ 
@@ -392,7 +275,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         >        
                             <div  
                                 className="unselectable"
-                                onClick={() => this.props.dispatch({
+                                onClick={() => this.props.dispatch({ 
                                     type:"showScheduled", 
                                     load:!this.props.showScheduled
                                 })}  
@@ -408,4 +291,4 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 </div> 
     }
 } 
- 
+  

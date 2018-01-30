@@ -18,7 +18,7 @@ import { allPass, compose, or, assoc } from 'ramda';
 import { isDev } from '../../app';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink } from '../Project/ProjectLink';
-import { Category } from '../MainContainer';
+import { Category, filter } from '../MainContainer';
      
 
 interface LogbookProps{
@@ -45,80 +45,38 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
     constructor(props){
         super(props);
     }  
-
-
-
-    shouldComponentUpdate(nextProps:LogbookProps,nextState:LogbookState){
-        let should = false;
-
-
-        if(nextProps.todos!==this.props.todos)
-            should = true; 
-        if(nextProps.searched!==this.props.searched)
-            should = true;
-        if(nextProps.selectedAreaId!==this.props.selectedAreaId)
-            should = true;
-        if(nextProps.selectedProjectId!==this.props.selectedProjectId)
-            should = true;
-        if(nextProps.selectedCategory!==this.props.selectedCategory)
-            should = true;
-        if(nextProps.selectedTodoId!==this.props.selectedTodoId)
-           should = true;
-        if(nextProps.projects!==this.props.projects)
-            should = true;
-        if(nextProps.areas!==this.props.areas)  
-            should = true;
-        if(nextProps.selectedTag!==this.props.selectedTag)
-            should = true;
-        if(nextProps.tags!==this.props.tags)
-            should = true;
-        
-        return should;
-    } 
-
     
-
+    
     init = (props:LogbookProps) => {
         let groups : (Todo | Project)[][] = this.groupByMonth(props);
-
-        if(isDev()){
-           for(let i=0; i<groups.length; i++){
-               let group : (Todo | Project)[] = groups[i];
-               for(let j=0; j<group.length; j++){
-                    assert(
-                       or(isProject(group[j] as Project),isTodo(group[j] as Todo)), 
-                       `item have incorrect type 
-                        ${JSON.stringify(group[j])}. 
-                        ${JSON.stringify(group)}. 
-                        init.Logbook.`
-                    );  
-               }
-           } 
-        } 
         return groups;
     } 
  
 
     groupByMonth = (props:LogbookProps) : (Todo | Project)[][] => {  
  
-        let filters = [
-            byTags(props.selectedTag),
-            byCompleted, 
-            byNotDeleted  
-        ];     
+        let {todos,projects} = props;   
 
         let getKey = (d:Date) : string => `${d.getFullYear()}-${d.getMonth()}`;
 
-        let todos : Todo[] = props.todos.filter(allPass(filters));
+        let completedTodos : Todo[] = filter(
+            todos,
+            byTags(props.selectedTag),
+            "completedTodos"
+        );
 
-        let projects : Project[] = props.projects.filter(allPass(filters)); 
-
+        //TODO should projects be filtered by tags ? 
+        let completedProjects : Project[] = filter(
+            projects, 
+            allPass([ byCompleted, byNotDeleted ]),
+            "completedProjects"
+        );  
+         
         let compare = compareByDate( (i : Todo | Project) => new Date(i.completed) );
 
-        let objects = [...todos, ...projects].sort(compare);
+        let objects = [...completedTodos, ...completedProjects].sort(compare);
 
-        if(objects.length<2)
-           return [ [...objects] ];
+        if(objects.length<2){ return [ [...objects] ] }
         
         let groups = [];
 
@@ -160,7 +118,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
     getComponent = (month:string, todos:Todo[], projects:Project[]) : JSX.Element => {
 
-        return <div  
+        return <div   
             style={{
                 position:"relative", 
                 display:"flex", 
@@ -226,27 +184,16 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                         </div> 
                     )
                 }   
-            </div>     
+            </div>      
         </div> 
     }
   
 
     render(){  
  
-        let tags = compose(
-            getTagsFromItems,
-            (todos) => todos.filter(allPass([byCompleted,byNotDeleted]))
-        )([...this.props.todos, ...this.props.projects]);
-
-        if(isDev()){
-           assert(
-               isArrayOfStrings(tags), 
-               `tags is not a string array ${JSON.stringify(tags)}. Logbook. render.`
-           ) 
-        } 
-  
+        let tags = getTagsFromItems(this.props.todos);
         let groups = this.init(this.props);  
-
+ 
         return !groups ? null :
                 <div>
                     <ContainerHeader 
@@ -264,10 +211,8 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                               let projects:Project[] = group.filter((item:Project) => item.type==="project"); 
                               let month:string = getMonthName(new Date(group[0].completed));
                                   
-                              return <div key={index}>
-                                {this.getComponent(month, todos, projects)}
-                              </div>   
-                          } 
+                              return <div key={index}> {this.getComponent(month, todos, projects)} </div>   
+                          }   
                         )   
                     }  
                     </div>

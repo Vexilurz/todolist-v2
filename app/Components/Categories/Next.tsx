@@ -47,17 +47,14 @@ let collectProjects = (projects:Project[], projectsFilters, table:Table) : Table
           `project is not of type Project. ${JSON.stringify(project)}. groupObjects. next.`
         );  
 
-        if(allPass([ 
-            //byTags(this.props.selectedTag), 
-            ...projectsFilters
-        ])(project)){
+        if( allPass([ ...projectsFilters ])(project) ){
            table[project._id] = [];
            table.projects.push(project);  
         }
     };
 
     return table;
-} 
+}  
 
 
 let collectAreas = (areas:Area[], areasFilters, table:Table) : Table => {
@@ -69,10 +66,7 @@ let collectAreas = (areas:Area[], areasFilters, table:Table) : Table => {
           `area is not of type Area. ${JSON.stringify(area)}. groupObjects. next.`
         );   
         
-        if(allPass([
-            //byTags(this.props.selectedTag), 
-            ...areasFilters]
-        )(area)){
+        if( allPass([...areasFilters])(area) ){
            table[area._id] = [];
            table.areas.push(area);
         }
@@ -156,7 +150,7 @@ interface NextProps{
     searched:boolean,  
     selectedProjectId:string, 
     selectedAreaId:string,
-    selectedCategory:string, 
+    selectedCategory:Category, 
     selectedTag:string,
     rootRef:HTMLElement,
     areas:Area[], 
@@ -178,78 +172,15 @@ interface Table{
     detached : Todo[] 
 }
  
- 
 export class Next extends Component<NextProps, NextState>{
     projectsFilters : ((p:Project) => boolean)[];
     areasFilters : ((a:Area) => boolean)[];
-    todosFilters : ((t:Todo) => boolean)[];
  
     constructor(props){
         super(props);
         this.projectsFilters = [byNotCompleted, byNotDeleted]; 
         this.areasFilters = [byNotDeleted];
-
-
-        this.todosFilters = [
-            (t:Todo) => not(isToday(t.attachedDate)) && not(isToday(t.deadline)),
-            (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
-            (t:Todo) => t.category!=="inbox",  
-            byNotCompleted,  
-            byNotDeleted 
-        ];
     }
-
-    shouldComponentUpdate(nextProps:NextProps,nextState:NextState){
-
-        if(
-            this.props.selectedTodoId!==nextProps.selectedTodoId ||
-        
-            this.props.searched!==nextProps.searched ||
-        
-            this.props.selectedProjectId!==nextProps.selectedProjectId ||
-        
-            this.props.selectedAreaId!==nextProps.selectedAreaId ||
-            
-            this.props.selectedCategory!==nextProps.selectedCategory ||
-            
-            this.props.selectedTag!==nextProps.selectedTag ||
-            
-            this.props.rootRef!==nextProps.rootRef ||
-            
-            this.props.areas!==nextProps.areas ||
-            
-            this.props.projects!==nextProps.projects ||
-            
-            this.props.todos!==nextProps.todos ||
-            
-            this.props.tags!==nextProps.tags 
-        ){
-            return true
-        }
-           
-
-        return false 
-    }
- 
-
- 
- 
-  
-    
-
-
-    getNextTags = () : string[] => {
-        let {areas, projects, todos} = this.props;
-
-        return uniq(   
-            getTagsFromItems([  
-              //...projects.filter(allPass(this.projectsFilters)),
-              //...areas.filter(allPass(this.areasFilters)),
-              ...todos.filter(allPass(this.todosFilters))   
-            ]) 
-        );   
-    }
-
 
     render(){
 
@@ -259,16 +190,14 @@ export class Next extends Component<NextProps, NextState>{
             projects, areas, todos,
             this.projectsFilters,
             this.areasFilters,
-            this.todosFilters,
+            [],
             selectedTag
         );
  
         let empty = table.projects.length===0 && table.areas.length===0 && table.todos.length===0;
          
-        let tags = this.getNextTags();
-        
-        assert(isArrayOfStrings(tags), `tags is not an array of strings. ${JSON.stringify(tags)}. render. next.`);
-         
+        let tags = getTagsFromItems(todos);
+ 
         let emptyTodo = generateEmptyTodo(generateId(), "next", 0);  
 
         return  <div style={{WebkitUserSelect:"none"}}>
@@ -281,7 +210,7 @@ export class Next extends Component<NextProps, NextState>{
                     />   
                     <FadeBackgroundIcon    
                         container={this.props.rootRef} 
-                        selectedCategory={"next"}  
+                        selectedCategory={"next"}   
                         show={empty}  
                     />   
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
@@ -303,14 +232,12 @@ export class Next extends Component<NextProps, NextState>{
                         />  
                         {
                             isEmpty(table.detached) ? null :
-                            <TodosList     
-                                filters={[]}      
-                                isEmpty={(empty:boolean) => {}}    
+                            <TodosList            
                                 selectedTodoId={this.props.selectedTodoId} 
                                 dispatch={this.props.dispatch}     
                                 areas={this.props.areas}
                                 projects={this.props.projects}
-                                selectedCategory={"next"} 
+                                selectedCategory={this.props.selectedCategory} 
                                 selectedAreaId={this.props.selectedAreaId}
                                 selectedProjectId={this.props.selectedProjectId}
                                 searched={this.props.searched}
@@ -353,13 +280,6 @@ export class Next extends Component<NextProps, NextState>{
                 </div> 
     }
 }  
-
-
-
-let byHaveTodos = (table:Table) => (project:Project) : boolean => {
-    let todosIds : string[] = project.layout.filter(isString) as string[]; 
-    return !isEmpty(todosIds) && !isEmpty(table[project._id]); 
-}
 
 
  
@@ -525,7 +445,7 @@ interface ExpandableTodosListProps{
 
 interface ExpandableTodosListState{
     expanded : boolean 
-} 
+}   
 
   
  
@@ -539,13 +459,11 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
         }
     } 
 
-    onToggle = () => this.setState({
-        expanded:!this.state.expanded
-    })
+    onToggle = () => this.setState({expanded:!this.state.expanded})
 
     render(){ 
         let { project } = this.props; 
-        let expand = isNil(project) ? 3 : 
+        let expand = isNil(project) ? 3 :  
                      isNil(project.expand) ? 3 : 
                      project.expand; 
 
@@ -554,8 +472,6 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
           
         return <div>          
                 <TodosList       
-                    filters={[]}  
-                    isEmpty={(empty:boolean) => {}}  
                     dispatch={this.props.dispatch}     
                     selectedCategory={"next"} 
                     areas={this.props.areas}

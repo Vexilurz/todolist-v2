@@ -47,11 +47,21 @@ import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { TodoInput } from './Components/TodoInput/TodoInput';
 import { 
     contains, isNil, all, prepend, isEmpty, last,
-    not, assoc, flatten, toPairs, map, compose 
+    not, assoc, flatten, toPairs, map, compose, allPass, uniq 
 } from 'ramda'; 
 import { isDev, Store } from './app';
 import { setRepeatedTodos, repeat } from './Components/RepeatPopup';
 import { ipcRenderer, remote } from 'electron';
+
+ 
+export let measureTime = (f:() => void) => {
+
+    let start : number = performance.now();
+    f(); 
+    let finish : number = performance.now();
+    return (finish - start); 
+}
+
 
 export let selectNeverTodos = (todos:Todo[]) : Todo[] => {
     return todos.filter( 
@@ -695,15 +705,13 @@ export let getTagsFromItems = (items:Item[]) : string[] => {
                 }
             }
  
-            if(tags.indexOf(item.attachedTags[j])===-1)
-               tags.push(item.attachedTags[j]); 
- 
-        } 
-        
+            if(tags.indexOf(item.attachedTags[j])===-1){
+               tags.push(item.attachedTags[j])
+            }
+        }  
     } 
-
-    return tags; 
-
+    
+    return uniq(tags); 
 }
 
 
@@ -1926,4 +1934,61 @@ export let clearStorage = () : Promise<void> => {
         }
     )
 }  
+
  
+interface ItemsAmount{  
+    inbox:number,
+    today:number,
+    hot:number,
+    trash:number,
+    logbook:number  
+}
+
+export let isDeadlineTodayOrPast = (deadline:Date) : boolean => isNil(deadline) ? 
+                                                                false : 
+                                                                daysRemaining(deadline)<=0;
+
+ 
+export let isTodayOrPast = (date:Date) : boolean => 
+                            isNil(date) ?    
+                            false :  
+                            daysRemaining(date)<=0; 
+
+
+export let calculateAmount = (areas:Area[], projects:Project[], todos:Todo[]) : ItemsAmount => {
+ 
+    let todayFilters = [   
+        (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
+        byNotCompleted,  
+        byNotDeleted   
+    ];    
+
+    let hotFilters = [
+        (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
+        byNotCompleted,  
+        byNotDeleted  
+    ];
+    
+    let inboxFilters = [  
+        (todo:Todo) => not(byAttachedToArea(areas)(todo)), 
+        (todo:Todo) => not(byAttachedToProject(projects)(todo)), 
+        (todo:Todo) => isNil(todo.attachedDate), 
+        (todo:Todo) => isNil(todo.deadline), 
+        byCategory("inbox"),  
+        byNotCompleted,    
+        byNotDeleted 
+    ]; 
+ 
+    let trashFilters = [byDeleted];
+
+    let logbookFilters = [byCompleted, byNotDeleted]; 
+        
+    return {       
+       inbox:todos.filter((t:Todo) => allPass(inboxFilters)(t)).length,
+       today:todos.filter((t:Todo) => allPass(todayFilters)(t)).length,
+       hot:todos.filter((t:Todo) => allPass(hotFilters)(t)).length,
+       trash:todos.filter((t:Todo) => allPass(trashFilters)(t)).length, 
+       logbook:todos.filter((t:Todo) => allPass(logbookFilters)(t)).length
+    }   
+} 
+  

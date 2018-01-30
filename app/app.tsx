@@ -45,7 +45,7 @@ export let isDev = () => { return true }
  
 
 
-export interface Store{
+export interface Store{   
     openChangeGroupPopup : boolean,
     selectedSettingsSection : section, 
     openSettings : boolean,

@@ -62,37 +62,24 @@ interface SomedayState{}
 export class Someday extends Component<SomedayProps, SomedayState>{
     projectsFilters : ((p:Project) => boolean)[];
     areasFilters : ((a:Area) => boolean)[];
-    todosFilters : ((t:Todo) => boolean)[];
 
     constructor(props){ 
         super(props);
-
         this.projectsFilters = [byNotCompleted, byNotDeleted]; 
         this.areasFilters = [byNotDeleted];
-
-        this.todosFilters = [
-            byCategory("someday"),
-            byNotCompleted, 
-            byNotDeleted 
-        ];
     } 
  
     render(){
         let {projects, areas, todos, selectedTag} = this.props;
-
-        let tags = compose(
-            uniq,
-            getTagsFromItems,
-            (todos) => todos.filter(allPass(this.todosFilters))
-        )(this.props.todos) as string[];  
+        let tags = getTagsFromItems(todos);
 
         let table = groupObjects(  
             projects, areas, todos,
             this.projectsFilters,
             this.areasFilters,
-            this.todosFilters,
-            selectedTag
-        );
+            [],
+            selectedTag 
+        ); 
 
         let showFadeBackgroundIcon = table.projects.length===0 && 
                                      table.areas.length===0 && 
@@ -141,15 +128,13 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                     /> 
                     {
                         isEmpty(table.detached) ? null :
-                        <TodosList 
-                            filters={[]}      
+                        <TodosList      
                             searched={this.props.searched}
                             areas={this.props.areas}
                             selectedAreaId={this.props.selectedAreaId}
                             selectedProjectId={this.props.selectedProjectId}
                             projects={this.props.projects}
-                            selectedTodoId={this.props.selectedTodoId} 
-                            isEmpty={(empty:boolean) => {}} 
+                            selectedTodoId={this.props.selectedTodoId}  
                             dispatch={this.props.dispatch}   
                             selectedCategory={"someday"}  
                             selectedTag={this.props.selectedTag}  

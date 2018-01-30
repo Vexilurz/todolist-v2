@@ -62,69 +62,22 @@ interface AreaBodyProps{
     dispatch:Function
 } 
  
- 
-   
-interface AreaBodyState{
-    placeholderHeight:number, 
-    showPlaceholder:boolean,
-    currentIndex:number
-} 
+
+interface AreaBodyState{} 
  
  
- 
+  
 export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
 
     ref:HTMLElement; 
 
     constructor(props){
         super(props); 
-        this.state = {
-            placeholderHeight:0,
-            showPlaceholder:false,
-            currentIndex:0
-        } 
     }
     
 
-    shouldComponentUpdate(nextProps:AreaBodyProps,nextState:AreaBodyState){
-        let should = false;
-
-        if(nextProps.area!==this.props.area)
-            should = true;
-
-        if(nextProps.areas!==this.props.areas)
-            should = true;
-        
-        if(nextProps.projects!==this.props.projects)
-            should = true;
-        
-        if(nextProps.selectedAreaId!==this.props.selectedAreaId)
-            should = true;
-        
-        if(nextProps.selectedProjectId!==this.props.selectedProjectId)
-            should = true;
-        
-        if(nextProps.todos!==this.props.todos)
-            should = true;
-        
-        if(nextProps.tags!==this.props.tags)
-            should = true;
-        
-        if(nextProps.searched!==this.props.searched)
-            should = true;
-        
-        if(nextProps.selectedCategory!==this.props.selectedCategory)
-            should = true;
-        
-        if(nextProps.selectedTag!==this.props.selectedTag) 
-            should = true;
-         
-        return should; 
-    }
- 
-
-    selectProjects = (props:AreaBodyProps) : Project[] => { 
-        let {selectedCategory} = this.props;
+    selectProjects = (props:AreaBodyProps) : Project[] => {
+        let { selectedCategory } = this.props;
         let projectsIds : string[] = props.area.attachedProjectsIds;
 
         let filters = [
@@ -168,79 +121,6 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
             />
         </div> 
     }
-
-
-    shouldCancelStart = (e) => {
-        let nodes = [].slice.call(e.path);
-        for(let i=0; i<nodes.length; i++){
-            if(nodes[i].preventDrag)
-                return true;
-        }
-        return false; 
-    } 
-
-       
-    shouldCancelAnimation = (e) => {
-        if(!this.props.rootRef)
-            return true;
-        let rect = this.props.rootRef.getBoundingClientRect();    
-        let x = e.pageX;
-        return x < rect.left;   
-    }  
-    
-
-    onSortStart = (oldIndex:number,event:any) => {
-        this.props.dispatch({type:"dragged",load:"project"});
-    }   
-
-
-    onSortEnd = (oldIndex:number,newIndex:number,event:any) => { 
-
-        this.setState({showPlaceholder:false}); 
-        this.props.dispatch({type:"dragged",load:null}); 
-
-        let selectedProjects = this.selectProjects(this.props)
-        .sort((a:Project, b:Project) => a.priority-b.priority);
-
-        let x = event.clientX+this.props.rootRef.scrollLeft; 
-        let y = event.clientY+this.props.rootRef.scrollTop;  
-        let leftpanel = document.getElementById("leftpanel");
-        let target = selectedProjects[oldIndex];
-
-        assert(isProject(target), `itarget is not a project. ${JSON.stringify(target)}. onSortEnd. AreaBody.`);
-        assert(not(isNil(leftpanel)), `leftpanel is Nil. onSortEnd. AreaBody.`);
- 
-        if(insideTargetArea(null,leftpanel,x,y)){   
-
-            let el = document.elementFromPoint(event.clientX, event.clientY);
-            let id = el.id || el.parentElement.id;
-            let areaTarget : Area = this.props.areas.find( (a:Area) => a._id===id );
-         
-            if(!isNil(areaTarget)){
-                if(areaTarget.type==="area" && areaTarget._id!==this.props.area._id){
-                    removeFromArea(this.props.dispatch, this.props.area, {...target});
-                    attachToArea(this.props.dispatch, areaTarget, {...target}); 
-                }    
-            }
-
-            let nodes = [].slice.call(event.path);
-        
-            for(let i=0; i<nodes.length; i++){
-                if(nodes[i].id==="trash"){ 
-                   deleteProject(this.props.dispatch, target, this.props.todos);
-                }    
-            }   
-
-        }else{     
-            if(oldIndex===newIndex){ return }
-
-            let updated = arrayMove([...selectedProjects], oldIndex, newIndex);
-            changeProjectsOrder(this.props.dispatch,updated);
-        } 
-    }   
-   
- 
-    onSortMove = (oldIndex:number,event:any) => {} 
 
     
     render(){  

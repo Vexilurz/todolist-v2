@@ -13,10 +13,10 @@ let uniqid = require("uniqid");
 let path = require('path');
   
  
-let todos_db;
-let projects_db; 
-let areas_db;
-let calendars_db;
+export let todos_db;
+export let projects_db; 
+export let areas_db;
+export let calendars_db;
  
  
 export let initDB = () => { 

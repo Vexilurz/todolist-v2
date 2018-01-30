@@ -44,6 +44,7 @@ export let changeProjectsOrder = (dispatch:Function, listAfter:(Project | Area |
 
 
 
+
 export let attachToArea = (dispatch:Function, closestArea:Area, selectedProject:Project) : void => {
      
     assert(not(isNil(closestArea)),`closestArea undefined. attachToArea.`);
@@ -56,6 +57,7 @@ export let attachToArea = (dispatch:Function, closestArea:Area, selectedProject:
      
      
 
+
 export let removeFromArea = (dispatch:Function, fromArea:Area, selectedProject:Project) : void => {
 
     let idx = fromArea.attachedProjectsIds.findIndex((id:string) => id===selectedProject._id);  
@@ -67,6 +69,7 @@ export let removeFromArea = (dispatch:Function, fromArea:Area, selectedProject:P
     fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
     dispatch({type:"updateArea", load:fromArea});  
 }
+
 
 
 
@@ -85,6 +88,7 @@ export let findClosestArea = (index:number, layout:any[]) : Area => {
             
     return null;
 }   
+
 
 
 export let isDetached = (index:number, layout:any[]) : boolean => {
@@ -108,7 +112,6 @@ export let isDetached = (index:number, layout:any[]) : boolean => {
 interface AreasListProps{   
     dispatch:Function,
     leftPanelWidth:number, 
-    todos:Todo[], 
     dragged:string, 
     selectedProjectId:string,
     selectedAreaId:string, 
@@ -235,7 +238,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             index={index}
             dragged={this.props.dragged}  
             selectProject={this.selectProject}
-            todos={this.props.todos} 
+            todos={[]}   
             selectedProjectId={this.props.selectedProjectId}
             selectedCategory={this.props.selectedCategory}
         />
@@ -257,7 +260,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 >
                 </div>
             default:  
-                return null 
+                return null  
         }   
     } 
 
@@ -536,7 +539,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
     render(){
         let {project, selectedProjectId, selectedCategory, todos} = this.props;
         let selected = project._id===selectedProjectId && selectedCategory==="project";
-        let {done, left} = getProgressStatus(project,todos);
+        let {done, left} = getProgressStatus(todos);
 
         return <li  
             style={{WebkitUserSelect:"none",width:"100%"}}  

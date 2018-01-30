@@ -7,7 +7,9 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, generateEmptyTodo, isToday, daysRemaining, isTodo, assert, makeChildrensVisible, hideChildrens, generateDropStyle, arrayMove, keyFromDate, setToJsonStorage, getFromJsonStorage 
+    chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, generateEmptyTodo, 
+    isToday, daysRemaining, isTodo, assert, makeChildrensVisible, hideChildrens, generateDropStyle, 
+    arrayMove, keyFromDate, setToJsonStorage, getFromJsonStorage, isDeadlineTodayOrPast, isTodayOrPast 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -37,9 +39,8 @@ import { byTags, byCategory } from '../../utils';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { compose, allPass, isEmpty, not, assoc, isNil } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput'; 
-import { Category } from '../MainContainer';
+import { Category, filter } from '../MainContainer';
 import { SortableContainer } from '../../sortable/CustomSortableContainer';
-import { calculateAmount } from '../LeftPanel/LeftPanel';
 import { isDate } from 'util';
 import { ipcRenderer, remote } from 'electron';
 
@@ -152,38 +153,37 @@ export class Today extends Component<TodayProps,TodayState>{
 
     constructor(props){
         super(props);
-        this.state = {
-            showHint:false
-        }
+        this.state = {showHint:false};
     }  
+
+    calculateTodayAmount = (props:TodayProps) => {
+        let {todos,dispatch} = this.props
+
+        let todayFilters = [   
+            (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
+            byNotCompleted,  
+            byNotDeleted   
+        ];    
+    
+        let hotFilters = [
+            (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
+            byNotCompleted,  
+            byNotDeleted  
+        ]; 
+
+        dispatch({type:"todayAmount",load:todos.filter((t:Todo) => allPass(todayFilters)(t)).length});
+        dispatch({type:"hotAmount",load:todos.filter((t:Todo) => allPass(hotFilters)(t)).length});
+    }
 
     
     componentDidMount(){ 
-        hideHint()
-        .then( (hide) => this.setState({showHint:!hide}) )     
+        hideHint().then( (hide) => this.setState({showHint:!hide}) );
+        this.calculateTodayAmount(this.props);
     }     
   
     
-    shouldComponentUpdate(nextProps:TodayProps,nextState:TodayState){
-
-        if(
-            this.props.selectedTodoId!==nextProps.selectedTodoId ||
-            this.props.selectedCategory!==nextProps.selectedCategory || 
-            this.props.searched!==nextProps.searched ||
-            this.props.projects!==nextProps.projects ||
-            this.props.selectedTag!==nextProps.selectedTag || 
-            this.props.rootRef!==nextProps.rootRef ||
-            this.props.todos!==nextProps.todos ||
-            this.props.tags!==nextProps.tags ||
-            this.props.showCalendarEvents!==nextProps.showCalendarEvents ||
-            this.props.calendars!==nextProps.calendars ||
-            this.state.showHint!==nextState.showHint
-        ){     
-            return true
-        }
-
-
-        return false   
+    componentWillReceiveProps(nextProps:TodayProps){
+        this.calculateTodayAmount(nextProps); 
     }
 
 
@@ -220,40 +220,17 @@ export class Today extends Component<TodayProps,TodayState>{
             kind:"evening", 
             priority:0, 
             _id:`today-separator` 
-        };   
+        };    
 
-        let isTodayOrPast = (date:Date) : boolean => 
-            isNil(date) ?    
-            false :  
-            daysRemaining(date)<=0; 
+        let tags = getTagsFromItems(todos); 
 
-        let filters = [   
-            (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
-            byNotCompleted,  
-            byNotDeleted   
-        ];    
-
-        let todayFilters = [ 
-            ...filters, 
-            byTags(selectedTag),
-            (t:Todo) => t.category!=="evening"
-        ];
-
-        let eveningFilters = [
-            ...filters, 
-            byTags(selectedTag),
-            byCategory("evening")
-        ];
-
-        let tags = getTagsFromItems(todos.filter(allPass(filters)));
-
-        let today = todos.filter(allPass(todayFilters)); 
-        let evening = todos.filter(allPass(eveningFilters)); 
-
+        let today = filter( todos, allPass([byTags(selectedTag), (t:Todo) => t.category!=="evening"]), "today" ); 
+        let evening = filter( todos, allPass([byTags(selectedTag), byCategory("evening")]), "evening" ); 
+        
         if(isEmpty(today) && isEmpty(evening)){ return {items:[],tags} }
-
+ 
         let items = indexToPriority([...today, separator, ...evening]); 
-
+ 
         return {items,tags}
     }
   
@@ -356,29 +333,16 @@ export class Today extends Component<TodayProps,TodayState>{
         let empty = generateEmptyTodo(generateId(), "today", 0);  
 
 
-        let {today} = calculateAmount(areas,projects,todos);  
-
-        if(isDev() && selectedTag==="All" && items.length>0 && today>0){       
-            assert(
-             (today)===(items.length-1), 
-               `
-                 incorrect amount. 
-                 items : ${items.length}; 
-                 today : ${today}; 
-               `
-            );    
-        }
-
         let decorators = [{  
             area:document.getElementById("leftpanel"),  
             decorator:generateDropStyle("nested"),
             id:"default"
         }];    
 
+
         let events = [];
 
         if(showCalendarEvents){
-
             let todayKey : string = keyFromDate(new Date()); 
 
             calendars 
@@ -398,12 +362,9 @@ export class Today extends Component<TodayProps,TodayState>{
                 } 
             ) 
         }
-         
+          
 
-        return <div style={{
-            disaply:"flex", 
-            flexDirection:"column"
-        }}> 
+        return <div style={{disaply:"flex", flexDirection:"column"}}> 
             <div style={{width: "100%"}}> 
                     <div style={{  
                         display:"flex", 
@@ -436,7 +397,6 @@ export class Today extends Component<TodayProps,TodayState>{
                         show={true}  
                     />     
                     <TodaySchedule show={showCalendarEvents} events={events}/>  
-  
                     {   
                         this.state.showHint ? 
                         <Hint {
@@ -468,7 +428,7 @@ export class Today extends Component<TodayProps,TodayState>{
                         todo={empty}
                         creation={true}
                     />   
-
+ 
                     <div style={{position:"relative"}}>   
                         <SortableContainer  
                             items={items}

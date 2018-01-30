@@ -13,6 +13,8 @@ import { uniq, isNil } from 'ramda';
    
   
 interface AreaComponentProps{
+    area:Area,
+    todos:Todo[], 
     areas:Area[],  
     selectedCategory:Category, 
     selectedAreaId:string,
@@ -22,7 +24,6 @@ interface AreaComponentProps{
     dispatch:Function,  
     selectedProjectId:string, 
     projects:Project[],
-    todos:Todo[],
     tags:string[],
     rootRef:HTMLElement 
 } 
@@ -50,42 +51,36 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
     }
 
 
-    updateAreaName = debounce(
-        (area:Area, value:string) : void => { 
-            this.updateArea(area, {name:value});
-        },
-        50
-    ) 
+    updateAreaName = debounce((area:Area, value:string) : void => this.updateArea(area, {name:value}), 50) 
   
 
     attachTagToArea = (area:Area, tag:string) => {
         let attachedTags = uniq([tag, ...area.attachedTags]); 
-        this.updateArea(area, {attachedTags})
+        this.updateArea(area, {attachedTags});
     } 
     
  
     render(){
-        let area = this.props.areas.find((a:Area) => this.props.selectedAreaId===a._id);
-        
-        return isNil(area) ? null :
-        <div>  
+       
+        return <div>  
             <div> 
-                <AreaHeader
-                    name={area.name}  
+                <AreaHeader 
+                    area={this.props.area} 
+                    name={this.props.area.name}  
                     tags={this.props.tags}
                     rootRef={this.props.rootRef}
                     areas={this.props.areas}    
-                    attachTagToArea={(tag:string) => this.attachTagToArea(area,tag)}
+                    attachTagToArea={(tag:string) => this.attachTagToArea(this.props.area,tag)}
                     projects={this.props.projects}
                     todos={this.props.todos} 
                     selectedAreaId={this.props.selectedAreaId}
-                    updateAreaName={(value:string) => this.updateAreaName(area,value)}
+                    updateAreaName={(value:string) => this.updateAreaName(this.props.area,value)}
                     dispatch={this.props.dispatch}  
                 />   
             </div> 
             <div> 
                 <AreaBody  
-                    area={area} 
+                    area={this.props.area}  
                     selectedTodoId={this.props.selectedTodoId}
                     selectedCategory={this.props.selectedCategory}
                     todos={this.props.todos} 

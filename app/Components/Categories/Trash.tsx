@@ -15,9 +15,9 @@ import { getAreaLink } from '../Area/AreaLink';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { uniq, compose, contains, allPass, not } from 'ramda';
+import { uniq, compose, contains, allPass, not, isEmpty } from 'ramda';
 import { isString } from 'util';
-import { Category } from '../MainContainer';
+import { Category, filter } from '../MainContainer';
 import { SimplePopup } from '../SimplePopup';
 import { Store } from '../../app';
 import { ProjectLink } from '../Project/ProjectLink';
@@ -39,7 +39,7 @@ interface TrashProps{
     areas:Area[],
     rootRef:HTMLElement     
 }      
-
+ 
 interface TrashState{}
  
 export class Trash extends Component<TrashProps,TrashState>{
@@ -49,27 +49,6 @@ export class Trash extends Component<TrashProps,TrashState>{
         super(props);
     }  
 
-
-    shouldComponentUpdate(nextProps:TrashProps){
-        let should = false;
-
-
-        if(   
-            this.props.tags!==nextProps.tags ||
-            this.props.searched!==nextProps.searched ||
-            this.props.selectedTag!==nextProps.selectedTag ||
-            this.props.todos!==nextProps.todos ||
-            this.props.projects!==nextProps.projects ||
-            this.props.areas!==nextProps.areas ||
-            this.props.rootRef!==nextProps.rootRef 
-        ){
-            should = true; 
-        }
-
-
-        return should;
-    }
- 
 
     getDeletedProjectElement = (value:Project, index:number) : JSX.Element => {
         return <div 
@@ -147,39 +126,6 @@ export class Trash extends Component<TrashProps,TrashState>{
         </div>  
     }    
         
-      
-    selectDeleted = () : {
-        deletedTodos : Todo[], 
-        deletedProjects : Project[], 
-        deletedAreas : Area[], 
-        empty : boolean,
-        tags : string[] 
-    } => { 
-        let {selectedTag, todos, projects, areas} = this.props;
-
-        let filters = [byDeleted,byTags(selectedTag)]; 
-
-        let deletedProjects = projects.filter(allPass(filters));
-        let deletedAreas = areas.filter(allPass(filters)); 
-        let deletedTodos = todos.filter(allPass(filters));
-
-        let tags = compose(
-            getTagsFromItems, 
-            (items : Item[]) => items.filter(byDeleted)  
-        )([
-            ...todos, 
-            ...projects,  
-            ...areas
-        ]); 
-
-        
-        let empty : boolean = deletedTodos.length===0 && 
-                              deletedProjects.length===0 && 
-                              deletedAreas.length===0;  
-          
-        return {deletedTodos, deletedProjects, deletedAreas, empty, tags};  
-    } 
- 
 
     onEmptyTrash = () => {
         this.props.dispatch({type:"showTrashPopup", load:true});
@@ -197,23 +143,23 @@ export class Trash extends Component<TrashProps,TrashState>{
             selectedTodoId, 
             selectedAreaId,
             selectedTag, 
-            rootRef
-        } = this.props; 
+            rootRef 
+        } = this.props;   
  
-        let {
-            deletedTodos, 
-            deletedProjects, 
-            deletedAreas, 
-            empty, 
-            tags
-        } = this.selectDeleted();
+        let filters = [byDeleted,byTags(selectedTag)]; 
+        let deletedProjects = filter(projects, allPass(filters), "deletedProjects");
+        let deletedAreas = filter(areas, allPass(filters), "deletedAreas"); 
+        let deltedTodos = filter(todos, byTags(selectedTag), "deltedTodos");   
         
+        let tags = getTagsFromItems([...todos,...deletedProjects,...deletedAreas]); 
+        let empty = isEmpty(todos) && isEmpty(deletedProjects) && isEmpty(deletedAreas);
  
+
         return <div style={{WebkitUserSelect:"none"}}> 
             <div> 
                 <ContainerHeader  
                     selectedCategory={"trash"}  
-                    dispatch={dispatch} 
+                    dispatch={dispatch}  
                     tags={tags} 
                     selectedTag={selectedTag}
                     showTags={true} 
@@ -256,8 +202,8 @@ export class Trash extends Component<TrashProps,TrashState>{
                 position:"relative", 
                 width:"100%"
             }}>
-                { 
-                    deletedTodos.map(
+                {   
+                    deltedTodos.map( 
                         (value:Todo,index) => <div
                             key={value._id}
                             style={{
@@ -296,7 +242,7 @@ export class Trash extends Component<TrashProps,TrashState>{
         </div> 
     }
 } 
- 
+  
       
 
 interface TrashPopupProps extends Store{}   

@@ -238,7 +238,9 @@ interface QuickSearchState{
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
 export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
+
     ref:HTMLElement; 
+
     constructor(props){ 
         super(props);
         this.state = {
@@ -320,9 +322,8 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
                 let value = e.target.value.toLowerCase();
                 let word = k.keywords[i].toLowerCase().slice(0, value.length);
 
-                if(value===word)
-                    return true;
-            }
+                if(value===word){ return true }
+            } 
         });   
 
         this.setState({value:e.target.value, suggestions});
@@ -402,7 +403,7 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
                         width:"20px"
                     }}/>   
                 </div>  
-                  
+                   
                 <input 
                     style={{  
                         outline: "none",
@@ -418,33 +419,19 @@ export class QuickSearch extends Component<QuickSearchProps,QuickSearchState>{
                     onChange={this.onChange}
                 />
             </div>   
-             
-
-
-            <div 
-                className="scroll" 
-                style={{
-                    maxHeight:"600px",
-                    overflowX:"hidden",
-                    backgroundColor:"rgba(238,237,239,1)"
-                }}    
-            >
-                <div>  
-                    {    
-                        this.state.value.length===0 ? null :
-                        this
-                        .state  
-                        .suggestions 
-                        .slice(0,10)
-                        .map(
-                            (s,index) => <div key={`suggestion-${index}`}>
-                                {this.suggestionToComponent(s, index)}
-                            </div> 
-                        )  
-                    }
-                </div>  
-            </div> 
-            
         </div>
     }
 }
+ 
+/*
+this.state.value.length===0 ? null :
+this
+.state  
+.suggestions 
+.slice(0,10)
+.map(
+    (s,index) => <div key={`suggestion-${index}`}>
+        {this.suggestionToComponent(s, index)}
+    </div> 
+)  
+*/

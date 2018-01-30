@@ -13,11 +13,11 @@ import {
     attachDispatchToProps, insideTargetArea, assert, isTodo, isDate, getMonthName, 
     dateToYearMonthDay, getRangeDays, getRangeRepetitions, daysInMonth, getRangeMonthUntilDate, 
     getRangeMonthRepetitions, getRangeYearUntilDate, getRangeYearRepetitions, 
-    dateToDateInputValue, dateInputUpperLimit, oneDayAhead 
+    dateToDateInputValue, dateInputUpperLimit
 } from '../utils'; 
 import { Todo, removeTodo, addTodo, generateId, Project, Area, LayoutItem, Group } from '../database';
-import { Store, isDev } from '../app';
-import { ChecklistItem } from './TodoInput/TodoChecklist';
+import { Store, isDev } from '../app'; 
+import { ChecklistItem } from './TodoInput/TodoChecklist'; 
 import { Category } from './MainContainer';
 import { remove, isNil, not, isEmpty, last } from 'ramda';
 let uniqid = require("uniqid");    
@@ -259,6 +259,17 @@ export interface RepeatPopupState{
     error:string 
 }   
  
+
+let oneDayAhead = () : Date => { 
+
+    Date.prototype["addDays"] = function(days) {
+        let date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;   
+    }
+      
+    return new Date()["addDays"](1);
+} 
 
 const initialState : RepeatPopupState = { 
     repeatEveryN:1,
