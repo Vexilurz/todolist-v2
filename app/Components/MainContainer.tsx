@@ -48,13 +48,11 @@ export let filter = (array:any[],f:Function,caller:string) : any[] => {
     let start : number = performance.now();
     let result = fast.filter(array,f);
     let finish : number = performance.now();
-
-    if(isDev()){
-        console.log(`
-            filter ${array.length}   
-            items ${(finish - start)} ms   
-            caller : ${caller}`
-        );  
+    
+    if(isDev()){ 
+        if(array.length>100){
+           console.log(`filter ${array.length} items ${(finish - start)} ms caller : ${caller}`);  
+        }
     }
        
     return result;
@@ -67,7 +65,7 @@ let byScheduled = (item : Todo) : boolean => {
 
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
-                       "deadline" | "search"
+                       "deadline" | "search" | "group"
  
                       
 
@@ -476,14 +474,11 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     let project = projects.find((p:Project) => selectedProjectId===p._id);
                                     let ids = project.layout.filter(isString);
                                     let byContainedInLayout = (t:Todo) => contains(t._id)(ids);
-                                    let projectFilters = [ 
-                                        byContainedInLayout,
-                                        byNotDeleted 
-                                    ].filter( f => f );  
+                                    let projectFilters = [ byContainedInLayout, byNotDeleted ].filter( f => f );  
                                  
                                     return <ProjectComponent 
                                         project={project}
-                                        todos={filter( todos, allPass(projectFilters), "projectTodos" )}
+                                        todos={filter(todos, allPass(projectFilters), "projectTodos")}
                                         dispatch={this.props.dispatch} 
                                         selectedTag={this.props.selectedTag}  
                                         selectedCategory={this.props.selectedCategory}
@@ -532,7 +527,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             ], 
                             [ 
                                 (selectedCategory:string) : boolean => 'search'===selectedCategory,  
-                    
                                 () => <Search {...{} as any}/>
                             ]
                         ])(selectedCategory) 

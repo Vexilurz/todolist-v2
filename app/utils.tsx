@@ -14,6 +14,7 @@ import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 let ical = require('ical');
+import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
@@ -314,8 +315,8 @@ export let isCategory = (category : Category) : boolean => {
     let categories : Category[] = [
         "inbox" , "today" , "upcoming" , "next" , "someday" , 
         "logbook" , "trash" , "project" , "area" , "evening" , 
-        "deadline"
-    ]; 
+        "deadline", "group"
+    ];  
 
     let yes = contains(category,categories);
  
@@ -626,6 +627,20 @@ export let chooseIcon = (
                     }  
                 }}>   
                 </div>
+            </div>    
+
+        case "group":
+            return <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}> 
+                <Refresh  
+                    style={{     
+                       width:18,   
+                       height:18, 
+                       marginLeft:"3px", 
+                       color:"black", 
+                       cursor:"default", 
+                       marginRight:"5px"  
+                    }} 
+                /> 
             </div>    
  
         default:

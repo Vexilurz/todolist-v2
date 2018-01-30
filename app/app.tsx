@@ -31,11 +31,7 @@ import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
   
 injectTapEventPlugin() 
 
-
- 
 export let isDev = () => { return true } 
-
-
 
 (() => {     
     let app=document.createElement('div'); 
@@ -43,8 +39,6 @@ export let isDev = () => { return true }
     document.body.appendChild(app);    
 })()
  
-
-
 export interface Store{ 
     searchQuery : string,  
     openChangeGroupPopup : boolean,
@@ -86,11 +80,9 @@ export interface Store{
     clone? : boolean,
     dispatch? : Function
 } 
- 
-    
-  
+
 export let defaultStoreItems : Store = {
-    searchQuery : null,
+    searchQuery : "",
     openChangeGroupPopup : false,  
     selectedSettingsSection : "General",
     openSettings : false,   

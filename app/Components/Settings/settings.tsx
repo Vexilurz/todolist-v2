@@ -18,7 +18,7 @@ let ical = require('ical');
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { remove, isNil, not, isEmpty, compose, toPairs, map, contains, last } from 'ramda';
+import { remove, isNil, not, isEmpty, compose, toPairs, map, contains, last, cond } from 'ramda';
 let uniqid = require("uniqid");    
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx'; 
@@ -72,8 +72,8 @@ export class Settings extends Component<SettingsProps,SettingsState>{
  
     render(){
         let {selectedSettingsSection, dispatch} = this.props;
-        let height = window.innerHeight/2;
-        let width = window.innerWidth/1.5;
+        let height = window.innerHeight/1.5;
+        let width = window.innerWidth/1.2;
         let title = { 
             'General' : 'General',
             'Cloud' : 'Cloud',
@@ -93,14 +93,14 @@ export class Settings extends Component<SettingsProps,SettingsState>{
             boxShadow:"0 0 18px rgba(0,0,0,0.5)", 
         }}>
             <div style={{
-                height: "30%",
-                width: "100%",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                flexDirection: "column",
-                background: "-webkit-linear-gradient(top, #eeeeee 0%,#cccccc 100%)"
-            }}>
+                height:"30%",
+                width:"100%",
+                display:"flex",
+                justifyContent:"center",
+                alignItems:"center",
+                flexDirection:"column",
+                background:"rgba(225,225,225,1)"
+            }}> 
                 <div style={{
                     height: "20%",
                     width: "100%",
@@ -155,15 +155,27 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                 cursor:"default",  
                 backgroundColor:"rgba(200,200,200,0.3)"
               }}
-            > 
-                {
-                    {
-                        General : <GeneralSettings />,
-                        QuickEntry : <QuickEntrySettings />, 
-                        CalendarEvents : <CalendarEventsSettings {...{} as any} />, 
-                        DataFolder : <DataFolderSettings />
-                    }[selectedSettingsSection] 
-                }   
+            >  
+            {
+            cond([  
+                [ 
+                    (selectedSettingsSection:string) : boolean => selectedSettingsSection==="General",  
+                    () => <GeneralSettings />
+                ],  
+                [ 
+                    (selectedSettingsSection:string) : boolean => selectedSettingsSection==="QuickEntry",  
+                    () => <QuickEntrySettings />
+                ], 
+                [ 
+                    (selectedSettingsSection:string) : boolean => selectedSettingsSection==="CalendarEvents",  
+                    () => <CalendarEventsSettings {...{} as any} />
+                ], 
+                [ 
+                    (selectedSettingsSection:string) : boolean => selectedSettingsSection==="DataFolder",  
+                    () => <DataFolderSettings />
+                ]
+            ])(selectedSettingsSection)
+            }   
             </div>
         </div>
     }

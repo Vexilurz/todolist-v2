@@ -293,7 +293,7 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
 
             <div  
                 onClick = {this.props.openNewProjectAreaPopup}
-                style={{display:"flex", padding:"5px", alignItems:"center", cursor:"pointer"}}
+                style={{display:"flex", paddingLeft:"10px", alignItems:"center", cursor:"pointer"}}
             >     
                 <div 
                     style={{display:"flex", alignItems:"center", justifyContent:"center"}}
@@ -308,18 +308,17 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
                             paddingRight: "5px"     
                         }}
                     />
-                </div>   
-                <div style={{
-                    color: "rgba(100, 100, 100, 1)",
-                    fontSize: "15px",
-                    cursor: "pointer",
-                    WebkitUserSelect: "none" 
-                }}>   
-                    New List 
                 </div>    
             </div>   
 
-            <div>     
+            <div
+                style={{
+                    display:"flex", 
+                    paddingRight:"10px", 
+                    alignItems:"center", 
+                    cursor:"pointer"
+                }}
+            >     
                 <IconButton    
                 onClick = {(e) => this.props.openSettings(e)}  
                 iconStyle={{   

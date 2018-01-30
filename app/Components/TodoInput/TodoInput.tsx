@@ -157,43 +157,28 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     componentDidMount(){  
 
-        let click = Observable
-                    .fromEvent(window,"click")
-                    .subscribe(this.onOutsideClick); 
+        let click = Observable.fromEvent(window,"click").subscribe(this.onOutsideClick); 
 
         this.subscriptions.push(click);
 
-        if(this.props.selectedTodoId===this.props.todo._id){   
-           this.select();   
-        }
+        if(this.props.selectedTodoId===this.props.todo._id){ this.select() }
     }          
  
  
     select = () => {
-        this.setState(    
-            {open:true}, 
-            () => { 
-                if(this.props.searched){   
-                   this.scrollTo();  
-                }      
-            }  
-        )   
-    } 
-
+        if(this.props.searched){ this.scrollTo() }
+        this.setState({open:true})     
+    }
+     
 
     componentDidUpdate(prevProps:TodoInputProps,prevState:TodoInputState){
         let { title, open } = this.state; 
 
-        if(this.inputRef && isEmpty(title) && open){
-           this.inputRef.focus();  
-        } 
+        if(this.inputRef && isEmpty(title) && open){ this.inputRef.focus() } 
 
-        if(isEmpty(title) || open){    
-           this.preventDragOfThisItem();
-        }else{
-           this.enableDragOfThisItem(); 
-        }  
-    }  
+        if(isEmpty(title) || open){ this.preventDragOfThisItem() }
+        else{ this.enableDragOfThisItem() }  
+    }   
 
 
     resetCreationForm = () => {
@@ -368,30 +353,33 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
     animateScroll = (elem:HTMLElement,inc:number,to:number) => {
-        if(elem.scrollTop+inc>=to){
-           elem.scrollTop=to; 
+        if( (elem.scrollTop+inc) >= to ){
+           elem.scrollTop = to;  
         }else{
-           elem.scrollTop+=inc;
+           elem.scrollTop = elem.scrollTop + inc;
            requestAnimationFrame(() => this.animateScroll(elem,inc,to)); 
         }
     }
-
+ 
     
-    scrollTo = () => {
-        if(this.props.rootRef && this.ref){  
-            let rootRef = document.getElementById("maincontainer");
-            rootRef.scrollTop = 0;
-            let rect = this.ref.getBoundingClientRect(); 
-            let a = (rect.top + rect.height/2) - rootRef.scrollTop - window.innerHeight/2;
-            this.animateScroll(rootRef, 150, rootRef.scrollTop + a); 
-         }  
-         this.props.dispatch({type:"searched", load:false}); 
-    }
+    scrollTo = () => { 
 
+        if(this.ref){  
+           let rootRef = document.getElementById("maincontainer");
+
+           let rect = this.ref.getBoundingClientRect(); 
+  
+              
+           rootRef.scrollTop = rootRef.scrollTop + rect.top - rect.height/2;  
+        }      
+            
+        this.props.dispatch({type:"searched", load:false}); 
+    }   
+     
 
     enableDragOfThisItem = () => {
         if(this.ref){
-           this.ref["preventDrag"] = false; 
+           this.ref["preventDrag"] = false;  
         }
     }
 

@@ -595,25 +595,57 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                         </div>
                     </div>
                 </div> 
-            </div>  
+            </div> 
 
-            <div style={{display:"flex", justifyContent:"space-around", alignItems:"center"}}>
-                <div>  
-                    <FlatButton 
-                        onClick={() => this.setState({...initialState}, () => this.close())} 
-                        label="Cancel" 
-                    />
+            <div 
+                style={{   
+                  display:"flex",  
+                  alignItems:"center", 
+                  justifyContent:"space-between",
+                  flexGrow:1, 
+                  padding:"5px"  
+                }}  
+            >
+                    <div style={{padding:"2px"}}>
+                        <div    
+                            onClick={() => this.setState({...initialState}, () => this.close())} 
+                            style={{       
+                                width:"90px",
+                                display:"flex",
+                                alignItems:"center",
+                                cursor:"pointer", 
+                                justifyContent:"center",
+                                borderRadius:"5px",
+                                height:"25px",   
+                                backgroundColor:"rgba(179,182,189,1)"  
+                            }}  
+                        > 
+                            <div style={{color:"white", fontSize:"16px"}}>      
+                                Cancel 
+                            </div>  
+                        </div>   
+                    </div> 
+                    <div style={{padding:"2px"}}>
+                        <div     
+                            onClick={(e) => this.allInputsAreValid() ? this.onDone(e) : null} 
+                            style={{     
+                                width:"90px",
+                                display:"flex",
+                                alignItems:"center",
+                                cursor:"pointer",
+                                justifyContent:"center",
+                                borderRadius:"5px",
+                                height:"25px",  
+                                backgroundColor:"rgba(81, 144, 247, 1)"  
+                            }}
+                        >  
+                            <div style={{color:"white", fontSize:"16px"}}>  
+                                Repeat
+                            </div>   
+                        </div> 
+                    </div>
                 </div> 
-                <div>
-                    <FlatButton 
-                        onClick={this.onDone} 
-                        label="Done"  
-                        disabled={not(this.allInputsAreValid())}
-                        style={{color:'rgb(10, 100, 240)'}}
-                        primary={true}
-                    /> 
-                </div>
-            </div>   
+ 
             </div>   
         </div>
         </div>

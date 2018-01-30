@@ -237,6 +237,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"inbox"});
+                    this.props.dispatch({type:"searchQuery", load:""});
                     this.props.dispatch({type:"selectedTag", load:"All"});
                 }}
                 dragged={this.props.dragged}
@@ -253,6 +254,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"today"});
+                    this.props.dispatch({type:"searchQuery", load:""});
                     this.props.dispatch({type:"selectedTag", load:"All"});
                 }} 
                 dragged={this.props.dragged}
@@ -268,6 +270,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"next"});
+                    this.props.dispatch({type:"searchQuery", load:""});
                     this.props.dispatch({type:"selectedTag", load:"All"});
                 }} 
                 dragged={this.props.dragged}
@@ -282,6 +285,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"upcoming"});
+                    this.props.dispatch({type:"searchQuery", load:""});
                     this.props.dispatch({type:"selectedTag", load:"All"}); 
                 }}
                 dragged={this.props.dragged}
@@ -296,6 +300,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             <LeftPanelMenuItem
                 onClick={() => {
                     this.props.dispatch({type:"selectedCategory", load:"someday"});
+                    this.props.dispatch({type:"searchQuery", load:""});
                     this.props.dispatch({type:"selectedTag", load:"All"}); 
                 }} 
                 dragged={this.props.dragged}
@@ -314,6 +319,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 <LeftPanelMenuItem 
                     onClick={() => {
                         this.props.dispatch({type:"selectedCategory", load:"logbook"});
+                        this.props.dispatch({type:"searchQuery", load:""});
                         this.props.dispatch({type:"selectedTag", load:"All"});
                     }}   
                     dragged={this.props.dragged}
@@ -331,6 +337,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 <LeftPanelMenuItem
                     onClick={() => {
                         this.props.dispatch({type:"selectedCategory", load:"trash"});
+                        this.props.dispatch({type:"searchQuery", load:""});
                         this.props.dispatch({type:"selectedTag", load:"All"});
                     }}  
                     dragged={this.props.dragged}

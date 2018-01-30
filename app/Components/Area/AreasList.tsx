@@ -137,11 +137,13 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     selectArea = (a:Area) => {
         this.props.dispatch({type:"selectedAreaId",load:a._id}); 
+        this.props.dispatch({type:"searchQuery", load:""});
     }
  
 
     selectProject = (p:Project) => {
         this.props.dispatch({type:"selectedProjectId",load:p._id});
+        this.props.dispatch({type:"searchQuery", load:""});
     }
 
 
