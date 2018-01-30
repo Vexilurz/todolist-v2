@@ -52,15 +52,17 @@ import {
 import { isDev, Store } from './app';
 import { setRepeatedTodos, repeat } from './Components/RepeatPopup';
 import { ipcRenderer, remote } from 'electron';
-
+let Promise = require('bluebird');
  
-export let measureTime = (f:() => void) => {
 
+
+export let measureTime = (f:() => void) => {
     let start : number = performance.now();
     f(); 
     let finish : number = performance.now();
-    return (finish - start); 
+    return finish - start; 
 }
+
 
 
 export let selectNeverTodos = (todos:Todo[]) : Todo[] => {
@@ -73,7 +75,8 @@ export let selectNeverTodos = (todos:Todo[]) : Todo[] => {
                        )
     );
 } 
-  
+
+
 
 export let updateNeverTodos = (dispatch:Function,never:Todo[]) => {
 
@@ -90,7 +93,7 @@ export let updateNeverTodos = (dispatch:Function,never:Todo[]) => {
     }
 }
  
- 
+
 
 export let getRangeYearUntilDate = (start:Date,endsDate:Date,repeatEveryN:number) : Date[] => {
     //what if leap year? TODO 
@@ -121,7 +124,6 @@ export let getRangeYearRepetitions = (start:Date,endsAfter:number,repeatEveryN:n
 
     return dates;
 } 
-
 
 
 export let getRangeMonthUntilDate = (start:Date, ends:Date, repeatEveryN:number) : Date[] => { 
@@ -245,6 +247,7 @@ export let daysInMonth = (date:Date) => new Date(date.getFullYear(), date.getMon
 
 export let dateToYearMonthDay = (date:Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
 
+
 export let oneDayAhead = () : Date => { 
 
     Date.prototype["addDays"] = function(days) {
@@ -256,6 +259,7 @@ export let oneDayAhead = () : Date => {
     return new Date()["addDays"](1);
 } 
 
+
 export let oneDayBehind = () : Date => { 
 
     Date.prototype["addDays"] = function(days) {
@@ -266,6 +270,7 @@ export let oneDayBehind = () : Date => {
       
     return new Date()["addDays"](-1);
 } 
+
 
 export let dateToDateInputValue = (date:Date) : string => {
     let month = date.getUTCMonth() + 1; 
@@ -279,7 +284,6 @@ export let dateToDateInputValue = (date:Date) : string => {
 }
 
 
-
 export function arrayMove(arr, previousIndex, newIndex) {
     const array = arr.slice(0);
     if (newIndex >= array.length) {
@@ -290,7 +294,7 @@ export function arrayMove(arr, previousIndex, newIndex) {
     }
     array.splice(newIndex, 0, array.splice(previousIndex, 1)[0]);
     return array;
-  } 
+} 
 
 
 export type Item = Area | Project | Todo; 
@@ -344,13 +348,10 @@ export let isProject = (project:Project) : boolean => {
  
 export let isArrayOfProjects = (array:any[]) : boolean => {
    return all((project:Project) => isProject(project), array );
-}; 
+} 
  
 export let isArea = (area:Area) : boolean => {
-    if(isNil(area)){
-        return false; 
-    }
-
+    if(isNil(area)){ return false }
     return area.type==="area"; 
 }
      
@@ -373,7 +374,6 @@ export let isArrayOfStrings = (array:any[]) : boolean => {
 }
  
 export let assert = (condition:boolean , error:string) : void => {
-
     if(not(condition) && isDev()){ 
        throw new Error(error);
     }  
@@ -382,7 +382,6 @@ export let assert = (condition:boolean , error:string) : void => {
 
 export let keyFromDate = (date:Date) : string => { 
     
-
     assert(isDate(date), `keyFromDate. input is not a date. ${JSON.stringify(date)}`);
     
     let year = date.getFullYear();
@@ -1952,43 +1951,33 @@ export let isDeadlineTodayOrPast = (deadline:Date) : boolean => isNil(deadline) 
 export let isTodayOrPast = (date:Date) : boolean => 
                             isNil(date) ?    
                             false :  
-                            daysRemaining(date)<=0; 
+                            daysRemaining(date)<=0;  
 
-
-export let calculateAmount = (areas:Area[], projects:Project[], todos:Todo[]) : ItemsAmount => {
  
-    let todayFilters = [   
-        (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
-        byNotCompleted,  
-        byNotDeleted   
-    ];    
+export let areaToKeywords = (a:Area) : string[] => {
+    let description : string[] = a.description.split(",").filter( s => s.length>0 );
+    let name : string[] = a.name.split(",").filter( s => s.length>0 );
+    return [].concat.apply([], [ name, description ]);
+}  
 
-    let hotFilters = [
-        (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
-        byNotCompleted,  
-        byNotDeleted  
-    ];
-    
-    let inboxFilters = [  
-        (todo:Todo) => not(byAttachedToArea(areas)(todo)), 
-        (todo:Todo) => not(byAttachedToProject(projects)(todo)), 
-        (todo:Todo) => isNil(todo.attachedDate), 
-        (todo:Todo) => isNil(todo.deadline), 
-        byCategory("inbox"),  
-        byNotCompleted,    
-        byNotDeleted 
-    ]; 
- 
-    let trashFilters = [byDeleted];
 
-    let logbookFilters = [byCompleted, byNotDeleted]; 
-        
-    return {       
-       inbox:todos.filter((t:Todo) => allPass(inboxFilters)(t)).length,
-       today:todos.filter((t:Todo) => allPass(todayFilters)(t)).length,
-       hot:todos.filter((t:Todo) => allPass(hotFilters)(t)).length,
-       trash:todos.filter((t:Todo) => allPass(trashFilters)(t)).length, 
-       logbook:todos.filter((t:Todo) => allPass(logbookFilters)(t)).length
-    }   
-} 
-  
+export let projectToKeywords = (p:Project) : string[] => {
+    let headings : string[][] = p
+                                .layout           
+                                .filter((i) => not(isString(i)))
+                                .map((h:Heading) => h.title.split(" ").filter( s => s.length>0 )); 
+    let description : string[] = p.description.split(",").filter( s => s.length>0 );
+    let name : string[] = p.name.split(",").filter( s => s.length>0 );
+    let layout : string [] = [].concat.apply([], headings);
+    return [].concat.apply([], [ name, description, layout ]);
+}
+
+
+export let todoToKeywords = (t:Todo) : string[] => {
+    let category = t.category;
+    let title : string [] = t.title.split(",").filter( s => s.length>0 );
+    let note : string [] = t.note.split(",").filter( s => s.length>0 );
+    let tags : string[] = t.attachedTags;  
+    let checklist : string[] = t.checklist.map( c => c.text ).filter( s => s.length>0 );
+    return [].concat.apply([], [ title, note, tags, checklist ]);
+}

@@ -45,7 +45,8 @@ export let isDev = () => { return true }
  
 
 
-export interface Store{   
+export interface Store{ 
+    searchQuery : string,  
     openChangeGroupPopup : boolean,
     selectedSettingsSection : section, 
     openSettings : boolean,
@@ -87,9 +88,10 @@ export interface Store{
 } 
  
     
- 
+  
 export let defaultStoreItems : Store = {
-    openChangeGroupPopup : false, 
+    searchQuery : null,
+    openChangeGroupPopup : false,  
     selectedSettingsSection : "General",
     openSettings : false,   
     openRepeatPopup : null, 

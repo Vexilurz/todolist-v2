@@ -29,7 +29,6 @@ import { Next } from './Categories/Next';
 import { Upcoming } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
-import { QuickSearch } from './Search';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { generateRandomDatabase } from '../generateRandomObjects';
 import { isEmpty, last, isNil, contains, all, not, assoc, flatten, toPairs, map, compose, allPass, cond } from 'ramda';
@@ -40,6 +39,7 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { RightClickMenu } from './RightClickMenu';
 import { RepeatPopup } from './RepeatPopup';
+import { Search } from './Search';
 let ical = require('ical');    
 let Promise = require('bluebird'); 
 let fast = require('fast.js');  
@@ -49,7 +49,14 @@ export let filter = (array:any[],f:Function,caller:string) : any[] => {
     let result = fast.filter(array,f);
     let finish : number = performance.now();
 
-    console.log(`filter ${array.length}   items ${(finish - start)} ms   caller : ${caller}`); 
+    if(isDev()){
+        console.log(`
+            filter ${array.length}   
+            items ${(finish - start)} ms   
+            caller : ${caller}`
+        );  
+    }
+       
     return result;
 }
 
@@ -60,7 +67,7 @@ let byScheduled = (item : Todo) : boolean => {
 
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
-                       "deadline"
+                       "deadline" | "search"
  
                       
 
@@ -164,12 +171,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
         if(not(this.isMainWindow())){ return } 
 
         if(isDev()){
-
+    
             destroyEverything()   
             .then(() => {  
                 initDB();
 
-                let fakeData = generateRandomDatabase({todos:2150, projects:38, areas:15});      
+                let fakeData = generateRandomDatabase({todos:215, projects:38, areas:15});      
                     
                 let todos = fakeData.todos; 
                 let projects = fakeData.projects; 
@@ -467,18 +474,11 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 (selectedCategory:string) : boolean => 'project'===selectedCategory,  
                                 () => {
                                     let project = projects.find((p:Project) => selectedProjectId===p._id);
-                                    let byNotFuture = (t:Todo) => isNil(t.attachedDate) ? 
-                                                                    true : 
-                                                                    daysRemaining(t.attachedDate) <= 0;
                                     let ids = project.layout.filter(isString);
                                     let byContainedInLayout = (t:Todo) => contains(t._id)(ids);
-                            
                                     let projectFilters = [ 
                                         byContainedInLayout,
-                                        byNotDeleted, 
-                                        showCompleted ? null : byNotCompleted, 
-                                        showScheduled ? null : byNotFuture, 
-                                        showScheduled ? null : byNotSomeday 
+                                        byNotDeleted 
                                     ].filter( f => f );  
                                  
                                     return <ProjectComponent 
@@ -503,7 +503,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             ],
                             [ 
                                 (selectedCategory:string) : boolean => 'area'===selectedCategory,  
-                    
                                 () => {
                                     let area = areas.find((a) => selectedAreaId===a._id);
                                     let selectedProjects = projects.filter(
@@ -534,7 +533,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             [ 
                                 (selectedCategory:string) : boolean => 'search'===selectedCategory,  
                     
-                                () => null
+                                () => <Search {...{} as any}/>
                             ]
                         ])(selectedCategory) 
                     }  

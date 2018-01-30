@@ -47,22 +47,6 @@ let haveScheduledTodos = (todos:Todo[]) : boolean => {
 } 
 
 
-let getTodosForProject = (project:Project, showCompleted:boolean, showScheduled:boolean): Promise<Todo[]> => {
-        
-    return todos_db
-            .allDocs({ 
-                include_docs : true,  
-                conflicts : true,
-                descending : true,
-                limit : 1000,
-                keys : project.layout.filter(isString)
-            }) 
-            .then(queryToTodos) 
-            .then(map(convertTodoDates)) 
-            .catch((error) => console.log(error))
-}
- 
-
 interface ProjectComponentProps{ 
     project:Project, 
     todos:Todo[],
@@ -204,23 +188,44 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     moveHeading = (heading_id:string) => {}
     
-     
+      
     render(){   
         let { selectedTag, project, showCompleted, showScheduled, todos } = this.props;
 
         if(isNil(project)){ return null } 
 
-        let layout = project.layout.map( 
+        let byNotFuture = (t:Todo) => !isNil(t.attachedDate) ? daysRemaining(t.attachedDate)<=0 : true;
+        let projectFilters = [ 
+            showCompleted ? null : byNotCompleted, 
+            showScheduled ? null : byNotFuture, 
+            showScheduled ? null : byNotSomeday 
+        ].filter( f => f );
+
+        let layout = project.layout
+                     .map( 
                        (item:LayoutItem) => isString(item) ? 
                                             todos.find(todo => todo._id===item) : 
                                             item 
-                     ).filter( v => v ) as (Todo | Heading)[] 
-        
-        let toProjectHeader = layout.filter( isTodo ) as Todo[];
-        let toProjectBody = layout.filter( (i:Todo) => isTodo(i) ? byTags(selectedTag)(i) : true );
-        
-        let progress = getProgressStatus(toProjectHeader);
- 
+                     )
+                     .filter( v => v ) as (Todo | Heading)[] 
+
+        let toProjectHeader = layout.filter( 
+            (i:Todo) => isTodo(i) ? 
+                        allPass(projectFilters)(i) : 
+                        false 
+        ) as Todo[];
+         
+        let toProjectBody = layout.filter( 
+            (i:Todo) => isTodo(i) ? 
+                        allPass([
+                            byTags(selectedTag),
+                            ...projectFilters
+                        ])(i) : 
+                        true 
+        );
+      
+        let progress = getProgressStatus(project, todos);
+
         return <div>      
                     <div className="unselectable">     
                         <ProjectHeader 
@@ -264,14 +269,14 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         />  
                     </div>   
                     {  
-                        not(haveScheduledTodos(toProjectBody as Todo[])) ? null :
+                        not(haveScheduledTodos(toProjectBody as Todo[])) ? null:
                         <div 
                             className="noselection"
-                            style={{ 
+                            style={{   
                                 cursor:"default", display:"flex", 
                                 paddingTop:"20px", height:"auto", 
                                 width:"100%"
-                            }}
+                            }} 
                         >        
                             <div  
                                 className="unselectable"

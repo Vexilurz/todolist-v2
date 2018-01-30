@@ -34,9 +34,6 @@ import { DeadlineCalendar } from '../ThingsCalendar';
 import { isNil, compose, allPass, isEmpty } from 'ramda';
 import { Tags } from '../Tags';
 import { TagsPopup } from '../TodoInput/TodoTags';
-import { getProgressStatus } from './ProjectLink';
-
-
 let moment = require("moment");  
 
 

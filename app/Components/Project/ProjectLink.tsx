@@ -36,18 +36,18 @@ import Restore from 'material-ui/svg-icons/content/undo';
 import { isString } from 'util';
 import { contains, isNil, allPass } from 'ramda';
 import { isDev } from '../../app';
-import { Category } from '../MainContainer';
+import { Category, filter } from '../MainContainer';
 import Hide from 'material-ui/svg-icons/action/visibility-off';
 import One from 'material-ui/svg-icons/image/looks-one'; 
 
 
 
-
-
-export let getProgressStatus = (todos:Todo[]) : {done:number,left:number} => {
-
-    let done : number = todos.filter(byCompleted).length;
-    let left : number = todos.length - done; 
+export let getProgressStatus = (project:Project, todos:Todo[]) : {done:number,left:number} => {
+    let ids = project.layout.filter(isString);
+    let selected = filter( todos, (todo) => contains(todo._id)(ids), "getProgressStatus" );
+      
+    let done : number = selected.filter(byCompleted).length;
+    let left : number = selected.length - done; 
      
     assert(done>=0, `Done - negative value. getProgressStatus.`);
     assert(left>=0, `Left - negative value. getProgressStatus.`);
@@ -117,12 +117,12 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
     }
 
     render(){ 
-        let {dispatch,index,project,todos,selectedCategory,simple} = this.props;
-        let {done,left} = getProgressStatus(todos); //TODO 
+        let { dispatch,index,project,todos,selectedCategory,simple } = this.props;
+        let { done,left } = getProgressStatus(project, todos); 
 
         return <li  
             onClick={(e) => {
-                e.stopPropagation(); 
+                e.stopPropagation();  
                 if(project.deleted){ return }   
                 dispatch({type:"selectedCategory",load:"project"});
                 dispatch({type:"selectedProjectId",load:project._id});

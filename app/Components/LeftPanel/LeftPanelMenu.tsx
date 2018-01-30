@@ -23,7 +23,6 @@ import Search from 'material-ui/svg-icons/action/search';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
-import { QuickSearch } from '../Search';
 import { merge, isNil, not } from 'ramda';
 import { Category } from '../MainContainer';
 import { assert } from '../../utils';

@@ -113,6 +113,7 @@ interface AreasListProps{
     dispatch:Function,
     leftPanelWidth:number, 
     dragged:string, 
+    todos:Todo[], 
     selectedProjectId:string,
     selectedAreaId:string, 
     selectedCategory:Category, 
@@ -238,7 +239,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             index={index}
             dragged={this.props.dragged}  
             selectProject={this.selectProject}
-            todos={[]}   
+            todos={this.props.todos}   
             selectedProjectId={this.props.selectedProjectId}
             selectedCategory={this.props.selectedCategory}
         />
@@ -539,7 +540,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
     render(){
         let {project, selectedProjectId, selectedCategory, todos} = this.props;
         let selected = project._id===selectedProjectId && selectedCategory==="project";
-        let {done, left} = getProgressStatus(todos);
+        let {done, left} = getProgressStatus(project, todos);
 
         return <li  
             style={{WebkitUserSelect:"none",width:"100%"}}  

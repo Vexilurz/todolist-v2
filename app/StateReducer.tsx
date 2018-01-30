@@ -7,29 +7,14 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
        let newState = undefined;
    
        switch(action.type){ 
-        
-            case "inboxAmount":
-                newState = { 
+
+            case "searchQuery":
+                newState = {  
                     ...state,
-                    inboxAmount : action.load,
+                    searchQuery : action.load,
                 };  
                 break; 
- 
-
-            case "todayAmount":
-                newState = { 
-                    ...state,
-                    todayAmount : action.load,
-                };  
-                break; 
-
-
-            case "hotAmount":
-                newState = { 
-                    ...state,
-                    hotAmount : action.load,
-                };  
-                break; 
+                
 
             case "openChangeGroupPopup":
                 newState = { 
@@ -49,7 +34,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
 
             case "showCalendarEvents":
                 newState = { 
-                    ...state,
+                    ...state, 
                     showCalendarEvents : action.load,
                 };  
                 break;

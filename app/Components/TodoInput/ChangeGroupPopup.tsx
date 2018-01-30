@@ -56,7 +56,6 @@ import { TodoInput, Checkbox } from './TodoInput';
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import { SimplePopup } from '../SimplePopup';
 import PieChart from 'react-minimal-pie-chart';
-import { getProgressStatus } from '../Project/ProjectLink';
 import { AutoresizableText } from '../AutoresizableText';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';

@@ -7,7 +7,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
-    byDeleted, dateDiffInDays, byAttachedToProject, byAttachedToArea, isDate, daysRemaining, isToday, assert 
+    byDeleted, dateDiffInDays, byAttachedToProject, byAttachedToArea, isDate, daysRemaining, isToday, assert, isTodayOrPast, isDeadlineTodayOrPast, isString, isArrayOfStrings 
 } from "../../utils";  
 import { Provider, connect } from "react-redux";
 import Menu from 'material-ui/Menu';
@@ -41,12 +41,13 @@ import { AreasList } from './../Area/AreasList';
 import { ResizableHandle } from './../ResizableHandle';
 import { LeftPanelMenu } from './LeftPanelMenu';
 import { NewProjectAreaPopup } from './NewProjectAreaPopup';
-import { allPass, isNil, not } from 'ramda';
-import { QuickSearch } from '../Search';
+import { allPass, isNil, not, flatten, contains } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
+import { filter } from '../MainContainer';
+import { SearchInput } from '../Search';
 
 const ctrlKeyCode = 17;
 
@@ -59,9 +60,37 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
     anchor:HTMLElement;
     subscriptions:Subscription[];
     leftPanelRef:HTMLElement;  
-        
+    
+    todayFilters:((todo:Todo) => boolean)[];
+    hotFilters:((todo:Todo) => boolean)[];
+    inboxFilters:((todo:Todo) => boolean)[];
+
     constructor(props){  
         super(props);   
+
+        this.hotFilters = [
+            (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
+            byNotCompleted,  
+            byNotDeleted  
+        ];
+        
+        this.inboxFilters = [
+            (todo:Todo) => not(byAttachedToArea(this.props.areas)(todo)), 
+            (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
+            (todo:Todo) => isNil(todo.attachedDate), 
+            (todo:Todo) => isNil(todo.deadline), 
+            byCategory("inbox"), 
+            byNotCompleted,  
+            byNotDeleted 
+        ];  
+ 
+        this.todayFilters = [   
+            (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
+            byNotCompleted,  
+            byNotDeleted   
+        ];   
+
+
         this.subscriptions = [];    
         this.state = { collapsed:false };      
     }
@@ -134,21 +163,40 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
   
     render(){      
-        let {collapsed} = this.state;
+        let {collapsed} = this.state; 
         let {
-            areas,
-            projects,
-            todos,  
-            leftPanelWidth
+            areas, projects, todos, 
+            leftPanelWidth, dispatch, 
+            searchQuery
         } = this.props; 
-
-
         
-        return  <div style={{display: "flex",flexDirection: "row-reverse", height:window.innerHeight}}> 
-            {   
+        let inbox = filter(todos, allPass(this.inboxFilters), "inbox");
+        let today = filter(todos, allPass(this.todayFilters), "today");
+        let hot = filter(today, allPass(this.hotFilters), "hot"); 
+
+        let ids = flatten([
+            areas.map((a) => a.attachedTodosIds),
+            projects.map((p) => p.layout.filter(isString) as string[]) 
+        ]) as any;
+          
+        if(isDev()){
+           assert(isArrayOfStrings(ids),`ids is not an array of strings. AreasList.`);
+        }
+
+        let areasFilters = [
+            (todo:Todo) => contains(todo._id)(ids),
+            byNotDeleted 
+        ]; 
+
+        return  <div style={{
+            display:"flex",  
+            flexDirection:"row-reverse", 
+            height:window.innerHeight
+        }}> 
+            {    
                 not(collapsed) ? 
                 <ResizableHandle onDrag={this.onResizableHandleDrag}/> : 
-                null  
+                null   
             } 
             <div        
                 id="leftpanel"
@@ -161,32 +209,31 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                     height:`100%`,      
                     backgroundColor:"rgb(248, 248, 248)"  
                 }}      
-            >      
-                <QuickSearch {...{} as any}/>  
-
+            >   
+                <SearchInput dispatch={dispatch} searchQuery={searchQuery}/>
+                 
                 <LeftPanelMenu   
                     dragged={this.props.dragged}
                     dispatch={this.props.dispatch} 
                     selectedCategory={this.props.selectedCategory}
-                    inbox={inboxAmount} 
-                    today={todayAmount} 
-                    hot={hotAmount} 
+                    inbox={inbox.length} 
+                    today={today.length} 
+                    hot={hot.length} 
                     trash={0}
                     logbook={0} 
                 />   
-
                 <AreasList   
                     leftPanelWidth={this.props.leftPanelWidth}
                     leftPanelRef={this.leftPanelRef} 
                     dragged={this.props.dragged} 
+                    todos={filter(todos, allPass(areasFilters), "AreasList")} 
                     dispatch={this.props.dispatch}   
                     areas={this.props.areas}
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId}
                     selectedCategory={this.props.selectedCategory}
-                    projects={this.props.projects} 
+                    projects={this.props.projects}  
                 />
-
                 <LeftPanelFooter  
                     width={ leftPanelWidth }  
                     collapsed={ collapsed }

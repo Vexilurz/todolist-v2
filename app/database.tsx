@@ -5,13 +5,13 @@ import { ipcRenderer } from 'electron';
 import PouchDB from 'pouchdb-browser';  
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 import { Category } from './Components/MainContainer';
-import { randomArrayMember, randomInteger, randomDate, isString, isTodo, assert } from './utils';
-import { isNil, all } from 'ramda';
+import { randomArrayMember, randomInteger, randomDate, isString, isTodo, assert, convertTodoDates } from './utils';
+import { isNil, all, map } from 'ramda';
 import { isDev } from './app';
 import { RepeatPopupState } from './Components/RepeatPopup';
 let uniqid = require("uniqid"); 
 let path = require('path');
-  
+let Promise = require('bluebird');
  
 export let todos_db;
 export let projects_db; 
@@ -145,6 +145,7 @@ export interface QueryResult<T>{
 export let generateId = () => uniqid() + new Date().toJSON(); 
 
   
+
 
 function queryToObjects<T>(query:Query<T>){
     let docs = [];
@@ -732,6 +733,21 @@ export let removeTodos = (todos : Todo[]) : Promise<any[]> => {
   
 }     
 
+ 
+let getTodosForProject = (project:Project, showCompleted:boolean, showScheduled:boolean): Promise<Todo[]> => {
+        
+  return todos_db
+          .allDocs({ 
+              include_docs : true,  
+              conflicts : true,
+              descending : true,
+              limit : 1000,
+              keys : project.layout.filter(isString)
+          }) 
+          .then(queryToTodos) 
+          .then(map(convertTodoDates)) 
+          .catch((error) => console.log(error))
+}
 
 
 export let updateTodos = (todos : Todo[], onError : Function) : Promise<any[]> => {
