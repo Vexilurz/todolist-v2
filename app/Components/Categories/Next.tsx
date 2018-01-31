@@ -7,11 +7,14 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byTags, 
-    byNotCompleted, byNotDeleted, byCategory, getTagsFromItems, isString, attachEmptyTodo, generateEmptyTodo, isProject, assert, isArea, isTodo, isArrayOfStrings, isToday 
+    byNotCompleted, byNotDeleted, byCategory, getTagsFromItems, isString, attachEmptyTodo, generateEmptyTodo, isProject, assert, isArea, isTodo, isArrayOfStrings, isToday, groupObjects 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area, LayoutItem, generateId } from '../../database';
+import { 
+    queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, 
+    Project, Area, LayoutItem, generateId 
+} from '../../database';
 import Popover from 'material-ui/Popover';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
@@ -35,114 +38,7 @@ import { uniq, allPass, isEmpty, isNil, not, any, contains } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category } from '../MainContainer';
- 
 
-
-let collectProjects = (projects:Project[], projectsFilters, table:Table) : Table => {
-    for(let i=0;  i<projects.length; i++){
-        let project : Project = projects[i]; 
-
-        assert(
-          isProject(project), 
-          `project is not of type Project. ${JSON.stringify(project)}. groupObjects. next.`
-        );  
-
-        if( allPass([ ...projectsFilters ])(project) ){
-           table[project._id] = [];
-           table.projects.push(project);  
-        }
-    };
-
-    return table;
-}  
-
-
-let collectAreas = (areas:Area[], areasFilters, table:Table) : Table => {
-    for(let i=0; i<areas.length; i++){
-        let area : Area = areas[i]; 
-
-        assert(
-          isArea(area), 
-          `area is not of type Area. ${JSON.stringify(area)}. groupObjects. next.`
-        );   
-        
-        if( allPass([...areasFilters])(area) ){
-           table[area._id] = [];
-           table.areas.push(area);
-        }
-    };
-
-    return table;
-}
-
-
-
-
-export let groupObjects = (
-    projects:Project[],areas:Area[],todos:Todo[],
-    
-    projectsFilters,
-    areasFilters,
-    todosFilters,
-    
-    selectedTag:string
-) : Table => { 
-
-    let table : Table = { 
-        projects : [],
-        areas : [],
-        todos : [],
-        detached : []   
-    };  
-
-    table = collectProjects(projects,projectsFilters,table);
-    table = collectAreas(areas,areasFilters,table);
-
-    for(let i = 0; i<todos.length; i++){
-        let todo : Todo = todos[i]; 
-
-        assert(isTodo(todo),`todo is not of type Todo. ${JSON.stringify(todo)}. groupObjects.`);
-
-        if(!allPass([byTags(selectedTag), ...todosFilters])(todo))
-            continue;  
-          
-        table.todos.push(todo);  
-
-        let attached = false;
-
-        for(let j=0; j<table.projects.length; j++){
-            let project : Project = table.projects[j];
-            let idx : number = project.layout.findIndex( (i:LayoutItem) => i===todo._id );
-
-            if(idx!==-1){ 
-               table[project._id].push(todo);
-               attached = true; 
-               break; 
-            } 
-        } 
-
-        for(let k=0; k<table.areas.length; k++){
-            let area : Area = table.areas[k]; 
-            let idx : number = area.attachedTodosIds.indexOf(todo._id);
-
-            if(idx!==-1){
-               table[area._id].push(todo);
-               attached = true; 
-               break;
-            }
-        }   
-
-        if(!attached)
-           table.detached.push(todo); 
-    }
-
-    return table; 
-} 
-
-
-
-
-  
 
 interface NextProps{
     dispatch:Function, 
@@ -164,7 +60,7 @@ interface NextState{};
  
 type Item = Area | Project | Todo;
 
-interface Table{
+export interface Table{
     [key:string]:Item[],
     projects : Project[],
     areas : Area[],
@@ -184,25 +80,23 @@ export class Next extends Component<NextProps, NextState>{
 
     render(){
 
-        let { projects, areas, todos, selectedTag } = this.props;
+        let { projects, areas, todos, selectedTag, selectedCategory } = this.props;
 
         let table = groupObjects(  
-            projects, areas, todos,
+            projects, areas, todos, 
             this.projectsFilters,
             this.areasFilters,
             [],
             selectedTag
         );
  
-        let empty = table.projects.length===0 && table.areas.length===0 && table.todos.length===0;
-         
         let tags = getTagsFromItems(todos);
  
-        let emptyTodo = generateEmptyTodo(generateId(), "next", 0);  
+        let emptyTodo = generateEmptyTodo(generateId(), selectedCategory, 0);  
 
         return  <div style={{WebkitUserSelect:"none"}}>
                     <ContainerHeader 
-                        selectedCategory={"next"}  
+                        selectedCategory={selectedCategory}  
                         dispatch={this.props.dispatch}  
                         tags={tags} 
                         selectedTag={this.props.selectedTag}
@@ -210,18 +104,18 @@ export class Next extends Component<NextProps, NextState>{
                     />   
                     <FadeBackgroundIcon    
                         container={this.props.rootRef} 
-                        selectedCategory={"next"}   
-                        show={empty}  
-                    />   
+                        selectedCategory={selectedCategory}    
+                        show={isEmpty(table.todos)}  
+                    />    
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
                         <TodoInput   
                             id={emptyTodo._id}
                             key={"next-todo-creation-form"} 
                             dispatch={this.props.dispatch}  
-                            selectedCategory={"next"}  
+                            selectedCategory={selectedCategory}  
                             projects={this.props.projects} 
                             selectedProjectId={this.props.selectedProjectId}
-                            selectedAreaId={this.props.selectedAreaId} 
+                            selectedAreaId={this.props.selectedAreaId}  
                             todos={this.props.todos}
                             selectedTodoId={this.props.selectedTodoId}
                             tags={this.props.tags} 
@@ -248,182 +142,76 @@ export class Next extends Component<NextProps, NextState>{
                             /> 
                         }
                     </div>  
-                    <NextProjectsList 
-                        dispatch={this.props.dispatch}
-                        selectedTag={this.props.selectedTag}
-                        searched={this.props.searched}
-                        selectedTodoId={this.props.selectedTodoId} 
-                        rootRef={this.props.rootRef}
-                        selectedAreaId={this.props.selectedAreaId}
-                        selectedProjectId={this.props.selectedProjectId}
-                        todos={this.props.todos}
-                        areas={this.props.areas}
-                        selectedCategory={this.props.selectedCategory as Category}
-                        projects={this.props.projects}
-                        tags={this.props.tags}
-                        table={table}
-                    />  
-                    <NextAreasList   
-                        dispatch={this.props.dispatch}
-                        selectedTag={this.props.selectedTag} 
-                        searched={this.props.searched}
-                        selectedTodoId={this.props.selectedTodoId}
-                        rootRef={this.props.rootRef}
-                        todos={this.props.todos}
-                        selectedAreaId={this.props.selectedAreaId}
-                        selectedProjectId={this.props.selectedProjectId}
-                        areas={this.props.areas}
-                        projects={this.props.projects} 
-                        tags={this.props.tags}
-                        table={table}
-                    />  
+                    <div style={{paddingTop:"10px", paddingBottom:"10px", WebkitUserSelect:"none"}}> 
+                    {     
+                        table.projects.map( 
+                            (project:Project, index:number) : JSX.Element => {
+                                let category = this.props.selectedCategory;
+                                let todos = table[project._id] as Todo[];
+                                let hide = isNil(project.hide) ? false : contains(category)(project.hide); 
+                                      
+                                return (isEmpty(todos) || hide) ? null : 
+                                <div key={`project-link-${project._id}`}>  
+                                    <ProjectLink {...{project,showMenu:true} as any}/> 
+                                    <ExpandableTodosList
+                                        dispatch={this.props.dispatch}   
+                                        selectedTag={this.props.selectedTag} 
+                                        searched={this.props.searched}
+                                        selectedAreaId={this.props.selectedAreaId}
+                                        selectedProjectId={this.props.selectedProjectId}
+                                        selectedTodoId={this.props.selectedTodoId} 
+                                        rootRef={this.props.rootRef}
+                                        todos={todos} 
+                                        tags={this.props.tags}
+                                        areas={this.props.areas}
+                                        projects={this.props.projects}
+                                        project={project}
+                                    />
+                                </div>
+                            } 
+                        ) 
+                    } 
+                    </div>
+                    <div style={{paddingTop:"10px", paddingBottom:"10px", WebkitUserSelect:"none"}}> 
+                        {  
+                            table.areas.map(
+                                (a:Area, index:number) : JSX.Element => { 
+                                    let todos = table[a._id] as Todo[];
+
+                                    return isEmpty(todos) ? null :
+                                    <div key={`area${index}`}>
+                                        <div>    
+                                        {  
+                                            getAreaLink(
+                                                a,  
+                                                this.props.todos, 
+                                                this.props.projects, 
+                                                index, 
+                                                this.props.dispatch
+                                            )        
+                                        }  
+                                        </div>  
+                                        <ExpandableTodosList
+                                            dispatch={this.props.dispatch}   
+                                            searched={this.props.searched}
+                                            selectedTag={this.props.selectedTag}  
+                                            rootRef={this.props.rootRef}
+                                            selectedAreaId={this.props.selectedAreaId}
+                                            selectedProjectId={this.props.selectedProjectId}
+                                            selectedTodoId={this.props.selectedTodoId} 
+                                            todos={todos} 
+                                            tags={this.props.tags} 
+                                            areas={this.props.areas}
+                                            projects={this.props.projects}
+                                        />
+                                    </div>
+                                }
+                            )  
+                        } 
+                    </div>  
                 </div> 
     }
 }  
-
-
- 
-interface NextProjectsListProps{
-    dispatch:Function,
-    selectedTag:string, 
-    searched:boolean, 
-    selectedTodoId:string, 
-    todos:Todo[], 
-    rootRef:HTMLElement,
-    tags:string[],
-    selectedCategory:Category,
-    selectedAreaId:string,
-    selectedProjectId:string, 
-    table:Table,
-    areas:Area[],
-    projects:Project[] 
-} 
- 
-interface NextProjectsListState{}
-
-export class NextProjectsList extends Component<NextProjectsListProps, NextProjectsListState>{
-
-    constructor(props){
-        super(props); 
-    }  
-
-    render(){ 
- 
-        return  <div style={{ 
-            paddingTop:"10px", 
-            paddingBottom:"10px",
-            WebkitUserSelect:"none" 
-        }}> 
-            {     
-                this.props.table.projects.map( 
-                    (p:Project, index:number) : JSX.Element => {
-                        let category = this.props.selectedCategory;
-                        let todos = this.props.table[p._id] as Todo[];
-                        let hide = isNil(p.hide) ? false : contains(category)(p.hide); 
-                         
-                        return isEmpty(todos) || hide ? null :
-                        <div key={`project-${index}`}>
-                            <ProjectLink 
-                                dispatch={this.props.dispatch}
-                                index={index}
-                                selectedCategory={this.props.selectedCategory as Category}
-                                project={p}
-                                todos={this.props.todos}
-                            />
-                            <ExpandableTodosList
-                                dispatch={this.props.dispatch}   
-                                selectedTag={this.props.selectedTag} 
-                                searched={this.props.searched}
-                                selectedAreaId={this.props.selectedAreaId}
-                                selectedProjectId={this.props.selectedProjectId}
-                                selectedTodoId={this.props.selectedTodoId} 
-                                rootRef={this.props.rootRef}
-                                todos={todos} 
-                                tags={this.props.tags}
-                                areas={this.props.areas}
-                                projects={this.props.projects}
-                                project={p}
-                            />
-                        </div>
-                    }
-                ) 
-            } 
-        </div>
-    }
-}
-
-
-
-
-interface NextAreasListProps{
-    dispatch:Function,
-    selectedTag:string, 
-    searched:boolean, 
-    selectedTodoId:string, 
-    rootRef:HTMLElement,
-    selectedAreaId:string,
-    selectedProjectId:string, 
-    tags:string[],
-    todos:Todo[],
-    projects:Project[],
-    areas:Area[], 
-    table:Table
-}
-
-interface NextAreasListState{}
-
-class NextAreasList extends Component<NextAreasListProps,NextAreasListState>{
-
-    constructor(props){
-        super(props);
-    } 
-    
-    render(){ 
-        return <div style={{paddingTop:"10px", paddingBottom:"10px", WebkitUserSelect:"none"}}> 
-            {  
-                this.props
-                .table
-                .areas
-                .map(
-                    (a:Area, index:number) : JSX.Element => { 
-                        let todos = this.props.table[a._id] as Todo[];
-
-                        return isEmpty(todos) ? null :
-                        <div key={`area${index}`}>
-                            <div>    
-                            {  
-                                getAreaLink(
-                                    a,  
-                                    this.props.todos, 
-                                    this.props.projects, 
-                                    index, 
-                                    this.props.dispatch
-                                )        
-                            }  
-                            </div>  
-                            <ExpandableTodosList
-                                dispatch={this.props.dispatch}   
-                                searched={this.props.searched}
-                                selectedTag={this.props.selectedTag}  
-                                rootRef={this.props.rootRef}
-                                selectedAreaId={this.props.selectedAreaId}
-                                selectedProjectId={this.props.selectedProjectId}
-                                selectedTodoId={this.props.selectedTodoId} 
-                                todos={todos} 
-                                tags={this.props.tags} 
-                                areas={this.props.areas}
-                                projects={this.props.projects}
-                            />
-                        </div>
-                    }
-                )  
-            } 
-        </div>  
-    }
-}
- 
- 
-
 
 
 
@@ -447,16 +235,12 @@ interface ExpandableTodosListState{
     expanded : boolean 
 }   
 
-  
  
 export class ExpandableTodosList extends Component<ExpandableTodosListProps,ExpandableTodosListState>{
 
     constructor(props){
         super(props);
-
-        this.state = {
-            expanded : false,
-        }
+        this.state={expanded:false};
     } 
 
     onToggle = () => this.setState({expanded:!this.state.expanded})

@@ -60,14 +60,13 @@ export class Trash extends Component<TrashProps,TrashState>{
             }}
         >   
             <div style={{width:"100%"}}>
-                <ProjectLink
+                {/*<ProjectLink
                     dispatch={this.props.dispatch}
                     index={index}
                     selectedCategory={this.props.selectedCategory as Category}
                     project={value}
                     todos={this.props.todos}
-                    simple={true}
-                />   
+                />*/}   
             </div>   
         </div>    
     }

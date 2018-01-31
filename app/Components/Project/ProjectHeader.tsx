@@ -227,7 +227,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         />     
                     </div>
                 </div> 
-                <div className="unselectable">
+                <div style={{overflowX:"hidden"}} className="unselectable">
                     <AutosizeInput
                         ref={e => {this.inputRef=e;}}
                         type="text"

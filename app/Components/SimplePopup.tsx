@@ -74,8 +74,9 @@ export class SimplePopup extends Component<SimplePopupProps,SimplePopupState>{
         <div style={{ 
             width:"100%",
             position:"fixed",
-            left:0,  
-            top:0,
+            zIndex:4000000,
+            left:0,   
+            top:0, 
             justifyContent:"center",
             alignItems:"center",
             display:"flex", 

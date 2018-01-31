@@ -24,7 +24,7 @@ import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem } from '../../database';
 import { uppercase, debounce } from '../../utils';
-import { isEmpty } from 'ramda';
+import { isEmpty, isNil } from 'ramda';
 
  
 
@@ -54,17 +54,17 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
         super(props);
         this.state = { 
             open:false
-        }
+        }   
     } 
 
+    focus = () => isNil(this.inputRef) ? null : this.inputRef.focus() 
+    
     componentDidMount(){
-        if(isEmpty(this.props.heading.title) && this.inputRef){
-           this.inputRef.focus();      
-        } 
+        if(isEmpty(this.props.heading.title)){ this.focus() } 
     }
 
     render(){
-        return <div>
+        return <div onClick={this.focus}>
         <div   
             className="projectHeading" 
             style={{ 

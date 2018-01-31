@@ -152,15 +152,14 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                           style={{position:"relative", marginTop:"5px", marginBottom:"5px"}}
                         > 
                             {
-                                value.type==="project" ?
-                                <ProjectLink 
+                                value.type==="project" ? null
+                                /*<ProjectLink 
                                     dispatch={this.props.dispatch}
                                     index={index}
                                     selectedCategory={this.props.selectedCategory as Category}
                                     project={value as Project}
                                     todos={this.props.todos}
-                                    simple={true} 
-                                /> 
+                                />*/ 
                                 :
                                 value.type==="todo" ?
                                 <TodoInput     

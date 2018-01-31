@@ -26,7 +26,7 @@ import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
 import { 
     uppercase, debounce, stringToLength, daysRemaining, 
-    daysLeftMark, chooseIcon, dateDiffInDays, assert, isProject, isArrayOfTodos, byNotDeleted, byCompleted  
+    daysLeftMark, chooseIcon, dateDiffInDays, assert, isProject, isArrayOfTodos, byNotDeleted, byCompleted, attachDispatchToProps  
 } from '../../utils'; 
 import { TodoInput, Checkbox, DueDate } from '../TodoInput/TodoInput';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
@@ -34,17 +34,20 @@ import Checked from 'material-ui/svg-icons/navigation/check';
 import PieChart from 'react-minimal-pie-chart';
 import Restore from 'material-ui/svg-icons/content/undo';
 import { isString } from 'util';
-import { contains, isNil, allPass } from 'ramda';
-import { isDev } from '../../app';
+import { contains, isNil, allPass, not, isEmpty } from 'ramda';
+import { isDev, Store } from '../../app';
 import { Category, filter } from '../MainContainer';
 import Hide from 'material-ui/svg-icons/action/visibility-off';
-import One from 'material-ui/svg-icons/image/looks-one'; 
-
+import Count from 'material-ui/svg-icons/editor/format-list-numbered';
 
 
 export let getProgressStatus = (project:Project, todos:Todo[]) : {done:number,left:number} => {
     let ids = project.layout.filter(isString);
-    let selected = filter( todos, (todo) => contains(todo._id)(ids), "getProgressStatus" );
+    let selected = filter( 
+        todos, 
+        allPass([ (todo) => contains(todo._id)(ids), byNotDeleted ]), 
+        "getProgressStatus" 
+    ); 
       
     let done : number = selected.filter(byCompleted).length;
     let left : number = selected.length - done; 
@@ -55,82 +58,83 @@ export let getProgressStatus = (project:Project, todos:Todo[]) : {done:number,le
     return {done,left}; 
 }  
 
-interface ProjectLinkProps{
-    dispatch:Function,
-    index:number,
-    selectedCategory:Category,
+
+interface ProjectLinkProps extends Store{
     project:Project,
-    todos:Todo[],
-    simple?:boolean 
+    showMenu:boolean
 }
+ 
 
 interface ProjectLinkState{
-    open:boolean 
-}
+    openMenu:boolean 
+}   
 
+
+@connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
 export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
     actionsAnchor:HTMLElement;
 
-    constructor(props){
+    constructor(props){ 
         super(props); 
-        this.state={open:false};
+        this.state={openMenu:false};
     }
-     
+    
+
     restoreProject = (p:Project) : void => { 
         let {dispatch, todos} = this.props;
-
         let relatedTodosIds : string[] = p.layout.filter(isString);
+        let selectedTodos : Todo[] = filter(todos, (t:Todo) : boolean => contains(t._id)(relatedTodosIds), "restoreProject");  
 
-        let selectedTodos : Todo[] = todos.filter( (t:Todo) : boolean => contains(t._id)(relatedTodosIds) );  
-
-        dispatch({
-            type:"updateTodos", 
-            load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))
-        });
-
-        dispatch({
-            type:"updateProject", 
-            load:{...p,deleted:undefined}
-        });
+        dispatch({type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))})
+        dispatch({type:"updateProject", load:{...p,deleted:undefined}})
     }
 
+
     onHideFrom = () => {
-        let {dispatch,index,project,todos,selectedCategory,simple} = this.props;
+        let {dispatch,project,todos,selectedCategory} = this.props;
          
         let hide = isNil(project.hide) ? [selectedCategory] : 
                    contains(selectedCategory)(project.hide) ? project.hide :
                    [...project.hide,selectedCategory]; 
  
-        dispatch({type:"updateProject", load:{...project,hide}});
-        this.setState({open:false}); 
+        dispatch({type:"updateProject", load:{...project,hide}})
+        this.setState({openMenu:false}) 
     }  
 
-    onShowOnlyOne = () => {
-        let {dispatch,index,project,todos,selectedCategory,simple} = this.props;
-        
-        let expand =  isNil(project.expand) ? 1 : 
-                      project.expand===3 ? 1 :
-                      3 
 
-        dispatch({type:"updateProject", load:{...project,expand}});
-        this.setState({open:false});  
+    onShowOnlyOne = () => {
+        let {dispatch,project,todos,selectedCategory} = this.props;
+        
+        let expand = isNil(project.expand) ? 1 : 
+                     project.expand===3 ? 1 :
+                     3; 
+
+        dispatch({type:"updateProject", load:{...project,expand}})
+        this.setState({openMenu:false}) 
     }
 
+
+    openProject =  (e) => {
+        let {dispatch,project,todos,selectedCategory} = this.props;
+        e.stopPropagation();  
+
+        if(not(isNil(project.deleted))){ return }
+        if(not(isNil(project.completed))){ return } 
+            
+        dispatch({type:"selectedCategory", load:"project"});
+        dispatch({type:"selectedProjectId", load:project._id});
+    }
+
+    
     render(){ 
-        let { dispatch,index,project,todos,selectedCategory,simple } = this.props;
+        let { dispatch,project,todos,selectedCategory,showMenu } = this.props;
         let { done,left } = getProgressStatus(project, todos); 
 
         return <li  
-            onClick={(e) => {
-                e.stopPropagation();  
-                if(project.deleted){ return }   
-                dispatch({type:"selectedCategory",load:"project"});
-                dispatch({type:"selectedProjectId",load:project._id});
-            }}    
+            onClick={this.openProject}    
             style={{width:"100%", overflow:"hidden"}}   
-            key={`key-${project._id}`}  
-            className={simple ? "leftpanelmenuitem" : "listHeading"}
-        >     
+            className={"listHeading"}
+        >      
         <div   
             id = {project._id}        
             style={{    
@@ -143,212 +147,393 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                 alignItems:"center" 
             }}
         >     
-                { 
-                    !project.deleted ? null : 
-                    <div       
-                        onClick={(e) => this.restoreProject(project)}  
-                        style={{ 
-                            display:"flex", 
-                            cursor:"pointer",
-                            alignItems:"center",
-                            height:"14px",
-                            paddingLeft:"20px",
-                            paddingRight:"5px"  
-                        }} 
-                    >  
-                        <Restore style={{width:"20px", height:"20px"}}/> 
-                    </div>  
-                } 
-
-                {
-                    isNil(project.completed) ? 
-                    <div style={{    
-                        marginLeft:"18px",
+                <div style={{    
+                    width:"18px",
+                    height:"18px",
+                    position:"relative",
+                    borderRadius:"100px",
+                    display:"flex",
+                    justifyContent:"center",
+                    alignItems:"center",
+                    border:"1px solid rgb(108, 135, 222)",
+                    boxSizing:"border-box" 
+                }}> 
+                    <div style={{
                         width:"18px",
                         height:"18px",
-                        position: "relative",
-                        borderRadius: "100px",
-                        display: "flex",
-                        justifyContent: "center",
-                        cursor:"default",
-                        alignItems: "center",
-                        border: "1px solid rgb(108, 135, 222)",
-                        boxSizing: "border-box" 
-                    }}> 
-                        <div style={{
-                            width: "18px",
-                            height: "18px",
-                            display: "flex",
-                            alignItems: "center", 
-                            cursor:"default",
-                            justifyContent: "center",
-                            position: "relative" 
-                        }}>  
-                            <PieChart 
-                                animate={false}    
-                                totalValue={done+left}
-                                data={[{     
-                                    value:done, 
-                                    key:1,  
-                                    color:"rgb(108, 135, 222)" 
-                                }]}    
-                                style={{  
-                                    color: "rgb(108, 135, 222)",
-                                    width: "12px",
-                                    height: "12px",
-                                    position: "absolute",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center"  
-                                }}
-                            />     
-                        </div>
-                    </div> 
-                    :
-                    <div style={{paddingLeft:"20px",display:"flex",alignItems:"center"}}>
-                        <Checkbox  
-                            checked={!isNil(project.completed)}
-                            onClick={(e) => {
-                                if(!isNil(project.completed)){
-                                    let type = "updateProject";
-                                    this.props.dispatch({
-                                        type:"updateProject", 
-                                        load:{...project,completed:undefined}
-                                    });
-                                }  
+                        display:"flex",
+                        alignItems:"center", 
+                        justifyContent:"center",
+                        position:"relative" 
+                    }}>  
+                        <PieChart 
+                            animate={false}    
+                            totalValue={done+left}
+                            data={[{
+                                value:done, 
+                                key:1,  
+                                color:"rgb(108, 135, 222)" 
+                            }]}    
+                            style={{  
+                                color:"rgb(108, 135, 222)",
+                                width:"12px",
+                                height:"12px",
+                                position:"absolute",
+                                display:"flex",
+                                alignItems:"center",
+                                justifyContent:"center"  
                             }}
-                        />
-                        <div>
-                          <DueDate
-                            date={null}
-                            selectedCategory={this.props.selectedCategory}
-                            category={this.props.selectedCategory}
-                            completed={project.completed}
-                          />
-                        </div>
-                    </div> 
-                } 
-
+                        />     
+                    </div>
+                </div> 
                 <div   
                     id = {project._id}   
                     style={{   
-                        fontFamily: "sans-serif",
-                        fontSize: "15px",    
-                        cursor: "pointer",
-                        paddingLeft: "5px", 
-                        WebkitUserSelect: "none",
-                        fontWeight: "bolder", 
-                        color: "rgba(0, 0, 0, 0.8)" 
-                    }}
+                        width:"80%", 
+                        overflowX:"hidden", 
+                        fontSize:"15px",    
+                        paddingLeft:"5px", 
+                        WebkitUserSelect:"none",
+                        fontWeight:"bolder", 
+                        color:"rgba(0, 0, 0, 0.8)" 
+                    }}  
                 >    
-                    { project.name.length==0 ? "New Project" : project.name } 
-                </div>
-
-                 <div  
-                    style={{
-                        width: "30px",  
-                        height: "30px",
-                        flexGrow: 1 as number,
-                        paddingLeft:"5px",
-                        paddingRight:"10px",
-                        display: "flex", 
-                        justifyContent: "flex-end",
-                        cursor: "pointer"
-                    }} 
-                > 
-                    {
-                        simple ? null :
+                    { isEmpty(project.name) ? "New Project" : project.name } 
+                </div> 
+                {
+                    not(showMenu) ? null :
+                    <div   
+                        style={{
+                            width:"30px",  
+                            height:"30px",
+                            flexGrow:1 as number,
+                            paddingLeft:"5px",
+                            paddingRight:"10px",
+                            display:"flex", 
+                            justifyContent:"flex-end",
+                            cursor:"pointer"
+                        }} 
+                    > 
                         <div 
                             ref={ (e) => { this.actionsAnchor=e; } }
                             onClick = {(e) => { 
                                 e.stopPropagation();
-                                this.setState({open:true}); 
+                                this.setState({openMenu:true}); 
                             }}  
-                        >
-                            <ThreeDots style={{  
-                                color:"dimgray",
-                                width:"30px", 
-                                height:"30px", 
-                                cursor: "pointer" 
-                            }}/>
+                        >   
+                            <ThreeDots style={{color:"dimgray",width:"30px",height:"30px",cursor:"pointer"}}/>
                         </div> 
-                    }  
-                </div>     
-        </div>
-        { 
-        simple ? null :               
-        <div>
-            <Popover 
-                className="nocolor"
-                style={{
-                    marginTop:"20px", 
-                    backgroundColor:"rgba(0,0,0,0)",
-                    background:"rgba(0,0,0,0)",
-                    borderRadius:"10px"
-                }}    
-                scrollableContainer={document.body}
-                useLayerForClickAway={false}   
-                open={this.state.open}
-                onRequestClose={() => this.setState({open:false})}
-                targetOrigin={{ vertical: 'top', horizontal: 'right'}}
-                anchorOrigin={{ vertical: 'center', horizontal: 'left'}}
-                anchorEl={this.actionsAnchor} 
-            >   
-                <div    
-                    className={"darkscroll"}
-                    style={{  
-                        backgroundColor: "rgb(39, 43, 53)",
-                        paddingRight: "10px",
-                        paddingLeft: "10px",
-                        borderRadius: "10px",
-                        paddingTop: "5px",
-                        paddingBottom: "5px",
-                        cursor:"pointer" 
-                    }} 
-                >    
-                    <div  
-                      onClick={this.onHideFrom} 
-                      className={"tagItem"} 
-                      style={{ 
-                         display:"flex",  
-                         height:"auto",
-                         alignItems:"center",
-                         padding:"5px"
-                      }} 
+                    </div>  
+                }
+            </div>      
+            <div>
+                <Popover 
+                    className="nocolor"
+                    style={{
+                        marginTop:"20px", 
+                        backgroundColor:"rgba(0,0,0,0)",
+                        background:"rgba(0,0,0,0)",
+                        borderRadius:"10px"
+                    }}    
+                    scrollableContainer={document.body}
+                    useLayerForClickAway={false}   
+                    open={this.state.openMenu}
+                    onRequestClose={() => this.setState({openMenu:false})}
+                    targetOrigin={{vertical:'top', horizontal:'right'}}
+                    anchorOrigin={{vertical:'center', horizontal:'left'}}
+                    anchorEl={this.actionsAnchor} 
+                >   
+                    <div    
+                        className={"darkscroll"}
+                        style={{  
+                            backgroundColor: "rgb(39, 43, 53)",
+                            paddingRight: "10px",
+                            paddingLeft: "10px",
+                            borderRadius: "10px",
+                            paddingTop: "5px",
+                            paddingBottom: "5px",
+                            cursor:"pointer" 
+                        }} 
                     >    
-                        <div style={{display:"flex", alignItems:"center", justifyContent:"center"}}>
-                           <Hide style={{color:"rgb(69, 95, 145)"}}/>
-                        </div>  
-                        <div style={{color:"gainsboro",marginLeft:"5px",marginRight:"5px"}}>
-                            Hide from {uppercase(selectedCategory)}
-                        </div>        
+                        <div  
+                            onClick={this.onHideFrom} 
+                            className={"tagItem"} 
+                            style={{ 
+                                display:"flex",  
+                                height:"auto",
+                                alignItems:"center",
+                                padding:"5px"
+                            }} 
+                        >    
+                            <div style={{display:"flex", alignItems:"center", justifyContent:"center"}}>
+                               <Hide style={{color:"rgb(69, 95, 145)"}}/>
+                            </div>  
+                            <div style={{color:"gainsboro",marginLeft:"5px",marginRight:"5px"}}>
+                                Hide from {uppercase(selectedCategory)}
+                            </div>        
+                        </div> 
+                    
+                        <div   
+                            onClick={this.onShowOnlyOne} 
+                            className={"tagItem"} 
+                            style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}} 
+                        >  
+                            <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
+                                <Count style={{color:"rgb(69, 95, 145)"}}/> 
+                            </div>    
+                            <div style={{color:"gainsboro",marginLeft:"5px",marginRight:"5px"}}>
+                                Show {  
+                                    isNil(project.expand) ? 'one' : 
+                                    project.expand===3 ? 'one' :
+                                    'three'  
+                                } todo
+                            </div>       
+                        </div>
                     </div> 
-                 
-                    <div   
-                      onClick={this.onShowOnlyOne} 
-                      className={"tagItem"} 
-                      style={{ 
-                         display:"flex", 
-                         height:"auto",
-                         alignItems:"center",
-                         padding:"5px" 
-                      }} 
-                    >  
-                        <div style={{display:"flex", alignItems:"center", justifyContent:"center"}}>
-                           <One style={{color:"rgb(69, 95, 145)"}}/>
-                        </div>  
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                            Show {  
-                                isNil(project.expand) ? 'one' : 
-                                project.expand===3 ? 'one' :
-                                'three'  
-                            } todo
-                        </div>       
-                    </div>
-                </div> 
-            </Popover> 
-        </div>
-        }  
-    </li>  
+                </Popover> 
+            </div>
+        </li>  
     }
 }
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+interface ProjectLinkProps extends Store{
+    project:Project,
+    showMenu:boolean
+}
+ 
+
+interface ProjectLinkState{
+    openMenu:boolean 
+}   
+
+
+@connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
+export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
+    actionsAnchor:HTMLElement;
+
+    constructor(props){ 
+        super(props); 
+        this.state={openMenu:false};
+    }
+    
+
+    restoreProject = (p:Project) : void => { 
+        let {dispatch, todos} = this.props;
+        let relatedTodosIds : string[] = p.layout.filter(isString);
+        let selectedTodos : Todo[] = filter(todos, (t:Todo) : boolean => contains(t._id)(relatedTodosIds), "restoreProject");  
+
+        dispatch({type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))})
+        dispatch({type:"updateProject", load:{...p,deleted:undefined}})
+    }
+
+
+    onHideFrom = () => {
+        let {dispatch,project,todos,selectedCategory} = this.props;
+         
+        let hide = isNil(project.hide) ? [selectedCategory] : 
+                   contains(selectedCategory)(project.hide) ? project.hide :
+                   [...project.hide,selectedCategory]; 
+ 
+        dispatch({type:"updateProject", load:{...project,hide}})
+        this.setState({openMenu:false}) 
+    }  
+
+
+    onShowOnlyOne = () => {
+        let {dispatch,project,todos,selectedCategory} = this.props;
+        
+        let expand = isNil(project.expand) ? 1 : 
+                     project.expand===3 ? 1 :
+                     3; 
+
+        dispatch({type:"updateProject", load:{...project,expand}})
+        this.setState({openMenu:false}) 
+    }
+
+
+    openProject =  (e) => {
+        let {dispatch,project,todos,selectedCategory} = this.props;
+        e.stopPropagation();  
+
+        if(not(isNil(project.deleted))){ return }
+        if(not(isNil(project.completed))){ return } 
+            
+        dispatch({type:"selectedCategory", load:"project"});
+        dispatch({type:"selectedProjectId", load:project._id});
+    }
+
+    
+    render(){ 
+        let { dispatch,project,todos,selectedCategory,showMenu } = this.props;
+        let { done,left } = getProgressStatus(project, todos); 
+
+        return <li  
+            onClick={this.openProject}    
+            style={{width:"100%", overflow:"hidden"}}   
+            className={"listHeading"}
+        >      
+        <div   
+            id = {project._id}        
+            style={{    
+                height:"30px",   
+                paddingLeft:"6px", 
+                paddingRight:"6px",  
+                cursor:"default",
+                width:"100%",
+                display:"flex",  
+                alignItems:"center" 
+            }}
+        >     
+                <div style={{    
+                    width:"18px",
+                    height:"18px",
+                    position:"relative",
+                    borderRadius:"100px",
+                    display:"flex",
+                    justifyContent:"center",
+                    alignItems:"center",
+                    border:"1px solid rgb(108, 135, 222)",
+                    boxSizing:"border-box" 
+                }}> 
+                    <div style={{
+                        width:"18px",
+                        height:"18px",
+                        display:"flex",
+                        alignItems:"center", 
+                        justifyContent:"center",
+                        position:"relative" 
+                    }}>  
+                        <PieChart 
+                            animate={false}    
+                            totalValue={done+left}
+                            data={[{
+                                value:done, 
+                                key:1,  
+                                color:"rgb(108, 135, 222)" 
+                            }]}    
+                            style={{  
+                                color:"rgb(108, 135, 222)",
+                                width:"12px",
+                                height:"12px",
+                                position:"absolute",
+                                display:"flex",
+                                alignItems:"center",
+                                justifyContent:"center"  
+                            }}
+                        />     
+                    </div>
+                </div> 
+                <div   
+                    id = {project._id}   
+                    style={{   
+                        width:"80%", 
+                        overflowX:"hidden", 
+                        fontSize:"15px",    
+                        paddingLeft:"5px", 
+                        WebkitUserSelect:"none",
+                        fontWeight:"bolder", 
+                        color:"rgba(0, 0, 0, 0.8)" 
+                    }}  
+                >    
+                    { isEmpty(project.name) ? "New Project" : project.name } 
+                </div> 
+                {
+                    not(showMenu) ? null :
+                    <div   
+                        style={{
+                            width:"30px",  
+                            height:"30px",
+                            flexGrow:1 as number,
+                            paddingLeft:"5px",
+                            paddingRight:"10px",
+                            display:"flex", 
+                            justifyContent:"flex-end",
+                            cursor:"pointer"
+                        }} 
+                    > 
+                        <div 
+                            ref={ (e) => { this.actionsAnchor=e; } }
+                            onClick = {(e) => { 
+                                e.stopPropagation();
+                                this.setState({openMenu:true}); 
+                            }}  
+                        >   
+                            <ThreeDots style={{color:"dimgray",width:"30px",height:"30px",cursor:"pointer"}}/>
+                        </div> 
+                    </div>  
+                }
+            </div>   
+        </li>  
+    }
+}
+
+
+/*
+{ 
+isNil(project.deleted) ? null : 
+<div       
+onClick={(e) => this.restoreProject(project)}  
+style={{ 
+display:"flex", 
+cursor:"pointer",
+alignItems:"center",
+height:"14px",
+paddingLeft:"20px",
+paddingRight:"5px"  
+}} 
+>  
+<Restore style={{width:"20px", height:"20px"}}/> 
+</div>  
+} 
+*/
+
+/*
+<div style={{paddingLeft:"20px",display:"flex",alignItems:"center"}}>
+<Checkbox  
+checked={!isNil(project.completed)}
+onClick={(e) => {
+if(!isNil(project.completed)){
+let type = "updateProject";
+this.props.dispatch({
+type:"updateProject", 
+load:{...project,completed:undefined}
+});
+}  
+}}
+/>
+<div>
+<DueDate
+date={null}
+selectedCategory={this.props.selectedCategory}
+category={this.props.selectedCategory}
+completed={project.completed}
+/>
+</div>
+</div> 
+*/

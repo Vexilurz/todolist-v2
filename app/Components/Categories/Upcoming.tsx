@@ -516,17 +516,10 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                     >    
                         { 
                             scheduledProjects.map(
-                                (p:Project, index:number) : JSX.Element => {
-                                    return <div key={p._id}>
-                                        <ProjectLink 
-                                            dispatch={dispatch}
-                                            index={index}
-                                            selectedCategory={this.props.selectedCategory as Category}
-                                            project={p}
-                                            simple={true}
-                                            todos={todos}
-                                        /> 
-                                    </div>
+                                (project:Project, index:number) : JSX.Element => {
+                                    return <div key={project._id}>
+                                        <ProjectLink {...{project,showMenu:false} as any}/>  
+                                    </div>  
                                 } 
                             )     
                         }      

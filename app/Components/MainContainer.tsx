@@ -82,58 +82,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
     subscriptions:Subscription[]; 
     events:number;  
 
-    inboxFilters:((todo:Todo) => boolean)[];
-    todayFilters:((todo:Todo) => boolean)[];
-    logbookFilters:((todo:Todo) => boolean)[];
-    somedayFilters:((todo:Todo) => boolean)[];
-    nextFilters:((todo:Todo) => boolean)[];
-    upcomingFilters:((todo:Todo) => boolean)[];
-
     constructor(props){ 
         super(props);  
-
-        this.inboxFilters = [
-            (todo:Todo) => not(byAttachedToArea(this.props.areas)(todo)), 
-            (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
-            (todo:Todo) => isNil(todo.attachedDate), 
-            (todo:Todo) => isNil(todo.deadline), 
-            byCategory("inbox"), 
-            byNotCompleted,  
-            byNotDeleted 
-        ];  
- 
-        this.todayFilters = [   
-            (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
-            byNotCompleted,  
-            byNotDeleted   
-        ];   
-
-        this.logbookFilters = [
-            byCompleted, 
-            byNotDeleted  
-        ]; 
-
-        this.somedayFilters = [
-            byCategory("someday"),
-            (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
-            byNotCompleted, 
-            byNotDeleted 
-        ];
-
-        this.nextFilters =  [
-            (t:Todo) => not(isToday(t.attachedDate)) && not(isToday(t.deadline)),
-            (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
-            (t:Todo) => t.category!=="inbox",  
-            byNotCompleted,  
-            byNotDeleted 
-        ]; 
-
-        this.upcomingFilters = [
-            (t:Todo) => t.category!=="inbox",  
-            byScheduled,
-            byNotCompleted,  
-            byNotDeleted   
-        ];
 
         this.limit = 10000;
         
@@ -201,22 +151,22 @@ export class MainContainer extends Component<Store,MainContainerState>{
         
         if(clone){ return }
          
-        getCalendars(this.onError)(true,this.limit)
+        getCalendars(this.onError)(true, this.limit) 
         .then((calendars:Calendar[]) => updateCalendars(calendars, this.onError))
         .then((calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars})) 
    
 
-        getProjects(this.onError)(true,this.limit)
+        getProjects(this.onError)(true, this.limit)
         .then((projects:Project[]) => projects.map(convertProjectDates))
         .then((projects:Project[]) => dispatch({type:"setProjects", load:projects}))
 
 
-        getAreas(this.onError)(true,this.limit)
+        getAreas(this.onError)(true, this.limit)
         .then((areas:Area[]) => areas.map(convertAreaDates))
         .then((areas:Area[]) => dispatch({type:"setAreas", load:areas}))  
 
 
-        getTodos(this.onError)(true,this.limit)
+        getTodos(this.onError)(true, this.limit)
         .then((todos:Todo[]) => todos.map(convertTodoDates))
         .then((todos:Todo[]) => dispatch({type:"setTodos", load:todos}))
     } 
@@ -349,131 +299,192 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         cond([  
                             [ 
                                 (selectedCategory:string) : boolean => 'inbox'===selectedCategory,  
-                                () => <Inbox 
-                                    todos={filter(todos, allPass(this.inboxFilters), "Inbox")} 
-                                    dispatch={this.props.dispatch}
-                                    selectedTodoId={this.props.selectedTodoId}
-                                    selectedCategory={this.props.selectedCategory}
-                                    selectedTag={this.props.selectedTag} 
-                                    searched={this.props.searched}
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    selectedAreaId={this.props.selectedAreaId} 
-                                    rootRef={this.rootRef}
-                                    areas={this.props.areas}
-                                    projects={this.props.projects}
-                                    tags={this.props.tags}
-                                /> 
+                                () => {
+
+                                    let inboxFilters = [
+                                        (todo:Todo) => not(byAttachedToArea(this.props.areas)(todo)), 
+                                        (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
+                                        (todo:Todo) => isNil(todo.attachedDate), 
+                                        (todo:Todo) => isNil(todo.deadline), 
+                                        byCategory("inbox"), 
+                                        byNotCompleted,  
+                                        byNotDeleted 
+                                    ];  
+
+                                    return <Inbox 
+                                        todos={filter(todos, allPass(inboxFilters), "Inbox")} 
+                                        dispatch={this.props.dispatch}
+                                        selectedTodoId={this.props.selectedTodoId}
+                                        selectedCategory={this.props.selectedCategory}
+                                        selectedTag={this.props.selectedTag} 
+                                        searched={this.props.searched}
+                                        selectedProjectId={this.props.selectedProjectId}
+                                        selectedAreaId={this.props.selectedAreaId} 
+                                        rootRef={this.rootRef}
+                                        areas={this.props.areas}
+                                        projects={this.props.projects}
+                                        tags={this.props.tags}
+                                    />
+                                }
                             ],  
                             [ 
                                 (selectedCategory:string) : boolean => 'today'===selectedCategory,  
-                                () => <Today  
-                                    todos={filter(todos, allPass(this.todayFilters), "Today")}
-                                    dispatch={this.props.dispatch}
-                                    selectedTodoId={this.props.selectedTodoId}
-                                    searched={this.props.searched}
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    selectedAreaId={this.props.selectedAreaId} 
-                                    selectedCategory={this.props.selectedCategory}
-                                    selectedTag={this.props.selectedTag}
-                                    areas={this.props.areas}
-                                    projects={this.props.projects}
-                                    rootRef={this.rootRef} 
-                                    tags={this.props.tags}
-                                    showCalendarEvents={this.props.showCalendarEvents}
-                                    calendars={this.props.calendars}
-                                />
+                                () => {
+
+                                    let todayFilters = [   
+                                        (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
+                                        byNotCompleted,  
+                                        byNotDeleted   
+                                    ];   
+
+                                    return <Today  
+                                        todos={filter(todos, allPass(todayFilters), "Today")}
+                                        dispatch={this.props.dispatch}
+                                        selectedTodoId={this.props.selectedTodoId}
+                                        searched={this.props.searched}
+                                        selectedProjectId={this.props.selectedProjectId}
+                                        selectedAreaId={this.props.selectedAreaId} 
+                                        selectedCategory={this.props.selectedCategory}
+                                        selectedTag={this.props.selectedTag}
+                                        areas={this.props.areas}
+                                        projects={this.props.projects}
+                                        rootRef={this.rootRef} 
+                                        tags={this.props.tags}
+                                        showCalendarEvents={this.props.showCalendarEvents}
+                                        calendars={this.props.calendars}
+                                    />
+                                }
                             ],  
                             [ 
                                 (selectedCategory:string) : boolean => 'trash'===selectedCategory,  
-                                () => <Trash    
-                                    todos={filter(todos, byDeleted, "Trash")}  
-                                    dispatch={this.props.dispatch} 
-                                    tags={this.props.tags}
-                                    searched={this.props.searched}
-                                    selectedCategory={this.props.selectedCategory}
-                                    selectedTag={this.props.selectedTag}
-                                    selectedTodoId={this.props.selectedTodoId}  
-                                    showTrashPopup={this.props.showTrashPopup}
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    selectedAreaId={this.props.selectedAreaId} 
-                                    projects={this.props.projects}
-                                    areas={this.props.areas}
-                                    rootRef={this.rootRef}      
-                                /> 
+                                () => {
+                                
+                                    return <Trash    
+                                        todos={filter(todos, byDeleted, "Trash")}  
+                                        dispatch={this.props.dispatch} 
+                                        tags={this.props.tags}
+                                        searched={this.props.searched}
+                                        selectedCategory={this.props.selectedCategory}
+                                        selectedTag={this.props.selectedTag}
+                                        selectedTodoId={this.props.selectedTodoId}  
+                                        showTrashPopup={this.props.showTrashPopup}
+                                        selectedProjectId={this.props.selectedProjectId}
+                                        selectedAreaId={this.props.selectedAreaId} 
+                                        projects={this.props.projects}
+                                        areas={this.props.areas}
+                                        rootRef={this.rootRef}      
+                                    /> 
+                                }
                             ],  
                             [ 
                                 (selectedCategory:string) : boolean => 'logbook'===selectedCategory,  
-                                () => <Logbook   
-                                    todos={filter(todos, allPass(this.logbookFilters), "Logbook")} 
-                                    dispatch={this.props.dispatch}
-                                    selectedTodoId={this.props.selectedTodoId}
-                                    selectedCategory={this.props.selectedCategory} 
-                                    searched={this.props.searched}
-                                    selectedAreaId={this.props.selectedAreaId} 
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    areas={this.props.areas}
-                                    projects={this.props.projects}
-                                    selectedTag={this.props.selectedTag} 
-                                    tags={this.props.tags} 
-                                    rootRef={this.rootRef}
-                                />
+                                () => {
+
+                                    let logbookFilters = [byCompleted, byNotDeleted]; 
+
+                                    return <Logbook   
+                                        todos={filter(todos, allPass(logbookFilters), "Logbook")} 
+                                        dispatch={this.props.dispatch}
+                                        selectedTodoId={this.props.selectedTodoId}
+                                        selectedCategory={this.props.selectedCategory} 
+                                        searched={this.props.searched}
+                                        selectedAreaId={this.props.selectedAreaId} 
+                                        selectedProjectId={this.props.selectedProjectId}
+                                        areas={this.props.areas}
+                                        projects={this.props.projects}
+                                        selectedTag={this.props.selectedTag} 
+                                        tags={this.props.tags} 
+                                        rootRef={this.rootRef}
+                                    />
+                                }
                             ], 
                             [ 
                                 (selectedCategory:string) : boolean => 'someday'===selectedCategory,  
-                                () => <Someday 
-                                    todos={filter(todos, allPass(this.somedayFilters), "Someday")}
-                                    dispatch={this.props.dispatch}
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    selectedAreaId={this.props.selectedAreaId} 
-                                    searched={this.props.searched}
-                                    selectedTodoId={this.props.selectedTodoId}
-                                    selectedCategory={this.props.selectedCategory}
-                                    selectedTag={this.props.selectedTag}
-                                    rootRef={this.rootRef}
-                                    areas={this.props.areas}
-                                    projects={this.props.projects}
-                                    tags={this.props.tags}
-                                /> 
+                                () => {
+
+                                    let somedayFilters = [
+                                        byCategory("someday"),
+                                        byNotCompleted, 
+                                        byNotDeleted 
+                                    ];
+                                
+                                    return <Someday 
+                                        todos={filter(todos, allPass(somedayFilters), "Someday")}
+                                        dispatch={this.props.dispatch}
+                                        selectedProjectId={this.props.selectedProjectId}
+                                        selectedAreaId={this.props.selectedAreaId} 
+                                        searched={this.props.searched}
+                                        selectedTodoId={this.props.selectedTodoId}
+                                        selectedCategory={this.props.selectedCategory}
+                                        selectedTag={this.props.selectedTag}
+                                        rootRef={this.rootRef}
+                                        areas={this.props.areas}
+                                        projects={this.props.projects}
+                                        tags={this.props.tags}
+                                    /> 
+                                }
                             ], 
                             [ 
                                 (selectedCategory:string) : boolean => 'next'===selectedCategory,  
-                                () => <Next   
-                                    todos={filter(todos, allPass(this.nextFilters), "Next")}
-                                    dispatch={this.props.dispatch}
-                                    selectedTodoId={this.props.selectedTodoId} 
-                                    searched={this.props.searched}
-                                    selectedCategory={this.props.selectedCategory}
-                                    selectedTag={this.props.selectedTag}
-                                    rootRef={this.rootRef}
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    selectedAreaId={this.props.selectedAreaId} 
-                                    areas={this.props.areas}
-                                    projects={this.props.projects} 
-                                    tags={this.props.tags}
-                                />
+                                () => {
+
+                                    let nextFilters =  [
+                                        (t:Todo) => not(isToday(t.attachedDate)) && not(isToday(t.deadline)),
+                                        (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
+                                        (t:Todo) => t.category!=="inbox",  
+                                        byNotCompleted,  
+                                        byNotDeleted 
+                                    ]; 
+                                
+                                    return <Next   
+                                        todos={filter(todos, allPass(nextFilters), "Next")}
+                                        dispatch={this.props.dispatch}
+                                        selectedTodoId={this.props.selectedTodoId} 
+                                        searched={this.props.searched}
+                                        selectedCategory={this.props.selectedCategory}
+                                        selectedTag={this.props.selectedTag}
+                                        rootRef={this.rootRef}
+                                        selectedProjectId={this.props.selectedProjectId}
+                                        selectedAreaId={this.props.selectedAreaId} 
+                                        areas={this.props.areas}
+                                        projects={this.props.projects} 
+                                        tags={this.props.tags}
+                                    />
+                                }
                             ],
                             [ 
                                 (selectedCategory:string) : boolean => 'upcoming'===selectedCategory,  
-                                () => <Upcoming  
-                                    todos={filter(todos, allPass(this.upcomingFilters), "Upcoming")}
-                                    dispatch={this.props.dispatch}
-                                    selectedTodoId={this.props.selectedTodoId}
-                                    selectedCategory={this.props.selectedCategory}
-                                    searched={this.props.searched}
-                                    areas={this.props.areas}
-                                    selectedAreaId={this.props.selectedAreaId}
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    projects={this.props.projects}
-                                    selectedTag={this.props.selectedTag}
-                                    tags={this.props.tags} 
-                                    rootRef={this.rootRef}
-                                    showCalendarEvents={this.props.showCalendarEvents}
-                                    calendars={this.props.calendars} 
-                                />
+                                () => {
+
+                                    let upcomingFilters = [
+                                        (t:Todo) => t.category!=="inbox",  
+                                        byScheduled,
+                                        byNotCompleted,  
+                                        byNotDeleted   
+                                    ];
+
+                                    return <Upcoming  
+                                        todos={filter(todos, allPass(upcomingFilters), "Upcoming")}
+                                        dispatch={this.props.dispatch}
+                                        selectedTodoId={this.props.selectedTodoId}
+                                        selectedCategory={this.props.selectedCategory}
+                                        searched={this.props.searched}
+                                        areas={this.props.areas}
+                                        selectedAreaId={this.props.selectedAreaId}
+                                        selectedProjectId={this.props.selectedProjectId}
+                                        projects={this.props.projects}
+                                        selectedTag={this.props.selectedTag}
+                                        tags={this.props.tags} 
+                                        rootRef={this.rootRef}
+                                        showCalendarEvents={this.props.showCalendarEvents}
+                                        calendars={this.props.calendars} 
+                                    />
+                                }
                             ],
                             [ 
                                 (selectedCategory:string) : boolean => 'project'===selectedCategory,  
                                 () => {
+
                                     let project = projects.find((p:Project) => selectedProjectId===p._id);
                                     let ids = project.layout.filter(isString);
                                     let byContainedInLayout = (t:Todo) => contains(t._id)(ids);
@@ -502,6 +513,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             [ 
                                 (selectedCategory:string) : boolean => 'area'===selectedCategory,  
                                 () => {
+                                    
                                     let area = areas.find((a) => selectedAreaId===a._id);
                                     let selectedProjects = projects.filter(
                                         (p) => contains(p._id)(area.attachedProjectsIds)

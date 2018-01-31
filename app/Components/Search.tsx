@@ -196,7 +196,7 @@ let getProjectHeading = (project:Project, todos:Todo[]) : JSX.Element => {
                 color: "rgba(0, 0, 0, 0.8)" 
             }}
         >    
-            { project.name.length==0 ? "New Project" : project.name } 
+            { isEmpty(project.name) ? "New Project" : project.name } 
         </div> 
     </div>
 }

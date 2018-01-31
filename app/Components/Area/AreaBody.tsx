@@ -161,7 +161,7 @@ interface ProjectElementState{
 
 class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
 
-    constructor(props){ 
+    constructor(props){  
         super(props);
     } 
 
@@ -183,13 +183,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
   
         return  isEmpty(todos) ? null : 
                 <div style={{display:"flex", flexDirection:"column"}}>
-                    <ProjectLink 
-                        dispatch={dispatch}
-                        index={index}
-                        selectedCategory={selectedCategory}
-                        project={project}
-                        todos={todos}
-                    /> 
+                    <ProjectLink {...{project,showMenu:true} as any}/>  
                     <ExpandableTodosList
                         dispatch={dispatch}   
                         searched={this.props.searched}
