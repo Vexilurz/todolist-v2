@@ -27,20 +27,30 @@ import {
     isTodo,
     selectNeverTodos,
     updateNeverTodos,
+    sameDay,
+    timeOfTheDay,
 } from '../../utils';  
-import { allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map, flatten, prop } from 'ramda';
+import { allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map, flatten, prop, uniqBy } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
-import { Category } from '../MainContainer';
+import { Category, filter } from '../MainContainer';
 import { repeat, setRepeatedTodos } from '../RepeatPopup';
 import { Hint, hideHint } from './Today';
+import { CalendarEvent } from '../Calendar';
 
 
-type Item = Project | Todo;
+type Item = Project | Todo | CalendarEvent
  
+interface objectsByDate{ [key:string]:Item[] }  
 
-interface objectsByDate{ 
-    [key:string]:Item[]
-}  
+
+ 
+let haveDate = (item : Project | Todo) : boolean => {  
+    if(item.type==="project"){  
+       return not(isNil(item.deadline)); 
+    }else if(item.type==="todo"){ 
+       return not(isNil(item["attachedDate"])) || not(isNil(item.deadline));
+    }
+}
 
 
 
@@ -48,31 +58,22 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
     
     let {showCalendarEvents,todos,projects,calendars} = props;
 
-    let haveDate = (item : Project | Todo) : boolean => {  
-        if(item.type==="project"){  
-           return not(isNil(item.deadline)); 
-        }else if(item.type==="todo"){ 
-           return not(isNil(item["attachedDate"])) || not(isNil(item.deadline));
-        }
-    }
-
     let filters = [ 
         haveDate,  
         byTags(props.selectedTag),
         byNotCompleted, 
         byNotDeleted  
-    ];       
+    ];    
 
-    let items = [...todos, ...projects].filter(i => allPass(filters)(i)); 
-    
+    let items = filter([...todos, ...projects], i => allPass(filters)(i), "upcoming");
+     
     if(showCalendarEvents){
-        calendars
-        .filter((c:Calendar) => c.active)
+        calendars  
+        .filter( (c:Calendar) => c.active )
         .forEach((c:Calendar) => items.push(...c.events))
     }
 
     let objectsByDate : objectsByDate = {};
-
 
     if(items.length===0){  
        return {objectsByDate:[],tags:[]};
@@ -111,6 +112,7 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
 }   
 
 
+
 interface UpcomingProps{
     dispatch:Function,
     showCalendarEvents:boolean,
@@ -126,8 +128,9 @@ interface UpcomingProps{
     selectedTag:string,
     tags:string[],
     rootRef:HTMLElement 
-} 
-  
+}  
+ 
+
 
 interface UpcomingState{
     objects : {date:Date, todos:Todo[], projects:Project[]}[],
@@ -135,22 +138,23 @@ interface UpcomingState{
     showHint : boolean 
 }
 
+
  
 export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
-    n:number;
-
+    n:number
+    
     constructor(props){
         super(props);
         this.n = 10;  
-        this.state = {
-            objects:[], 
-            enter:1,
-            showHint:false
-        }; 
+        this.state = { objects:[], enter:1, showHint:false }; 
     }  
     
-    onError = (e) => console.log(e);
+
+
+    onError = (e) => console.log(e)
+
+
 
     getObjects = (props:UpcomingProps,n:number) : { 
         date: Date;
@@ -164,12 +168,15 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         return objects;
     }   
 
+
+
     componentDidMount(){
-        hideHint().then( (hide) => this.setState({showHint:!hide}) )     
-         
+        hideHint()
+        .then( (hide) => this.setState({showHint:!hide}) )   
         this.setState({objects:this.getObjects(this.props,this.n)})
-    }
+    }   
      
+
     
     componentWillReceiveProps(nextProps:UpcomingProps){
         if( 
@@ -187,6 +194,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             this.setState({objects:this.getObjects(nextProps, this.n), enter:1}); 
         }   
     } 
+
 
 
     onEnter = ({ previousPosition, currentPosition }) => { 
@@ -210,12 +218,13 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             this.setState({enter:this.state.enter+1}, () => updateNeverTodos(dispatch,never));
         }   
     }   
-       
+     
+
 
     generateCalendarObjectsFromRange = ( 
         range:Date[], 
         objectsByDate:objectsByDate   
-    ) : {date:Date, todos:Todo[], projects:Project[], events:any[]}[] => {
+    ) : {date:Date, todos:Todo[], projects:Project[], events:CalendarEvent[]}[] => {
 
         let objects = [];
 
@@ -229,24 +238,21 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             }
  
             let key : string = keyFromDate(range[i]);
-            let entry : Item[] = objectsByDate[key];
+            let entry = objectsByDate[key];
  
             if(isNil(entry)){ 
                objects.push(object);
             }else{
                object.todos = entry.filter((el:Todo) => el.type==="todo"); 
                object.projects = entry.filter((el:Project) => el.type==="project"); 
-               object.events = entry.filter((el:any) => isDate(el.start)); 
-               objects.push(object); 
+               object.events = entry.filter((el:CalendarEvent) => isDate(el.start)); 
+               objects.push(object);  
             }
         } 
          
         return objects; 
     }
 
-
- 
-    
 
 
     objectToComponent = (
@@ -300,6 +306,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     } 
 
  
+
     render(){ 
         let {showHint} = this.state;
         let {todos,projects,selectedTag,dispatch,selectedCategory} = this.props;
@@ -351,7 +358,7 @@ interface CalendarDayProps{
     areas:Area[], 
     searched:boolean, 
     selectedTodos:Todo[],
-    selectedEvents:any[],
+    selectedEvents:CalendarEvent[],
     todos:Todo[], 
     dispatch:Function, 
     selectedTodoId:string,
@@ -426,7 +433,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             dayName
                         }
                     </div> 
-                </div>   
+                </div>    
                 <div style={{
                     display:'flex', 
                     flexDirection:"column", 
@@ -434,37 +441,65 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                     justifyContent:"flex-start"
                 }}>  
                     {
-                        uniq(map((event:any) : string => event.summary, selectedEvents))
-                        .map((summary:string) : JSX.Element => 
-                            <div    
-                                key={summary}
-                                style={{ 
+                        uniqBy(prop("name"), selectedEvents)
+                        .map((event:CalendarEvent) : JSX.Element => 
+                        <div 
+                           key={`event-${event.name}`}
+                           style={{display:"flex", flexDirection:"column"}}
+                        >
+                            <div   
+                                style={{  
                                     display:"flex",
                                     height:"20px",
                                     paddingTop:"5px", 
                                     paddingBottom:"5px", 
                                     alignItems:"center"
-                                }}
+                                }}   
                             >
+                                <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
                                 <div  
-                                    style={{
-                                        paddingRight:"5px",
-                                        height:"100%",
-                                        backgroundColor:"dimgray"
-                                    }}
-                                >
-                                </div>
+                                  style={{
+                                    fontSize:"14px",
+                                    userSelect:"none",
+                                    cursor:"default",
+                                    paddingLeft:"5px" 
+                                  }}
+                                >   
+                                    {event.name} 
+                                </div>  
+                            </div> 
+                            {
+                                isNil(event.end) ? null :
+                                not(sameDay(event.start,event.end)) ? null :
                                 <div 
                                     style={{
+                                        paddingLeft:"10px",
                                         fontSize:"14px",
+                                        paddingTop:"2px",
+                                        paddingBottom:"2px",
                                         userSelect:"none",
+                                        cursor:"default" 
+                                    }} 
+                                >  
+                                    {`${timeOfTheDay(event.start)} - ${timeOfTheDay(event.end)}`} 
+                                </div>    
+                            }
+                            { 
+                                isNil(event.description) ? null :
+                                isEmpty(event.description) ? null :
+                                <div 
+                                    style={{
+                                        paddingLeft:"10px",
+                                        textAlign:"left",
+                                        fontSize:"14px",
                                         cursor:"default",
-                                        paddingLeft:"5px" 
+                                        userSelect:"none" 
                                     }}
                                 > 
-                                    {summary}
-                                </div>  
-                            </div>
+                                    {event.description} 
+                                </div>
+                            }
+                        </div>    
                         )
                     }
                 </div>

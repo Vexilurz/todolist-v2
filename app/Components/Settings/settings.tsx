@@ -7,14 +7,12 @@ import { Component } from "react";
 import { Provider, connect } from "react-redux";
 import ClearArrow from 'material-ui/svg-icons/content/backspace';  
 import FlatButton from 'material-ui/FlatButton';
-
+import Clear from 'material-ui/svg-icons/content/clear';
 import General from 'material-ui/svg-icons/action/description';   
 import Cloud from 'material-ui/svg-icons/file/cloud';   
 import QuickEntry from 'material-ui/svg-icons/content/add-box';  
 import CalendarEvents from 'material-ui/svg-icons/action/date-range';  
-import Folder from 'material-ui/svg-icons/file/folder';     
-let ical = require('ical');      
-
+import Folder from 'material-ui/svg-icons/file/folder';    
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
@@ -25,11 +23,12 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { Checkbox } from '../TodoInput/TodoInput';
-import { attachDispatchToProps, getIcalData, isString, debounce } from '../../utils';
+import { attachDispatchToProps, isString, debounce } from '../../utils';
 import { Store } from '../../app';
 import { generateId, Calendar } from '../../database';
 import { isDate } from 'util';
 import { SimplePopup } from '../SimplePopup';
+import { getIcalData, IcalData, AxiosError } from '../Calendar';
 
 
 
@@ -432,10 +431,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
 
     constructor(props){
         super(props);
-        this.state = {
-            url:'',
-            error:''
-        }
+        this.state = { url:'', error:'' };
     }
 
 
@@ -452,7 +448,6 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
 
         let extension = last(url.split('.'));
 
-        
         if(extension!=='ics'){    
            this.setState({error:"Incorrect format. Only ics extension supported."});
            return null;    
@@ -463,73 +458,54 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
         }
          
         getIcalData(url)
-        .then(
-           (result:any) => { 
-                let msg = "404 Page Not Found";
+        .then( 
+            (data:IcalData) => {
+                let {calendar,events,error} = data;
                 
-                if(isNil(result)){ return null }
-
-                if(result.name==="Error"){  
-                   this.setState({error:result.message});
+                if(!isNil(error)){  
+                   this.setState({error:error.message});
                    return null;  
                 }
                 
-                let events = compose(map(pair => pair[1]), toPairs)(result) as any[]; 
-
-                if(isEmpty(events)){
-                    this.setState({error:'Calendar empty.'});
-                    return null;  
-                }
-
-                for(let i=0; i<events.length; i++){
-                    if(!isNil(events[i])){
-                        if(typeof events[i].includes==="function"){
-                            if(events[i].includes(msg)){ 
-                               this.setState({error:msg});
-                               return null;    
-                            }  
-                        }
-                    } 
+                let load : Calendar = {
+                    url, 
+                    active:true,
+                    _id:generateId(),
+                    name:calendar.name, 
+                    description:calendar.description,
+                    timezone:calendar.timezone,
+                    events,
+                    type:"calendar"
                 } 
 
-                if( !isDate(events[0].start) ){
-                    this.setState({error:'Invalid data type.'});
-                    return null; 
-                }   
-
-                
-                let calendar : Calendar = { _id:generateId(), url, active:true, events, type:"calendar" };
-
-                dispatch({type:'addCalendar', load:calendar})
+                dispatch({type:'addCalendar', load});
 
                 this.setState({url:'', error:''});
             } 
         )   
-    } 
+    }
     
-
+ 
     onItemCheck = debounce(
-        (calendar:Calendar) : void => {
-            let {dispatch} = this.props;
-
-            dispatch({
-                type:"updateCalendar",
-                load:{ ...calendar, active:!calendar.active }
-            });  
-        }, 
+        (calendar:Calendar) : void => this.props.dispatch({
+            type:"updateCalendar", 
+            load:{ ...calendar, active:!calendar.active }
+        }), 
         50
     )     
- 
+   
 
     onShowCalendarEvents = debounce(
         (e) => {
             let {showCalendarEvents,dispatch} = this.props;
-
             dispatch({type:"showCalendarEvents", load:!showCalendarEvents});
         },
         50
     ) 
     
+    
+    onRemoveCalendar = (_id:string) => (e) => this.props.dispatch({ type:"removeCalendar", load:_id })
+      
 
     render(){
         let {calendars,showCalendarEvents} = this.props; 
@@ -540,17 +516,16 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
                 style={{ 
                     paddingTop:"10px",
                     paddingBottom:"10px",
-                    paddingLeft:"30px"  
+                    paddingLeft:"30px",
+                    paddingRight:"40px"  
                 }}
             >
-                <div style={{   
-                    display:"flex", 
-                    alignItems:"center"
-                }}>
-                    <div style={{width:"60%", paddingRight:"15px"}}>
+                <div style={{ display:"flex", alignItems:"center" }}>
+                    <div style={{width:"100%", paddingRight:"15px"}}>
                         <input 
                             type="url"     
                             value={this.state.url}
+                            placeholder="Input Calendar URL" 
                             style={{
                                 backgroundColor:"white",
                                 color:"rgba(100, 100, 100, 0.9)",   
@@ -566,9 +541,27 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
                             }}
                             onChange={this.onUrlChange}
                         />  
-                    </div>
-                    <FlatButton onClick={this.onUrlSubmit} label="Load"/>
-                </div> 
+                    </div> 
+                    <div     
+                        onClick={this.onUrlSubmit}
+                        style={{     
+                            display:"flex",
+                            alignItems:"center",
+                            cursor:"pointer",
+                            justifyContent:"center",
+                            borderRadius:"5px",
+                            paddingLeft:"25px",
+                            paddingRight:"25px",
+                            paddingTop:"5px", 
+                            paddingBottom:"5px",
+                            backgroundColor:"rgba(81, 144, 247, 1)"  
+                        }}
+                    >  
+                        <div style={{color:"white", fontSize:"16px"}}>  
+                            Load
+                        </div>   
+                    </div> 
+                </div>  
             </div>
 
             {
@@ -584,7 +577,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
                 </div> 
             }  
 
-            <div style={{display:"flex", alignItems:"center", paddingLeft:"30px"}}>
+            <div style={{display:"flex", alignItems:"center", paddingLeft:"32px"}}>
                 <Checkbox
                     checked={showCalendarEvents}
                     onClick={this.onShowCalendarEvents} 
@@ -608,6 +601,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
                                 display:"flex", 
                                 alignItems:"center", 
                                 padding:"10px",  
+                                justifyContent:"space-between",
                                 backgroundColor:index%2 ? "white" : "rgba(200,200,200,0.3)",
                                 overflowX:"hidden"
                             }}
@@ -618,8 +612,25 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
                                   onClick={() => this.onItemCheck(calendar)} 
                                 />   
                             </div>
-                            <div style={{paddingLeft:"10px", whiteSpace:"nowrap"}}>
-                              {calendar.url}
+                            <div style={{
+                                paddingLeft:"10px", 
+                                whiteSpace:"nowrap", 
+                                width:"85%", 
+                                overflowX:"hidden"
+                            }}>
+                              {calendar.name}
+                            </div> 
+                            <div  
+                              style={{alignItems:"center", display:"flex", cursor:"pointer"}} 
+                              onClick={this.onRemoveCalendar(calendar._id)}
+                            >  
+                                <Clear 
+                                    style={{
+                                      color:"rgba(100,100,100,0.5)",
+                                      height:30,
+                                      width:30 
+                                    }}
+                                /> 
                             </div>
                         </div> 
                     )
@@ -628,6 +639,8 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
         </div>
     }
 }
+
+
 
  
 

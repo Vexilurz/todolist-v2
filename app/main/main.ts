@@ -12,24 +12,6 @@ storage.setDataPath(os.tmpdir());
 
 
  
-/*
-var PouchDB = require('pouchdb');
-PouchDB.plugin(require('pouchdb-adapter-leveldb'));
-
-var db = new PouchDB('my_db', {adapter: 'leveldb'});
-
-db.info().then(function (info) {
-  console.log('works', info)
-}).catch(function (err) {
-  console.log('doesnt work',err)
-});
-*/ 
-
-
-
-
-
- 
 class AppUpdater {
     constructor() {
         const log = require("electron-log");
@@ -41,7 +23,7 @@ class AppUpdater {
  
 export let mainWindow : BrowserWindow;   
 export let listeners : Listeners; 
- 
+export let updater : AppUpdater; 
 
 const CtrlAltT : string = 'Ctrl+Alt+T';
 const CtrlD : string = 'Ctrl+D';
@@ -98,6 +80,8 @@ let onReady = () => {
     globalShortcut.register(CtrlD, onCtrlD);  
     
     preventAnnoyingErrorPopups();  
+
+    updater = new AppUpdater(); 
 
     mainWindow = initWindow(getWindowSize());  
 

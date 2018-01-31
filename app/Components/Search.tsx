@@ -58,8 +58,7 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import PieChart from 'react-minimal-pie-chart';
-let fast = require('fast.js');  
-
+ 
    
 let getTodoLink = (
     todo:Todo, project:Project, index:number, dispatch:Function

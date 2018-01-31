@@ -29,7 +29,6 @@ export let initDB = () => {
    
 initDB(); 
 
-
  
 Date.prototype["addDays"] = function(days){
     var dat = new Date(this.valueOf());
@@ -37,18 +36,20 @@ Date.prototype["addDays"] = function(days){
     return dat; 
 }; 
 
- 
 
 export type ObjectType = "heading" | "project" | "todo" | "area" | "calendar"; 
 
+
 export interface Calendar{
   url:string, 
+  name:string,
+  description:string,
+  timezone:string,
   active:boolean,
   events:any[],
   type:ObjectType, 
   _id:string
 }  
-
 
  
 export interface Heading{
@@ -80,7 +81,6 @@ export interface Project{
   hide?:Category[],
   expand?:number 
 };
-  
 
  
 export interface Area{
@@ -96,12 +96,13 @@ export interface Area{
   attachedProjectsIds : string[], 
 };  
 
+
 export interface Group{
    _id:string,  
    type:'never'|'on'|'after',
    options?:RepeatPopupState,  
    last?:boolean
-} 
+}; 
  
 
 export interface Todo{ 
@@ -124,13 +125,11 @@ export interface Todo{
 }; 
   
 
-
 export interface Query<T>{
   total_rows: 2, 
   offset: 0, 
   rows: QueryResult<T>[]
 };
-
 
 
 export interface QueryResult<T>{
@@ -141,11 +140,8 @@ export interface QueryResult<T>{
 };
 
 
-
 export let generateId = () => uniqid() + new Date().toJSON(); 
-
   
-
 
 function queryToObjects<T>(query:Query<T>){
     let docs = [];
@@ -172,7 +168,6 @@ function queryToObjects<T>(query:Query<T>){
     return docs;
 };
 
-
  
 function setItemToDatabase<T>(
   onError:Function, 
@@ -184,7 +179,6 @@ function setItemToDatabase<T>(
   }  
 }  
  
-
  
 function setItemsToDatabase<T>(
   onError:Function, 
@@ -205,8 +199,7 @@ export function removeObject<T>(
 ){
   return function(_id:string) : Promise<void>{
  
-    return updateItemInDatabase<any>(
-      middleware,
+    return updateItemInDatabase( 
       onError, 
       db 
     )(_id, {_deleted: true})
@@ -277,18 +270,16 @@ function updateItemsInDatabase<T>(
 
 
   
-function updateItemInDatabase<T>(
-  middleware:Function,
+function updateItemInDatabase(
   onError:Function, 
   db:any
 ){
-  return function(_id:string, changed:T) : Promise<T>{
+  return function(_id:string, changed:any) : Promise<any>{
     
     return db.get(_id)
              .then((doc) => {   
                 changed["_rev"] = doc["_rev"];
-                middleware(changed,db);
-                return db.put(changed);  
+                return db.put({...doc,...changed});  
              })
              .catch(onError);
              
@@ -377,11 +368,10 @@ export let updateArea = (_id : string, replacement : Area, onError:Function) : P
         }
       }
  
-      return updateItemInDatabase<Area>(
-        () => {},
+      return updateItemInDatabase(
         (e) => console.log(e), 
         areas_db
-      )(_id, replacement); 
+      )(_id, replacement);  
  
 }
  
@@ -510,8 +500,7 @@ export let updateProject = (_id : string, replacement : Project, onError:Functio
         }
       }     
 
-      return updateItemInDatabase<Project>(
-        () => {},
+      return updateItemInDatabase(
         (e) => console.log(e), 
         projects_db
       )(_id, replacement); 
@@ -593,8 +582,7 @@ export let addCalendar = (onError:Function, calendar:Calendar) : Promise<void> =
  
 
 export let updateCalendar = (_id:string, replacement:Calendar, onError:Function) : Promise<Calendar> => {
-  return updateItemInDatabase<Calendar>(  
-    () => {},
+  return updateItemInDatabase(  
     (e) => console.log(e), 
     calendars_db
   )(_id, replacement);    
@@ -618,6 +606,17 @@ export let addTodos = (onError:Function, todos : Todo[]) : Promise<void> => {
 }
     
 
+export let removeCalendar = (_id:string, onError:Function) : Promise<void> => {
+
+  if(!isString(_id)){ 
+      if(isDev()){ 
+         throw new Error(`_id is not a string. ${_id}. removeCalendar.`) 
+      }
+  }   
+  
+  return removeObject<string>(() => {}, onError, calendars_db)(_id); 
+}
+
 
 export let removeTodo = (_id:string) : Promise<void> => {
 
@@ -635,16 +634,6 @@ export let removeTodo = (_id:string) : Promise<void> => {
 
 }
  
-
-export let removeCalendar = (_id:string) : Promise<void> => {
-
-      return removeObject<string>(
-        () => {},
-        (e) => console.log(e), 
-        calendars_db
-      )(_id); 
-}
-   
 
   
 export let getTodoById = (onError:Function, _id : string) : Promise<Todo> => {
@@ -677,13 +666,12 @@ export let updateTodo = debounce(
 
       assert(isTodo(replacement), `Input value is not of type Todo ${JSON.stringify(replacement)}. updateTodo.`);
 
-      return updateItemInDatabase<Todo>(  
-        () => {},
+      return updateItemInDatabase(  
         (e) => console.log(e), 
         todos_db
       )(_id, replacement);    
     },
-    50
+    50 
 )  
   
 

@@ -6,11 +6,13 @@ import { ipcRenderer, remote } from 'electron';
 import IconButton from 'material-ui/IconButton';  
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, uppercase, insideTargetArea, getIcalData,
+    attachDispatchToProps, uppercase, insideTargetArea, 
     chooseIcon, debounce, byTags, byCategory, generateEmptyTodo, isArray, isTodo, isProject, 
-    isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos, assert, updateCalendars, 
+    isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos, assert,  
     selectNeverTodos, updateNeverTodos, oneDayBehind, convertDates, 
-    convertTodoDates, convertProjectDates, convertAreaDates, clearStorage, oneDayAhead, measureTime, byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, byCompleted, isToday, byNotSomeday, daysRemaining 
+    convertTodoDates, convertProjectDates, convertAreaDates, clearStorage, oneDayAhead, measureTime, 
+    byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
+    byCompleted, isToday, byNotSomeday, daysRemaining, byScheduled 
 } from "../utils";   
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -31,7 +33,10 @@ import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { generateRandomDatabase } from '../generateRandomObjects';
-import { isEmpty, last, isNil, contains, all, not, assoc, flatten, toPairs, map, compose, allPass, cond } from 'ramda';
+import { 
+    isEmpty, last, isNil, contains, all, not, assoc, flatten, 
+    toPairs, map, compose, allPass, cond 
+} from 'ramda';
 import { isString } from 'util';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -40,13 +45,14 @@ import { Subscription } from 'rxjs/Rx';
 import { RightClickMenu } from './RightClickMenu';
 import { RepeatPopup } from './RepeatPopup';
 import { Search } from './Search';
-let ical = require('ical');    
-let Promise = require('bluebird'); 
-let fast = require('fast.js');  
+import { filter as lodashFilter } from 'lodash';
+import { CalendarProps, CalendarEvent, getIcalData, IcalData, AxiosError, updateCalendars } from './Calendar';
+let Promise = require('bluebird');   
   
+
 export let filter = (array:any[],f:Function,caller:string) : any[] => {
     let start : number = performance.now();
-    let result = fast.filter(array,f);
+    let result = lodashFilter(array,f); 
     let finish : number = performance.now();
     
     if(isDev()){ 
@@ -58,10 +64,7 @@ export let filter = (array:any[],f:Function,caller:string) : any[] => {
     return result;
 }
 
-let byScheduled = (item : Todo) : boolean => {
-    if(isNil(item)){ return false } 
-    return !isNil(item.deadline) || !isNil(item.attachedDate); 
-} 
+
 
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
@@ -129,7 +132,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
             (t:Todo) => t.category!=="inbox",  
             byScheduled,
             byNotCompleted,  
-            byNotDeleted  
+            byNotDeleted   
         ];
 
         this.limit = 10000;
@@ -199,7 +202,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         if(clone){ return }
          
         getCalendars(this.onError)(true,this.limit)
-        .then((calendars:Calendar[]) => updateCalendars(calendars))
+        .then((calendars:Calendar[]) => updateCalendars(calendars, this.onError))
         .then((calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars})) 
    
 
@@ -227,12 +230,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 () => {
                     let {calendars, dispatch} = this.props;
             
-                    updateCalendars(calendars)
+                    updateCalendars(calendars, this.onError)
                     .then( 
                       (calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars})
-                    );   
-                },
-                delay
+                    )  
+                },    
+                delay 
             ) as any;
         }
     }

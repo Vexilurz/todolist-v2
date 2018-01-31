@@ -5,7 +5,7 @@ import {
     removeArea, updateProject, addTodo, updateArea, updateTodo, 
     addArea, removeTodo, removeAreas, removeTodos, removeProjects, 
     updateAreas, updateProjects, addTodos, addProjects, addAreas, 
-    updateTodos, addCalendar, Calendar, updateCalendar 
+    updateTodos, addCalendar, Calendar, updateCalendar, removeCalendar 
 } from './database';
 import { 
     getTagsFromItems, defaultTags, removeDeletedProjects, 
@@ -46,25 +46,37 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 return {...state, calendars:[action.load,...state.calendars]};
             }
         ],   
+
+
+        [ 
+            (action:{ type:string }) : boolean => "removeCalendar"===action.type,  
+
+            (action:{ type:string, load:string }) : Store => { 
+                let { calendars } = state;
+                let idx = calendars.findIndex(c => c._id===action.load);
+                
+                if(idx===-1){ return {...state} }
+        
+                if(shouldAffectDatabase){ 
+                   removeCalendar(action.load, onError)
+                }  
+ 
+                return {...state, calendars:remove(idx, 1, calendars)};
+            }
+        ], 
+ 
         [ 
             (action:{type:string}) : boolean => "updateCalendar"===action.type,  
 
-            (action:{ 
-                type:string,
-                load:Calendar
-            }):Store => { 
+            (action:{type:string,load:Calendar}):Store => { 
                 let calendars = [...state.calendars];
                 let idx = calendars.findIndex(c => c.url===action.load.url);
 
-                assert(idx!==-1, `calendar does not exist.updateCalendar.${JSON.stringify(action.load)}`);
-           
                 if(shouldAffectDatabase){
                    updateCalendar(action.load._id, action.load, onError)
-                }  
+                }    
 
-                calendars[idx] = action.load;
-                    
-                return {...state, calendars:[...calendars]};
+                return { ...state, calendars:adjust(() => action.load, idx, calendars) };
             }
         ],  
         [ 
@@ -127,12 +139,8 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 projects : [...action.load.projects],
                 areas : [...action.load.areas],
                 tags : [  
-                    ...defaultTags, 
-                    ...getTagsFromItems([ 
-                        ...action.load.todos,
-                        ...action.load.projects,
-                        ...action.load.areas
-                    ])
+                  ...defaultTags, 
+                  ...getTagsFromItems(action.load.todos)
                 ]
             })
         ], 

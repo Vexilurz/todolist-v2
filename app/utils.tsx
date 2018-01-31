@@ -13,7 +13,6 @@ import spacing from 'material-ui/styles/spacing';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
-let ical = require('ical');
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Star from 'material-ui/svg-icons/toggle/star';
@@ -54,7 +53,8 @@ import { isDev, Store } from './app';
 import { setRepeatedTodos, repeat } from './Components/RepeatPopup';
 import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
- 
+let ical = require('ical.js');
+import axios from 'axios';
 
 
 export let measureTime = (f:() => void) => {
@@ -62,8 +62,13 @@ export let measureTime = (f:() => void) => {
     f(); 
     let finish : number = performance.now();
     return finish - start; 
-}
+} 
 
+
+export let byScheduled = (item : Todo) : boolean => {
+    if(isNil(item)){ return false } 
+    return !isNil(item.deadline) || !isNil(item.attachedDate); 
+} 
 
 
 export let selectNeverTodos = (todos:Todo[]) : Todo[] => {
@@ -325,8 +330,6 @@ export let isCategory = (category : Category) : boolean => {
 
 export let bySomeday = (todo:Todo) : boolean => todo.category==="someday";
 
-export let byScheduled = (todo:Todo) : boolean => not(isNil(todo.attachedDate));
- 
 export let isTodo = (todo:any) : boolean => { 
     if(isNil(todo)){
         return false;
@@ -373,15 +376,30 @@ export let isArrayOfStrings = (array:any[]) : boolean => {
 
     return true; 
 }
+
  
 export let assert = (condition:boolean , error:string) : void => {
-    if(not(condition) && isDev()){ 
-       throw new Error(error);
-    }  
+    if(not(condition) && isDev()){ throw new Error(error) }  
 } 
 
 
-export let keyFromDate = (date:Date) : string => { 
+export let timeOfTheDay = (date:Date) : string => {
+    assert(isDate(date), `input is not a date. ${JSON.stringify(date)}. timeOfTheDay.`);
+
+    let hours = String(date.getHours());
+    let minutes = String(date.getMinutes());
+    
+    hours = hours.length === 1 ? `0${hours}` : hours;
+    minutes = minutes.length === 1 ? `0${minutes}` : minutes;                                                                                         
+    
+    return `${hours}:${minutes}`;
+}  
+
+
+export let sameDay = (a:Date,b:Date) => { return keyFromDate(a)===keyFromDate(b) }
+   
+
+export let keyFromDate = (date:Date) : string => {  
     
     assert(isDate(date), `keyFromDate. input is not a date. ${JSON.stringify(date)}`);
     
@@ -390,34 +408,6 @@ export let keyFromDate = (date:Date) : string => {
     let month = date.getMonth();
     return [year,month+1,day].join('-'); 
 }
-
-
-export let getIcalData = (url:string) => new Promise( 
-    resolve => {
-        ical.fromURL( 
-            url, 
-            {}, 
-            (err, data) => {
-                if(!isNil(err)){ resolve(err); } 
-                else{ resolve(data) } 
-            }
-        ) 
-    }
-);
-
- 
-export let updateCalendars = (calendars:Calendar[]) : Promise<Calendar[]> => {
-    return Promise.all(
-        calendars.map(
-            (c:Calendar) => getIcalData(c.url)
-                            .then(compose(map(pair => pair[1]), toPairs)) 
-                            .then((events:any[]) : Calendar => ({...c,events}))    
-        )
-    )
-}
-    
- 
-
 
 
 export type ItemWithPriority = Area | Project | Todo | Heading; 
@@ -1995,4 +1985,4 @@ export let todoToKeywords = (t:Todo) : string[] => {
     let tags : string[] = t.attachedTags;  
     let checklist : string[] = t.checklist.map( c => c.text ).filter( s => s.length>0 );
     return [].concat.apply([], [ title, note, tags, checklist ]);
-}
+} 

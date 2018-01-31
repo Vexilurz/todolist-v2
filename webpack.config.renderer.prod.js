@@ -57,7 +57,7 @@ module.exports = {
             'NODE_ENV' : JSON.stringify('production')
           } 
         }),
-        new UglifyJSPlugin(),
+        new UglifyJSPlugin({minimize:true, sourceMap:false}), 
         new CopyWebpackPlugin([{ 
             from : './app/assets' 
         }]),  
