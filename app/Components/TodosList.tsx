@@ -20,7 +20,10 @@ import {
 import { RightClickMenu } from './RightClickMenu'; 
 import { byTags, byCategory } from '../utils'; 
 import { TodoInput } from './TodoInput/TodoInput';
-import { allPass, isNil, prepend, isEmpty, compose, map, assoc, contains, remove, not, equals } from 'ramda';
+import { 
+    allPass, isNil, prepend, isEmpty, 
+    compose, map, assoc, contains, remove, not, equals 
+} from 'ramda';
 import { Category } from './MainContainer';
 import { isDev } from '../app';
 import { indexToPriority } from './Categories/Today'; 
@@ -282,8 +285,6 @@ export let onDrop = (
 
 interface TodosListProps{ 
     dispatch:Function, 
-    selectedTodoId:string, 
-    searched:boolean, 
     projects:Project[],
     areas:Area[],
     selectedCategory:Category,
@@ -324,9 +325,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 selectedAreaId={this.props.selectedAreaId} 
                 todos={this.props.todos}
                 selectedCategory={this.props.selectedCategory} 
-                selectedTodoId={this.props.selectedTodoId}
                 tags={this.props.tags} 
-                searched={this.props.searched}
                 rootRef={this.props.rootRef}  
                 todo={value}
             />     

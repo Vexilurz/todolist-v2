@@ -62,12 +62,12 @@ export let deleteProject = (dispatch:Function, project:Project, todos:Todo[]) =>
  
 
 interface ProjectMenuPopoverProps extends Store{
-    anchorEl : HTMLElement 
-    rootRef:HTMLElement,
+    project:Project,
+    anchorEl : HTMLElement, 
+    rootRef:HTMLElement, 
     openDeadlineCalendar:Function,
     openTagsPopup:Function   
 }    
- 
  
 
 interface ProjectMenuPopoverState{}
@@ -76,22 +76,12 @@ interface ProjectMenuPopoverState{}
 @connect((store,props) => ({...store,...props}), attachDispatchToProps) 
 export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,ProjectMenuPopoverState>{
 
-    constructor(props){ 
-        super(props); 
-    }  
- 
-
-    closeMenu = () => {
-        this.props.dispatch({type:"showProjectMenuPopover", load:false});
-    }  
-
+    constructor(props){ super(props) }  
+  
+    closeMenu = () => this.props.dispatch({type:"showProjectMenuPopover", load:false})
+      
     updateProject = (selectedProject:Project, updatedProps) : void => { 
-        
-        let type = "updateProject";
-    
-        let load = { ...selectedProject, ...updatedProps };
-
-        this.props.dispatch({type, load});
+        this.props.dispatch({type:"updateProject", load:{ ...selectedProject, ...updatedProps }})
     }   
   
     onRepeat = (e) => { 
@@ -112,54 +102,28 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
     }   
 
     onDuplicate = (e) => {   
-        let projectId : string = this.props.selectedProjectId;
-        
-        let idx = this.props.projects.findIndex( (p:Project) => p._id===projectId );
-
-        assert(
-            idx!==-1, 
-            `Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`
-        )
-
-        let duplicate = {... this.props.projects[idx], _id:generateId()};
+        let {project} = this.props;
+        let duplicate = {...project, _id:generateId()};
         delete duplicate["_rev"]; 
-        
         this.props.dispatch({type:"addProject", load:duplicate}); 
+        //TODO Duplicate all todos
         this.closeMenu(); 
     }
 
-
-    getSelectedProject = () : Project => {
-        let projectId : string = this.props.selectedProjectId;
-
-        let idx = this.props.projects.findIndex((p:Project) => p._id===projectId);
-
-        assert(
-            idx!==-1, 
-            `Project does not exist. ${projectId} ${JSON.stringify(this.props.projects)}`
-        )
-
-        return {...this.props.projects[idx]};
-    }
-
-
     onComplete = (e) => { 
-
-        let project : Project = this.getSelectedProject();
+        let {project} = this.props;
         this.updateProject(project, {completed:new Date()});
         this.props.dispatch({type:"selectedCategory",load:"inbox"});
         this.closeMenu() 
     } 
   
-   
     onDelete = (e) => {   
-        let project = this.getSelectedProject();
+        let {project} = this.props;
         deleteProject(this.props.dispatch, project, this.props.todos); 
         this.props.dispatch({type:"selectedCategory", load:"inbox"});
         this.closeMenu();           
     }   
  
-
     onAddHeading = (e) => {
         createHeading(e, this.props); 
         this.closeMenu(); 
@@ -190,15 +154,15 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                 ...project,
                 hide:remove(idx, 1, [...project.hide]) 
             }
-        })
+        }) 
     }
      
  
     render(){  
-        let project = this.getSelectedProject();
+        let {project,showProjectMenuPopover} = this.props;
 
-        return !this.props.showProjectMenuPopover ? null :
-        <Popover 
+        return not(showProjectMenuPopover) ? null :
+        <Popover   
             className="nocolor"
             style={{
                 marginTop:"20px", 
@@ -239,24 +203,6 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             Complete project   
                         </div>     
                     </div>
-                    {
-                    /*
-                    <div    
-                        onClick={this.onAddTags}  
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
-                    >  
-                        <TriangleLabel style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                            Add tags  
-                        </div>     
-                    </div>
-                    */
-                    } 
                     <div  
                         onClick={this.onAddDeadline} 
                         className={"tagItem"} style={{

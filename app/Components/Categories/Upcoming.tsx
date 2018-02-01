@@ -116,9 +116,7 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
 interface UpcomingProps{
     dispatch:Function,
     showCalendarEvents:boolean,
-    selectedTodoId:string,
     selectedCategory:Category, 
-    searched:boolean, 
     todos:Todo[],
     calendars:Calendar[], 
     projects:Project[], 
@@ -285,7 +283,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             <CalendarDay 
                 idx={idx} 
                 day={day} 
-                searched={this.props.searched}
                 dayName={getDayName(object.date)}
                 selectedTodos={object.todos} 
                 selectedEvents={object.events}
@@ -297,7 +294,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 selectedCategory={this.props.selectedCategory as Category}
                 selectedProjectId={this.props.selectedProjectId}
                 dispatch={this.props.dispatch}
-                selectedTodoId={this.props.selectedTodoId}
                 selectedTag={this.props.selectedTag}
                 rootRef={this.props.rootRef}
                 tags={this.props.tags}
@@ -356,12 +352,10 @@ interface CalendarDayProps{
     projects:Project[],
     scheduledProjects:Project[],
     areas:Area[], 
-    searched:boolean, 
     selectedTodos:Todo[],
     selectedEvents:CalendarEvent[],
     todos:Todo[], 
     dispatch:Function, 
-    selectedTodoId:string,
     selectedAreaId:string,
     selectedProjectId:string, 
     selectedCategory:Category,
@@ -526,7 +520,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                     </div> 
                 } 
                 {   
-                    selectedTodos.length===0 ? null :
+                    isEmpty(selectedTodos) ? null :
                     <div style={{
                         display:"flex",  
                         flexDirection:"column", 
@@ -535,9 +529,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         paddingBottom : "10px" 
                     }}>   
                         <TodosList    
-                            dispatch={this.props.dispatch}     
-                            selectedTodoId={this.props.selectedTodoId} 
-                            searched={this.props.searched} 
+                            dispatch={this.props.dispatch}  
                             selectedCategory={this.props.selectedCategory}
                             selectedAreaId={this.props.selectedAreaId}
                             selectedProjectId={this.props.selectedProjectId}

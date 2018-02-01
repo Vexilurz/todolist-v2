@@ -32,18 +32,16 @@ import AutosizeInput from 'react-input-autosize';
 import { TodosList } from '../TodosList';
 import { ContainerHeader } from '../ContainerHeader';
 import { Tags } from '../Tags';
-import { getAreaLink } from '../Area/AreaLink';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { uniq, allPass, isEmpty, isNil, not, any, contains } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category } from '../MainContainer';
+import { AreaLink } from '../Area/AreaLink';
 
 
 interface NextProps{
     dispatch:Function, 
-    selectedTodoId:string,
-    searched:boolean,  
     selectedProjectId:string, 
     selectedAreaId:string,
     selectedCategory:Category, 
@@ -117,9 +115,7 @@ export class Next extends Component<NextProps, NextState>{
                             selectedProjectId={this.props.selectedProjectId}
                             selectedAreaId={this.props.selectedAreaId}  
                             todos={this.props.todos}
-                            selectedTodoId={this.props.selectedTodoId}
                             tags={this.props.tags} 
-                            searched={this.props.searched}
                             rootRef={this.props.rootRef}  
                             todo={emptyTodo}
                             creation={true}
@@ -127,14 +123,12 @@ export class Next extends Component<NextProps, NextState>{
                         {
                             isEmpty(table.detached) ? null :
                             <TodosList            
-                                selectedTodoId={this.props.selectedTodoId} 
                                 dispatch={this.props.dispatch}     
                                 areas={this.props.areas}
                                 projects={this.props.projects}
                                 selectedCategory={this.props.selectedCategory} 
                                 selectedAreaId={this.props.selectedAreaId}
                                 selectedProjectId={this.props.selectedProjectId}
-                                searched={this.props.searched}
                                 selectedTag={this.props.selectedTag}  
                                 rootRef={this.props.rootRef}
                                 todos={table.detached}  
@@ -156,10 +150,8 @@ export class Next extends Component<NextProps, NextState>{
                                     <ExpandableTodosList
                                         dispatch={this.props.dispatch}   
                                         selectedTag={this.props.selectedTag} 
-                                        searched={this.props.searched}
                                         selectedAreaId={this.props.selectedAreaId}
                                         selectedProjectId={this.props.selectedProjectId}
-                                        selectedTodoId={this.props.selectedTodoId} 
                                         rootRef={this.props.rootRef}
                                         todos={todos} 
                                         tags={this.props.tags}
@@ -178,27 +170,15 @@ export class Next extends Component<NextProps, NextState>{
                                 (a:Area, index:number) : JSX.Element => { 
                                     let todos = table[a._id] as Todo[];
 
-                                    return isEmpty(todos) ? null :
+                                    return isEmpty(todos) ? null : 
                                     <div key={`area${index}`}>
-                                        <div>    
-                                        {  
-                                            getAreaLink(
-                                                a,  
-                                                this.props.todos, 
-                                                this.props.projects, 
-                                                index, 
-                                                this.props.dispatch
-                                            )        
-                                        }  
-                                        </div>  
+                                        <AreaLink {...{area:a} as any}/>
                                         <ExpandableTodosList
                                             dispatch={this.props.dispatch}   
-                                            searched={this.props.searched}
                                             selectedTag={this.props.selectedTag}  
                                             rootRef={this.props.rootRef}
                                             selectedAreaId={this.props.selectedAreaId}
                                             selectedProjectId={this.props.selectedProjectId}
-                                            selectedTodoId={this.props.selectedTodoId} 
                                             todos={todos} 
                                             tags={this.props.tags} 
                                             areas={this.props.areas}
@@ -207,7 +187,7 @@ export class Next extends Component<NextProps, NextState>{
                                     </div>
                                 }
                             )  
-                        } 
+                        }   
                     </div>  
                 </div> 
     }
@@ -217,11 +197,9 @@ export class Next extends Component<NextProps, NextState>{
 
 interface ExpandableTodosListProps{
     dispatch:Function,   
-    searched:boolean, 
     selectedAreaId:string,
     selectedProjectId:string, 
     selectedTag:string, 
-    selectedTodoId:string, 
     areas:Area[],
     projects:Project[], 
     rootRef:HTMLElement, 
@@ -255,15 +233,13 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
         let showExpandButton = this.props.todos.length > expand; 
           
         return <div>          
-                <TodosList       
+                <TodosList        
                     dispatch={this.props.dispatch}     
                     selectedCategory={"next"} 
                     areas={this.props.areas}
-                    searched={this.props.searched} 
                     selectedAreaId={this.props.selectedAreaId}
                     selectedProjectId={this.props.selectedProjectId}
                     projects={this.props.projects}
-                    selectedTodoId={this.props.selectedTodoId} 
                     selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}
                     todos={this.props.todos.slice(0,idx)}  

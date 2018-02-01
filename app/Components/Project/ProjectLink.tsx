@@ -26,7 +26,8 @@ import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
 import { 
     uppercase, debounce, stringToLength, daysRemaining, 
-    daysLeftMark, chooseIcon, dateDiffInDays, assert, isProject, isArrayOfTodos, byNotDeleted, byCompleted, attachDispatchToProps  
+    daysLeftMark, chooseIcon, dateDiffInDays, assert, isProject, 
+    isArrayOfTodos, byNotDeleted, byCompleted, attachDispatchToProps  
 } from '../../utils'; 
 import { TodoInput, Checkbox, DueDate } from '../TodoInput/TodoInput';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
@@ -41,20 +42,23 @@ import Hide from 'material-ui/svg-icons/action/visibility-off';
 import Count from 'material-ui/svg-icons/editor/format-list-numbered';
 
 
-export let getProgressStatus = (project:Project, todos:Todo[]) : {done:number,left:number} => {
+export let getProgressStatus = (
+    project:Project, todos:Todo[], includeDeleted:boolean
+) : {done:number,left:number} => {  
+    
     let ids = project.layout.filter(isString);
-    let selected = filter( 
-        todos, 
-        allPass([ (todo) => contains(todo._id)(ids), byNotDeleted ]), 
-        "getProgressStatus" 
-    ); 
-      
+
+    let filters = includeDeleted ? 
+                  [(todo) => contains(todo._id)(ids)] :
+                  [(todo) => contains(todo._id)(ids), byNotDeleted];
+
+    let selected = filter(todos, allPass(filters), "getProgressStatus"); 
     let done : number = selected.filter(byCompleted).length;
     let left : number = selected.length - done; 
      
     assert(done>=0, `Done - negative value. getProgressStatus.`);
     assert(left>=0, `Left - negative value. getProgressStatus.`);
-    
+     
     return {done,left}; 
 }  
 
@@ -128,8 +132,8 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
     
     render(){ 
         let { dispatch,project,todos,selectedCategory,showMenu } = this.props;
-        let { done,left } = getProgressStatus(project, todos); 
-
+        let { done,left } = getProgressStatus(project, todos, false); 
+        
         return <li  
             onClick={this.openProject}    
             style={{width:"100%", overflow:"hidden"}}   
@@ -298,43 +302,82 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
  
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-interface ProjectLinkProps extends Store{
-    project:Project,
-    showMenu:boolean
-}
- 
-
-interface ProjectLinkState{
-    openMenu:boolean 
-}   
-
+interface ProjectLinkLogbookProps extends Store{ project:Project }
+interface ProjectLinkLogbookState{}   
 
 @connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
-export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
+export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, ProjectLinkLogbookState>{
+
+    constructor(props){ super(props) }
+
+    uncomplete = (e) => {
+        let {project} = this.props;
+        this.props.dispatch({type:"updateProject",load:{...project,completed:undefined}});
+    }
+
+    render(){ 
+        let { dispatch,project,todos,selectedCategory } = this.props;
+
+        return <li style={{width:"100%", overflow:"hidden"}}>      
+        <div   
+            id = {project._id}        
+            style={{    
+                height:"30px",   
+                paddingLeft:"6px", 
+                paddingRight:"6px",  
+                cursor:"default",
+                width:"100%",
+                display:"flex",  
+                alignItems:"center" 
+            }}
+        >     
+            <div style={{paddingLeft:"20px",display:"flex",alignItems:"center"}}>
+                <Checkbox  
+                    checked={!isNil(project.completed)}
+                    onClick={(e) => {
+                        if(!isNil(project.completed)){
+                            let type = "updateProject";
+                            this.props.dispatch({
+                                type:"updateProject", 
+                                load:{...project,completed:undefined}
+                            });
+                        }  
+                    }}
+                />
+                <div style={{paddingLeft:"5px"}}> 
+                    <DueDate
+                        date={null}
+                        selectedCategory={this.props.selectedCategory}
+                        category={this.props.selectedCategory}
+                        completed={project.completed}
+                    />
+                </div>
+            </div> 
+            <div   
+                id = {project._id}   
+                style={{   
+                    width:"80%", 
+                    overflowX:"hidden", 
+                    fontSize:"15px",    
+                    WebkitUserSelect:"none",
+                    fontWeight:"bolder", 
+                    color:"rgba(0, 0, 0, 0.8)" 
+                }}  
+            >    
+                { isEmpty(project.name) ? "New Project" : project.name } 
+            </div> 
+        </div>   
+        </li>  
+    }
+}
+
+
+
+interface ProjectLinkTrashProps extends Store{ project:Project }
+interface ProjectLinkTrashState{ openMenu:boolean }   
+
+@connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
+export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLinkTrashState>{
     actionsAnchor:HTMLElement;
 
     constructor(props){ 
@@ -352,52 +395,11 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
         dispatch({type:"updateProject", load:{...p,deleted:undefined}})
     }
 
-
-    onHideFrom = () => {
-        let {dispatch,project,todos,selectedCategory} = this.props;
-         
-        let hide = isNil(project.hide) ? [selectedCategory] : 
-                   contains(selectedCategory)(project.hide) ? project.hide :
-                   [...project.hide,selectedCategory]; 
- 
-        dispatch({type:"updateProject", load:{...project,hide}})
-        this.setState({openMenu:false}) 
-    }  
-
-
-    onShowOnlyOne = () => {
-        let {dispatch,project,todos,selectedCategory} = this.props;
-        
-        let expand = isNil(project.expand) ? 1 : 
-                     project.expand===3 ? 1 :
-                     3; 
-
-        dispatch({type:"updateProject", load:{...project,expand}})
-        this.setState({openMenu:false}) 
-    }
-
-
-    openProject =  (e) => {
-        let {dispatch,project,todos,selectedCategory} = this.props;
-        e.stopPropagation();  
-
-        if(not(isNil(project.deleted))){ return }
-        if(not(isNil(project.completed))){ return } 
-            
-        dispatch({type:"selectedCategory", load:"project"});
-        dispatch({type:"selectedProjectId", load:project._id});
-    }
-
-    
     render(){ 
-        let { dispatch,project,todos,selectedCategory,showMenu } = this.props;
-        let { done,left } = getProgressStatus(project, todos); 
+        let { dispatch,project,todos,selectedCategory} = this.props;
+        let { done, left } = getProgressStatus(project, todos, true); 
 
-        return <li  
-            onClick={this.openProject}    
-            style={{width:"100%", overflow:"hidden"}}   
-            className={"listHeading"}
-        >      
+        return <li style={{width:"100%", overflow:"hidden"}}>      
         <div   
             id = {project._id}        
             style={{    
@@ -410,6 +412,20 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                 alignItems:"center" 
             }}
         >     
+                <div       
+                    onClick={(e) => this.restoreProject(project)}  
+                    style={{ 
+                        display:"flex", 
+                        cursor:"pointer",
+                        alignItems:"center",
+                        height:"14px",
+                        paddingLeft:"20px",
+                        paddingRight:"5px"  
+                    }}  
+                >  
+                    <Restore style={{width:"20px", height:"20px"}}/> 
+                </div>  
+
                 <div style={{    
                     width:"18px",
                     height:"18px",
@@ -449,6 +465,7 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                         />     
                     </div>
                 </div> 
+
                 <div   
                     id = {project._id}   
                     style={{   
@@ -463,77 +480,7 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                 >    
                     { isEmpty(project.name) ? "New Project" : project.name } 
                 </div> 
-                {
-                    not(showMenu) ? null :
-                    <div   
-                        style={{
-                            width:"30px",  
-                            height:"30px",
-                            flexGrow:1 as number,
-                            paddingLeft:"5px",
-                            paddingRight:"10px",
-                            display:"flex", 
-                            justifyContent:"flex-end",
-                            cursor:"pointer"
-                        }} 
-                    > 
-                        <div 
-                            ref={ (e) => { this.actionsAnchor=e; } }
-                            onClick = {(e) => { 
-                                e.stopPropagation();
-                                this.setState({openMenu:true}); 
-                            }}  
-                        >   
-                            <ThreeDots style={{color:"dimgray",width:"30px",height:"30px",cursor:"pointer"}}/>
-                        </div> 
-                    </div>  
-                }
-            </div>   
+            </div>    
         </li>  
     }
 }
-
-
-/*
-{ 
-isNil(project.deleted) ? null : 
-<div       
-onClick={(e) => this.restoreProject(project)}  
-style={{ 
-display:"flex", 
-cursor:"pointer",
-alignItems:"center",
-height:"14px",
-paddingLeft:"20px",
-paddingRight:"5px"  
-}} 
->  
-<Restore style={{width:"20px", height:"20px"}}/> 
-</div>  
-} 
-*/
-
-/*
-<div style={{paddingLeft:"20px",display:"flex",alignItems:"center"}}>
-<Checkbox  
-checked={!isNil(project.completed)}
-onClick={(e) => {
-if(!isNil(project.completed)){
-let type = "updateProject";
-this.props.dispatch({
-type:"updateProject", 
-load:{...project,completed:undefined}
-});
-}  
-}}
-/>
-<div>
-<DueDate
-date={null}
-selectedCategory={this.props.selectedCategory}
-category={this.props.selectedCategory}
-completed={project.completed}
-/>
-</div>
-</div> 
-*/

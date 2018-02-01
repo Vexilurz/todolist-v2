@@ -115,13 +115,11 @@ class ThisEveningSeparator extends Component<{},{}>{
 interface TodayProps{  
     dispatch:Function,
     showCalendarEvents:boolean,  
-    selectedTodoId:string,
     selectedProjectId:string, 
     selectedAreaId:string, 
     selectedCategory:string,  
     areas:Area[],
     calendars:Calendar[],  
-    searched:boolean, 
     projects:Project[],
     selectedTag:string,
     rootRef:HTMLElement,
@@ -262,9 +260,7 @@ export class Today extends Component<TodayProps,TodayState>{
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos}
                     selectedCategory={this.props.selectedCategory as Category} 
-                    selectedTodoId={this.props.selectedTodoId}
                     tags={this.props.tags} 
-                    searched={this.props.searched}
                     rootRef={this.props.rootRef}  
                     todo={todo}
                 />      
@@ -421,10 +417,8 @@ export class Today extends Component<TodayProps,TodayState>{
                         todos={this.props.todos}
                         selectedCategory={"today"} 
                         projects={this.props.projects} 
-                        selectedTodoId={this.props.selectedTodoId}
                         tags={this.props.tags} 
                         rootRef={this.props.rootRef}  
-                        searched={this.props.searched} 
                         todo={empty}
                         creation={true}
                     />   

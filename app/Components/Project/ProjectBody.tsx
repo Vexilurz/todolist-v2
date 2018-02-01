@@ -47,14 +47,12 @@ interface ProjectBodyProps{
     moveHeading:(heading_id:string) => void,  
     removeHeading:(heading_id:string) => void,
     todos:Todo[], 
-    searched:boolean,
     selectedTag:string,
     areas:Area[],
     dragged:string, 
     projects:Project[], 
     selectedProjectId:string,
     selectedAreaId:string,  
-    selectedTodoId:string, 
     tags:string[], 
     rootRef:HTMLElement,
     dispatch:Function
@@ -95,9 +93,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                             selectedProjectId={this.props.selectedProjectId}
                             selectedAreaId={this.props.selectedAreaId} 
                             todos={this.props.todos}
-                            searched={this.props.searched}
                             tags={this.props.tags} 
-                            selectedTodoId={this.props.selectedTodoId} 
                             selectedCategory={"project"}
                             rootRef={this.props.rootRef}  
                             todo={value as Todo}
@@ -295,14 +291,12 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 <TodoInput    
                     id={empty._id}
                     key={"project-todo-creation-form"} 
-                    dispatch={this.props.dispatch}    
-                    searched={this.props.searched}
+                    dispatch={this.props.dispatch} 
                     projects={this.props.projects} 
                     selectedProjectId={this.props.selectedProjectId} 
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos}
                     selectedCategory={"project"}   
-                    selectedTodoId={this.props.selectedTodoId} 
                     tags={this.props.tags}  
                     rootRef={this.props.rootRef}  
                     todo={empty}

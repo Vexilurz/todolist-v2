@@ -314,10 +314,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     return <Inbox 
                                         todos={filter(todos, allPass(inboxFilters), "Inbox")} 
                                         dispatch={this.props.dispatch}
-                                        selectedTodoId={this.props.selectedTodoId}
                                         selectedCategory={this.props.selectedCategory}
                                         selectedTag={this.props.selectedTag} 
-                                        searched={this.props.searched}
                                         selectedProjectId={this.props.selectedProjectId}
                                         selectedAreaId={this.props.selectedAreaId} 
                                         rootRef={this.rootRef}
@@ -340,8 +338,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     return <Today  
                                         todos={filter(todos, allPass(todayFilters), "Today")}
                                         dispatch={this.props.dispatch}
-                                        selectedTodoId={this.props.selectedTodoId}
-                                        searched={this.props.searched}
                                         selectedProjectId={this.props.selectedProjectId}
                                         selectedAreaId={this.props.selectedAreaId} 
                                         selectedCategory={this.props.selectedCategory}
@@ -363,10 +359,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         todos={filter(todos, byDeleted, "Trash")}  
                                         dispatch={this.props.dispatch} 
                                         tags={this.props.tags}
-                                        searched={this.props.searched}
                                         selectedCategory={this.props.selectedCategory}
-                                        selectedTag={this.props.selectedTag}
-                                        selectedTodoId={this.props.selectedTodoId}  
+                                        selectedTag={this.props.selectedTag} 
                                         showTrashPopup={this.props.showTrashPopup}
                                         selectedProjectId={this.props.selectedProjectId}
                                         selectedAreaId={this.props.selectedAreaId} 
@@ -385,9 +379,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     return <Logbook   
                                         todos={filter(todos, allPass(logbookFilters), "Logbook")} 
                                         dispatch={this.props.dispatch}
-                                        selectedTodoId={this.props.selectedTodoId}
                                         selectedCategory={this.props.selectedCategory} 
-                                        searched={this.props.searched}
                                         selectedAreaId={this.props.selectedAreaId} 
                                         selectedProjectId={this.props.selectedProjectId}
                                         areas={this.props.areas}
@@ -413,8 +405,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         dispatch={this.props.dispatch}
                                         selectedProjectId={this.props.selectedProjectId}
                                         selectedAreaId={this.props.selectedAreaId} 
-                                        searched={this.props.searched}
-                                        selectedTodoId={this.props.selectedTodoId}
                                         selectedCategory={this.props.selectedCategory}
                                         selectedTag={this.props.selectedTag}
                                         rootRef={this.rootRef}
@@ -439,8 +429,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     return <Next   
                                         todos={filter(todos, allPass(nextFilters), "Next")}
                                         dispatch={this.props.dispatch}
-                                        selectedTodoId={this.props.selectedTodoId} 
-                                        searched={this.props.searched}
                                         selectedCategory={this.props.selectedCategory}
                                         selectedTag={this.props.selectedTag}
                                         rootRef={this.rootRef}
@@ -466,9 +454,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     return <Upcoming  
                                         todos={filter(todos, allPass(upcomingFilters), "Upcoming")}
                                         dispatch={this.props.dispatch}
-                                        selectedTodoId={this.props.selectedTodoId}
                                         selectedCategory={this.props.selectedCategory}
-                                        searched={this.props.searched}
                                         areas={this.props.areas}
                                         selectedAreaId={this.props.selectedAreaId}
                                         selectedProjectId={this.props.selectedProjectId}
@@ -496,9 +482,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         dispatch={this.props.dispatch} 
                                         selectedTag={this.props.selectedTag}  
                                         selectedCategory={this.props.selectedCategory}
-                                        searched={this.props.searched}
                                         selectedProjectId={this.props.selectedProjectId}
-                                        selectedTodoId={this.props.selectedTodoId}  
                                         dragged={this.props.dragged} 
                                         showScheduled={this.props.showScheduled}
                                         showCompleted={this.props.showCompleted}
@@ -529,12 +513,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         areas={this.props.areas}
                                         selectedCategory={this.props.selectedCategory}
                                         selectedAreaId={this.props.selectedAreaId}
-                                        searched={this.props.searched}
                                         selectedTag={this.props.selectedTag}
                                         dispatch={this.props.dispatch}      
                                         selectedProjectId={this.props.selectedProjectId}
                                         projects={this.props.projects} 
-                                        selectedTodoId={this.props.selectedTodoId} 
                                         tags={this.props.tags}
                                         rootRef={this.rootRef}
                                     /> 

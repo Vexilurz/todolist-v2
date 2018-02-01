@@ -20,11 +20,9 @@ import { Category } from '../MainContainer';
  
 interface InboxProps{ 
     dispatch:Function,
-    selectedTodoId:string, 
     selectedProjectId:string, 
     selectedAreaId:string,  
     selectedTag:string,
-    searched:boolean, 
     selectedCategory:Category, 
     areas:Area[],
     projects:Project[],  
@@ -80,13 +78,11 @@ export class Inbox extends Component<InboxProps, InboxState>{
                  <TodoInput    
                     id={empty._id} 
                     key={"inbox-todo-creation-form"}  
-                    searched={this.props.searched}
                     dispatch={this.props.dispatch}  
                     selectedCategory={this.props.selectedCategory} 
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos} 
-                    selectedTodoId={this.props.selectedTodoId}
                     tags={this.props.tags} 
                     projects={this.props.projects}
                     rootRef={this.props.rootRef}  
@@ -96,10 +92,8 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 <TodosList          
                     selectedAreaId={this.props.selectedAreaId}
                     selectedProjectId={this.props.selectedProjectId}
-                    searched={this.props.searched}
                     areas={this.props.areas}
                     projects={this.props.projects}  
-                    selectedTodoId={this.props.selectedTodoId} 
                     dispatch={this.props.dispatch}     
                     selectedCategory={this.props.selectedCategory} 
                     selectedTag={this.props.selectedTag}  

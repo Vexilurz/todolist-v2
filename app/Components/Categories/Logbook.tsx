@@ -17,18 +17,16 @@ import {
 import { allPass, compose, or, assoc } from 'ramda';
 import { isDev } from '../../app';
 import { TodoInput } from '../TodoInput/TodoInput';
-import { ProjectLink } from '../Project/ProjectLink';
+import { ProjectLink, ProjectLinkLogbook } from '../Project/ProjectLink';
 import { Category, filter } from '../MainContainer';
      
 
 interface LogbookProps{
     dispatch:Function,
     todos:Todo[],
-    searched:boolean, 
     selectedAreaId:string,
     selectedProjectId:string, 
-    selectedCategory:string,   
-    selectedTodoId:string, 
+    selectedCategory:string,  
     projects:Project[],
     areas:Area[],  
     selectedTag:string,
@@ -152,15 +150,9 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                           style={{position:"relative", marginTop:"5px", marginBottom:"5px"}}
                         > 
                             {
-                                value.type==="project" ? null
-                                /*<ProjectLink 
-                                    dispatch={this.props.dispatch}
-                                    index={index}
-                                    selectedCategory={this.props.selectedCategory as Category}
-                                    project={value as Project}
-                                    todos={this.props.todos}
-                                />*/ 
-                                :
+                                value.type==="project" ? 
+                                <ProjectLinkLogbook { ...{project:value} as any }/>
+                                : 
                                 value.type==="todo" ?
                                 <TodoInput     
                                     id={value._id}
@@ -171,9 +163,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                                     selectedAreaId={this.props.selectedAreaId} 
                                     todos={this.props.todos} 
                                     selectedCategory={"logbook"} 
-                                    selectedTodoId={this.props.selectedTodoId}
                                     tags={this.props.tags} 
-                                    searched={this.props.searched}
                                     rootRef={this.props.rootRef}  
                                     todo={value as Todo}
                                 />    
@@ -186,7 +176,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
             </div>      
         </div> 
     }
-  
+    
 
     render(){  
  

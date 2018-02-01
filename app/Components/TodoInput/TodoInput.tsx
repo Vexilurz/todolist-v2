@@ -84,8 +84,6 @@ export interface TodoInputState{
 export interface TodoInputProps{ 
     dispatch : Function,  
     selectedCategory : Category,
-    selectedTodoId : string, 
-    searched : boolean, 
     tags : string[],  
     selectedProjectId:string,
     selectedAreaId:string,
@@ -156,20 +154,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }
 
     componentDidMount(){  
-
         let click = Observable.fromEvent(window,"click").subscribe(this.onOutsideClick); 
-
         this.subscriptions.push(click);
-
-        if(this.props.selectedTodoId===this.props.todo._id){ this.select() }
     }          
  
- 
-    select = () => {
-        if(this.props.searched){ this.scrollTo() }
-        this.setState({open:true})     
-    }
-     
 
     componentDidUpdate(prevProps:TodoInputProps,prevState:TodoInputState){
         let { title, open } = this.state; 
@@ -214,11 +202,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
               this.addTodo();
               this.resetCreationForm(); 
            }else if(this.state.open){
-              this.updateTodo();
-              this.setState(
-                  {open:false}, 
-                  () => this.props.dispatch({type:"selectedTodoId", load:null})
-              ); 
+              this.setState({open:false}, () => this.updateTodo()); 
            }   
         }   
     }        
@@ -237,18 +221,15 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         let inside = insideTargetArea(rootRef,this.ref,x,y);
      
-        if(!inside){   
-            if(creation){
-                this.addTodo();
-            }else{
-                this.updateTodo();
-            } 
-
-            this.setState(
-                {open:false}, 
-                () => dispatch({type:"selectedTodoId", load:null})
-            ); 
-        }  
+        if(!inside){  
+            this.setState({open:false}, () => {
+                if(creation){
+                    this.addTodo();
+                }else{
+                    this.updateTodo();
+                } 
+            }); 
+        }   
     }    
     
        
@@ -360,21 +341,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            requestAnimationFrame(() => this.animateScroll(elem,inc,to)); 
         }
     }
- 
-    
-    scrollTo = () => { 
-
-        if(this.ref){  
-           let rootRef = document.getElementById("maincontainer");
-
-           let rect = this.ref.getBoundingClientRect(); 
-  
-              
-           rootRef.scrollTop = rootRef.scrollTop + rect.top - rect.height/2;  
-        }      
-            
-        this.props.dispatch({type:"searched", load:false}); 
-    }   
      
 
     enableDragOfThisItem = () => {
@@ -446,7 +412,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             let { checked, open } = this.state;
             let shouldAnimateSlideAway = not(checked) && 
                                          selectedCategory!=="logbook" &&  
-                                         selectedCategory!=="trash"; 
+                                         selectedCategory!=="trash" &&
+                                         selectedCategory!=="search"; 
             
             if(not(creation)){
 

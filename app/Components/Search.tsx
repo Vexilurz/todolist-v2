@@ -50,7 +50,7 @@ import {
 import { Todo, removeTodo, updateTodo, generateId, ObjectType, Area, Project, Heading } from '../database';
 import { Store, isDev } from '../app'; 
 import { ChecklistItem } from './TodoInput/TodoChecklist';
-import { allPass, isNil, not, isEmpty, contains, flatten, uniqBy, prop } from 'ramda';
+import { allPass, isNil, not, isEmpty, contains, flatten, prop } from 'ramda';
 import { Category, filter } from './MainContainer';
 import { ProjectLink, getProgressStatus } from './Project/ProjectLink';
 import { Observable } from 'rxjs/Rx';
@@ -58,75 +58,12 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import PieChart from 'react-minimal-pie-chart';
- 
-   
-let getTodoLink = (
-    todo:Todo, project:Project, index:number, dispatch:Function
-) : JSX.Element => {  
- 
-     let onTodoLinkClick = (e) => { 
-         e.stopPropagation();
-         dispatch({type:"selectedTag", load:"All"});
-
-         dispatch({type:"selectedTodoId", load:todo._id});
-         dispatch({type:"searched", load:true}); 
-         dispatch({type:"updateTodo", load:{...todo}}); 
-         
-         if(!isNil(todo.deleted)){
-            dispatch({type:"selectedCategory", load:"trash"});
-         }else if(!isNil(todo.completed)){   
-            dispatch({type:"selectedCategory", load:"logbook"});
-         }else if(!isNil(project)){
-            dispatch({type:"selectedProjectId", load:project._id});
-            dispatch({type:"selectedCategory", load:"project"});
-         }else{
-            dispatch({type:"selectedCategory", load:todo.category});
-         }
-     }  
-    
-     return <div 
-        key={`${todo._id}-${index}`} 
-        style={{position:"relative", paddingTop:"2px", paddingBottom:"2px"}}
-     >  
-        <div   
-            className="leftpanelmenuitem" 
-            onClick = {onTodoLinkClick}    
-            id = {todo._id}       
-            style={{      
-                overflowX:"hidden",
-                padding:"6px",
-                position:"relative",
-                width:"100%", 
-                height:"25px",
-                display:"flex", 
-                alignItems:"center"
-            }}    
-        >             
-            <div style={{display:"flex", alignItems:"center"}}> 
-                {chooseIcon({width:"20px", height:"20px"}, todo.group ? "group" : todo.category)}
-            </div>   
-            <div       
-                id={todo._id}   
-                style={{  
-                    fontSize: "15px",
-                    cursor: "default", 
-                    paddingLeft: "5px",
-                    WebkitUserSelect: "none",
-                    fontWeight: "bolder",
-                    color: "rgba(0, 0, 0, 0.8)"
-                }}  
-            >  
-                {todo.title} 
-            </div>    
-        </div> 
-    </div>   
-}  
-
+import { TodoInput } from './TodoInput/TodoInput';
 
 
 let getProjectHeading = (project:Project, todos:Todo[]) : JSX.Element => {
 
-    let {done, left} = getProgressStatus(project, todos);
+    let {done, left} = getProgressStatus(project, todos, false);
     
     return <div   
         id = {project._id}        
@@ -287,9 +224,10 @@ interface SearchState{ limit:number }
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)
 export class Search extends Component<SearchProps,SearchState>{ 
-
+    limitReached:boolean 
     constructor(props){
         super(props);
+        this.limitReached = false; 
         this.state = {limit:20};
     }   
 
@@ -313,11 +251,18 @@ export class Search extends Component<SearchProps,SearchState>{
 
 
     componentWillReceiveProps(nextProps:SearchProps){
-        if(nextProps.searchQuery!==this.props.searchQuery){  
-           this.setState({limit:20}, () => this.scrollTop()) 
+        if(
+            nextProps.todos!==this.props.todos ||
+            nextProps.projects!==this.props.projects
+        ){  
+           this.limitReached = false;  
+           this.setState({limit:20});  
+        }else if(nextProps.searchQuery!==this.props.searchQuery){
+           this.limitReached = false;  
+           this.setState({limit:20}, () => this.scrollTop()); 
         }
     }
-    
+     
 
     limitGroups = (n:number, todos:Todo[]) : Todo[] => {
         let table = {};
@@ -368,10 +313,14 @@ export class Search extends Component<SearchProps,SearchState>{
         let table = {};
         let detached = [];
         let attached = []; 
+        let limitReached = true;
 
         for(let i=0; i<limitGroups.length; i++){
 
-            if( (attached.length + detached.length) > this.state.limit ){ break }
+            if( (attached.length + detached.length) > this.state.limit ){ 
+                limitReached = false;
+                break 
+            }
         
             let todo = limitGroups[i];
             let keywords = todoToKeywords(todo);
@@ -394,15 +343,15 @@ export class Search extends Component<SearchProps,SearchState>{
                    
                    break
                 } 
-
             }
         }
 
-        return {
-            attached : projects
-                       .map((project:Project) => ({ project, todos:table[project._id] }))
-                       .filter(({project,todos}) => isNil(todos) ? false : !isEmpty(todos)),
-
+        this.limitReached = limitReached;
+         
+        return {    
+            attached:projects
+                     .map((project:Project) => ({project, todos:table[project._id]}))
+                     .filter(({project,todos}) => isNil(todos) ? false : !isEmpty(todos)),
             detached  
         } 
     }   
@@ -420,12 +369,24 @@ export class Search extends Component<SearchProps,SearchState>{
             <div>{getProjectHeading(project,attachedTodos)}</div>
             <div>
             {
-                uniqBy(prop("_id"))(projectWithTodos.todos)
+                projectWithTodos.todos
                 .map(
                     (todo:Todo,index:number) : JSX.Element => 
-                        <div key={`searched-todo-${index}`}>
-                            {getTodoLink(todo, project, index, dispatch)}
-                        </div> 
+                        <div key={`todo-${index}`}>
+                            <TodoInput        
+                                id={todo._id} 
+                                key={todo._id} 
+                                projects={this.props.projects}  
+                                dispatch={this.props.dispatch}  
+                                selectedProjectId={this.props.selectedProjectId}
+                                selectedAreaId={this.props.selectedAreaId} 
+                                todos={this.props.todos}
+                                selectedCategory={this.props.selectedCategory} 
+                                tags={this.props.tags} 
+                                rootRef={document.getElementById("maincontainer")}  
+                                todo={todo}
+                            />   
+                        </div>  
                 )
             } 
             </div>
@@ -433,9 +394,10 @@ export class Search extends Component<SearchProps,SearchState>{
     } 
 
 
-    onEnter = ({ previousPosition, currentPosition }) => this.setState({limit:this.state.limit + 20})
+    onEnter = ({ previousPosition, currentPosition }) => 
+                 this.limitReached ? null : this.setState({limit:this.state.limit + 20})
  
-
+ 
     render(){ 
         let {projects, todos, areas, dispatch} = this.props;
 
@@ -491,17 +453,27 @@ export class Search extends Component<SearchProps,SearchState>{
  
             <div style={{paddingTop:"20px"}}>
             {
-                uniqBy(prop("_id"))(suggestions.detached)
-                .map(
+                suggestions.detached
+                .map( 
                     (todo:Todo,index:number) : JSX.Element => 
                         <div key={`detached-${index}`}>
-                            {getTodoLink(todo, undefined, index, dispatch)}
+                            <TodoInput         
+                                id={todo._id} 
+                                key={todo._id} 
+                                projects={this.props.projects}  
+                                dispatch={this.props.dispatch}  
+                                selectedProjectId={this.props.selectedProjectId}
+                                selectedAreaId={this.props.selectedAreaId} 
+                                todos={this.props.todos}  
+                                selectedCategory={this.props.selectedCategory} 
+                                tags={this.props.tags} 
+                                rootRef={document.getElementById("maincontainer")}  
+                                todo={todo}
+                            />   
                         </div> 
-                ) 
+                )   
             }
             </div>
-            
-
             <div style={{width:"100%", height:"1px"}}> 
                 <Waypoint  
                     onEnter={this.onEnter} 

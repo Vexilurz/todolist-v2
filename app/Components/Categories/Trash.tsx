@@ -10,8 +10,10 @@ import { Transition } from 'react-transition-group';
 import { TodosList } from '../../Components/TodosList';
 import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '../ContainerHeader';
-import { byTags, chooseIcon, insideTargetArea, getTagsFromItems, byDeleted, Item, attachDispatchToProps } from '../../utils';
-import { getAreaLink } from '../Area/AreaLink';
+import { 
+    byTags, chooseIcon, insideTargetArea, 
+    getTagsFromItems, byDeleted, Item, attachDispatchToProps 
+} from '../../utils';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
@@ -20,7 +22,8 @@ import { isString } from 'util';
 import { Category, filter } from '../MainContainer';
 import { SimplePopup } from '../SimplePopup';
 import { Store } from '../../app';
-import { ProjectLink } from '../Project/ProjectLink';
+import { ProjectLinkTrash } from '../Project/ProjectLink';
+import { AreaTrashLink } from '../Area/AreaLink';
 
  
 
@@ -31,8 +34,6 @@ interface TrashProps{
     tags:string[],
     selectedProjectId:string,
     selectedAreaId:string, 
-    searched:boolean, 
-    selectedTodoId:string,  
     selectedTag:string,
     todos:Todo[],
     projects:Project[],
@@ -42,60 +43,32 @@ interface TrashProps{
  
 interface TrashState{}
  
-export class Trash extends Component<TrashProps,TrashState>{
+export class Trash extends Component<TrashProps,TrashState>{ 
      
-
-    constructor(props){
-        super(props);
-    }  
-
+    constructor(props){ super(props) }  
 
     getDeletedProjectElement = (value:Project, index:number) : JSX.Element => {
         return <div 
             key={`deletedProject-${index}`}  
-            style={{
-               position:"relative", 
-               display:"flex", 
-               alignItems:"center"
-            }}
+            style={{position:"relative",display:"flex",alignItems:"center"}}
         >   
             <div style={{width:"100%"}}>
-                {/*<ProjectLink
-                    dispatch={this.props.dispatch}
-                    index={index}
-                    selectedCategory={this.props.selectedCategory as Category}
-                    project={value}
-                    todos={this.props.todos}
-                />*/}   
+                <ProjectLinkTrash { ...{project:value} as any }/>  
             </div>   
         </div>    
     }
    
-
     getDeletedAreaElement = (value:Area, index:number) : JSX.Element => { 
         return <div 
             key={`deletedArea-${index}`} 
-            style={{
-                position:"relative", 
-                display:"flex", 
-                alignItems:"center"
-            }}
-        >  
+            style={{position:"relative",display:"flex",alignItems:"center"}}
+        >   
             <div style={{width:"100%"}}>
-                { 
-                    getAreaLink(
-                      value, 
-                      this.props.todos, 
-                      this.props.projects, 
-                      index, 
-                      this.props.dispatch
-                    ) 
-                }
+                <AreaTrashLink {...{area:value} as any}/>
             </div>  
-        </div>   
+        </div>    
     } 
  
-
     getDeletedTodoElement = (value:Todo, index:number) : JSX.Element => {  
          return <div 
             key={`deletedTodo-${index}`} 
@@ -111,38 +84,24 @@ export class Trash extends Component<TrashProps,TrashState>{
                     key = {value._id} 
                     projects={this.props.projects}   
                     selectedCategory={this.props.selectedCategory}
-                    selectedTodoId={this.props.selectedTodoId} 
                     dispatch={this.props.dispatch}   
                     tags={this.props.tags} 
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos} 
-                    searched={this.props.searched}
                     rootRef={this.props.rootRef} 
                     todo={value}
                 />   
             </div>   
-        </div>  
+        </div>   
     }    
         
-
-    onEmptyTrash = () => {
-        this.props.dispatch({type:"showTrashPopup", load:true});
-    }
+    onEmptyTrash = () => this.props.dispatch({type:"showTrashPopup", load:true})
      
-    
     render(){  
         let {
-            todos,  
-            projects, 
-            areas,
-            selectedProjectId,
-            searched, 
-            dispatch,
-            selectedTodoId, 
-            selectedAreaId,
-            selectedTag, 
-            rootRef 
+            todos, projects, areas, selectedProjectId,
+            dispatch, selectedAreaId, selectedTag, rootRef 
         } = this.props;   
  
         let filters = [byDeleted,byTags(selectedTag)]; 
@@ -220,9 +179,7 @@ export class Trash extends Component<TrashProps,TrashState>{
                                 selectedAreaId={selectedAreaId} 
                                 todos={this.props.todos}
                                 selectedCategory={"trash"} 
-                                selectedTodoId={selectedTodoId}
                                 tags={tags} 
-                                searched={searched}
                                 rootRef={rootRef}  
                                 todo={value}
                             />     

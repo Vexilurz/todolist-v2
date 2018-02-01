@@ -50,12 +50,10 @@ interface AreaBodyProps{
     area:Area, 
     areas:Area[], 
     projects:Project[],
-    selectedTodoId:string, 
     selectedAreaId:string,
     selectedProjectId:string, 
     todos:Todo[],
-    tags:string[],
-    searched:boolean, 
+    tags:string[], 
     selectedCategory:Category, 
     selectedTag:string, 
     rootRef:HTMLElement,
@@ -108,12 +106,10 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 todos={this.props.todos}
                 index={index}
                 dispatch={this.props.dispatch}
-                searched={this.props.searched}
                 selectedTag={this.props.selectedTag}
                 rootRef={this.props.rootRef}
                 selectedAreaId={this.props.selectedAreaId}
                 selectedProjectId={this.props.selectedProjectId}
-                selectedTodoId={this.props.selectedTodoId}
                 selectedCategory={this.props.selectedCategory}
                 tags={this.props.tags}  
                 areas={this.props.areas} 
@@ -143,13 +139,11 @@ interface ProjectElementProps{
     index:number,
     todos:Todo[],
     dispatch:Function,
-    searched:boolean,  
     selectedTag:string, 
     rootRef:HTMLElement,  
     selectedCategory:Category,
     selectedAreaId:string,  
-    selectedProjectId:string,  
-    selectedTodoId:string,  
+    selectedProjectId:string, 
     tags:string[],  
     areas:Area[],  
     projects:Project[]   
@@ -168,8 +162,8 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
     render(){
 
         let {
-            project, todos, index, dispatch, searched, selectedTag, 
-            rootRef, selectedAreaId, selectedProjectId, selectedTodoId,  
+            project, todos, index, dispatch, selectedTag, 
+            rootRef, selectedAreaId, selectedProjectId, 
             selectedCategory, tags, areas, projects,
         } = this.props;
 
@@ -186,12 +180,10 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     <ProjectLink {...{project,showMenu:true} as any}/>  
                     <ExpandableTodosList
                         dispatch={dispatch}   
-                        searched={this.props.searched}
                         selectedTag={this.props.selectedTag}  
                         rootRef={this.props.rootRef} 
                         selectedAreaId={this.props.selectedAreaId}
                         selectedProjectId={this.props.selectedProjectId}
-                        selectedTodoId={this.props.selectedTodoId} 
                         todos={selected} 
                         project={project}  
                         tags={this.props.tags}  

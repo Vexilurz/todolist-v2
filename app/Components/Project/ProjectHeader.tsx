@@ -31,13 +31,14 @@ import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import { DeadlineCalendar } from '../ThingsCalendar'; 
-import { isNil, compose, allPass, isEmpty } from 'ramda';
+import { isNil, compose, allPass, isEmpty, not } from 'ramda';
 import { Tags } from '../Tags';
 import { TagsPopup } from '../TodoInput/TodoTags';
 let moment = require("moment");  
 
 
 interface ProjectHeaderProps{
+    project:Project,
     rootRef:HTMLElement, 
     name:string, 
     selectedTag:string,
@@ -142,27 +143,25 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
     };   
  
     render(){ 
-        let {todos} = this.props;
+        let {todos,project,rootRef} = this.props;
+        let {projectMenuPopoverAnchor,showDeadlineCalendar,showTagsPopup} = this.state; 
         let {done,left} = this.props.progress; 
         let tags = getTagsFromItems(todos); 
           
         return <div>  
             <ProjectMenuPopover 
-                {
-                 ...{
-                        anchorEl:this.state.projectMenuPopoverAnchor,
-                        rootRef:this.props.rootRef,   
-                        openDeadlineCalendar:() => {
-                            this.setState({showDeadlineCalendar:true}) 
-                        },    
-                        openTagsPopup:() => { 
-                            this.setState({showTagsPopup:true}) 
-                        }    
-                    } as any  
-                }     
-            />   
+            {
+                ...{
+                    project,   
+                    anchorEl:projectMenuPopoverAnchor,
+                    rootRef,   
+                    openDeadlineCalendar:() => this.setState({showDeadlineCalendar:true}),    
+                    openTagsPopup:() => this.setState({showTagsPopup:true}) 
+                } as any  
+            }     
+            />    
             {      
-                !this.state.showDeadlineCalendar ? null : 
+                not(showDeadlineCalendar) ? null : 
                 <DeadlineCalendar  
                     close = {this.closeDeadlineCalendar}
                     onDayClick = {this.onDeadlineCalendarDayClick} 
@@ -175,7 +174,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                 /> 
             } 
             {
-                !this.state.showTagsPopup ? null : 
+                not(showTagsPopup) ? null : 
                 <TagsPopup    
                     tags = {this.props.tags} 
                     attachTag = {this.props.attachTagToProject} 

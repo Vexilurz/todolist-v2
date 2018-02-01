@@ -173,7 +173,9 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         let inbox = filter(todos, allPass(this.inboxFilters), "inbox");
         let today = filter(todos, allPass(this.todayFilters), "today");
         let hot = filter(today, allPass(this.hotFilters), "hot"); 
-
+        let trash = filter(todos, allPass([byDeleted]), "trash");  
+        let logbook = filter(todos, allPass([byCompleted, byNotDeleted]), "logbook"); 
+         
         let ids = flatten([
             areas.map((a) => a.attachedTodosIds),
             projects.map((p) => p.layout.filter(isString) as string[]) 
@@ -219,8 +221,8 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                     inbox={inbox.length} 
                     today={today.length} 
                     hot={hot.length} 
-                    trash={0}
-                    logbook={0} 
+                    trash={trash.length}
+                    logbook={logbook.length} 
                 />   
                 <AreasList   
                     leftPanelWidth={this.props.leftPanelWidth}

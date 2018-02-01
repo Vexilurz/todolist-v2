@@ -54,11 +54,9 @@ interface ProjectComponentProps{
     selectedTag:string, 
     dragged:string, 
     areas:Area[], 
-    searched:boolean, 
     selectedCategory:string, 
     selectedProjectId:string, 
     selectedAreaId:string, 
-    selectedTodoId:string, 
     showScheduled:boolean,
     showCompleted:boolean,
     tags:string[],
@@ -224,11 +222,12 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         true 
         );
       
-        let progress = getProgressStatus(project, todos);
+        let progress = getProgressStatus(project, todos, false);
 
         return <div>      
                     <div className="unselectable">     
                         <ProjectHeader 
+                            project={project}
                             rootRef={this.props.rootRef}
                             name={project.name} 
                             attachTagToProject={this.attachTagToProject}
@@ -260,8 +259,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             selectedProjectId={this.props.selectedProjectId}
                             selectedAreaId={this.props.selectedAreaId}  
                             projects={this.props.projects}
-                            selectedTodoId={this.props.selectedTodoId} 
-                            searched={this.props.searched}
                             todos={toProjectBody as Todo[]}  
                             tags={this.props.tags}
                             rootRef={this.props.rootRef}

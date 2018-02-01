@@ -97,14 +97,6 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                     showScheduled:action.load 
                 }; 
                 break; 
-
-
-           case "searched": 
-                newState = {
-                    ...state, 
-                    searched:action.load 
-                }; 
-                break; 
              
                 
             case "dragged": 
@@ -197,14 +189,6 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                };  
                break;
 
-   
-           case "selectedTodoId":
-               newState = {
-                   ...state,
-                   selectedTodoId : action.load,
-               }; 
-               break;
-   
    
            case "closeAllItems":
                newState = {

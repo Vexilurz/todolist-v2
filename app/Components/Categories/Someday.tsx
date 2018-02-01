@@ -46,9 +46,7 @@ interface SomedayProps{
     selectedCategory:Category, 
     selectedProjectId:string, 
     selectedAreaId:string, 
-    selectedTodoId:string,
     selectedTag:string,
-    searched:boolean, 
     rootRef:HTMLElement,
     todos:Todo[],
     areas:Area[],   
@@ -103,12 +101,10 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         id={empty._id} 
                         key={"someday-todo-creation-form"} 
                         dispatch={this.props.dispatch}  
-                        selectedCategory={selectedCategory}     
-                        searched={this.props.searched}
+                        selectedCategory={selectedCategory}    
                         selectedProjectId={this.props.selectedProjectId}
                         selectedAreaId={this.props.selectedAreaId} 
                         todos={this.props.todos} 
-                        selectedTodoId={this.props.selectedTodoId}
                         tags={this.props.tags} 
                         projects={this.props.projects}  
                         rootRef={this.props.rootRef}  
@@ -118,12 +114,10 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                     {
                         isEmpty(table.detached) ? null :
                         <TodosList      
-                            searched={this.props.searched}
                             areas={this.props.areas}
                             selectedAreaId={this.props.selectedAreaId}
                             selectedProjectId={this.props.selectedProjectId}
                             projects={this.props.projects}
-                            selectedTodoId={this.props.selectedTodoId}  
                             dispatch={this.props.dispatch}   
                             selectedCategory={selectedCategory}  
                             selectedTag={this.props.selectedTag}  
@@ -147,10 +141,8 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                             <ExpandableTodosList
                                 dispatch={this.props.dispatch}   
                                 selectedTag={this.props.selectedTag} 
-                                searched={this.props.searched}
                                 selectedAreaId={this.props.selectedAreaId}
                                 selectedProjectId={this.props.selectedProjectId}
-                                selectedTodoId={this.props.selectedTodoId} 
                                 rootRef={this.props.rootRef}
                                 todos={todos} 
                                 tags={this.props.tags}

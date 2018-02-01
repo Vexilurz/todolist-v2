@@ -542,9 +542,9 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
     render(){
         let {project, selectedProjectId, selectedCategory, todos} = this.props;
         let selected = project._id===selectedProjectId && selectedCategory==="project";
-        let {done, left} = getProgressStatus(project, todos);
+        let {done, left} = getProgressStatus(project, todos, false);
 
-        return <li  
+        return <li   
             style={{WebkitUserSelect:"none",width:"100%"}}  
             key={this.props.index}
             onMouseOver={this.onMouseOver} 
