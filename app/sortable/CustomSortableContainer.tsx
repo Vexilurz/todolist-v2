@@ -242,7 +242,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         showElement(this.cloned); 
         this.selected.map((node:HTMLElement) => hideElement(node));
         this.paused = false; 
-        this.setState({showPlaceholder:true}, () => console.log("resumed"));         
+        this.setState({showPlaceholder:true});         
     } 
   
 
@@ -480,7 +480,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         if(!isNil(this.placeholderRef)){
             this.placeholderRef.style.transform=`translateY(${placeholderOffset}px)`;
         }
-        console.log("animate")
+        
         requestAnimationFrame(this.updatePlaceholder);
     }
 
