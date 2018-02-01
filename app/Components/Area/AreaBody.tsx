@@ -35,7 +35,7 @@ import Checked from 'material-ui/svg-icons/navigation/check';
 import PieChart from 'react-minimal-pie-chart';
 import { ProjectLink } from '../Project/ProjectLink';
 import { allPass, isNil, not, contains, isEmpty } from 'ramda';
-import { TodosList, Placeholder } from '../TodosList';
+import { TodosList } from '../TodosList';
 import { Category } from '../MainContainer';
 import { changeProjectsOrder, removeFromArea, attachToArea } from './AreasList';
 import { isDev } from '../../app';

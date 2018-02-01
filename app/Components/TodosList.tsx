@@ -430,34 +430,3 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
     }   
 }    
  
-
- 
-interface PlaceholderProps{
-    offset:number,
-    height:number,
-    show:boolean 
-}  
- 
-interface PlaceholderState{} 
-
-export class Placeholder extends Component<PlaceholderProps,PlaceholderState>{
-
-    constructor(props){
-        super(props); 
-    }  
-
-    render(){        
- 
-        return !this.props.show ? null : 
-                <div style={{       
-                    backgroundColor:"rgba(205,221,253,0.5)",
-                    zIndex:100,     
-                    height:`${this.props.height}px`, 
-                    borderRadius:"5px",     
-                    width:"100%",    
-                    position:"absolute",       
-                    transform:`translateY(${this.props.offset}px)`
-                }}>    
-                </div> 
-    } 
-}     

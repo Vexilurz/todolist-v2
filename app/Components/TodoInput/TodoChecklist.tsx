@@ -40,7 +40,6 @@ import {
 import { Category } from '.././MainContainer';
 import { Todo, removeTodo, updateTodo, generateId } from '../../database'; 
 import { replace, adjust, append, prepend, isEmpty } from 'ramda';
-import { Placeholder } from '../TodosList';
 import { SortableContainer } from '../../sortable/CustomSortableContainer';
 
 

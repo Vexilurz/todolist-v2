@@ -33,7 +33,7 @@ import { ProjectHeading } from './ProjectHeading';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
 import { equals, allPass, isEmpty, isNil, not, uniq, contains } from 'ramda';
-import { onDrop, Placeholder } from '../TodosList';
+import { onDrop } from '../TodosList';
 import { isDev } from '../../app'; 
 import { SortableContainer } from '../../sortable/CustomSortableContainer';
 

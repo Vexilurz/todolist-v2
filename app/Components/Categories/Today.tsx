@@ -33,7 +33,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { ContainerHeader } from '.././ContainerHeader';
-import { TodosList, Placeholder, getPlaceholderOffset, onDrop } from '.././TodosList'; 
+import { TodosList, getPlaceholderOffset, onDrop } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { byTags, byCategory } from '../../utils';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
