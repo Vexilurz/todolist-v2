@@ -85,7 +85,7 @@ export let selectNeverTodos = (todos:Todo[]) : Todo[] => {
 
 
 
-export let updateNeverTodos = (dispatch:Function,never:Todo[]) => {
+export let updateNeverTodos = (dispatch:Function,never:Todo[],limit:Date) => {
 
     if(isEmpty(never)){ return }
 
@@ -94,9 +94,7 @@ export let updateNeverTodos = (dispatch:Function,never:Todo[]) => {
         let {options} = todo.group; 
         let repeatedTodos : Todo[] = repeat(options, todo);
 
-        setRepeatedTodos({dispatch,todo,repeatedTodos,options});
- 
-        console.log("request additional items...");     
+        setRepeatedTodos({dispatch,todo,repeatedTodos,options,limit});
     }
 }
  
@@ -254,6 +252,27 @@ export let daysInMonth = (date:Date) => new Date(date.getFullYear(), date.getMon
 
 export let dateToYearMonthDay = (date:Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
 
+export let yearFromDate = (date:Date) => {
+    Date.prototype["addDays"] = function(days) {
+        let date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;   
+    }
+      
+    return date["addDays"](365);
+}
+
+export let yearFromNow = () => {
+    Date.prototype["addDays"] = function(days) {
+        let date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;   
+    }
+      
+    return new Date()["addDays"](365);
+}
+
+
 
 export let oneDayAhead = () : Date => { 
 
@@ -265,6 +284,7 @@ export let oneDayAhead = () : Date => {
       
     return new Date()["addDays"](1);
 } 
+
 
 
 export let oneDayBehind = () : Date => { 

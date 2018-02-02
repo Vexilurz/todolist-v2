@@ -12,7 +12,7 @@ import { Component } from "react";
 import {   
     wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, 
     getTagsFromItems, defaultTags, isTodo, isProject, isArea, isArrayOfAreas, 
-    isArrayOfProjects, isArrayOfTodos, isArray, transformLoadDates, convertDates
+    isArrayOfProjects, isArrayOfTodos, isArray, transformLoadDates, convertDates, yearFromNow
 } from "./utils";  
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
@@ -31,7 +31,7 @@ import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
   
 injectTapEventPlugin() 
 
-export let isDev = () => { return true } 
+export let isDev = () => { return true }  
 
 (() => {     
     let app=document.createElement('div'); 
@@ -40,6 +40,7 @@ export let isDev = () => { return true }
 })()
  
 export interface Store{ 
+    limit : Date, 
     searchQuery : string,  
     openChangeGroupPopup : boolean,
     selectedSettingsSection : section, 
@@ -80,6 +81,7 @@ export interface Store{
 } 
 
 export let defaultStoreItems : Store = {
+    limit : yearFromNow(),
     searchQuery : "",
     openChangeGroupPopup : false,  
     selectedSettingsSection : "General",
@@ -269,9 +271,7 @@ let reducer = (reducers) => (state:Store, action) => {
     
         newState = reducers[i](state, action);
 
-        if(newState){  
-           return newState
-        }  
+        if(newState){ return newState }  
     }   
   
     return state  

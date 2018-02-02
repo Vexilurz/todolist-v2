@@ -14,7 +14,7 @@ import {
     compareByDate, getMonthName, byTags, isTodo, isProject, 
     byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems, assert, isArrayOfStrings 
 } from '../../utils';
-import { allPass, compose, or, assoc } from 'ramda';
+import { allPass, compose, or, assoc, isNil, isEmpty } from 'ramda';
 import { isDev } from '../../app';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink, ProjectLinkLogbook } from '../Project/ProjectLink';
@@ -183,7 +183,8 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
         let tags = getTagsFromItems(this.props.todos);
         let groups = this.init(this.props);  
  
-        return !groups ? null :
+        return isNil(groups) ? null :
+               isEmpty(groups) ? null : 
                 <div>
                     <ContainerHeader 
                         selectedCategory={"logbook"} 
@@ -196,11 +197,11 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                     {   
                         groups.map( 
                          (group:any[], index:number) : JSX.Element => {
-                              let todos:Todo[] = group.filter((item:Todo) => item.type==="todo");
-                              let projects:Project[] = group.filter((item:Project) => item.type==="project"); 
-                              let month:string = getMonthName(new Date(group[0].completed));
+                            let todos:Todo[] = group.filter((item:Todo) => item.type==="todo");
+                            let projects:Project[] = group.filter((item:Project) => item.type==="project"); 
+                            let month:string = getMonthName(new Date(group[0].completed));
                                   
-                              return <div key={index}> {this.getComponent(month, todos, projects)} </div>   
+                            return <div key={index}> {this.getComponent(month, todos, projects)} </div>   
                           }   
                         )   
                     }  

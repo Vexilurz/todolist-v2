@@ -7,7 +7,7 @@ import { Provider, connect } from "react-redux";
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
 import { TodosList } from '../../Components/TodosList';
-import { Todo,Project, Area, Calendar } from '../../database';
+import { Todo,Project, Area, Calendar, getTodos } from '../../database';
 let moment = require("moment");
 import * as Waypoint from 'react-waypoint';
 import { ContainerHeader } from '.././ContainerHeader';
@@ -29,10 +29,12 @@ import {
     updateNeverTodos,
     sameDay,
     timeOfTheDay,
+    yearFromDate,
+    convertTodoDates,
 } from '../../utils';  
 import { allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map, flatten, prop, uniqBy } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
-import { Category, filter } from '../MainContainer';
+import { Category, filter, selectTodos } from '../MainContainer';
 import { repeat, setRepeatedTodos } from '../RepeatPopup';
 import { Hint, hideHint } from './Today';
 import { CalendarEvent } from '../Calendar';
@@ -114,6 +116,7 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
 
 
 interface UpcomingProps{
+    limit:Date, 
     dispatch:Function,
     showCalendarEvents:boolean,
     selectedCategory:Category, 
@@ -145,13 +148,47 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     constructor(props){
         super(props);
         this.n = 10;  
-        this.state = { objects:[], enter:1, showHint:false }; 
-    }  
-    
+        this.state = {objects:[], enter:1, showHint:false}; 
+    }    
+     
+
+    onEnter = ({ previousPosition, currentPosition }) => { 
+        let objectsByDate = objectsToHashTableByDate(this.props);
+        let from = last(this.state.objects);
+        let {dispatch,limit,areas,projects} = this.props;
+
+        if(isNil(from)){ return }
+
+        assert(isDate(from.date), `from.date is not Date. ${JSON.stringify(from)}. onEnter.`);
+
+        let range = getDatesRange(from.date, this.n, false, true);
+        let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
+        let todos = flatten(objects.map((object) => object.todos));
+
+        let never = selectNeverTodos(todos);
+        let day = 1000 * 60 * 60 * 24;
+
+        if( (last(range).getTime() + day) >= limit.getTime() ){
+            getTodos(this.onError)(true, 1000000)
+            .then(todos => todos.map(convertTodoDates)) 
+            .then (todos => selectTodos(areas, projects, todos, limit))
+            .then(
+                (selected:Todo[]) => {
+                    dispatch({type:"setTodos", load:selected});
+                    dispatch({type:"limit", load:yearFromDate(limit)}); 
+                }
+            )  
+        }
+        
+        if(isEmpty(never)){
+            this.setState({objects:[...this.state.objects,...objects], enter:this.state.enter+1});
+        }else{
+            this.setState({enter:this.state.enter+1}, () => updateNeverTodos(dispatch,never,limit));
+        }   
+    }   
 
 
     onError = (e) => console.log(e)
-
 
 
     getObjects = (props:UpcomingProps,n:number) : { 
@@ -167,14 +204,12 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     }   
 
 
-
     componentDidMount(){
         hideHint()
         .then( (hide) => this.setState({showHint:!hide}) )   
         this.setState({objects:this.getObjects(this.props,this.n)})
     }   
      
-
     
     componentWillReceiveProps(nextProps:UpcomingProps){
         if( 
@@ -192,31 +227,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             this.setState({objects:this.getObjects(nextProps, this.n), enter:1}); 
         }   
     } 
-
-
-
-    onEnter = ({ previousPosition, currentPosition }) => { 
-        let objectsByDate = objectsToHashTableByDate(this.props);
-        let from = last(this.state.objects);
-        let {dispatch} = this.props;
-
-        if(isNil(from)){ return }
-
-        assert(isDate(from.date), `from.date is not Date. ${JSON.stringify(from)}. onEnter.`);
-
-        let range = getDatesRange(from.date, this.n, false, true);
-        let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
-
-        let todos = flatten(objects.map((object) => object.todos));
-        let never = selectNeverTodos(todos);
- 
-        if(isEmpty(never)){
-            this.setState({objects:[...this.state.objects,...objects], enter:this.state.enter+1});
-        }else{
-            this.setState({enter:this.state.enter+1}, () => updateNeverTodos(dispatch,never));
-        }   
-    }   
-     
 
 
     generateCalendarObjectsFromRange = ( 
@@ -250,7 +260,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
          
         return objects; 
     }
-
 
 
     objectToComponent = (
@@ -301,7 +310,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         </div>
     } 
 
- 
 
     render(){ 
         let {showHint} = this.state;
@@ -328,7 +336,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                             Do you also want to include the events from your calendar?`
                         } as any  
                     }/> 
-                } 
+                }  
    
                 <div>{this.state.objects.map(this.objectToComponent)}</div>
 
@@ -373,8 +381,6 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
     constructor(props){
         super(props)
     }
-
-    
 
     render(){   
 

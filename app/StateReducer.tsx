@@ -8,6 +8,13 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
    
        switch(action.type){ 
 
+            case "limit":
+                newState = {  
+                    ...state,
+                    limit : action.load,
+                };  
+                break; 
+
             case "searchQuery":
                 newState = {  
                     ...state,

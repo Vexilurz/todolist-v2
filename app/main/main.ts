@@ -1,29 +1,61 @@
 import { loadApp, dev } from './loadApp'; 
 import fs = require('fs');     
 import electron = require('electron');
-import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,globalShortcut, BrowserView} from 'electron';
+import { ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,globalShortcut,BrowserView } from 'electron';
 import { Listeners } from "./listeners";
 import { initWindow } from "./initWindow";
 import { autoUpdater } from "electron-updater";
 import { isNil } from 'ramda';
 const os = require('os');
+let path = require("path");
+const log = require("electron-log");
 const storage = require('electron-json-storage');
-storage.setDataPath(os.tmpdir());
 
 
- 
-class AppUpdater {
-    constructor() {
-        const log = require("electron-log");
-        log.transports.file.level = "info";
-        autoUpdater.logger = log;
-        autoUpdater.checkForUpdatesAndNotify();
-    }   
-}  
+storage.setDataPath(os.tmpdir()); 
+
+
+let update = () => {
+    log.transports.file.level = "info";
+    autoUpdater.logger = log;
+    
+    autoUpdater.on('checking-for-update', () => {
+        console.log('Checking for update...');
+    })
+
+    autoUpdater.on('update-available', (info) => {
+        console.log('Update available.');
+    })
+
+    autoUpdater.on('update-not-available', (info) => {
+        console.log('Update not available.');
+    })
+
+    autoUpdater.on('error', (err) => {
+        console.log('Error in auto-updater. ' + err);
+    })
+
+    autoUpdater.on('download-progress', (progressObj) => {
+        let log_message = "Download speed: " + progressObj.bytesPerSecond;
+        log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+        log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+        console.log(log_message);
+    })
+
+    autoUpdater.on('update-downloaded', (info) => {
+        console.log('Update downloaded');
+    });
+
+    autoUpdater.checkForUpdatesAndNotify()
+    .then(
+        (result) => console.log("checkForUpdatesAndNotify",result)
+    );
+}    
+
+
  
 export let mainWindow : BrowserWindow;   
 export let listeners : Listeners; 
-export let updater : AppUpdater; 
 
 const CtrlAltT : string = 'Ctrl+Alt+T';
 const CtrlD : string = 'Ctrl+D';
@@ -79,15 +111,11 @@ let onReady = () => {
     globalShortcut.register(CtrlAltT, onCtrlAltT);  
     globalShortcut.register(CtrlD, onCtrlD);  
     
-    preventAnnoyingErrorPopups();  
-
-    updater = new AppUpdater(); 
-
+    preventAnnoyingErrorPopups();
+    update();
     mainWindow = initWindow(getWindowSize());  
-
     listeners = initListeners(mainWindow);
-
-    loadApp(mainWindow).then(onAppLoaded);     
+    loadApp(mainWindow).then(onAppLoaded );     
 }               
 
 
@@ -103,7 +131,7 @@ app.on(
           
         if(process.platform !== 'darwin'){ 
            app.quit();   
-        }
+        } 
     }    
 );     
    

@@ -12,7 +12,7 @@ import {
     selectNeverTodos, updateNeverTodos, oneDayBehind, convertDates, 
     convertTodoDates, convertProjectDates, convertAreaDates, clearStorage, oneDayAhead, measureTime, 
     byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
-    byCompleted, isToday, byNotSomeday, daysRemaining, byScheduled 
+    byCompleted, isToday, byNotSomeday, daysRemaining, byScheduled, yearFromNow 
 } from "../utils";   
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -65,6 +65,52 @@ export let filter = (array:any[],f:Function,caller:string) : any[] => {
 }
 
 
+export let getDateUpperLimit = (areas:Area[], projects:Project[], todos:Todo[], currentLimit:Date) => {
+        let pIds = flatten( projects.map( (p:Project) => p.layout.filter(isString) ) );
+        let aIds = flatten( areas.map( (a:Area) => a.attachedTodosIds ) );
+        let attached : Todo[] = filter( 
+           todos,
+          (todo:Todo) => contains(todo._id)(pIds) || contains(todo._id)(aIds), 
+          "getDateUpperLimit"
+        );
+
+        let futureLimit = new Date();
+
+        for(let i = 0; i < attached.length; i++){
+            let todo : Todo = attached[i];
+            if(isNil(todo.attachedDate)){ continue }
+            if(todo.attachedDate.getTime() > futureLimit.getTime()){
+                futureLimit = new Date(todo.attachedDate.getTime());
+            }
+        }   
+
+        return futureLimit.getTime() > currentLimit.getTime() ? futureLimit : currentLimit;
+}
+
+
+export let selectTodos = (areas, projects, todos, limit) => {
+    let isRepeated = (todo:Todo) => not(isNil(todo.group));
+    let isAfterLimit = (limit:Date) => 
+                        (todo:Todo) => isNil(todo.attachedDate) ? false : 
+                                        todo.attachedDate.getTime() >
+                                        limit.getTime();  
+    
+    let limitByProjects = getDateUpperLimit(areas, projects, todos, limit); 
+    let selected = filter( 
+        todos,
+        (todo:Todo) => {
+            if(isRepeated(todo) && isAfterLimit(limitByProjects)(todo)){
+                return false; //throw away 
+            }else{
+                return true; //keep
+            }
+        },
+        "selected" 
+    );
+
+    return selected;
+}
+
 
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
@@ -99,7 +145,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
     
      //TODO Test
      requestAdditionalNeverTodos = () : void => { 
-        let {todos, dispatch} = this.props;
+        let {todos, dispatch, limit} = this.props;
         let tomorrow : Date = oneDayAhead(); 
 
         let never = selectNeverTodos(todos) //last === true, last item in sequence  
@@ -107,7 +153,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                       (todo:Todo) => todo.attachedDate.getTime() <= tomorrow.getTime()
                     );   
   
-        if(!isEmpty(never)){ updateNeverTodos(dispatch,never) }
+        if(!isEmpty(never)){ updateNeverTodos(dispatch,never,limit) }
     }
   
 
@@ -150,25 +196,38 @@ export class MainContainer extends Component<Store,MainContainerState>{
         let {clone,dispatch} = this.props;
         
         if(clone){ return }
-         
-        getCalendars(this.onError)(true, this.limit) 
-        .then((calendars:Calendar[]) => updateCalendars(calendars, this.onError))
-        .then((calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars})) 
-   
+      
+        Promise.all([
+            getCalendars(this.onError)(true, this.limit), 
+            getProjects(this.onError)(true, this.limit),
+            getAreas(this.onError)(true, this.limit),
+            getTodos(this.onError)(true, this.limit)
+        ])
+        .then(
+            ([calendars,projects,areas,todos]) => [
+                calendars,
+                projects.map(convertProjectDates),
+                areas.map(convertAreaDates),
+                todos.map(convertTodoDates)
+            ]
+        )
+        .then(
+            ([calendars,projects,areas,todos]) => {
+                let {limit} = this.props;
+                let selected = selectTodos(areas, projects, todos, limit);
 
-        getProjects(this.onError)(true, this.limit)
-        .then((projects:Project[]) => projects.map(convertProjectDates))
-        .then((projects:Project[]) => dispatch({type:"setProjects", load:projects}))
+                dispatch({type:"setProjects", load:projects});
+                dispatch({type:"setAreas", load:areas});
+                dispatch({type:"setTodos", load:selected});
 
+                return updateCalendars(calendars, this.onError);
+            }
+        )
+        .then(
+            (calendars) => dispatch({type:"setCalendars", load:calendars})
+        )
 
-        getAreas(this.onError)(true, this.limit)
-        .then((areas:Area[]) => areas.map(convertAreaDates))
-        .then((areas:Area[]) => dispatch({type:"setAreas", load:areas}))  
-
-
-        getTodos(this.onError)(true, this.limit)
-        .then((todos:Todo[]) => todos.map(convertTodoDates))
-        .then((todos:Todo[]) => dispatch({type:"setTodos", load:todos}))
+     
     } 
     
     
@@ -452,6 +511,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     ];
 
                                     return <Upcoming  
+                                        limit={this.props.limit}
                                         todos={filter(todos, allPass(upcomingFilters), "Upcoming")}
                                         dispatch={this.props.dispatch}
                                         selectedCategory={this.props.selectedCategory}

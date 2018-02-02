@@ -18,7 +18,7 @@ import {
 import { Todo, removeTodo, addTodo, generateId, Project, Area, LayoutItem, Group } from '../database';
 import { Store, isDev } from '../app'; 
 import { ChecklistItem } from './TodoInput/TodoChecklist'; 
-import { Category } from './MainContainer';
+import { Category, filter } from './MainContainer';
 import { remove, isNil, not, isEmpty, last } from 'ramda';
 let uniqid = require("uniqid");    
 import { Observable } from 'rxjs/Rx';
@@ -220,10 +220,16 @@ export let setRepeatedTodos = ({
     dispatch,
     todo, 
     repeatedTodos,
-    options
+    options,
+    limit
 }) : void => { 
 
     if(isEmpty(repeatedTodos)){ return }
+
+    let isBeforeLimit = (limit:Date) => 
+                        (todo:Todo) => isNil(todo.attachedDate) ? true : 
+                                       todo.attachedDate.getTime() <
+                                       limit.getTime();  
  
     let newLastTodo : Todo = repeatedTodos[repeatedTodos.length - 1];
 
@@ -231,7 +237,7 @@ export let setRepeatedTodos = ({
         _id:newLastTodo.group._id,  
         type:newLastTodo.group.type,  
         last:false
-    };
+    }; 
 
     let newLastTodoGroup = {
         _id:newLastTodo.group._id,   
@@ -242,7 +248,10 @@ export let setRepeatedTodos = ({
     
     repeatedTodos[repeatedTodos.length - 1] = {...newLastTodo, group:newLastTodoGroup};    
     
-    dispatch({type:"addTodos", load:repeatedTodos});  
+    dispatch({
+        type:"addTodos", 
+        load:filter(repeatedTodos, isBeforeLimit(limit), "setRepeatedTodos")  
+    });  
     dispatch({type:"updateTodo", load:{...todo, group:oldLastTodoGroup}}); 
 }
 
@@ -294,7 +303,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
     }   
 
     onDone = (e) => {  
-        let { todos, repeatTodo, dispatch } = this.props;
+        let { todos, repeatTodo, dispatch, limit } = this.props;
         let todo = { ...repeatTodo};
         let options = { 
             ...this.state,
@@ -307,7 +316,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
         let repeatedTodos : Todo[] = repeat(options, todo);  
 
-        setRepeatedTodos({dispatch,todo,repeatedTodos,options});
+        setRepeatedTodos({dispatch,todo,repeatedTodos,options,limit});
                 
         this.close();   
     }    
