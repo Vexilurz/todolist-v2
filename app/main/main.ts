@@ -46,7 +46,7 @@ let update = () => {
         console.log('Update downloaded');
     });
 
-    autoUpdater.checkForUpdatesAndNotify()
+    autoUpdater.checkForUpdates()
     .then(
         (result) => console.log("checkForUpdatesAndNotify",result)
     );

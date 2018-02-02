@@ -1,0 +1,4 @@
+provider: s3
+bucket: todoappupdates
+acl: public-read
+channel: master

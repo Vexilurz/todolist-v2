@@ -1,6 +1,6 @@
 {
   "name": "tasklist",
-  "version": "1.0.2-master",
+  "version": "1.1.2-master",
   "description": "tasklist",
   "main": "production/main.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "production": "start webpack -w --config webpack.config.main.prod.js && webpack -w --config webpack.config.renderer.prod.js"
   },
   "repository": "",
-  "keywords": [],
+  "keywords": [], 
   "author": "Anatoly Strashkevich",
   "license": "",
   "devDependencies": {
@@ -37,12 +37,12 @@
     "style-loader": "^0.17.0",
     "typescript": "^2.4.2",
     "uglifyjs-webpack-plugin": "^0.4.6",
+    "electron": "1.7.12",
     "webpack": "^2.7.0"
   },
   "dependencies": {
     "axios": "^0.17.1",
     "bluebird": "^3.5.1",
-    "electron": "1.7.12",
     "electron-json-storage": "^4.0.2",
     "electron-log": "^2.2.13",
     "electron-updater": "2.20.1",
