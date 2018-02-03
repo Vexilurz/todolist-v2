@@ -11,7 +11,7 @@
     "production": "start webpack -w --config webpack.config.main.prod.js && webpack -w --config webpack.config.renderer.prod.js"
   },
   "repository": "",
-  "keywords": [], 
+  "keywords": [],
   "author": "Anatoly Strashkevich",
   "license": "",
   "devDependencies": {
@@ -28,6 +28,7 @@
     "clean-webpack-plugin": "^0.1.17",
     "copy-webpack-plugin": "^4.0.1",
     "css-loader": "^0.28.4",
+    "electron": "1.7.12",
     "electron-builder": "^19.31.1",
     "electron-publisher-s3": "^20.0.0",
     "electron-rebuild": "^1.7.3",
@@ -37,12 +38,12 @@
     "style-loader": "^0.17.0",
     "typescript": "^2.4.2",
     "uglifyjs-webpack-plugin": "^0.4.6",
-    "electron": "1.7.12",
     "webpack": "^2.7.0"
   },
   "dependencies": {
     "axios": "^0.17.1",
     "bluebird": "^3.5.1",
+    "electron-ga": "^1.0.5",
     "electron-json-storage": "^4.0.2",
     "electron-log": "^2.2.13",
     "electron-updater": "2.20.1",

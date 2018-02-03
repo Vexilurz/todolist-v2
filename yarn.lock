@@ -1992,6 +1992,12 @@ electron-download@^3.0.1:
     semver "^5.3.0"
     sumchecker "^1.2.0"
 
+electron-ga@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/electron-ga/-/electron-ga-1.0.5.tgz#3e42c2e09b7d877edd3bcf5141fd8f2e720747f4"
+  dependencies:
+    node-machine-id "^1.1.9"
+
 electron-is-dev@^0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/electron-is-dev/-/electron-is-dev-0.3.0.tgz#14e6fda5c68e9e4ecbeff9ccf037cbd7c05c5afe"
@@ -2098,15 +2104,7 @@ electron-winstaller@^2.6.3:
     lodash.template "^4.2.2"
     temp "^0.8.3"
 
-electron@*:
-  version "1.7.11"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-1.7.11.tgz#993b6aa79e0e79a7cfcc369f4c813fbd9a0b08d9"
-  dependencies:
-    "@types/node" "^7.0.18"
-    electron-download "^3.0.1"
-    extract-zip "^1.0.3"
-
-electron@1.7.12:
+electron@*, electron@1.7.12:
   version "1.7.12"
   resolved "https://registry.yarnpkg.com/electron/-/electron-1.7.12.tgz#dcc61a2c1b0c3df25f68b3425379a01abd01190e"
   dependencies:
@@ -3878,6 +3876,10 @@ node-libs-browser@^2.0.0:
     url "^0.11.0"
     util "^0.10.3"
     vm-browserify "0.0.4"
+
+node-machine-id@^1.1.9:
+  version "1.1.10"
+  resolved "https://registry.yarnpkg.com/node-machine-id/-/node-machine-id-1.1.10.tgz#b4cb8f01b25b90d4e0675be00df30e61ee75179b"
 
 node-pre-gyp@^0.6.36:
   version "0.6.38"
