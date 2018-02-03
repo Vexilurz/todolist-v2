@@ -28,8 +28,22 @@ import { TrashPopup } from './Components/Categories/Trash';
 import { Settings, section, SettingsPopup } from './Components/Settings/settings';
 import { SimplePopup } from './Components/SimplePopup';
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
-import { Snackbar } from './Components/Snackbar';
-  
+import { TopSnackbar, UpdateNotification } from './Components/Snackbar';
+
+
+/*
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-113407516-1"></script>;
+<script> 
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);} 
+gtag('js', new Date());
+
+gtag('config', 'UA-113407516-1');
+</script>
+*/
+
+   
 injectTapEventPlugin() 
 
 export let isDev = () => { return true }  
@@ -37,10 +51,12 @@ export let isDev = () => { return true }
 (() => {     
     let app=document.createElement('div'); 
     app.id='application';     
-    document.body.appendChild(app);    
+    document.body.appendChild(app);     
 })()
  
 export interface Store{ 
+    progress : any,
+    showUpdatesNotification : boolean, 
     limit : Date, 
     searchQuery : string,  
     openChangeGroupPopup : boolean,
@@ -79,9 +95,11 @@ export interface Store{
     tags : string[],
     clone? : boolean,
     dispatch? : Function
-} 
+}   
 
 export let defaultStoreItems : Store = {
+    progress : null, 
+    showUpdatesNotification : false, 
     limit : yearFromNow(),
     searchQuery : "",
     openChangeGroupPopup : false,  
@@ -153,6 +171,13 @@ export class App extends Component<AppProps,{}>{
                 break;
         }
     }
+
+
+    initErrorListener = () => {
+        let {dispatch} = this.props;
+        ipcRenderer.removeAllListeners("error"); 
+        ipcRenderer.on("error", (event,error) => console.log(JSON.stringify(error)) );  
+    }   
 
 
     initCtrlAltTListener = () => {
@@ -227,8 +252,8 @@ export class App extends Component<AppProps,{}>{
                 <div style={{display:"flex", width:"inherit", height:"inherit"}}>  
                     { clone ? null : <LeftPanel {...{} as any}/> }
                     <MainContainer {...{windowId} as any}/>    
-                </div>     
-                <Snackbar {...{} as any} />   
+                </div>      
+                <UpdateNotification {...{} as any} />    
                 <SettingsPopup {...{} as any} />      
                 <TodoInputPopup {...{} as any} />  
                 <ChangeGroupPopup {...{} as any} /> 

@@ -5,8 +5,23 @@ import { Store } from "./app";
 export let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}) => {
     
        let newState = undefined;
-   
+       
        switch(action.type){ 
+            case "progress":
+                newState = {  
+                    ...state,
+                    progress : action.load,
+                };  
+                break; 
+
+
+            case "showUpdatesNotification":
+                newState = {  
+                    ...state,
+                    showUpdatesNotification : action.load,
+                };  
+                break; 
+
 
             case "limit":
                 newState = {  
@@ -14,6 +29,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                     limit : action.load,
                 };  
                 break; 
+
 
             case "searchQuery":
                 newState = {  

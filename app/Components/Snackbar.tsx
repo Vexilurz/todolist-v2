@@ -9,137 +9,163 @@ import { Transition } from 'react-transition-group';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { uniq, compose, contains, allPass, isNil, not, isEmpty } from 'ramda';
 import { isString } from 'util';
-import { insideTargetArea, attachDispatchToProps } from '../utils';
+import { insideTargetArea, attachDispatchToProps, threeDaysLater, setToJsonStorage, debounce } from '../utils';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { Store } from '../app';
- 
+import { ipcRenderer, remote } from 'electron';
+import { downloadUpdates } from './MainContainer';
 
-interface SnackbarProps extends Store{}  
-interface SnackbarState{
-    open:boolean 
-}     
+interface TopSnackbarProps{
+    open:boolean
+}  
+
+interface TopSnackbarState{}     
    
-@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)
-export class Snackbar extends Component<SnackbarProps,SnackbarState>{
-
-    ref:HTMLElement; 
+export class TopSnackbar extends Component<TopSnackbarProps,TopSnackbarState>{
 
     constructor(props){ 
         super(props);
-        this.state = {
-            open : false
-        } 
     }    
-    
-    componentDidMount(){
-        this.setState({open:true})
-    }    
-
-    componentWillUnmount(){ } 
-  
-    installUpdate = () => { 
-       setInterval(() => this.setState({open:!this.state.open}, () => console.log(this.state.open)), 1000)
-    }
-
-    cancelUpdate = () => { }
 
     render(){ 
         return <div style={{ 
             width:"100%",
             position:"fixed",
             zIndex:4000000,
+            borderBottom:"1px solid rgba(120,120,120,0.2)",
             left:0,   
             top:0, 
             overflow:"hidden",
             transition:"max-height 0.5s ease-in-out",
-            maxHeight:this.state.open ? "40px" : "0px", 
-            justifyContent:"center",
+            maxHeight:this.props.open ? "50px" : "0px", 
+            justifyContent:"center", 
             alignItems:"center",  
             backgroundColor:"#FFF9C4",
             display:"flex"
         }}> 
+            {this.props.children}
+        </div>
+    } 
+} 
+
+
+
+
+
+interface UpdateNotificationProps extends Store{}
+interface UpdateNotificationState{ 
+    canRestart:boolean,
+    downloading:boolean  
+} 
+
+@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)
+export class UpdateNotification extends Component<UpdateNotificationProps,UpdateNotificationState>{
+
+    constructor(props){
+        super(props);
+        this.state={
+            canRestart:false,
+            downloading:false 
+        };
+    } 
+
+ 
+    onClick = () => {
+        let {dispatch} = this.props;
+        let {canRestart} = this.state;
+
+        if(canRestart){
+            dispatch({type:"showUpdatesNotification", load:false});
+            ipcRenderer.send("installUpdates");
+        }else{
+            this.setState({ downloading:true },  
+            () => 
+                downloadUpdates()
+                .then( 
+                    () => this.setState(
+                        {downloading:false}, 
+                        () => setToJsonStorage("lastUpdatesCheck", {lastUpdatesCheck:new Date()}
+                    )
+                ) 
+                .then(
+                    () => this.setState({canRestart:true})
+                )
+             
+        }
+    }
+ 
+    render(){
+        let {showUpdatesNotification, progress, dispatch} = this.props;
+        let {canRestart} = this.state;
+
+        return <TopSnackbar open={showUpdatesNotification}>
         <div style={{
             display:"flex",
             alignItems:"center",
             justifyContent:"center",
-            paddingTop:"10px",
             width:"100%",
+            height:"50px",  
             position:"relative", 
-            paddingBottom:"10px",
-            overflow:"hidden", 
-            transition:"max-height 0.5s ease-in-out",
-            maxHeight:this.state.open ? "40px" : "0px"
+            overflow:"hidden"
         }}>
-            <div       
-                ref={(e) => { this.ref=e; }}
-                onClick = {(e) => { 
-                    e.stopPropagation();
-                    e.preventDefault();
-                }}   
+            <div 
                 style={{
-                    cursor:"default",
+                    cursor:"default", 
                     display:"flex",
                     alignItems:"center", 
+                    fontSize:"14px", 
                     userSelect:"none",
                     color:"rgba(100,100,100,1)",
                     fontWeight:500
                 }}            
-            >        
-                An update is available!
-            </div>
-            <div style={{
+            >       
+                {
+                    isNil(progress) ? 
+                    "An update is available!" : 
+                    not(canRestart) ?
+                    `Updating... ${Math.round(progress.percent)}% left` :
+                    "You updated to the last version. Please restart now." 
+                }
+            </div>   
+            <div style={{  
                 display:"flex",
                 position:"absolute",
                 right:0,
                 alignItems:"center"
             }}>
-            <div     
-                onClick={this.installUpdate}
-                style={{      
-                    display:"flex",
-                    marginLeft:"15px", 
-                    marginRight:"15px",
-                    alignItems:"center",
-                    cursor:"pointer",
-                    justifyContent:"center",
-                    height:"20px",
-                    paddingLeft:"25px",
-                    paddingRight:"25px",
-                    paddingTop:"5px", 
-                    paddingBottom:"5px",
-                    backgroundColor:"rgba(81, 144, 247, 1)"  
-                }}    
-            >   
-                <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
-                    Install 
-                </div>   
-            </div> 
-            <div     
-                onClick={this.cancelUpdate}
-                style={{     
-                    display:"flex",
-                    marginLeft:"15px", 
-                    marginRight:"15px",
-                    alignItems:"center",
-                    cursor:"pointer",
-                    justifyContent:"center",
-                    height:"20px",
-                    paddingLeft:"25px",
-                    paddingRight:"25px",
-                    paddingTop:"5px", 
-                    paddingBottom:"5px",
-                    backgroundColor:"rgba(81, 144, 247, 1)"  
-                }}  
-            >    
-                <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
-                    Later
-                </div>   
-            </div> 
+            {   
+                not(isNil(progress)) && not(canRestart) ? null :
+                <div     
+                    onClick={this.onClick}
+                    style={{      
+                        display:"flex",
+                        marginLeft:"15px", 
+                        marginRight:"15px",
+                        alignItems:"center",
+                        cursor:"pointer",
+                        justifyContent:"center",
+                        height:"20px",
+                        paddingLeft:"25px",
+                        paddingRight:"25px",
+                        paddingTop:"5px", 
+                        paddingBottom:"5px",
+                        backgroundColor:"rgba(81, 144, 247, 1)"  
+                    }}    
+                >   
+                    <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
+                        {
+                            canRestart ?
+                            "Restart" :
+                            "Install"  
+                        } 
+                    </div>   
+                </div> 
+            }
             </div> 
           </div> 
-        </div>
-    } 
-} 
+          </TopSnackbar>
+    }
+}

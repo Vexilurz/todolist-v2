@@ -2,9 +2,8 @@ import { loadApp, dev } from './loadApp';
 import fs = require('fs');     
 import electron = require('electron');
 import { ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,globalShortcut,BrowserView } from 'electron';
-import { Listeners } from "./listeners";
+import { Listeners, initAutoUpdater } from "./listeners";
 import { initWindow } from "./initWindow";
-import { autoUpdater } from "electron-updater";
 import { isNil } from 'ramda';
 const os = require('os');
 let path = require("path");
@@ -12,32 +11,6 @@ const log = require("electron-log");
 const storage = require('electron-json-storage');
 storage.setDataPath(os.tmpdir()); 
 
-
-let update = () => {
-    log.transports.file.level = "info";
-    autoUpdater.logger = log;
-    
-    autoUpdater.on('error', (err) => mainWindow.webContents.send("error", err));
-
-    autoUpdater.on('download-progress', (progressObj) => {
-        let log_message = "Download speed: " + progressObj.bytesPerSecond;
-        log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
-        log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
-        console.log(log_message);
-    })
-
-    autoUpdater.on('update-downloaded', (info) => {
-        console.log('Update downloaded');
-    });
-
-    autoUpdater.checkForUpdates()
-    .then(
-        (result) => console.log("checkForUpdatesAndNotify",result)
-    );
-}     
-
-
- 
 
 export let mainWindow : BrowserWindow;   
 export let listeners : Listeners; 
@@ -55,8 +28,6 @@ const shouldQuit = app.makeSingleInstance(
     }
 ); 
   
-
-
 
 let onCtrlAltT = () : void => {
     if(isNil(mainWindow)){
@@ -106,18 +77,18 @@ let getWindowSize = () : {width:number,height:number} => {
 
 let onReady = () => {   
 
-    if (shouldQuit) {
-        app.quit();
-        return;
+    if(shouldQuit){
+       app.quit();
+       return;
     }
 
     if(globalShortcut){
        globalShortcut.register(CtrlAltT, onCtrlAltT);  
        globalShortcut.register(CtrlD, onCtrlD);
     }  
-    
+
     preventAnnoyingErrorPopups();
-    update();
+    initAutoUpdater(); 
     mainWindow = initWindow(getWindowSize());  
     listeners = initListeners(mainWindow);
     loadApp(mainWindow).then(onAppLoaded );     

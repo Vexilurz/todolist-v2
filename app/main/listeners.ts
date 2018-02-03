@@ -9,8 +9,10 @@ const {shell} = require('electron');
 const os = require('os');
 const storage = require('electron-json-storage');
 storage.setDataPath(os.tmpdir());
+const log = require("electron-log");
+import { autoUpdater, UpdateCheckResult, UpdateInfo } from "electron-updater";
 
-  
+
 type kind = "external";
 
 
@@ -48,7 +50,7 @@ let onReload = (event, id:number, spawnedWindows:BrowserWindow[]) : void => {
     loadApp(browserWindow)
     .then(() => browserWindow.webContents.send(
         "loaded", 
-        {type:"reload",load:browserWindow.id}
+        {type:"reload",load:browserWindow.id} 
     ));   
 } 
  
@@ -105,9 +107,24 @@ let selectFolder = () : Promise<string> =>
                 }
             ); 
         }   
-    );  
+    ); 
+    
 
+    
+export let initAutoUpdater = () => {
+    log.transports.file.level = "info";
+    autoUpdater.logger = log; 
+    autoUpdater.autoDownload = false;
 
+    autoUpdater.on('error', (err) => {
+        mainWindow.webContents.send("error", err);
+    });
+ 
+    autoUpdater.on('download-progress', (progress) => {
+        mainWindow.webContents.send("download-progress",progress);
+    });
+}    
+  
 
 
 interface RegisteredListener{  
@@ -118,19 +135,49 @@ interface RegisteredListener{
 
 let onError = (e) => console.log(e);
 
-
  
 export class Listeners{
        
     registeredListeners : RegisteredListener[]; 
-
     spawnedWindows : any[];
- 
+    
     constructor(window){
   
       this.spawnedWindows = [mainWindow];  
  
       this.registeredListeners = [   
+            
+            { 
+                name : "installUpdates",
+                callback : (event)  => {
+                    autoUpdater.quitAndInstall(true,true)
+                }   
+            }, 
+            { 
+                name : "downloadUpdates",
+                callback : (event)  => {
+                    autoUpdater.checkForUpdates().then(
+                        (updateCheckResult) => {
+                            let {cancellationToken} = updateCheckResult;
+                            autoUpdater.downloadUpdate(cancellationToken).then(
+                                (path) => { 
+                                    event.sender.send("downloadUpdates", path)
+                                }
+                            ); 
+                        }
+                    ) 
+                } 
+            }, 
+            {  
+                name : "checkForUpdates",
+                callback : (event)  => {
+                    autoUpdater.checkForUpdates().then(
+                        (updateCheckResult:UpdateCheckResult) => {
+                            event.sender.send("checkForUpdates", updateCheckResult);
+                        }
+                    )
+                }
+            },
             { 
                 name : "cloneWindow", 
                 callback : (event, store)  => onCloneWindow(event,store,this.spawnedWindows)

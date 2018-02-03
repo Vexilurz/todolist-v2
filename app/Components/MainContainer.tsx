@@ -12,7 +12,8 @@ import {
     selectNeverTodos, updateNeverTodos, oneDayBehind, convertDates, 
     convertTodoDates, convertProjectDates, convertAreaDates, clearStorage, oneDayAhead, measureTime, 
     byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
-    byCompleted, isToday, byNotSomeday, daysRemaining, byScheduled, yearFromNow 
+    byCompleted, isToday, byNotSomeday, daysRemaining, byScheduled, yearFromNow, getFromJsonStorage, 
+    setToJsonStorage, isDate, timeDifferenceHours, isNewVersion
 } from "../utils";   
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -47,6 +48,7 @@ import { RepeatPopup } from './RepeatPopup';
 import { Search } from './Search';
 import { filter as lodashFilter } from 'lodash';
 import { CalendarProps, CalendarEvent, getIcalData, IcalData, AxiosError, updateCalendars } from './Calendar';
+import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 let Promise = require('bluebird');   
   
 
@@ -63,6 +65,29 @@ export let filter = (array:any[],f:Function,caller:string) : any[] => {
        
     return result;
 }
+
+
+
+export let checkForUpdates = () : Promise<UpdateCheckResult> => new Promise(
+    (resolve) => { 
+        ipcRenderer.removeAllListeners("checkForUpdates");  
+        ipcRenderer.send("checkForUpdates");
+        ipcRenderer.on(
+            "checkForUpdates",
+            (event,updateCheckResult:UpdateCheckResult) => resolve(updateCheckResult)
+        ) 
+    }    
+)
+
+
+export let downloadUpdates = () : Promise<any> => new Promise(
+    (resolve) => { 
+        ipcRenderer.removeAllListeners("downloadUpdates");  
+        ipcRenderer.send("downloadUpdates");
+        ipcRenderer.on("downloadUpdates", (event,path:any) => resolve(path))  
+    }     
+)
+
 
 
 export let getDateUpperLimit = (areas:Area[], projects:Project[], todos:Todo[], currentLimit:Date) => {
@@ -126,15 +151,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
     rootRef:HTMLElement;  
     limit:number;
     subscriptions:Subscription[]; 
-    events:number;  
 
     constructor(props){ 
         super(props);  
 
         this.limit = 10000;
         
-        this.events = null;  
-
         this.subscriptions = [];
 
         this.state = { fullWindowSize:true };
@@ -227,31 +249,47 @@ export class MainContainer extends Component<Store,MainContainerState>{
         .then(
             (calendars) => dispatch({type:"setCalendars", load:calendars})
         )
-
-     
     } 
-    
-    
-    initRefreshEventsInterval = () : void => {
-        let delay = 1000 * 5 * 60; //every 5 minutes 
 
-        if(isNil(this.events)){
-            this.events = setInterval(
-                () => {
-                    let {calendars, dispatch} = this.props;
-            
-                    updateCalendars(calendars, this.onError)
-                    .then( 
-                      (calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars})
-                    )  
-                },    
-                delay 
-            ) as any;
-        }
-    }
- 
 
-    initObservables = () => {
+    initObservables = () => { 
+        let {dispatch} = this.props; 
+        let minute = 1000 * 60;  
+        let intervalHours = 72 
+
+        let updateProgress = Observable.fromEvent(
+                                ipcRenderer, 
+                                "download-progress",  
+                                (event,progressObj) => progressObj 
+                             ).subscribe( 
+                                (progressObj) => dispatch({type:"progress",load:progressObj})
+                             );  
+
+         
+        let updates = Observable
+                        .interval(1 * minute) 
+                        .flatMap( (p) => getFromJsonStorage("lastUpdatesCheck") )
+                        .filter( (data:{lastUpdatesCheck:Date}) => 
+                            isNil(data.lastUpdatesCheck) ||
+                            timeDifferenceHours(data.lastUpdatesCheck,new Date())>=intervalHours
+                        )     
+                        .flatMap((data:{lastUpdatesCheck:Date}) => checkForUpdates())
+                        .subscribe(
+                            (updateCheckResult:UpdateCheckResult) => {
+                                let {updateInfo} = updateCheckResult;
+                                let currentAppVersion = remote.app.getVersion(); 
+                                let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
+                                if(canUpdate){ dispatch({type:"showUpdatesNotification", load:true}) };
+                            }
+                        ); 
+      
+        let calendars = Observable.interval(5 * minute)
+                        .flatMap( () =>  updateCalendars(this.props.calendars, this.onError))
+                        .subscribe( 
+                            (calendars:Calendar[]) => this.props.dispatch({type:"setCalendars", load:calendars}) 
+                        );
+
+  
         let resize = Observable
                     .fromEvent(window,"resize")
                     .debounceTime(100) 
@@ -259,7 +297,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         () => this.props.dispatch({type:"leftPanelWidth", load:window.innerWidth/3.7})
                     );
  
-        let click = Observable 
+        let click = Observable  
                     .fromEvent(window,"click")
                     .debounceTime(100)
                     .subscribe(() => {
@@ -268,19 +306,17 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         }
                     }); 
 
-        this.subscriptions.push(resize,click);
+        this.subscriptions.push(resize,click,updates,calendars,updateProgress);
     }
+  
 
-
-    componentDidMount(){ 
-        this.initRefreshEventsInterval();
+    componentDidMount(){   
         this.requestAdditionalNeverTodos();  
-        this.initObservables();
+        this.initObservables(); 
     }      
      
 
     componentWillUnmount(){ 
-        if(this.events){ clearInterval(this.events) }
         this.subscriptions.map( s => s.unsubscribe() );
     }  
  

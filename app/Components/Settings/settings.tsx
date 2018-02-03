@@ -2,7 +2,7 @@ import '../../assets/styles.css';
 import '../../assets/calendarStyle.css';   
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, remote } from 'electron';
 import { Component } from "react"; 
 import { Provider, connect } from "react-redux";
 import ClearArrow from 'material-ui/svg-icons/content/backspace';  
@@ -24,12 +24,14 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { Checkbox } from '../TodoInput/TodoInput';
-import { attachDispatchToProps, isString, debounce } from '../../utils';
+import { attachDispatchToProps, isString, debounce, isNewVersion } from '../../utils';
 import { Store } from '../../app';
 import { generateId, Calendar } from '../../database';
 import { isDate } from 'util';
 import { SimplePopup } from '../SimplePopup';
 import { getIcalData, IcalData, AxiosError } from '../Calendar';
+import { checkForUpdates } from '../MainContainer';
+import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 
 
 
@@ -182,9 +184,9 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                 ],
                 [ 
                  (selectedSettingsSection:string) : boolean => selectedSettingsSection==="Advanced",  
-                 () => <AdvancedSettings />
+                 () => <AdvancedSettings {...{} as any} />
                 ]
-                ])(selectedSettingsSection)
+                ])(selectedSettingsSection) 
             }   
             </div>
         </div>
@@ -698,23 +700,94 @@ class DataFolderSettings extends Component<DataFolderProps,DataFolderState>{
 
 
 
-interface AdvancedProps{}
+interface AdvancedProps extends Store{}
 
-interface AdvancedState{
-}
+interface AdvancedState{ canUpdate:boolean, status:string }
 
+@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)  
 class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
     constructor(props){
         super(props);
-        this.state={  };  
-    }
+        this.state={
+            canUpdate:false,
+            status:''
+        };  
+    } 
 
+    componentDidMount(){
+        this.setState({canUpdate:false, status:''}); 
+    } 
+
+    checkUpdates = () => { 
+        let {dispatch} = this.props;
+        checkForUpdates() 
+        .then(
+            (updateCheckResult:UpdateCheckResult) => {
+                let {updateInfo} = updateCheckResult;
+                let currentAppVersion = remote.app.getVersion(); 
+                let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
+                if(canUpdate){ 
+                    this.setState(
+                        {
+                           status:`New version available : ${updateInfo.version}.`,
+                           canUpdate:true 
+                        } 
+                    );  
+                }else{
+                    this.setState( 
+                        {
+                            status:`Latest version already installed.`,
+                            canUpdate:false 
+                        }
+                    ); 
+                }; 
+            }     
+        ); 
+    }  
+    
     render(){   
+        let {status} = this.state;
 
         return <div style={{
-            display:"flex", width:"100%", paddingTop:"25px", paddingLeft:"25px"
+            display:"flex", 
+            width:"100%", 
+            paddingTop:"25px", 
+            paddingLeft:"25px",
+            flexDirection:"column"
         }}>
-        </div>
+            { 
+                isEmpty(status) ? null :
+                <div style={{
+                    paddingBottom:"10px",
+                    fontSize:"18px",
+                    fontWeight:500,
+                    color:"green",
+                    userSelect:"none"
+                }}>    
+                    {status} 
+                </div>  
+            } 
+            <div     
+                onClick={this.checkUpdates}
+                style={{     
+                    display:"flex",
+                    alignItems:"center",
+                    cursor:"pointer",
+                    justifyContent:"center",
+                    height:"20px",
+                    borderRadius:"5px",
+                    paddingLeft:"25px",
+                    paddingRight:"25px",
+                    paddingTop:"5px", 
+                    paddingBottom:"5px",
+                    backgroundColor:"rgba(81, 144, 247, 1)"  
+                }}  
+            >   
+                <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
+                    Check for updates
+                </div>   
+            </div>  
+            </div> 
     }   
 } 

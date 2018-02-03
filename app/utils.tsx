@@ -262,6 +262,25 @@ export let yearFromDate = (date:Date) => {
     return date["addDays"](365);
 }
 
+export let isNewVersion = (current:string, next:string) => cmpVersions(current, next)<0;
+
+let cmpVersions = (current:string, next:string) => {
+    var i, diff;
+    var regExStrip0 = /(\.0+)+$/;
+    var segmentsA = current.replace(regExStrip0, '').split('.');
+    var segmentsB = next.replace(regExStrip0, '').split('.');
+    var l = Math.min(segmentsA.length, segmentsB.length);
+
+    for (i = 0; i < l; i++) {
+        diff = parseInt(segmentsA[i], 10) - parseInt(segmentsB[i], 10);
+        if (diff) {
+            return diff;
+        }
+    }
+    return segmentsA.length - segmentsB.length;
+}
+
+
 export let yearFromNow = () => {
     Date.prototype["addDays"] = function(days) {
         let date = new Date(this.valueOf());
@@ -271,6 +290,18 @@ export let yearFromNow = () => {
       
     return new Date()["addDays"](365);
 }
+
+
+export let threeDaysLater = (date:Date) : Date => { 
+
+    Date.prototype["addDays"] = function(days) {
+        let date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;   
+    }
+      
+    return new Date(date.getTime())["addDays"](3);
+} 
 
 
 
@@ -1744,28 +1775,27 @@ export let generateEmptyArea = () : Area => ({
     attachedProjectsIds : [],
 });
     
- 
+export let timeDifferenceHours = (from:Date,to:Date) : number => {
+    let first = isString(from) ? new Date(from).getTime() : from.getTime();
+    let second = isString(to) ? new Date(to).getTime() : to.getTime();
+    let diff = (second - first)/(1000*60*60);
+    return Math.abs(diff);  
+}    
+
+
 export let setToJsonStorage = (key:string,json:any) : Promise<void> => new Promise(
     resolve => {
         ipcRenderer.removeAllListeners("setStorage"); 
-
         ipcRenderer.send("setStorage",{key, json});
-        ipcRenderer.on(
-            "setStorage",
-            (event) => resolve()
-        );
+        ipcRenderer.on("setStorage", (event) => resolve());
     } 
 ) 
 
 export let getFromJsonStorage = (key:string) : Promise<any> => new Promise(
     resolve => {
         ipcRenderer.removeAllListeners("getStorage"); 
-
         ipcRenderer.send("getStorage",key); 
-        ipcRenderer.on(
-            "getStorage",
-            (event, data) => resolve(data)
-        );
+        ipcRenderer.on("getStorage",(event, data) => resolve(data));
     }
 )
 
