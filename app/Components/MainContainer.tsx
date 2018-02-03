@@ -160,19 +160,20 @@ export class MainContainer extends Component<Store,MainContainerState>{
     onError = (e) => { console.log(e) } //TODO submit report
 
  
-    isMainWindow = () => { return this.props.windowId===1 }
+    isMainWindow = () => { 
+        return this.props.windowId===1; 
+    }
     
 
     initData = () => {
 
-        if(not(this.isMainWindow())){ return } 
+        if(not(this.isMainWindow())){ return }  
 
         if(isDev()){
     
-            destroyEverything()   
+            destroyEverything()    
             .then(() => {  
                 initDB();
-
                 let fakeData = generateRandomDatabase({todos:215, projects:38, areas:15});      
                     
                 let todos = fakeData.todos; 
@@ -213,9 +214,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
         )
         .then(
             ([calendars,projects,areas,todos]) => {
-                let {limit} = this.props;
+                let {limit} = this.props; 
                 let selected = selectTodos(areas, projects, todos, limit);
-
+           
                 dispatch({type:"setProjects", load:projects});
                 dispatch({type:"setAreas", load:areas});
                 dispatch({type:"setTodos", load:selected});

@@ -28,6 +28,7 @@ import { TrashPopup } from './Components/Categories/Trash';
 import { Settings, section, SettingsPopup } from './Components/Settings/settings';
 import { SimplePopup } from './Components/SimplePopup';
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
+import { Snackbar } from './Components/Snackbar';
   
 injectTapEventPlugin() 
 
@@ -212,8 +213,8 @@ export class App extends Component<AppProps,{}>{
         let windowId = null;
 
         if(type==="open" || type==="reload"){
-           windowId=load; 
-        }
+           windowId=load;  
+        }  
         
         return wrapMuiThemeLight(
             <div style={{
@@ -225,13 +226,14 @@ export class App extends Component<AppProps,{}>{
             }}>   
                 <div style={{display:"flex", width:"inherit", height:"inherit"}}>  
                     { clone ? null : <LeftPanel {...{} as any}/> }
-                    <MainContainer {...{windowId} as any}/>  
-                </div>   
+                    <MainContainer {...{windowId} as any}/>    
+                </div>     
+                <Snackbar {...{} as any} />   
                 <SettingsPopup {...{} as any} />      
                 <TodoInputPopup {...{} as any} />  
-                <ChangeGroupPopup {...{} as any} />
+                <ChangeGroupPopup {...{} as any} /> 
                 <TrashPopup {...{} as any} />
-            </div>           
+            </div>            
         );    
     }           
 };              

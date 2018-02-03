@@ -24,7 +24,7 @@ export let initDB = () => {
   todos_db = new PouchDB('todos');   
   projects_db = new PouchDB('projects');
   areas_db = new PouchDB('areas'); 
-} 
+}  
 
    
 initDB(); 

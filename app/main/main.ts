@@ -10,8 +10,6 @@ const os = require('os');
 let path = require("path");
 const log = require("electron-log");
 const storage = require('electron-json-storage');
-
-
 storage.setDataPath(os.tmpdir()); 
 
 
@@ -19,21 +17,7 @@ let update = () => {
     log.transports.file.level = "info";
     autoUpdater.logger = log;
     
-    autoUpdater.on('checking-for-update', () => {
-        console.log('Checking for update...');
-    })
-
-    autoUpdater.on('update-available', (info) => {
-        console.log('Update available.');
-    })
-
-    autoUpdater.on('update-not-available', (info) => {
-        console.log('Update not available.');
-    })
-
-    autoUpdater.on('error', (err) => {
-        console.log('Error in auto-updater. ' + err);
-    })
+    autoUpdater.on('error', (err) => mainWindow.webContents.send("error", err));
 
     autoUpdater.on('download-progress', (progressObj) => {
         let log_message = "Download speed: " + progressObj.bytesPerSecond;
@@ -50,15 +34,29 @@ let update = () => {
     .then(
         (result) => console.log("checkForUpdatesAndNotify",result)
     );
-}    
+}     
 
 
  
+
 export let mainWindow : BrowserWindow;   
 export let listeners : Listeners; 
 
 const CtrlAltT : string = 'Ctrl+Alt+T';
 const CtrlD : string = 'Ctrl+D';
+const shouldQuit = app.makeSingleInstance(
+    (commandLine, workingDirectory) => {
+        if(mainWindow){
+            if (mainWindow.isMinimized()){ 
+                mainWindow.restore();
+            }
+            mainWindow.focus();
+        } 
+    }
+); 
+  
+
+
 
 let onCtrlAltT = () : void => {
     if(isNil(mainWindow)){
@@ -106,10 +104,17 @@ let getWindowSize = () : {width:number,height:number} => {
 }
 
 
-let onReady = () => {  
+let onReady = () => {   
 
-    globalShortcut.register(CtrlAltT, onCtrlAltT);  
-    globalShortcut.register(CtrlD, onCtrlD);  
+    if (shouldQuit) {
+        app.quit();
+        return;
+    }
+
+    if(globalShortcut){
+       globalShortcut.register(CtrlAltT, onCtrlAltT);  
+       globalShortcut.register(CtrlD, onCtrlD);
+    }  
     
     preventAnnoyingErrorPopups();
     update();
@@ -119,15 +124,18 @@ let onReady = () => {
 }               
 
 
+app.on('ready', onReady);  
+
 process.on("unchaughtException" as any,(error) => console.log(error)); 
   
-app.on('ready', onReady);  
- 
 app.on(     
    'window-all-closed', 
     () => { 
-        globalShortcut.unregister(CtrlAltT);
-        globalShortcut.unregister(CtrlD);
+
+        if(globalShortcut){
+           globalShortcut.unregister(CtrlAltT);
+           globalShortcut.unregister(CtrlD);
+        }
           
         if(process.platform !== 'darwin'){ 
            app.quit();   
