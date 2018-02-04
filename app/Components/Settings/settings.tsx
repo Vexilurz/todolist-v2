@@ -24,16 +24,18 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { Checkbox } from '../TodoInput/TodoInput';
-import { attachDispatchToProps, isString, debounce, isNewVersion } from '../../utils';
+import { attachDispatchToProps, isString, debounce, isNewVersion, keyFromDate } from '../../utils';
 import { Store } from '../../app';
-import { generateId, Calendar } from '../../database';
+import { generateId, Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, Todo, destroyEverything, initDB, addTodos, addProjects, addAreas, addCalendars } from '../../database';
 import { isDate } from 'util';
 import { SimplePopup } from '../SimplePopup';
 import { getIcalData, IcalData, AxiosError } from '../Calendar';
-import { checkForUpdates } from '../MainContainer';
+import { checkForUpdates, fetchData } from '../MainContainer';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
-
-
+const Promise = require('bluebird');   
+const fs = remote.require('fs');
+const path = require("path");
+const os = remote.require('os');
 
 interface SettingsPopupProps extends Store{}
 
@@ -142,12 +144,6 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         selected={selectedSettingsSection==='CalendarEvents'}
                     />
                     <Section
-                        onClick={() => dispatch({type:"selectedSettingsSection", load:'DataFolder'})} 
-                        icon={<Database style={{color:"rgba(10,10,10,0.8)", height:18, width:18}}/>}
-                        name={'Database'} 
-                        selected={selectedSettingsSection==='DataFolder'}
-                    />  
-                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'Advanced'})} 
                         icon={<Advanced style={{color:"rgba(10,10,10,0.8)", height:18, width:18}}/>}
                         name={'Advanced'} 
@@ -157,40 +153,31 @@ export class Settings extends Component<SettingsProps,SettingsState>{
             </div> 
             <div 
               className="scroll"  
-              style={{
-                 flexGrow:0.7,   
-                 display:"flex",
-                 width:"100%", 
-                 cursor:"default"
-              }}
+              style={{flexGrow:0.7,display:"flex",width:"100%",cursor:"default"}}
             >  
             {
                 cond([  
-                [ 
-                 (selectedSettingsSection:string) : boolean => selectedSettingsSection==="General",  
-                 () => <GeneralSettings />
-                ],  
-                [ 
-                 (selectedSettingsSection:string) : boolean => selectedSettingsSection==="QuickEntry",  
-                 () => <QuickEntrySettings />
-                ], 
-                [ 
-                 (selectedSettingsSection:string) : boolean => selectedSettingsSection==="CalendarEvents",  
-                 () => <CalendarEventsSettings {...{} as any} />
-                ], 
-                [ 
-                 (selectedSettingsSection:string) : boolean => selectedSettingsSection==="DataFolder",  
-                 () => <DataFolderSettings />
-                ],
-                [ 
-                 (selectedSettingsSection:string) : boolean => selectedSettingsSection==="Advanced",  
-                 () => <AdvancedSettings {...{} as any} />
-                ]
+                    [ 
+                        (selectedSettingsSection:string) : boolean => selectedSettingsSection==="General",  
+                        () => <GeneralSettings />
+                    ],  
+                    [ 
+                        (selectedSettingsSection:string) : boolean => selectedSettingsSection==="QuickEntry",  
+                        () => <QuickEntrySettings />
+                    ], 
+                    [ 
+                        (selectedSettingsSection:string) : boolean => selectedSettingsSection==="CalendarEvents",  
+                        () => <CalendarEventsSettings {...{} as any} />
+                    ], 
+                    [  
+                        (selectedSettingsSection:string) : boolean => selectedSettingsSection==="Advanced",  
+                        () => <AdvancedSettings {...{} as any} />
+                    ]
                 ])(selectedSettingsSection) 
             }   
             </div>
         </div>
-    }
+    } 
 }
 
  
@@ -618,103 +605,187 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
 
 
 
- 
-
 let selectFolder = () => new Promise(
     resolve => { 
         ipcRenderer.removeAllListeners("folder");  
         ipcRenderer.send("folder");
-        ipcRenderer.on("folder", (event,data) => {
-            let {foldername} = data;
-            resolve(foldername)
-        })
+        ipcRenderer.on(
+            "folder", 
+            (event,data) => {
+                let {foldername} = data;
+                resolve(foldername)
+            }
+        )
+    } 
+)
+
+let selectJsonDatabase = () => new Promise(
+    resolve => {  
+        ipcRenderer.removeAllListeners("jsonDatabase");  
+        ipcRenderer.send("jsonDatabase");
+        ipcRenderer.on(
+            "jsonDatabase", 
+            (event,data) => {
+                let {path} = data;
+                resolve(path)
+            }
+        )
     } 
 )
 
 
 
-interface DataFolderProps{}
 
-interface DataFolderState{
-    folder:string
-}
-
-class DataFolderSettings extends Component<DataFolderProps,DataFolderState>{
-
-    constructor(props){
-        super(props);
-        this.state={ 
-            folder:'...'
-        };  
-    }
-
-    onSelectFolder = () => selectFolder().then(
-        (folder:string) => isNil(folder) ? null : 
-                           isEmpty(folder) ? null :
-                           this.setState({folder})
+let writeJsonFile = (obj:any,pathToFile:string) : Promise<any> => 
+    new Promise(
+        resolve => {
+            let json : string = JSON.stringify(obj);
+            fs.writeFile(
+                pathToFile, 
+                json, 
+                'utf8', 
+                (err) => {
+                    if (err){ resolve(err) }
+                    else{ resolve() }
+                } 
+            );
+        }
     )
-      
-    render(){   
-        let {folder} = this.state;
 
-        return <div style={{display:"flex", width:"100%", paddingTop:"25px", paddingLeft:"25px"}}>
-            <div style={{ 
-                backgroundColor:"white",
-                color:"rgba(100, 100, 100, 0.9)",   
-                outline:"none",
-                textAlign:"center",
-                alignItems:"center",
-                display:"flex",
-                marginRight:"15px",
-                justifyContent:"center",
-                height:"30px",
-                width:"100%",  
-                borderRadius:"4px",  
-                border:"1px solid rgba(100,100,100,0.3)"
-            }}>           
-                {folder}
-            </div>
-            <div     
-                onClick={this.onSelectFolder}
-                style={{     
-                    display:"flex",
-                    alignItems:"center",
-                    cursor:"pointer",
-                    justifyContent:"center",
-                    height:"20px",
-                    borderRadius:"5px",
-                    paddingLeft:"25px",
-                    paddingRight:"25px",
-                    paddingTop:"5px", 
-                    paddingBottom:"5px",
-                    backgroundColor:"rgba(81, 144, 247, 1)"  
-                }}  
-            >   
-                <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
-                    Select folder
-                </div>   
-            </div> 
-        </div>
-    }   
-}   
 
+ 
+let readJsonFile = (path:string) : Promise<any> => 
+    new Promise(
+        resolve => {
+            fs.readFile(
+                path, 
+                'utf8', 
+                (err, data) => {
+                    if (err){ resolve(err) }
+                    else{ resolve(JSON.parse(data)) }
+                }
+            );
+        }
+    )
+
+
+let correctFormat = (json:any) : boolean => not(isNil(json.database));
 
 
 interface AdvancedProps extends Store{}
 
-interface AdvancedState{ canUpdate:boolean, status:string }
-
+interface AdvancedState{ 
+    message:string,
+    updateStatus:string 
+    importPath:string, 
+    exportPath:string
+}   
+  
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)  
 class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
-
+    backupFolder:string;
+    backupFilename:string;
+    limit:number;
+    
     constructor(props){
         super(props);
-        this.state={
-           canUpdate:false,
-           status:`Current version is : ${remote.app.getVersion()}.`
-        };      
-    }   
 
+        this.backupFolder = path.resolve(os.homedir(), "Documents");
+        this.backupFilename = "backup.json";
+
+        this.limit = 1000000;
+
+        this.state={ 
+           message:'', 
+           importPath:'',   
+           exportPath:'',
+           updateStatus:`Current version is : ${remote.app.getVersion()}.`
+        };       
+    };
+
+
+    getDatabaseObjects = () : Promise<[Calendar[],Project[],Area[],Todo[]]> => {
+        return Promise.all([
+            getCalendars(this.onError)(true, this.limit), 
+            getProjects(this.onError)(true, this.limit),
+            getAreas(this.onError)(true, this.limit),
+            getTodos(this.onError)(true, this.limit) 
+        ])
+    };
+
+    
+    replaceDatabaseObjects = (json) : Promise<void> => {
+        let { todos, projects, areas, calendars } = json.database;
+
+        return destroyEverything()     
+                .then(() => {    
+                    initDB();  
+                    return Promise.all([ 
+                        addTodos(this.onError,todos),      
+                        addProjects(this.onError,projects), 
+                        addAreas(this.onError,areas),
+                        addCalendars(this.onError,calendars)
+                    ]) 
+                    .then(() => fetchData(this.props,this.limit,this.onError))    
+                });
+    };  
+     
+
+    onError = (error) => console.log(error);
+
+
+    export = (folder:string) => {  
+        return this.getDatabaseObjects()
+        .then(
+            ([calendars,projects,areas,todos]) => 
+                writeJsonFile(
+                    { database : { todos, projects, areas, calendars } },
+                    path.resolve(folder, `${keyFromDate(new Date())}.json`) //TODO replace by uniqid
+                )
+                .then((err) => isNil(err) ? null : this.onError(err))
+        )      
+    };    
+
+ 
+    import = (pathToFile:string) => {
+        let backupFolderExists : boolean = fs.existsSync(this.backupFolder);
+        let message = (place) => `Data was imported successfully. You can find a backup of your old database in ${place}.`;
+        let pathToBackup = backupFolderExists ? path.resolve( this.backupFilename, this.backupFolder) :
+                                                path.resolve( this.backupFilename );
+
+        return readJsonFile(pathToFile)  
+                .then((json) => { 
+                    if(correctFormat(json)){
+                        this.export(pathToBackup) 
+                        .then(() => this.setState({message:'Loading...'}))
+                        .then(() => this.replaceDatabaseObjects(json))
+                        .then(() => this.setState({message:message(pathToBackup)}))
+                    }else{
+                        this.setState({message:"Incorrect format."})
+                    } 
+                })   
+    };
+    
+
+    onSelectExportFolder = () => {
+        selectFolder()
+        .then(
+            (folder:string) => isNil(folder) ? null : 
+                               isEmpty(folder) ? null :
+                               this.setState({exportPath:folder}, () => this.export(folder))
+        )
+    };
+
+
+    onSelectImportFile = () => {  
+        selectJsonDatabase()
+        .then(
+            (path:string) => isNil(path) ? null : 
+                             isEmpty(path) ? null : 
+                             this.setState({importPath:path}, () => this.import(path))
+        )
+    };
+      
 
     checkUpdates = () => { 
         let {dispatch} = this.props;
@@ -724,62 +795,152 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 let {updateInfo} = updateCheckResult;
                 let currentAppVersion = remote.app.getVersion(); 
                 let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
-                if(canUpdate){ 
-                    dispatch({type:"openSettings",load:false});  
-                    dispatch({type:"showUpdatesNotification", load:true});
-                }else{
-                    this.setState({ 
-                        status:`Latest version already installed.`,
-                        canUpdate:false 
-                    }); 
-                }; 
-            }     
-        ); 
-    }  
-    
-    render(){   
-        let {status} = this.state;
 
-        return <div style={{
-            display:"flex",
-            width:"100%",
-            paddingTop:"25px",
-            height:"40px",
-            paddingLeft:"25px",
-            alignItems:"baseline",
-            justifyContent:"space-between"
-        }}>
-            { 
-                isEmpty(status) ? null :
-                <div style={{
-                    fontSize:"18px",
-                    fontWeight:500,
-                    color:"green",
-                    userSelect:"none"
-                }}>    
-                    {status} 
-                </div>  
-            }     
-            <div     
-                onClick={this.checkUpdates}
-                style={{     
-                    display:"flex",
-                    alignItems:"center",
-                    cursor:"pointer",
-                    justifyContent:"center",
-                    height:"20px",
-                    borderRadius:"5px",
-                    paddingLeft:"25px",
-                    paddingRight:"25px",
-                    paddingTop:"5px", 
-                    paddingBottom:"5px",
-                    backgroundColor:"rgba(81, 144, 247, 1)"  
-                }}  
-            >   
-                <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
-                    Check for updates
-                </div>   
-            </div>   
-            </div> 
+                if(canUpdate){  
+                   dispatch({type:"openSettings",load:false});  
+                   dispatch({type:"showUpdatesNotification",load:true});
+                }else{  
+                   this.setState({updateStatus:"Latest version already installed."}); 
+                }; 
+            }      
+        );  
+    };  
+     
+ 
+    render(){   
+        let {importPath, exportPath, updateStatus, message} = this.state;
+
+        return <div style={{paddingTop:"25px",width:"90%",paddingLeft:"25px"}}>
+            <div style={{display:"flex",flexDirection:"column",justifyContent:"space-around",height:"70%"}}> 
+                { 
+                    isEmpty(message) ? null :
+                    <div style={{
+                        display: "flex",
+                        fontSize: "14px",
+                        alignItems: "center",
+                        fontWeight: 500,
+                        color: message==="Incorrect format." ? "red" : "green",
+                        userSelect: "none"
+                    }}>       
+                        {message}  
+                    </div>  
+                }   
+                <div style={{display:"flex"}}>
+                    <div style={{ 
+                        backgroundColor:"white",
+                        color:"rgba(100, 100, 100, 0.9)",   
+                        outline:"none",
+                        textAlign:"center",
+                        alignItems:"center",
+                        display:"flex",  
+                        marginRight:"15px",
+                        justifyContent:"center",
+                        height:"30px",
+                        width:"100%",  
+                        borderRadius:"4px",  
+                        border:"1px solid rgba(100,100,100,0.3)"
+                    }}>           
+                        {importPath}
+                    </div>
+                    <div     
+                        onClick={this.onSelectImportFile}
+                        style={{     
+                            display:"flex",
+                            alignItems:"center",
+                            cursor:"pointer",
+                            justifyContent:"center",
+                            width: "40px",
+                            height:"20px", 
+                            borderRadius:"5px",
+                            paddingLeft:"25px",
+                            paddingRight:"25px",
+                            paddingTop:"5px", 
+                            paddingBottom:"5px",
+                            backgroundColor:"rgba(81, 144, 247, 1)"  
+                        }}  
+                    >   
+                        <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
+                            Import
+                        </div>   
+                    </div> 
+                </div>
+
+                <div style={{display:"flex"}}>
+                    <div style={{ 
+                        backgroundColor:"white",
+                        color:"rgba(100, 100, 100, 0.9)",   
+                        outline:"none",
+                        textAlign:"center",
+                        alignItems:"center",
+                        display:"flex",
+                        marginRight:"15px",
+                        justifyContent:"center",
+                        height:"30px",
+                        width:"100%",  
+                        borderRadius:"4px",  
+                        border:"1px solid rgba(100,100,100,0.3)"
+                    }}>           
+                       {exportPath}
+                    </div>
+                    <div     
+                        onClick={this.onSelectExportFolder} 
+                        style={{     
+                            display:"flex",
+                            alignItems:"center",
+                            cursor:"pointer",
+                            justifyContent:"center",
+                            height:"20px",
+                            width:"40px",
+                            borderRadius:"5px",
+                            paddingLeft:"25px",
+                            paddingRight:"25px",
+                            paddingTop:"5px", 
+                            paddingBottom:"5px",
+                            backgroundColor:"rgba(81, 144, 247, 1)"  
+                        }}  
+                    >   
+                        <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
+                            Export 
+                        </div>   
+                    </div> 
+                </div>
+                <div style={{display:"flex", justifyContent:"space-between"}}>
+                    { 
+                        isEmpty(updateStatus) ? null :
+                        <div style={{
+                            display: "flex",
+                            fontSize: "14px",
+                            alignItems: "center",
+                            fontWeight: 500,
+                            color: "green",
+                            userSelect: "none"
+                        }}>     
+                            {updateStatus} 
+                        </div>  
+                    }     
+                    <div     
+                        onClick={this.checkUpdates} 
+                        style={{     
+                            display:"flex",
+                            alignItems:"center",
+                            cursor:"pointer",
+                            justifyContent:"center",
+                            height:"20px",
+                            width:"100px",
+                            borderRadius:"5px",
+                            paddingLeft:"25px",
+                            paddingRight:"25px",
+                            paddingTop:"5px", 
+                            paddingBottom:"5px",
+                            backgroundColor:"rgba(81, 144, 247, 1)"  
+                        }}   
+                    >   
+                        <div style={{color:"white",whiteSpace:"nowrap",fontSize:"16px"}}>  
+                            Check for updates
+                        </div>    
+                    </div>   
+                </div> 
+            </div>
+        </div>    
     }   
-} 
+}  

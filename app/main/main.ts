@@ -76,7 +76,6 @@ let getWindowSize = () : {width:number,height:number} => {
 
 
 let onReady = () => {   
-
     if(shouldQuit){
        app.quit();
        return;

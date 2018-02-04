@@ -1,7 +1,7 @@
 import { mainWindow } from './main';
 import { loadApp, dev } from './loadApp'; 
 import * as electron from 'electron'; 
-import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';
+import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem, FileFilter} from 'electron';
 import { initWindow } from './initWindow';
 import { remove } from 'ramda';
 let uniqid = require("uniqid");
@@ -32,7 +32,7 @@ let onAction = (event, action : any, id : number, spawnedWindows:BrowserWindow[]
         
         windows[i].webContents.send("action", {...action, kind});
     }  
-} 
+}; 
 
 
 let onReload = (event, id:number, spawnedWindows:BrowserWindow[]) : void => { 
@@ -52,7 +52,7 @@ let onReload = (event, id:number, spawnedWindows:BrowserWindow[]) : void => {
         "loaded", 
         {type:"reload",load:browserWindow.id} 
     ));   
-} 
+}; 
  
 
 let onCloneLoaded = (newWindow:BrowserWindow, storeWithId:any) => {       
@@ -62,7 +62,7 @@ let onCloneLoaded = (newWindow:BrowserWindow, storeWithId:any) => {
     if(dev()){
         newWindow.webContents.openDevTools();    
     }
-}
+};
  
 
 let onCloneWindow = (event, store, spawnedWindows:BrowserWindow[]) : void => { 
@@ -83,14 +83,38 @@ let onCloneWindow = (event, store, spawnedWindows:BrowserWindow[]) : void => {
     let storeWithId = {...store, windowId:newWindow.id}; 
 
     loadApp(newWindow).then(() => onCloneLoaded(newWindow,storeWithId)); 
-} 
+}; 
+
+
+let selectJsonDatabase = () : Promise<string> => 
+    new Promise(
+        resolve => {  
+            dialog.showOpenDialog( 
+                mainWindow,
+                { 
+                    title:`Select database file`,
+                    buttonLabel:'Select',
+                    properties:['openFile'],
+                    filters:[ { 
+                        extensions: ["json"],
+                        name: ""
+                    } ] 
+                },  
+                (value) => { 
+                    if(value)    
+                       resolve(value[0]); 
+                    else
+                       resolve(undefined);
+                }
+            ); 
+        }  
+    );
 
 
 
 let selectFolder = () : Promise<string> => 
     new Promise(
         (resolve,reject) => {
-
             dialog.showOpenDialog( 
                 mainWindow,
                 { 
@@ -99,7 +123,6 @@ let selectFolder = () : Promise<string> =>
                     properties:['openDirectory']
                 },  
                 (value) => {
-
                     if(value)   
                        resolve(value[0]); 
                     else
@@ -144,7 +167,6 @@ export class Listeners{
       this.spawnedWindows = [mainWindow];  
  
       this.registeredListeners = [   
-            
             { 
                 name : "installUpdates",
                 callback : (event)  => {
@@ -189,11 +211,20 @@ export class Listeners{
                 callback : (event, action : any, id : number) => onAction(event,action,id,this.spawnedWindows)
             }, 
             {
+                name:"jsonDatabase",
+                callback : (event) => {
+                    selectJsonDatabase().then(
+                        (path:string) => event.sender.send("jsonDatabase",{path})
+                    )
+                }
+            },
+            {
                 name:"folder",
-                callback : (event) => selectFolder()
-                                      .then(
-                                        (path:string) => event.sender.send("folder", {foldername:path})
-                                      )  
+                callback : (event) => {
+                    selectFolder().then(
+                        (path:string) => event.sender.send("folder", {foldername:path})
+                    )  
+                }
             }, 
             {
                 name:"setStorage",

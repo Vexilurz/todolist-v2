@@ -136,14 +136,50 @@ export let selectTodos = (areas, projects, todos, limit) => {
 }
 
 
+
+export let fetchData = (props:Store,max:number,onError:Function) : Promise<void> => { 
+    let {clone,dispatch} = props;
+    
+    if(clone){ return } 
+  
+    return Promise.all([
+        getCalendars(onError)(true,max), 
+        getProjects(onError)(true,max),
+        getAreas(onError)(true,max),
+        getTodos(onError)(true,max)
+    ]) 
+    .then(
+        ([calendars,projects,areas,todos]) => [
+            calendars,
+            projects.map(convertProjectDates),
+            areas.map(convertAreaDates),
+            todos.map(convertTodoDates)
+        ]
+    )
+    .then( 
+        ([calendars,projects,areas,todos]) => {
+            let {limit} = props; 
+            let selected = selectTodos(areas, projects, todos, limit);
+            dispatch({type:"setProjects", load:projects});
+            dispatch({type:"setAreas", load:areas});
+            dispatch({type:"setTodos", load:selected});
+            return updateCalendars(calendars,onError);
+        }
+    )
+    .then( (calendars) => { dispatch({type:"setCalendars", load:calendars}) } )
+} 
+
+
+
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
                        "deadline" | "search" | "group"
  
-                      
-
+                  
+                       
 interface MainContainerState{ fullWindowSize:boolean }
  
+
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
 export class MainContainer extends Component<Store,MainContainerState>{
@@ -207,49 +243,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     addAreas(this.onError,areas),  
                     clearStorage()     
                 ]) 
-                .then(() => this.fetchData())    
+                .then( () => fetchData(this.props,this.limit,this.onError) )    
             });
 
-        }else{ this.fetchData() }
+        }else{ fetchData(this.props,this.limit,this.onError) }
     }
-
-
-    fetchData = () => { 
-        let {clone,dispatch} = this.props;
-        
-        if(clone){ return }
-      
-        Promise.all([
-            getCalendars(this.onError)(true, this.limit), 
-            getProjects(this.onError)(true, this.limit),
-            getAreas(this.onError)(true, this.limit),
-            getTodos(this.onError)(true, this.limit)
-        ])
-        .then(
-            ([calendars,projects,areas,todos]) => [
-                calendars,
-                projects.map(convertProjectDates),
-                areas.map(convertAreaDates),
-                todos.map(convertTodoDates)
-            ]
-        )
-        .then(
-            ([calendars,projects,areas,todos]) => {
-                let {limit} = this.props; 
-                let selected = selectTodos(areas, projects, todos, limit);
-           
-                dispatch({type:"setProjects", load:projects});
-                dispatch({type:"setAreas", load:areas});
-                dispatch({type:"setTodos", load:selected});
-
-                return updateCalendars(calendars, this.onError);
-            }
-        )
-        .then(
-            (calendars) => dispatch({type:"setCalendars", load:calendars})
-        )
-    } 
-
+ 
 
     initObservables = () => { 
         let {dispatch} = this.props; 

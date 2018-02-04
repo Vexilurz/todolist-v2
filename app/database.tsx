@@ -250,19 +250,17 @@ function updateItemsInDatabase<T>(
     return getItems(onError,db)(0,100000)    
             .then( (query:Query<T>) => queryToObjects<T>(query) )
             .then( (allItems:T[]) => {
-
+              
               for(let i=0; i<items.length; i++){
                   let received = allItems.find((item) => item[`_id`]===items[i][`_id`]);
                   items[i][`_rev`] = received[`_rev`];
               } 
-
               return db.bulkDocs(items) 
                         .then((updated) => { 
                             middleware(db, updated);
                             return updated;
                         })
                         .catch(onError); 
- 
             }); 
 
   }  
@@ -572,7 +570,6 @@ export let addTodo = (onError:Function, todo : Todo) : Promise<void> => {
 }
  
 
-
 export let addCalendar = (onError:Function, calendar:Calendar) : Promise<void> => {
   return setItemToDatabase<Calendar>(
     (e) => console.log(e),
@@ -589,6 +586,13 @@ export let updateCalendar = (_id:string, replacement:Calendar, onError:Function)
 }
 
 
+export let addCalendars = (onError:Function, calendars:Calendar[]) : Promise<void> => {
+  return setItemsToDatabase<Calendar>(
+    (e) => console.log(e), 
+    calendars_db
+  )(calendars);
+}
+
 
 export let addTodos = (onError:Function, todos : Todo[]) : Promise<void> => {
 
@@ -601,8 +605,7 @@ export let addTodos = (onError:Function, todos : Todo[]) : Promise<void> => {
       return setItemsToDatabase<Todo>(
           (e) => console.log(e), 
           todos_db
-      )(todos);
-
+      )(todos); 
 }
     
 
@@ -756,7 +759,10 @@ export let updateTodos = (todos : Todo[], onError : Function) : Promise<any[]> =
 
 export let queryToCalendars = (query:Query<Calendar>) : Calendar[] => queryToObjects<Calendar>(query); 
 
-export let queryToTodos = (query:Query<Todo>) : Todo[] => queryToObjects<Todo>(query); 
+export let queryToTodos = (query:Query<Todo>) : Todo[] => {
+  console.log(query);   
+  return queryToObjects<Todo>(query); 
+}
 
 export let queryToProjects = (query:Query<Project>) : Project[] => queryToObjects<Project>(query); 
 
@@ -765,47 +771,11 @@ export let queryToAreas = (query:Query<Area>) : Area[] => queryToObjects<Area>(q
 
 
 export let destroyEverything = () : Promise<void[]> => 
-
   Promise.all([ 
-
-      new PouchDB('calendars')
-      .destroy()
-      .then(function () {
-        // database destroyed
-      })
-      .catch(function (err) {
-        // error occurred
-      }), 
-
-      new PouchDB('todos')
-      .destroy()
-      .then(function () {
-        // database destroyed
-      })
-      .catch(function (err) {
-        // error occurred
-      }), 
-
-
-      new PouchDB('projects')
-      .destroy()
-      .then(function () {
-        // database destroyed
-      })
-      .catch(function (err) {
-        // error occurred
-      }),
-
-
-      new PouchDB('areas')
-      .destroy()
-      .then(function () {
-        // database destroyed
-      })
-      .catch(function (err) {
-        // error occurred
-      }),
-
+      calendars_db.destroy(),
+      todos_db.destroy(),
+      projects_db.destroy(),
+      areas_db.destroy()
   ])
 
 

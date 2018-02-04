@@ -4,12 +4,12 @@ import * as ReactDOM from 'react-dom';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import * as injectTapEventPlugin from 'react-tap-event-plugin';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
-import { ipcRenderer } from 'electron'; 
 import IconButton from 'material-ui/IconButton'; 
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import { Component } from "react";  
-import {   
+import { ipcRenderer, remote } from 'electron';
+import {    
     wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, 
     getTagsFromItems, defaultTags, isTodo, isProject, isArea, isArrayOfAreas, 
     isArrayOfProjects, isArrayOfTodos, isArray, transformLoadDates, convertDates, yearFromNow, isString, stringToLength, assert
@@ -31,6 +31,30 @@ import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { TopSnackbar, UpdateNotification } from './Components/Snackbar';
 import Analytics from 'electron-ga';
 export const googleAnalytics = new Analytics('UA-113407516-1');
+const os = remote.require('os');  
+
+
+export interface SystemInfo{ 
+    arch : string,
+    cpus : any[], 
+    hostname : string,
+    platform : string,
+    release : string,
+    type : string
+}
+ 
+export let collectSystemInfo = () : SystemInfo => {
+
+    return { 
+        arch : os.arch(),
+        cpus : os.cpus(),
+        hostname : os.hostname(),
+        platform : os.platform(),
+        release : os.release(),
+        type : os.type()
+    }
+}
+
 
 injectTapEventPlugin()  
 
@@ -143,7 +167,7 @@ export let globalErrorHandler = (error:any) : Promise<void> => {
 
     let value = isNil(error) ? 0 :
                 error.code ? error.code : 0;     
-
+    
     return googleAnalytics.send(
         'event',  
         { 
@@ -214,15 +238,15 @@ export class App extends Component<AppProps,{}>{
             "action", 
             (event, action:{type:string, kind:string, load:any}) => { 
     
-                if(not(clone)){ return }  
+                if(not(clone)){ return }   
     
                 dispatch(assoc("load", transformLoadDates(action.load), action));      
             }
         );  
-    } 
+    }   
 
 
-    initListeners = () : void => {
+    initListeners = () : void => {  
         this.initErrorListener(); 
         this.initCtrlAltTListener();
         this.initActionListener();
@@ -238,14 +262,23 @@ export class App extends Component<AppProps,{}>{
      
     componentDidMount(){   
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
+        let { arch, cpus, platform, release, type } = collectSystemInfo();
 
-        assert(false , "TEST ERROR", false);  
-        
-        googleAnalytics.send(
-            'event',  
-            { 
-               ec:'Start', 
-               ea:`Application launched ${new Date().toString()}`, 
+        console.log("homedir",os.homedir());
+
+        googleAnalytics.send(   
+            'event',   
+            {  
+               ec:'Start',   
+               ea:`
+                    Application launched ${new Date().toString()}
+                    System info :
+                    arch ${arch}; 
+                    cpus ${cpus.length};
+                    platform ${platform};
+                    release ${release};
+                    type ${type}; 
+               `,  
                el:'Application launched', 
                ev:timeSeconds 
             }
@@ -254,8 +287,8 @@ export class App extends Component<AppProps,{}>{
         .catch(err => this.onError(err))
         
         this.init();  
-        this.initListeners();
-    }   
+        this.initListeners(); 
+    }    
 
 
     componentWillUnmount(){
