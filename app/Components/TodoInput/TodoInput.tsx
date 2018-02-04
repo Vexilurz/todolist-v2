@@ -256,21 +256,26 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let todo : Todo = this.todoFromState();  
 
         if(!isEmpty(todo.title)){
-            
-            googleAnalytics.send(
-                'event', 
-               { ec:'Interactions', ea:'TodoCreation', el:'Todo created', ev:new Date().toString() }
-            ) 
-            .then(() => console.log('Todo created'))
-            .catch(err => this.onError(err))
+            let timeSeconds = Math.round(new Date().getTime() / 1000);
 
+            googleAnalytics.send(  
+                'event', 
+               { 
+                   ec:'TodoCreation', 
+                   ea:`Todo Created ${new Date().toString()}`, 
+                   el:'Todo Created', 
+                   ev:timeSeconds 
+                }
+            )  
+            .then(() => console.log('Todo created')) 
+            .catch(err => this.onError(err)); 
+    
             let todos = [...this.props.todos].sort((a:Todo,b:Todo) => a.priority-b.priority);
         
-              
             if(!isEmpty(todos)){ 
                 todo.priority = todos[0].priority - 1;
             }  
-  
+            
             if(
                 this.props.selectedCategory==="today" || 
                 this.props.selectedCategory==="evening"
@@ -424,15 +429,21 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                          selectedCategory!=="logbook" &&  
                                          selectedCategory!=="trash" &&
                                          selectedCategory!=="search"; 
-            
+                
             if(not(creation)){
                 let isChecked : boolean = !checked; 
+                let timeSeconds = Math.round( (new Date().getTime()) / 1000 );
 
-                googleAnalytics.send(
-                    'event', 
-                   { ec:'Interactions', ea:'TodoCompleted', el:'Todo completed', ev:new Date().toString() }
-                ) 
-                .then(() => console.log('Todo completed'))
+                googleAnalytics.send(    
+                    'event',  
+                    {   
+                       ec:'TodoCompleted', 
+                       ea:`Todo Completed ${new Date().toString()}`, 
+                       el:`Todo Completed`, 
+                       ev:timeSeconds 
+                    }
+                )  
+                .then((e) => console.log(`Todo completed ${e}`))  
                 .catch(err => this.onError(err))
                 
                 this.setState(    

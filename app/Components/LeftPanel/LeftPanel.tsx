@@ -133,12 +133,19 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
  
     onNewProjectClick = (e:any) => {  
+        let timeSeconds = Math.round( new Date().getTime() / 1000 );
+
         googleAnalytics.send(
             'event', 
-           { ec:'Interactions', ea:'ProjectCreation', el:'Project created', ev:new Date().toString() }
+            { 
+               ec:'ProjectCreation', 
+               ea:`Project Created ${new Date().toString()}`, 
+               el:`Project Created`, 
+               ev:timeSeconds  
+            }
         ) 
-        .then(() => console.log('Project Created'))
-        .catch(err => this.onError(err))
+        .then(() => console.log('Project Created')) 
+        .catch(err => this.onError(err)) 
 
         let project = generateEmptyProject();
         this.props.dispatch({type:"addProject", load:project});
@@ -149,12 +156,19 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
  
          
     onNewAreaClick = (e:any) => {    
-        googleAnalytics.send( 
+        let timeSeconds = Math.round( new Date().getTime() / 1000 );
+
+        googleAnalytics.send(  
             'event', 
-           { ec:'Interactions', ea:'AreaCreation', el:'Area created', ev:new Date().toString() }
+            { 
+               ec:'AreaCreation', 
+               ea:`Area Created ${new Date().toString()}`, 
+               el:'Area Created', 
+               ev:timeSeconds 
+            }
         ) 
         .then(() => console.log('Area created'))
-        .catch(err => this.onError(err)) 
+        .catch(err => this.onError(err))  
 
         let area = generateEmptyArea();
         this.props.dispatch({type:"addArea", load:area});

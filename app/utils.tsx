@@ -430,12 +430,14 @@ export let isArrayOfStrings = (array:any[]) : boolean => {
 }
  
  
-export let assert = (condition:boolean , error:string) : void => {
+export let assert = (condition:boolean , error:string, throwError=true) : void => {
     if(not(condition)){ 
         globalErrorHandler(error)
-        .then(
+        .then( 
             () => { 
-                if(isDev()) { throw new Error(error) }
+                if(isDev() && throwError) { 
+                    throw new Error(error) 
+                }
             }
         )  
     }   

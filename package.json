@@ -1,8 +1,8 @@
 {
   "name": "tasklist",
-  "version": "1.1.2-master",
+  "version": "1.1.4-master",
   "description": "tasklist",
-  "main": "dist/main.js",
+  "main": "production/main.js",
   "scripts": {
     "start": "electron .",
     "rebuild": "electron-rebuild -f -w",

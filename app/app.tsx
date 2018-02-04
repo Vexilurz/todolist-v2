@@ -12,7 +12,7 @@ import { Component } from "react";
 import {   
     wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, 
     getTagsFromItems, defaultTags, isTodo, isProject, isArea, isArrayOfAreas, 
-    isArrayOfProjects, isArrayOfTodos, isArray, transformLoadDates, convertDates, yearFromNow
+    isArrayOfProjects, isArrayOfTodos, isArray, transformLoadDates, convertDates, yearFromNow, isString, stringToLength, assert
 } from "./utils";  
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
@@ -30,10 +30,9 @@ import { SimplePopup } from './Components/SimplePopup';
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { TopSnackbar, UpdateNotification } from './Components/Snackbar';
 import Analytics from 'electron-ga';
-
 export const googleAnalytics = new Analytics('UA-113407516-1');
 
-injectTapEventPlugin() 
+injectTapEventPlugin()  
 
 export let isDev = () => { return true }  
 
@@ -137,16 +136,30 @@ interface AppProps extends Store{
 export let globalErrorHandler = (error:any) : Promise<void> => {
     console.log(JSON.stringify(error));
 
-    return googleAnalytics.send( 
-        'event',   
-       { ec:'Error', ea:'Error', el:'Error report', ev:JSON.stringify(error) }
-    )
-    .then(() => console.log(`Error report submitted`)); 
-};    
+    let message = isNil(error) ? "Error occured" :
+                  isString(error) ? error :
+                  error.message ? error.message : 
+                  JSON.stringify(error);
+
+    let value = isNil(error) ? 0 :
+                error.code ? error.code : 0;     
+
+    return googleAnalytics.send(
+        'event',  
+        { 
+           ec:'Error',  
+           ea:stringToLength(message, 120), 
+           el:'Error occured', 
+           ev:value
+        }
+    ) 
+    .then(() => console.log('Error report submitted'))
+    .catch(err => this.onError(err))
+};        
  
 
 @connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
-export class App extends Component<AppProps,{}>{
+export class App extends Component<AppProps,{}>{  
 
     constructor(props){  
         super(props);  
@@ -223,15 +236,24 @@ export class App extends Component<AppProps,{}>{
     }   
 
      
-    componentDidMount(){  
+    componentDidMount(){   
+        let timeSeconds = Math.round( new Date().getTime() / 1000 );
+
+        assert(false , "TEST ERROR", false);  
+        
         googleAnalytics.send(
-            'event', 
-           { ec:'Interactions', ea:'Start', el:'Application launched', ev:new Date().toString() }
-        )
+            'event',  
+            { 
+               ec:'Start', 
+               ea:`Application launched ${new Date().toString()}`, 
+               el:'Application launched', 
+               ev:timeSeconds 
+            }
+        ) 
         .then(() => console.log('Application launched'))
         .catch(err => this.onError(err))
-  
-        this.init(); 
+        
+        this.init();  
         this.initListeners();
     }   
 

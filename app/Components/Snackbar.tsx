@@ -81,12 +81,17 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
         if(this.downloading){ return }
 
         if(canRestart){
-
+            let timeSeconds = Math.round( new Date().getTime() / 1000 );
             dispatch({type:"showUpdatesNotification", load:false});
-
-            googleAnalytics.send( 
+            
+            googleAnalytics.send(   
                 'event',   
-               { ec:'Updates', ea:'UpdatesInstallation', el:'Updates installed', ev:new Date().toString() }
+                { 
+                   ec:'Updates', 
+                   ea:`Updates installed ${new Date().toString()}`, 
+                   el:'Updates installed', 
+                   ev:timeSeconds 
+                } 
             )  
             .then(() => ipcRenderer.send("installUpdates")); 
   
