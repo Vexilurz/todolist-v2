@@ -38,6 +38,7 @@ import { Category, filter, selectTodos } from '../MainContainer';
 import { repeat, setRepeatedTodos } from '../RepeatPopup';
 import { Hint, hideHint } from './Today';
 import { CalendarEvent } from '../Calendar';
+import { globalErrorHandler } from '../../app';
 
 
 type Item = Project | Todo | CalendarEvent
@@ -188,7 +189,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     }   
 
 
-    onError = (e) => console.log(e)
+    onError = (e) => globalErrorHandler(e);
 
 
     getObjects = (props:UpcomingProps,n:number) : { 

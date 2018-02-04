@@ -14,7 +14,7 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { Store } from '../app';
+import { Store, googleAnalytics } from '../app';
 import { ipcRenderer, remote } from 'electron';
 import { downloadUpdates } from './MainContainer';
 
@@ -62,13 +62,16 @@ interface UpdateNotificationState{
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)
 export class UpdateNotification extends Component<UpdateNotificationProps,UpdateNotificationState>{
-    downloading:boolean 
+
+    downloading:boolean;
+    
+    
     constructor(props){
         super(props);
         this.state={
             canRestart:false
         };
-    } 
+    }; 
 
  
     onClick = () => {
@@ -78,8 +81,15 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
         if(this.downloading){ return }
 
         if(canRestart){
+
             dispatch({type:"showUpdatesNotification", load:false});
-            ipcRenderer.send("installUpdates");
+
+            googleAnalytics.send( 
+                'event',   
+               { ec:'Updates', ea:'UpdatesInstallation', el:'Updates installed', ev:new Date().toString() }
+            )  
+            .then(() => ipcRenderer.send("installUpdates")); 
+  
         }else{
             this.downloading = true;
 

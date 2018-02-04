@@ -131,7 +131,7 @@ export let updateCalendars = (calendars:Calendar[], onError:Function) : Promise<
     return Promise.all(
         calendars.map((c:Calendar) => 
             getIcalData(c.url)
-            .then(
+            .then( 
                 (data:IcalData)=> {
                     let {calendar,events,error} = data as IcalData;
 

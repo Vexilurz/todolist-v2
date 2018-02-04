@@ -29,8 +29,10 @@ import { Settings, section, SettingsPopup } from './Components/Settings/settings
 import { SimplePopup } from './Components/SimplePopup';
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { TopSnackbar, UpdateNotification } from './Components/Snackbar';
+import Analytics from 'electron-ga';
 
-   
+export const googleAnalytics = new Analytics('UA-113407516-1');
+
 injectTapEventPlugin() 
 
 export let isDev = () => { return true }  
@@ -127,11 +129,20 @@ export let defaultStoreItems : Store = {
 };      
      
 
-
 interface AppProps extends Store{
     initialLoad:{type:string,load:any}
-}
+};  
 
+
+export let globalErrorHandler = (error:any) : Promise<void> => {
+    console.log(JSON.stringify(error));
+
+    return googleAnalytics.send( 
+        'event',   
+       { ec:'Error', ea:'Error', el:'Error report', ev:JSON.stringify(error) }
+    )
+    .then(() => console.log(`Error report submitted`)); 
+};    
  
 
 @connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
@@ -141,6 +152,9 @@ export class App extends Component<AppProps,{}>{
         super(props);  
     }
 
+
+    onError = (error:any) => globalErrorHandler(error);
+ 
 
     init = () : void => {
         let {initialLoad,dispatch} = this.props; 
@@ -158,15 +172,14 @@ export class App extends Component<AppProps,{}>{
                 break;
         }
     }
+    
 
-
-    initErrorListener = () => {
-        let {dispatch} = this.props;
+    initErrorListener = () => { 
         ipcRenderer.removeAllListeners("error"); 
-        ipcRenderer.on("error", (event,error) => console.log(JSON.stringify(error)) );  
+        ipcRenderer.on("error", (event,error) => this.onError(error) );  
     }   
 
-
+     
     initCtrlAltTListener = () => {
         let {dispatch} = this.props;
         ipcRenderer.removeAllListeners("Ctrl+Alt+T"); 
@@ -197,19 +210,28 @@ export class App extends Component<AppProps,{}>{
 
 
     initListeners = () : void => {
-         this.initCtrlAltTListener();
-         this.initActionListener();
+        this.initErrorListener(); 
+        this.initCtrlAltTListener();
+        this.initActionListener();
     }
-
+  
 
     suspendListeners = () : void => {
+        ipcRenderer.removeAllListeners("error");  
         ipcRenderer.removeAllListeners("Ctrl+Alt+T"); 
         ipcRenderer.removeAllListeners("action"); 
-    }
+    }   
 
      
     componentDidMount(){  
-        this.init();
+        googleAnalytics.send(
+            'event', 
+           { ec:'Interactions', ea:'Start', el:'Application launched', ev:new Date().toString() }
+        )
+        .then(() => console.log('Application launched'))
+        .catch(err => this.onError(err))
+  
+        this.init(); 
         this.initListeners();
     }   
 
@@ -222,7 +244,7 @@ export class App extends Component<AppProps,{}>{
     render(){     
         let { initialLoad, clone } = this.props;
         let { type,load } = initialLoad;
-        let windowId = null;
+        let windowId = null; 
 
         if(type==="open" || type==="reload"){
            windowId=load;  

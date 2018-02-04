@@ -21,7 +21,7 @@ import { getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects,
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, 
     removeProject, destroyEverything, addArea, addProject, generateId, addTodos, 
     addProjects, addAreas, Heading, LayoutItem, getCalendars, Calendar} from '.././database';
-import { Store, isDev } from '.././app';    
+import { Store, isDev, globalErrorHandler } from '.././app';    
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import { AreaComponent } from './Area/Area';
 import { ProjectComponent } from './Project/Project';
@@ -49,9 +49,8 @@ import { Search } from './Search';
 import { filter as lodashFilter } from 'lodash';
 import { CalendarProps, CalendarEvent, getIcalData, IcalData, AxiosError, updateCalendars } from './Calendar';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
-import { analytics } from '../analytics';
-let Promise = require('bluebird');    
-  
+const Promise = require('bluebird');   
+
 
 export let filter = (array:any[],f:Function,caller:string) : any[] => {
     let start : number = performance.now();
@@ -66,7 +65,6 @@ export let filter = (array:any[],f:Function,caller:string) : any[] => {
        
     return result;
 }
-
 
 
 export let checkForUpdates = () : Promise<UpdateCheckResult> => new Promise(
@@ -159,9 +157,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         this.limit = 10000;
         
         this.subscriptions = [];
-
-        console.log(analytics); 
-
+ 
         this.state = { fullWindowSize:true };
 
         this.initData(); 
@@ -182,9 +178,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
     }
   
 
-    onError = (e) => { console.log(e) } //TODO submit report
+    onError = (e) => globalErrorHandler(e)
 
- 
+    
     isMainWindow = () => { 
         return this.props.windowId===1; 
     }

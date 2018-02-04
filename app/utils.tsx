@@ -49,7 +49,7 @@ import {
     contains, isNil, all, prepend, isEmpty, last,
     not, assoc, flatten, toPairs, map, compose, allPass, uniq 
 } from 'ramda'; 
-import { isDev, Store } from './app';
+import { isDev, Store, globalErrorHandler } from './app';
 import { setRepeatedTodos, repeat } from './Components/RepeatPopup';
 import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
@@ -428,11 +428,18 @@ export let isArrayOfStrings = (array:any[]) : boolean => {
 
     return true; 
 }
-
+ 
  
 export let assert = (condition:boolean , error:string) : void => {
-    if(not(condition) && isDev()){ throw new Error(error) }  
-} 
+    if(not(condition)){ 
+        globalErrorHandler(error)
+        .then(
+            () => { 
+                if(isDev()) { throw new Error(error) }
+            }
+        )  
+    }   
+}  
 
 
 export let timeOfTheDay = (date:Date) : string => {

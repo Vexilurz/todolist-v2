@@ -54,6 +54,7 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
 import { Observable } from 'rxjs/Rx';
+import { googleAnalytics, globalErrorHandler } from '../../app';
   
 
 export interface TodoInputState{  
@@ -153,6 +154,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         }       
     }
 
+    onError = (error) => globalErrorHandler(error);
+    
     componentDidMount(){  
         let click = Observable.fromEvent(window,"click").subscribe(this.onOutsideClick); 
         this.subscriptions.push(click);
@@ -252,11 +255,18 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     addTodo = () => {
         let todo : Todo = this.todoFromState();  
 
-        if(!isEmpty(todo.title)){ 
+        if(!isEmpty(todo.title)){
+            
+            googleAnalytics.send(
+                'event', 
+               { ec:'Interactions', ea:'TodoCreation', el:'Todo created', ev:new Date().toString() }
+            ) 
+            .then(() => console.log('Todo created'))
+            .catch(err => this.onError(err))
 
             let todos = [...this.props.todos].sort((a:Todo,b:Todo) => a.priority-b.priority);
         
-            
+              
             if(!isEmpty(todos)){ 
                 todo.priority = todos[0].priority - 1;
             }  
@@ -403,7 +413,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         } 
             
         step();  
-    })
+    }) 
       
      
   
@@ -416,10 +426,16 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                          selectedCategory!=="search"; 
             
             if(not(creation)){
-
                 let isChecked : boolean = !checked; 
 
-                this.setState(   
+                googleAnalytics.send(
+                    'event', 
+                   { ec:'Interactions', ea:'TodoCompleted', el:'Todo completed', ev:new Date().toString() }
+                ) 
+                .then(() => console.log('Todo completed'))
+                .catch(err => this.onError(err))
+                
+                this.setState(    
                     { 
                       checked:isChecked,  
                       completed:isChecked ? new Date() : null
@@ -431,7 +447,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                               .then(() => setTimeout(() => this.updateTodo(), 0)) : 
                               this.updateTodo() 
                         , 
-                        10
+                        30
                     )
                 )  
             }   

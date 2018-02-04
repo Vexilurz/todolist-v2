@@ -116,9 +116,7 @@ export let initAutoUpdater = () => {
     autoUpdater.logger = log; 
     autoUpdater.autoDownload = false;
 
-    autoUpdater.on('error', (err) => {
-        mainWindow.webContents.send("error", err);
-    });
+    autoUpdater.on('error', (err) => onError(err));
  
     autoUpdater.on('download-progress', (progress) => {
         mainWindow.webContents.send("download-progress",progress);
@@ -133,7 +131,7 @@ interface RegisteredListener{
 }; 
   
 
-let onError = (e) => console.log(e);
+let onError = (e) => mainWindow.webContents.send("error", e);
 
  
 export class Listeners{

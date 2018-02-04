@@ -1,5 +1,5 @@
 import { ipcRenderer } from 'electron'; 
-import { Store, isDev } from './app';
+import { Store, isDev, globalErrorHandler } from './app';
 import {  
     Project, Area, Todo, removeProject, generateId, addProject, 
     removeArea, updateProject, addTodo, updateArea, updateTodo, 
@@ -14,7 +14,7 @@ import {
 import { adjust, cond, equals, all, clone, isEmpty, contains, not, remove, uniq, isNil } from 'ramda';
 
 
-let onError = (e) => { console.log(e) }
+let onError = (e) => globalErrorHandler(e);
 
 
 export let applicationObjectsReducer = (state:Store, action) : Store => { 

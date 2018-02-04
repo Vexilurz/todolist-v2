@@ -36,7 +36,7 @@ import Clear from 'material-ui/svg-icons/content/clear';
 import Remove from 'material-ui/svg-icons/content/remove'; 
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import FullScreen from 'material-ui/svg-icons/image/crop-square';
-import { Store, isDev } from '../../app'; 
+import { Store, isDev, googleAnalytics, globalErrorHandler } from '../../app'; 
 import { AreasList } from './../Area/AreasList';
 import { ResizableHandle } from './../ResizableHandle';
 import { LeftPanelMenu } from './LeftPanelMenu';
@@ -94,8 +94,11 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         this.subscriptions = [];    
         this.state = { collapsed:false };      
     }
+
+
+    onError = (error) => globalErrorHandler(error);
     
-    
+     
     initCtrlB = () => {
         let ctrlBPress = Observable
                          .fromEvent(window,"keydown")
@@ -117,7 +120,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         this.subscriptions.push(ctrlBPress); 
     }
     
-     
+    
     componentDidMount(){
         this.initCtrlB(); 
     }  
@@ -129,7 +132,14 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
     } 
 
  
-    onNewProjectClick = (e:any) => {
+    onNewProjectClick = (e:any) => {  
+        googleAnalytics.send(
+            'event', 
+           { ec:'Interactions', ea:'ProjectCreation', el:'Project created', ev:new Date().toString() }
+        ) 
+        .then(() => console.log('Project Created'))
+        .catch(err => this.onError(err))
+
         let project = generateEmptyProject();
         this.props.dispatch({type:"addProject", load:project});
         this.props.dispatch({type:"selectedProjectId", load:project._id});
@@ -138,7 +148,14 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
     }   
  
          
-    onNewAreaClick = (e:any) => {   
+    onNewAreaClick = (e:any) => {    
+        googleAnalytics.send( 
+            'event', 
+           { ec:'Interactions', ea:'AreaCreation', el:'Area created', ev:new Date().toString() }
+        ) 
+        .then(() => console.log('Area created'))
+        .catch(err => this.onError(err)) 
+
         let area = generateEmptyArea();
         this.props.dispatch({type:"addArea", load:area});
         this.props.dispatch({type:"selectedAreaId", load:area._id});

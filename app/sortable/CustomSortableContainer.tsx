@@ -8,6 +8,7 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { assert, insideTargetArea } from '../utils';
 import { isEmpty, not, contains, isNil } from 'ramda';
+import { globalErrorHandler } from '../app';
   
 
 let selectContainer = (x:number,y:number,containers:HTMLElement[]) : HTMLElement => {
@@ -210,9 +211,9 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             initialRect:null
         };
     }
-    
+     
 
-    onError = (error) => console.log(error)
+    onError = (error) => globalErrorHandler(error); 
 
 
     componentDidMount(){ this.init() }  
