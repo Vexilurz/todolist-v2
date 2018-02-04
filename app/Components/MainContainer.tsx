@@ -49,7 +49,8 @@ import { Search } from './Search';
 import { filter as lodashFilter } from 'lodash';
 import { CalendarProps, CalendarEvent, getIcalData, IcalData, AxiosError, updateCalendars } from './Calendar';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
-let Promise = require('bluebird');   
+import { analytics } from '../analytics';
+let Promise = require('bluebird');    
   
 
 export let filter = (array:any[],f:Function,caller:string) : any[] => {
@@ -159,12 +160,14 @@ export class MainContainer extends Component<Store,MainContainerState>{
         
         this.subscriptions = [];
 
+        console.log(analytics); 
+
         this.state = { fullWindowSize:true };
 
         this.initData(); 
     }  
     
-    
+     
      //TODO Test
      requestAdditionalNeverTodos = () : void => { 
         let {todos, dispatch, limit} = this.props;

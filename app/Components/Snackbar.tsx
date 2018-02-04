@@ -57,18 +57,16 @@ export class TopSnackbar extends Component<TopSnackbarProps,TopSnackbarState>{
 
 interface UpdateNotificationProps extends Store{}
 interface UpdateNotificationState{ 
-    canRestart:boolean,
-    downloading:boolean  
+    canRestart:boolean
 } 
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)
 export class UpdateNotification extends Component<UpdateNotificationProps,UpdateNotificationState>{
-
+    downloading:boolean 
     constructor(props){
         super(props);
         this.state={
-            canRestart:false,
-            downloading:false 
+            canRestart:false
         };
     } 
 
@@ -77,27 +75,22 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
         let {dispatch} = this.props;
         let {canRestart} = this.state;
 
+        if(this.downloading){ return }
+
         if(canRestart){
             dispatch({type:"showUpdatesNotification", load:false});
             ipcRenderer.send("installUpdates");
         }else{
-            this.setState({ downloading:true },  
-            () => 
-                downloadUpdates()
-                .then( 
-                    () => this.setState(
-                        {downloading:false}, 
-                        () => setToJsonStorage("lastUpdatesCheck", {lastUpdatesCheck:new Date()}
-                    )
-                ) 
-                .then(
-                    () => this.setState({canRestart:true})
-                )
-             
-        }
+            this.downloading = true;
+
+            downloadUpdates()
+            .then(() => { this.downloading = false; })
+            .then(() => setToJsonStorage("lastUpdatesCheck", {lastUpdatesCheck:new Date()})) 
+            .then(() => this.setState({canRestart:true}))
+        } 
     }
- 
-    render(){
+  
+    render(){ 
         let {showUpdatesNotification, progress, dispatch} = this.props;
         let {canRestart} = this.state;
 
@@ -122,7 +115,7 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
                     fontWeight:500
                 }}            
             >       
-                {
+                { 
                     isNil(progress) ? 
                     "An update is available!" : 
                     not(canRestart) ?
@@ -136,8 +129,6 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
                 right:0,
                 alignItems:"center"
             }}>
-            {   
-                not(isNil(progress)) && not(canRestart) ? null :
                 <div     
                     onClick={this.onClick}
                     style={{      
@@ -159,11 +150,10 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
                         {
                             canRestart ?
                             "Restart" :
-                            "Install"  
+                            "Update now"  
                         } 
                     </div>   
                 </div> 
-            }
             </div> 
           </div> 
           </TopSnackbar>

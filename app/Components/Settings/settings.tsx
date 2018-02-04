@@ -710,14 +710,11 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     constructor(props){
         super(props);
         this.state={
-            canUpdate:false,
-            status:''
-        };  
-    } 
+           canUpdate:false,
+           status:`Current version is : ${remote.app.getVersion()}.`
+        };      
+    }   
 
-    componentDidMount(){
-        this.setState({canUpdate:false, status:''}); 
-    } 
 
     checkUpdates = () => { 
         let {dispatch} = this.props;
@@ -728,19 +725,13 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 let currentAppVersion = remote.app.getVersion(); 
                 let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
                 if(canUpdate){ 
-                    this.setState(
-                        {
-                           status:`New version available : ${updateInfo.version}.`,
-                           canUpdate:true 
-                        } 
-                    );  
+                    dispatch({type:"openSettings",load:false});  
+                    dispatch({type:"showUpdatesNotification", load:true});
                 }else{
-                    this.setState( 
-                        {
-                            status:`Latest version already installed.`,
-                            canUpdate:false 
-                        }
-                    ); 
+                    this.setState({ 
+                        status:`Latest version already installed.`,
+                        canUpdate:false 
+                    }); 
                 }; 
             }     
         ); 
@@ -750,16 +741,17 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         let {status} = this.state;
 
         return <div style={{
-            display:"flex", 
-            width:"100%", 
-            paddingTop:"25px", 
+            display:"flex",
+            width:"100%",
+            paddingTop:"25px",
+            height:"40px",
             paddingLeft:"25px",
-            flexDirection:"column"
+            alignItems:"baseline",
+            justifyContent:"space-between"
         }}>
             { 
                 isEmpty(status) ? null :
                 <div style={{
-                    paddingBottom:"10px",
                     fontSize:"18px",
                     fontWeight:500,
                     color:"green",
@@ -767,7 +759,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 }}>    
                     {status} 
                 </div>  
-            } 
+            }     
             <div     
                 onClick={this.checkUpdates}
                 style={{     
@@ -787,7 +779,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
                     Check for updates
                 </div>   
-            </div>  
+            </div>   
             </div> 
     }   
 } 

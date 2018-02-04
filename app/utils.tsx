@@ -1759,8 +1759,6 @@ export let generateEmptyProject = () : Project => ({
     completed : null, 
     attachedTags : []
 });
-  
- 
    
 export let generateEmptyArea = () : Area => ({
     _id : generateId(),
