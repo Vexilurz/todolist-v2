@@ -36,7 +36,7 @@ import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { generateRandomDatabase } from '../generateRandomObjects';
 import { 
     isEmpty, last, isNil, contains, all, not, assoc, flatten, 
-    toPairs, map, compose, allPass, cond 
+    toPairs, map, compose, allPass, cond, defaultTo 
 } from 'ramda';
 import { isString } from 'util';
 import { Observable } from 'rxjs/Rx';
@@ -50,8 +50,8 @@ import { filter as lodashFilter } from 'lodash';
 import { CalendarProps, CalendarEvent, getIcalData, IcalData, AxiosError, updateCalendars } from './Calendar';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 const Promise = require('bluebird');   
-
-
+const moment = require("moment");
+const traverse = require('traverse');
 export let filter = (array:any[],f:Function,caller:string) : any[] => {
     
     let start : number = performance.now();
@@ -214,7 +214,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     
     isMainWindow = () => { 
-        return this.props.windowId===1; 
+        return remote.getCurrentWindow().id===1; 
     }
     
 
@@ -246,10 +246,38 @@ export class MainContainer extends Component<Store,MainContainerState>{
     }
  
 
-    initObservables = () => { 
+    convertDates = (object) => {
+        if(isNil(object)){ return object }
+        switch(object.type){
+            case "todo":
+                return convertTodoDates(object as Todo)
+            case "project":
+                return convertProjectDates(object as Project)
+            case "area":
+                return convertAreaDates(object as Area)  
+        }
+        return object    
+    }
+
+
+    initObservables = () => {  
         let {dispatch} = this.props; 
         let minute = 1000 * 60;  
-        let intervalHours = 72 
+        let intervalHours = 72;
+
+
+        let actionListener = Observable.fromEvent(
+            ipcRenderer, 
+            "action",  
+            (event,action) => action 
+        ).subscribe(
+           (action:{type:string,load:any,kind:string}) => {
+                if(action.type==="@@redux/INIT"){ return }
+                let load = map(this.convertDates)(defaultTo({})(this.convertDates(action.load)));
+                dispatch({...action,load});     
+            }               
+        );   
+
 
         let updateProgress = Observable.fromEvent(
                                 ipcRenderer, 
@@ -300,7 +328,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         }
                     }); 
 
-        this.subscriptions.push(resize,click,updates,calendars,updateProgress);
+        this.subscriptions.push(resize,click,updates,calendars,updateProgress,actionListener);
     }
   
 
@@ -357,7 +385,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 }} 
                                 className="no-drag" 
                                 onTouchTap={() => {
-                                    ipcRenderer.send("reload", this.props.windowId);
+                                    ipcRenderer.send("reload");
                                 }}
                             > 
                                 <Refresh />   
@@ -366,11 +394,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         {     
                             this.props.clone ? null :
                             <IconButton    
-                                onClick={() => { 
-                                   let clonedStore = {...this.props};
-                                   clonedStore.windowId = undefined;
-                                   ipcRenderer.send("cloneWindow", clonedStore);
-                                }}     
+                                onClick={() => ipcRenderer.send("store", {...this.props})}     
                                 className="no-drag"  
                                 iconStyle={{color:"rgba(100,100,100,0.6)",width:"18px",height:"18px"}}
                             >     

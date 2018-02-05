@@ -5,7 +5,10 @@ import { ipcRenderer } from 'electron';
 import PouchDB from 'pouchdb-browser';  
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 import { Category } from './Components/MainContainer';
-import { randomArrayMember, randomInteger, randomDate, isString, isTodo, assert, convertTodoDates, isArea, isProject } from './utils';
+import { 
+  randomArrayMember, randomInteger, randomDate, isString, 
+  isTodo, assert, convertTodoDates, isArea, isProject 
+} from './utils';
 import { isNil, all, map } from 'ramda';
 import { isDev } from './app';
 import { RepeatPopupState } from './Components/RepeatPopup';
@@ -50,7 +53,7 @@ export interface Calendar{
   events:any[],
   type:ObjectType, 
   _id:string
-}  
+};  
 
  
 export interface Heading{

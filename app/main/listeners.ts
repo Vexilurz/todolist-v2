@@ -13,77 +13,15 @@ const log = require("electron-log");
 import { autoUpdater, UpdateCheckResult, UpdateInfo } from "electron-updater";
 
 
-type kind = "external";
-
-
-let onAction = (event, action : any, id : number, spawnedWindows:BrowserWindow[]) : void => {
-    let kind : kind = "external";
- 
-    if(id===undefined || id===null){
-       return 
-    }
-
-    let windows = spawnedWindows.filter( w => !w.isDestroyed());
- 
-    for(let i=0; i<windows.length; i++){
-
-        if(windows[i].id===id)
-           continue;     
-        
-        windows[i].webContents.send("action", {...action, kind});
-    }  
-}; 
-
-
-let onReload = (event, id:number, spawnedWindows:BrowserWindow[]) : void => { 
-                     
-    spawnedWindows = spawnedWindows.filter( w => !w.isDestroyed() );
-
-    let browserWindow = spawnedWindows.find( browserWindow => browserWindow.id===id );  
-
-    if(browserWindow===undefined || browserWindow===null){
-       return   
-    }
-
-    browserWindow.reload();  
-
-    loadApp(browserWindow)
-    .then(() => browserWindow.webContents.send(
-        "loaded", 
-        {type:"reload",load:browserWindow.id} 
-    ));   
-}; 
- 
-
-let onCloneLoaded = (newWindow:BrowserWindow, storeWithId:any) => {       
-
-    newWindow.webContents.send("loaded", {type:"clone",load:storeWithId}); 
-
-    if(dev()){
-        newWindow.webContents.openDevTools();    
-    }
-};
- 
-
-let onCloneWindow = (event, store, spawnedWindows:BrowserWindow[]) : void => { 
-
+let getClonedWindowDimensions = () => {
     let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
     let clonedWindowWidth : number =  dev() ? 100 : 30;
     let clonedWindowHeight : number = dev() ? 100 : 80;  
-    
     let width = clonedWindowWidth*(workingArea.width/100);  
     let height = clonedWindowHeight*(workingArea.height/100); 
-     
-    let newWindow = initWindow({width, height}); 
-    
-    spawnedWindows.push(newWindow); 
+    return {width,height};
+}
 
-    spawnedWindows = spawnedWindows.filter(w => !w.isDestroyed());
-    
-    let storeWithId = {...store, windowId:newWindow.id}; 
-
-    loadApp(newWindow).then(() => onCloneLoaded(newWindow,storeWithId)); 
-}; 
 
 
 let selectJsonDatabase = () : Promise<string> => 
@@ -201,16 +139,51 @@ export class Listeners{
                 }
             },
             { 
-                name : "cloneWindow", 
-                callback : (event, store)  => onCloneWindow(event,store,this.spawnedWindows)
+                name : "store", 
+                callback : (event, store) => {
+                    let newWindow = initWindow(getClonedWindowDimensions()); 
+                    this.spawnedWindows.push(newWindow); 
+                    this.spawnedWindows = this.spawnedWindows.filter(w => !w.isDestroyed());
+                    
+                    loadApp(newWindow)
+                    .then(
+                        () => {
+                            newWindow.webContents.send("loaded", store); 
+                            if(dev()){ newWindow.webContents.openDevTools() }
+                        }   
+                    ); 
+                }
             },  
             { 
                 name : "reload", 
-                callback : (event, id:number) => onReload(event,id,this.spawnedWindows)
+                callback : (event) =>{
+                    mainWindow.reload();  
+                    loadApp(mainWindow).then(() => mainWindow.webContents.send("loaded"));   
+                }
             },  
+            {
+                name : "closeClonedWindows",
+                callback : (event) => { 
+                    this.spawnedWindows
+                    .filter(w => !w.isDestroyed())
+                    .forEach((window) => window.id===mainWindow.id ? null : window.destroy())
+                    this.spawnedWindows = [mainWindow]; 
+                    event.sender.send("closeClonedWindows");  
+                }   
+            },
             { 
                 name : "action", 
-                callback : (event, action : any, id : number) => onAction(event,action,id,this.spawnedWindows)
+                callback : (event, data:{id:number, action:{type:string,load:any}} ) => {
+                    let {id,action} = data;
+                    type kind = "external";
+                    let kind : kind = "external";
+                    let windows = this.spawnedWindows.filter(w => !w.isDestroyed());
+                 
+                    for(let i=0; i<windows.length; i++){
+                        if(windows[i].id===id){ continue }   
+                        windows[i].webContents.send("action", {...action, kind});
+                    } 
+                }
             }, 
             {
                 name:"jsonDatabase",

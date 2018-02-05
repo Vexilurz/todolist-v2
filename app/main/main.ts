@@ -51,12 +51,8 @@ let initListeners = (window:BrowserWindow) => new Listeners(window);
 
 
 let onAppLoaded = () : void => {   
-
-    mainWindow.webContents.send("loaded", {type:"open", load:mainWindow.id});
-
-    if(dev()){
-       mainWindow.webContents.openDevTools();   
-    }
+    mainWindow.webContents.send("loaded");
+    if(dev()){ mainWindow.webContents.openDevTools() }
 }
 
 

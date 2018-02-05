@@ -144,24 +144,8 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                    showProjectMenuPopover:action.load
                }; 
                break;
-
-   
-           case "windowId":
-               newState = {
-                   ...state,
-                   windowId:action.load
-               }; 
-               break;
-   
-
-           case "clone":
-               newState = {
-                   ...state, 
-                   clone:action.load
-               }; 
-               break;    
+               
     
-
            case "selectedCategory":
                newState = {
                    ...state,

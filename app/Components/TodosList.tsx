@@ -169,7 +169,6 @@ export let onDrop = (
     let areaTarget : Area = areas.find( (a:Area) => a._id===id );
  
     if(projectTarget){
-
         dropTodoOnProject(
            dispatch,
            areas,
@@ -177,9 +176,7 @@ export let onDrop = (
            projectTarget,
            draggedTodo
         );
-
     }else if(areaTarget){ 
-
         dropTodoOnArea(
            dispatch,
            areas,
@@ -187,9 +184,7 @@ export let onDrop = (
            areaTarget,
            draggedTodo
         ); 
-
     }else{ 
-    
         let nodes = [].slice.call(e.path);
         
         for(let i=0; i<nodes.length; i++){
@@ -243,7 +238,7 @@ export let onDrop = (
                             load:{
                                 ...draggedTodo, 
                                 category:"someday",
-                                attachedDate:undefined,
+                                deadline:undefined, 
                                 deleted:undefined,
                                 completed:undefined,
                                 checked:false 

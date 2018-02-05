@@ -526,10 +526,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }
     
 
-    onTagsButtonClick = (e) => {
+    onTagsButtonClick = (e) => { 
         e.stopPropagation();
         this.setState({showTagsSelection:true});
-    }
+    }   
 
 
     closeTagsSelection = (e) => {
@@ -616,7 +616,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         this.props.dispatch({
             type : "openRepeatPopup",
-            load : { 
+            load : {  
               showRepeatPopup : true, 
               repeatTodo, 
               repeatPopupX : left - containerClientRect.left,    
@@ -646,7 +646,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             open, deleted, checked, 
             attachedDate, title, showAdditionalTags, 
             attachedTags, note, deadline, showChecklist,
-            checklist, category, completed   
+            checklist, category, completed, showDateCalendar   
         } = this.state;
   
         let {selectedCategory, id, todo, creation} = this.props; 
@@ -841,7 +841,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             
             <DateCalendar 
                 close = {this.closeDateCalendar}
-                open = {this.state.showDateCalendar}
+                open = {showDateCalendar}
                 origin = {{vertical: "center", horizontal: "right"}} 
                 point = {{vertical: "center", horizontal: "right"}}  
                 anchorEl = {this.calendar}

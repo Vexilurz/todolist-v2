@@ -219,9 +219,9 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                         className="hoverDateType"
                         onClick={() => {
                             let { top, left } = this.ref.getBoundingClientRect();
-                            onRepeatTodo(top,left);  
-                            close(); 
-                        }}
+                            this.props.close(); 
+                            setTimeout(() => this.props.onRepeatTodo(top,left), 10);  
+                        }}  
                         style={{
                             display: "flex",
                             alignItems: "center",

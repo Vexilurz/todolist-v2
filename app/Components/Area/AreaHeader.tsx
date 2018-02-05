@@ -166,13 +166,9 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
                        boxSizing: "border-box",
                        marginRight: "10px"
                 }}> 
-                    <NewAreaIcon style={{ 
-                        color:"lightblue", 
-                        width: "30px",
-                        height: "30px"
-                    }}/>    
-                </div> 
-                <div>
+                    <NewAreaIcon style={{color:"lightblue", width:"30px", height:"30px"}}/>    
+                </div>  
+                <div style={{width:"100%", overflow:"hidden"}}>
                     <AutosizeInput 
                         ref={e => {this.inputRef=e;}}
                         type="text"

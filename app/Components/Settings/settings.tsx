@@ -17,7 +17,7 @@ import Database from 'material-ui/svg-icons/device/storage';
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { remove, isNil, not, isEmpty, compose, toPairs, map, contains, last, cond } from 'ramda';
+import { remove, isNil, not, isEmpty, compose, toPairs, map, contains, last, cond, defaultTo } from 'ramda';
 let uniqid = require("uniqid");    
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx'; 
@@ -635,6 +635,12 @@ let selectJsonDatabase = () => new Promise(
 )
 
 
+let closeClonedWindows = () => new Promise(resolve => {  
+    ipcRenderer.removeAllListeners("closeClonedWindows");  
+    ipcRenderer.send("closeClonedWindows");
+    ipcRenderer.on("closeClonedWindows", (event) => resolve());
+})
+
 
 let writeJsonFile = (obj:any,pathToFile:string) : Promise<any> => 
     new Promise(
@@ -719,32 +725,30 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         ])  
     };
 
-    
     replaceDatabaseObjects = (json) : Promise<void> => {
         let { todos, projects, areas, calendars } = json.database;
 
-        return destroyEverything()    
-        .then(() => {  
-            initDB(); 
-            return Promise.all([  
-              addTodos(this.onError,todos.map(removeRev)),      
-              addProjects(this.onError,projects.map(removeRev)), 
-              addAreas(this.onError,areas.map(removeRev)),
-              addCalendars(this.onError,calendars.map(removeRev))
-            ]) 
-            .then(() => fetchData(this.props,this.limit,this.onError))    
-        }); 
-    };  
+        return  closeClonedWindows()
+                .then(() => destroyEverything())
+                .then(() => initDB())
+                .then(() => {  
+                    return Promise.all([  
+                        addTodos(this.onError, defaultTo([])(todos).map(removeRev)),      
+                        addProjects(this.onError, defaultTo([])(projects).map(removeRev)), 
+                        addAreas(this.onError, defaultTo([])(areas).map(removeRev)),
+                        addCalendars(this.onError, defaultTo([])(calendars).map(removeRev))
+                    ])   
+                }) 
+                .then(() => fetchData(this.props,this.limit,this.onError)) 
+    };   
       
 
     onError = (error) => globalErrorHandler(error);
 
 
-    export = (folder:string) => {  
+    export = (folder:string) => {   
         if(isNil(folder)){ return }
-
         let to:string = path.resolve(folder, `${keyFromDate(new Date())}-${uniqid()}.json`);
-
         return this.getDatabaseObjects()
         .then(
             ([calendars,projects,areas,todos]) => 
@@ -806,9 +810,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
             (path:string) => {
                 if(isNil(path) || isEmpty(path)){ return }
                 
-                this
-                .updateState({importPath:path})
-                .then(() => this.import(path))
+                this.updateState({importPath:path}).then(() => this.import(path))
             }
         )
     };

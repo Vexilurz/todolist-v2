@@ -12,7 +12,7 @@ import { ipcRenderer, remote } from 'electron';
 import {    
     wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, 
     defaultTags, isTodo, isProject, isArea, isArrayOfAreas, 
-    isArrayOfProjects, isArrayOfTodos, isArray, transformLoadDates, convertDates, yearFromNow, isString, stringToLength, assert
+    isArrayOfProjects, isArrayOfTodos, isArray, transformLoadDates, convertDates, yearFromNow, isString, stringToLength, assert, convertTodoDates, convertProjectDates, convertAreaDates
 } from "./utils";  
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
@@ -33,7 +33,6 @@ import Analytics from 'electron-ga';
 export const googleAnalytics = new Analytics('UA-113407516-1');
 const os = remote.require('os');  
 
-
 export interface SystemInfo{ 
     arch : string,
     cpus : any[], 
@@ -44,7 +43,6 @@ export interface SystemInfo{
 }
  
 export let collectSystemInfo = () : SystemInfo => {
-
     return { 
         arch : os.arch(),
         cpus : os.cpus(),
@@ -54,7 +52,6 @@ export let collectSystemInfo = () : SystemInfo => {
         type : os.type()
     }
 }
-
 
 injectTapEventPlugin()  
 
@@ -99,7 +96,6 @@ export interface Store{
     rightClickedTodoId : string,
     rightClickMenuX : number,
     rightClickMenuY : number,
-    windowId : number,
     calendars : Calendar[],
     projects : Project[],
     areas : Area[], 
@@ -125,7 +121,6 @@ export let defaultStoreItems : Store = {
     showScheduled : true,
     showCalendarEvents : true,
     showCompleted : false,
-    windowId:null, 
     calendars:[],
     selectedCategory : "inbox",
     showTrashPopup : false, 
@@ -150,12 +145,8 @@ export let defaultStoreItems : Store = {
     todos:[], 
     tags:[...defaultTags]
 };      
-     
 
-interface AppProps extends Store{
-    initialLoad:{type:string,load:any}
-};  
-
+interface AppProps extends Store{};  
 
 export let globalErrorHandler = (error:any) : Promise<void> => {
 
@@ -188,7 +179,6 @@ export let globalErrorHandler = (error:any) : Promise<void> => {
         ]
     )
     .then(() => console.log('Error report submitted'))
-    .catch(err => this.onError(err))
 };        
  
 
@@ -199,34 +189,13 @@ export class App extends Component<AppProps,{}>{
         super(props);  
     }
 
-
     onError = (error:any) => globalErrorHandler(error);
  
-
-    init = () : void => {
-        let {initialLoad,dispatch} = this.props; 
-        let {type,load} = initialLoad;
-
-        switch(type){
-            case "open":
-                dispatch({type:"windowId", load});
-                break;
-            case "reload":
-                dispatch({type:"windowId", load});
-                break;    
-            case "clone":
-                dispatch({type:"newStore", load:assoc("clone", true, load)});
-                break;
-        }
-    }
-    
-
     initErrorListener = () => { 
         ipcRenderer.removeAllListeners("error"); 
-        ipcRenderer.on("error", (event,error) => this.onError(error) );  
+        ipcRenderer.on("error", (event,error) => this.onError(error));  
     }   
 
-     
     initCtrlAltTListener = () => {
         let {dispatch} = this.props;
         ipcRenderer.removeAllListeners("Ctrl+Alt+T"); 
@@ -240,34 +209,16 @@ export class App extends Component<AppProps,{}>{
         ); 
     }
 
-
-    initActionListener = () => {
-        let {dispatch,clone} = this.props;
-        ipcRenderer.removeAllListeners("action");  
-        ipcRenderer.on(
-            "action", 
-            (event, action:{type:string, kind:string, load:any}) => { 
-                if(not(clone)){ return }   
-                dispatch(assoc("load", transformLoadDates(action.load), action));      
-            }
-        );  
-    }   
-
-
     initListeners = () : void => {  
         this.initErrorListener(); 
         this.initCtrlAltTListener();
-        this.initActionListener();
     }
   
-
     suspendListeners = () : void => {
         ipcRenderer.removeAllListeners("error");  
         ipcRenderer.removeAllListeners("Ctrl+Alt+T"); 
-        ipcRenderer.removeAllListeners("action"); 
     }   
 
-     
     componentDidMount(){   
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
         let { arch, cpus, platform, release, type } = collectSystemInfo();
@@ -291,8 +242,6 @@ export class App extends Component<AppProps,{}>{
         ) 
         .then(() => console.log('Application launched'))
         .catch(err => this.onError(err))
-        
-        this.init();  
         this.initListeners(); 
     }    
 
@@ -303,13 +252,7 @@ export class App extends Component<AppProps,{}>{
  
   
     render(){     
-        let { initialLoad, clone } = this.props;
-        let { type,load } = initialLoad;
-        let windowId = null; 
-
-        if(type==="open" || type==="reload"){
-           windowId=load;  
-        }  
+        let { clone } = this.props;
         
         return wrapMuiThemeLight(
             <div style={{
@@ -318,10 +261,10 @@ export class App extends Component<AppProps,{}>{
                 height:"100%", 
                 scroll:"none",  
                 zIndex:2001,  
-            }}>   
+            }}>    
                 <div style={{display:"flex", width:"inherit", height:"inherit"}}>  
                     { clone ? null : <LeftPanel {...{} as any}/> }
-                    <MainContainer {...{windowId} as any}/>    
+                    <MainContainer {...{} as any}/>    
                 </div>      
                 <UpdateNotification {...{} as any} />    
                 <SettingsPopup {...{} as any} />      
@@ -331,52 +274,44 @@ export class App extends Component<AppProps,{}>{
             </div>            
         );    
     }           
-};              
-     
+};   
   
 
 ipcRenderer.on( 
     'loaded',     
-    (event, {type, load} : {type:string,load:any}) => { 
-        
-        ReactDOM.render(  
-            <Provider store={store}>   
-                <App {...{initialLoad:{type,load}} as any} />
+    (event, clonedStore:Store) => { 
+        let defaultStore = defaultStoreItems;
+        if(!isNil(clonedStore)){ 
+            let {todos,projects,areas} = clonedStore;
+            defaultStore = {
+                ...clonedStore,
+                clone:true,
+                todos:todos.map(convertTodoDates),
+                projects:projects.map(convertProjectDates), 
+                areas:areas.map(convertAreaDates) 
+            }
+        }   
+        ReactDOM.render(   
+            <Provider store={createStore(applicationReducer, defaultStore)}>   
+                <App {...{} as any} />
             </Provider>,
             document.getElementById('application')
-        )  
+        )     
     }
-)    
+);    
  
 
 let reducer = (reducers) => (state:Store, action) => {
-
-    let newState = undefined;
-  
-    if(action.type==="newStore"){
-
-       let [todos,projects,areas] = convertDates([
-            action.load.todos, 
-            action.load.projects, 
-            action.load.areas
-       ]); 
-      
-       return {...action.load,todos,projects,areas}
-    }
- 
     for(let i=0; i<reducers.length; i++){
-    
-        newState = reducers[i](state, action);
-
+        let newState = reducers[i](state, action);
         if(newState){ return newState }  
     }   
-  
     return state  
-} 
+}; 
  
 let applicationReducer = reducer([applicationStateReducer, applicationObjectsReducer]); 
   
-export let store = createStore(applicationReducer, defaultStoreItems); 
+
   
 
 

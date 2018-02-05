@@ -1,4 +1,3 @@
-import { ipcRenderer } from 'electron'; 
 import { Store, isDev, globalErrorHandler } from './app';
 import {  
     Project, Area, Todo, removeProject, generateId, addProject, 
@@ -7,6 +6,7 @@ import {
     updateAreas, updateProjects, addTodos, addProjects, addAreas, 
     updateTodos, addCalendar, Calendar, updateCalendar, removeCalendar 
 } from './database';
+import { ipcRenderer, remote } from 'electron';
 import { 
     getTagsFromItems, defaultTags, removeDeletedProjects, 
     removeDeletedAreas, removeDeletedTodos, Item, ItemWithPriority, byNotDeleted, 
@@ -21,31 +21,22 @@ let onError = (e) => globalErrorHandler(e);
 
 export let applicationObjectsReducer = (state:Store, action) : Store => { 
 
-    let newState : Store = undefined;
     let shouldAffectDatabase : boolean = action.kind!=="external";
     let shouldUpdateOtherInstances : boolean = action.kind!=="external";
-
+    let newState : Store = undefined;
     
     newState = cond([  
-
         [ 
             (action:{type:string}) : boolean => 'setCalendars'===action.type,  
-
-            (action:{ 
-                type:string,
-                load:Calendar[]
-            }):Store => ({...state, calendars:action.load})
+            (action:{type:string,load:Calendar[]}):Store => ({...state, calendars:action.load})
         ],  
         [  
             (action:{type:string}) : boolean => "addCalendar"===action.type,  
-
             (action:{type:string,load:Calendar}):Store => { 
                 if(shouldAffectDatabase){ addCalendar(onError,action.load) }  
                 return {...state, calendars:[action.load,...state.calendars]};
             }
-        ],   
-
-
+        ],  
         [ 
             (action:{ type:string }) : boolean => "removeCalendar"===action.type,  
 
@@ -59,7 +50,6 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 return {...state, calendars:remove(idx, 1, calendars)};
             }
         ], 
- 
         [ 
             (action:{type:string}) : boolean => "updateCalendar"===action.type,  
 
@@ -108,9 +98,9 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
             })
         ], 
         [  
-            (action:{type:string, kind:string}) : boolean => "removeGroup"===action.type, 
+            (action:{type:string}) : boolean => "removeGroup"===action.type, 
 
-            (action:{type:string, kind:string, load:string}) : Store => {  
+            (action:{type:string, load:string}) : Store => {  
                
                 let groupId : string = action.load;
                 let group : Todo[] = [];
@@ -137,9 +127,9 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
             }
         ],
         [
-            (action:{type:string, kind:string}) : boolean => "removeDeleted"===action.type, 
+            (action:{type:string}) : boolean => "removeDeleted"===action.type, 
 
-            (action:{type:string, kind:string}) : Store => {
+            (action:{type:string}) : Store => {
 
                 let todos;
                 let projects;
@@ -233,7 +223,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
         [
             (action:{type:string}) => "attachTodoToProject"===action.type,
 
-            (action:{type:string, load:{projectId:string,todoId:string} }) : Store => {
+            (action:{type:string, load:{projectId:string,todoId:string}}) : Store => {
 
                 let idx = state.projects.findIndex( (p:Project) => p._id===action.load.projectId );
 
@@ -244,16 +234,13 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
     
                 if(shouldAffectDatabase){ updateProject(project._id,project,onError) }
 
-                return {
-                    ...state,
-                    projects:adjust(() => project, idx, state.projects)
-                }
+                return { ...state,projects:adjust(() => project, idx, state.projects) }
             }
         ],
         [
             (action:{type:string}) => "attachTodoToArea"===action.type,
 
-            (action:{type:string, load:{areaId:string,todoId:string} }) : Store => {
+            (action:{type:string, load:{areaId:string,todoId:string}}) : Store => {
 
                 let idx = state.areas.findIndex( (a:Area) => a._id===action.load.areaId );
 
@@ -279,10 +266,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
  
                 if(shouldAffectDatabase){ updateProject(action.load._id, action.load, onError) }
                  
-                return { 
-                    ...state, 
-                    projects:adjust(() => action.load, idx, state.projects)
-                }
+                return {...state, projects:adjust(() => action.load, idx, state.projects)}
             }
         ],
         [ 
@@ -372,9 +356,11 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
         ]
     ])(action);
 
-    if(newState && shouldUpdateOtherInstances){ 
-       ipcRenderer.send("action", action, state.windowId) 
-    }    
-    
+    //update other windows only if action was initialized inside current window 
+    //and action belong to ObjectsReducer (state was updated inside this function)
+    if(!isNil(newState) && shouldUpdateOtherInstances){
+        ipcRenderer.send("action", {id:remote.getCurrentWindow().id, action}); 
+    }
+     
     return newState; 
 }     
