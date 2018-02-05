@@ -776,8 +776,8 @@ export let getTagsFromItems = (items:Item[]) : string[] => {
         }  
     } 
     
-    return uniq(tags); 
-}
+    return tags; 
+} 
 
 
 export let attachDispatchToProps = (dispatch:Function,props) => ({...props, dispatch});
@@ -937,34 +937,19 @@ export let byCompleted = (item:Project | Todo) : boolean => {
  
 }  
 
- 
    
 export let byTags = (selectedTag:string) => (item:Item) : boolean => { 
+    assert(isString(selectedTag), `selectedTag is not a string. ${selectedTag}. byTags.`); 
+    assert(selectedTag.length!==0, `selectedTag is empty. byTags.`);
 
-    if(!isString(selectedTag)){
-        if(isDev()){ 
-           throw new Error(`selectedTag is not a string. ${selectedTag}. byTags.`); 
-        }
-    }
-     
-    if(selectedTag.length===0){
-        if(isDev()){ 
-           throw new Error(`selectedTag is empty. byTags.`); 
-        }
-    }
+    if(selectedTag==="All"){ return true }
 
-    if(selectedTag==="All") 
-       return true;    
-
-    if(item===undefined || item===null)
-       return false;   
+    if(item===undefined || item===null){ return false }  
   
     return item.attachedTags.indexOf(selectedTag)!==-1;
-
 }  
+
     
- 
-     
 export let byCategory = (selectedCategory:Category) => (item:Todo) : boolean => { 
  
     if(!isCategory(selectedCategory)){
@@ -977,35 +962,23 @@ export let byCategory = (selectedCategory:Category) => (item:Todo) : boolean => 
     return item.category===selectedCategory;
 
 } 
- 
- 
 
-export let insideTargetArea = (
-    scrollableContainer:HTMLElement, target:HTMLElement,
-    x:number,y:number
-) : boolean => {
+
+export let insideTargetArea = (scrollableContainer:HTMLElement,target:HTMLElement,x:number,y:number) : boolean => {
 
     if(target===null || target===undefined){ return false }
 
-    if(!isFunction(target.getBoundingClientRect)){
-        if(isDev()){ 
-           throw new Error(`target is not an HTMLElement. ${JSON.stringify(target)}. insideTargetArea`); 
-        }
-    }  
- 
+    assert(isFunction(target.getBoundingClientRect), `target is not an HTMLElement. ${target}. insideTargetArea.`);
+
     let {left,right,top,bottom} = target.getBoundingClientRect();
     let scrolledLeft = left;
     let scrolledTop = top;
     
-    /*if(!isNil(scrollableContainer)){
-        scrolledLeft = left + scrollableContainer.scrollLeft;
-        scrolledTop = top + scrollableContainer.scrollTop;
-    }*/  
-
-    if(x>scrolledLeft && x<right)
+    if(x>scrolledLeft && x<right){
        if(y>scrolledTop && y<bottom){ return true }
+    }
        
-    return false;
+    return false
 }
 
 
@@ -1018,7 +991,6 @@ export let hideChildrens = (elem:HTMLElement) : void => {
         children[i].style.visibility = 'hidden';
         children[i].style.opacity = 0; 
     }
-    
 }  
   
 
@@ -1090,210 +1062,82 @@ export let generateDropStyle = (id:string) : HTMLElement => {
 
 export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
 
-     
-    if(oldTodo.type!=="todo"){
-        if(isDev()){ 
-           throw new Error(`oldTodo is not todo ${JSON.stringify(oldTodo)}. todoChanged.`);
-        }
-    }
+    assert(oldTodo.type==="todo",`oldTodo is not todo ${JSON.stringify(oldTodo)}. todoChanged.`);
+    assert(newTodo.type==="todo",`newTodo is not todo ${JSON.stringify(newTodo)}. todoChanged.`);
+    assert(isString(oldTodo._id),`oldTodo._id is not string ${oldTodo._id}. todoChanged.`);
+    assert(isString(newTodo._id),`newTodo._id is not string ${newTodo._id}. todoChanged.`);
 
-    if(newTodo.type!=="todo"){
-        if(isDev()){ 
-           throw new Error(`newTodo is not todo ${JSON.stringify(newTodo)}. todoChanged.`);
-        }
-    }
-
-
-
-    if(typeof oldTodo._id!=="string"){
-        if(isDev()){ 
-           throw new Error(`oldTodo._id is not string ${oldTodo._id}. todoChanged.`);
-        }
-    }
-
-    if(typeof newTodo._id!=="string"){
-        if(isDev()){ 
-           throw new Error(`newTodo._id is not string ${newTodo._id}. todoChanged.`);
-        }
-    }
-
-
-
-    if(oldTodo._id!==newTodo._id)
-       return true;
+    if(oldTodo._id!==newTodo._id){ return true }
         
+    assert(isString(oldTodo.title), `oldTodo.title is not string ${oldTodo.title}. todoChanged.`);
+    assert(isString(newTodo.title), `newTodo.title is not string ${newTodo.title}. todoChanged.`);
+    assert(isString(oldTodo.note),`oldTodo.note is not string ${oldTodo.title}. todoChanged.`);
+    assert(isString(newTodo.note),`newTodo.note is not string ${newTodo.title}. todoChanged.`);
+    
+    if(oldTodo.title!==newTodo.title){ return true }
+    if(oldTodo.note!==newTodo.note){ return true }  
+
+    assert(!isNaN(oldTodo.priority), `oldTodo.priority is not number ${oldTodo.priority}. todoChanged.`);
+    assert(!isNaN(newTodo.priority), `newTodo.priority is not number ${newTodo.priority}. todoChanged.`);
+    
+    if(oldTodo.priority!==newTodo.priority){ return true }
+    
+    assert(isCategory(oldTodo.category), `oldTodo.category is not of type Category ${oldTodo.category}. todoChanged.`);
+    assert(isCategory(newTodo.category), `newTodo.category is not of type Category ${newTodo.category}. todoChanged.`);
+
+    if(oldTodo.category!==newTodo.category){ return true }
+    if(oldTodo.checked!==newTodo.checked){ return true }  
+    
+    assert(isArray(oldTodo.checklist), `oldTodo.checklist is not an Array. ${oldTodo.checklist}. todoChanged.`);
+    assert(isArray(newTodo.checklist), `newTodo.checklist is not an Array. ${newTodo.checklist}. todoChanged.`);
+    assert(isArray(oldTodo.attachedTags), `oldTodo.attachedTags is not an Array. ${oldTodo.attachedTags}. todoChanged.`);
+    assert(isArray(newTodo.attachedTags), `newTodo.attachedTags is not an Array. ${newTodo.attachedTags}. todoChanged.`);
+
+    
+    if(oldTodo.checklist.length!==newTodo.checklist.length){ return true }
+    if(oldTodo.attachedTags.length!==newTodo.attachedTags.length){ return true }
 
 
-    if(typeof oldTodo.title!=="string"){
-        if(isDev()){ 
-            throw new Error(`oldTodo.title is not string ${oldTodo.title}. todoChanged.`);
-        }
-    }
-    if(typeof newTodo.title!=="string"){
-        if(isDev()){ 
-            throw new Error(`newTodo.title is not string ${newTodo.title}. todoChanged.`);
-        }
-    }
-
-
-    if(typeof oldTodo.note!=="string"){
-        if(isDev()){ 
-            throw new Error(`oldTodo.note is not string ${oldTodo.title}. todoChanged.`);
-        }
-    }
-    if(typeof newTodo.note!=="string"){
-        if(isDev()){ 
-            throw new Error(`newTodo.note is not string ${newTodo.title}. todoChanged.`);
-        }
-    }
-
-
-
-    if(oldTodo.title!==newTodo.title)
-       return true;
- 
-    if(oldTodo.note!==newTodo.note)
-       return true;  
-
-
-
-    if(isNaN(oldTodo.priority)){
-        if(isDev()){ 
-           throw new Error(`oldTodo.priority is not number ${oldTodo.priority}. todoChanged.`);
-        }
-    }
-    if(isNaN(newTodo.priority)){
-        if(isDev()){ 
-           throw new Error(`newTodo.priority is not number ${newTodo.priority}. todoChanged.`);
-        }
-    }
-         
-  
-
-    if(oldTodo.priority!==newTodo.priority)
-       return true;
+    assert(isDate(oldTodo.created),`oldTodo.created is not date ${oldTodo.created}. todoChanged.`);
+    assert(isDate(newTodo.created),`newTodo.created is not date ${newTodo.created}. todoChanged.`);
     
 
-
-    if(!isCategory(oldTodo.category)){
-        if(isDev()){ 
-           throw new Error(`oldTodo.category is not of type Category ${oldTodo.category}. todoChanged.`);
-        }
-    }
-    if(!isCategory(newTodo.category)){
-        if(isDev()){ 
-           throw new Error(`newTodo.category is not of type Category ${newTodo.category}. todoChanged.`);
-        }
-    }
-         
-
-
-    if(oldTodo.category!==newTodo.category)
-        return true;
-
-
-    if(oldTodo.checked!==newTodo.checked)
-        return true;   
-    
-
-
-    if(!isArray(oldTodo.checklist)){ 
-        if(isDev()){ 
-           throw new Error(`oldTodo.checklist is not an Array. ${oldTodo.checklist}. todoChanged.`);
-        }
-    }
-    if(!isArray(newTodo.checklist)){
-        if(isDev()){ 
-           throw new Error(`newTodo.checklist is not an Array. ${newTodo.checklist}. todoChanged.`);
-        }
-    }
-    
-
-    if(!isArray(oldTodo.attachedTags)){ 
-        if(isDev()){ 
-           throw new Error(`oldTodo.attachedTags is not an Array. ${oldTodo.attachedTags}. todoChanged.`);
-        }
-    }
-    if(!isArray(newTodo.attachedTags)){
-        if(isDev()){ 
-           throw new Error(`newTodo.attachedTags is not an Array. ${newTodo.attachedTags}. todoChanged.`);
-        }
-    }
-         
-    
-    if(oldTodo.checklist.length!==newTodo.checklist.length)
-        return true;
-        
-    if(oldTodo.attachedTags.length!==newTodo.attachedTags.length)
-        return true;
-
-
-    if(!isDate(oldTodo.created)){ 
-        if(isDev()){ 
-           throw new Error(`oldTodo.created is not date ${oldTodo.created}. todoChanged.`);
-        }
-    }
-
-    if(!isDate(newTodo.created)){
-        if(isDev()){ 
-           throw new Error(`newTodo.created is not date ${newTodo.created}. todoChanged.`);
-        }
-    }
-     
-    if(oldTodo.created.getTime()!==newTodo.created.getTime())
-        return true; 
-
+    if(oldTodo.created.getTime()!==newTodo.created.getTime()){ return true }
 
 
     if(isDate(newTodo.deadline) && isDate(oldTodo.deadline)){
-        if(oldTodo.deadline.getTime()!==newTodo.deadline.getTime())
-            return true;  
+        if(oldTodo.deadline.getTime()!==newTodo.deadline.getTime()){ return true } 
     }else{
-        if(oldTodo.deadline!==newTodo.deadline)
-            return true;  
+        if(oldTodo.deadline!==newTodo.deadline){ return true }
     }
-
 
 
     if(isDate(newTodo.deleted) && isDate(oldTodo.deleted)){
-        if(oldTodo.deleted.getTime()!==newTodo.deleted.getTime())
-            return true;  
+        if(oldTodo.deleted.getTime()!==newTodo.deleted.getTime()){ return true } 
     }else{
-        if(oldTodo.deleted!==newTodo.deleted)
-            return true;  
+        if(oldTodo.deleted!==newTodo.deleted){ return true } 
     }
-
 
 
     if(isDate(newTodo.attachedDate) && isDate(oldTodo.attachedDate)){
-        if(oldTodo.attachedDate.getTime()!==newTodo.attachedDate.getTime())
-            return true; 
+        if(oldTodo.attachedDate.getTime()!==newTodo.attachedDate.getTime()){ return true }
     }else{
-        if(oldTodo.attachedDate!==newTodo.attachedDate)
-            return true;  
+        if(oldTodo.attachedDate!==newTodo.attachedDate){ return true }  
     }
-
 
 
     if(isDate(newTodo.completed) && isDate(oldTodo.completed)){
-        if(oldTodo.completed.getTime()!==newTodo.completed.getTime())
-            return true;    
+        if(oldTodo.completed.getTime()!==newTodo.completed.getTime()){ return true }   
     }else{ 
-        if(oldTodo.completed!==newTodo.completed)
-            return true;  
+        if(oldTodo.completed!==newTodo.completed){ return true }
     }
-
 
 
     if(isDate(newTodo.reminder) && isDate(oldTodo.reminder)){
-        if(oldTodo.reminder.getTime()!==newTodo.reminder.getTime())
-            return true;    
+        if(oldTodo.reminder.getTime()!==newTodo.reminder.getTime()){ return true }   
     }else{ 
-        if(oldTodo.reminder!==newTodo.reminder)
-            return true;  
+        if(oldTodo.reminder!==newTodo.reminder){ return true } 
     }
-
-
 
 
     for(let i=0; i<oldTodo.checklist.length; i++){
@@ -1301,68 +1145,26 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
         let oldItem : ChecklistItem = oldTodo.checklist[i];
         let newItem : ChecklistItem = newTodo.checklist[i];
 
-
-        if(!isString(oldItem.text)){
-            if(isDev()){ 
-               throw new Error(`oldItem.text is not a string ${oldItem.text}. todoChanged.`);
-            }
-        }
-
-        if(!isString(newItem.text)){
-            if(isDev()){ 
-               throw new Error(`newItem.text is not a string ${newItem.text}. todoChanged.`);
-            }
-        }
+        assert(isString(oldItem.text), `oldItem.text is not a string ${oldItem.text}. todoChanged.`);
+        assert(isString(newItem.text), `newItem.text is not a string ${newItem.text}. todoChanged.`);
+        assert(isString(oldItem.key), `oldItem.key is not a string ${oldItem.key}. todoChanged.`);
+        assert(isString(newItem.key), `newItem.key is not a string ${newItem.key}. todoChanged.`);
         
-        if(!isString(oldItem.key)){
-            if(isDev()){ 
-               throw new Error(`oldItem.key is not a string ${oldItem.key}. todoChanged.`);
-            }
-        }
-
-        if(!isString(newItem.key)){
-            if(isDev()){ 
-               throw new Error(`newItem.key is not a string ${newItem.key}. todoChanged.`);
-            }
-        }
-        
-            
-        if(oldItem.checked!==newItem.checked)
-           return true; 
-
-        if(oldItem.idx!==newItem.idx)
-           return true;  
-        
-        if(oldItem.text!==newItem.text)
-           return true; 
-        
-        if(oldItem.key!==newItem.key)
-           return true; 
-
+        if(oldItem.checked!==newItem.checked){ return true } 
+        if(oldItem.idx!==newItem.idx){ return true }  
+        if(oldItem.text!==newItem.text){ return true }
+        if(oldItem.key!==newItem.key){ return true } 
     }
 
 
     for(let i=0; i<newTodo.attachedTags.length; i++){
 
-        if(!isString(oldTodo.attachedTags[i])){
-            if(isDev()){ 
-               throw new Error(`oldTodo.attachedTags[${i}] is not a string ${oldTodo.attachedTags[i]}. todoChanged.`);
-            }
-        }
+        assert(isString(oldTodo.attachedTags[i]), `oldTodo.attachedTags[${i}] is not a string ${oldTodo.attachedTags[i]}. todoChanged.`);
 
-        if(!isString(newTodo.attachedTags[i])){
-            if(isDev()){ 
-               throw new Error(`newTodo.attachedTags[${i}] is not a string ${newTodo.attachedTags[i]}. todoChanged.`);
-            }
-        }
-        
-
-        if(oldTodo.attachedTags[i]!==newTodo.attachedTags[i])
-           return true; 
+        assert(isString(newTodo.attachedTags[i]), `newTodo.attachedTags[${i}] is not a string ${newTodo.attachedTags[i]}. todoChanged.`);
+     
+        if(oldTodo.attachedTags[i]!==newTodo.attachedTags[i]){ return true }
     }
-    
-
-
 }
   
 
@@ -1378,9 +1180,9 @@ export let attachEmptyTodo = (selectedCategory:Category) => (todos:Todo[]) => {
 
 
 export let findAttachedArea = (areas:Area[]) => (t:Todo) : Area => {
-    for(let i=0; i<areas.length; i++)
-        if(contains(t._id)(areas[i].attachedTodosIds))
-           return areas[i];
+    for(let i=0; i<areas.length; i++){
+        if(contains(t._id)(areas[i].attachedTodosIds)){ return areas[i] }
+    }
 
     return undefined;             
 }; 
@@ -1389,21 +1191,17 @@ export let findAttachedArea = (areas:Area[]) => (t:Todo) : Area => {
 export let findAttachedProject = (projects:Project[]) => (t:Todo) : Project => {
     for(let i=0; i<projects.length; i++){
         let attachedTodosIds = projects[i].layout.filter(isString) as string[];
-         
-        if(contains(t._id)(attachedTodosIds))
-           return projects[i];
+        if(contains(t._id)(attachedTodosIds)){ return projects[i] }
     } 
 
     return undefined;     
 };  
 
 
-
-
 export let byAttachedToArea = (areas:Area[]) => (t:Todo) : boolean => {
-    for(let i=0; i<areas.length; i++)
-        if(contains(t._id)(areas[i].attachedTodosIds))
-           return true;
+    for(let i=0; i<areas.length; i++){
+        if(contains(t._id)(areas[i].attachedTodosIds)){ return true }
+    }
     return false;             
 }; 
 
@@ -1418,9 +1216,7 @@ export let byAttachedToProject = (projects:Project[]) => (t:Todo) : boolean => {
          `attachedTodosIds is not an array of strings ${JSON.stringify(attachedTodosIds)}.`
         ); 
          
-        if(contains(t._id)(attachedTodosIds)){
-           return true;
-        }
+        if(contains(t._id)(attachedTodosIds)){ return true }
     }   
 
     return false;     
@@ -1449,7 +1245,7 @@ export let generateEmptyTodo = (
     created : new Date(),  
     deleted : null, 
     completed : null
-}  )
+})
 
 
   
@@ -1484,11 +1280,7 @@ export let generateTagElement = (tag:string,idx:number) => {
 
 export let getMonthName = (d:Date) : string => {
 
-    if(!isDate(d)){ 
-        if(isDev()){ 
-           throw new Error(`d is not a Date ${d}. getMonthName.`); 
-        } 
-    }
+    assert(isDate(d),`d is not a Date ${d}. getMonthName.`);
 
     let monthNames = [
         "January", "February", "March", "April", "May", "June",
@@ -1496,23 +1288,17 @@ export let getMonthName = (d:Date) : string => {
     ];
  
     return monthNames[d.getMonth()];
- 
 }
 
  
  
 export let getDayName = (d:Date) : string => { 
 
-    if(!isDate(d)){ 
-        if(isDev()){ 
-           throw new Error(`d is not a Date ${d}. getDayName.`); 
-        }
-    } 
+    assert(isDate(d), `d is not a Date ${d}. getDayName.`);
 
     let days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
     return days[d.getDay()];
-
 }
 
 
@@ -1521,34 +1307,22 @@ export let getDayName = (d:Date) : string => {
     
 export let addDays = (date:Date, days:number) => {
  
-    if(!isDate(date)){    
-        if(isDev()){ 
-           throw new Error(`date is not a Date. ${date}. addDays.`);
-        }
-    }
- 
-    if(isNaN(days)){
-        if(isDev()){ 
-           throw new Error(`days is not a number. ${days}. addDays.`);
-        }
-    }
+    assert(isDate(date), `date is not a Date. ${date}. addDays.`);
 
-     
+    assert(!isNaN(days), `days is not a number. ${days}. addDays.`);
+
     let next = new Date();
         
     next.setDate(date.getDate() + days);
 
     return next; 
-
 }
  
 
 
 export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
  
-    if(hide){   
-       return null; 
-    }
+    if(hide){ return null }
      
     assert(not(isNil(deadline)), `deadline undefined. ${deadline}. daysLeftMark.`);
     assert(isDate(deadline), `deadline not a Date. ${deadline}. daysLeftMark.`);
@@ -1569,82 +1343,44 @@ export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
     let attachedText = "";
  
     if(daysLeft < 0){
-
        attachedText = " days ago";
     }else if(daysLeft === 1){
-
        attachedText = " day left"; 
     }else{ 
- 
        attachedText = " days left";
     }
 
     return <p style={style}>{ Math.abs(daysLeft) }{ attachedText }</p>  
 } 
 
-
-
  
 export let isToday = (date : Date) => {
-    if(isNil(date))
-       return false; 
+    if(isNil(date)){ return false }; 
   
     return daysRemaining(date)===0;
 }    
 
 
-
-
 export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:Todo | Project) => {
 
-    if(typeof getDateFromObject !== "function"){
-        if(isDev()){ 
-           throw new Error(`getDateFromObject is not a function. ${getDateFromObject}. compareByDate.`);
-        }
-    }
-    
+    assert(isFunction(getDateFromObject), `getDateFromObject is not a function. ${getDateFromObject}. compareByDate.`);
+
     let iDate = getDateFromObject(i); 
     let jDate = getDateFromObject(j);
 
-
-    if(iDate===null || iDate===undefined || !iDate)
-        return -1;
-        
-    if(jDate===null || jDate===undefined || !jDate)
-        return -1;  
+    if(iDate===null || iDate===undefined || !iDate){ return -1 }; 
+    if(jDate===null || jDate===undefined || !jDate){ return -1 };  
             
-    
-    if( !isDate(iDate) ){
-        if(isDev()){ 
-           throw new Error(`iDate is not a Date. ${getDateFromObject}. compareByDate.`);
-        }
-    }
+    assert(isDate(iDate), `iDate is not a Date. ${getDateFromObject}. compareByDate.`);
+    assert(isDate(jDate), `jDate is not a Date. ${getDateFromObject}. compareByDate.`);
 
-
-    if( !isDate(jDate) ){
-        if(isDev()){ 
-           throw new Error(`jDate is not a Date. ${getDateFromObject}. compareByDate.`);
-        }
-    }
-    
-        
-
-    if(iDate.getTime() < jDate.getTime())
-        return 1;
-    else 
-        return -1;   
-
+    if(iDate.getTime() < jDate.getTime()){ return 1 }
+    else{ return -1 }   
 }
- 
 
 
 export let daysRemaining = (date:Date) : number => {
-    if(isNil(date)){
-        if(isDev()){ 
-           throw new Error(`Date is Nil. daysRemaining.`);
-        }
-    }
-
+    assert(!isNil(date), `Date is Nil. daysRemaining.`);
     return dateDiffInDays(new Date(), date); 
 } 
  
@@ -1652,25 +1388,18 @@ export let daysRemaining = (date:Date) : number => {
 
 export let dateDiffInDays = (A : Date, B : Date) : number  => {
 
-    if(isNil(A) || isNil(B)){
-        if(isDev()){ 
-           throw new Error(`Date is Nil. dateDiffInDays.`);
-        }
-    }
+    assert(!isNil(A), `A is Nil. dateDiffInDays.`);
+    assert(!isNil(B), `B is Nil. dateDiffInDays.`);
 
-    if(!isDate(A) || !isDate(B)){
-        if(isDev()){ 
-           throw new Error(`Not a date. dateDiffInDays.`); 
-        }
-    } 
-
+    assert(isDate(A), `A is not of type Date. dateDiffInDays.`);
+    assert(isDate(B), `B is not of type Date. dateDiffInDays.`);
    
     let _MS_PER_DAY = 1000 * 60 * 60 * 24;
 
     let utc1 = Date.UTC(A.getFullYear(), A.getMonth(), A.getDate());
 
     let utc2 = Date.UTC(B.getFullYear(), B.getMonth(), B.getDate());
- 
+  
     return Math.floor((utc2 - utc1) / _MS_PER_DAY);
 }
     
@@ -1683,11 +1412,7 @@ export let getDatesRange = (
     includeEnd : boolean
 ) : Date[] => {
  
-    if(!isDate(start)){
-        if(isDev()){ 
-           throw new Error(`start is not Date ${start}. getDatesRange`); 
-        }
-    } 
+    assert(isDate(start), `start is not Date ${start}. getDatesRange`);
          
     Date.prototype["addDays"] = function(days) {
         var date = new Date(this.valueOf());
@@ -1696,51 +1421,33 @@ export let getDatesRange = (
     }
  
     let dates = [];
-    
     let from = 1; 
     let to = days-1;
 
+    if(includeStart){ from -= 1; }
 
-    if(includeStart){
-        from -= 1; 
-    }
-
-    if(includeEnd){
-        to += 1;
-    }
+    if(includeEnd){ to += 1; }
         
-        
-    for(let i=from; i<=to; i++)
+    for(let i=from; i<=to; i++){
         dates.push( new Date(start.getTime())["addDays"]( i ) );
+    }
     
     return dates; 
       
 } 
 
 
-
-
 export let randomInteger = (n:number) : number => {
-    
     return Math.round(Math.random() * n);
-
 } 
-    
-
-    
+  
 
 export let randomDate = (start, end) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
- 
-
 
     
 export let randomArrayMember = (array : any[]) => {
 
-    if(array.length===0){ 
-        if(isDev()){ 
-           throw new Error(`randomArrayMember. array empty.`)
-        }
-    }
+    assert(!isEmpty(array), `randomArrayMember. array empty.`);
 
     let range = array.length - 1;
     
@@ -1749,11 +1456,8 @@ export let randomArrayMember = (array : any[]) => {
     let member = array[idx]; 
 
     return member;
- 
 } 
     
- 
-
 
 export let generateEmptyProject = () : Project => ({
     _id : generateId(), 
@@ -1769,6 +1473,7 @@ export let generateEmptyProject = () : Project => ({
     attachedTags : []
 });
    
+
 export let generateEmptyArea = () : Area => ({
     _id : generateId(),
     name : "",
@@ -1782,6 +1487,7 @@ export let generateEmptyArea = () : Area => ({
     attachedProjectsIds : [],
 });
     
+
 export let timeDifferenceHours = (from:Date,to:Date) : number => {
     let first = isString(from) ? new Date(from).getTime() : from.getTime();
     let second = isString(to) ? new Date(to).getTime() : to.getTime();
@@ -1798,6 +1504,7 @@ export let setToJsonStorage = (key:string,json:any) : Promise<void> => new Promi
     } 
 ) 
 
+
 export let getFromJsonStorage = (key:string) : Promise<any> => new Promise(
     resolve => {
         ipcRenderer.removeAllListeners("getStorage"); 
@@ -1805,8 +1512,6 @@ export let getFromJsonStorage = (key:string) : Promise<any> => new Promise(
         ipcRenderer.on("getStorage",(event, data) => resolve(data));
     }
 )
-
-
 
 
 export let transformLoadDates = (load) : any => {
@@ -2080,7 +1785,7 @@ export let groupObjects = (
     selectedTag:string 
 ) : Table => { 
 
-    let table : Table = { 
+    let table : Table = {  
         projects : [],
         areas : [],
         todos : [],
@@ -2100,17 +1805,17 @@ export let groupObjects = (
         let attached = false;
 
         let project : Project = table.projects.find( (p:Project) => contains(todo._id)(p.layout as any) )    
-        if(!isNil(project)){ 
+        
+        if(!isNil(project)){  
             table[project._id].push(todo);
             attached = true; 
-            break; 
         } 
       
         let area : Area = table.areas.find( (a:Area) => contains(todo._id)(a.attachedTodosIds) )  
+        
         if(!isNil(area)){
             table[area._id].push(todo);
             attached = true; 
-            break;
         }
 
         if(not(attached)){ table.detached.push(todo) }; 

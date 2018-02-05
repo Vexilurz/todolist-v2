@@ -64,7 +64,9 @@ import { TodoInput } from './TodoInput/TodoInput';
 let getProjectHeading = (project:Project, todos:Todo[]) : JSX.Element => {
 
     let {done, left} = getProgressStatus(project, todos, false);
-    
+    let totalValue = (done+left)===0 ? 1 : (done+left);
+    let currentValue = done;
+
     return <div   
         id = {project._id}        
         style={{    
@@ -103,9 +105,9 @@ let getProjectHeading = (project:Project, todos:Todo[]) : JSX.Element => {
             }}>  
                 <PieChart 
                     animate={false}    
-                    totalValue={done+left}
+                    totalValue={totalValue}
                     data={[{      
-                        value:done, 
+                        value:currentValue, 
                         key:1,  
                         color:"rgb(108, 135, 222)" 
                     }]}    
@@ -303,11 +305,11 @@ export class Search extends Component<SearchProps,SearchState>{
     } 
 
 
-    getSuggestions = () : {
+    getSuggestions = (todos:Todo[], projects:Project[], areas:Area[]) : {
         attached : { project:Project, todos:Todo[] }[],
         detached : Todo[] 
     } => { 
-        let { todos, projects, areas, searchQuery } = this.props;
+        let { searchQuery } = this.props;
         let limitGroups = this.limitGroups(3, todos);  
 
         let table = {};
@@ -399,13 +401,17 @@ export class Search extends Component<SearchProps,SearchState>{
  
  
     render(){ 
-        let {projects, todos, areas, dispatch} = this.props;
+        let {todos, projects, areas, dispatch} = this.props;
 
-        let suggestions = this.getSuggestions();
+        let selectedTodos = filter(todos, byNotDeleted, "");
+        let selectedProjects = filter(projects, byNotDeleted, "");
+        let selectedAreas = filter(areas, byNotDeleted, "");
 
-        let ids = flatten(projects.map((p) => p.layout.filter(isString))) as string[];
+        let suggestions = this.getSuggestions(selectedTodos,selectedProjects,selectedAreas);
 
-        let attachedTodos = filter(todos, (todo:Todo) => contains(todo._id)(ids), "area");
+        let ids = flatten(selectedProjects.map((p) => p.layout.filter(isString))) as string[];
+
+        let attachedTodos = filter(selectedTodos, (todo:Todo) => contains(todo._id)(ids), "");
 
         let noresults = {
             fontSize:"18px",

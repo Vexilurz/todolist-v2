@@ -24,12 +24,12 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui'; 
 import AutosizeInput from 'react-input-autosize';
-import { Todo, Project, Heading, generateId, addProject, removeProject } from '../../database';
+import { Todo, Project, Heading, generateId, addProject, removeProject, LayoutItem } from '../../database';
 import { uppercase, debounce, attachDispatchToProps, assert, createHeading } from '../../utils';
 import { Store, isDev } from '../../app';
 import { isString } from 'util'; 
 import { contains, not, isNil, isEmpty, remove } from 'ramda';
-import { Category } from '../MainContainer';
+import { Category, filter } from '../MainContainer';
 
  
 
@@ -102,13 +102,31 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
     }   
 
     onDuplicate = (e) => {   
-        let {project} = this.props;
-        let duplicate = {...project, _id:generateId()};
+        let {project,todos} = this.props;
+        let todosIDs = project.layout.filter(isString);
+        let relatedTodos = filter(todos, (todo:Todo) => contains( todo._id, todosIDs ), "onDuplicate");
+        let duplicatedTodos:Todo[] = [];
+        let duplicatedLayout:LayoutItem[] = project.layout.map((item) => {
+            if(isString(item)){
+                let todo = relatedTodos.find( todo => todo._id===item );
+                let duplicate : Todo = {...todo};
+                duplicate._id = generateId();
+                delete duplicate['_rev']; 
+                duplicatedTodos.push(duplicate);
+                return duplicate._id;
+            }else{
+                return item;
+            }
+        }); 
+
+        let duplicate = {...project, _id:generateId(), layout:duplicatedLayout};
         delete duplicate["_rev"]; 
-        this.props.dispatch({type:"addProject", load:duplicate}); 
-        //TODO Duplicate all todos
+
+        this.props.dispatch({type:"addProject",load:duplicate});
+        this.props.dispatch({type:"addTodos",load:duplicatedTodos});
+        
         this.closeMenu(); 
-    }
+    } 
 
     onComplete = (e) => { 
         let {project} = this.props;

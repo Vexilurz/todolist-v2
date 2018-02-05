@@ -155,11 +155,6 @@ let dropTodoOnArea = (
 } 
  
 
-
-
-
-
-
 export let onDrop = (
     e,
     draggedTodo:Todo,

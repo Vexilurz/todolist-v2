@@ -25,8 +25,11 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { Checkbox } from '../TodoInput/TodoInput';
 import { attachDispatchToProps, isString, debounce, isNewVersion, keyFromDate } from '../../utils';
-import { Store } from '../../app';
-import { generateId, Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, Todo, destroyEverything, initDB, addTodos, addProjects, addAreas, addCalendars } from '../../database';
+import { Store, globalErrorHandler } from '../../app';
+import { 
+    generateId, Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, 
+    Todo, destroyEverything, initDB, addTodos, addProjects, addAreas, addCalendars 
+} from '../../database';
 import { isDate } from 'util';
 import { SimplePopup } from '../SimplePopup';
 import { getIcalData, IcalData, AxiosError } from '../Calendar';
@@ -38,9 +41,7 @@ const path = require("path");
 const os = remote.require('os');
 
 interface SettingsPopupProps extends Store{}
-
 interface SettingsPopupState{}
- 
 @connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
 export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupState>{
 
@@ -63,7 +64,7 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
 
 interface SettingsProps extends Store{}
 
-export type section =  'General' | 'QuickEntry' | 'CalendarEvents' | 'DataFolder' | 'Advanced';
+export type section =  'General' | 'QuickEntry' | 'CalendarEvents' | 'Advanced';
   
 interface SettingsState{}
 
@@ -83,7 +84,6 @@ export class Settings extends Component<SettingsProps,SettingsState>{
             'Cloud' : 'Cloud',
             'QuickEntry' : 'Quick Entry',
             'CalendarEvents' : 'Calendar Events',
-            'DataFolder' : 'Data folder',
             'Advanced' : 'Advanced'
         }[selectedSettingsSection];
 
@@ -619,6 +619,7 @@ let selectFolder = () => new Promise(
     } 
 )
 
+
 let selectJsonDatabase = () => new Promise(
     resolve => {  
         ipcRenderer.removeAllListeners("jsonDatabase");  
@@ -632,7 +633,6 @@ let selectJsonDatabase = () => new Promise(
         )
     } 
 )
-
 
 
 
@@ -671,11 +671,17 @@ let readJsonFile = (path:string) : Promise<any> =>
 
 let correctFormat = (json:any) : boolean => not(isNil(json.database));
 
+let removeRev = (item) => {
+    delete item["_rev"];
+    item["_rev"] = undefined;
+    return item;
+};
 
 interface AdvancedProps extends Store{}
 
 interface AdvancedState{ 
-    message:string,
+    importMessage:string,
+    exportMessage:string,
     updateStatus:string 
     importPath:string, 
     exportPath:string
@@ -686,23 +692,23 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     backupFolder:string;
     backupFilename:string;
     limit:number;
-    
+     
     constructor(props){
-        super(props);
-
+        super(props);  
         this.backupFolder = path.resolve(os.homedir(), "Documents");
-        this.backupFilename = "backup.json";
-
+        this.backupFilename = `backup${uniqid()}.json`;
         this.limit = 1000000;
 
-        this.state={ 
-           message:'', 
+        this.state = {   
+           importMessage:'',
+           exportMessage:'', 
            importPath:'',   
            exportPath:'',
            updateStatus:`Current version is : ${remote.app.getVersion()}.`
         };       
     };
 
+    updateState = (state) => new Promise( resolve => this.setState(state, () => resolve()) );
 
     getDatabaseObjects = () : Promise<[Calendar[],Project[],Area[],Todo[]]> => {
         return Promise.all([
@@ -710,154 +716,181 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
             getProjects(this.onError)(true, this.limit),
             getAreas(this.onError)(true, this.limit),
             getTodos(this.onError)(true, this.limit) 
-        ])
+        ])  
     };
 
     
     replaceDatabaseObjects = (json) : Promise<void> => {
         let { todos, projects, areas, calendars } = json.database;
 
-        return destroyEverything()     
-                .then(() => {    
-                    initDB();  
-                    return Promise.all([ 
-                        addTodos(this.onError,todos),      
-                        addProjects(this.onError,projects), 
-                        addAreas(this.onError,areas),
-                        addCalendars(this.onError,calendars)
-                    ]) 
-                    .then(() => fetchData(this.props,this.limit,this.onError))    
-                });
+        return destroyEverything()    
+        .then(() => {  
+            initDB(); 
+            return Promise.all([  
+              addTodos(this.onError,todos.map(removeRev)),      
+              addProjects(this.onError,projects.map(removeRev)), 
+              addAreas(this.onError,areas.map(removeRev)),
+              addCalendars(this.onError,calendars.map(removeRev))
+            ]) 
+            .then(() => fetchData(this.props,this.limit,this.onError))    
+        }); 
     };  
-     
+      
 
-    onError = (error) => console.log(error);
+    onError = (error) => globalErrorHandler(error);
 
 
     export = (folder:string) => {  
+        if(isNil(folder)){ return }
+
+        let to:string = path.resolve(folder, `${keyFromDate(new Date())}-${uniqid()}.json`);
+
         return this.getDatabaseObjects()
         .then(
             ([calendars,projects,areas,todos]) => 
                 writeJsonFile(
                     { database : { todos, projects, areas, calendars } },
-                    path.resolve(folder, `${keyFromDate(new Date())}.json`) //TODO replace by uniqid
+                    to 
                 )
-                .then((err) => isNil(err) ? null : this.onError(err))
-        )      
+                .then((err) => ({err,to}))
+        )       
     };    
 
  
-    import = (pathToFile:string) => {
+    import = (pathToFile:string) => {  
+        if(isNil(pathToFile)){ return }
+        let {dispatch} = this.props;
         let backupFolderExists : boolean = fs.existsSync(this.backupFolder);
-        let message = (place) => `Data was imported successfully. You can find a backup of your old database in ${place}.`;
+        let message = (place) => `Data was successfully imported. You can find a backup of your old database in ${place}.`;
         let pathToBackup = backupFolderExists ? path.resolve( this.backupFilename, this.backupFolder) :
                                                 path.resolve( this.backupFilename );
+        
+        dispatch({type:"selectedCategory",load:"inbox"});
 
         return readJsonFile(pathToFile)  
-                .then((json) => { 
+               .then((json) => { 
                     if(correctFormat(json)){
                         this.export(pathToBackup) 
-                        .then(() => this.setState({message:'Loading...'}))
+                        .then(() => this.setState({importMessage:'Loading...'}))
                         .then(() => this.replaceDatabaseObjects(json))
-                        .then(() => this.setState({message:message(pathToBackup)}))
+                        .then(() => this.setState({importMessage:message(pathToBackup)}))
                     }else{
-                        this.setState({message:"Incorrect format."})
+                        this.setState({importMessage:"Incorrect format."})
                     } 
-                })   
+               })   
     };
     
 
-    onSelectExportFolder = () => {
+    onSelectExportFolder = () => { 
         selectFolder()
         .then(
-            (folder:string) => isNil(folder) ? null : 
-                               isEmpty(folder) ? null :
-                               this.setState({exportPath:folder}, () => this.export(folder))
+           (folder:string) => {
+                if(isNil(folder) || isEmpty(folder)){ return }
+
+                this
+                .updateState({exportPath:folder})
+                .then(() => this.export(folder))
+                .then(({err,to}) => {
+                    if(isNil(err)){ 
+                       this.updateState({exportMessage:`Data was successfully exported to ${to}.`})
+                    }
+                })
+            }
         )
-    };
+    }; 
 
 
     onSelectImportFile = () => {  
         selectJsonDatabase()
         .then(
-            (path:string) => isNil(path) ? null : 
-                             isEmpty(path) ? null : 
-                             this.setState({importPath:path}, () => this.import(path))
+            (path:string) => {
+                if(isNil(path) || isEmpty(path)){ return }
+                
+                this
+                .updateState({importPath:path})
+                .then(() => this.import(path))
+            }
         )
     };
       
 
-    checkUpdates = () => { 
+    checkUpdates = debounce(() => { 
         let {dispatch} = this.props;
+        this.setState({updateStatus:"Loading..."});
         checkForUpdates() 
-        .then(
-            (updateCheckResult:UpdateCheckResult) => {
+        .then( 
+           (updateCheckResult:UpdateCheckResult) => {  
                 let {updateInfo} = updateCheckResult;
                 let currentAppVersion = remote.app.getVersion(); 
                 let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
 
                 if(canUpdate){  
-                   dispatch({type:"openSettings",load:false});  
-                   dispatch({type:"showUpdatesNotification",load:true});
-                }else{  
+                   dispatch({type:"openSettings", load:false});  
+                   dispatch({type:"showUpdatesNotification", load:true});
+                }else{   
                    this.setState({updateStatus:"Latest version already installed."}); 
                 }; 
             }      
         );  
-    };  
+    },100);  
      
  
     render(){   
-        let {importPath, exportPath, updateStatus, message} = this.state;
+        let {importPath, exportPath, updateStatus, exportMessage, importMessage} = this.state;
 
+        let textFiledStyle = {
+            width:"100%", 
+            backgroundColor:"white",
+            color:"rgba(100, 100, 100, 0.9)",
+            outline:"none", 
+            overflowX:"hidden",
+            justifyContent:"flex-start",
+            alignItems:"center",
+            display:"flex",
+            marginRight:"15px", 
+            height:"30px",
+            borderRadius:"4px",
+            border:"1px solid rgba(100, 100, 100, 0.3)"
+        } as any;
+
+        let buttonStyle = {     
+            display:"flex",
+            alignItems:"center",
+            cursor:"pointer",
+            justifyContent:"center",
+            width: "40px",
+            height:"20px", 
+            borderRadius:"5px",
+            paddingLeft:"25px",
+            paddingRight:"25px",
+            paddingTop:"5px", 
+            paddingBottom:"5px",
+            backgroundColor:"rgba(81, 144, 247, 1)"  
+        } as any;
+
+        
         return <div style={{paddingTop:"25px",width:"90%",paddingLeft:"25px"}}>
-            <div style={{display:"flex",flexDirection:"column",justifyContent:"space-around",height:"70%"}}> 
+            <div style={{display:"flex",flexDirection:"column",justifyContent:"space-around",height:"90%"}}> 
                 { 
-                    isEmpty(message) ? null :
+                    isEmpty(importMessage) ? null :
                     <div style={{
                         display: "flex",
                         fontSize: "14px",
                         alignItems: "center",
                         fontWeight: 500,
-                        color: message==="Incorrect format." ? "red" : "green",
+                        color: importMessage==="Incorrect format." ? "red" : "green",
                         userSelect: "none"
                     }}>       
-                        {message}  
+                        {importMessage}  
                     </div>  
                 }   
                 <div style={{display:"flex"}}>
-                    <div style={{ 
-                        backgroundColor:"white",
-                        color:"rgba(100, 100, 100, 0.9)",   
-                        outline:"none",
-                        textAlign:"center",
-                        alignItems:"center",
-                        display:"flex",  
-                        marginRight:"15px",
-                        justifyContent:"center",
-                        height:"30px",
-                        width:"100%",  
-                        borderRadius:"4px",  
-                        border:"1px solid rgba(100,100,100,0.3)"
-                    }}>           
-                        {importPath}
+                    <div style={textFiledStyle}>           
+                        {importPath} 
                     </div>
                     <div     
                         onClick={this.onSelectImportFile}
-                        style={{     
-                            display:"flex",
-                            alignItems:"center",
-                            cursor:"pointer",
-                            justifyContent:"center",
-                            width: "40px",
-                            height:"20px", 
-                            borderRadius:"5px",
-                            paddingLeft:"25px",
-                            paddingRight:"25px",
-                            paddingTop:"5px", 
-                            paddingBottom:"5px",
-                            backgroundColor:"rgba(81, 144, 247, 1)"  
-                        }}  
+                        style={buttonStyle}  
                     >   
                         <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
                             Import
@@ -865,39 +898,27 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                     </div> 
                 </div>
 
+                { 
+                    isEmpty(exportMessage) ? null :
+                    <div style={{
+                        display: "flex",
+                        fontSize: "14px",
+                        alignItems: "center",
+                        fontWeight: 500,
+                        color: "green",
+                        userSelect: "none"
+                    }}>       
+                        {exportMessage}  
+                    </div>  
+                } 
+
                 <div style={{display:"flex"}}>
-                    <div style={{ 
-                        backgroundColor:"white",
-                        color:"rgba(100, 100, 100, 0.9)",   
-                        outline:"none",
-                        textAlign:"center",
-                        alignItems:"center",
-                        display:"flex",
-                        marginRight:"15px",
-                        justifyContent:"center",
-                        height:"30px",
-                        width:"100%",  
-                        borderRadius:"4px",  
-                        border:"1px solid rgba(100,100,100,0.3)"
-                    }}>           
+                    <div style={textFiledStyle}>           
                        {exportPath}
                     </div>
                     <div     
                         onClick={this.onSelectExportFolder} 
-                        style={{     
-                            display:"flex",
-                            alignItems:"center",
-                            cursor:"pointer",
-                            justifyContent:"center",
-                            height:"20px",
-                            width:"40px",
-                            borderRadius:"5px",
-                            paddingLeft:"25px",
-                            paddingRight:"25px",
-                            paddingTop:"5px", 
-                            paddingBottom:"5px",
-                            backgroundColor:"rgba(81, 144, 247, 1)"  
-                        }}  
+                        style={buttonStyle}  
                     >   
                         <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
                             Export 
@@ -938,7 +959,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                         <div style={{color:"white",whiteSpace:"nowrap",fontSize:"16px"}}>  
                             Check for updates
                         </div>    
-                    </div>   
+                    </div>    
                 </div> 
             </div>
         </div>    

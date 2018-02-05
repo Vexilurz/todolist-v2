@@ -129,18 +129,20 @@ let selectFolder = () : Promise<string> =>
                        resolve(undefined);
                 }
             ); 
-        }   
+        }    
     ); 
     
 
     
 export let initAutoUpdater = () => {
-    log.transports.file.level = "info";
-    autoUpdater.logger = log; 
-    autoUpdater.autoDownload = false;
 
+    if(dev()){
+        log.transports.file.level = "info";
+        autoUpdater.logger = log; 
+    }
+
+    autoUpdater.autoDownload = false;
     autoUpdater.on('error', (err) => onError(err));
- 
     autoUpdater.on('download-progress', (progress) => {
         mainWindow.webContents.send("download-progress",progress);
     });

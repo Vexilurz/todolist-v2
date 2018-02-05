@@ -11,7 +11,7 @@ import { Component } from "react";
 import { ipcRenderer, remote } from 'electron';
 import {    
     wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, 
-    getTagsFromItems, defaultTags, isTodo, isProject, isArea, isArrayOfAreas, 
+    defaultTags, isTodo, isProject, isArea, isArrayOfAreas, 
     isArrayOfProjects, isArrayOfTodos, isArray, transformLoadDates, convertDates, yearFromNow, isString, stringToLength, assert
 } from "./utils";  
 import { createStore, combineReducers } from "redux"; 
@@ -158,7 +158,6 @@ interface AppProps extends Store{
 
 
 export let globalErrorHandler = (error:any) : Promise<void> => {
-    console.log(JSON.stringify(error));
 
     let message = isNil(error) ? "Error occured" :
                   isString(error) ? error :
@@ -168,15 +167,26 @@ export let globalErrorHandler = (error:any) : Promise<void> => {
     let value = isNil(error) ? 0 :
                 error.code ? error.code : 0;     
     
-    return googleAnalytics.send(
-        'event',  
-        { 
-           ec:'Error',  
-           ea:stringToLength(message, 120), 
-           el:'Error occured', 
-           ev:value
-        }
-    ) 
+    return Promise.all(
+        [
+            googleAnalytics.send(
+                'event',  
+                { 
+                   ec:'Error',  
+                   ea:stringToLength(message, 120), 
+                   el:'Error occured', 
+                   ev:value
+                }
+            ),
+            googleAnalytics.send(
+                'exception',  
+                {  
+                   exd:stringToLength(message, 120),  
+                   exf:1 
+                } 
+            )  
+        ]
+    )
     .then(() => console.log('Error report submitted'))
     .catch(err => this.onError(err))
 };        
@@ -237,9 +247,7 @@ export class App extends Component<AppProps,{}>{
         ipcRenderer.on(
             "action", 
             (event, action:{type:string, kind:string, load:any}) => { 
-    
                 if(not(clone)){ return }   
-    
                 dispatch(assoc("load", transformLoadDates(action.load), action));      
             }
         );  
@@ -263,8 +271,6 @@ export class App extends Component<AppProps,{}>{
     componentDidMount(){   
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
         let { arch, cpus, platform, release, type } = collectSystemInfo();
-
-        console.log("homedir",os.homedir());
 
         googleAnalytics.send(   
             'event',   

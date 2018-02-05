@@ -543,11 +543,13 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         let {project, selectedProjectId, selectedCategory, todos} = this.props;
         let selected = project._id===selectedProjectId && selectedCategory==="project";
         let {done, left} = getProgressStatus(project, todos, false);
-
+        let totalValue = (done+left)===0 ? 1 : (done+left);
+        let currentValue = done;
+        
         return <li   
             style={{WebkitUserSelect:"none",width:"100%"}}  
-            key={this.props.index}
-            onMouseOver={this.onMouseOver} 
+            key={this.props.index} 
+            onMouseOver={this.onMouseOver}  
             onMouseOut={this.onMouseOut}   
         >    
             <div  
@@ -586,9 +588,9 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                         }}>  
                             <PieChart 
                                 animate={false}    
-                                totalValue={done+left}
+                                totalValue={totalValue}
                                 data={[{     
-                                    value:done,   
+                                    value:currentValue,   
                                     key:1,    
                                     color:"rgba(159, 159, 159, 1)" 
                                 }]}    

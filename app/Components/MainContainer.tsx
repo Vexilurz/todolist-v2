@@ -53,16 +53,12 @@ const Promise = require('bluebird');
 
 
 export let filter = (array:any[],f:Function,caller:string) : any[] => {
+    
     let start : number = performance.now();
     let result = lodashFilter(array,f); 
     let finish : number = performance.now();
-    
-    if(isDev()){ 
-        if(array.length>100){
-           console.log(`filter ${array.length} items ${(finish - start)} ms caller : ${caller}`);  
-        }
-    }
-       
+
+    let report = `filter ${array.length} items ${(finish - start)} ms caller : ${caller}`;
     return result;
 }
 
@@ -227,7 +223,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         if(not(this.isMainWindow())){ return }  
 
         if(isDev()){
-    
+            
             destroyEverything()    
             .then(() => {  
                 initDB();
@@ -490,7 +486,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
                                     let somedayFilters = [
                                         byCategory("someday"),
-                                        byNotCompleted, 
+                                        (todo:Todo) => isNil(todo.deadline),
+                                        byNotCompleted,  
                                         byNotDeleted 
                                     ];
                                 
@@ -516,6 +513,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         (t:Todo) => not(isToday(t.attachedDate)) && not(isToday(t.deadline)),
                                         (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
                                         (t:Todo) => t.category!=="inbox",  
+                                        (t:Todo) => t.category!=="someday",  
                                         byNotCompleted,  
                                         byNotDeleted 
                                     ]; 
@@ -565,8 +563,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             [ 
                                 (selectedCategory:string) : boolean => 'project'===selectedCategory,  
                                 () => {
-
                                     let project = projects.find((p:Project) => selectedProjectId===p._id);
+
+                                    if(isNil(project)){ return null }
+
                                     let ids = project.layout.filter(isString);
                                     let byContainedInLayout = (t:Todo) => contains(t._id)(ids);
                                     let projectFilters = [ byContainedInLayout, byNotDeleted ].filter( f => f );  
@@ -592,16 +592,17 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             [ 
                                 (selectedCategory:string) : boolean => 'area'===selectedCategory,  
                                 () => {
-                                    
                                     let area = areas.find((a) => selectedAreaId===a._id);
+
+                                    if(isNil(area)){ return null }
+
                                     let selectedProjects = projects.filter(
                                         (p) => contains(p._id)(area.attachedProjectsIds)
                                     );
                                     let ids = flatten([
                                         area.attachedTodosIds,
                                         selectedProjects.map((p) => p.layout.filter(isString))
-                                    ]);
-
+                                    ]); 
                                     return <AreaComponent    
                                         area={area} 
                                         todos={filter(todos, (todo:Todo) => contains(todo._id)(ids), "area")}

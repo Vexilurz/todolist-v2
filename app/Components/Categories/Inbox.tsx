@@ -7,7 +7,7 @@ import { Todo, Project, Area, generateId } from '../../database';
 import { TodosList } from '.././TodosList';
 import { ContainerHeader } from '.././ContainerHeader';
 import { 
-    byTags, byCategory, byNotCompleted, byNotDeleted, getTagsFromItems, 
+    byTags, byCategory, byNotCompleted, byNotDeleted, 
     generateEmptyTodo, attachEmptyTodo, byAttachedToProject, byAttachedToArea 
 } from '../../utils'; 
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';

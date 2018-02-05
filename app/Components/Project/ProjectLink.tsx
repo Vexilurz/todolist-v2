@@ -133,7 +133,9 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
     render(){ 
         let { dispatch,project,todos,selectedCategory,showMenu } = this.props;
         let { done,left } = getProgressStatus(project, todos, false); 
-        
+        let totalValue = (done+left)===0 ? 1 : (done+left);
+        let currentValue = done;
+
         return <li  
             onClick={this.openProject}    
             style={{width:"100%", overflow:"hidden"}}   
@@ -172,9 +174,9 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                     }}>  
                         <PieChart 
                             animate={false}    
-                            totalValue={done+left}
+                            totalValue={totalValue}
                             data={[{
-                                value:done, 
+                                value:currentValue, 
                                 key:1,  
                                 color:"rgb(108, 135, 222)" 
                             }]}    
@@ -398,6 +400,8 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
     render(){ 
         let { dispatch,project,todos,selectedCategory} = this.props;
         let { done, left } = getProgressStatus(project, todos, true); 
+        let totalValue = (done+left)===0 ? 1 : (done+left);
+        let currentValue = done;
 
         return <li style={{width:"100%", overflow:"hidden"}}>      
         <div   
@@ -447,10 +451,10 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
                     }}>  
                         <PieChart 
                             animate={false}    
-                            totalValue={done+left}
+                            totalValue={totalValue}
                             data={[{
-                                value:done, 
-                                key:1,  
+                                value:currentValue, 
+                                key:1,   
                                 color:"rgb(108, 135, 222)" 
                             }]}    
                             style={{  

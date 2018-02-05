@@ -147,7 +147,9 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         let {projectMenuPopoverAnchor,showDeadlineCalendar,showTagsPopup} = this.state; 
         let {done,left} = this.props.progress; 
         let tags = getTagsFromItems(todos); 
-          
+        let totalValue = (done+left)===0 ? 1 : (done+left);
+        let currentValue = done;
+
         return <div>  
             <ProjectMenuPopover 
             {
@@ -209,9 +211,9 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     }}>   
                         <PieChart
                             animate={true}    
-                            totalValue={done+left}
+                            totalValue={totalValue}
                             data={[{  
-                                value:done,  
+                                value:currentValue,  
                                 key:1,   
                                 color:'rgba(108, 135, 222, 0.8)'  
                             }]}   

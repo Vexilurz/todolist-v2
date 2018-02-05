@@ -1115,7 +1115,9 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                                     (p:Project) => { 
                                         let {selectProject,close} = this.props;
                                         let {done, left} = getProgressStatus(p,todos,false);
-                                          
+                                        let totalValue = (done+left)===0 ? 1 : (done+left);
+                                        let currentValue = done;
+
                                         return <div    
                                             key = {`${p._id}-project`}
                                             onClick = {(e) => {
@@ -1155,9 +1157,9 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                                                     }}>  
                                                         <PieChart 
                                                             animate={false}    
-                                                            totalValue={done+left}
+                                                            totalValue={totalValue}
                                                             data={[{     
-                                                                value:done,  
+                                                                value:currentValue,  
                                                                 key:1,    
                                                                 color:"white" 
                                                             }]}    
@@ -1263,6 +1265,8 @@ let selectButtonContent = ({
     }else if(!isNil(project)){ 
 
         let {done, left} = getProgressStatus(project, todos, false);
+        let totalValue = (done+left)===0 ? 1 : (done+left);
+        let currentValue = done;
 
         return <div   
             style={{
@@ -1294,11 +1298,11 @@ let selectButtonContent = ({
                 }}>  
                     <PieChart 
                         animate={false}    
-                        totalValue={done+left}
+                        totalValue={totalValue}
                         data={[{
-                            value:done,  
+                            value:currentValue,  
                             key:1,    
-                            color:"white" 
+                            color:"white"   
                         }]}    
                         style={{ 
                             color:"white",

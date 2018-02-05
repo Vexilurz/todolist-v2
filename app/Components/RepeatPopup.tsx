@@ -52,8 +52,6 @@ let limitDate = (date:Date) : Date => {
 let selectedDatesToTodos = (todo:Todo, data:{dates:Date[],group:Group}) : Todo[] => {
     let { dates, group } = data;
 
-    console.log(dates);
-
     return dates.map( 
         (date:Date,index:number) : Todo => {
             let withoutRev : any = {...todo, _rev:undefined};

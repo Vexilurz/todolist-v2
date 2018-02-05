@@ -81,7 +81,6 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
 
     onDeleteToDo = (e) => {
-
         let { todos, dispatch, rightClickedTodoId } = this.props; 
            
         let todo : Todo = todos.find( (t:Todo) => t._id===rightClickedTodoId );
@@ -97,7 +96,6 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
     onDuplicate = (e) => {
         let todo : Todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId );
-        let id : string = this.props.rightClickedTodoId;
         
         let duplicate : Todo = {...todo};
         duplicate._id = generateId();
