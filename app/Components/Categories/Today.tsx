@@ -23,7 +23,7 @@ import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Repeat from 'material-ui/svg-icons/av/repeat';
-import { Store, isDev } from '../../app';
+import { Store, isDev, globalErrorHandler } from '../../app';
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Duplicate from 'material-ui/svg-icons/content/content-copy';
 import ShareIcon from 'material-ui/svg-icons/social/share';
@@ -173,17 +173,16 @@ export class Today extends Component<TodayProps,TodayState>{
         dispatch({type:"hotAmount",load:todos.filter((t:Todo) => allPass(hotFilters)(t)).length});
     }
 
+    onError = (error) => globalErrorHandler(error)
     
     componentDidMount(){ 
-        hideHint().then( (hide) => this.setState({showHint:!hide}) );
+        hideHint(this.onError).then((hide) => this.setState({showHint:!hide}));
         this.calculateTodayAmount(this.props);
     }     
   
-    
     componentWillReceiveProps(nextProps:TodayProps){
         this.calculateTodayAmount(nextProps); 
     }
-
 
     changeOrder = (oldIndex,newIndex,selected) => {
         let load = [];
@@ -206,8 +205,6 @@ export class Today extends Component<TodayProps,TodayState>{
 
         this.props.dispatch({type:"updateTodos", load});
     }
-
-
 
     getItems = () : { items:(Todo|TodaySeparator)[], tags:string[] } => {
 
@@ -232,9 +229,6 @@ export class Today extends Component<TodayProps,TodayState>{
         return {items,tags}
     }
   
-
-
-
     getElement = (value:Todo | TodaySeparator, index:number) => {
 
         if(value.type==="separator"){ 
@@ -266,10 +260,8 @@ export class Today extends Component<TodayProps,TodayState>{
                 />      
             </div> 
         }
-
     } 
        
-
     shouldCancelStart = (e) => {
 
         let nodes = [].slice.call(e.path);
@@ -281,17 +273,14 @@ export class Today extends Component<TodayProps,TodayState>{
         }
            
         return false
-    }  
-     
+    } 
 
     onSortStart = (oldIndex:number,event:any) => { 
         this.props.dispatch({type:"dragged",load:"todo"});  
     }
 
-    
     onSortMove = (oldIndex:number,event:any) => { } 
  
-
     onSortEnd = (oldIndex:number,newIndex:number,event:any) => { 
         this.props.dispatch({type:"dragged",load:null});
         let leftpanel = document.getElementById("leftpanel");
@@ -320,27 +309,22 @@ export class Today extends Component<TodayProps,TodayState>{
         }     
     }   
  
-     
-
     render(){
          
         let { todos, selectedTag, areas, projects, calendars, showCalendarEvents } = this.props;
         let { items, tags } = this.getItems();
         let empty = generateEmptyTodo(generateId(), "today", 0);  
 
-
-        let decorators = [{  
-            area:document.getElementById("leftpanel"),  
+        let decorators = [{
+            area:document.getElementById("leftpanel"),
             decorator:generateDropStyle("nested"),
             id:"default"
         }];    
-
 
         let events = [];
 
         if(showCalendarEvents){
             let todayKey : string = keyFromDate(new Date()); 
-
             calendars 
             .filter((calendar:Calendar) => calendar.active)
             .forEach( 
@@ -352,14 +336,11 @@ export class Today extends Component<TodayProps,TodayState>{
                             todayKey===keyFromDate(event.start)
                     );
 
-                    if(!isEmpty(selected)){
-                        events.push(...selected); 
-                    }; 
-                } 
+                    if(!isEmpty(selected)){ events.push(...selected) }; 
+                }   
             ) 
         }
-          
-
+        
         return <div style={{disaply:"flex", flexDirection:"column"}}> 
             <div style={{width: "100%"}}> 
                     <div style={{  
@@ -508,10 +489,13 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
 
 
 
-let setHideHint = (hide:boolean) : Promise<void> => setToJsonStorage("hideHint", {hideHint:hide}); 
+let setHideHint = (hide:boolean, onError:Function) : Promise<void> => {
+    return setToJsonStorage("hideHint", {hideHint:hide}, onError);
+} 
 
-export let hideHint = () : Promise<boolean> => getFromJsonStorage("hideHint")
-                                        .then((data) => data ? data.hideHint : null);       
+export let hideHint = (onError:Function) : Promise<boolean> => {
+    return getFromJsonStorage("hideHint",onError).then((data) => data ? data.hideHint : null);   
+}    
  
 interface HintProps extends Store{ hideHint : Function, text : string }
 
@@ -524,10 +508,12 @@ export class Hint extends Component<HintProps,HintState>{
         super(props);
     }
 
+    onError = (error) => globalErrorHandler(error)
+
     onLoad = (e) => { 
         let {hideHint,dispatch} = this.props;
         hideHint();
-        setHideHint(true);
+        setHideHint(true,this.onError);
         dispatch({type:"selectedSettingsSection", load:'CalendarEvents'});
         dispatch({type:"openSettings",load:true}); 
     }
@@ -535,7 +521,7 @@ export class Hint extends Component<HintProps,HintState>{
     onClose = (e) => { 
         let {hideHint,dispatch} = this.props;
         hideHint(); 
-        setHideHint(true);
+        setHideHint(true,this.onError);
     }
 
     render(){
@@ -578,16 +564,9 @@ export class Hint extends Component<HintProps,HintState>{
                             borderRadius:"5px",
                             height:"35px",
                             backgroundColor:"rgb(81, 151, 246)" 
-                        }}   
+                        }}    
                     > 
-                        <div style={{
-                            color:"white",
-                            fontSize:"15px",
-                            fontWeight:500,
-                            whiteSpace:"nowrap"  
-                        }}>    
-                            No
-                        </div>   
+                    <div style={{color:"white",fontSize:"15px",fontWeight:500,whiteSpace:"nowrap"}}>No</div>   
                     </div> 
                 </div> 
                 <div style={{padding: "10px"}}>

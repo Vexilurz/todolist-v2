@@ -56,6 +56,9 @@ let Promise = require('bluebird');
 let ical = require('ical.js');
 import axios from 'axios';
 import { Table } from './Components/Categories/Next';
+const storage = remote.require('electron-json-storage');
+import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
+const os = remote.require('os'); 
 
 
 export let measureTime = (f:() => void) => {
@@ -1496,23 +1499,33 @@ export let timeDifferenceHours = (from:Date,to:Date) : number => {
 }    
 
 
-export let setToJsonStorage = (key:string,json:any) : Promise<void> => new Promise(
-    resolve => {
-        ipcRenderer.removeAllListeners("setStorage"); 
-        ipcRenderer.send("setStorage",{key, json});
-        ipcRenderer.on("setStorage", (event) => resolve());
-    } 
-) 
+export let clearStorage = (onError:Function) : Promise<void> => {
+    return new Promise( 
+        (resolve) => { 
+            storage.clear(
+                (error) => {
+                    if(!isNil(error)){ onError(error) }
+                    resolve()
+                }
+            )
+        }
+    )
+}
+   
 
 
-export let getFromJsonStorage = (key:string) : Promise<any> => new Promise(
-    resolve => {
-        ipcRenderer.removeAllListeners("getStorage"); 
-        ipcRenderer.send("getStorage",key); 
-        ipcRenderer.on("getStorage",(event, data) => resolve(data));
-    }
-)
+export let setToJsonStorage = (key:string,json:any,onError:Function) : Promise<void> => 
+       new Promise(resolve => storage.set(key, json, (error) => resolve(error))) 
 
+
+export let getFromJsonStorage = (key:string,onError:Function) : Promise<any> => 
+       new Promise(
+           resolve => storage.get( 
+               key, 
+              (error, data) => isNil(error) ? resolve(data) : resolve(error) 
+           )
+       )
+ 
 
 export let transformLoadDates = (load) : any => {
 
@@ -1618,12 +1631,6 @@ export let convertAreaDates = (a:Area) : Area => ({
 })
 
 
-export let convertDates = ([todos, projects, areas]) => [ 
-    todos.map(convertTodoDates),
-    projects.map(convertProjectDates),
-    areas.map(convertAreaDates)     
-]  
-
 
 export let createHeading = (e, props:Store) : void => {
      
@@ -1690,17 +1697,6 @@ export let createHeading = (e, props:Store) : void => {
     
     props.dispatch({ type:"updateProject", load });
 }
-
- 
-export let clearStorage = () : Promise<void> => { 
-    return new Promise( 
-        (resolve) => { 
-           ipcRenderer.removeAllListeners("clearStorage"); 
-           ipcRenderer.send("clearStorage");
-           ipcRenderer.on("clearStorage", (event) => resolve());
-        }
-    )
-}  
 
  
 interface ItemsAmount{  
@@ -1823,3 +1819,61 @@ export let groupObjects = (
 
     return table; 
 } 
+
+
+export interface SystemInfo{ 
+    arch : string,
+    cpus : any[], 
+    hostname : string,
+    platform : string,
+    release : string,
+    type : string
+}
+
+
+export let collectSystemInfo = () : SystemInfo => {
+    return { 
+        arch : os.arch(),
+        cpus : os.cpus(),
+        hostname : os.hostname(),
+        platform : os.platform(),
+        release : os.release(),
+        type : os.type()
+    }
+}
+
+
+export let convertDates = (object) => {
+    if(isNil(object)){ return object }
+    switch(object.type){
+        case "todo":
+            return convertTodoDates(object as Todo)
+        case "project":
+            return convertProjectDates(object as Project)
+        case "area":
+            return convertAreaDates(object as Area)  
+    }
+    return object    
+} 
+
+
+export let checkForUpdates = () : Promise<UpdateCheckResult> => {
+    return new Promise( 
+        resolve => {
+            ipcRenderer.removeAllListeners("checkForUpdates");  
+            ipcRenderer.send("checkForUpdates");
+            ipcRenderer.on("checkForUpdates", (event,updateCheckResult) => resolve(updateCheckResult))
+        }  
+    )
+} 
+
+
+export let downloadUpdates = () : Promise<string> => {
+    return new Promise( 
+        resolve => {
+            ipcRenderer.removeAllListeners("downloadUpdates");  
+            ipcRenderer.send("downloadUpdates");
+            ipcRenderer.on("downloadUpdates", (event,path) => resolve(path)) 
+        } 
+    )
+}

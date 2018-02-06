@@ -206,7 +206,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
 
     componentDidMount(){
-        hideHint()
+        hideHint(this.onError)
         .then( (hide) => this.setState({showHint:!hide}) )   
         this.setState({objects:this.getObjects(this.props,this.n)})
     }   

@@ -24,7 +24,7 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { Checkbox } from '../TodoInput/TodoInput';
-import { attachDispatchToProps, isString, debounce, isNewVersion, keyFromDate } from '../../utils';
+import { attachDispatchToProps, isString, debounce, isNewVersion, keyFromDate, checkForUpdates } from '../../utils';
 import { Store, globalErrorHandler } from '../../app';
 import { 
     generateId, Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, 
@@ -33,12 +33,13 @@ import {
 import { isDate } from 'util';
 import { SimplePopup } from '../SimplePopup';
 import { getIcalData, IcalData, AxiosError } from '../Calendar';
-import { checkForUpdates, fetchData } from '../MainContainer';
+import { fetchData } from '../MainContainer';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 const Promise = require('bluebird');   
 const fs = remote.require('fs');
 const path = require("path");
 const os = remote.require('os');
+const dialog = remote.dialog;
 
 interface SettingsPopupProps extends Store{}
 interface SettingsPopupState{}
@@ -48,6 +49,7 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
     constructor(props){
         super(props);
     }
+
 
     render(){
         let {openSettings,dispatch} = this.props;
@@ -606,33 +608,44 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
 
 
 let selectFolder = () => new Promise(
-    resolve => { 
-        ipcRenderer.removeAllListeners("folder");  
-        ipcRenderer.send("folder");
-        ipcRenderer.on(
-            "folder", 
-            (event,data) => {
-                let {foldername} = data;
-                resolve(foldername)
+    resolve => {
+        dialog.showOpenDialog( 
+            { 
+                title:`Select data folder`,
+                buttonLabel:'Select',
+                properties:['openDirectory']
+            },  
+            (value) => {
+                if(value)   
+                   resolve(value[0]); 
+                else
+                   resolve(undefined);
             }
         )
     } 
 )
+
 
 
 let selectJsonDatabase = () => new Promise(
     resolve => {  
-        ipcRenderer.removeAllListeners("jsonDatabase");  
-        ipcRenderer.send("jsonDatabase");
-        ipcRenderer.on(
-            "jsonDatabase", 
-            (event,data) => {
-                let {path} = data;
-                resolve(path)
+        dialog.showOpenDialog( 
+            { 
+                title:`Select database file`,
+                buttonLabel:'Select',
+                properties:['openFile'],
+                filters:[{extensions: ["json"], name: ""}]
+            },  
+            (value) => { 
+                if(value)    
+                   resolve(value[0]); 
+                else
+                   resolve(undefined);
             }
         )
     } 
 )
+
 
 
 let closeClonedWindows = () => new Promise(resolve => {  
@@ -741,10 +754,8 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 }) 
                 .then(() => fetchData(this.props,this.limit,this.onError)) 
     };   
-      
-
+    
     onError = (error) => globalErrorHandler(error);
-
 
     export = (folder:string) => {   
         if(isNil(folder)){ return }
@@ -760,7 +771,6 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         )       
     };    
 
- 
     import = (pathToFile:string) => {  
         if(isNil(pathToFile)){ return }
         let {dispatch} = this.props;
@@ -784,7 +794,6 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                })   
     };
     
-
     onSelectExportFolder = () => { 
         selectFolder()
         .then(
@@ -803,7 +812,6 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         )
     }; 
 
-
     onSelectImportFile = () => {  
         selectJsonDatabase()
         .then(
@@ -815,11 +823,10 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         )
     };
       
-
     checkUpdates = debounce(() => { 
         let {dispatch} = this.props;
         this.setState({updateStatus:"Loading..."});
-        checkForUpdates() 
+        checkForUpdates()  
         .then( 
            (updateCheckResult:UpdateCheckResult) => {  
                 let {updateInfo} = updateCheckResult;
@@ -836,7 +843,6 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         );  
     },100);  
      
- 
     render(){   
         let {importPath, exportPath, updateStatus, exportMessage, importMessage} = this.state;
 
@@ -870,7 +876,6 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
             backgroundColor:"rgba(81, 144, 247, 1)"  
         } as any;
 
-        
         return <div style={{paddingTop:"25px",width:"90%",paddingLeft:"25px"}}>
             <div style={{display:"flex",flexDirection:"column",justifyContent:"space-around",height:"90%"}}> 
                 { 
@@ -899,7 +904,6 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                         </div>   
                     </div> 
                 </div>
-
                 { 
                     isEmpty(exportMessage) ? null :
                     <div style={{
@@ -913,7 +917,6 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                         {exportMessage}  
                     </div>  
                 } 
-
                 <div style={{display:"flex"}}>
                     <div style={textFiledStyle}>           
                        {exportPath}

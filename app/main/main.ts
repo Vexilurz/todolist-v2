@@ -2,7 +2,7 @@ import { loadApp, dev } from './loadApp';
 import fs = require('fs');     
 import electron = require('electron');
 import { ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,globalShortcut,BrowserView } from 'electron';
-import { Listeners, initAutoUpdater } from "./listeners";
+import { Listeners } from "./listeners";
 import { initWindow } from "./initWindow";
 import { isNil } from 'ramda';
 const os = require('os');
@@ -63,12 +63,10 @@ let getWindowSize = () : {width:number,height:number} => {
     let width = mainWindowWidth*(workingArea.width/100); 
     let height = mainWindowHeight*(workingArea.height/100); 
  
-    if(!dev()){
-        width = width <= 800 ? width : 800;  
-    }
+    if(!dev()){ width = width <= 800 ? width : 800; }
 
     return {width,height}  
-}
+};
 
 
 let onReady = () => {   
@@ -83,17 +81,27 @@ let onReady = () => {
     }  
 
     preventAnnoyingErrorPopups();
-    initAutoUpdater(); 
     mainWindow = initWindow(getWindowSize());  
     listeners = initListeners(mainWindow);
     loadApp(mainWindow).then(onAppLoaded );     
-}               
+};               
 
 
-app.on('ready', onReady);  
+app.on('ready', onReady);   
 
-process.on("unchaughtException" as any,(error) => console.log(error)); 
-  
+
+process.on( 
+    "unchaughtException" as any,
+    (error) => {
+        if(isNil(mainWindow)){ 
+            console.log(error);
+        }else{ 
+            mainWindow.webContents.send("error", error) 
+        }
+    }
+);
+
+
 app.on(     
    'window-all-closed', 
     () => { 

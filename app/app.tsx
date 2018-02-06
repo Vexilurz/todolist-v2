@@ -12,46 +12,93 @@ import { ipcRenderer, remote } from 'electron';
 import {    
     wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, 
     defaultTags, isTodo, isProject, isArea, isArrayOfAreas, 
-    isArrayOfProjects, isArrayOfTodos, isArray, transformLoadDates, convertDates, yearFromNow, isString, stringToLength, assert, convertTodoDates, convertProjectDates, convertAreaDates
+    isArrayOfProjects, isArrayOfTodos, isArray, transformLoadDates, 
+    yearFromNow, isString, stringToLength, assert, convertTodoDates, 
+    convertProjectDates, convertAreaDates, getFromJsonStorage, timeDifferenceHours, collectSystemInfo, convertDates
 } from "./utils";  
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
 import './assets/fonts/index.css'; 
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer, Category } from './Components/MainContainer';
-import { Project, Area, Todo, removeProject, addProject, removeArea, updateProject, addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, removeProjects, updateAreas, updateProjects, addTodos, Calendar } from './database';
+import { 
+    Project, Area, Todo, removeProject, addProject, removeArea, updateProject, 
+    addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, 
+    removeProjects, updateAreas, updateProjects, addTodos, Calendar 
+} from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
 import { TodoInputPopup } from './Components/TodoInput/TodoInputPopup';
-import { cond, assoc, isNil, not } from 'ramda';
+import { cond, assoc, isNil, not, defaultTo, map } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { Settings, section, SettingsPopup } from './Components/Settings/settings';
 import { SimplePopup } from './Components/SimplePopup';
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
-import { TopSnackbar, UpdateNotification } from './Components/Snackbar';
+import { TopSnackbar } from './Components/Snackbar';
 import Analytics from 'electron-ga';
+import { Observable } from 'rxjs/Rx';
+import * as Rx from 'rxjs/Rx';
+import { Subscriber } from "rxjs/Subscriber"; 
+import { Subscription } from 'rxjs/Rx';
+import { UpdateNotification } from './Components/UpdateNotification';
 export const googleAnalytics = new Analytics('UA-113407516-1');
-const os = remote.require('os');  
 
-export interface SystemInfo{ 
-    arch : string,
-    cpus : any[], 
-    hostname : string,
-    platform : string,
-    release : string,
-    type : string
-}
- 
-export let collectSystemInfo = () : SystemInfo => {
-    return { 
-        arch : os.arch(),
-        cpus : os.cpus(),
-        hostname : os.hostname(),
-        platform : os.platform(),
-        release : os.release(),
-        type : os.type()
+window.onerror = function (msg, url, lineNo, columnNo, error) {
+    let string = msg.toLowerCase();
+    var message = [
+        'Message: ' + msg,
+        'URL: ' + url,
+        'Line: ' + lineNo,
+        'Column: ' + columnNo,
+        'Error object: ' + JSON.stringify(error)
+    ].join(' - ');
+    globalErrorHandler(message);
+    return false;
+};
+
+
+export let globalErrorHandler = (error:any) : Promise<void> => {
+    let message = '';
+    let value = 0;     
+
+    if(isNil(error)){
+        message = 'Unknown error occured.';
+    }else if(isString(error)){
+        message = error;
+    }else if(error.message){
+        message = [error.fileName,error.name,error.message,error.stack].join(' ');
+    }else if(error.response || error.request){
+        if(error.response){
+           message = [error.response.data,error.response.status,error.response.headers].join(' ');
+        }else if(error.request){
+           message = [error.request,error.config].join(' ');
+        }
+    }else{
+        try{ message = JSON.stringify(error) }catch(e){ }
     }
-}
+
+    if(error.code){
+       value = error.code;
+    }else if(error.lineNumber){
+       value = error.lineNumber;
+    }  
+           
+    return Promise.all(
+        [
+            googleAnalytics.send(
+                'event',  
+                { ec:'Error', ea:stringToLength(message, 400), el:'Error occured', ev:value }
+            ),
+            googleAnalytics.send(
+                'exception',  
+                { exd:stringToLength(message, 120), exf:1 } 
+            )  
+        ]
+    )
+    .then(() => console.log('Error report submitted'))
+};    
+
+
 
 injectTapEventPlugin()  
 
@@ -148,106 +195,116 @@ export let defaultStoreItems : Store = {
 
 interface AppProps extends Store{};  
 
-export let globalErrorHandler = (error:any) : Promise<void> => {
 
-    let message = isNil(error) ? "Error occured" :
-                  isString(error) ? error :
-                  error.message ? error.message : 
-                  JSON.stringify(error);
-
-    let value = isNil(error) ? 0 :
-                error.code ? error.code : 0;     
-    
-    return Promise.all(
-        [
-            googleAnalytics.send(
-                'event',  
-                { 
-                   ec:'Error',  
-                   ea:stringToLength(message, 120), 
-                   el:'Error occured', 
-                   ev:value
-                }
-            ),
-            googleAnalytics.send(
-                'exception',  
-                {  
-                   exd:stringToLength(message, 120),  
-                   exf:1 
-                } 
-            )  
-        ]
-    )
-    .then(() => console.log('Error report submitted'))
-};        
- 
 
 @connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
 export class App extends Component<AppProps,{}>{  
+    subscriptions:Subscription[]; 
 
     constructor(props){  
         super(props);  
+        this.subscriptions = [];
     }
 
-    onError = (error:any) => globalErrorHandler(error);
- 
-    initErrorListener = () => { 
-        ipcRenderer.removeAllListeners("error"); 
-        ipcRenderer.on("error", (event,error) => this.onError(error));  
-    }   
+    onError = (error) => globalErrorHandler(error)
 
-    initCtrlAltTListener = () => {
-        let {dispatch} = this.props;
-        ipcRenderer.removeAllListeners("Ctrl+Alt+T"); 
-        ipcRenderer.on( 
-            "Ctrl+Alt+T", 
-            (event) => {
-               dispatch({type:"openNewProjectAreaPopup", load:false});
-               dispatch({type:"showTrashPopup", load:false});
-               dispatch({type:"openTodoInputPopup", load:true});
-            }
-        ); 
+    reportStart = ({ arch, cpus, platform, release, type, timeSeconds }) => googleAnalytics.send(   
+        'event',   
+        {  
+           ec:'Start',   
+           ea:`
+                Application launched ${new Date().toString()}
+                System info :
+                arch ${arch}; 
+                cpus ${cpus.length};
+                platform ${platform};
+                release ${release};
+                type ${type}; 
+           `,  
+           el:'Application launched', 
+           ev:timeSeconds 
+        }
+    ) 
+    .then(() => console.log('Application launched'))
+    .catch(err => this.onError(err))
+
+
+    initUpdateTimeout = () => {
+        /*
+        let updates = setTimeout( () => {} )
+
+        let shouldUpdate = (lastUpdatesCheck:Date, intervalHours=72) => 
+                            isNil(lastUpdatesCheck) || 
+                            timeDifferenceHours(lastUpdatesCheck,new Date())>=intervalHours;
+
+        getFromJsonStorage("lastUpdatesCheck", this.onError)
+        .then((data) => shouldUpdate(data.lastUpdatesCheck))
+        .then((should) => {})
+         
+        
+
+
+        checkForUpdates()
+
+        (updateCheckResult:UpdateCheckResult) => {
+            let {updateInfo} = updateCheckResult;
+            let currentAppVersion = remote.app.getVersion(); 
+            let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
+            if(canUpdate){ dispatch({type:"showUpdatesNotification", load:true}) };
+        }
+
+        */
     }
 
-    initListeners = () : void => {  
-        this.initErrorListener(); 
-        this.initCtrlAltTListener();
+    initMidnightTimeout = () => {
+
     }
-  
-    suspendListeners = () : void => {
-        ipcRenderer.removeAllListeners("error");  
-        ipcRenderer.removeAllListeners("Ctrl+Alt+T"); 
-    }   
 
     componentDidMount(){   
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
         let { arch, cpus, platform, release, type } = collectSystemInfo();
-
-        googleAnalytics.send(   
-            'event',   
-            {  
-               ec:'Start',   
-               ea:`
-                    Application launched ${new Date().toString()}
-                    System info :
-                    arch ${arch}; 
-                    cpus ${cpus.length};
-                    platform ${platform};
-                    release ${release};
-                    type ${type}; 
-               `,  
-               el:'Application launched', 
-               ev:timeSeconds 
-            }
-        ) 
-        .then(() => console.log('Application launched'))
-        .catch(err => this.onError(err))
-        this.initListeners(); 
+        this.initObservables(); 
+        this.initUpdateTimeout();
+        this.initMidnightTimeout();
+        this.reportStart({arch,cpus,platform,release,type,timeSeconds});
     }    
 
 
+    initObservables = () => {
+        let {dispatch} = this.props;
+
+        let actionListener = Observable
+                             .fromEvent(ipcRenderer, "action", (event,action) => action)
+                             .map((action) => ({ 
+                                ...action,
+                                load:map(convertDates)(defaultTo({})(convertDates(action.load))) 
+                             }))
+                             .subscribe((action) => action.type==="@@redux/INIT" ? null : dispatch(action));   
+
+        
+        let errorListener = Observable
+                            .fromEvent(ipcRenderer, "error", (event,error) => error)
+                            .subscribe((error) => this.onError(error));  
+
+        let progressListener = Observable
+                               .fromEvent(ipcRenderer, "progress", (event,progress) => progress)
+                               .subscribe((progress) => dispatch({type:"progress",load:progress}));                     
+
+        let ctrlAltTListener = Observable  
+                                .fromEvent(ipcRenderer, "Ctrl+Alt+T", (event) => event)
+                                .subscribe((event) => {
+                                    dispatch({type:"openNewProjectAreaPopup", load:false});
+                                    dispatch({type:"showTrashPopup", load:false});
+                                    dispatch({type:"openTodoInputPopup", load:true});
+                                });  
+
+        this.subscriptions.push(actionListener,errorListener,ctrlAltTListener,progressListener);
+    }
+
+
     componentWillUnmount(){
-        this.suspendListeners();  
+        this.subscriptions.map( s => s.unsubscribe() );
+        this.subscriptions = [];
     }
  
   
@@ -265,7 +322,7 @@ export class App extends Component<AppProps,{}>{
                 <div style={{display:"flex", width:"inherit", height:"inherit"}}>  
                     { clone ? null : <LeftPanel {...{} as any}/> }
                     <MainContainer {...{} as any}/>    
-                </div>      
+                </div>       
                 <UpdateNotification {...{} as any} />    
                 <SettingsPopup {...{} as any} />      
                 <TodoInputPopup {...{} as any} />  
@@ -277,7 +334,7 @@ export class App extends Component<AppProps,{}>{
 };   
   
 
-ipcRenderer.on( 
+ipcRenderer.once(
     'loaded',     
     (event, clonedStore:Store) => { 
         let defaultStore = defaultStoreItems;

@@ -9,7 +9,7 @@ import {
     attachDispatchToProps, uppercase, insideTargetArea, 
     chooseIcon, debounce, byTags, byCategory, generateEmptyTodo, isArray, isTodo, isProject, 
     isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos, assert,  
-    selectNeverTodos, updateNeverTodos, oneDayBehind, convertDates, 
+    selectNeverTodos, updateNeverTodos, oneDayBehind, 
     convertTodoDates, convertProjectDates, convertAreaDates, clearStorage, oneDayAhead, measureTime, 
     byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
     byCompleted, isToday, byNotSomeday, daysRemaining, byScheduled, yearFromNow, getFromJsonStorage, 
@@ -48,12 +48,12 @@ import { RepeatPopup } from './RepeatPopup';
 import { Search } from './Search';
 import { filter as lodashFilter } from 'lodash';
 import { CalendarProps, CalendarEvent, getIcalData, IcalData, AxiosError, updateCalendars } from './Calendar';
-import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 const Promise = require('bluebird');   
-const moment = require("moment");
-const traverse = require('traverse');
+const moment = require("moment"); 
+
+
+
 export let filter = (array:any[],f:Function,caller:string) : any[] => {
-    
     let start : number = performance.now();
     let result = lodashFilter(array,f); 
     let finish : number = performance.now();
@@ -61,27 +61,6 @@ export let filter = (array:any[],f:Function,caller:string) : any[] => {
     let report = `filter ${array.length} items ${(finish - start)} ms caller : ${caller}`;
     return result;
 }
-
-
-export let checkForUpdates = () : Promise<UpdateCheckResult> => new Promise(
-    (resolve) => { 
-        ipcRenderer.removeAllListeners("checkForUpdates");  
-        ipcRenderer.send("checkForUpdates");
-        ipcRenderer.on(
-            "checkForUpdates",
-            (event,updateCheckResult:UpdateCheckResult) => resolve(updateCheckResult)
-        ) 
-    }    
-)
-
-
-export let downloadUpdates = () : Promise<any> => new Promise(
-    (resolve) => { 
-        ipcRenderer.removeAllListeners("downloadUpdates");  
-        ipcRenderer.send("downloadUpdates");
-        ipcRenderer.on("downloadUpdates", (event,path:any) => resolve(path))  
-    }     
-)
 
 
 
@@ -237,8 +216,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     addTodos(this.onError,todos),    
                     addProjects(this.onError,projects), 
                     addAreas(this.onError,areas),  
-                    clearStorage()     
-                ]) 
+                    clearStorage(this.onError)     
+                ])  
                 .then( () => fetchData(this.props,this.limit,this.onError) )    
             });
 
@@ -246,72 +225,16 @@ export class MainContainer extends Component<Store,MainContainerState>{
     }
  
 
-    convertDates = (object) => {
-        if(isNil(object)){ return object }
-        switch(object.type){
-            case "todo":
-                return convertTodoDates(object as Todo)
-            case "project":
-                return convertProjectDates(object as Project)
-            case "area":
-                return convertAreaDates(object as Area)  
-        }
-        return object    
-    }
-
-
     initObservables = () => {  
         let {dispatch} = this.props; 
         let minute = 1000 * 60;  
-        let intervalHours = 72;
-
-
-        let actionListener = Observable.fromEvent(
-            ipcRenderer, 
-            "action",  
-            (event,action) => action 
-        ).subscribe(
-           (action:{type:string,load:any,kind:string}) => {
-                if(action.type==="@@redux/INIT"){ return }
-                let load = map(this.convertDates)(defaultTo({})(this.convertDates(action.load)));
-                dispatch({...action,load});     
-            }               
-        );   
-
-
-        let updateProgress = Observable.fromEvent(
-                                ipcRenderer, 
-                                "download-progress",  
-                                (event,progressObj) => progressObj 
-                             ).subscribe( 
-                                (progressObj) => dispatch({type:"progress",load:progressObj})
-                             );  
-
-         
-        let updates = Observable
-                        .interval(1 * minute) 
-                        .flatMap( (p) => getFromJsonStorage("lastUpdatesCheck") )
-                        .filter( (data:{lastUpdatesCheck:Date}) => 
-                            isNil(data.lastUpdatesCheck) ||
-                            timeDifferenceHours(data.lastUpdatesCheck,new Date())>=intervalHours
-                        )     
-                        .flatMap((data:{lastUpdatesCheck:Date}) => checkForUpdates())
-                        .subscribe(
-                            (updateCheckResult:UpdateCheckResult) => {
-                                let {updateInfo} = updateCheckResult;
-                                let currentAppVersion = remote.app.getVersion(); 
-                                let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
-                                if(canUpdate){ dispatch({type:"showUpdatesNotification", load:true}) };
-                            }
-                        ); 
-      
+     
         let calendars = Observable.interval(5 * minute)
                         .flatMap( () =>  updateCalendars(this.props.calendars, this.onError))
                         .subscribe( 
                             (calendars:Calendar[]) => this.props.dispatch({type:"setCalendars", load:calendars}) 
                         );
 
-  
         let resize = Observable
                     .fromEvent(window,"resize")
                     .debounceTime(100) 
@@ -328,7 +251,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         }
                     }); 
 
-        this.subscriptions.push(resize,click,updates,calendars,updateProgress,actionListener);
+        this.subscriptions.push(resize,click,calendars);
     }
   
 
@@ -340,6 +263,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     componentWillUnmount(){ 
         this.subscriptions.map( s => s.unsubscribe() );
+        this.subscriptions = [];
     }  
  
 
