@@ -458,33 +458,20 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                 }}   
                             >
                                 <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
-                                <div  
-                                  style={{
+                                <div style={{paddingLeft:"5px", fontSize:"14px", fontWeight:500}}>
+                                    {timeOfTheDay(event.start)}
+                                </div>
+                                <div style={{  
                                     fontSize:"14px",
                                     userSelect:"none",
                                     cursor:"default",
-                                    paddingLeft:"5px" 
-                                  }}
-                                >   
-                                    {event.name} 
-                                </div>  
+                                    fontWeight:500,
+                                    paddingLeft:"5px",
+                                    overflowX:"hidden" 
+                                }}>   
+                                    {event.name}   
+                                </div>
                             </div> 
-                            {
-                                isNil(event.end) ? null :
-                                not(sameDay(event.start,event.end)) ? null :
-                                <div 
-                                    style={{
-                                        paddingLeft:"10px",
-                                        fontSize:"14px",
-                                        paddingTop:"2px",
-                                        paddingBottom:"2px",
-                                        userSelect:"none",
-                                        cursor:"default" 
-                                    }} 
-                                >  
-                                    {`${timeOfTheDay(event.start)} - ${timeOfTheDay(event.end)}`} 
-                                </div>    
-                            }
                             { 
                                 isNil(event.description) ? null :
                                 isEmpty(event.description) ? null :

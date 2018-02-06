@@ -52,6 +52,7 @@
     "font-loader": "^0.1.2",
     "fs": "0.0.1-security",
     "ftp-client": "^0.2.2",
+    "ical": "^0.5.0",
     "ical.js": "^1.2.2",
     "invariant": "^2.2.2",
     "jsftp": "^2.1.3",

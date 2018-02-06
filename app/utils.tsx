@@ -375,7 +375,7 @@ export let isCategory = (category : Category) : boolean => {
     let categories : Category[] = [
         "inbox" , "today" , "upcoming" , "next" , "someday" , 
         "logbook" , "trash" , "project" , "area" , "evening" , 
-        "deadline", "group"
+        "deadline", "group", "search"
     ];  
 
     let yes = contains(category,categories);
@@ -1728,33 +1728,16 @@ export let isTodayOrPast = (date:Date) : boolean => isNil(date) ?
                                                     false :  
                                                     daysRemaining(date)<=0;  
 
- 
-export let areaToKeywords = (a:Area) : string[] => {
-    let description : string[] = a.description.split(",").filter( s => s.length>0 );
-    let name : string[] = a.name.split(",").filter( s => s.length>0 );
-    return [].concat.apply([], [ name, description ]);
-}   
 
-
-export let projectToKeywords = (p:Project) : string[] => {
-    let headings : string[][] = p
-                                .layout           
-                                .filter((i) => not(isString(i)))
-                                .map((h:Heading) => h.title.split(" ").filter( s => s.length>0 )); 
-    let description : string[] = p.description.split(",").filter( s => s.length>0 );
-    let name : string[] = p.name.split(",").filter( s => s.length>0 );
-    let layout : string [] = [].concat.apply([], headings);
-    return [].concat.apply([], [ name, description, layout ]);
-}
 
 
 export let todoToKeywords = (t:Todo) : string[] => {
-    let category = t.category;
-    let title : string [] = t.title.split(",").filter( s => s.length>0 );
-    let note : string [] = t.note.split(",").filter( s => s.length>0 );
-    let tags : string[] = t.attachedTags;  
-    let checklist : string[] = t.checklist.map( c => c.text ).filter( s => s.length>0 );
-    return [].concat.apply([], [ title, note, tags, checklist ]);
+    let keywords : string[] = t.title.trim()
+                                     .toLowerCase()
+                                     .split(' ')
+                                     .filter(compose( not,isEmpty ));
+     
+    return [].concat.apply([], [ keywords, t.attachedTags ]);
 } 
 
 

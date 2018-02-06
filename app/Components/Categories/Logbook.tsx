@@ -5,7 +5,7 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react"; 
 import { Provider, connect } from "react-redux";
 import Popover from 'material-ui/Popover';
-import { Tags } from '../../Components/Tags'; 
+import { Tags } from '../../Components/Tags';  
 import { Transition } from 'react-transition-group';
 import { TodosList } from '../../Components/TodosList';
 import { Todo, Project, Area } from '../../database';

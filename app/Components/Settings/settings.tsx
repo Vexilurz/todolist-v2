@@ -414,9 +414,9 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
         this.state = { url:'', error:'' };
     }
 
+    onError = (e) => globalErrorHandler(e)
 
     onUrlChange = (e) => this.setState({url:e.target.value, error:''})
-
 
     onUrlSubmit = (e) => {
         let { url, error } = this.state;
@@ -439,11 +439,11 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
          
         getIcalData(url)
         .then( 
-            (data:IcalData) => {
+            (data:IcalData) => { 
                 let {calendar,events,error} = data;
                 
                 if(!isNil(error)){  
-                   this.setState({error:error.message});
+                   this.setState({error:error.message}, () => this.onError(error));
                    return null;  
                 }
                 

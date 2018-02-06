@@ -16,9 +16,7 @@ import {
     yearFromNow, isString, stringToLength, assert, convertTodoDates, 
     convertProjectDates, convertAreaDates, getFromJsonStorage, timeDifferenceHours, 
     collectSystemInfo, convertDates, checkForUpdates, isNewVersion, nextMidnight,
-    oneMinuteBefore,
-    setToJsonStorage,
-    threeDaysLater
+    oneMinuteBefore, setToJsonStorage, threeDaysLater
 } from "./utils";  
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
@@ -73,14 +71,14 @@ export let globalErrorHandler = (error:any) : Promise<void> => {
         message = 'Unknown error occured.';
     }else if(isString(error)){
         message = error;
-    }else if(error.message){
-        message = [error.fileName,error.name,error.message,error.stack].join(' ');
     }else if(error.response || error.request){
         if(error.response){
            message = [error.response.data,error.response.status,error.response.headers].join(' ');
         }else if(error.request){
            message = [error.request,error.config].join(' ');
         }
+    }else if(error.message){
+        message = [error.fileName,error.name,error.message,error.stack].join(' ');
     }else{
         try{ message = JSON.stringify(error) }catch(e){ }
     }

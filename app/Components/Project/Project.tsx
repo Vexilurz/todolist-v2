@@ -249,6 +249,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         <ProjectBody    
                             items={toProjectBody}
                             dragged={this.props.dragged}
+                            showCompleted={this.props.showCompleted}
                             updateLayoutOrder={this.updateLayoutOrder}
                             removeHeading={this.removeHeading}
                             updateHeading={this.updateHeading}

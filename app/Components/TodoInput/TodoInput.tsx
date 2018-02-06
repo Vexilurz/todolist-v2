@@ -61,7 +61,7 @@ export interface TodoInputState{
     open : boolean,
     category : Category,
     title : string,  
-    note : string, 
+    note : string,
     checked : boolean,
     completed : Date,
     reminder : Date,
@@ -83,6 +83,7 @@ export interface TodoInputState{
   
     
 export interface TodoInputProps{ 
+    showCompleted? : boolean, 
     dispatch : Function,  
     selectedCategory : Category,
     tags : string[],  
@@ -423,12 +424,14 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
      
   
     onCheckBoxClick = () => {   
-            let { selectedCategory, creation } = this.props;
-            let { checked, open } = this.state;
+            let { selectedCategory, creation, showCompleted} = this.props;
+            let { checked, open } = this.state; 
+            let preventSlideAway = selectedCategory==="project" && showCompleted;
             let shouldAnimateSlideAway = not(checked) && 
                                          selectedCategory!=="logbook" &&  
                                          selectedCategory!=="trash" &&
-                                         selectedCategory!=="search"; 
+                                         selectedCategory!=="search" &&
+                                         not(preventSlideAway);  
                 
             if(not(creation)){
                 let isChecked : boolean = !checked; 

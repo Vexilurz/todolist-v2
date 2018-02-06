@@ -13,7 +13,7 @@ import {
 import { isDev, Store } from './../app';
 import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
-let ical = require('ical.js');
+let ical = require('ical.js'); 
 import axios from 'axios';
 
 

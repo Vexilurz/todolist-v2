@@ -46,6 +46,7 @@ interface ProjectBodyProps{
     archiveHeading:(heading_id:string) => void,
     moveHeading:(heading_id:string) => void,  
     removeHeading:(heading_id:string) => void,
+    showCompleted:boolean,
     todos:Todo[], 
     selectedTag:string,
     areas:Area[],
@@ -88,6 +89,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                         <TodoInput    
                             id={value["_id"]} 
                             key={value["_id"]} 
+                            showCompleted={this.props.showCompleted}
                             projects={this.props.projects}
                             dispatch={this.props.dispatch}   
                             selectedProjectId={this.props.selectedProjectId}

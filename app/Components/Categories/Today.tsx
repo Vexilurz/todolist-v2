@@ -9,7 +9,7 @@ import {
     attachDispatchToProps, uppercase, insideTargetArea, 
     chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, generateEmptyTodo, 
     isToday, daysRemaining, isTodo, assert, makeChildrensVisible, hideChildrens, generateDropStyle, 
-    arrayMove, keyFromDate, setToJsonStorage, getFromJsonStorage, isDeadlineTodayOrPast, isTodayOrPast 
+    arrayMove, keyFromDate, setToJsonStorage, getFromJsonStorage, isDeadlineTodayOrPast, isTodayOrPast, timeOfTheDay 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -43,6 +43,7 @@ import { Category, filter } from '../MainContainer';
 import { SortableContainer } from '../../sortable/CustomSortableContainer';
 import { isDate } from 'util';
 import { ipcRenderer, remote } from 'electron';
+import { CalendarEvent } from '../Calendar';
 
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map((item,index:number) => assoc("priority",index,item)) 
@@ -321,7 +322,7 @@ export class Today extends Component<TodayProps,TodayState>{
             id:"default"
         }];    
 
-        let events = [];
+        let events : CalendarEvent[] = [];
 
         if(showCalendarEvents){
             let todayKey : string = keyFromDate(new Date()); 
@@ -329,8 +330,8 @@ export class Today extends Component<TodayProps,TodayState>{
             .filter((calendar:Calendar) => calendar.active)
             .forEach( 
                 (calendar:Calendar) => {
-                    let selected : any[] = calendar.events.filter( 
-                        (event:any) : boolean => 
+                    let selected = calendar.events.filter( 
+                        (event:CalendarEvent) : boolean => 
                             isNil(event) ? false :
                             not(isDate(event.start)) ? false :
                             todayKey===keyFromDate(event.start)
@@ -434,7 +435,7 @@ export class Today extends Component<TodayProps,TodayState>{
 
 interface TodayScheduleProps{
     show:boolean,
-    events:string[]  
+    events:CalendarEvent[]  
 }
 
 export class TodaySchedule extends Component<TodayScheduleProps,{}>{
@@ -447,7 +448,7 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
         let {show, events} = this.props;
 
         return not(show) ? null : 
-        <div style={{paddingTop:"20px"}}>   
+        <div style={{paddingTop:"20px"}}>    
             <div style={{          
                 display:"flex",
                 flexDirection:"column",
@@ -456,7 +457,7 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                 width:"100%",
                 fontFamily: "sans-serif", 
                 height:"auto"
-            }}>{
+            }}>{ 
                 events.map(  
                     (event) => 
                     <div style={{padding:"10px"}}>
@@ -471,13 +472,18 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                                 backgroundColor:"dimgray"
                             }}>
                             </div>
-                            <div style={{
+                            <div style={{paddingLeft:"5px", fontSize:"14px", fontWeight:500}}>
+                                {timeOfTheDay(event.start)}
+                            </div>
+                            <div style={{  
                                 fontSize:"14px",
                                 userSelect:"none",
                                 cursor:"default",
-                                paddingLeft:"5px" 
+                                fontWeight:500,
+                                paddingLeft:"5px",
+                                overflowX:"hidden" 
                             }}>   
-                                {event}
+                                {event.name}  
                             </div>
                         </div>
                     </div> 

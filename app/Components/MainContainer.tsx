@@ -148,7 +148,7 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<void>
 
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
-                       "deadline" | "search" | "group"
+                       "deadline" | "search" | "group" | "search";
  
                   
                        
@@ -216,7 +216,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     addTodos(this.onError,todos),    
                     addProjects(this.onError,projects), 
                     addAreas(this.onError,areas),  
-                    //clearStorage(this.onError)     
+                    clearStorage(this.onError)     
                 ])  
                 .then( () => fetchData(this.props,this.limit,this.onError) )    
             });
@@ -279,7 +279,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
             todos, projects, areas, selectedProjectId, 
             selectedAreaId, showCompleted, showScheduled,
             selectedCategory 
-        } = this.props;
+        } = this.props; 
 
         return  <div ref={(e) => { this.rootRef=e }}
                     className="scroll"  
@@ -336,7 +336,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     {    
                         cond([  
                             [ 
-                                (selectedCategory:string) : boolean => 'inbox'===selectedCategory,  
+                                (selectedCategory:Category) : boolean => 'inbox'===selectedCategory,  
                                 () => {
 
                                     let inboxFilters = [
@@ -364,7 +364,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 }
                             ],  
                             [ 
-                                (selectedCategory:string) : boolean => 'today'===selectedCategory,  
+                                (selectedCategory:Category) : boolean => 'today'===selectedCategory,  
                                 () => {
 
                                     let todayFilters = [   
@@ -390,7 +390,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 }
                             ],  
                             [ 
-                                (selectedCategory:string) : boolean => 'trash'===selectedCategory,  
+                                (selectedCategory:Category) : boolean => 'trash'===selectedCategory,  
                                 () => {
                                 
                                     return <Trash    
@@ -409,7 +409,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 }
                             ],  
                             [ 
-                                (selectedCategory:string) : boolean => 'logbook'===selectedCategory,  
+                                (selectedCategory:Category) : boolean => 'logbook'===selectedCategory,  
                                 () => {
 
                                     let logbookFilters = [byCompleted, byNotDeleted]; 
@@ -429,7 +429,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 }
                             ], 
                             [ 
-                                (selectedCategory:string) : boolean => 'someday'===selectedCategory,  
+                                (selectedCategory:Category) : boolean => 'someday'===selectedCategory,  
                                 () => {
 
                                     let somedayFilters = [
@@ -454,7 +454,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 }
                             ], 
                             [ 
-                                (selectedCategory:string) : boolean => 'next'===selectedCategory,  
+                                (selectedCategory:Category) : boolean => 'next'===selectedCategory,  
                                 () => {
 
                                     let nextFilters =  [
@@ -481,7 +481,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 }
                             ],
                             [ 
-                                (selectedCategory:string) : boolean => 'upcoming'===selectedCategory,  
+                                (selectedCategory:Category) : boolean => 'upcoming'===selectedCategory,  
                                 () => {
 
                                     let upcomingFilters = [
@@ -509,7 +509,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 }
                             ],
                             [ 
-                                (selectedCategory:string) : boolean => 'project'===selectedCategory,  
+                                (selectedCategory:Category) : boolean => 'project'===selectedCategory,  
                                 () => {
                                     let project = projects.find((p:Project) => selectedProjectId===p._id);
 
@@ -538,7 +538,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 } 
                             ],
                             [ 
-                                (selectedCategory:string) : boolean => 'area'===selectedCategory,  
+                                (selectedCategory:Category) : boolean => 'area'===selectedCategory,  
                                 () => {
                                     let area = areas.find((a) => selectedAreaId===a._id);
 
@@ -567,7 +567,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 }
                             ], 
                             [ 
-                                (selectedCategory:string) : boolean => 'search'===selectedCategory,  
+                                (selectedCategory:Category) : boolean => 'search'===selectedCategory,  
                                 () => <Search {...{} as any}/>
                             ]
                         ])(selectedCategory) 

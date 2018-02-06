@@ -32,7 +32,7 @@ import * as Waypoint from 'react-waypoint';
 import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
 import {  
-    insideTargetArea, todoChanged, 
+    insideTargetArea,  
     daysLeftMark, generateTagElement, 
     attachDispatchToProps, chooseIcon, 
     stringToLength,  
@@ -50,7 +50,7 @@ import {
 import { Todo, removeTodo, updateTodo, generateId, ObjectType, Area, Project, Heading } from '../database';
 import { Store, isDev } from '../app'; 
 import { ChecklistItem } from './TodoInput/TodoChecklist';
-import { allPass, isNil, not, isEmpty, contains, flatten, prop } from 'ramda';
+import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection } from 'ramda';
 import { Category, filter } from './MainContainer';
 import { ProjectLink, getProgressStatus } from './Project/ProjectLink';
 import { Observable } from 'rxjs/Rx';
@@ -231,18 +231,9 @@ export class Search extends Component<SearchProps,SearchState>{
         super(props);
         this.limitReached = false; 
         this.state = {limit:20};
-    }   
+    }    
 
-      
-    compare = (searchQuery:string, keyword:string) : boolean => {
-        const inputValue = searchQuery.trim().toLowerCase();
-        const inputLength = inputValue.length;
-
-        return inputLength === 0 ? false : 
-               inputValue === keyword.toLowerCase().slice(0, inputLength)
-    } 
-
-
+    
     scrollTop = () => {
         let rootRef = document.getElementById("maincontainer");
         if(rootRef){ rootRef.scrollTop=0 }   
@@ -316,6 +307,8 @@ export class Search extends Component<SearchProps,SearchState>{
         let detached = [];
         let attached = []; 
         let limitReached = true;
+        let match = (searchKeywords,keywords) => 
+                    compose(not,isEmpty,intersection(keywords))(searchKeywords);
 
         for(let i=0; i<limitGroups.length; i++){
 
@@ -324,28 +317,33 @@ export class Search extends Component<SearchProps,SearchState>{
                 break 
             }
         
+
             let todo = limitGroups[i];
             let keywords = todoToKeywords(todo);
+            let searchKeywords = searchQuery
+                                 .trim()
+                                 .toLowerCase()
+                                 .split(' ')
+                                 .filter(compose(not,isEmpty)); 
+            
 
-            for(let j=0; j<keywords.length; j++){
+            if(match( searchKeywords , keywords )){
+                let project = projects.find((p) => contains(todo._id)(p.layout as any)); 
 
-                if(this.compare( searchQuery, keywords[j] )){
-                   let project = projects.find((p) => contains(todo._id)(p.layout as any)); 
+                if(isNil(project)){ detached.push(todo) }
+                else{ 
+                    attached.push(todo);
 
-                   if(isNil(project)){ detached.push(todo) }
-                   else{ 
-                       attached.push(todo);
+                    if(isNil(table[project._id])){
+                        table[project._id] = [todo]; 
+                    }else if(isArray(table[project._id])){ 
+                        table[project._id].push(todo); 
+                    }  
+                }
+                
+                break
+            } 
 
-                       if(isNil(table[project._id])){
-                          table[project._id] = [todo]; 
-                       }else if(isArray(table[project._id])){ 
-                          table[project._id].push(todo); 
-                       }  
-                   }
-                   
-                   break
-                } 
-            }
         }
 
         this.limitReached = limitReached;
