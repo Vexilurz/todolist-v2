@@ -14,7 +14,11 @@ import {
     defaultTags, isTodo, isProject, isArea, isArrayOfAreas, 
     isArrayOfProjects, isArrayOfTodos, isArray, transformLoadDates, 
     yearFromNow, isString, stringToLength, assert, convertTodoDates, 
-    convertProjectDates, convertAreaDates, getFromJsonStorage, timeDifferenceHours, collectSystemInfo, convertDates
+    convertProjectDates, convertAreaDates, getFromJsonStorage, timeDifferenceHours, 
+    collectSystemInfo, convertDates, checkForUpdates, isNewVersion, nextMidnight,
+    oneMinuteBefore,
+    setToJsonStorage,
+    threeDaysLater
 } from "./utils";  
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
@@ -41,7 +45,11 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber"; 
 import { Subscription } from 'rxjs/Rx';
 import { UpdateNotification } from './Components/UpdateNotification';
+import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 export const googleAnalytics = new Analytics('UA-113407516-1');
+const MockDate = require('mockdate');
+
+let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
@@ -200,9 +208,11 @@ interface AppProps extends Store{};
 @connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
 export class App extends Component<AppProps,{}>{  
     subscriptions:Subscription[]; 
+    timeouts:any[]; 
 
     constructor(props){  
         super(props);  
+        this.timeouts = [];
         this.subscriptions = [];
     }
 
@@ -228,38 +238,54 @@ export class App extends Component<AppProps,{}>{
     .then(() => console.log('Application launched'))
     .catch(err => this.onError(err))
 
-
+      
     initUpdateTimeout = () => {
-        /*
-        let updates = setTimeout( () => {} )
-
-        let shouldUpdate = (lastUpdatesCheck:Date, intervalHours=72) => 
-                            isNil(lastUpdatesCheck) || 
-                            timeDifferenceHours(lastUpdatesCheck,new Date())>=intervalHours;
-
-        getFromJsonStorage("lastUpdatesCheck", this.onError)
-        .then((data) => shouldUpdate(data.lastUpdatesCheck))
-        .then((should) => {})
-         
+        let {dispatch} = this.props;
+        let check = () => checkForUpdates()  
+                          .then((updateCheckResult:UpdateCheckResult) => { 
+                                let {updateInfo} = updateCheckResult;
+                                let currentAppVersion = remote.app.getVersion(); 
+                                let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
+                                if(canUpdate){ 
+                                    dispatch({type:"showUpdatesNotification", load:true}) 
+                                }else{
+                                    setToJsonStorage(
+                                        "nextUpdateCheck",
+                                        {nextUpdateCheck:threeDaysLater(new Date())}, 
+                                        this.onError 
+                                    ) 
+                                }
+                           }) 
         
-
-
-        checkForUpdates()
-
-        (updateCheckResult:UpdateCheckResult) => {
-            let {updateInfo} = updateCheckResult;
-            let currentAppVersion = remote.app.getVersion(); 
-            let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
-            if(canUpdate){ dispatch({type:"showUpdatesNotification", load:true}) };
-        }
-
-        */
+        getFromJsonStorage("nextUpdateCheck", this.onError)
+        .then((data:any) => new Date(data.nextUpdateCheck))
+        .then((nextUpdateCheck:Date) => {  
+            if(isNil(nextUpdateCheck)){ check() }
+            else{
+                let now = new Date();
+                let timeMs = nextUpdateCheck.getTime() - now.getTime();
+                if(timeMs<=0){ check() }
+                else{
+                    this.timeouts.push( setTimeout(() => check(), timeMs) )
+                }   
+            }
+        }) 
     }
 
-    initMidnightTimeout = () => {
 
+    initMidnightTimeout = () : void => {
+        let {dispatch} = this.props;
+        let onNewDayBegins = () => dispatch({type:'update'}); 
+        let now = new Date();
+        let midnight : Date = nextMidnight();
+        let timeMs = midnight.getTime() - now.getTime();
+        if(timeMs<=0){ onNewDayBegins() } 
+        else{ 
+            this.timeouts.push(setTimeout(onNewDayBegins, timeMs));
+        } 
     }
 
+ 
     componentDidMount(){   
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
         let { arch, cpus, platform, release, type } = collectSystemInfo();
@@ -303,8 +329,10 @@ export class App extends Component<AppProps,{}>{
 
 
     componentWillUnmount(){
-        this.subscriptions.map( s => s.unsubscribe() );
+        this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = [];
+        this.timeouts.map(t => clearTimeout(t));
+        this.timeouts = [];  
     }
  
   

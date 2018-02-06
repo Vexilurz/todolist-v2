@@ -1387,7 +1387,17 @@ export let daysRemaining = (date:Date) : number => {
     return dateDiffInDays(new Date(), date); 
 } 
  
-   
+
+export let oneMinuteBefore = (date:Date) : Date => {
+    let minuteInMs = 1000 * 60;
+    return new Date(date.getTime() - minuteInMs); 
+}
+
+export let nextMidnight = () : Date => {
+    let d = new Date()
+    d.setHours(24,0,0,0); // next midnignt
+    return d;
+}
 
 export let dateDiffInDays = (A : Date, B : Date) : number  => {
 
@@ -1511,11 +1521,13 @@ export let clearStorage = (onError:Function) : Promise<void> => {
         }
     )
 }
-   
+    
 
 
 export let setToJsonStorage = (key:string,json:any,onError:Function) : Promise<void> => 
-       new Promise(resolve => storage.set(key, json, (error) => resolve(error))) 
+        new Promise(
+           resolve => storage.set(key, json, (error) => resolve(error))
+        ) 
 
 
 export let getFromJsonStorage = (key:string,onError:Function) : Promise<any> => 
@@ -1523,7 +1535,7 @@ export let getFromJsonStorage = (key:string,onError:Function) : Promise<any> =>
            resolve => storage.get( 
                key, 
               (error, data) => isNil(error) ? resolve(data) : resolve(error) 
-           )
+           ) 
        )
  
 

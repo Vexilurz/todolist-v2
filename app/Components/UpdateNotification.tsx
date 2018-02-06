@@ -66,10 +66,14 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
   
         }else{
             this.downloading = true;
-
+            
             downloadUpdates() 
             .then(() => { this.downloading = false; })
-            .then(() => setToJsonStorage("lastUpdatesCheck", {lastUpdatesCheck:new Date()}, this.onError)) 
+            .then(() => setToJsonStorage(
+                "nextUpdateCheck", 
+                {nextUpdateCheck:threeDaysLater(new Date())}, 
+                this.onError 
+            )) 
             .then(() => this.setState({canRestart:true}))
         } 
     }

@@ -25,7 +25,13 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
     let shouldUpdateOtherInstances : boolean = action.kind!=="external";
     let newState : Store = undefined;
     
-    newState = cond([  
+    newState = cond([   
+        [
+            (action:{type:string}) : boolean => 'update'===action.type,  
+            (action:{type:string}) : Store => {
+              return  ({...state, todos:[...state.todos]}) 
+            }
+        ],
         [ 
             (action:{type:string}) : boolean => 'setCalendars'===action.type,  
             (action:{type:string,load:Calendar[]}):Store => ({...state, calendars:action.load})

@@ -5,8 +5,8 @@ import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,FileFilter} from 'electro
 import { initWindow } from './initWindow';
 import { remove } from 'ramda';
 let uniqid = require("uniqid");  
-const os = require('os');
-const storage = require('electron-json-storage');
+const os = require('os'); 
+const storage = require('electron-json-storage'); 
 storage.setDataPath(os.tmpdir());
 import { autoUpdater } from "electron-updater";
 const log = require("electron-log");

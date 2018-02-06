@@ -216,7 +216,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     addTodos(this.onError,todos),    
                     addProjects(this.onError,projects), 
                     addAreas(this.onError,areas),  
-                    clearStorage(this.onError)     
+                    //clearStorage(this.onError)     
                 ])  
                 .then( () => fetchData(this.props,this.limit,this.onError) )    
             });
