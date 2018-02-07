@@ -130,9 +130,7 @@ interface TodayProps{
    
 
  
-interface TodayState{
-    showHint:boolean
-}
+interface TodayState{}
  
  
 type Evening = "evening";
@@ -152,7 +150,6 @@ export class Today extends Component<TodayProps,TodayState>{
 
     constructor(props){
         super(props);
-        this.state = {showHint:false};
     }  
 
     calculateTodayAmount = (props:TodayProps) => {
@@ -177,7 +174,6 @@ export class Today extends Component<TodayProps,TodayState>{
     onError = (error) => globalErrorHandler(error)
     
     componentDidMount(){ 
-        hideHint(this.onError).then((hide) => this.setState({showHint:!hide}));
         this.calculateTodayAmount(this.props);
     }     
   
@@ -375,17 +371,14 @@ export class Today extends Component<TodayProps,TodayState>{
                         show={true}  
                     />     
                     <TodaySchedule show={showCalendarEvents} events={events}/>  
-                    {   
-                        this.state.showHint ? 
-                        <Hint {
+                    <Hint 
+                        {
                             ...{
-                                hideHint:() => this.setState({showHint:false}),
                                 text:`These are your tasks for today. 
                                 Do you also want to include the events from your calendar?`
                             } as any  
-                        }/> : 
-                        null
-                    } 
+                        } 
+                    /> 
                 <div   
                     id="todos" 
                     style={{marginBottom: "50px", marginTop:"20px"}} 
@@ -494,44 +487,59 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
 } 
 
 
-
-let setHideHint = (hide:boolean, onError:Function) : Promise<void> => {
+export let setHideHint = (hide:boolean, onError:Function) : Promise<void> => {
     return setToJsonStorage("hideHint", {hideHint:hide}, onError);
 } 
 
-export let hideHint = (onError:Function) : Promise<boolean> => {
+export let getShouldHideHint = (onError:Function) : Promise<boolean> => {
     return getFromJsonStorage("hideHint",onError).then((data) => data ? data.hideHint : null);   
+}   
+
+export let setShouldSendStatistics = (shouldSendStatistics:boolean, onError:Function) : Promise<void> => {
+    return setToJsonStorage("shouldSendStatistics", {shouldSendStatistics}, onError);
+} 
+
+export let getShouldSendStatistics = (onError:Function) : Promise<boolean> => {
+    return getFromJsonStorage(
+        "shouldSendStatistics",
+         onError 
+    ).then(
+        (data) => data ? data.shouldSendStatistics : null
+    );   
 }    
  
-interface HintProps extends Store{ hideHint : Function, text : string }
+
+interface HintProps extends Store{ text : string }
 
 interface HintState{} 
  
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
 export class Hint extends Component<HintProps,HintState>{
 
-    constructor(props){
+    constructor(props){ 
         super(props);
-    }
+    } 
 
     onError = (error) => globalErrorHandler(error)
-
+     
     onLoad = (e) => { 
-        let {hideHint,dispatch} = this.props;
-        hideHint();
-        setHideHint(true,this.onError);
+        let {dispatch} = this.props; 
         dispatch({type:"selectedSettingsSection", load:'CalendarEvents'});
         dispatch({type:"openSettings",load:true}); 
+
+        this.onClose(null);
     }
     
-    onClose = (e) => { 
-        let {hideHint,dispatch} = this.props;
-        hideHint(); 
+    onClose = (e) => {  
+        let {dispatch} = this.props;
+        dispatch({type:"hideHint",load:true});
         setHideHint(true,this.onError);
     }
 
     render(){
-        return <div style={{
+        let {hideHint} = this.props;
+        return hideHint ? null :
+        <div style={{
             display:"flex",
             padding:"20px",
             flexDirection:"column",

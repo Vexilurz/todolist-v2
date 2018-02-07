@@ -53,7 +53,7 @@ let fakeCheckListItem = (idx) : ChecklistItem => {
     
 
     return {  
-        text : words.join(), 
+        text : words.join(' '), 
         checked : Math.random() > 0.5 ? true : false,
         idx : idx,
         key : generateId(),
@@ -93,9 +93,9 @@ let fakeTodo = (tags:string[]) : Todo => {
         _id : generateId(),   
         type:"todo",
         category : randomCategory(), 
-        title : title.join(),
+        title : title.join(' '),
         priority : Math.random()*999999999,
-        note : note.join(),
+        note : note.join(' '),
         checklist : checklist, 
         reminder : Math.random() > 0.7 ? randomDate(new Date(), new Date()["addDays"](50)) : null, 
         attachedTags:tags,  
@@ -128,7 +128,7 @@ let fakeHeading = () : Heading => {
     return {
         type : "heading", 
         priority:randomInteger(9999999),
-        title : title.join(), 
+        title : title.join(' '), 
         _id : generateId(), 
         key : generateId()
     };  
@@ -158,10 +158,10 @@ let fakeProject = (attachedTags:string[], layout:LayoutItem[]) : Project => {
     return {    
         _id : generateId(),    
         type : "project", 
-        name : name.join(),  
+        name : name.join(' '),  
         priority : Math.random()*999999999,
         deleted : Math.random() < 0.5 ? new Date() : undefined,
-        description : description.join(), 
+        description : description.join(' '), 
         created : randomDate(new Date()["addDays"](-50), new Date()),
         deadline : randomDate(new Date(), new Date()["addDays"](50)),
         completed : checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,
@@ -200,8 +200,8 @@ let fakeArea = (
         type : "area", 
         deleted : Math.random() < 0.5 ? new Date() : undefined,
         priority : Math.random()*999999999,
-        name : name.join(),    
-        description : description.join(),  
+        name : name.join(' '),    
+        description : description.join(' '),  
         attachedTags, 
         created : randomDate(new Date()["addDays"](-50), new Date()),
         attachedTodosIds:uniq(attachedTodosIds), 

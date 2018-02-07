@@ -36,7 +36,7 @@ import { allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map, flatte
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category, filter, selectTodos } from '../MainContainer';
 import { repeat, setRepeatedTodos } from '../RepeatPopup';
-import { Hint, hideHint } from './Today';
+import { Hint } from './Today'; 
 import { CalendarEvent } from '../Calendar';
 import { globalErrorHandler } from '../../app';
 
@@ -136,8 +136,7 @@ interface UpcomingProps{
 
 interface UpcomingState{
     objects : {date:Date, todos:Todo[], projects:Project[]}[],
-    enter : number,
-    showHint : boolean 
+    enter : number
 }
 
 
@@ -149,7 +148,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     constructor(props){
         super(props);
         this.n = 10;  
-        this.state = {objects:[], enter:1, showHint:false}; 
+        this.state = {objects:[], enter:1}; 
     }    
      
 
@@ -202,12 +201,10 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         let range = getDatesRange(new Date(), n, true, true); 
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
         return objects;
-    }   
+    } 
 
 
     componentDidMount(){
-        hideHint(this.onError)
-        .then( (hide) => this.setState({showHint:!hide}) )   
         this.setState({objects:this.getObjects(this.props,this.n)})
     }   
      
@@ -313,7 +310,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
 
     render(){ 
-        let {showHint} = this.state;
         let {todos,projects,selectedTag,dispatch,selectedCategory} = this.props;
         let tags = getTagsFromItems(todos);
 
@@ -327,18 +323,12 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                         selectedTag={selectedTag}
                     />
                 </div>
-
-                {   
-                    not(showHint) ? null : 
-                    <Hint {
-                        ...{
-                            hideHint:() => this.setState({showHint:false}),
-                            text:`These are your tasks for the next days. 
-                            Do you also want to include the events from your calendar?`
-                        } as any  
-                    }/> 
-                }  
-   
+                <Hint {
+                    ...{
+                        text:`These are your tasks for the next days. 
+                        Do you also want to include the events from your calendar?`
+                    } as any  
+                }/> 
                 <div>{this.state.objects.map(this.objectToComponent)}</div>
 
                 <div style={{width:"100%", height:"1px"}}> 

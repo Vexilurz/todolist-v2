@@ -35,6 +35,7 @@ import { SimplePopup } from '../SimplePopup';
 import { getIcalData, IcalData, AxiosError } from '../Calendar';
 import { fetchData } from '../MainContainer';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
+import { setHideHint, setShouldSendStatistics } from '../Categories/Today';
 const Promise = require('bluebird');   
 const fs = remote.require('fs');
 const path = require("path");
@@ -81,13 +82,6 @@ export class Settings extends Component<SettingsProps,SettingsState>{
         let {selectedSettingsSection, dispatch} = this.props;
         let height = window.innerHeight/2;
         let width = window.innerWidth/1.2;
-        let title = { 
-            'General' : 'General',
-            'Cloud' : 'Cloud',
-            'QuickEntry' : 'Quick Entry',
-            'CalendarEvents' : 'Calendar Events',
-            'Advanced' : 'Advanced'
-        }[selectedSettingsSection];
 
 
         return <div style={{
@@ -96,17 +90,17 @@ export class Settings extends Component<SettingsProps,SettingsState>{
             height:height, 
             width:width,
             borderRadius:"5px",
-            backgroundColor:"rgba(230, 230, 230, 1)",
+            backgroundColor:"rgba(254, 254, 254, 1)",
             boxShadow:"0 0 18px rgba(0,0,0,0.5)", 
-        }}>
+        }}> 
             <div style={{
                 width:"100%",
                 display:"flex",
                 justifyContent:"center",
                 alignItems:"center",
                 flexDirection:"column",
-                background:"rgba(215,215,215,1)"
-            }}> 
+                backgroundColor:"rgb(234, 235, 239)",
+            }}>  
                 <div style={{
                     padding:"5px",
                     width:"100%",
@@ -117,7 +111,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     justifyContent:"center",
                     cursor:"default"  
                 }}>
-                    {title} 
+                    Settings
                 </div> 
  
                 <div style={{ 
@@ -394,19 +388,12 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
 }
 
 
-
-
-
-
 interface CalendarEventsSettingsProps extends Store{}
 
-interface CalendarEventsSettingsState{
-    url:string,
-    error:string 
-}
+interface CalendarEventsSettingsState{ url:string, error:string }
 
 
-@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
+@connect((store,props) => ({...store, ...props}), attachDispatchToProps)   
 class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,CalendarEventsSettingsState>{
 
     constructor(props){
@@ -420,7 +407,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
 
     onUrlSubmit = (e) => {
         let { url, error } = this.state;
-        let { calendars, dispatch } = this.props;
+        let { calendars, dispatch, hideHint } = this.props;
         let urls = calendars.map( c => c.url );
  
         if(isEmpty(url)){ return null }
@@ -431,7 +418,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
         if(extension!=='ics'){    
            this.setState({error:"Incorrect format. Only ics extension supported."});
            return null;    
-        }
+        }  
         
         if(url.startsWith("webcal")){
            url = url.replace("webcal","http");
@@ -441,6 +428,13 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
         .then( 
             (data:IcalData) => { 
                 let {calendar,events,error} = data;
+                
+                if(!hideHint){
+                    setHideHint(true, this.onError)
+                    .then(
+                        () => dispatch({type:"hideHint",load:true})
+                    );
+                }  
                 
                 if(!isNil(error)){  
                    this.setState({error:error.message}, () => this.onError(error));
@@ -841,30 +835,25 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 }; 
             }      
         );  
-    },100);  
+    },100); 
+     
+    shouldSendStatistics = debounce(() => {
+        let {shouldSendStatistics,dispatch} = this.props;
+        
+        setShouldSendStatistics(!shouldSendStatistics, this.onError)
+        .then(
+            () => dispatch({type:"shouldSendStatistics",load:!shouldSendStatistics})
+        )  
+    },50);
      
     render(){   
         let {importPath, exportPath, updateStatus, exportMessage, importMessage} = this.state;
-
-        let textFiledStyle = {
-            width:"100%", 
-            backgroundColor:"white",
-            color:"rgba(100, 100, 100, 0.9)",
-            outline:"none", 
-            overflowX:"hidden",
-            justifyContent:"flex-start",
-            alignItems:"center",
-            display:"flex",
-            marginRight:"15px", 
-            height:"30px",
-            borderRadius:"4px",
-            border:"1px solid rgba(100, 100, 100, 0.3)"
-        } as any;
-
+        let {shouldSendStatistics} = this.props;
         let buttonStyle = {     
             display:"flex",
             alignItems:"center",
             cursor:"pointer",
+            marginRight:"15px", 
             justifyContent:"center",
             width: "40px",
             height:"20px", 
@@ -878,23 +867,50 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
         return <div style={{paddingTop:"25px",width:"90%",paddingLeft:"25px"}}>
             <div style={{display:"flex",flexDirection:"column",justifyContent:"space-around",height:"90%"}}> 
-                { 
-                    isEmpty(importMessage) ? null :
-                    <div style={{
-                        display: "flex",
-                        fontSize: "14px",
-                        alignItems: "center",
-                        fontWeight: 500,
-                        color: importMessage==="Incorrect format." ? "red" : "green",
-                        userSelect: "none"
-                    }}>       
-                        {importMessage}  
-                    </div>  
-                }   
+           
+            <div style={{display:"flex", alignItems:"center"}}>
+                <Checkbox checked={shouldSendStatistics} onClick={this.shouldSendStatistics}/>
+                <div style={{paddingLeft:"10px"}}>Send anonymous usage statistics</div>
+            </div> 
+
+            <div style={{height:"1px",width:"100%",borderBottom:"1px solid rgb(200,200,200)"}}></div>   
+            <div style={{ 
+                display:"flex",
+                fontSize:"15px",
+                alignItems:"center",
+                fontWeight:500,
+                color:"black",
+                userSelect:"none"
+            }}>       
+                Database Backup  
+            </div> 
+            { 
+                isEmpty(importMessage) ? null :
+                <div style={{
+                    display: "flex",
+                    fontSize: "14px",
+                    alignItems: "center",
+                    fontWeight: 500,
+                    color: importMessage==="Incorrect format." ? "red" : "green",
+                    userSelect: "none"
+                }}>       
+                    {importMessage}  
+                </div>  
+            } 
+            { 
+                isEmpty(exportMessage) ? null :
+                <div style={{
+                    display: "flex",
+                    fontSize: "14px",
+                    alignItems: "center",
+                    fontWeight: 500,
+                    color: "green",
+                    userSelect: "none"
+                }}>       
+                    {exportMessage}  
+                </div>  
+            }   
                 <div style={{display:"flex"}}>
-                    <div style={textFiledStyle}>           
-                        {importPath} 
-                    </div>
                     <div     
                         onClick={this.onSelectImportFile}
                         style={buttonStyle}  
@@ -903,24 +919,6 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                             Import
                         </div>   
                     </div> 
-                </div>
-                { 
-                    isEmpty(exportMessage) ? null :
-                    <div style={{
-                        display: "flex",
-                        fontSize: "14px",
-                        alignItems: "center",
-                        fontWeight: 500,
-                        color: "green",
-                        userSelect: "none"
-                    }}>       
-                        {exportMessage}  
-                    </div>  
-                } 
-                <div style={{display:"flex"}}>
-                    <div style={textFiledStyle}>           
-                       {exportPath}
-                    </div>
                     <div     
                         onClick={this.onSelectExportFolder} 
                         style={buttonStyle}  
@@ -929,7 +927,9 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                             Export 
                         </div>   
                     </div> 
-                </div>
+                </div> 
+
+                <div style={{height:"1px",width:"100%",borderBottom:"1px solid rgb(200,200,200)"}}></div>  
                 <div style={{display:"flex", justifyContent:"space-between"}}>
                     { 
                         isEmpty(updateStatus) ? null :

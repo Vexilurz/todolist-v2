@@ -1059,29 +1059,20 @@ class RelatedProjectLabel extends Component<RelatedProjectLabelProps,RelatedProj
 
     
     render(){
-
-
-
-        if(this.props.selectedCategory==="project")
-           return null;
+        let {selectedCategory} = this.props;
+        let disable : Category[] = ["search", "project", "next", "area"];
         
-        if(this.props.selectedCategory==="next")
-           return null;  
+        if(contains(selectedCategory)(disable)){ return null }
 
-        if(this.props.selectedCategory==="area")
-           return null;     
-
-        if(isNil(this.props.name)){
-           return null;
-        }    
+        if(isNil(this.props.name)){ return null }    
 
         return <div 
             style={{ 
-              fontSize:"12px",   
-              paddingLeft:"5px", 
-              cursor:"default", 
-              WebkitUserSelect:"none", 
-              color:"rgba(0,0,0,0.6)"
+                fontSize:"12px",   
+                paddingLeft:"5px", 
+                cursor:"default", 
+                WebkitUserSelect:"none", 
+                color:"rgba(0,0,0,0.6)"
             }}   
         > 
             {stringToLength(this.props.name,15)}

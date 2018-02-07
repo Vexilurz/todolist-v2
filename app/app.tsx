@@ -44,14 +44,39 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { UpdateNotification } from './Components/UpdateNotification';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
-export const googleAnalytics = new Analytics('UA-113407516-1');
-const MockDate = require('mockdate');
+import { getShouldSendStatistics } from './Components/Categories/Today';
+const MockDate = require('mockdate'); 
+const sysInfo = collectSystemInfo();
+injectTapEventPlugin();  
+export let isDev = () => { return true };  
+
+let analytics = new Analytics(
+    'UA-113407516-1',
+    {
+        appName:"tasklist",
+        appVersion:remote.app.getVersion(),
+        language:sysInfo.userLanguage,
+        userAgent:navigator.userAgent,
+        viewport:`${sysInfo.viewportSize.width}x${sysInfo.viewportSize.height}`,
+        screenResolution:`${sysInfo.screenResolution.width}x${sysInfo.screenResolution.height}`
+    }
+);
+
+export const googleAnalytics = ({
+     send:(type:string,load:any) => getShouldSendStatistics(globalErrorHandler)
+                                    .then(
+                                        (should:boolean) => isNil(should) ? analytics.send(type,load) : 
+                                                            should ? analytics.send(type,load) :
+                                                            null               
+                                    ) 
+});     
+ 
 
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
-    var message = [
+    var message = [ 
         'Message: ' + msg,
         'URL: ' + url,
         'Line: ' + lineNo,
@@ -105,18 +130,15 @@ export let globalErrorHandler = (error:any) : Promise<void> => {
 };    
 
 
-
-injectTapEventPlugin()  
-
-export let isDev = () => { return true }  
-
 (() => {     
     let app=document.createElement('div'); 
     app.id='application';     
     document.body.appendChild(app);     
-})()
+})();
  
-export interface Store{ 
+export interface Store{
+    shouldSendStatistics : boolean,
+    hideHint : boolean,  
     progress : any,
     showUpdatesNotification : boolean, 
     limit : Date, 
@@ -157,8 +179,10 @@ export interface Store{
     clone? : boolean,
     dispatch? : Function
 }   
-
+ 
 export let defaultStoreItems : Store = {
+    shouldSendStatistics : true, 
+    hideHint : true, 
     progress : null, 
     showUpdatesNotification : false, 
     limit : yearFromNow(),
@@ -214,7 +238,9 @@ export class App extends Component<AppProps,{}>{
         this.subscriptions = [];
     }
 
+
     onError = (error) => globalErrorHandler(error)
+
 
     reportStart = ({ arch, cpus, platform, release, type, timeSeconds }) => googleAnalytics.send(   
         'event',   
@@ -234,9 +260,9 @@ export class App extends Component<AppProps,{}>{
         }
     ) 
     .then(() => console.log('Application launched'))
-    .catch(err => this.onError(err))
+    .catch(err => this.onError(err));
 
-      
+
     initUpdateTimeout = () => {
         let {dispatch} = this.props;
         let check = () => checkForUpdates()  
@@ -268,6 +294,8 @@ export class App extends Component<AppProps,{}>{
                 }   
             }
         }) 
+
+        googleAnalytics
     }
 
 
@@ -286,11 +314,10 @@ export class App extends Component<AppProps,{}>{
  
     componentDidMount(){   
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
-        let { arch, cpus, platform, release, type } = collectSystemInfo();
         this.initObservables(); 
         this.initUpdateTimeout();
         this.initMidnightTimeout();
-        this.reportStart({arch,cpus,platform,release,type,timeSeconds});
+        this.reportStart({...sysInfo, timeSeconds} as any);
     }    
 
 
@@ -366,9 +393,9 @@ ipcRenderer.once(
         let defaultStore = defaultStoreItems;
         if(!isNil(clonedStore)){ 
             let {todos,projects,areas} = clonedStore;
-            defaultStore = {
+            defaultStore =  {
                 ...clonedStore,
-                clone:true,
+                clone:true, 
                 todos:todos.map(convertTodoDates),
                 projects:projects.map(convertProjectDates), 
                 areas:areas.map(convertAreaDates) 
@@ -389,7 +416,7 @@ let reducer = (reducers) => (state:Store, action) => {
         let newState = reducers[i](state, action);
         if(newState){ return newState }  
     }   
-    return state  
+    return state      
 }; 
  
 let applicationReducer = reducer([applicationStateReducer, applicationObjectsReducer]); 

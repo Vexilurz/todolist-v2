@@ -30,7 +30,7 @@ import { Logbook } from './Categories/Logbook';
 import { Someday } from './Categories/Someday';
 import { Next } from './Categories/Next';  
 import { Upcoming } from './Categories/Upcoming';
-import { Today } from './Categories/Today';
+import { Today, setHideHint, getShouldHideHint, getShouldSendStatistics } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { generateRandomDatabase } from '../generateRandomObjects';
@@ -47,7 +47,10 @@ import { RightClickMenu } from './RightClickMenu';
 import { RepeatPopup } from './RepeatPopup';
 import { Search } from './Search';
 import { filter as lodashFilter } from 'lodash';
-import { CalendarProps, CalendarEvent, getIcalData, IcalData, AxiosError, updateCalendars } from './Calendar';
+import { 
+    CalendarProps, CalendarEvent, getIcalData, 
+    IcalData, AxiosError, updateCalendars 
+} from './Calendar';
 const Promise = require('bluebird');   
 const moment = require("moment"); 
 
@@ -112,11 +115,12 @@ export let selectTodos = (areas, projects, todos, limit) => {
 
 
 
-export let fetchData = (props:Store,max:number,onError:Function) : Promise<void> => { 
+export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calendar[]> => { 
     let {clone,dispatch} = props;
     
     if(clone){ return } 
-  
+
+    
     return Promise.all([
         getCalendars(onError)(true,max), 
         getProjects(onError)(true,max),
@@ -138,10 +142,14 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<void>
             dispatch({type:"setProjects", load:projects});
             dispatch({type:"setAreas", load:areas});
             dispatch({type:"setTodos", load:selected});
+
             return updateCalendars(calendars,onError);
         }
     )
-    .then( (calendars) => { dispatch({type:"setCalendars", load:calendars}) } )
+    .then( (calendars) => { 
+        dispatch({type:"setCalendars", load:calendars});
+        return calendars; 
+    } )
 } 
 
 
@@ -205,12 +213,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
             
             destroyEverything()    
             .then(() => {  
-                initDB();
+                initDB(); 
                 let fakeData = generateRandomDatabase({todos:215, projects:38, areas:15});      
                     
                 let todos = fakeData.todos; 
                 let projects = fakeData.projects; 
-                let areas = fakeData.areas; 
+                let areas = fakeData.areas;  
                     
                 Promise.all([ 
                     addTodos(this.onError,todos),    
@@ -218,11 +226,34 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     addAreas(this.onError,areas),  
                     clearStorage(this.onError)     
                 ])  
-                .then( () => fetchData(this.props,this.limit,this.onError) )    
+                .then( () => fetchData(this.props,this.limit,this.onError) )  
+                .then((calendars) => this.configure(calendars))  
             });
 
-        }else{ fetchData(this.props,this.limit,this.onError) }
+        }else{ 
+            
+            fetchData(this.props,this.limit,this.onError) 
+            .then((calendars) => this.configure(calendars))   
+        } 
     }
+
+    configure = (calendars:Calendar[]) => {
+        let {dispatch} = this.props;
+                        
+        getShouldHideHint(this.onError) 
+        .then(
+            (hideHint:boolean) => {
+                let closeHint = () => {
+                    dispatch({type:"hideHint",load:true});
+                    setHideHint(true,this.onError);
+                };
+            
+                if( isNil(hideHint) && !isEmpty(calendars) ){ closeHint() }
+                else if(hideHint){ closeHint() } 
+                else{ dispatch({type:"hideHint",load:false}) }; 
+            }
+        )
+    } 
  
 
     initObservables = () => {  
@@ -233,7 +264,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         .flatMap( () =>  updateCalendars(this.props.calendars, this.onError))
                         .subscribe( 
                             (calendars:Calendar[]) => this.props.dispatch({type:"setCalendars", load:calendars}) 
-                        );
+                        );   
 
         let resize = Observable
                     .fromEvent(window,"resize")

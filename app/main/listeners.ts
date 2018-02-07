@@ -14,7 +14,7 @@ const log = require("electron-log");
 let initAutoUpdater = () => {
 
     if(dev()){
-        log.transports.file.level = "info";
+        log.transports.file.level = "info"; 
         autoUpdater.logger = log; 
     };
 
@@ -59,7 +59,7 @@ export class Listeners{
       this.registeredListeners = [ 
             {
                 name:"downloadUpdates",
-                callback : (event) => {
+                callback:(event) => {
                     autoUpdater 
                     .checkForUpdates()
                     .then((updateCheckResult) => autoUpdater.downloadUpdate(updateCheckResult.cancellationToken))
@@ -79,14 +79,14 @@ export class Listeners{
                 callback : (event) => autoUpdater.quitAndInstall(true,true)
             },
             {  
-                name : "reload", 
+                name:"reload", 
                 callback : (event) => {
                     mainWindow.reload();  
                     loadApp(mainWindow).then(() => mainWindow.webContents.send("loaded"));   
                 }
             },  
             {
-                name : "closeClonedWindows",
+                name:"closeClonedWindows",
                 callback : (event) => { 
                     this.spawnedWindows
                     .filter(w => !w.isDestroyed())
@@ -96,7 +96,7 @@ export class Listeners{
                 }   
             },
             { 
-                name : "store", 
+                name:"store", 
                 callback : (event, store) => {
                     let newWindow = initWindow(getClonedWindowDimensions()); 
                     this.spawnedWindows.push(newWindow); 
@@ -111,7 +111,7 @@ export class Listeners{
                 }
             },  
             { 
-                name : "action", 
+                name:"action", 
                 callback : (event, data:{id:number, action:{type:string,load:any}} ) => {
                     let {id,action} = data;
                     type kind = "external";

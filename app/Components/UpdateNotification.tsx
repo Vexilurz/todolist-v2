@@ -26,7 +26,8 @@ import { TopSnackbar } from './Snackbar';
 
 interface UpdateNotificationProps extends Store{}
 interface UpdateNotificationState{ 
-    canRestart:boolean
+    canRestart:boolean,
+    downloading:boolean 
 } 
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)
@@ -37,7 +38,8 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
     constructor(props){
         super(props);
         this.state={
-            canRestart:false
+            canRestart:false,
+            downloading:false
         };
     }; 
 
@@ -66,9 +68,13 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
   
         }else{
             this.downloading = true;
-            
+            this.setState({downloading:true});
+
             downloadUpdates() 
-            .then(() => { this.downloading = false; })
+            .then(() => {  
+                this.downloading = false; 
+                this.setState({downloading:false});
+            })
             .then(() => setToJsonStorage(
                 "nextUpdateCheck", 
                 {nextUpdateCheck:threeDaysLater(new Date())}, 
@@ -80,7 +86,7 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
   
     render(){ 
         let {showUpdatesNotification, progress, dispatch} = this.props;
-        let {canRestart} = this.state;
+        let {canRestart,downloading} = this.state;
 
         return <TopSnackbar open={showUpdatesNotification}>
         <div style={{
@@ -105,40 +111,36 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
             >       
                 { 
                     isNil(progress) ? "An update is available!" : 
-                    not(canRestart) ? `Updating... ${Math.round(progress.percent)}% left` :
+                    not(canRestart) ? `Updating... ${Math.round(progress.percent)}%` :
                     "You updated to the last version. Please restart now." 
-                }
-            </div>   
-            <div style={{  
-                display:"flex",
-                position:"absolute",
-                right:0,
-                alignItems:"center"
-            }}>
-                <div     
-                    onClick={this.onClick}
-                    style={{      
-                        display:"flex",
-                        marginLeft:"15px", 
-                        marginRight:"15px",
-                        alignItems:"center",
-                        cursor:"pointer",
-                        justifyContent:"center",
-                        height:"20px",
-                        paddingLeft:"25px",
-                        paddingRight:"25px",
-                        paddingTop:"5px", 
-                        paddingBottom:"5px",
-                        backgroundColor:"rgba(81, 144, 247, 1)"  
-                    }}    
-                >   
-                    <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
-                        {
-                            canRestart ? "Restart" : "Update now"  
-                        } 
-                    </div>   
+                }    
+            </div>  
+            {
+                downloading ? null :
+                <div style={{display:"flex",position:"absolute",right:0,alignItems:"center"}}>
+                    <div     
+                        onClick={this.onClick}
+                        style={{      
+                            display:"flex",
+                            marginLeft:"15px", 
+                            marginRight:"15px",
+                            alignItems:"center",
+                            cursor:"pointer",
+                            justifyContent:"center",
+                            height:"20px",
+                            paddingLeft:"25px",
+                            paddingRight:"25px",
+                            paddingTop:"5px", 
+                            paddingBottom:"5px",
+                            backgroundColor:"rgba(81, 144, 247, 1)"  
+                        }}    
+                    >   
+                        <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
+                            { canRestart ? "Restart" : "Update now" } 
+                        </div>   
+                    </div> 
                 </div> 
-            </div> 
+            }
           </div> 
           </TopSnackbar>
     }

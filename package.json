@@ -1,12 +1,12 @@
 {
   "name": "tasklist",
-  "version": "1.1.4-master",
+  "version": "1.1.9-master",
   "description": "tasklist",
   "main": "dist/main.js",
   "scripts": {
     "start": "electron .",
     "rebuild": "electron-rebuild -f -w",
-    "pack": "build --win  --publish always",
+    "pack": "build -wl  --publish always",
     "build": "start webpack -w --config webpack.config.main.js && webpack -w --config webpack.config.renderer.js",
     "production": "start webpack -w --config webpack.config.main.prod.js && webpack -w --config webpack.config.renderer.prod.js"
   },
@@ -28,16 +28,16 @@
     "clean-webpack-plugin": "^0.1.17",
     "copy-webpack-plugin": "^4.0.1",
     "css-loader": "^0.28.4",
-    "electron": "1.7.12",
-    "electron-builder": "^19.31.1",
     "electron-publisher-s3": "^20.0.0",
     "electron-rebuild": "^1.7.3",
     "electron-winstaller": "^2.6.3",
     "html-webpack-plugin": "^2.30.1",
     "source-map-loader": "^0.2.1",
     "style-loader": "^0.17.0",
+    "electron": "^1.7.12",
     "typescript": "^2.4.2",
     "uglifyjs-webpack-plugin": "^0.4.6",
+    "electron-builder": "19.54.0",
     "webpack": "^2.7.0"
   },
   "dependencies": {
@@ -52,7 +52,6 @@
     "font-loader": "^0.1.2",
     "fs": "0.0.1-security",
     "ftp-client": "^0.2.2",
-    "ical": "^0.5.0",
     "ical.js": "^1.2.2",
     "invariant": "^2.2.2",
     "jsftp": "^2.1.3",
@@ -93,14 +92,16 @@
   },
   "build": {
     "asar": true,
+    "compression": "store",
     "productName": "tasklist",
     "appId": "org.tasklist.app",
-    "files": [
-      "production"
-    ],
+    "files": [ "production" ],
     "win": {
-      "target": [
-        "nsis"
+      "target": [ 
+        {
+          "target" : "nsis",
+          "arch" : ["x64","ia32"]
+        }
       ],
       "icon": "./icon.ico"
     },
@@ -110,8 +111,12 @@
       "acl": "public-read"
     },
     "nsis": {
-      "allowToChangeInstallationDirectory": true,
-      "oneClick": false
+      "oneClick": false,
+      "warningsAsErrors": false,
+      "perMachine": true,
+      "unicode": false,
+      "allowToChangeInstallationDirectory":true,
+      "menuCategory":true
     },
     "directories": {
       "output": "release"

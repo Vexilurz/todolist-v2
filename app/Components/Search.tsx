@@ -302,13 +302,19 @@ export class Search extends Component<SearchProps,SearchState>{
     } => { 
         let { searchQuery } = this.props;
         let limitGroups = this.limitGroups(3, todos);  
-
+        let cutBy = (by:String, words:string[]) => words.map(word => word.substring(0,by.length));
         let table = {};
-        let detached = [];
+        let detached = []; 
         let attached = []; 
         let limitReached = true;
-        let match = (searchKeywords,keywords) => 
-                    compose(not,isEmpty,intersection(keywords))(searchKeywords);
+        let match = (searchKeywords:string[],keywords:string[]) => 
+            any(
+                (searchKeyword:string) => contains(searchKeyword)(
+                                            cutBy(searchKeyword,keywords)
+                                          )
+            )(searchKeywords); 
+
+
 
         for(let i=0; i<limitGroups.length; i++){
 
@@ -340,11 +346,14 @@ export class Search extends Component<SearchProps,SearchState>{
                         table[project._id].push(todo); 
                     }  
                 }
-                
-                break
             } 
 
         }
+
+        console.log(
+            attached.map( a => a.title),
+            detached.map( b => b.title)
+        )
 
         this.limitReached = limitReached;
          

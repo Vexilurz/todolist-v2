@@ -7,6 +7,22 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
        let newState = undefined;
        
        switch(action.type){ 
+            case "shouldSendStatistics":
+                newState = {  
+                    ...state,
+                    "shouldSendStatistics" : action.load,
+                };  
+                break; 
+
+
+            case "hideHint":
+                newState = {   
+                    ...state,
+                    hideHint : action.load,
+                };  
+                break; 
+
+        
             case "progress":
                 newState = {  
                     ...state,
