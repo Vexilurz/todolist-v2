@@ -105,6 +105,7 @@ export class Next extends Component<NextProps, NextState>{
                         selectedCategory={selectedCategory}    
                         show={isEmpty(table.todos)}  
                     />    
+                    <div id={`next-list`}>
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
                         <TodoInput   
                             id={emptyTodo._id}
@@ -188,7 +189,8 @@ export class Next extends Component<NextProps, NextState>{
                                 }
                             )  
                         }   
-                    </div>  
+                    </div> 
+                    </div> 
                 </div> 
     }
 }  

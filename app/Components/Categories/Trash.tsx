@@ -152,9 +152,11 @@ export class Trash extends Component<TrashProps,TrashState>{
                         Empty Trash  
                     </div>  
                 </div>  
-            </div> 
+            </div>  
              
-            <div style={{
+            <div 
+            id={`trash-list`} 
+            style={{
                 paddingTop:"20px", 
                 paddingBottom:"20px",
                 position:"relative", 

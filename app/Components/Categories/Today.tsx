@@ -9,7 +9,7 @@ import {
     attachDispatchToProps, uppercase, insideTargetArea, 
     chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, generateEmptyTodo, 
     isToday, daysRemaining, isTodo, assert, makeChildrensVisible, hideChildrens, generateDropStyle, 
-    arrayMove, keyFromDate, setToJsonStorage, getFromJsonStorage, isDeadlineTodayOrPast, isTodayOrPast, timeOfTheDay 
+    arrayMove, keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, timeOfTheDay 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -23,7 +23,7 @@ import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Repeat from 'material-ui/svg-icons/av/repeat';
-import { Store, isDev, globalErrorHandler } from '../../app';
+import { Store, isDev, globalErrorHandler, updateConfig } from '../../app';
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Duplicate from 'material-ui/svg-icons/content/content-copy';
 import ShareIcon from 'material-ui/svg-icons/social/share';
@@ -391,14 +391,14 @@ export class Today extends Component<TodayProps,TodayState>{
                         selectedAreaId={this.props.selectedAreaId} 
                         todos={this.props.todos}
                         selectedCategory={"today"} 
-                        projects={this.props.projects} 
+                        projects={this.props.projects}  
                         tags={this.props.tags} 
                         rootRef={this.props.rootRef}  
                         todo={empty}
                         creation={true}
-                    />   
+                    />     
  
-                    <div style={{position:"relative"}}>   
+                    <div id={`today-list`} style={{position:"relative"}}>   
                         <SortableContainer  
                             items={items}
                             scrollableContainer={this.props.rootRef}
@@ -418,7 +418,7 @@ export class Today extends Component<TodayProps,TodayState>{
   } 
 }
 
-
+ 
 
 
 
@@ -486,27 +486,6 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
     }   
 } 
 
-
-export let setHideHint = (hide:boolean, onError:Function) : Promise<void> => {
-    return setToJsonStorage("hideHint", {hideHint:hide}, onError);
-} 
-
-export let getShouldHideHint = (onError:Function) : Promise<boolean> => {
-    return getFromJsonStorage("hideHint",onError).then((data) => data ? data.hideHint : null);   
-}   
-
-export let setShouldSendStatistics = (shouldSendStatistics:boolean, onError:Function) : Promise<void> => {
-    return setToJsonStorage("shouldSendStatistics", {shouldSendStatistics}, onError);
-} 
-
-export let getShouldSendStatistics = (onError:Function) : Promise<boolean> => {
-    return getFromJsonStorage(
-        "shouldSendStatistics",
-         onError 
-    ).then(
-        (data) => data ? data.shouldSendStatistics : null
-    );   
-}    
  
 
 interface HintProps extends Store{ text : string }
@@ -533,7 +512,7 @@ export class Hint extends Component<HintProps,HintState>{
     onClose = (e) => {  
         let {dispatch} = this.props;
         dispatch({type:"hideHint",load:true});
-        setHideHint(true,this.onError);
+        updateConfig(dispatch)({hideHint:true});
     }
 
     render(){

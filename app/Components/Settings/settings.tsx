@@ -16,16 +16,20 @@ import CalendarEvents from 'material-ui/svg-icons/action/date-range';
 import Database from 'material-ui/svg-icons/device/storage';    
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
+import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Popover from 'material-ui/Popover';
-import { remove, isNil, not, isEmpty, compose, toPairs, map, contains, last, cond, defaultTo } from 'ramda';
+import { 
+    remove, isNil, not, isEmpty, compose, toPairs, map, findIndex,
+    contains, last, cond, defaultTo, flatten, uniq, concat 
+} from 'ramda';
 let uniqid = require("uniqid");    
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx'; 
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { Checkbox } from '../TodoInput/TodoInput';
-import { attachDispatchToProps, isString, debounce, isNewVersion, keyFromDate, checkForUpdates } from '../../utils';
-import { Store, globalErrorHandler } from '../../app';
+import { attachDispatchToProps, isString, debounce, isNewVersion, keyFromDate, checkForUpdates, uppercase, isArrayOfStrings, assert } from '../../utils';
+import { Store, globalErrorHandler, updateConfig } from '../../app';
 import { 
     generateId, Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, 
     Todo, destroyEverything, initDB, addTodos, addProjects, addAreas, addCalendars 
@@ -33,25 +37,19 @@ import {
 import { isDate } from 'util';
 import { SimplePopup } from '../SimplePopup';
 import { getIcalData, IcalData, AxiosError } from '../Calendar';
-import { fetchData } from '../MainContainer';
+import { fetchData, filter } from '../MainContainer';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
-import { setHideHint, setShouldSendStatistics } from '../Categories/Today';
 const Promise = require('bluebird');   
 const fs = remote.require('fs');
 const path = require("path");
-const os = remote.require('os');
+const os = remote.require('os'); 
 const dialog = remote.dialog;
 
 interface SettingsPopupProps extends Store{}
 interface SettingsPopupState{}
 @connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
 export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupState>{
-
-    constructor(props){
-        super(props);
-    }
-
-
+    constructor(props){ super(props) }
     render(){
         let {openSettings,dispatch} = this.props;
 
@@ -62,25 +60,20 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
             <Settings {...{} as any}/> 
         </SimplePopup>    
     }  
-} 
-
+}  
 
 interface SettingsProps extends Store{}
-
-export type section =  'General' | 'QuickEntry' | 'CalendarEvents' | 'Advanced';
-  
+export type section =  'General' | 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags';
 interface SettingsState{}
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
 export class Settings extends Component<SettingsProps,SettingsState>{
 
-    constructor(props){ 
-        super(props);
-    }
- 
+    constructor(props){ super(props) }
+    
     render(){
         let {selectedSettingsSection, dispatch} = this.props;
-        let height = window.innerHeight/2;
+        let height = window.innerHeight/1.7;
         let width = window.innerWidth/1.2;
 
 
@@ -145,6 +138,12 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         name={'Advanced'} 
                         selected={selectedSettingsSection==='Advanced'}
                     />  
+                    <Section
+                        onClick={() => dispatch({type:"selectedSettingsSection", load:'Tags'})} 
+                        icon={<TriangleLabel style={{color:"rgba(10,10,10,0.8)", height:18, width:18}}/>}
+                        name={'Tags'} 
+                        selected={selectedSettingsSection==='Tags'} 
+                    />  
                 </div>     
             </div> 
             <div 
@@ -168,6 +167,10 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     [  
                         (selectedSettingsSection:string) : boolean => selectedSettingsSection==="Advanced",  
                         () => <AdvancedSettings {...{} as any} />
+                    ],
+                    [
+                        (selectedSettingsSection:string) : boolean => selectedSettingsSection==="Tags",  
+                        () => <TagsSettings {...{} as any} />
                     ]
                 ])(selectedSettingsSection) 
             }   
@@ -388,6 +391,91 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
 }
 
 
+
+interface TagsSettingsProps extends Store{}
+interface TagsSettingsState{}
+
+@connect((store,props) => ({...store, ...props}), attachDispatchToProps)   
+class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
+
+    constructor(props){ super(props) }
+
+    getTags = () : string[] => {
+        let {todos,tags} = this.props; 
+        return compose(
+            uniq,
+            flatten,
+            concat(tags),
+            () => map((t:Todo) => t.attachedTags)(todos)
+        )() as string[]
+    } 
+
+    onRemoveTag = (tag:string) => () => {
+        let {dispatch, todos} = this.props;
+        let selectedTodos = filter(todos, (t:Todo) => contains(tag)(t.attachedTags), "");
+
+        dispatch({
+            type:"updateTodos", 
+            load:selectedTodos.map((t:Todo) => {
+              let idx = findIndex((todoTag:string) => todoTag===tag)(t.attachedTags);
+              return ({...t,attachedTags:remove(idx,1,t.attachedTags)});
+            })
+        })
+    }
+
+    render(){
+        let tags = this.getTags();
+        assert(isArrayOfStrings(tags),'tags is not of type string[]. TagsSettings.');
+        
+        return <div style={{width:"100%",display:"flex"}}>
+        <div
+            onClick={(e) => {e.stopPropagation();}} 
+            style={{display:"flex",paddingTop:"5px",paddingBottom:"5px",flexWrap:"wrap"}}
+        >
+            {      
+                tags
+                .sort((a:string,b:string) : number => a.localeCompare(b))
+                .map( 
+                    (tag:string, index:number) => 
+                        <div key={`${tag}-${index}`}>
+                        <div style={{
+                            borderRadius:"15px", 
+                            backgroundColor:"rgb(189,219,209)",
+                            paddingLeft:"5px",
+                            paddingRight:"5px", 
+                            display:"flex",
+                            alignItems:"center",
+                            height:"30px",
+                            margin:"2px"
+                        }}>
+                            <div style={{  
+                                height:"15px",
+                                display:"flex",
+                                alignItems:"center",
+                                padding:"4px", 
+                                color:"rgb(115,167,152)",
+                                fontWeight: 600    
+                            }}> 
+                                {uppercase(tag)} 
+                            </div> 
+                            <div  
+                              style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
+                              onClick={this.onRemoveTag(tag)}
+                            >
+                                <Clear style={{color:"rgba(100,100,100,0.5)",height:20,width:20}}/>
+                            </div>
+                        </div>
+                        </div> 
+                )   
+            }
+        </div>
+        </div>
+    }   
+}
+
+
+
+
 interface CalendarEventsSettingsProps extends Store{}
 
 interface CalendarEventsSettingsState{ url:string, error:string }
@@ -429,12 +517,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
             (data:IcalData) => { 
                 let {calendar,events,error} = data;
                 
-                if(!hideHint){
-                    setHideHint(true, this.onError)
-                    .then(
-                        () => dispatch({type:"hideHint",load:true})
-                    );
-                }  
+                if(!hideHint){ updateConfig(dispatch)({hideHint:true}) }  
                 
                 if(!isNil(error)){  
                    this.setState({error:error.message}, () => this.onError(error));
@@ -839,11 +922,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
      
     shouldSendStatistics = debounce(() => {
         let {shouldSendStatistics,dispatch} = this.props;
-        
-        setShouldSendStatistics(!shouldSendStatistics, this.onError)
-        .then(
-            () => dispatch({type:"shouldSendStatistics",load:!shouldSendStatistics})
-        )  
+        updateConfig(dispatch)({shouldSendStatistics:!shouldSendStatistics}); 
     },50);
      
     render(){   

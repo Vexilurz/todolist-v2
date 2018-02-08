@@ -277,17 +277,11 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             }} 
                         >        
                             <div  
-                                className="unselectable"
-                                onClick={() => this.props.dispatch({ 
-                                    type:"showScheduled", 
-                                    load:!this.props.showScheduled
-                                })}  
-                                style={{
-                                    color:"rgba(100,100,100,0.7)",
-                                    fontSize:"13px" 
-                                }}
+                              className="unselectable"
+                              onClick={()=>this.props.dispatch({type:"showScheduled",load:!this.props.showScheduled})}  
+                              style={{color:"rgba(100,100,100,0.7)",fontSize:"13px"}}
                             > 
-                                {`${this.props.showScheduled ? 'Hide' : 'Show'} later to-dos`}
+                              {`${this.props.showScheduled ? 'Hide' : 'Show'} later to-dos`}
                             </div>      
                         </div> 
                     }

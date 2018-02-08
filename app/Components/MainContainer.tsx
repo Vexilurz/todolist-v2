@@ -12,8 +12,8 @@ import {
     selectNeverTodos, updateNeverTodos, oneDayBehind, 
     convertTodoDates, convertProjectDates, convertAreaDates, clearStorage, oneDayAhead, measureTime, 
     byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
-    byCompleted, isToday, byNotSomeday, daysRemaining, byScheduled, yearFromNow, getFromJsonStorage, 
-    setToJsonStorage, isDate, timeDifferenceHours, isNewVersion
+    byCompleted, isToday, byNotSomeday, daysRemaining, byScheduled, yearFromNow, isDate, 
+    timeDifferenceHours, isNewVersion
 } from "../utils";   
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -21,8 +21,9 @@ import { getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects,
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, 
     removeProject, destroyEverything, addArea, addProject, generateId, addTodos, 
     addProjects, addAreas, Heading, LayoutItem, getCalendars, Calendar} from '.././database';
-import { Store, isDev, globalErrorHandler } from '.././app';    
+import { Store, isDev, globalErrorHandler, updateConfig, getConfig, Config } from '.././app';    
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
+import Print from 'material-ui/svg-icons/action/print'; 
 import { AreaComponent } from './Area/Area';
 import { ProjectComponent } from './Project/Project';
 import { Trash, TrashPopup } from './Categories/Trash';
@@ -30,7 +31,7 @@ import { Logbook } from './Categories/Logbook';
 import { Someday } from './Categories/Someday';
 import { Next } from './Categories/Next';  
 import { Upcoming } from './Categories/Upcoming';
-import { Today, setHideHint, getShouldHideHint, getShouldSendStatistics } from './Categories/Today';
+import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { generateRandomDatabase } from '../generateRandomObjects';
@@ -53,8 +54,26 @@ import {
 } from './Calendar';
 const Promise = require('bluebird');   
 const moment = require("moment"); 
+import printJS from 'print-js'; 
+var PHE = require("print-html-element");
 
+let printElement = (selectedCategory:Category, list:HTMLElement) => {
+    let opts = {
+        printMode: "iframe", //iframe (default), or popup
+        pageTitle: selectedCategory,
+        templateString: '{{printBody}}',
+        popupProperties: '', //such as menubar, scrollbars
+        stylesheets: '',
+        styles: ''
+    };  
+    
+    PHE.printElement( list, opts ); // Prints a DOM Element
+    //PHE.printHtml( list, opts ); // Prints an HTML string
+}
 
+let printTodos = (todos:Todo[]) : void => { 
+    printJS({printable:todos, type:'json', properties:[]});  
+} 
 
 export let filter = (array:any[],f:Function,caller:string) : any[] => {
     let start : number = performance.now();
@@ -63,7 +82,7 @@ export let filter = (array:any[],f:Function,caller:string) : any[] => {
 
     let report = `filter ${array.length} items ${(finish - start)} ms caller : ${caller}`;
     return result;
-}
+} 
 
 
 
@@ -240,13 +259,16 @@ export class MainContainer extends Component<Store,MainContainerState>{
     configure = (calendars:Calendar[]) => {
         let {dispatch} = this.props;
                         
-        getShouldHideHint(this.onError) 
-        .then(
-            (hideHint:boolean) => {
-                let closeHint = () => {
+        getConfig() 
+        .then( 
+            (config:Config) => {
+                let hideHint = config.hideHint;
+                let closeHint = () => { 
                     dispatch({type:"hideHint",load:true});
-                    setHideHint(true,this.onError);
+                    updateConfig(dispatch)({hideHint:true}); 
                 };
+
+               
             
                 if( isNil(hideHint) && !isEmpty(calendars) ){ closeHint() }
                 else if(hideHint){ closeHint() } 
@@ -260,7 +282,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         let {dispatch} = this.props; 
         let minute = 1000 * 60;  
      
-        let calendars = Observable.interval(5 * minute)
+        let calendars = Observable.interval(10 * minute)
                         .flatMap( () =>  updateCalendars(this.props.calendars, this.onError))
                         .subscribe( 
                             (calendars:Calendar[]) => this.props.dispatch({type:"setCalendars", load:calendars}) 
@@ -328,23 +350,32 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 <RightClickMenu {...{} as any}/> 
                 <RepeatPopup {...{} as any}/>  
                 <div style={{display: "flex", padding: "10px"}}>   
-                    <div className="no-drag" style={{position: "fixed", top: 0, right: 0}}>  
+                    <div 
+                    className="no-drag" 
+                    style={{
+                        display:"flex", 
+                        alignItems:"center", 
+                        position:"fixed", 
+                        top:0, 
+                        right:0 
+                    }}>  
                         { 
-                            not(isDev()) ? null : 
+                            this.props.clone ? null :
                             <IconButton  
-                                iconStyle={{
+                                iconStyle={{ 
                                     color:"rgba(100,100,100,0.6)",
-                                    opacity:0,
-                                    width:"18px",
-                                    height:"18px" 
+                                    height:"22px",
+                                    width:"22px"
                                 }} 
                                 className="no-drag" 
-                                onTouchTap={() => {
-                                    ipcRenderer.send("reload");
+                                onTouchTap={() => { 
+                                    let {selectedCategory} = this.props;
+                                    let list = document.getElementById(`${selectedCategory}-list`); 
+                                    if(list){ printElement(selectedCategory, list) }
                                 }}
                             > 
-                                <Refresh />   
-                            </IconButton>  
+                                <Print />   
+                            </IconButton>   
                         }
                         {     
                             this.props.clone ? null :
@@ -377,8 +408,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         (todo:Todo) => isNil(todo.deadline), 
                                         byCategory("inbox"), 
                                         byNotCompleted,  
-                                        byNotDeleted 
-                                    ];  
+                                        byNotDeleted  
+                                    ];     
 
                                     return <Inbox 
                                         todos={filter(todos, allPass(inboxFilters), "Inbox")} 

@@ -4,25 +4,22 @@ import electron = require('electron');
 import { ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,globalShortcut,BrowserView } from 'electron';
 import { Listeners } from "./listeners";
 import { initWindow } from "./initWindow";
-import { isNil } from 'ramda';
+import { isNil } from 'ramda'; 
 const os = require('os');
 let path = require("path");
 const log = require("electron-log");
-const storage = require('electron-json-storage');
+const storage = require('electron-json-storage'); 
 storage.setDataPath(os.tmpdir()); 
 
-
 export let mainWindow : BrowserWindow;   
-export let listeners : Listeners; 
+export let listeners : Listeners;  
 
 const CtrlAltT : string = 'Ctrl+Alt+T';
 const CtrlD : string = 'Ctrl+D';
 const shouldQuit = app.makeSingleInstance(
     (commandLine, workingDirectory) => {
         if(mainWindow){
-            if (mainWindow.isMinimized()){ 
-                mainWindow.restore();
-            }
+            if(mainWindow.isMinimized()){ mainWindow.restore() }
             mainWindow.focus();
         } 
     }
@@ -30,18 +27,14 @@ const shouldQuit = app.makeSingleInstance(
   
 
 let onCtrlAltT = () : void => {
-    if(isNil(mainWindow)){
-       return; 
-    }        
+    if(isNil(mainWindow)){ return }        
     mainWindow.show();
     mainWindow.focus();
     mainWindow.webContents.send(CtrlAltT);
 } 
   
 
-let onCtrlD = () : void => {
-    mainWindow.webContents.openDevTools();   
-}
+let onCtrlD = () : void => mainWindow.webContents.openDevTools();   
 
 
 let preventAnnoyingErrorPopups = () => dialog.showErrorBox = (title, content) => {};
@@ -66,12 +59,12 @@ let getWindowSize = () : {width:number,height:number} => {
     if(!dev()){ width = width <= 800 ? width : 800; }
 
     return {width,height}  
-};
+};  
 
 
-let onReady = () => {   
+let onReady = () => {     
     if(shouldQuit){
-       app.quit();
+       app.quit(); 
        return;
     }
 

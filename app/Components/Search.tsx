@@ -45,7 +45,8 @@ import {
     debounce,
     todoToKeywords,
     uppercase,
-    isArray
+    isArray,
+    getTagsFromItems
 } from '../utils';
 import { Todo, removeTodo, updateTodo, generateId, ObjectType, Area, Project, Heading } from '../database';
 import { Store, isDev } from '../app'; 
@@ -59,6 +60,7 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import PieChart from 'react-minimal-pie-chart';
 import { TodoInput } from './TodoInput/TodoInput';
+import { Tags } from './Tags';
 
 
 let getProjectHeading = (project:Project, todos:Todo[]) : JSX.Element => {
@@ -262,13 +264,13 @@ export class Search extends Component<SearchProps,SearchState>{
         let result = [];
 
         let sorted = todos.sort(
-            (a:Todo,b:Todo) => {
-                let A = a.attachedDate;
-                let B = b.attachedDate;
+           (a:Todo,b:Todo) => {
+              let A = a.attachedDate;
+              let B = b.attachedDate;
 
-                if(isNil(A) || isNil(B)){ return 0 };
+              if(isNil(A) || isNil(B)){ return 0 };
 
-                return A.getTime()-B.getTime();
+              return A.getTime()-B.getTime();
             }
         ) 
 
@@ -318,12 +320,11 @@ export class Search extends Component<SearchProps,SearchState>{
 
         for(let i=0; i<limitGroups.length; i++){
 
-            if( (attached.length + detached.length) > this.state.limit ){ 
+            if((attached.length + detached.length) > this.state.limit){ 
                 limitReached = false;
                 break 
             }
         
-
             let todo = limitGroups[i];
             let keywords = todoToKeywords(todo);
             let searchKeywords = searchQuery
@@ -332,7 +333,6 @@ export class Search extends Component<SearchProps,SearchState>{
                                  .split(' ')
                                  .filter(compose(not,isEmpty)); 
             
-
             if(match( searchKeywords , keywords )){
                 let project = projects.find((p) => contains(todo._id)(p.layout as any)); 
 
@@ -341,19 +341,13 @@ export class Search extends Component<SearchProps,SearchState>{
                     attached.push(todo);
 
                     if(isNil(table[project._id])){
-                        table[project._id] = [todo]; 
+                       table[project._id] = [todo]; 
                     }else if(isArray(table[project._id])){ 
-                        table[project._id].push(todo); 
+                       table[project._id].push(todo); 
                     }  
                 }
             } 
-
         }
-
-        console.log(
-            attached.map( a => a.title),
-            detached.map( b => b.title)
-        )
 
         this.limitReached = limitReached;
          
@@ -408,18 +402,13 @@ export class Search extends Component<SearchProps,SearchState>{
  
  
     render(){ 
-        let {todos, projects, areas, dispatch} = this.props;
-
+        let {todos, projects, areas, dispatch, selectedTag} = this.props;
         let selectedTodos = filter(todos, byNotDeleted, "");
         let selectedProjects = filter(projects, byNotDeleted, "");
         let selectedAreas = filter(areas, byNotDeleted, "");
-
         let suggestions = this.getSuggestions(selectedTodos,selectedProjects,selectedAreas);
-
         let ids = flatten(selectedProjects.map((p) => p.layout.filter(isString))) as string[];
-
         let attachedTodos = filter(selectedTodos, (todo:Todo) => contains(todo._id)(ids), "");
-
         let noresults = {
             fontSize:"18px",
             userSelect:"none",
@@ -429,7 +418,9 @@ export class Search extends Component<SearchProps,SearchState>{
             alignItems:"center",
             justifyContent:"center" 
         };  
- 
+        let allTodos = flatten([ suggestions.detached, suggestions.attached.map(i => i.todos) ]);
+        let tags = getTagsFromItems(allTodos); 
+    
         return <div>   
             <div 
                 style={{  
@@ -437,21 +428,27 @@ export class Search extends Component<SearchProps,SearchState>{
                    paddingBottom:"10px",
                    fontWeight: 600,
                    textAlign:"center",
-                   userSelect:"none",
+                   userSelect:"none", 
                    cursor:"default" 
                 }} 
             >    
                 {uppercase("Search results")}
-            </div>
-
-            {
+            </div>  
+            <div style={{ paddingTop:"15px", paddingBottom:"15px" }}>
+                <Tags  
+                  selectTag={(tag) => dispatch({type:"selectedTag", load:tag})}
+                  tags={tags} 
+                  selectedTag={selectedTag}
+                  show={true}  
+                />  
+            </div> 
+            { 
                 isEmpty(suggestions.attached) && 
                 isEmpty(suggestions.detached) ? 
-
                 <div style={noresults as any}>No results were found...</div> : 
                 null
             }
-
+            <div id={`search-list`}> 
             {         
                 suggestions.attached.map(
                     ( projectWithTodos:{ project:Project, todos:Todo[] }, index ) => 
@@ -463,7 +460,6 @@ export class Search extends Component<SearchProps,SearchState>{
                         </div>  
                 )  
             } 
- 
             <div style={{paddingTop:"20px"}}>
             {
                 suggestions.detached
@@ -486,6 +482,7 @@ export class Search extends Component<SearchProps,SearchState>{
                         </div> 
                 )   
             }
+            </div>
             </div>
             <div style={{width:"100%", height:"1px"}}> 
                 <Waypoint  

@@ -193,7 +193,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                         showTags={true} 
                         selectedTag={this.props.selectedTag}
                     />
-                    <div style={{display:"flex", flexDirection:"column", width:"100%"}}> 
+                    <div id={`logbook-list`} style={{display:"flex", flexDirection:"column", width:"100%"}}> 
                     {   
                         groups.map( 
                          (group:any[], index:number) : JSX.Element => {

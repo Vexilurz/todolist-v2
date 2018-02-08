@@ -1419,13 +1419,7 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                     } 
                     {   
                         isNil(todo.group) ? null :
-                        <div 
-                          style={{
-                            display:"flex",
-                            alignItems:"center",
-                            justifyContent:"center"
-                          }}
-                        > 
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}> 
                             <Refresh 
                               style={{     
                                 width:18,   

@@ -89,6 +89,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     todo={empty} 
                     creation={true} 
                 />  
+                <div id={`inbox-list`}>
                 <TodosList          
                     selectedAreaId={this.props.selectedAreaId}
                     selectedProjectId={this.props.selectedProjectId}
@@ -100,7 +101,8 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     rootRef={this.props.rootRef}
                     todos={this.props.todos}   
                     tags={this.props.tags} 
-                /> 
+                />
+                </div> 
             </div>
         </div> 
     }

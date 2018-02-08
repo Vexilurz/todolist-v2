@@ -95,7 +95,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                 selectedCategory={selectedCategory}  
                 show={isEmpty(table.todos)}
             />     
-            <div>    
+            <div id={`someday-list`} >    
                 <div id="todos" style={{paddingTop:"20px", paddingBottom:"20px"}}>      
                     <TodoInput   
                         id={empty._id} 

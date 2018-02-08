@@ -305,21 +305,22 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     creation={true}
                 />   
             </div>      
+            <div id={`project-list`}>
+                <SortableContainer
+                    items={this.props.items}
+                    scrollableContainer={this.props.rootRef}
+                    selectElements={this.selectElements}   
 
-            <SortableContainer
-                items={this.props.items}
-                scrollableContainer={this.props.rootRef}
-                selectElements={this.selectElements}   
+                    onSortStart={this.onSortStart} 
+                    onSortMove={this.onSortMove}
+                    onSortEnd={this.onSortEnd}
+                    shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
 
-                onSortStart={this.onSortStart} 
-                onSortMove={this.onSortMove}
-                onSortEnd={this.onSortEnd}
-                shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
-
-                decorators={decorators}  
-            >   
-                {this.props.items.map((item,index) => this.getElement(item,index))}
-            </SortableContainer> 
+                    decorators={decorators}  
+                >   
+                    {this.props.items.map((item,index) => this.getElement(item,index))}
+                </SortableContainer> 
+            </div>
         </div> 
     }
 } 

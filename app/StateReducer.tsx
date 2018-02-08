@@ -7,22 +7,6 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
        let newState = undefined;
        
        switch(action.type){ 
-            case "shouldSendStatistics":
-                newState = {  
-                    ...state,
-                    "shouldSendStatistics" : action.load,
-                };  
-                break; 
-
-
-            case "hideHint":
-                newState = {   
-                    ...state,
-                    hideHint : action.load,
-                };  
-                break; 
-
-        
             case "progress":
                 newState = {  
                     ...state,
@@ -69,14 +53,6 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                     selectedSettingsSection : action.load,
                 };  
                 break; 
-
-
-            case "showCalendarEvents":
-                newState = { 
-                    ...state, 
-                    showCalendarEvents : action.load,
-                };  
-                break;
  
 
             case "openSettings":

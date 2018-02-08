@@ -10,14 +10,13 @@ import Restore from 'material-ui/svg-icons/navigation/refresh';
 import { uniq, compose, contains, allPass, isNil, not, isEmpty } from 'ramda';
 import { isString } from 'util';
 import { 
-    insideTargetArea, attachDispatchToProps, threeDaysLater, 
-    setToJsonStorage, debounce, downloadUpdates 
+    insideTargetArea, attachDispatchToProps, threeDaysLater, debounce, downloadUpdates 
 } from '../utils';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { Store, googleAnalytics, globalErrorHandler } from '../app';
+import { Store, googleAnalytics, globalErrorHandler, updateConfig } from '../app';
 import { ipcRenderer, remote } from 'electron';
 import { TopSnackbar } from './Snackbar';
 
@@ -72,17 +71,13 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
 
             downloadUpdates() 
             .then(() => {  
-                this.downloading = false; 
-                this.setState({downloading:false});
+              this.downloading = false; 
+              this.setState({downloading:false});
             })
-            .then(() => setToJsonStorage(
-                "nextUpdateCheck", 
-                {nextUpdateCheck:threeDaysLater(new Date())}, 
-                this.onError 
-            )) 
-            .then(() => this.setState({canRestart:true}))
+            .then( () => updateConfig(dispatch)({nextUpdateCheck:threeDaysLater(new Date())}) )
+            .then( () => this.setState({canRestart:true}) )
         } 
-    }
+    } 
   
     render(){ 
         let {showUpdatesNotification, progress, dispatch} = this.props;

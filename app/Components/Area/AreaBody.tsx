@@ -124,7 +124,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         .sort((a:Project, b:Project) => a.priority-b.priority);
         
         return <div ref={(e) => {this.ref=e;}}>    
-            <div style={{paddingTop:"20px", paddingBottom:"20px"}}> 
+            <div id={`area-list`} style={{paddingTop:"20px", paddingBottom:"20px"}}> 
                {selectedProjects.map((item,index) => this.getProjectElement(item,index))}
             </div> 
         </div>

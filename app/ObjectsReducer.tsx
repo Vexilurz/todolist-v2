@@ -1,4 +1,4 @@
-import { Store, isDev, globalErrorHandler } from './app';
+import { Store, isDev, globalErrorHandler, Config } from './app';
 import {  
     Project, Area, Todo, removeProject, generateId, addProject, 
     removeArea, updateProject, addTodo, updateArea, updateTodo, 
@@ -25,7 +25,13 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
     let shouldUpdateOtherInstances : boolean = action.kind!=="external";
     let newState : Store = undefined;
     
-    newState = cond([   
+    newState = cond([    
+        [
+            (action:{type:string}) : boolean => 'updateConfig'===action.type,  
+            (action:{type:string, load: { [key in keyof Config]: any }}) : Store => {
+              return  ({...state, ...action.load})   
+            }  
+        ],
         [
             (action:{type:string}) : boolean => 'update'===action.type,  
             (action:{type:string}) : Store => {

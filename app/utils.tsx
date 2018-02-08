@@ -1524,23 +1524,7 @@ export let clearStorage = (onError:Function) : Promise<void> => {
         }
     )
 }
-    
 
-
-export let setToJsonStorage = (key:string,json:any,onError:Function) : Promise<void> => 
-        new Promise(
-           resolve => storage.set(key, json, (error) => resolve(error))
-        ) 
-
-
-export let getFromJsonStorage = (key:string,onError:Function) : Promise<any> => 
-       new Promise(
-           resolve => storage.get( 
-               key, 
-              (error, data) => isNil(error) ? resolve(data) : resolve(error) 
-           ) 
-       )
- 
 
 export let transformLoadDates = (load) : any => {
 
@@ -1716,7 +1700,7 @@ export let createHeading = (e, props:Store) : void => {
  
 interface ItemsAmount{  
     inbox:number,
-    today:number,
+    today:number,  
     hot:number,
     trash:number,
     logbook:number  
@@ -1731,7 +1715,7 @@ export let isTodayOrPast = (date:Date) : boolean => isNil(date) ?
                                                     false :  
                                                     daysRemaining(date)<=0;  
 
-
+ 
 
 
 export let todoToKeywords = (t:Todo) : string[] => {

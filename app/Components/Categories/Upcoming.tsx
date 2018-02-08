@@ -320,7 +320,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                         dispatch={dispatch}  
                         tags={tags}
                         showTags={true} 
-                        selectedTag={selectedTag}
+                        selectedTag={selectedTag} 
                     />
                 </div>
                 <Hint {
@@ -329,7 +329,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                         Do you also want to include the events from your calendar?`
                     } as any  
                 }/> 
-                <div>{this.state.objects.map(this.objectToComponent)}</div>
+                <div id={`upcoming-list`}>{this.state.objects.map(this.objectToComponent)}</div>
 
                 <div style={{width:"100%", height:"1px"}}> 
                     <Waypoint  

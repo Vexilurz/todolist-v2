@@ -4581,6 +4581,14 @@ pretty-error@^2.0.2:
     renderkid "^2.0.1"
     utila "~0.4"
 
+print-html-element@^0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/print-html-element/-/print-html-element-0.5.1.tgz#ad8a4b32045e0e8411bc55a30116b1f136bd7e86"
+
+print-js@^1.0.31:
+  version "1.0.31"
+  resolved "https://registry.yarnpkg.com/print-js/-/print-js-1.0.31.tgz#3c927c2d9be5705aa580e2d32c812fdaf99197d1"
+
 private@^0.1.6, private@^0.1.7:
   version "0.1.8"
   resolved "https://registry.yarnpkg.com/private/-/private-0.1.8.tgz#2381edb3689f7a53d653190060fcf822d2f368ff"

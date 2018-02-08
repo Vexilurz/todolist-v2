@@ -14,9 +14,9 @@ import {
     defaultTags, isTodo, isProject, isArea, isArrayOfAreas, 
     isArrayOfProjects, isArrayOfTodos, isArray, transformLoadDates, 
     yearFromNow, isString, stringToLength, assert, convertTodoDates, 
-    convertProjectDates, convertAreaDates, getFromJsonStorage, timeDifferenceHours, 
+    convertProjectDates, convertAreaDates, timeDifferenceHours, 
     collectSystemInfo, convertDates, checkForUpdates, isNewVersion, nextMidnight,
-    oneMinuteBefore, setToJsonStorage, threeDaysLater
+    oneMinuteBefore, threeDaysLater
 } from "./utils";  
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
@@ -31,7 +31,7 @@ import {
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
 import { TodoInputPopup } from './Components/TodoInput/TodoInputPopup';
-import { cond, assoc, isNil, not, defaultTo, map } from 'ramda';
+import { cond, assoc, isNil, not, defaultTo, map, isEmpty } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { Settings, section, SettingsPopup } from './Components/Settings/settings';
 import { SimplePopup } from './Components/SimplePopup';
@@ -44,11 +44,12 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { UpdateNotification } from './Components/UpdateNotification';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
-import { getShouldSendStatistics } from './Components/Categories/Today';
+const storage = remote.require('electron-json-storage');
 const MockDate = require('mockdate'); 
-const sysInfo = collectSystemInfo();
+const sysInfo = collectSystemInfo(); 
 injectTapEventPlugin();  
-export let isDev = () => { return true };  
+import printJS from 'print-js'; 
+export let isDev = () => { return true };   
 
 let analytics = new Analytics(
     'UA-113407516-1',
@@ -63,14 +64,15 @@ let analytics = new Analytics(
 );
 
 export const googleAnalytics = ({
-     send:(type:string,load:any) => getShouldSendStatistics(globalErrorHandler)
-                                    .then(
-                                        (should:boolean) => isNil(should) ? analytics.send(type,load) : 
-                                                            should ? analytics.send(type,load) :
-                                                            null               
-                                    ) 
+    send:(type:string,load:any) =>
+    getConfig()
+    .then(
+        (config:Config) => {
+            if(config.shouldSendStatistics){ analytics.send(type,load) }
+        }            
+    ) 
 });     
- 
+  
 
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 
@@ -134,11 +136,78 @@ export let globalErrorHandler = (error:any) : Promise<void> => {
     let app=document.createElement('div'); 
     app.id='application';     
     document.body.appendChild(app);     
-})();
+})(); 
+
+
+export let getConfig = () : Promise<Config> => {
+    return new Promise( 
+        resolve => {
+            storage.get( 
+                "config", 
+                (error, data:Config) => {  
+                    if(!isNil(error)){ globalErrorHandler(error) }
+                    if(isNil(data) || isEmpty(data)){ resolve(defaultConfig) }
+                    else{ resolve(data) }
+                }
+            )   
+        }
+    )
+}
+
+
+export let updateConfig = (dispatch:Function) => 
+        (load:any) : Promise<any> => {
+            return getConfig()
+                    .then( 
+                      (config:Config) => {
+                        let updated = { ...config, ...load } as Config;
+
+                        return new Promise(
+                            resolve => 
+                                storage.set(  
+                                    "config", 
+                                    updated, 
+                                    (error) => {
+                                        if(!isNil(error)){ globalErrorHandler(error) }
+                                        dispatch({type:"updateConfig",load:updated}) 
+                                        resolve(updated as Config); 
+                                    }
+                                )
+                        )
+                      }
+                    )
+        }
  
-export interface Store{
-    shouldSendStatistics : boolean,
-    hideHint : boolean,  
+
+export const defaultConfig = {
+    nextUpdateCheck:new Date(),
+    hideHint:false,
+    shouldSendStatistics:true,
+    showCalendarEvents:true,
+    groupTodayTodos:false,
+    preserveWindowWidth:true, //when resizing sidebar
+    enableShortcutForQuickEntry:true,
+    quickEntrySavesTo:"inbox", //inbox today next someday
+    moveCompletedItemsToLogbook:"immediatelly",
+    dockCount:10 
+}
+
+
+export interface Config{
+    nextUpdateCheck:Date,
+    hideHint:boolean,
+    shouldSendStatistics:boolean,
+    showCalendarEvents:boolean,
+    groupTodayTodos:boolean,
+    preserveWindowWidth:boolean, //when resizing sidebar
+    enableShortcutForQuickEntry:boolean,
+    quickEntrySavesTo:string, //inbox today next someday
+    moveCompletedItemsToLogbook, //immediatelly
+    dockCount:number //number of the tasks that show up on today and inbox
+}
+
+
+export interface Store extends Config{
     progress : any,
     showUpdatesNotification : boolean, 
     limit : Date, 
@@ -153,7 +222,6 @@ export interface Store{
     openRightClickMenu : any, 
     openRepeatPopup : any, 
     showRepeatPopup : boolean,
-    showCalendarEvents : boolean,  
     repeatTodo : Todo,
     repeatPopupX : number,
     repeatPopupY : number,
@@ -179,8 +247,10 @@ export interface Store{
     clone? : boolean,
     dispatch? : Function
 }   
- 
+
+
 export let defaultStoreItems : Store = {
+    ...defaultConfig,
     shouldSendStatistics : true, 
     hideHint : true, 
     progress : null, 
@@ -223,9 +293,8 @@ export let defaultStoreItems : Store = {
     tags:[...defaultTags]
 };      
 
+
 interface AppProps extends Store{};  
-
-
 
 @connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
 export class App extends Component<AppProps,{}>{  
@@ -238,9 +307,7 @@ export class App extends Component<AppProps,{}>{
         this.subscriptions = [];
     }
 
-
     onError = (error) => globalErrorHandler(error)
-
 
     reportStart = ({ arch, cpus, platform, release, type, timeSeconds }) => googleAnalytics.send(   
         'event',   
@@ -262,9 +329,8 @@ export class App extends Component<AppProps,{}>{
     .then(() => console.log('Application launched'))
     .catch(err => this.onError(err));
 
-
     initUpdateTimeout = () => {
-        let {dispatch} = this.props;
+        let {dispatch, nextUpdateCheck} = this.props;
         let check = () => checkForUpdates()  
                           .then((updateCheckResult:UpdateCheckResult) => { 
                                 let {updateInfo} = updateCheckResult;
@@ -273,31 +339,22 @@ export class App extends Component<AppProps,{}>{
                                 if(canUpdate){ 
                                     dispatch({type:"showUpdatesNotification", load:true}) 
                                 }else{
-                                    setToJsonStorage(
-                                        "nextUpdateCheck",
-                                        {nextUpdateCheck:threeDaysLater(new Date())}, 
-                                        this.onError 
-                                    ) 
+
+                                    updateConfig(dispatch)({nextUpdateCheck:threeDaysLater(new Date())})
                                 }
-                           }) 
-        
-        getFromJsonStorage("nextUpdateCheck", this.onError)
-        .then((data:any) => new Date(data.nextUpdateCheck))
-        .then((nextUpdateCheck:Date) => {  
-            if(isNil(nextUpdateCheck)){ check() }
+                           })    
+          
+        if(isNil(nextUpdateCheck)){ check() }
+        else{
+            let now = new Date();
+            let next = isString(nextUpdateCheck) ? new Date(nextUpdateCheck) : nextUpdateCheck;
+            let timeMs = next.getTime() - now.getTime();
+            if(timeMs<=0){ check() }
             else{
-                let now = new Date();
-                let timeMs = nextUpdateCheck.getTime() - now.getTime();
-                if(timeMs<=0){ check() }
-                else{
-                    this.timeouts.push( setTimeout(() => check(), timeMs) )
-                }   
-            }
-        }) 
-
-        googleAnalytics
+                this.timeouts.push( setTimeout(() => check(), timeMs) )
+            }   
+        }
     }
-
 
     initMidnightTimeout = () : void => {
         let {dispatch} = this.props;
@@ -311,15 +368,13 @@ export class App extends Component<AppProps,{}>{
         } 
     }
 
- 
     componentDidMount(){   
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
-        this.initObservables(); 
-        this.initUpdateTimeout();
+        this.initObservables();  
+        this.initUpdateTimeout(); 
         this.initMidnightTimeout();
         this.reportStart({...sysInfo, timeSeconds} as any);
     }    
-
 
     initObservables = () => {
         let {dispatch} = this.props;
@@ -352,7 +407,6 @@ export class App extends Component<AppProps,{}>{
         this.subscriptions.push(actionListener,errorListener,ctrlAltTListener,progressListener);
     }
 
-
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = [];
@@ -360,7 +414,6 @@ export class App extends Component<AppProps,{}>{
         this.timeouts = [];  
     }
  
-  
     render(){     
         let { clone } = this.props;
         
@@ -419,6 +472,7 @@ let reducer = (reducers) => (state:Store, action) => {
     return state      
 }; 
  
+
 let applicationReducer = reducer([applicationStateReducer, applicationObjectsReducer]); 
   
 
