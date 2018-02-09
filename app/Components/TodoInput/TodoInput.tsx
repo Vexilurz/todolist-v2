@@ -86,7 +86,6 @@ export interface TodoInputProps{
     showCompleted? : boolean, 
     dispatch : Function,  
     selectedCategory : Category,
-    tags : string[],  
     selectedProjectId:string,
     selectedAreaId:string,
     todos:Todo[],
@@ -204,7 +203,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         if(e.keyCode===13){  
            if(this.props.creation && this.state.open){
               this.addTodo();
-              this.resetCreationForm(); 
+              this.resetCreationForm();
            }else if(this.state.open){
               this.setState({open:false}, () => this.updateTodo()); 
            }   
@@ -227,11 +226,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
      
         if(!inside){  
             this.setState({open:false}, () => {
-                if(creation){
-                    this.addTodo();
-                }else{
-                    this.updateTodo();
-                } 
+                if(creation){ 
+                   this.addTodo(); 
+                   this.resetCreationForm(); 
+                }
+                else{ this.updateTodo() }  
             }); 
         }   
     }    
@@ -244,7 +243,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }    
 
 
-    updateTodo = () => { 
+    updateTodo = () => {  
+        if(this.props.creation){ return }
+
         let todo : Todo = this.todoFromState();  
 
         if(todoChanged(this.props.todo,todo)){
@@ -261,7 +262,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
             googleAnalytics.send(  
                 'event', 
-               { 
+                { 
                    ec:'TodoCreation', 
                    ea:`Todo Created ${new Date().toString()}`, 
                    el:'Todo Created', 
@@ -373,16 +374,18 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     } 
 
 
-    onAttachTag = (tag) => {
-        
-        if(tag.length===0) 
-           return;
+    onAttachTag = (tag:string) => {
+        let {creation} = this.props;
+        if(tag.length===0){ return };
  
-        this.setState({tag:'', attachedTags:uniq([...this.state.attachedTags, tag])})
+        this.setState(
+            {tag:'', attachedTags:uniq([...this.state.attachedTags, tag])},
+            () => this.updateTodo()  
+        )
     } 
 
 
-    onRemoveTag = (tag) => {
+    onRemoveTag = (tag:string) => {
 
         let {attachedTags} = this.state;
         
@@ -392,7 +395,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
  
         if(idx===-1){ return }
 
-        this.setState({attachedTags:remove(idx,1,attachedTags)})
+        this.setState( 
+            {attachedTags:remove(idx,1,attachedTags)},
+            () => this.updateTodo()  
+        )
     } 
 
 
@@ -859,15 +865,18 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 onAddReminderClick = {this.onCalendarAddReminderClick}
                 onClear = {this.onCalendarClear}  
             />  
-            <TagsPopup  
-                tags = {this.props.tags}
-                attachTag = {this.onAttachTag}
-                close = {this.closeTagsSelection}
-                open = {this.state.showTagsSelection}   
-                anchorEl = {this.tags} 
-                origin = {{vertical: "center", horizontal: "right"}} 
-                point = {{vertical: "center", horizontal: "right"}}
-                rootRef = {this.props.rootRef}
+            <TagsPopup
+                {  
+                    ...{
+                        attachTag:this.onAttachTag,
+                        close:this.closeTagsSelection,
+                        open:this.state.showTagsSelection,   
+                        anchorEl:this.tags,
+                        origin:{vertical: "center", horizontal: "right"},
+                        point:{vertical: "center", horizontal: "right"},
+                        rootRef:this.props.rootRef
+                    } as any
+                } 
             /> 
             <DeadlineCalendar  
                 close={this.closeDeadlineCalendar}
@@ -1539,9 +1548,7 @@ interface TodoInputMiddleLevelState{}
  
 class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,TodoInputMiddleLevelState>{
     
-    constructor(props){
-        super(props);
-    }
+    constructor(props){ super(props) }
 
     render(){
 
@@ -1556,7 +1563,7 @@ class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,TodoInput
             onRemoveTag
         } = this.props;
 
-        return  <div style={{ 
+        return <div style={{ 
             transition:"opacity 0.2s ease-in-out", 
             opacity:open ? 1 : 0, 
             paddingLeft:"25px", 
@@ -1578,19 +1585,11 @@ class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,TodoInput
             {    
                 not(showChecklist) ? null : 
                 <div>   
-                <Checklist 
-                    checklist={checklist}  
-                    updateChecklist={this.props.updateChecklist as any} 
-                />  
+                    <Checklist checklist={checklist} updateChecklist={this.props.updateChecklist as any}/>   
                 </div>
             }   
             { 
-                isEmpty(attachedTags) ? null : 
-                <TodoTags 
-                    attachTag={onAttachTag} 
-                    removeTag={onRemoveTag}
-                    tags={attachedTags}
-                /> 
+                <TodoTags attachTag={onAttachTag} removeTag={onRemoveTag} tags={attachedTags}/> 
             } 
         </div>   
     } 

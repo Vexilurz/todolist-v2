@@ -58,6 +58,12 @@ export class Listeners{
  
       this.registeredListeners = [ 
             {
+                name:"hide",
+                callback:(event) => {
+                    this.spawnedWindows.map((win:BrowserWindow) => win.hide())
+                }
+            }, 
+            {
                 name:"downloadUpdates",
                 callback:(event) => {
                     autoUpdater 

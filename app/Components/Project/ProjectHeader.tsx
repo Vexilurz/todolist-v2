@@ -47,7 +47,6 @@ interface ProjectHeaderProps{
     created:Date,
     deadline:Date, 
     completed:Date,  
-    tags:string[], 
     updateProjectDeadline:(value:Date) => void,
     updateProjectName:(value:string) => void,
     updateProjectDescription:(value:string) => void,
@@ -178,14 +177,17 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             {
                 not(showTagsPopup) ? null : 
                 <TagsPopup    
-                    tags = {this.props.tags} 
-                    attachTag = {this.props.attachTagToProject} 
-                    close = {() => this.setState({showTagsPopup:false})}
-                    open = {this.state.showTagsPopup}    
-                    anchorEl = {this.projectMenuPopoverAnchor} 
-                    origin = {{vertical:"top", horizontal:"left"}} 
-                    point = {{vertical:"top", horizontal:"right"}} 
-                    rootRef = {this.props.rootRef}
+                    {
+                        ...{
+                            attachTag:this.props.attachTagToProject, 
+                            close:() => this.setState({showTagsPopup:false}),
+                            open:this.state.showTagsPopup,    
+                            anchorEl:this.projectMenuPopoverAnchor, 
+                            origin:{vertical:"top", horizontal:"left"}, 
+                            point:{vertical:"top", horizontal:"right"}, 
+                            rootRef:this.props.rootRef
+                        } as any 
+                    } 
                 />
             } 
             <div style={{display:"flex", alignItems: "center"}}>

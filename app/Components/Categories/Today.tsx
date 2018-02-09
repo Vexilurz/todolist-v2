@@ -124,8 +124,7 @@ interface TodayProps{
     projects:Project[],
     selectedTag:string,
     rootRef:HTMLElement,
-    todos:Todo[], 
-    tags:string[]
+    todos:Todo[]
 } 
    
 
@@ -251,7 +250,6 @@ export class Today extends Component<TodayProps,TodayState>{
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos}
                     selectedCategory={this.props.selectedCategory as Category} 
-                    tags={this.props.tags} 
                     rootRef={this.props.rootRef}  
                     todo={todo}
                 />      
@@ -392,7 +390,6 @@ export class Today extends Component<TodayProps,TodayState>{
                         todos={this.props.todos}
                         selectedCategory={"today"} 
                         projects={this.props.projects}  
-                        tags={this.props.tags} 
                         rootRef={this.props.rootRef}  
                         todo={empty}
                         creation={true}

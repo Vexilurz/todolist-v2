@@ -40,7 +40,6 @@ interface AreaHeaderProps{
     selectedAreaId:string,
     areas:Area[],
     projects:Project[],
-    tags:string[],
     rootRef:HTMLElement, 
     todos:Todo[], 
     updateAreaName:(value:string) => void,
@@ -211,14 +210,17 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
                 {
                     !this.state.showTagsPopup ? null : 
                     <TagsPopup   
-                        tags = {this.props.tags} 
-                        attachTag = {this.props.attachTagToArea} 
-                        rootRef = {this.props.rootRef}
-                        close = {() => this.setState({showTagsPopup:false})}
-                        open = {this.state.showTagsPopup}    
-                        anchorEl = {this.menuAnchor} 
-                        origin = {{vertical:"top", horizontal:"left"}} 
-                        point = {{vertical:"top", horizontal:"right"}} 
+                        {
+                            ...{
+                                attachTag:this.props.attachTagToArea, 
+                                rootRef:this.props.rootRef,
+                                close:() => this.setState({showTagsPopup:false}),
+                                open:this.state.showTagsPopup,    
+                                anchorEl:this.menuAnchor, 
+                                origin:{vertical:"top", horizontal:"left"},
+                                point:{vertical:"top", horizontal:"right"}
+                            } as any 
+                        } 
                     /> 
                 }
                 <AreaMenu

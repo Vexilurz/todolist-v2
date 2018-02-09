@@ -28,7 +28,7 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { Checkbox } from '../TodoInput/TodoInput';
-import { attachDispatchToProps, isString, debounce, isNewVersion, keyFromDate, checkForUpdates, uppercase, isArrayOfStrings, assert } from '../../utils';
+import { attachDispatchToProps, isString, debounce, isNewVersion, keyFromDate, checkForUpdates, uppercase, isArrayOfStrings, assert, defaultTags, isArrayOfTodos } from '../../utils';
 import { Store, globalErrorHandler, updateConfig } from '../../app';
 import { 
     generateId, Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, 
@@ -63,7 +63,7 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
 }  
 
 interface SettingsProps extends Store{}
-export type section =  'General' | 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags';
+export type section =  'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags';
 interface SettingsState{}
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
@@ -114,12 +114,6 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     width:"100%",
                     padding:"10px"  
                 }}> 
-                    <Section  
-                        onClick={() => dispatch({type:"selectedSettingsSection", load:'General'})} 
-                        icon={<General style={{color:"dimgray", height:18, width:18}}/>}
-                        name={'General'}
-                        selected={selectedSettingsSection==='General'}
-                    /> 
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'QuickEntry'})} 
                         icon={<QuickEntry style={{color:"rgba(100,100,100,0.8)", height:18, width:18}}/>}
@@ -133,17 +127,17 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         selected={selectedSettingsSection==='CalendarEvents'}
                     />
                     <Section
-                        onClick={() => dispatch({type:"selectedSettingsSection", load:'Advanced'})} 
-                        icon={<Advanced style={{color:"rgba(10,10,10,0.8)", height:18, width:18}}/>}
-                        name={'Advanced'} 
-                        selected={selectedSettingsSection==='Advanced'}
-                    />  
-                    <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'Tags'})} 
                         icon={<TriangleLabel style={{color:"rgba(10,10,10,0.8)", height:18, width:18}}/>}
                         name={'Tags'} 
                         selected={selectedSettingsSection==='Tags'} 
-                    />  
+                    /> 
+                    <Section
+                        onClick={() => dispatch({type:"selectedSettingsSection", load:'Advanced'})} 
+                        icon={<Advanced style={{color:"rgba(10,10,10,0.8)", height:18, width:18}}/>}
+                        name={'Advanced'} 
+                        selected={selectedSettingsSection==='Advanced'}
+                    />   
                 </div>     
             </div> 
             <div 
@@ -151,11 +145,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
               style={{flexGrow:0.7,display:"flex",width:"100%",cursor:"default"}}
             >  
             {
-                cond([  
-                    [ 
-                        (selectedSettingsSection:string) : boolean => selectedSettingsSection==="General",  
-                        () => <GeneralSettings />
-                    ],  
+                cond([   
                     [ 
                         (selectedSettingsSection:string) : boolean => selectedSettingsSection==="QuickEntry",  
                         () => <QuickEntrySettings />
@@ -400,61 +390,91 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
 
     constructor(props){ super(props) }
 
-    getTags = () : string[] => {
-        let {todos,tags} = this.props; 
+    getTags = () => {
+        let {todos,defaultTags} = this.props; 
         return compose(
-            uniq,
-            flatten,
-            concat(tags),
-            () => map((t:Todo) => t.attachedTags)(todos)
+          uniq,
+          flatten,
+          concat(defaultTags),
+          () => todos.map((t:Todo) => t.attachedTags)
         )() as string[]
     } 
 
     onRemoveTag = (tag:string) => () => {
-        let {dispatch, todos} = this.props;
-        let selectedTodos = filter(todos, (t:Todo) => contains(tag)(t.attachedTags), "");
+        let {dispatch, todos, defaultTags} = this.props;
+        
+        let updatedTodos = compose(
+            map(
+                (todo:Todo) : Todo => compose(
+                    (idx) => ({...todo,attachedTags:remove(idx,1,todo.attachedTags)}),
+                    findIndex((todoTag:string) => todoTag===tag),
+                    () => todo.attachedTags
+                )()
+            ), 
+            () => filter(todos, (t:Todo) => contains(tag)(t.attachedTags), "")
+        )(); 
 
-        dispatch({
-            type:"updateTodos", 
-            load:selectedTodos.map((t:Todo) => {
-              let idx = findIndex((todoTag:string) => todoTag===tag)(t.attachedTags);
-              return ({...t,attachedTags:remove(idx,1,t.attachedTags)});
-            })
-        })
+        assert(isArrayOfTodos(updatedTodos as Todo[]),'onRemoveTag');
+
+        dispatch({type:"updateTodos", load:updatedTodos});
+
+        if(contains(tag)(defaultTags)){
+            compose(
+                updateConfig(dispatch),
+                (idx:number) => ({defaultTags:remove(idx,1,defaultTags)}),
+                findIndex((item) => item===tag)
+            )(defaultTags)
+        }
     }
 
+    onReset = () => {
+       let {todos,dispatch} = this.props;
+
+       updateConfig(dispatch)({defaultTags})
+       .then(() => {
+            let updatedTodos = todos.map(
+                (todo:Todo) => ({ 
+                    ...todo, 
+                    attachedTags:todo.attachedTags.filter((tag) => contains(tag)(defaultTags)) 
+                })
+            );
+
+            dispatch({type:"updateTodos", load:updatedTodos});
+        }) 
+    }
+     
     render(){
         let tags = this.getTags();
-        assert(isArrayOfStrings(tags),'tags is not of type string[]. TagsSettings.');
         
-        return <div style={{width:"100%",display:"flex"}}>
-        <div
-            onClick={(e) => {e.stopPropagation();}} 
-            style={{display:"flex",paddingTop:"5px",paddingBottom:"5px",flexWrap:"wrap"}}
-        >
+        return <div style={{
+            width:"100%", display:"flex", paddingTop:"25px", 
+            alignItems:"flex-start", paddingLeft:"25px", 
+            justifyContent:"space-between", flexDirection:"column" 
+        }}>
+        <div style={{display:"flex",paddingTop:"5px",paddingBottom:"5px",flexWrap:"wrap"}}>
             {      
                 tags
                 .sort((a:string,b:string) : number => a.localeCompare(b))
                 .map( 
                     (tag:string, index:number) => 
                         <div key={`${tag}-${index}`}>
-                        <div style={{
+                        <div style={{ 
                             borderRadius:"15px", 
-                            backgroundColor:"rgb(189,219,209)",
+                            border:"1px solid rgb(100,100,100)",
                             paddingLeft:"5px",
                             paddingRight:"5px", 
                             display:"flex",
                             alignItems:"center",
-                            height:"30px",
+                            height:"20px",
                             margin:"2px"
                         }}>
                             <div style={{  
-                                height:"15px",
-                                display:"flex",
-                                alignItems:"center",
-                                padding:"4px", 
-                                color:"rgb(115,167,152)",
-                                fontWeight: 600    
+                              height:"15px",
+                              display:"flex",
+                              alignItems:"center",
+                              padding:"4px", 
+                              color:"black",
+                              fontWeight:500    
                             }}> 
                                 {uppercase(tag)} 
                             </div> 
@@ -462,13 +482,35 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
                               style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
                               onClick={this.onRemoveTag(tag)}
                             >
-                                <Clear style={{color:"rgba(100,100,100,0.5)",height:20,width:20}}/>
+                                <Clear style={{color:"rgba(100,100,100)",height:20,width:20}}/>
                             </div>
                         </div>
                         </div> 
                 )   
-            }
+            } 
         </div>
+        <div     
+            onClick={this.onReset}
+            style={{     
+              display:"flex",
+              alignItems:"center",
+              cursor:"pointer",
+              marginRight:"15px", 
+              justifyContent:"center",
+              width: "40px",
+              height:"20px", 
+              borderRadius:"5px",
+              paddingLeft:"25px",
+              paddingRight:"25px",
+              paddingTop:"5px", 
+              paddingBottom:"5px",
+              backgroundColor:"rgba(100, 100, 100, 1)"  
+            }}  
+        >   
+            <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
+                Reset
+            </div>   
+        </div> 
         </div>
     }   
 }

@@ -22,7 +22,6 @@ interface AreaComponentProps{
     dispatch:Function,  
     selectedProjectId:string, 
     projects:Project[],
-    tags:string[],
     rootRef:HTMLElement 
 } 
   
@@ -65,7 +64,6 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                 <AreaHeader 
                     area={this.props.area} 
                     name={this.props.area.name}  
-                    tags={this.props.tags}
                     rootRef={this.props.rootRef}
                     areas={this.props.areas}    
                     attachTagToArea={(tag:string) => this.attachTagToArea(this.props.area,tag)}
@@ -81,7 +79,6 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                     area={this.props.area}  
                     selectedCategory={this.props.selectedCategory}
                     todos={this.props.todos} 
-                    tags={this.props.tags} 
                     selectedAreaId={this.props.selectedAreaId}
                     selectedProjectId={this.props.selectedProjectId}
                     selectedTag={this.props.selectedTag}

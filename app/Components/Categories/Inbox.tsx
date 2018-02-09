@@ -27,8 +27,7 @@ interface InboxProps{
     areas:Area[],
     projects:Project[],  
     rootRef:HTMLElement,
-    todos:Todo[],
-    tags:string[] 
+    todos:Todo[]
 } 
  
  
@@ -83,7 +82,6 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos} 
-                    tags={this.props.tags} 
                     projects={this.props.projects}
                     rootRef={this.props.rootRef}  
                     todo={empty} 
@@ -100,7 +98,6 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}
                     todos={this.props.todos}   
-                    tags={this.props.tags} 
                 />
                 </div> 
             </div>

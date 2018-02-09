@@ -179,9 +179,10 @@ export let updateConfig = (dispatch:Function) =>
         }
  
 
-export const defaultConfig = {
+export const defaultConfig = { 
     nextUpdateCheck:new Date(),
     hideHint:false,
+    defaultTags, 
     shouldSendStatistics:true,
     showCalendarEvents:true,
     groupTodayTodos:false,
@@ -195,6 +196,7 @@ export const defaultConfig = {
 
 export interface Config{
     nextUpdateCheck:Date,
+    defaultTags:string[],
     hideHint:boolean,
     shouldSendStatistics:boolean,
     showCalendarEvents:boolean,
@@ -243,7 +245,6 @@ export interface Store extends Config{
     projects : Project[],
     areas : Area[], 
     todos : Todo[], 
-    tags : string[],
     clone? : boolean,
     dispatch? : Function
 }   
@@ -253,12 +254,12 @@ export let defaultStoreItems : Store = {
     ...defaultConfig,
     shouldSendStatistics : true, 
     hideHint : true, 
-    progress : null, 
+    progress : null,  
     showUpdatesNotification : false, 
     limit : yearFromNow(),
     searchQuery : "",
     openChangeGroupPopup : false,  
-    selectedSettingsSection : "General",
+    selectedSettingsSection : "QuickEntry",
     openSettings : false,   
     openRepeatPopup : null, 
     showRepeatPopup : false,
@@ -289,8 +290,7 @@ export let defaultStoreItems : Store = {
     projects:[],
     areas:[],  
     clone : false,
-    todos:[], 
-    tags:[...defaultTags]
+    todos:[]
 };      
 
 

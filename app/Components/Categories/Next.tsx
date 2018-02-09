@@ -49,8 +49,7 @@ interface NextProps{
     rootRef:HTMLElement,
     areas:Area[], 
     projects:Project[], 
-    todos:Todo[],
-    tags:string[]
+    todos:Todo[]
 }
 
 
@@ -116,7 +115,6 @@ export class Next extends Component<NextProps, NextState>{
                             selectedProjectId={this.props.selectedProjectId}
                             selectedAreaId={this.props.selectedAreaId}  
                             todos={this.props.todos}
-                            tags={this.props.tags} 
                             rootRef={this.props.rootRef}  
                             todo={emptyTodo}
                             creation={true}
@@ -133,7 +131,6 @@ export class Next extends Component<NextProps, NextState>{
                                 selectedTag={this.props.selectedTag}  
                                 rootRef={this.props.rootRef}
                                 todos={table.detached}  
-                                tags={this.props.tags}  
                             /> 
                         }
                     </div>  
@@ -155,7 +152,6 @@ export class Next extends Component<NextProps, NextState>{
                                         selectedProjectId={this.props.selectedProjectId}
                                         rootRef={this.props.rootRef}
                                         todos={todos} 
-                                        tags={this.props.tags}
                                         areas={this.props.areas}
                                         projects={this.props.projects}
                                         project={project}
@@ -181,7 +177,6 @@ export class Next extends Component<NextProps, NextState>{
                                             selectedAreaId={this.props.selectedAreaId}
                                             selectedProjectId={this.props.selectedProjectId}
                                             todos={todos} 
-                                            tags={this.props.tags} 
                                             areas={this.props.areas}
                                             projects={this.props.projects}
                                         />
@@ -206,7 +201,6 @@ interface ExpandableTodosListProps{
     projects:Project[], 
     rootRef:HTMLElement, 
     todos:Todo[], 
-    tags:string[],
     project?:Project   
 } 
  
@@ -245,9 +239,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                     selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}
                     todos={this.props.todos.slice(0,idx)}  
-                    tags={this.props.tags}  
                 />  
-
                 {   
                     !showExpandButton ? null :
                     <div style={{cursor: "pointer", height: "30px"}}>

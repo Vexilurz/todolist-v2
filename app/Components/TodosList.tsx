@@ -283,7 +283,6 @@ interface TodosListProps{
     selectedAreaId:string,  
     rootRef:HTMLElement,   
     todos:Todo[],  
-    tags:string[],
     disabled?:boolean     
 }    
 
@@ -315,7 +314,6 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 selectedAreaId={this.props.selectedAreaId} 
                 todos={this.props.todos}
                 selectedCategory={this.props.selectedCategory} 
-                tags={this.props.tags} 
                 rootRef={this.props.rootRef}  
                 todo={value}
             />     

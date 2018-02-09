@@ -52,8 +52,7 @@ interface AreaBodyProps{
     projects:Project[],
     selectedAreaId:string,
     selectedProjectId:string, 
-    todos:Todo[],
-    tags:string[], 
+    todos:Todo[], 
     selectedCategory:Category, 
     selectedTag:string, 
     rootRef:HTMLElement,
@@ -110,8 +109,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 rootRef={this.props.rootRef}
                 selectedAreaId={this.props.selectedAreaId}
                 selectedProjectId={this.props.selectedProjectId}
-                selectedCategory={this.props.selectedCategory}
-                tags={this.props.tags}  
+                selectedCategory={this.props.selectedCategory} 
                 areas={this.props.areas} 
                 projects={this.props.projects}
             />
@@ -144,7 +142,6 @@ interface ProjectElementProps{
     selectedCategory:Category,
     selectedAreaId:string,  
     selectedProjectId:string, 
-    tags:string[],  
     areas:Area[],  
     projects:Project[]   
 }
@@ -164,7 +161,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         let {
             project, todos, index, dispatch, selectedTag, 
             rootRef, selectedAreaId, selectedProjectId, 
-            selectedCategory, tags, areas, projects,
+            selectedCategory, areas, projects,
         } = this.props;
 
         let attachedTodosIds = project.layout.filter(isString) as string[];
@@ -173,7 +170,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
             contains(t._id)(attachedTodosIds) && 
             byNotCompleted(t) &&
             byNotDeleted(t) 
-        );  
+        );   
   
         return  isEmpty(todos) ? null : 
                 <div style={{display:"flex", flexDirection:"column"}}>
@@ -186,7 +183,6 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                         selectedProjectId={this.props.selectedProjectId}
                         todos={selected} 
                         project={project}  
-                        tags={this.props.tags}  
                         areas={this.props.areas} 
                         projects={this.props.projects}
                     />  

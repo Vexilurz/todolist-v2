@@ -30,7 +30,6 @@ interface LogbookProps{
     projects:Project[],
     areas:Area[],  
     selectedTag:string,
-    tags:string[],
     rootRef:HTMLElement 
 }
  
@@ -39,7 +38,7 @@ interface LogbookState{}
  
 
 export class Logbook extends Component<LogbookProps,LogbookState>{
-
+ 
     constructor(props){
         super(props);
     }  
@@ -162,8 +161,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                                     selectedProjectId={this.props.selectedProjectId}
                                     selectedAreaId={this.props.selectedAreaId} 
                                     todos={this.props.todos} 
-                                    selectedCategory={"logbook"} 
-                                    tags={this.props.tags} 
+                                    selectedCategory={"logbook"}  
                                     rootRef={this.props.rootRef}  
                                     todo={value as Todo}
                                 />    

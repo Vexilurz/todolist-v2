@@ -128,7 +128,6 @@ interface UpcomingProps{
     selectedProjectId:string, 
     areas:Area[], 
     selectedTag:string,
-    tags:string[],
     rootRef:HTMLElement 
 }  
  
@@ -303,7 +302,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 dispatch={this.props.dispatch}
                 selectedTag={this.props.selectedTag}
                 rootRef={this.props.rootRef}
-                tags={this.props.tags}
             />  
         </div>
     } 
@@ -359,8 +357,7 @@ interface CalendarDayProps{
     selectedProjectId:string, 
     selectedCategory:Category,
     selectedTag:string,
-    rootRef:HTMLElement, 
-    tags:string[]
+    rootRef:HTMLElement
 }
 
   
@@ -369,12 +366,10 @@ interface CalendarDayState{}
   
 export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
-    constructor(props){
-        super(props)
-    }
+    constructor(props){ super(props) }
 
     render(){   
-
+        
         let {
             selectedTodos,todos,scheduledProjects,
             day,idx,dayName,dispatch,selectedEvents
@@ -522,7 +517,6 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             projects={this.props.projects}
                             rootRef={this.props.rootRef}
                             todos={selectedTodos}   
-                            tags={this.props.tags} 
                         />  
                     </div> 
                 }

@@ -53,12 +53,11 @@ interface ProjectBodyProps{
     dragged:string, 
     projects:Project[], 
     selectedProjectId:string,
-    selectedAreaId:string,  
-    tags:string[], 
+    selectedAreaId:string, 
     rootRef:HTMLElement,
     dispatch:Function
 } 
- 
+  
 
  
 interface ProjectBodyState{} 
@@ -95,7 +94,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                             selectedProjectId={this.props.selectedProjectId}
                             selectedAreaId={this.props.selectedAreaId} 
                             todos={this.props.todos}
-                            tags={this.props.tags} 
                             selectedCategory={"project"}
                             rootRef={this.props.rootRef}  
                             todo={value as Todo}
@@ -299,7 +297,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos}
                     selectedCategory={"project"}   
-                    tags={this.props.tags}  
                     rootRef={this.props.rootRef}  
                     todo={empty}
                     creation={true}

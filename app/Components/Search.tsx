@@ -385,7 +385,6 @@ export class Search extends Component<SearchProps,SearchState>{
                                 selectedAreaId={this.props.selectedAreaId} 
                                 todos={this.props.todos}
                                 selectedCategory={this.props.selectedCategory} 
-                                tags={this.props.tags} 
                                 rootRef={document.getElementById("maincontainer")}  
                                 todo={todo}
                             />   
@@ -475,7 +474,6 @@ export class Search extends Component<SearchProps,SearchState>{
                                 selectedAreaId={this.props.selectedAreaId} 
                                 todos={this.props.todos}  
                                 selectedCategory={this.props.selectedCategory} 
-                                tags={this.props.tags} 
                                 rootRef={document.getElementById("maincontainer")}  
                                 todo={todo}
                             />   

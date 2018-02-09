@@ -59,7 +59,6 @@ interface ProjectComponentProps{
     selectedAreaId:string, 
     showScheduled:boolean,
     showCompleted:boolean,
-    tags:string[],
     rootRef:HTMLElement,
     dispatch:Function
 }
@@ -231,7 +230,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             rootRef={this.props.rootRef}
                             name={project.name} 
                             attachTagToProject={this.attachTagToProject}
-                            tags={this.props.tags} 
                             progress={progress}   
                             description={project.description}
                             created={project.created as any}   
@@ -261,7 +259,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             selectedAreaId={this.props.selectedAreaId}  
                             projects={this.props.projects}
                             todos={toProjectBody as Todo[]}  
-                            tags={this.props.tags}
                             rootRef={this.props.rootRef}
                             dispatch={this.props.dispatch} 
                         />  

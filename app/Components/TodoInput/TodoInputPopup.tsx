@@ -85,7 +85,7 @@ export class TodoInputPopup extends Component<TodoInputPopupProps,TodoInputPopup
     render(){ 
 
         let {
-            openTodoInputPopup, dispatch, tags, todos, 
+            openTodoInputPopup, dispatch, todos, 
             projects, selectedCategory, selectedProjectId, 
             selectedAreaId
         } = this.props; 
@@ -110,8 +110,7 @@ export class TodoInputPopup extends Component<TodoInputPopupProps,TodoInputPopup
                 }}> 
                     <AlwaysOpenedTodoInput 
                         dispatch={dispatch}   
-                        tags={tags}  
-                        todos={todos} 
+                        todos={todos}  
                         projects={projects}
                         selectedCategory={selectedCategory}
                         selectedProjectId={selectedProjectId}
@@ -154,8 +153,7 @@ interface  AlwaysOpenedTodoInputProps{
     projects:Project[], 
     selectedCategory:Category,
     selectedProjectId:string,
-    selectedAreaId:string, 
-    tags:string[]
+    selectedAreaId:string 
 }    
    
    
@@ -682,14 +680,17 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                 />   
 
                 <TagsPopup   
-                    tags = {this.props.tags}
-                    attachTag = {this.onAttachTag}
-                    close = {this.closeTagsSelection}
-                    open = {this.state.showTagsSelection}   
-                    anchorEl = {this.tags} 
-                    origin = {{vertical: "center", horizontal: "left"}} 
-                    point = {{vertical: "bottom", horizontal: "right"}} 
-                    rootRef = {document.body} 
+                    {
+                        ...{
+                            attachTag:this.onAttachTag,
+                            close:this.closeTagsSelection,
+                            open:this.state.showTagsSelection,  
+                            anchorEl:this.tags,
+                            origin:{vertical:"center",horizontal:"left"}, 
+                            point:{vertical:"bottom",horizontal:"right"}, 
+                            rootRef:document.body 
+                        } as any
+                    }
                 />
 
                 <DeadlineCalendar   
@@ -713,7 +714,7 @@ class AlwaysOpenedTodoInput extends Component<AlwaysOpenedTodoInputProps,AlwaysO
                         width:"25px",   
                         height:"25px"  
                     }}>      
-                        <Calendar /> 
+                        <Calendar />  
                     </IconButton> 
                 </div> 
             } 

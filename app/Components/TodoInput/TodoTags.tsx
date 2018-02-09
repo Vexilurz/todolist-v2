@@ -30,54 +30,48 @@ import Reorder from 'material-ui/svg-icons/action/reorder';
 let uniqid = require("uniqid");  
 import Popover from 'material-ui/Popover';
 import { Todo } from '../../database';
-import { uppercase, insideTargetArea } from '../../utils';
+import { uppercase, insideTargetArea, attachDispatchToProps, assert, isArrayOfStrings } from '../../utils';
 import AutosizeInput from 'react-input-autosize'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
+import { Provider, connect } from "react-redux";
+import { Store } from '../../app';
+import { map, compose, uniq, flatten, concat, prop} from 'ramda';
 
 
-interface TagsPopupProps{
-    tags:string[], 
+interface TagsPopupProps extends Store{
     close : Function,
     open : boolean,
     attachTag:(tag:string) => void,
     origin : any,  
     rootRef : HTMLElement, 
     anchorEl : HTMLElement,
-    point : any
-}  
+    point : any 
+}   
 
  
- 
+@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
 export class TagsPopup extends Component<TagsPopupProps,{}>{
-    
         ref:HTMLElement;
         subscriptions:Subscription[];
 
-        
-        constructor(props){ 
+        constructor(props){  
             super(props); 
             this.subscriptions = [];
         }   
 
-
         componentDidMount(){ 
-            let click = Observable
-                        .fromEvent(document.body,"click")
-                        .subscribe(this.onOutsideClick);
-                        
+            let click = Observable.fromEvent(document.body,"click").subscribe(this.onOutsideClick);
             this.subscriptions.push(click);
         }   
-
 
         componentWillUnmount(){
             this.subscriptions.map(s => s.unsubscribe());
             this.subscriptions = []; 
         } 
 
-        
         onOutsideClick = (e) => {
             if(this.ref===null || this.ref===undefined)
                 return; 
@@ -87,12 +81,24 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
 
             let inside = insideTargetArea(null,this.ref,x,y);
         
-            if(!inside){
-                this.props.close(); 
-            }   
+            if(!inside){ this.props.close() }   
         }      
+
+        getTags = () => {
+            let {todos, defaultTags} = this.props;
+
+            return compose( 
+                uniq,
+                flatten,
+                concat(defaultTags),
+                (todos) => todos.map(prop("attachedTags"))
+            )(todos as any)
+        }
                 
         render(){ 
+            let tags = this.getTags();
+            assert(isArrayOfStrings(tags),'TodoTags');
+
             return <Popover  
                 open={this.props.open}
                 style={{
@@ -131,8 +137,8 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
                             overflowX:"hidden" 
                         }}
                     >    
-                        { 
-                            this.props.tags
+                        {  
+                            tags
                             .sort((a:string,b:string) : number => a.localeCompare(b))
                             .map(
                                 (tag:string) => {
@@ -207,6 +213,7 @@ export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
         this.setState({tag:''}); 
     }
     
+
     onRemoveTag = (tag:string) => () => {
         let {removeTag} = this.props;
         removeTag(tag);
@@ -262,11 +269,7 @@ export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
                               style={{padding:"2px",alignItems:"center",display:"flex"}} 
                               onClick={this.onRemoveTag(tag)}
                             >
-                                <Clear style={{
-                                    color:"rgba(100,100,100,0.5)",
-                                    height:20,
-                                    width:20 
-                                }}/>
+                                <Clear style={{color:"rgba(100,100,100,0.5)",height:20,width:20}}/>
                             </div>
                         </div> 
                     </div> 

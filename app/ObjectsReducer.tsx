@@ -81,8 +81,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 load:Todo[]
             }) : Store => ({  
                 ...state,
-                todos : action.load,
-                tags : [...defaultTags, ...getTagsFromItems(action.load)]
+                todos : action.load
             })
         ], 
         [ 
@@ -105,8 +104,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 ...state,
                 todos : [...action.load.todos],
                 projects : [...action.load.projects],
-                areas : [...action.load.areas],
-                tags : [...defaultTags, ...getTagsFromItems(action.load.todos)] 
+                areas : [...action.load.areas]
             })
         ], 
         [  
@@ -131,11 +129,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
   
                 if(shouldAffectDatabase){ removeTodos(group,onError) } 
 
-                return {  
-                    ...state,
-                    todos,
-                    tags:[...defaultTags, ...getTagsFromItems(todos)]
-                } 
+                return { ...state, todos } 
             }
         ],
         [
@@ -161,8 +155,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                     ...state,
                     todos,
                     projects,
-                    areas,
-                    tags:[...defaultTags, ...getTagsFromItems(todos)]
+                    areas
                 } 
             }
         ], 
@@ -180,7 +173,9 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
  
                 if(shouldAffectDatabase){ addTodo(onError, action.load) }
 
-                return { ...state, todos:[action.load,...state.todos] } 
+                let todos = [action.load,...state.todos];
+
+                return {...state, todos} 
             } 
         ], 
         [ 
@@ -201,11 +196,11 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                     return{ ...state, todos:remove(idx, 1, state.todos) }  
                 } 
 
-                if(shouldAffectDatabase){
-                   updateTodo(action.load._id, action.load, onError)
-                }
+                if(shouldAffectDatabase){ updateTodo(action.load._id, action.load, onError) }
+
+                let todos = adjust(() => action.load, idx, state.todos);
                  
-                return { ...state, todos:adjust(() => action.load, idx, state.todos) } 
+                return { ...state, todos } 
             }
         ],
         [
@@ -308,7 +303,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
                 if(shouldAffectDatabase){ updateTodos(changedTodos,onError) }
     
-                return {...state, todos}
+                return { ...state, todos }
             } 
         ],
         [ 
@@ -342,8 +337,10 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
             (action:{type:string, load:Todo[]}) : Store => {
  
                 if(shouldAffectDatabase){ addTodos(onError,action.load) } 
-                   
-                return { ...state, todos:[...action.load,...state.todos] }
+                
+                let todos = [...action.load,...state.todos];
+                
+                return { ...state, todos }
             }
         ],
         [ 
@@ -361,7 +358,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
  
             (action:{type:string, load:Area[]}) : Store => {
 
-                if(shouldAffectDatabase){ addAreas(onError, action.load) }
+                if(shouldAffectDatabase){ addAreas(onError, action.load) } 
                 
                 return { ...state, areas:[...action.load,...state.areas] }
             }

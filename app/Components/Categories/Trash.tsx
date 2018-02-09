@@ -25,13 +25,11 @@ import { Store } from '../../app';
 import { ProjectLinkTrash } from '../Project/ProjectLink';
 import { AreaTrashLink } from '../Area/AreaLink';
 
- 
 
 interface TrashProps{ 
     dispatch:Function,
     selectedCategory:Category,  
     showTrashPopup:boolean, 
-    tags:string[],
     selectedProjectId:string,
     selectedAreaId:string, 
     selectedTag:string,
@@ -40,7 +38,8 @@ interface TrashProps{
     areas:Area[],
     rootRef:HTMLElement     
 }      
- 
+
+
 interface TrashState{}
  
 export class Trash extends Component<TrashProps,TrashState>{ 
@@ -85,7 +84,6 @@ export class Trash extends Component<TrashProps,TrashState>{
                     projects={this.props.projects}   
                     selectedCategory={this.props.selectedCategory}
                     dispatch={this.props.dispatch}   
-                    tags={this.props.tags} 
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos} 
@@ -180,8 +178,7 @@ export class Trash extends Component<TrashProps,TrashState>{
                                 selectedProjectId={selectedProjectId}
                                 selectedAreaId={selectedAreaId} 
                                 todos={this.props.todos}
-                                selectedCategory={"trash"} 
-                                tags={tags} 
+                                selectedCategory={"trash"}
                                 rootRef={rootRef}  
                                 todo={value}
                             />     

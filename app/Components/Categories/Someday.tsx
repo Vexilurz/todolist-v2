@@ -50,8 +50,7 @@ interface SomedayProps{
     rootRef:HTMLElement,
     todos:Todo[],
     areas:Area[],   
-    projects:Project[], 
-    tags:string[]
+    projects:Project[]
 }   
 
 
@@ -105,7 +104,6 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         selectedProjectId={this.props.selectedProjectId}
                         selectedAreaId={this.props.selectedAreaId} 
                         todos={this.props.todos} 
-                        tags={this.props.tags} 
                         projects={this.props.projects}  
                         rootRef={this.props.rootRef}  
                         todo={empty}
@@ -123,7 +121,6 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                             selectedTag={this.props.selectedTag}  
                             rootRef={this.props.rootRef}
                             todos={table.detached}  
-                            tags={this.props.tags} 
                         />
                     } 
                 </div>  
@@ -144,12 +141,11 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                                 selectedAreaId={this.props.selectedAreaId}
                                 selectedProjectId={this.props.selectedProjectId}
                                 rootRef={this.props.rootRef}
-                                todos={todos} 
-                                tags={this.props.tags}
+                                todos={todos}
                                 areas={this.props.areas}
                                 projects={this.props.projects}
                                 project={project} 
-                            />  
+                            />   
                         </div> 
                     }
                     ) 

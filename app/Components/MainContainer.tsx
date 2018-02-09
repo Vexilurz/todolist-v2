@@ -17,6 +17,7 @@ import {
 } from "../utils";   
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
+import Hide from 'material-ui/svg-icons/navigation/arrow-drop-down';
 import { getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects, 
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, 
     removeProject, destroyEverything, addArea, addProject, generateId, addTodos, 
@@ -362,6 +363,16 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         { 
                             this.props.clone ? null :
                             <IconButton  
+                                iconStyle={{color:"rgba(100,100,100,0.6)", height:"22px", width:"22px"}} 
+                                className="no-drag" 
+                                onClick={() => ipcRenderer.send("hide")} 
+                            > 
+                                <Hide />   
+                            </IconButton>   
+                        }
+                        { 
+                            this.props.clone ? null :
+                            <IconButton  
                                 iconStyle={{ 
                                     color:"rgba(100,100,100,0.6)",
                                     height:"22px",
@@ -421,7 +432,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         rootRef={this.rootRef}
                                         areas={this.props.areas}
                                         projects={this.props.projects}
-                                        tags={this.props.tags}
                                     />
                                 }
                             ],  
@@ -445,7 +455,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         areas={this.props.areas}
                                         projects={this.props.projects}
                                         rootRef={this.rootRef} 
-                                        tags={this.props.tags}
                                         showCalendarEvents={this.props.showCalendarEvents}
                                         calendars={this.props.calendars}
                                     />
@@ -458,7 +467,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     return <Trash    
                                         todos={filter(todos, byDeleted, "Trash")}  
                                         dispatch={this.props.dispatch} 
-                                        tags={this.props.tags}
                                         selectedCategory={this.props.selectedCategory}
                                         selectedTag={this.props.selectedTag} 
                                         showTrashPopup={this.props.showTrashPopup}
@@ -485,7 +493,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         areas={this.props.areas}
                                         projects={this.props.projects}
                                         selectedTag={this.props.selectedTag} 
-                                        tags={this.props.tags} 
                                         rootRef={this.rootRef}
                                     />
                                 }
@@ -511,7 +518,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         rootRef={this.rootRef}
                                         areas={this.props.areas}
                                         projects={this.props.projects}
-                                        tags={this.props.tags}
                                     /> 
                                 }
                             ], 
@@ -538,7 +544,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         selectedAreaId={this.props.selectedAreaId} 
                                         areas={this.props.areas}
                                         projects={this.props.projects} 
-                                        tags={this.props.tags}
                                     />
                                 }
                             ],
@@ -563,7 +568,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         selectedProjectId={this.props.selectedProjectId}
                                         projects={this.props.projects}
                                         selectedTag={this.props.selectedTag}
-                                        tags={this.props.tags} 
                                         rootRef={this.rootRef}
                                         showCalendarEvents={this.props.showCalendarEvents}
                                         calendars={this.props.calendars} 
@@ -595,7 +599,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         projects={this.props.projects}  
                                         areas={this.props.areas}
                                         rootRef={this.rootRef} 
-                                        tags={this.props.tags} 
                                     />
                                 } 
                             ],
@@ -623,7 +626,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         dispatch={this.props.dispatch}      
                                         selectedProjectId={this.props.selectedProjectId}
                                         projects={this.props.projects} 
-                                        tags={this.props.tags}
                                         rootRef={this.rootRef}
                                     /> 
                                 }
