@@ -101,7 +101,7 @@ export class Listeners{
                     event.sender.send("closeClonedWindows");  
                 }   
             },
-            { 
+            {  
                 name:"store", 
                 callback : (event, store) => {
                     let newWindow = initWindow(getClonedWindowDimensions()); 
@@ -116,6 +116,19 @@ export class Listeners{
                     );  
                 }
             },  
+            {
+                name:"quick-entry",
+                callback : (event, todo) => {
+                    type kind = "external";
+                    let kind : kind = "external";
+                    let windows = this.spawnedWindows.filter(w => !w.isDestroyed());
+                    let action = {type:"addTodo",load:todo}; 
+                    console.log("quick-entry",todo); 
+                    for(let i=0; i<windows.length; i++){
+                        windows[i].webContents.send("action", {...action, kind});
+                    }  
+                }   
+            },
             { 
                 name:"action", 
                 callback : (event, data:{id:number, action:{type:string,load:any}} ) => {

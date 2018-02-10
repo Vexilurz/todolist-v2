@@ -17,16 +17,28 @@ import BusinessCase from 'material-ui/svg-icons/places/business-center';
 import RaisedButton from 'material-ui/RaisedButton';
 import { Category } from './MainContainer';  
 import Clear from 'material-ui/svg-icons/content/clear'; 
-import { insideTargetArea } from '../utils';
 import { isNil } from 'ramda';
-import { isDate } from 'util';
-import { isDev } from '../app';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
 import { Observable } from 'rxjs/Rx';
 
+
+let insideTargetArea = (scrollableContainer:HTMLElement,target:HTMLElement,x:number,y:number) : boolean => {
+
+    if(target===null || target===undefined){ return false }
+    
+    let {left,right,top,bottom} = target.getBoundingClientRect();
+    let scrolledLeft = left;
+    let scrolledTop = top;
+    
+    if(x>scrolledLeft && x<right){
+       if(y>scrolledTop && y<bottom){ return true }
+    }
+       
+    return false
+}
 
 interface DateCalendarProps{ 
     close : Function,
@@ -420,11 +432,6 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                                     let hours : number = Number(time.split(':')[0]); 
                                     let minutes : number = Number(time.split(':')[1]); 
 
-                                    if(!isDate(this.props.attachedDate)){
-                                        if(isDev()){ 
-                                            throw new Error(`attachedDate is not of type Date. ${this.props.attachedDate}. Done.`); 
-                                        }
-                                    } 
                                     let date = new Date(this.props.attachedDate.getTime());
                                     date.setHours(hours);
                                     date.setMinutes(minutes);

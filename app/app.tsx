@@ -16,7 +16,7 @@ import {
     yearFromNow, isString, stringToLength, assert, convertTodoDates, 
     convertProjectDates, convertAreaDates, timeDifferenceHours, 
     collectSystemInfo, convertDates, checkForUpdates, isNewVersion, nextMidnight,
-    oneMinuteBefore, threeDaysLater
+    oneMinuteBefore, threeDaysLater, isFunction
 } from "./utils";  
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
@@ -26,7 +26,7 @@ import { MainContainer, Category } from './Components/MainContainer';
 import { 
     Project, Area, Todo, removeProject, addProject, removeArea, updateProject, 
     addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, 
-    removeProjects, updateAreas, updateProjects, addTodos, Calendar 
+    removeProjects, updateAreas, updateProjects, addTodos, Calendar, Heading, generateId 
 } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
@@ -46,10 +46,10 @@ import { UpdateNotification } from './Components/UpdateNotification';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 const storage = remote.require('electron-json-storage');
 const MockDate = require('mockdate'); 
-const sysInfo = collectSystemInfo(); 
+const sysInfo = collectSystemInfo();  
 injectTapEventPlugin();  
-import printJS from 'print-js'; 
-export let isDev = () => { return true };   
+import printJS from 'print-js';  
+export let isDev = () => { return false };   
 
 let analytics = new Analytics(
     'UA-113407516-1',
@@ -147,12 +147,12 @@ export let getConfig = () : Promise<Config> => {
                 (error, data:Config) => {  
                     if(!isNil(error)){ globalErrorHandler(error) }
                     if(isNil(data) || isEmpty(data)){ resolve(defaultConfig) }
-                    else{ resolve(data) }
+                    else{ resolve({...data,firstLaunch:false} ) }
                 }
             )   
         }
     )
-}
+} 
 
 
 export let updateConfig = (dispatch:Function) => 
@@ -177,10 +177,11 @@ export let updateConfig = (dispatch:Function) =>
                       }
                     )
         }
- 
+
 
 export const defaultConfig = { 
     nextUpdateCheck:new Date(),
+    firstLaunch:true,
     hideHint:false,
     defaultTags,  
     shouldSendStatistics:true,
@@ -195,6 +196,7 @@ export const defaultConfig = {
 
 export interface Config{
     nextUpdateCheck:Date,
+    firstLaunch:boolean, 
     defaultTags:string[],
     hideHint:boolean,
     shouldSendStatistics:boolean,

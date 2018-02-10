@@ -18,7 +18,7 @@ export let initWindow = (
     let handler = new BrowserWindow({    
         icon,
         width,         
-        height,   
+        height,    
         transparent:false,    
         opacity:1, 
         title:'Tasklist',      
@@ -32,3 +32,24 @@ export let initWindow = (
   
     return handler; 
 };         
+
+  
+export let initQuickEntry = (
+    {width,height} : {width:number,height:number}
+) : BrowserWindow  => { 
+        
+    Menu.setApplicationMenu(null);   
+    
+    let handler = new BrowserWindow({    
+        width,          
+        height,   
+        transparent:false,    
+        //useContentSize:true, 
+        opacity:1, 
+        title:'Quick Entry',      
+        center:true,       
+        frame:false  
+    } as any);               
+  
+    return handler; 
+};        

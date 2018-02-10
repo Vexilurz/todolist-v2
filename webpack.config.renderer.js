@@ -6,7 +6,8 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
    
 module.exports = {     
     entry: {     
-        'app':'./app/app.tsx'
+        'app':'./app/app.tsx',
+        'quickentry':'./app/quickentry.tsx',
     },                                 
     output: {            
         filename : '[name].js' , 
@@ -55,7 +56,13 @@ module.exports = {
             title:'tasklist',     
             chunks:['app'],
             filename: 'app.html' 
-        })   
+        }),
+        new HtmlWebpackPlugin({
+            inject:true, 
+            title:'Quick Entry',     
+            chunks:['quickentry'],
+            filename: 'quickentry.html' 
+        })      
     ],  
     
     node: { 

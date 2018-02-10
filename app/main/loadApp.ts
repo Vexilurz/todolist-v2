@@ -2,7 +2,7 @@ import { ipcMain, BrowserWindow } from 'electron';
 import { mainWindow } from "./main";
 import fs = require('fs');    
      
-export let dev = () : boolean => { return true }
+export let dev = () : boolean => { return false }
     
 let templateLoader = (
     onDidFinishLoad : Function,  
@@ -25,7 +25,7 @@ let templateLoader = (
                 );       
             } 
         );   
-      
+       
 
  
 export let loadApp = (window) : Promise<void> => 
@@ -37,3 +37,12 @@ export let loadApp = (window) : Promise<void> =>
            `file://${__dirname}/app.html`
        );    
   
+
+export let loadQuickEntry = (window) : Promise<void> => 
+        templateLoader(
+            (resolve) => resolve(), 
+            (reject, error) => reject(),
+            window 
+        )( 
+            `file://${__dirname}/quickentry.html`
+        );           

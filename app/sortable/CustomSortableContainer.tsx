@@ -6,10 +6,33 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { assert, insideTargetArea } from '../utils';
 import { isEmpty, not, contains, isNil } from 'ramda';
-import { globalErrorHandler } from '../app';
   
+let insideTargetArea = (scrollableContainer:HTMLElement,target:HTMLElement,x:number,y:number) : boolean => {
+
+    if(target===null || target===undefined){ return false }
+
+    let {left,right,top,bottom} = target.getBoundingClientRect();
+    let scrolledLeft = left;
+    let scrolledTop = top;
+    
+    if(x>scrolledLeft && x<right){
+       if(y>scrolledTop && y<bottom){ return true }
+    }
+       
+    return false
+}
+
+
+let assert = (condition:boolean , error:string, throwError=true) : void => {
+    if(not(condition)){ 
+        if(throwError) { 
+            throw new Error(error) 
+        }
+    }   
+}  
+
+
 
 let selectContainer = (x:number,y:number,containers:HTMLElement[]) : HTMLElement => {
 
@@ -213,7 +236,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     }
      
 
-    onError = (error) => globalErrorHandler(error); 
+    onError = (error) => console.log(error); 
 
 
     componentDidMount(){ this.init() }  

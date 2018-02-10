@@ -13,7 +13,7 @@ import {
     convertTodoDates, convertProjectDates, convertAreaDates, clearStorage, oneDayAhead, measureTime, 
     byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
     byCompleted, isToday, byNotSomeday, daysRemaining, byScheduled, yearFromNow, isDate, 
-    timeDifferenceHours, isNewVersion
+    timeDifferenceHours, isNewVersion, addIntroList
 } from "../utils";   
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -157,16 +157,16 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
     )
     .then( 
         ([calendars,projects,areas,todos]) => {
-            let {limit} = props; 
+            let {limit,firstLaunch} = props; 
             let selected = selectTodos(areas, projects, todos, limit);
             dispatch({type:"setProjects", load:projects});
             dispatch({type:"setAreas", load:areas});
             dispatch({type:"setTodos", load:selected});
-
+            if(firstLaunch){ addIntroList(dispatch) }; 
             return updateCalendars(calendars,onError);
         }
     )
-    .then( (calendars) => { 
+    .then( (calendars) => {  
         dispatch({type:"setCalendars", load:calendars});
         return calendars; 
     } )

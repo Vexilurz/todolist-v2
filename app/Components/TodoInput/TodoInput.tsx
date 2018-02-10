@@ -173,11 +173,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }   
 
 
-    resetCreationForm = () => {
+    resetCreationForm = (open) => {
         let emptyTodo = generateEmptyTodo(generateId(), this.props.selectedCategory, 0);
         let newState = {
             ...this.stateFromTodo(this.state,emptyTodo),
-            open:true, 
+            open, 
             showDateCalendar:false,     
             showTagsSelection:false, 
             showAdditionalTags:false, 
@@ -204,7 +204,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         if(e.keyCode===13){  
            if(this.props.creation && this.state.open){
               this.addTodo();
-              this.resetCreationForm();
+              this.resetCreationForm(true);
            }else if(this.state.open){
               this.setState({open:false}, () => this.updateTodo()); 
            }   
@@ -229,7 +229,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             this.setState({open:false}, () => {
                 if(creation){ 
                    this.addTodo(); 
-                   this.resetCreationForm(); 
+                   this.resetCreationForm(false); 
                 }
                 else{ this.updateTodo() }  
             }); 
@@ -1488,6 +1488,7 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                 </div> 
                 {   
                     open ? null :
+                    isEmpty(attachedTags) && isNil(deadline) ? null :
                     <div style={{
                         height:"25px",
                         display:"flex",
@@ -1540,13 +1541,10 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                 open ? null :  
                 isNil(relatedProjectName) ? null :
                 isEmpty(relatedProjectName) ? null :
-                <RelatedProjectLabel 
-                    name={relatedProjectName}
-                    selectedCategory={selectedCategory}
-                /> 
+                <RelatedProjectLabel name={relatedProjectName} selectedCategory={selectedCategory}/>   
             }   
-    </div> 
-  }
+    </div>  
+  } 
 }
 
 
