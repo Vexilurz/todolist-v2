@@ -24,11 +24,12 @@ import { Category, filter } from '../MainContainer';
 interface LogbookProps{
     dispatch:Function,
     todos:Todo[],
+    moveCompletedItemsToLogbook:string,
     selectedAreaId:string,
     selectedProjectId:string, 
     selectedCategory:string,  
     projects:Project[],
-    areas:Area[],  
+    areas:Area[],    
     selectedTag:string,
     rootRef:HTMLElement 
 }
@@ -114,15 +115,9 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
 
     getComponent = (month:string, todos:Todo[], projects:Project[]) : JSX.Element => {
+        let {moveCompletedItemsToLogbook} = this.props;
 
-        return <div   
-            style={{
-                position:"relative", 
-                display:"flex", 
-                flexDirection:"column", 
-                WebkitUserSelect:"none"
-            }}
-        >
+        return <div style={{position:"relative", display:"flex", flexDirection:"column", WebkitUserSelect:"none"}}>
             <div 
                 style={{
                     WebkitUserSelect: "none", 
@@ -156,6 +151,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                                 <TodoInput     
                                     id={value._id}
                                     key={value._id}
+                                    moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}
                                     projects={this.props.projects}  
                                     dispatch={this.props.dispatch}  
                                     selectedProjectId={this.props.selectedProjectId}

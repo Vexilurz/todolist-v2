@@ -1,7 +1,7 @@
 import { loadApp, dev } from './loadApp'; 
 import fs = require('fs');     
 import electron = require('electron');
-import { ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,globalShortcut,BrowserView } from 'electron';
+import { ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,globalShortcut,BrowserView,Tray } from 'electron';
 import { Listeners } from "./listeners";
 import { initWindow } from "./initWindow";
 import { isNil } from 'ramda'; 
@@ -13,6 +13,7 @@ storage.setDataPath(os.tmpdir());
 
 export let mainWindow : BrowserWindow;   
 export let listeners : Listeners;  
+export let tray : Tray;
 
 const CtrlAltT : string = 'Ctrl+Alt+T';
 const CtrlD : string = 'Ctrl+D';
@@ -25,6 +26,46 @@ const shouldQuit = app.makeSingleInstance(
     }
 ); 
   
+
+let createTray = () => {
+    tray = new Tray(path.resolve("icon.ico"))
+    const contextMenu = Menu.buildFromTemplate([
+        {
+            label: 'Hide', 
+            type: 'normal', 
+            click:() => {
+                let windows = BrowserWindow.getAllWindows();
+                windows.forEach((w) => w.hide())
+            }
+        },
+        {
+            label: 'Restore', 
+            type: 'normal', 
+            click:() => {
+                let windows = BrowserWindow.getAllWindows();
+                windows.forEach((w) => w.show())
+            }
+        },
+        {
+            label:'Quit', 
+            type: 'normal', 
+            click:() => app.quit()
+        },
+    ])
+
+    tray.on('click', () => {
+        let windows = BrowserWindow.getAllWindows();
+        if(mainWindow){
+            if(mainWindow.isVisible()){ windows.forEach((w) => w.hide()) }
+            else{ windows.forEach((w) => w.show()) }
+        }
+    })
+
+
+    tray.setToolTip('Tasklist')
+    tray.setContextMenu(contextMenu)
+}
+
 
 let onCtrlAltT = () : void => {
     if(isNil(mainWindow)){ return }        
@@ -62,11 +103,13 @@ let getWindowSize = () : {width:number,height:number} => {
 };  
 
 
-let onReady = () => {     
+let onReady = () => {      
     if(shouldQuit){
        app.quit(); 
        return;
-    }
+    }  
+
+    createTray();
 
     if(globalShortcut){
        globalShortcut.register(CtrlAltT, onCtrlAltT);  

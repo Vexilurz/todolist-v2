@@ -123,7 +123,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'CalendarEvents'})} 
                         icon={<CalendarEvents style={{color:"rgba(150,10,10,0.8)", height:18, width:18}}/>}
-                        name={'Calendar Events'}
+                        name={'Calendars'}
                         selected={selectedSettingsSection==='CalendarEvents'}
                     />
                     <Section
@@ -148,7 +148,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                 cond([   
                     [ 
                         (selectedSettingsSection:string) : boolean => selectedSettingsSection==="QuickEntry",  
-                        () => <QuickEntrySettings />
+                        () => <QuickEntrySettings {...{} as any} />
                     ], 
                     [ 
                         (selectedSettingsSection:string) : boolean => selectedSettingsSection==="CalendarEvents",  
@@ -214,114 +214,30 @@ class Section extends Component<SectionProps,{}>{
 }
 
 
- 
 
-  
-interface GeneralSettingsProps{}
-
-interface GeneralSettingsState{}
-
-class GeneralSettings extends Component<GeneralSettingsProps,GeneralSettingsState>{
-
-    constructor(props){
-        super(props);
-    }
-
-    render(){
-        return <div style={{
-            display:"flex", 
-            flexDirection:"column", 
-            width:"100%",
-            justifyContent:"space-around" 
-        }}>
-            <div style={{
-                paddingLeft:"25px",  
-                display:"flex",  
-                flexGrow:1,
-                flexDirection:"column",  
-                justifyContent:"space-around"
-            }}> 
-                <div style={{display:"flex",alignItems:"center",width:"80%"}}>
-                    <Checkbox checked={false} onClick={() => {}}/>
-                    <div style={{paddingLeft:"10px"}}>Group to-dos in the Today list by project or area</div>
-                </div> 
-
-                <div style={{display:"flex",alignItems:"center",width:"80%"}}>
-                    <Checkbox checked={true} onClick={() => {}}/>
-                    <div style={{paddingLeft:"10px"}}>Preserve window width when resizing sidebar</div>
-                </div>
-            </div>
-            <div 
-                style={{
-                    outline:"none",
-                    position:"relative",
-                    width:"100%",
-                    borderBottom:"1px solid rgba(100,100,100,0.2)"
-                }}
-            >
-            </div>  
-            <div style={{display:"flex", flexGrow:0.7, width:"100%"}}>
-                <div style={{ 
-                    display:"flex", alignItems:"flex-end",  
-                    width:"50%", flexDirection:"column",
-                    justifyContent:"space-around", fontSize:"14px" 
-                }}>      
-                    <div>Move completed items to Logbook:</div>
-                    <div>Dock count:</div>  
-                </div>  
-                <div style={{  
-                    display:"flex", alignItems:"flex-start", 
-                    width:"50%", flexDirection:"column",
-                    justifyContent:"space-around" 
-                }}> 
-                    <div style={{paddingLeft:"20px"}}>     
-                        <select 
-                            style={{
-                                backgroundColor:"white",
-                                outline:"none",
-                                borderRadius:"4px"
-                            }}  
-                            name="text" 
-                            value={"immediately"}
-                            onChange={(event) => this.setState({})}  
-                        >  
-                            <option value="immediately">Immediately</option> 
-                        </select>   
-                    </div>
-
-                    <div style={{paddingLeft:"20px"}}>
-                        <select   
-                            style={{
-                                backgroundColor:"white",
-                                outline:"none",
-                                borderRadius:"4px"
-                            }}  
-                            name="text"
-                            value={"duetoday"}
-                            onChange={(event) => this.setState({})}  
-                        >   
-                            <option value="duetoday">Due + Today</option> 
-                        </select>
-                    </div>  
-                </div>
-            </div>
-        </div>
-    }
-} 
-
-
-
-interface QuickEntrySettingsProps{}
+interface QuickEntrySettingsProps extends Store{}
 
 interface QuickEntrySettingsState{}
 
+
+@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)  
 class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySettingsState>{
 
-    constructor(props){
-        super(props);
-    }
+    constructor(props){ super(props) }
+
+    enableQuickEntry = debounce(() => {
+        let {enableShortcutForQuickEntry,dispatch} = this.props;
+        updateConfig(dispatch)({enableShortcutForQuickEntry:!enableShortcutForQuickEntry}); 
+    },50);
+
+    quickEntrySavesTo = (event) => {
+        let {dispatch} = this.props;
+        updateConfig(dispatch)({quickEntrySavesTo:event.target.value}); 
+    };
 
     render(){
+        let {enableShortcutForQuickEntry, quickEntrySavesTo} = this.props;
+
         return <div style={{
             width:"100%",
             display:"flex",
@@ -333,15 +249,10 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
 
             <div style={{width:"100%"}}>
                 <div style={{display:"flex",alignItems:"center"}}>
-                    <Checkbox checked={false} onClick={() => {}}/>
+                    <Checkbox checked={enableShortcutForQuickEntry} onClick={this.enableQuickEntry}/>
                     <div style={{paddingLeft:"10px"}}>Enable shortcut for Quick Entry</div>
                 </div> 
-                <div style={{
-                    fontSize:"13px",
-                    width:"80%",
-                    color:"rgba(100,100,100,0.9)",
-                    cursor:"default" 
-                }}>
+                <div style={{fontSize:"13px", width:"80%", color:"rgba(100,100,100,0.9)", cursor:"default"}}>
                     The Quick Entry window lets you enter new to-dos into Things from anywhere
                     without having to switch applications. Use the keyboard shortcut to make 
                     the window appear.
@@ -368,12 +279,15 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
                             borderRadius:"4px"
                         }}  
                         name="text" 
-                        value={"inbox"}
-                        onChange={(event) => this.setState({})}  
+                        value={quickEntrySavesTo}
+                        onChange={this.quickEntrySavesTo}  
                     >   
                         <option value="inbox">Inbox</option> 
+                        <option value="today">Today</option> 
+                        <option value="next">Next</option> 
+                        <option value="someday">Someday</option> 
                     </select>
-                </div>    
+                </div>     
                 <div>by default</div>
             </div>
         </div>
@@ -636,10 +550,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
                                 }}
                             >   
                                 <div>
-                                    <Checkbox 
-                                        checked={calendar.active}   
-                                        onClick={() => this.onItemCheck(calendar)} 
-                                    />   
+                                  <Checkbox checked={calendar.active} onClick={() => this.onItemCheck(calendar)}/>   
                                 </div>
                                 <div style={{
                                     paddingLeft:"10px", 
@@ -725,7 +636,6 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
 }
 
 
-
 let selectFolder = () => new Promise(
     resolve => {
         dialog.showOpenDialog( 
@@ -743,7 +653,6 @@ let selectFolder = () => new Promise(
         )
     } 
 )
-
 
 
 let selectJsonDatabase = () => new Promise(
@@ -764,7 +673,6 @@ let selectJsonDatabase = () => new Promise(
         )
     } 
 )
-
 
 
 let closeClonedWindows = () => new Promise(resolve => {  
@@ -791,7 +699,6 @@ let writeJsonFile = (obj:any,pathToFile:string) : Promise<any> =>
     )
 
 
- 
 let readJsonFile = (path:string) : Promise<any> => 
     new Promise(
         resolve => {
@@ -962,23 +869,37 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         );  
     },100); 
      
+
     shouldSendStatistics = debounce(() => {
         let {shouldSendStatistics,dispatch} = this.props;
         updateConfig(dispatch)({shouldSendStatistics:!shouldSendStatistics}); 
     },50);
-     
+
+
+    shouldGroup = debounce(() => {
+        let {groupTodos,dispatch} = this.props;
+        updateConfig(dispatch)({groupTodos:!groupTodos}); 
+    },50);
+
+
+    moveCompletedTo = (event) => {
+        let {dispatch} = this.props;
+        updateConfig(dispatch)({moveCompletedItemsToLogbook:event.target.value}); 
+    };
+
+
     render(){   
         let {importPath, exportPath, updateStatus, exportMessage, importMessage} = this.state;
-        let {shouldSendStatistics} = this.props;
-        let buttonStyle = {     
+        let {shouldSendStatistics,moveCompletedItemsToLogbook,groupTodos} = this.props;
+        let buttonStyle = {      
             display:"flex",
             alignItems:"center",
             cursor:"pointer",
             marginRight:"15px", 
             justifyContent:"center",
-            width: "40px",
+            width: "40px", 
             height:"20px", 
-            borderRadius:"5px",
+            borderRadius:"5px", 
             paddingLeft:"25px",
             paddingRight:"25px",
             paddingTop:"5px", 
@@ -993,6 +914,39 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 <Checkbox checked={shouldSendStatistics} onClick={this.shouldSendStatistics}/>
                 <div style={{paddingLeft:"10px"}}>Send anonymous usage statistics</div>
             </div> 
+
+            <div style={{display:"flex",alignItems:"center",width:"80%"}}>
+                <Checkbox checked={groupTodos} onClick={this.shouldGroup}/>
+                <div style={{paddingLeft:"10px"}}>Group to-dos by project or area</div>
+            </div> 
+
+            <div style={{display:"flex", width:"100%"}}>
+                <div style={{ 
+                    display:"flex", alignItems:"flex-end",  
+                    flexDirection:"column", justifyContent:"space-around", 
+                    fontSize:"14px" 
+                }}>      
+                    <div>Move completed items to Logbook:</div>
+                </div>  
+                <div style={{  
+                    display:"flex", alignItems:"flex-start", 
+                    flexDirection:"column",justifyContent:"space-around" 
+                }}> 
+                    <div style={{paddingLeft:"20px"}}>     
+                        <select 
+                            style={{backgroundColor:"white",outline:"none",borderRadius:"4px"}}  
+                            name="text" 
+                            value={moveCompletedItemsToLogbook}
+                            onChange={this.moveCompletedTo}  
+                        >  
+                            <option value="immediately">Immediately</option> 
+                            <option value="min">After 5 min</option> 
+                            <option value="hour">After 1 hour</option> 
+                            <option value="day">After 1 day</option> 
+                        </select>   
+                    </div>
+                </div>
+            </div>
 
             <div style={{height:"1px",width:"100%",borderBottom:"1px solid rgb(200,200,200)"}}></div>   
             <div style={{ 
@@ -1032,18 +986,12 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 </div>  
             }   
                 <div style={{display:"flex"}}>
-                    <div     
-                        onClick={this.onSelectImportFile}
-                        style={buttonStyle}  
-                    >   
+                    <div onClick={this.onSelectImportFile} style={buttonStyle}>   
                         <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
                             Import
                         </div>   
                     </div> 
-                    <div     
-                        onClick={this.onSelectExportFolder} 
-                        style={buttonStyle}  
-                    >   
+                    <div onClick={this.onSelectExportFolder} style={buttonStyle}>   
                         <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
                             Export 
                         </div>   

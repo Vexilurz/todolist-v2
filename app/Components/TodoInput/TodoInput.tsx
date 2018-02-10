@@ -36,14 +36,14 @@ import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
     insideTargetArea, daysRemaining, todoChanged, 
     daysLeftMark, generateTagElement, uppercase, generateEmptyTodo,  
-    isToday, getMonthName, stringToLength, debounce 
+    isToday, getMonthName, stringToLength, debounce, fiveMinutesLater, onHourLater, oneDayAhead 
 } from '../../utils'; 
 import { Todo, removeTodo, updateTodo, Project, generateId } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopup, TodoTags } from './TodoTags';
 import { TodoInputLabel } from './TodoInputLabel'; 
-import { uniq, isEmpty, contains, isNil, not, multiply, remove } from 'ramda';
+import { uniq, isEmpty, contains, isNil, not, multiply, remove, cond } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
 let moment = require("moment"); 
 import AutosizeInput from 'react-input-autosize'; 
@@ -85,6 +85,7 @@ export interface TodoInputState{
 export interface TodoInputProps{ 
     showCompleted? : boolean, 
     dispatch : Function,  
+    moveCompletedItemsToLogbook : string, 
     selectedCategory : Category,
     selectedProjectId:string,
     selectedAreaId:string,
@@ -427,21 +428,41 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         step();  
     }) 
       
-     
+      
   
     onCheckBoxClick = () => {   
-            let { selectedCategory, creation, showCompleted} = this.props;
+            let { selectedCategory, creation, showCompleted, moveCompletedItemsToLogbook} = this.props;
             let { checked, open } = this.state; 
             let preventSlideAway = selectedCategory==="project" && showCompleted;
             let shouldAnimateSlideAway = not(checked) && 
                                          selectedCategory!=="logbook" &&  
                                          selectedCategory!=="trash" &&
                                          selectedCategory!=="search" &&
+                                         moveCompletedItemsToLogbook==="immediately" &&
                                          not(preventSlideAway);  
                 
             if(not(creation)){
                 let isChecked : boolean = !checked; 
                 let timeSeconds = Math.round( (new Date().getTime()) / 1000 );
+                let completed = cond([
+                    [
+                        (value:string) => value==="immediately",
+                        () => new Date(),
+                    ],
+                    [
+                        (value:string) => value==="min",
+                        () => fiveMinutesLater(),
+                    ],
+                    [
+                        (value:string) => value==="hour",
+                        () => onHourLater()
+                    ],
+                    [
+                        (value:string) => value==="day",
+                        () => oneDayAhead()
+                    ],
+                ])(moveCompletedItemsToLogbook);
+
 
                 googleAnalytics.send(    
                     'event',  
@@ -458,7 +479,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 this.setState(    
                     { 
                       checked:isChecked,  
-                      completed:isChecked ? new Date() : null
+                      completed:isChecked ? completed : null
                     },  
                     () => setTimeout(   
                         () => shouldAnimateSlideAway ?   
@@ -1563,11 +1584,8 @@ class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,TodoInput
             onRemoveTag
         } = this.props;
 
-        return <div style={{ 
-            transition:"opacity 0.2s ease-in-out", 
-            opacity:open ? 1 : 0, 
-            paddingLeft:"25px", 
-            paddingRight:"25px"  
+        return <div style={{
+          transition:"opacity 0.2s ease-in-out", opacity:open ? 1 : 0, paddingLeft:"25px", paddingRight:"25px"  
         }}>    
             <TextField   
                 id={`${todo._id}note`}  
@@ -1581,16 +1599,12 @@ class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,TodoInput
                 inputStyle={{fontSize:"14px"}} 
                 underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}} 
                 underlineStyle={{borderColor:"rgba(0,0,0,0)"}}
-            />   
+            />    
             {    
                 not(showChecklist) ? null : 
-                <div>   
-                    <Checklist checklist={checklist} updateChecklist={this.props.updateChecklist as any}/>   
-                </div>
+                <div> <Checklist checklist={checklist} updateChecklist={this.props.updateChecklist as any}/> </div>
             }   
-            { 
-                <TodoTags attachTag={onAttachTag} removeTag={onRemoveTag} tags={attachedTags}/> 
-            } 
+            { <TodoTags attachTag={onAttachTag} removeTag={onRemoveTag} tags={attachedTags}/> } 
         </div>   
     } 
 }

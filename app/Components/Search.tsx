@@ -365,12 +365,11 @@ export class Search extends Component<SearchProps,SearchState>{
         index:number, 
         attachedTodos:Todo[]
     ) => {
-        let {areas, projects, dispatch} = this.props;
+        let {areas, projects, dispatch, groupTodos} = this.props;
         let {project} = projectWithTodos;
          
         return <div>
-            <div>{getProjectHeading(project,attachedTodos)}</div>
-            <div>
+            {groupTodos ? <div>{getProjectHeading(project,attachedTodos)}</div> : null}
             {
                 projectWithTodos.todos
                 .map(
@@ -379,6 +378,7 @@ export class Search extends Component<SearchProps,SearchState>{
                             <TodoInput        
                                 id={todo._id} 
                                 key={todo._id} 
+                                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                 projects={this.props.projects}  
                                 dispatch={this.props.dispatch}  
                                 selectedProjectId={this.props.selectedProjectId}
@@ -391,17 +391,18 @@ export class Search extends Component<SearchProps,SearchState>{
                         </div>  
                 )
             } 
-            </div>
         </div>  
     } 
 
 
-    onEnter = ({ previousPosition, currentPosition }) => 
-                 this.limitReached ? null : this.setState({limit:this.state.limit + 20})
+    onEnter = ({ previousPosition, currentPosition }) => this.limitReached ? 
+                                                         null : 
+                                                         this.setState({limit:this.state.limit + 20})
  
  
-    render(){ 
-        let {todos, projects, areas, dispatch, selectedTag} = this.props;
+    render(){
+
+        let {todos, projects, areas, dispatch, selectedTag, groupTodos} = this.props;
         let selectedTodos = filter(todos, byNotDeleted, "");
         let selectedProjects = filter(projects, byNotDeleted, "");
         let selectedAreas = filter(areas, byNotDeleted, "");
@@ -417,7 +418,7 @@ export class Search extends Component<SearchProps,SearchState>{
             alignItems:"center",
             justifyContent:"center" 
         };  
-        let allTodos = flatten([ suggestions.detached, suggestions.attached.map(i => i.todos) ]);
+        let allTodos = flatten([suggestions.detached, suggestions.attached.map(i => i.todos)]);
         let tags = getTagsFromItems(allTodos); 
     
         return <div>   
@@ -430,7 +431,7 @@ export class Search extends Component<SearchProps,SearchState>{
                    userSelect:"none", 
                    cursor:"default" 
                 }} 
-            >    
+            >     
                 {uppercase("Search results")}
             </div>  
             <div style={{ paddingTop:"15px", paddingBottom:"15px" }}>
@@ -448,38 +449,36 @@ export class Search extends Component<SearchProps,SearchState>{
                 null
             }
             <div id={`search-list`}> 
-            {         
-                suggestions.attached.map(
-                    ( projectWithTodos:{ project:Project, todos:Todo[] }, index ) => 
-                        <div 
-                           style={{paddingTop:"5px", paddingBottom:"5px"}} 
-                           key={`attached-${index}`} 
-                        >
-                              {this.suggestionToComponent(projectWithTodos,index,attachedTodos)} 
-                        </div>  
-                )  
-            } 
-            <div style={{paddingTop:"20px"}}>
-            {
-                suggestions.detached
-                .map( 
-                    (todo:Todo,index:number) : JSX.Element => 
-                        <div key={`detached-${index}`}>
-                            <TodoInput         
-                                id={todo._id} 
-                                key={todo._id} 
-                                projects={this.props.projects}  
-                                dispatch={this.props.dispatch}  
-                                selectedProjectId={this.props.selectedProjectId}
-                                selectedAreaId={this.props.selectedAreaId} 
-                                todos={this.props.todos}  
-                                selectedCategory={this.props.selectedCategory} 
-                                rootRef={document.getElementById("maincontainer")}  
-                                todo={todo}
-                            />   
-                        </div> 
-                )   
-            }
+                {         
+                    suggestions.attached.map(
+                        ( projectWithTodos:{ project:Project, todos:Todo[] }, index ) => 
+                            <div key={`attached-${index}`}>
+                                {this.suggestionToComponent(projectWithTodos,index,attachedTodos)} 
+                            </div>  
+                    )  
+                } 
+                <div style={{paddingTop:groupTodos ? "20px" : "0px"}}>
+                {
+                    suggestions.detached 
+                    .map( 
+                        (todo:Todo,index:number) : JSX.Element => 
+                            <div key={`detached-${index}`}>
+                                <TodoInput         
+                                    id={todo._id} 
+                                    key={todo._id} 
+                                    projects={this.props.projects}  
+                                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                                    dispatch={this.props.dispatch}  
+                                    selectedProjectId={this.props.selectedProjectId}
+                                    selectedAreaId={this.props.selectedAreaId} 
+                                    todos={this.props.todos}  
+                                    selectedCategory={this.props.selectedCategory} 
+                                    rootRef={document.getElementById("maincontainer")}  
+                                    todo={todo}
+                                />   
+                            </div> 
+                    )   
+                }
             </div>
             </div>
             <div style={{width:"100%", height:"1px"}}> 

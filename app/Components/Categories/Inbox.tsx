@@ -22,6 +22,7 @@ interface InboxProps{
     dispatch:Function,
     selectedProjectId:string, 
     selectedAreaId:string,  
+    moveCompletedItemsToLogbook:string,
     selectedTag:string,
     selectedCategory:Category, 
     areas:Area[],
@@ -38,9 +39,7 @@ interface InboxState{}
 
 export class Inbox extends Component<InboxProps, InboxState>{
 
-    constructor(props){
-        super(props);
-    }   
+    constructor(props){ super(props) }   
 
     componentDidMount(){
         this.props.dispatch({type:"inboxAmount",load:this.props.todos.length});
@@ -51,7 +50,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
     }
 
     render(){  
-
+        let {moveCompletedItemsToLogbook} = this.props;
         let empty = generateEmptyTodo(generateId(),"inbox",0);
 
         return <div style={{WebkitUserSelect:"none"}}>  
@@ -62,13 +61,11 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 showTags={false} 
                 selectedTag={this.props.selectedTag} 
             /> 
- 
             <FadeBackgroundIcon    
                 container={this.props.rootRef} 
                 selectedCategory={this.props.selectedCategory}  
                 show={isEmpty(this.props.todos)}
             />  
-   
             <div    
                 className="unselectable" 
                 id="todos" 
@@ -76,7 +73,8 @@ export class Inbox extends Component<InboxProps, InboxState>{
             >    
                  <TodoInput    
                     id={empty._id} 
-                    key={"inbox-todo-creation-form"}  
+                    moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}
+                    key={"inbox-todo-creation-form"}   
                     dispatch={this.props.dispatch}  
                     selectedCategory={this.props.selectedCategory} 
                     selectedProjectId={this.props.selectedProjectId}
@@ -95,6 +93,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     projects={this.props.projects}  
                     dispatch={this.props.dispatch}     
                     selectedCategory={this.props.selectedCategory} 
+                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}
                     todos={this.props.todos}   

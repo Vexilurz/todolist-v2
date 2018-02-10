@@ -324,6 +324,19 @@ export let oneDayAhead = () : Date => {
 
 
 
+export let fiveMinutesLater = () : Date => { 
+    let fiveMinutesMs = 1000 * 60 * 5;
+    return new Date(new Date().getTime() + fiveMinutesMs);
+} 
+
+export let onHourLater = () : Date => {  
+    let oneHourMs = 1000 * 60 * 60; 
+    return new Date(new Date().getTime() + oneHourMs);
+} 
+
+
+
+
 export let oneDayBehind = () : Date => { 
 
     Date.prototype["addDays"] = function(days) {
@@ -877,70 +890,52 @@ export const muiTheme = getMuiTheme({
   } 
 });  
 
-
-export let byNotSomeday = (t:Todo) : boolean => {
-    return t.category!=="someday"; 
+let inPast = (date:Date) : boolean => {
+    assert(isDate(date),'inPast');
+    return new Date().getTime()>date.getTime();
 }
 
-export let byHaveAttachedDate = (t:Todo) : boolean => {
-    
-    assert(isTodo(t), `t is not of type Todo ${JSON.stringify(t)}`);
+let inFuture =  (date:Date) : boolean => {
+    assert(isDate(date),'inPast');
+    return new Date().getTime()<date.getTime();
+} 
 
+export let byNotSomeday = (t:Todo) : boolean => { return t.category!=="someday"; }
+
+export let byHaveAttachedDate = (t:Todo) : boolean => {
+    assert(isTodo(t), `t is not of type Todo ${JSON.stringify(t)}`);
     return not(isNil(t.attachedDate));
 } 
 
 
 export let byNotDeleted = (item:Item) : boolean => { 
-
-    if(!isItem(item)){
-        if(isDev()){ 
-           throw new Error(`item have incorrect type. ${JSON.stringify(item)}. byNotDeleted`); 
-        }
-    }
-    
+    assert(isItem(item), `item have incorrect type. ${JSON.stringify(item)}. byNotDeleted`);
     return !item.deleted;
-  
 }  
 
 
 
 export let byDeleted = (item:Item) : boolean => { 
-
-    if(!isItem(item))
-       throw new Error(`item have incorrect type. ${JSON.stringify(item)}. byDeleted`); 
-
+    assert(isItem(item), `item have incorrect type. ${JSON.stringify(item)}. byDeleted`);
     return !!item.deleted;
- 
 }  
 
 
-
 export let byNotCompleted = (item:Project | Todo) : boolean => { 
-
-    if(item.type!=="project" && item.type!=="todo"){
-        if(isDev()){ 
-           throw new Error(`item have incorrect type. ${JSON.stringify(item)}. byNotCompleted`); 
-        }
-    }
-
-    return !item.completed;
- 
+    assert(
+        isProject(item as Project) || isTodo(item), 
+        `item have incorrect type. ${JSON.stringify(item)}. byNotCompleted`
+    );
+    return isNil(item.completed) ? true : inFuture(item.completed);
 }   
   
 
-
-
-
 export let byCompleted = (item:Project | Todo) : boolean => { 
-
-    if(item.type!=="project" && item.type!=="todo"){
-        if(isDev()){ 
-           throw new Error(`item have incorrect type. ${JSON.stringify(item)}. byCompleted`);
-        } 
-    }
-
-    return !!item.completed;
- 
+    assert(
+        isProject(item as Project) || isTodo(item), 
+        `item have incorrect type. ${JSON.stringify(item)}. byCompleted`
+    );
+    return isNil(item.completed) ? false : inPast(item.completed);
 }  
 
    
@@ -957,16 +952,8 @@ export let byTags = (selectedTag:string) => (item:Item) : boolean => {
 
     
 export let byCategory = (selectedCategory:Category) => (item:Todo) : boolean => { 
- 
-    if(!isCategory(selectedCategory)){
-        if(isDev()){ 
-           throw new Error(`selectedCategory is not of type Category. ${selectedCategory}. byCategory.`);
-        }
-    }
- 
-
+    assert(isCategory(selectedCategory), `selectedCategory is not of type Category. ${selectedCategory}. byCategory.`);
     return item.category===selectedCategory;
-
 } 
 
 

@@ -182,15 +182,14 @@ export let updateConfig = (dispatch:Function) =>
 export const defaultConfig = { 
     nextUpdateCheck:new Date(),
     hideHint:false,
-    defaultTags, 
+    defaultTags,  
     shouldSendStatistics:true,
     showCalendarEvents:true,
-    groupTodayTodos:false,
+    groupTodos:false,
     preserveWindowWidth:true, //when resizing sidebar
     enableShortcutForQuickEntry:true,
     quickEntrySavesTo:"inbox", //inbox today next someday
-    moveCompletedItemsToLogbook:"immediatelly",
-    dockCount:10 
+    moveCompletedItemsToLogbook:"immediately"
 }
 
 
@@ -200,12 +199,11 @@ export interface Config{
     hideHint:boolean,
     shouldSendStatistics:boolean,
     showCalendarEvents:boolean,
-    groupTodayTodos:boolean,
+    groupTodos:boolean,
     preserveWindowWidth:boolean, //when resizing sidebar
     enableShortcutForQuickEntry:boolean,
     quickEntrySavesTo:string, //inbox today next someday
     moveCompletedItemsToLogbook, //immediatelly
-    dockCount:number //number of the tasks that show up on today and inbox
 }
 
 
@@ -336,12 +334,9 @@ export class App extends Component<AppProps,{}>{
                                 let {updateInfo} = updateCheckResult;
                                 let currentAppVersion = remote.app.getVersion(); 
                                 let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
-                                if(canUpdate){ 
-                                    dispatch({type:"showUpdatesNotification", load:true}) 
-                                }else{
 
-                                    updateConfig(dispatch)({nextUpdateCheck:threeDaysLater(new Date())})
-                                }
+                                if(canUpdate){ dispatch({type:"showUpdatesNotification", load:true}) }
+                                else{ updateConfig(dispatch)({nextUpdateCheck:threeDaysLater(new Date())}) }
                            })    
           
         if(isNil(nextUpdateCheck)){ check() }
@@ -349,10 +344,9 @@ export class App extends Component<AppProps,{}>{
             let now = new Date();
             let next = isString(nextUpdateCheck) ? new Date(nextUpdateCheck) : nextUpdateCheck;
             let timeMs = next.getTime() - now.getTime();
+
             if(timeMs<=0){ check() }
-            else{
-                this.timeouts.push( setTimeout(() => check(), timeMs) )
-            }   
+            else{ this.timeouts.push(setTimeout(() => check(), timeMs)) }   
         }
     }
 

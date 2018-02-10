@@ -47,8 +47,9 @@ interface ProjectBodyProps{
     moveHeading:(heading_id:string) => void,  
     removeHeading:(heading_id:string) => void,
     showCompleted:boolean,
-    todos:Todo[], 
+    todos:Todo[],  
     selectedTag:string,
+    moveCompletedItemsToLogbook:string,
     areas:Area[],
     dragged:string, 
     projects:Project[], 
@@ -89,6 +90,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                             id={value["_id"]} 
                             key={value["_id"]} 
                             showCompleted={this.props.showCompleted}
+                            moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             projects={this.props.projects}
                             dispatch={this.props.dispatch}   
                             selectedProjectId={this.props.selectedProjectId}
@@ -292,6 +294,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     id={empty._id}
                     key={"project-todo-creation-form"} 
                     dispatch={this.props.dispatch} 
+                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     projects={this.props.projects} 
                     selectedProjectId={this.props.selectedProjectId} 
                     selectedAreaId={this.props.selectedAreaId} 

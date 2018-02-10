@@ -50,7 +50,8 @@ interface AreaBodyProps{
     area:Area, 
     areas:Area[], 
     projects:Project[],
-    selectedAreaId:string,
+    moveCompletedItemsToLogbook:string, 
+    selectedAreaId:string, 
     selectedProjectId:string, 
     todos:Todo[], 
     selectedCategory:Category, 
@@ -105,6 +106,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 todos={this.props.todos}
                 index={index}
                 dispatch={this.props.dispatch}
+                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                 selectedTag={this.props.selectedTag}
                 rootRef={this.props.rootRef}
                 selectedAreaId={this.props.selectedAreaId}
@@ -136,6 +138,7 @@ interface ProjectElementProps{
     project:Project,
     index:number,
     todos:Todo[],
+    moveCompletedItemsToLogbook:string,
     dispatch:Function,
     selectedTag:string, 
     rootRef:HTMLElement,  
@@ -180,6 +183,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                         selectedTag={this.props.selectedTag}  
                         rootRef={this.props.rootRef} 
                         selectedAreaId={this.props.selectedAreaId}
+                        moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                         selectedProjectId={this.props.selectedProjectId}
                         todos={selected} 
                         project={project}  

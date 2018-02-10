@@ -49,6 +49,7 @@ let haveScheduledTodos = (todos:Todo[]) : boolean => {
 
 interface ProjectComponentProps{ 
     project:Project, 
+    moveCompletedItemsToLogbook:string,
     todos:Todo[],
     projects:Project[], 
     selectedTag:string, 
@@ -187,7 +188,9 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     
       
     render(){   
-        let { selectedTag, project, showCompleted, showScheduled, todos } = this.props;
+        let { 
+            selectedTag, project, showCompleted, showScheduled, todos
+        } = this.props;
 
         if(isNil(project)){ return null } 
 
@@ -249,6 +252,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             dragged={this.props.dragged}
                             showCompleted={this.props.showCompleted}
                             updateLayoutOrder={this.updateLayoutOrder}
+                            moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             removeHeading={this.removeHeading}
                             updateHeading={this.updateHeading}
                             archiveHeading={this.archiveHeading}

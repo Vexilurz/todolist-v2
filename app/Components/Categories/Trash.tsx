@@ -29,10 +29,11 @@ import { AreaTrashLink } from '../Area/AreaLink';
 interface TrashProps{ 
     dispatch:Function,
     selectedCategory:Category,  
+    moveCompletedItemsToLogbook:string, 
     showTrashPopup:boolean, 
     selectedProjectId:string,
     selectedAreaId:string, 
-    selectedTag:string,
+    selectedTag:string, 
     todos:Todo[],
     projects:Project[],
     areas:Area[],
@@ -84,6 +85,7 @@ export class Trash extends Component<TrashProps,TrashState>{
                     projects={this.props.projects}   
                     selectedCategory={this.props.selectedCategory}
                     dispatch={this.props.dispatch}   
+                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos} 
@@ -174,6 +176,7 @@ export class Trash extends Component<TrashProps,TrashState>{
                                 id={value._id}
                                 key={value._id}
                                 projects={projects}  
+                                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                 dispatch={dispatch}  
                                 selectedProjectId={selectedProjectId}
                                 selectedAreaId={selectedAreaId} 

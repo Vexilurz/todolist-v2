@@ -44,6 +44,7 @@ import { SortableContainer } from '../../sortable/CustomSortableContainer';
 import { isDate } from 'util';
 import { ipcRenderer, remote } from 'electron';
 import { CalendarEvent } from '../Calendar';
+import { GroupsByProjectArea } from './Next';
 
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map((item,index:number) => assoc("priority",index,item)) 
@@ -115,10 +116,12 @@ class ThisEveningSeparator extends Component<{},{}>{
 
 interface TodayProps{  
     dispatch:Function,
+    groupTodos:boolean,
     showCalendarEvents:boolean,  
+    moveCompletedItemsToLogbook:string,
     selectedProjectId:string, 
     selectedAreaId:string, 
-    selectedCategory:string,  
+    selectedCategory:Category,  
     areas:Area[],
     calendars:Calendar[],  
     projects:Project[],
@@ -246,6 +249,7 @@ export class Today extends Component<TodayProps,TodayState>{
                     key={todo._id}
                     projects={this.props.projects}  
                     dispatch={this.props.dispatch}  
+                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos}
@@ -306,7 +310,21 @@ export class Today extends Component<TodayProps,TodayState>{
  
     render(){
          
-        let { todos, selectedTag, areas, projects, calendars, showCalendarEvents } = this.props;
+        let { 
+            todos, 
+            selectedTag, 
+            areas,  
+            projects, 
+            calendars, 
+            showCalendarEvents, 
+            groupTodos, 
+            dispatch, 
+            selectedProjectId, 
+            moveCompletedItemsToLogbook,
+            selectedAreaId,
+            selectedCategory,
+            rootRef  
+        } = this.props;
         let { items, tags } = this.getItems();
         let empty = generateEmptyTodo(generateId(), "today", 0);  
 
@@ -372,15 +390,12 @@ export class Today extends Component<TodayProps,TodayState>{
                     <Hint 
                         {
                             ...{
-                                text:`These are your tasks for today. 
-                                Do you also want to include the events from your calendar?`
+                            text:`These are your tasks for today. 
+                            Do you also want to include the events from your calendar?`
                             } as any  
                         } 
                     /> 
-                <div   
-                    id="todos" 
-                    style={{marginBottom: "50px", marginTop:"20px"}} 
-                >         
+                <div id="todos" style={{marginBottom:"50px", marginTop:"20px"}}>         
                     <TodoInput   
                         id={empty._id}  
                         key={"today-todo-creation-form"} 
@@ -388,26 +403,46 @@ export class Today extends Component<TodayProps,TodayState>{
                         selectedProjectId={this.props.selectedProjectId}
                         selectedAreaId={this.props.selectedAreaId} 
                         todos={this.props.todos}
+                        moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                         selectedCategory={"today"} 
-                        projects={this.props.projects}  
+                        projects={this.props.projects}   
                         rootRef={this.props.rootRef}  
                         todo={empty}
                         creation={true}
-                    />     
- 
+                    />  
                     <div id={`today-list`} style={{position:"relative"}}>   
-                        <SortableContainer  
-                            items={items}
-                            scrollableContainer={this.props.rootRef}
-                            selectElements={(index:number,items:any[]) => [index]}
-                            shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
-                            decorators={decorators}
-                            onSortStart={this.onSortStart}   
-                            onSortMove={this.onSortMove} 
-                            onSortEnd={this.onSortEnd}  
-                        >   
-                            {items.map((item,index) => this.getElement(item,index))}
-                        </SortableContainer> 
+                        {
+                            groupTodos ? 
+                            <GroupsByProjectArea
+                                {
+                                    ...{
+                                        dispatch, 
+                                        selectedProjectId, 
+                                        selectedAreaId,
+                                        selectedCategory, 
+                                        moveCompletedItemsToLogbook,
+                                        selectedTag,
+                                        rootRef,
+                                        areas, 
+                                        projects, 
+                                        todos
+                                    }   
+                                }
+                            />
+                            :
+                            <SortableContainer  
+                                items={items}
+                                scrollableContainer={this.props.rootRef}
+                                selectElements={(index:number,items:any[]) => [index]}
+                                shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
+                                decorators={decorators}
+                                onSortStart={this.onSortStart}   
+                                onSortMove={this.onSortMove} 
+                                onSortEnd={this.onSortEnd}  
+                            >   
+                                {items.map((item,index) => this.getElement(item,index))}
+                            </SortableContainer> 
+                        }
                     </div>  
                 </div>     
             </div>

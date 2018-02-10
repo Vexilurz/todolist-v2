@@ -19,8 +19,9 @@ interface AreaComponentProps{
     selectedCategory:Category, 
     selectedAreaId:string,
     selectedTag:string, 
+    moveCompletedItemsToLogbook:string,
     dispatch:Function,  
-    selectedProjectId:string, 
+    selectedProjectId:string,  
     projects:Project[],
     rootRef:HTMLElement 
 } 
@@ -81,6 +82,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                     todos={this.props.todos} 
                     selectedAreaId={this.props.selectedAreaId}
                     selectedProjectId={this.props.selectedProjectId}
+                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     selectedTag={this.props.selectedTag}
                     areas={this.props.areas}
                     projects={this.props.projects}
