@@ -5,7 +5,6 @@ import * as ReactDOM from 'react-dom';
 import { Todo, Project, Area } from '../database';
 import { Component } from 'react';
 import { 
-    insideTargetArea, 
     hideChildrens, 
     makeChildrensVisible, 
     generateDropStyle, 
@@ -17,6 +16,7 @@ import {
     isTodo,
     arrayMove 
 } from '../utils';  
+import { insideTargetArea } from '../insideTargetArea';
 import { RightClickMenu } from './RightClickMenu'; 
 import { byTags, byCategory } from '../utils'; 
 import { TodoInput } from './TodoInput/TodoInput';

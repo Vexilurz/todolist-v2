@@ -32,7 +32,8 @@ import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import { ipcRenderer, remote } from 'electron';
-import TextField from 'material-ui/TextField'; 
+import TextField from 'material-ui/TextField';  
+import { insideTargetArea } from './insideTargetArea';
 import List from 'material-ui/svg-icons/action/list';
 import { 
     cond, assoc, isNil, not, defaultTo, map, isEmpty, 
@@ -54,39 +55,8 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { Provider, connect } from "react-redux";
 import Chip from 'material-ui/Chip';
-import ResizeObserver from 'resize-observer-polyfill';
 import { DateCalendar, DeadlineCalendar } from './Components/ThingsCalendar';
 import { SortableContainer } from './sortable/CustomSortableContainer';
-
-//document.body.style.overflow="auto";  
- 
-export let dateDiffInDays = (A : Date, B : Date) : number  => {
-    let _MS_PER_DAY = 1000 * 60 * 60 * 24;
-
-    let utc1 = Date.UTC(A.getFullYear(), A.getMonth(), A.getDate());
-
-    let utc2 = Date.UTC(B.getFullYear(), B.getMonth(), B.getDate());
-  
-    return Math.floor((utc2 - utc1) / _MS_PER_DAY);
-}
-
-
-let daysRemaining = (date:Date) : number => {
-    return dateDiffInDays(new Date(), date); 
-} 
-    
-
-let generateId = () => uniqid() + new Date().toJSON(); 
-
-let wrapMuiThemeLight = (component) =>  {
-
-    return <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
-        
-        {component} 
-    
-    </MuiThemeProvider>
-
-}   
 
 injectTapEventPlugin();  
 
@@ -121,6 +91,7 @@ interface QuickEntryState{
     attachedTags : string[],
     tag : string, 
     checklist : any[],
+    defaultTags : string[],
     showAdditionalTags : boolean, 
     showDateCalendar : boolean,  
     showTagsSelection : boolean,
@@ -153,7 +124,8 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             reminder : undefined, 
             deadline : undefined, 
             deleted : undefined, 
-            attachedDate : undefined, 
+            attachedDate : undefined,
+            defaultTags : [], 
             attachedTags : [], 
             checklist : [], 
             showAdditionalTags : false, 
@@ -164,26 +136,54 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         }       
     }
 
-    onResize = (entries, observer) => {   
-        const {left, top, width, height} = entries[0].contentRect;
+
+    setSmallSize = () => {
+        let defaultWidth = 500;
+        let defaultHeight = 250;
         let wnd = remote.getCurrentWindow(); 
-        wnd.setSize(600, document.body.scrollHeight); 
-    }          
-    
-    initRo = () => {     
-        this.ro = new ResizeObserver(this.onResize);    
-        this.ro.observe(document.body);      
-    }    
-    
-    componentDidMount(){  
+        wnd.setSize(defaultWidth, defaultHeight); 
+    }
+
+
+    setBigSize = () => {
+        let wnd = remote.getCurrentWindow(); 
+        wnd.setSize(500, 400); 
+    }
+
+
+    componentDidMount(){   
         if(this.inputRef){  this.inputRef.focus()  }
-        //this.initRo(); 
+        ipcRenderer.on(
+            "config", 
+            (event,config) => {
+                this.setState({
+                    category:isNil(config) ? "inbox" : config.quickEntrySavesTo,
+                    defaultTags:isNil(config) ? [] : config.defaultTags  
+                })
+            }  
+        ) 
     }     
+
  
-    closeParentContainer = () => { 
-       
+    componentWillUnmount(){
+        ipcRenderer.removeAllListeners("config");  
     }
     
+    clear = () => {
+        let emptyTodo = generateEmptyTodo(generateId(), this.state.category, 0);
+        
+        let newState : QuickEntryState = {
+            ...this.stateFromTodo(this.state,emptyTodo),
+            showDateCalendar:false,     
+            showTagsSelection:false, 
+            showAdditionalTags:false, 
+            showChecklist:false,   
+            showDeadlineCalendar:false 
+        };
+
+        this.setState(newState);
+    }
+
     addTodo = () => {
         let todo = this.todoFromState();  
 
@@ -191,6 +191,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             ipcRenderer.send("quick-entry",todo); 
         }
     } 
+
 
     stateFromTodo = (state,todo) => ({   
         ...state,
@@ -206,6 +207,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         attachedTags:todo.attachedTags, 
         checklist:todo.checklist  
     }) 
+
 
     todoFromState = () : any => ({
         _id : generateId(),
@@ -224,6 +226,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         completed : this.state.completed, 
         checked : this.state.checked
     }) 
+
     
     onAttachTag = (tag) => { 
 
@@ -231,6 +234,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
         this.setState({tag:'', attachedTags:uniq([...this.state.attachedTags, tag])})
     }  
+
 
     onRemoveTag = (tag) => {
 
@@ -245,18 +249,21 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         this.setState({attachedTags:remove(idx,1,attachedTags)})
     } 
 
+
     onNoteChange = (event,newValue:string) : void => {
         this.setState({note:newValue})
     }
 
+
     onTitleChange = (event,newValue:string) : void => {
         this.setState({title:newValue})
-    }
+    }  
+
 
     onCheckBoxClick = () => {  
         let checked : boolean = !this.state.checked; 
         this.setState({checked:checked, completed:checked ? new Date() : null})
-    } 
+    }   
 
 
     onChecklistButtonClick = (e) => {
@@ -265,22 +272,22 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
       
 
     onFlagButtonClick = (e) => {
-        this.setState({showDeadlineCalendar:true})
+        this.setState({showDeadlineCalendar:true}, () => this.setBigSize())
     }
 
 
     closeDeadlineCalendar = (e) => {
-        this.setState({showDeadlineCalendar:false})
+        this.setState({showDeadlineCalendar:false}, () => this.setSmallSize())
     }
  
 
     onCalendarButtonClick = (e) => {
-        this.setState({showDateCalendar:true})
+        this.setState({showDateCalendar:true}, () => this.setBigSize())
     }
-    
+     
 
     closeDateCalendar = (e) => {
-        this.setState({showDateCalendar:false})
+        this.setState({showDateCalendar:false}, () => this.setSmallSize())
     }
 
     
@@ -398,15 +405,28 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                 overflowX:"hidden",  
                 height:"100%",   
                 justifyContent:"space-between",
-                boxShadow:"1px 1px 1px 3px #ccc inset",
+                boxShadow:"0 0 12px rgba(0,0,0,0.3) inset",
                 position:"relative", 
                 alignItems:"center", 
                 flexDirection:"column",  
             }}   
-        >          
+        >       
+            <div style={{position:"absolute",top:10,right:10,cursor:"pointer",zIndex:200}}>   
+            <div   
+              style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
+              onClick={() => {
+                this.clear();
+                remote.getCurrentWindow().blur();
+              }}
+            >
+                <Clear style={{color:"rgba(100,100,100,0.5)",height:20,width:20}}/>
+            </div>
+            </div>
+
+            <div style={{width:"100%"}}>    
             <div style={{
                 display:"flex", height:"30px", alignItems:"center", 
-                width:"100%", paddingLeft:"30px", margin:"10px"
+                width:"100%", margin:"10px", paddingLeft: "20px"
             }}>
                 <TextField   
                     ref={e => {this.inputRef=e;}}
@@ -415,19 +435,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     value={this.state.title} 
                     hintText="New To-Do" 
                     fullWidth={true}  
-                    hintStyle={{ 
-                        top:"3px", 
-                        left:0,   
-                        height:"30px"
-                    }}      
+                    hintStyle={{top:"3px", left:0, height:"30px"}}      
                     onChange={this.onTitleChange} 
-                    style={{
-                        display:"flex", 
-                        alignItems:"center",  
-                        width:"100%", 
-                        height:"30px",
-                        cursor:"default"
-                    }}       
+                    style={{display:"flex", alignItems:"center", width:"100%", height:"30px", cursor:"default"}}       
                     inputStyle={{        
                         height:"30px",
                         color:"black", fontSize:"16px", 
@@ -439,20 +449,20 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     underlineStyle={{borderColor:"rgba(0,0,0,0)"}}   
                 />  
             </div> 
+
             <div style={{
                 transition:"opacity 0.2s ease-in-out",
                 opacity:1,
-                minHeight:"80px",
+                minHeight:"40px",
                 width:"100%",
                 marginLeft:"30px",
-                paddingLeft:"25px", 
                 paddingRight:"25px"  
             } as any}>        
                 <TextField   
                     id={`always-note`}  
                     value={this.state.note} 
                     hintText="Notes"
-                    multiLine={true}   
+                    multiLine={true}    
                     rows={1}
                     fullWidth={true}  
                     onChange={this.onNoteChange}  
@@ -461,96 +471,100 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}} 
                     underlineStyle={{borderColor:"rgba(0,0,0,0)"}}  
                 />  
+            </div>
             </div> 
+             
             {    
                 !this.state.showChecklist ? null :  
-                <div> 
-                    <Checklist 
-                        checklist={this.state.checklist}  
-                        updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})} 
-                    /> 
+                <div style={{width:"90%", paddingBottom:"50px"}}> 
+                  <Checklist 
+                    checklist={this.state.checklist}  
+                    updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})} 
+                  /> 
                 </div> 
             }   
             {  
                 <TodoTags   
-                    tags={this.state.attachedTags}
-                    attachTag={this.onAttachTag}
-                    removeTag={this.onRemoveTag}
+                  tags={this.state.attachedTags}
+                  attachTag={this.onAttachTag}
+                  removeTag={this.onRemoveTag}
                 /> 
+            } 
+            <div style={{ 
+                display:"flex",
+                alignItems:"center",
+                width:"100%", 
+                position:"fixed",
+                justifyContent:"flex-end",
+                bottom:30, 
+                padding:"5px", 
+                right:10, 
+                zIndex:30001    
+            }}>  
+            { 
+                <DateCalendar 
+                    close={this.closeDateCalendar}
+                    open={this.state.showDateCalendar}
+                    origin = {{vertical:"center", horizontal:"left"}} 
+                    point = {{vertical:"bottom", horizontal:"right"}}  
+                    anchorEl={this.calendar}
+                    rootRef = {document.body}
+                    reminder={this.state.reminder}  
+                    attachedDate={this.state.attachedDate}
+                    onDayClick = {this.onCalendarDayClick}
+                    onSomedayClick = {this.onCalendarSomedayClick}
+                    onTodayClick = {this.onCalendarTodayClick}
+                    onThisEveningClick = {this.onCalendarThisEveningClick}
+                    onAddReminderClick = {this.onCalendarAddReminderClick}
+                    onClear = {this.onCalendarClear} 
+                />  
+            } 
+            {
+                <TagsPopup   
+                    { 
+                        ...{
+                            attachTag:this.onAttachTag, 
+                            close:this.closeTagsSelection,
+                            open:this.state.showTagsSelection,  
+                            anchorEl:this.tags,
+                            todos:[],
+                            defaultTags:this.state.defaultTags,
+                            origin:{vertical:"center",horizontal:"left"}, 
+                            point:{vertical:"bottom",horizontal:"right"}, 
+                            rootRef:document.body 
+                        } 
+                    }
+                />
             }
-        <div style={{ 
-            display:"flex",
-            alignItems:"center",
-            width:"100%", 
-            justifyContent:"flex-end",
-            bottom:0, 
-            padding:"5px", 
-            right:0,
-            zIndex:30001    
-        }}>  
-        { 
-            <DateCalendar 
-                close={this.closeDateCalendar}
-                open={this.state.showDateCalendar}
-                origin = {{vertical:"center", horizontal:"left"}} 
-                point = {{vertical:"bottom", horizontal:"right"}}  
-                anchorEl={this.calendar}
-                rootRef = {document.body}
-                reminder={this.state.reminder}  
-                attachedDate={this.state.attachedDate}
-                onDayClick = {this.onCalendarDayClick}
-                onSomedayClick = {this.onCalendarSomedayClick}
-                onTodayClick = {this.onCalendarTodayClick}
-                onThisEveningClick = {this.onCalendarThisEveningClick}
-                onAddReminderClick = {this.onCalendarAddReminderClick}
-                onClear = {this.onCalendarClear} 
-            />  
-        } 
-        {
-            <TagsPopup   
-                { 
-                    ...{
-                        attachTag:this.onAttachTag, 
-                        close:this.closeTagsSelection,
-                        open:this.state.showTagsSelection,  
-                        anchorEl:this.tags,
-                        todos:[],
-                        defaultTags:[],
-                        origin:{vertical:"center",horizontal:"left"}, 
-                        point:{vertical:"bottom",horizontal:"right"}, 
-                        rootRef:document.body 
-                    } 
-                }
-            />
-        }
-        {
-            <DeadlineCalendar   
-                close={this.closeDeadlineCalendar}
-                onDayClick={this.onDeadlineCalendarDayClick}
-                open={this.state.showDeadlineCalendar}
-                origin = {{vertical: "center", horizontal: "left"}} 
-                point = {{vertical: "bottom", horizontal: "right"}} 
-                anchorEl = {this.deadline}
-                onClear={this.onDeadlineCalendarClear}
-                rootRef = {document.body}
-            />
-        }
-            { /*    
+            {
+                <DeadlineCalendar   
+                    close={this.closeDeadlineCalendar}
+                    onDayClick={this.onDeadlineCalendarDayClick}
+                    open={this.state.showDeadlineCalendar}
+                    origin={{vertical: "center", horizontal: "left"}} 
+                    point={{vertical: "bottom", horizontal: "right"}} 
+                    anchorEl={this.deadline}
+                    onClear={this.onDeadlineCalendarClear}
+                    rootRef={document.body}
+                />
+            }
+            {   
                 <div ref={(e) => { this.calendar=e; }}>  
-                    <IconButton 
-                    onClick = {this.onCalendarButtonClick} 
-                    iconStyle={{  
-                        transition: "opacity 0.2s ease-in-out",
-                        opacity: 1,
+                    <IconButton  
+                      onClick = {this.onCalendarButtonClick} 
+                      iconStyle={{  
+                        transition:"opacity 0.2s ease-in-out",
+                        opacity:1,
                         color:"rgb(207,206,207)",
                         width:"25px",   
                         height:"25px"  
-                    }}>      
-                        <Calendar />  
+                      }}
+                    >      
+                        <Calendar />   
                     </IconButton> 
-                </div> */ 
+                </div> 
             } 
-            {/*
+            {
                 <div ref={(e) => { this.tags=e;}} > 
                     <IconButton   
                         onClick = {this.onTagsButtonClick}
@@ -564,10 +578,10 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     >         
                         <TriangleLabel />
                     </IconButton>    
-                </div> */
+                </div> 
             }
             {   
-                /*this.state.showChecklist ? null :     
+                this.state.showChecklist ? null :     
                 <IconButton      
                     onClick = {this.onChecklistButtonClick}
                     iconStyle={{  
@@ -579,9 +593,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     }}
                 >         
                     <List />
-                </IconButton>*/
+                </IconButton>
             } 
-            {    /*
+            {    
                 <div ref={(e) => {this.deadline=e;}}>  
                     <IconButton 
                         onClick = {this.onFlagButtonClick} 
@@ -595,21 +609,27 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     >     
                         <Flag />  
                     </IconButton> 
-                </div>  */
+                </div>  
             }         
         </div> 
 
+        <div style={{width:"100%", position:"fixed", bottom:0, right:0}}>    
         <TodoInputPopupFooter
-            onCancel={() => remote.getCurrentWindow().blur()}
+            onCancel={() => {
+               remote.getCurrentWindow().blur();
+               this.clear();
+            }}
             onSave={() => {
                this.addTodo();
-               remote.getCurrentWindow().blur();  
+               remote.getCurrentWindow().blur(); 
+               this.clear(); 
             }}
-        />  
+        /> 
+        </div> 
     </div>  
   }
 }
-     
+
 
 interface TodoInputPopupFooterProps{  
     onCancel:Function,
@@ -620,7 +640,6 @@ interface TodoInputPopupFooterProps{
 interface TodoInputPopupFooterState{
     selectorPopupOpened:boolean 
 }
-
 
 
 class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInputPopupFooterState>{
@@ -640,7 +659,6 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
 
     render(){
         let { selectorPopupOpened } = this.state;
-
 
         return <div style={{
             backgroundColor:"rgb(234, 235, 239)",
@@ -721,6 +739,47 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+ 
+export let dateDiffInDays = (A : Date, B : Date) : number  => {
+    let _MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+    let utc1 = Date.UTC(A.getFullYear(), A.getMonth(), A.getDate());
+
+    let utc2 = Date.UTC(B.getFullYear(), B.getMonth(), B.getDate());
+  
+    return Math.floor((utc2 - utc1) / _MS_PER_DAY);
+}
+
+
+
+let daysRemaining = (date:Date) : number => {
+    return dateDiffInDays(new Date(), date); 
+} 
+    
+
+
+let generateId = () => uniqid() + new Date().toJSON(); 
+
+let wrapMuiThemeLight = (component) =>  {
+
+    return <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
+        
+        {component} 
+    
+    </MuiThemeProvider>
+
+}   
 
 
 
@@ -1258,21 +1317,6 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
  
 
 
-let insideTargetArea = (scrollableContainer:HTMLElement,target:HTMLElement,x:number,y:number) : boolean => {
-
-    if(target===null || target===undefined){ return false }
-
-    let {left,right,top,bottom} = target.getBoundingClientRect();
-    let scrolledLeft = left;
-    let scrolledTop = top;
-    
-    if(x>scrolledLeft && x<right){
-        if(y>scrolledTop && y<bottom){ return true }
-    }
-        
-    return false
-}
-    
 
 
 interface TodoTagsProps{
@@ -1322,6 +1366,7 @@ export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
                 display:"flex", 
                 paddingTop:"5px",
                 paddingBottom:"5px",
+                width:"100%",
                 flexWrap:"wrap" 
             }}
         >
@@ -1466,9 +1511,31 @@ export class TodoInputLabel extends Component<TodoInputLabelProps, TodoInputLabe
   
 }
 
+let generateEmptyTodo = (
+    _id:string,
+    selectedCategory:string,
+    priority:number
+) : Todo => ({    
+    _id,
+    type:"todo", 
+    category : selectedCategory,  
+    title : '', 
+    priority, 
+    reminder : null, 
+    checked : false,  
+    note : '',
+    checklist : [],   
+    attachedTags : [],
+    attachedDate : null,
+    deadline : null,
+    created : new Date(),  
+    deleted : null, 
+    completed : null
+});
+
 let chooseIcon = (
     size : { width:string, height:string }, 
-    selectedCategory : string
+    selectedCategory : string 
 ) => {
 
     switch(selectedCategory){  
@@ -1601,4 +1668,4 @@ let chooseIcon = (
                 }   
             }}/> 
     }
-}
+} 

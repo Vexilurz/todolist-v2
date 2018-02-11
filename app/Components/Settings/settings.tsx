@@ -28,7 +28,10 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { Checkbox } from '../TodoInput/TodoInput';
-import { attachDispatchToProps, isString, debounce, isNewVersion, keyFromDate, checkForUpdates, uppercase, isArrayOfStrings, assert, defaultTags, isArrayOfTodos } from '../../utils';
+import { 
+    attachDispatchToProps, isString, debounce, isNewVersion, keyFromDate, 
+    checkForUpdates, uppercase, isArrayOfStrings, assert, defaultTags, isArrayOfTodos 
+} from '../../utils';
 import { Store, globalErrorHandler, updateConfig } from '../../app';
 import { 
     generateId, Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, 
@@ -44,6 +47,7 @@ const fs = remote.require('fs');
 const path = require("path");
 const os = remote.require('os'); 
 const dialog = remote.dialog;
+
 
 interface SettingsPopupProps extends Store{}
 interface SettingsPopupState{}
@@ -76,16 +80,24 @@ export class Settings extends Component<SettingsProps,SettingsState>{
         let height = window.innerHeight/1.7;
         let width = window.innerWidth/1.2;
 
-
         return <div style={{
             display:"flex", 
             flexDirection:"column", 
             height:height, 
             width:width,
             borderRadius:"5px",
+            position:"relative", 
             backgroundColor:"rgba(254, 254, 254, 1)",
             boxShadow:"0 0 18px rgba(0,0,0,0.5)", 
         }}> 
+            <div style={{position:"absolute", top:5, right:5, cursor:"pointer",  zIndex:200}}>   
+                <div   
+                    style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
+                    onClick={() => dispatch({type:"openSettings",load:false})}
+                >
+                    <Clear style={{color:"rgba(100,100,100,0.5)",height:25,width:25}}/>
+                </div>
+            </div>
             <div style={{
                 width:"100%",
                 display:"flex",
@@ -213,7 +225,10 @@ class Section extends Component<SectionProps,{}>{
     }   
 }
 
-
+let findQuickEntryWindow = (title:string) => {
+    let windows = remote.BrowserWindow.getAllWindows();
+    return windows.find((w) => w.getTitle()===title); 
+}
 
 interface QuickEntrySettingsProps extends Store{}
 
@@ -227,12 +242,48 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
 
     enableQuickEntry = debounce(() => {
         let {enableShortcutForQuickEntry,dispatch} = this.props;
-        updateConfig(dispatch)({enableShortcutForQuickEntry:!enableShortcutForQuickEntry}); 
+
+        updateConfig(dispatch)({enableShortcutForQuickEntry:!enableShortcutForQuickEntry})
+        .then(
+            (config) => {
+                if(config.enableShortcutForQuickEntry){
+                    if(!remote.globalShortcut.isRegistered('Ctrl+Alt+T')){
+                        remote.globalShortcut.register(
+                            'Ctrl+Alt+T', 
+                            () => {
+                                let quickEntry = findQuickEntryWindow('Quick Entry');
+                                if(isNil(quickEntry)){  return  }    
+                                
+                                if(quickEntry.isVisible()){
+                                   quickEntry.hide();
+                                }else{
+                                   quickEntry.show();
+                                   quickEntry.focus(); 
+                                }
+                            }
+                        );
+                    }
+                }else{
+                    if(remote.globalShortcut.isRegistered('Ctrl+Alt+T')){
+                       remote.globalShortcut.unregister('Ctrl+Alt+T');
+                    }
+                }
+            } 
+        )
     },50);
+    
 
     quickEntrySavesTo = (event) => {
         let {dispatch} = this.props;
-        updateConfig(dispatch)({quickEntrySavesTo:event.target.value}); 
+        updateConfig(dispatch)({quickEntrySavesTo:event.target.value})
+        .then(
+            (config) => {
+                let window = findQuickEntryWindow('Quick Entry');
+                if(window){
+                    window.webContents.send('config',config)
+                }
+            } 
+        ); 
     };
 
     render(){
@@ -396,7 +447,7 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
                               style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
                               onClick={this.onRemoveTag(tag)}
                             >
-                                <Clear style={{color:"rgba(100,100,100)",height:20,width:20}}/>
+                                <Clear style={{color:"rgba(100,100,100,1)",height:20,width:20}}/>
                             </div>
                         </div>
                         </div> 

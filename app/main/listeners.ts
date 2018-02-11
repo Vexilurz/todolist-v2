@@ -3,7 +3,7 @@ import { loadApp, dev } from './loadApp';
 import * as electron from 'electron'; 
 import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,FileFilter} from 'electron';
 import { initWindow } from './initWindow';
-import { remove } from 'ramda';
+import { remove, isEmpty } from 'ramda';
 let uniqid = require("uniqid");  
 const os = require('os'); 
 const storage = require('electron-json-storage'); 
@@ -119,11 +119,13 @@ export class Listeners{
             {
                 name:"quick-entry",
                 callback : (event, todo) => {
-                    type kind = "external";
-                    let kind : kind = "external";
+                    type kind = "quick-entry";
+                    let kind : kind = "quick-entry";
                     let windows = this.spawnedWindows.filter(w => !w.isDestroyed());
                     let action = {type:"addTodo",load:todo}; 
-                    console.log("quick-entry",todo); 
+
+                    if(isEmpty(todo.title)){ return }
+
                     for(let i=0; i<windows.length; i++){
                         windows[i].webContents.send("action", {...action, kind});
                     }  

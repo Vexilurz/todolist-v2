@@ -26,7 +26,7 @@ import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area, generateId } from '../../database';
 import { 
     uppercase, debounce, byNotDeleted, generateEmptyTodo, byNotCompleted, 
-    generateDropStyle, insideTargetArea, hideChildrens, makeChildrensVisible, 
+    generateDropStyle, hideChildrens, makeChildrensVisible, 
     layoutOrderChanged, assert, isTodo, isString, arrayMove 
 } from '../../utils'; 
 import { ProjectHeading } from './ProjectHeading';  
@@ -36,6 +36,7 @@ import { equals, allPass, isEmpty, isNil, not, uniq, contains } from 'ramda';
 import { onDrop } from '../TodosList';
 import { isDev } from '../../app'; 
 import { SortableContainer } from '../../sortable/CustomSortableContainer';
+import { insideTargetArea } from '../../insideTargetArea';
 
 
 
@@ -240,8 +241,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             this.changeHeadingsOrder(oldIndex,newIndex);  
         }else if(draggedItem.type==="todo"){
 
-            if(isEmpty(draggedItem.title))  
-               return;
+            if(isEmpty(draggedItem.title)){ return }
   
             if(insideTargetArea(null,leftpanel,x,y)){    
                onDrop(

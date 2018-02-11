@@ -6,7 +6,7 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, uppercase, insideTargetArea, 
+    attachDispatchToProps, uppercase, 
     chooseIcon, byCategory, byTags, 
 } from "../utils"; 
 import { connect } from "react-redux";

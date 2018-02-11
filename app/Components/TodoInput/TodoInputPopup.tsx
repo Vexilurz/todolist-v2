@@ -33,14 +33,15 @@ import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
-    insideTargetArea, daysRemaining, todoChanged, 
+    daysRemaining, todoChanged, 
     daysLeftMark, generateTagElement, uppercase, 
     generateEmptyTodo, isToday, getMonthName, stringToLength, 
     attachDispatchToProps, 
     assert,
     byNotDeleted,
-    byNotCompleted
+    byNotCompleted 
 } from '../../utils'; 
+import { insideTargetArea } from '../../insideTargetArea';
 import { Todo, removeTodo, updateTodo, generateId, Project } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 

@@ -10,7 +10,7 @@ import Restore from 'material-ui/svg-icons/navigation/refresh';
 import { uniq, compose, contains, allPass, isNil, not, isEmpty } from 'ramda';
 import { isString } from 'util';
 import { 
-    insideTargetArea, attachDispatchToProps, threeDaysLater, debounce, downloadUpdates 
+    attachDispatchToProps, threeDaysLater, debounce, downloadUpdates 
 } from '../utils';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';

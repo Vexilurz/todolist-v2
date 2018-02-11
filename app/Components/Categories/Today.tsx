@@ -6,10 +6,10 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, uppercase, insideTargetArea, 
-    chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, generateEmptyTodo, 
-    isToday, daysRemaining, isTodo, assert, makeChildrensVisible, hideChildrens, generateDropStyle, 
-    arrayMove, keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, timeOfTheDay 
+    attachDispatchToProps, uppercase, chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, 
+    attachEmptyTodo, generateEmptyTodo, isToday, daysRemaining, isTodo, assert, makeChildrensVisible, 
+    hideChildrens, generateDropStyle, arrayMove, keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, 
+    timeOfTheDay 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -45,6 +45,7 @@ import { isDate } from 'util';
 import { ipcRenderer, remote } from 'electron';
 import { CalendarEvent } from '../Calendar';
 import { GroupsByProjectArea } from './Next';
+import { insideTargetArea } from '../../insideTargetArea';
 
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map((item,index:number) => assoc("priority",index,item)) 

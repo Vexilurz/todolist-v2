@@ -45,23 +45,46 @@ import { Subscription } from 'rxjs/Rx';
 import { UpdateNotification } from './Components/UpdateNotification';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 const storage = remote.require('electron-json-storage');
-const MockDate = require('mockdate'); 
-const sysInfo = collectSystemInfo();  
-injectTapEventPlugin();  
 import printJS from 'print-js';  
-export let isDev = () => { return false };   
 
-let analytics = new Analytics(
-    'UA-113407516-1',
-    {
-        appName:"tasklist",
-        appVersion:remote.app.getVersion(),
-        language:sysInfo.userLanguage,
-        userAgent:navigator.userAgent,
-        viewport:`${sysInfo.viewportSize.width}x${sysInfo.viewportSize.height}`,
-        screenResolution:`${sysInfo.screenResolution.width}x${sysInfo.screenResolution.height}`
-    }
-);
+const MockDate = require('mockdate'); 
+let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
+
+injectTapEventPlugin();  
+
+
+  
+
+export let isDev = () => { return true };   
+
+
+
+
+(() => {     
+    let app=document.createElement('div'); 
+    app.id='application';     
+    document.body.appendChild(app);     
+})(); 
+
+
+
+
+const analytics = (() => {
+    const sysInfo = collectSystemInfo();
+    return new Analytics(
+        'UA-113407516-1',
+        {
+            appName:"tasklist",
+            appVersion:remote.app.getVersion(),
+            language:sysInfo.userLanguage,
+            userAgent:navigator.userAgent,
+            viewport:`${sysInfo.viewportSize.width}x${sysInfo.viewportSize.height}`,
+            screenResolution:`${sysInfo.screenResolution.width}x${sysInfo.screenResolution.height}`
+        }
+    );
+})()
+
+
 
 export const googleAnalytics = ({
     send:(type:string,load:any) =>
@@ -72,9 +95,8 @@ export const googleAnalytics = ({
         }            
     ) 
 });     
-  
 
-let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
+
 
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
@@ -88,6 +110,7 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
     globalErrorHandler(message);
     return false;
 };
+
 
 
 export let globalErrorHandler = (error:any) : Promise<void> => {
@@ -110,11 +133,10 @@ export let globalErrorHandler = (error:any) : Promise<void> => {
         try{ message = JSON.stringify(error) }catch(e){ }
     }
 
-    if(error.code){
-       value = error.code;
-    }else if(error.lineNumber){
-       value = error.lineNumber;
-    }  
+    if(!isNil(error)){
+        if(error.code){ value = error.code; }
+        else if(error.lineNumber){ value = error.lineNumber; } 
+    } 
            
     return Promise.all(
         [
@@ -132,12 +154,6 @@ export let globalErrorHandler = (error:any) : Promise<void> => {
 };    
 
 
-(() => {     
-    let app=document.createElement('div'); 
-    app.id='application';     
-    document.body.appendChild(app);     
-})(); 
-
 
 export let getConfig = () : Promise<Config> => {
     return new Promise( 
@@ -152,7 +168,8 @@ export let getConfig = () : Promise<Config> => {
             )   
         }
     )
-} 
+}; 
+
 
 
 export let updateConfig = (dispatch:Function) => 
@@ -301,13 +318,17 @@ export class App extends Component<AppProps,{}>{
     subscriptions:Subscription[]; 
     timeouts:any[]; 
 
+
     constructor(props){  
         super(props);  
         this.timeouts = [];
         this.subscriptions = [];
     }
 
+
     onError = (error) => globalErrorHandler(error)
+
+
 
     reportStart = ({ arch, cpus, platform, release, type, timeSeconds }) => googleAnalytics.send(   
         'event',   
@@ -328,6 +349,8 @@ export class App extends Component<AppProps,{}>{
     ) 
     .then(() => console.log('Application launched'))
     .catch(err => this.onError(err));
+
+
 
     initUpdateTimeout = () => {
         let {dispatch, nextUpdateCheck} = this.props;
@@ -352,28 +375,22 @@ export class App extends Component<AppProps,{}>{
         }
     }
 
-    initMidnightTimeout = () : void => {
-        let {dispatch} = this.props;
-        let onNewDayBegins = () => dispatch({type:'update'}); 
-        let now = new Date();
-        let midnight : Date = nextMidnight();
-        let timeMs = midnight.getTime() - now.getTime();
-        if(timeMs<=0){ onNewDayBegins() } 
-        else{ 
-            this.timeouts.push(setTimeout(onNewDayBegins, timeMs));
-        } 
-    }
 
-    componentDidMount(){   
+
+    componentDidMount(){    
+        const sysInfo = collectSystemInfo();
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
+
         this.initObservables();  
         this.initUpdateTimeout(); 
-        this.initMidnightTimeout();
         this.reportStart({...sysInfo, timeSeconds} as any);
     }    
 
+
     initObservables = () => {
         let {dispatch} = this.props;
+
+        let updateInterval = Observable.interval(1000 * 60 * 5).subscribe(() => dispatch({type:'update'}));   
 
         let actionListener = Observable
                              .fromEvent(ipcRenderer, "action", (event,action) => action)
@@ -383,7 +400,6 @@ export class App extends Component<AppProps,{}>{
                              }))
                              .subscribe((action) => action.type==="@@redux/INIT" ? null : dispatch(action));   
 
-        
         let errorListener = Observable
                             .fromEvent(ipcRenderer, "error", (event,error) => error)
                             .subscribe((error) => this.onError(error));  
@@ -400,8 +416,9 @@ export class App extends Component<AppProps,{}>{
                                     dispatch({type:"openTodoInputPopup", load:true});
                                 });  
 
-        this.subscriptions.push(actionListener,errorListener,ctrlAltTListener,progressListener);
+        this.subscriptions.push(actionListener,errorListener,ctrlAltTListener,progressListener,updateInterval);
     }
+
 
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
@@ -409,6 +426,7 @@ export class App extends Component<AppProps,{}>{
         this.timeouts.map(t => clearTimeout(t));
         this.timeouts = [];  
     }
+    
  
     render(){     
         let { clone } = this.props;
@@ -434,8 +452,9 @@ export class App extends Component<AppProps,{}>{
         );    
     }           
 };   
-  
 
+  
+//render application
 ipcRenderer.once(
     'loaded',     
     (event, clonedStore:Store) => { 
@@ -460,6 +479,7 @@ ipcRenderer.once(
 );    
  
 
+
 let reducer = (reducers) => (state:Store, action) => {
     for(let i=0; i<reducers.length; i++){
         let newState = reducers[i](state, action);
@@ -468,6 +488,7 @@ let reducer = (reducers) => (state:Store, action) => {
     return state      
 }; 
  
+
 
 let applicationReducer = reducer([applicationStateReducer, applicationObjectsReducer]); 
   

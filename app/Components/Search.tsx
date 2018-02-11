@@ -32,7 +32,6 @@ import * as Waypoint from 'react-waypoint';
 import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
 import {  
-    insideTargetArea,  
     daysLeftMark, generateTagElement, 
     attachDispatchToProps, chooseIcon, 
     stringToLength,  

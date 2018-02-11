@@ -15,6 +15,9 @@ export let mainWindow : BrowserWindow;
 export let quickEntry : BrowserWindow;   
 export let listeners : Listeners;  
 export let tray : Tray;
+export let dateCalendar : BrowserWindow;
+
+
 
 const CtrlAltT : string = 'Ctrl+Alt+T';
 const CtrlD : string = 'Ctrl+D';
@@ -41,16 +44,23 @@ let createTray = () => {
         },
         {
             label: 'Restore', 
-            type: 'normal', 
+            type: 'normal',  
             click:() => {
                 let windows = BrowserWindow.getAllWindows();
-                windows.forEach((w) => w.show())
+                windows.forEach((w) => {
+                    if(w.getTitle()!=='Quick Entry'){ w.show() }
+                })
             }
         },
         {
             label:'Quit', 
             type: 'normal', 
-            click:() => app.quit()
+            click:() => {
+                let windows = BrowserWindow.getAllWindows();
+                windows.forEach((w) => {
+                     w.destroy();
+                })
+            }
         },
     ])
 
@@ -68,11 +78,12 @@ let createTray = () => {
 }
 
 
+
 let onCtrlAltT = () : void => {
     if(isNil(quickEntry)){ return }  
     
     if(quickEntry.isVisible()){
-       quickEntry.hide();
+       quickEntry.hide(); 
     }else{
        quickEntry.show();
        quickEntry.focus();
@@ -80,13 +91,17 @@ let onCtrlAltT = () : void => {
 } 
   
 
+
 let onCtrlD = () : void => mainWindow.webContents.openDevTools();   
+
 
 
 let preventAnnoyingErrorPopups = () => dialog.showErrorBox = (title, content) => {};
   
 
+
 let initListeners = (window:BrowserWindow) => new Listeners(window);
+
 
 
 let onAppLoaded = () : void => {    
@@ -95,15 +110,14 @@ let onAppLoaded = () : void => {
 }
 
 
-let onQuickEntryLoaded = () : void => {     
+
+let onQuickEntryLoaded = () : void => {      
     quickEntry.webContents.send("loaded");
-    quickEntry.on('blur', () => {   
-        quickEntry.hide()  
-    }) 
+    quickEntry.on('blur', () => quickEntry.hide());  
     //if(dev()){ quickEntry.webContents.openDevTools() }
 }
-
-
+  
+    
 let getWindowSize = () : {width:number,height:number} => {
     let mainWindowWidth : number = dev() ? 100 : 60;  
     let mainWindowHeight : number = dev() ? 100 : 70; 
@@ -111,17 +125,16 @@ let getWindowSize = () : {width:number,height:number} => {
     let width = mainWindowWidth*(workingArea.width/100); 
     let height = mainWindowHeight*(workingArea.height/100); 
  
-    if(!dev()){ width = width <= 800 ? width : 800; } 
+    if(!dev()){ width = width <= 800 ? width : 800;} 
     
-    return {width,height}  
+    return {width,height};  
 };  
 
 
 let getQuickEntrySize = () : {width:number,height:number} => {
-    let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
-    let width = 40*(workingArea.width/100); 
-    let height = 25*(workingArea.height/100); 
-    return {width,height}  
+    let {width,height} = electron.screen.getPrimaryDisplay().workAreaSize;
+  
+    return {width:500,height:250};  
 };  
 
 
@@ -131,22 +144,22 @@ let onReady = () => {
        return;
     }  
 
-    createTray();
+    preventAnnoyingErrorPopups(); 
 
     if(globalShortcut){
-       globalShortcut.register(CtrlAltT, onCtrlAltT);  
-       globalShortcut.register(CtrlD, onCtrlD);
+        globalShortcut.register(CtrlAltT, onCtrlAltT);  
+        globalShortcut.register(CtrlD, onCtrlD);
     }  
 
-    preventAnnoyingErrorPopups(); 
+    createTray();
     mainWindow = initWindow(getWindowSize());  
     quickEntry = initQuickEntry(getQuickEntrySize());
-    quickEntry.hide(); 
-    quickEntry.setSkipTaskbar(true)
-    listeners = initListeners(mainWindow);
+    listeners = initListeners(mainWindow); 
+
+
 
     loadApp(mainWindow).then(onAppLoaded);   
-    loadQuickEntry(quickEntry).then(onQuickEntryLoaded);   
+    loadQuickEntry(quickEntry).then(onQuickEntryLoaded);  
 };               
 
 
@@ -164,7 +177,7 @@ process.on(
     }
 );
 
-
+ 
 app.on(     
    'window-all-closed', 
     () => { 

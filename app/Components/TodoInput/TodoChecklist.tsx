@@ -32,11 +32,12 @@ let uniqid = require("uniqid");
 import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
 import { 
-    insideTargetArea, daysRemaining, 
+    daysRemaining, 
     todoChanged, daysLeftMark, 
     generateTagElement,
     arrayMove
 } from '../../utils';
+import { insideTargetArea } from '../../insideTargetArea';
 import { Category } from '.././MainContainer';
 import { Todo, removeTodo, updateTodo, generateId } from '../../database'; 
 import { replace, adjust, append, prepend, isEmpty } from 'ramda';

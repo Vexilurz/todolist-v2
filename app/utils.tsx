@@ -44,7 +44,6 @@ import { Category } from './Components/MainContainer';
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 let moment = require("moment");
 import Moon from 'material-ui/svg-icons/image/brightness-3';
-import { TodoInput } from './Components/TodoInput/TodoInput';
 import { 
     contains, isNil, all, prepend, isEmpty, last,
     not, assoc, flatten, toPairs, map, compose, allPass, uniq 
@@ -59,10 +58,40 @@ import { Table } from './Components/Categories/Next';
 const storage = remote.require('electron-json-storage');
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 const os = remote.require('os'); 
+import printJS from 'print-js'; 
+var PHE = require("print-html-element"); 
+
+export let isMainWindow = () => { 
+    return remote.getCurrentWindow().id===1; 
+}
+
+
+export let printElement = (selectedCategory:Category, list:HTMLElement) => {
+    let opts = {
+        printMode: "iframe", //iframe (default), or popup
+        pageTitle: selectedCategory,
+        templateString: '{{printBody}}',
+        popupProperties: '', //such as menubar, scrollbars
+        stylesheets: '', 
+        styles: ''
+    };  
+    
+    PHE.printElement( list, opts ); // Prints a DOM Element
+    //PHE.printHtml( list, opts ); // Prints an HTML string
+}
+
+
+
+export let printTodos = (todos:Todo[]) : void => { 
+    printJS({printable:todos, type:'json', properties:[]});  
+} 
+
 
 
 export let getScreenResolution = () : {width:number,height:number} => 
            remote.screen.getPrimaryDisplay().workAreaSize;
+
+
 
 export let measureTime = (f:() => void) => {
     let start : number = performance.now();
@@ -72,10 +101,12 @@ export let measureTime = (f:() => void) => {
 } 
 
 
+
 export let byScheduled = (item : Todo) : boolean => {
     if(isNil(item)){ return false } 
     return !isNil(item.deadline) || !isNil(item.attachedDate); 
 } 
+
 
 
 export let selectNeverTodos = (todos:Todo[]) : Todo[] => {
@@ -137,6 +168,7 @@ export let getRangeYearRepetitions = (start:Date,endsAfter:number,repeatEveryN:n
 } 
 
 
+
 export let getRangeMonthUntilDate = (start:Date, ends:Date, repeatEveryN:number) : Date[] => { 
 
     let dates = [];
@@ -169,6 +201,7 @@ export let getRangeMonthUntilDate = (start:Date, ends:Date, repeatEveryN:number)
 }
 
 
+
 export let getRangeMonthRepetitions = (start:Date, endsAfter:number, repeatEveryN:number) : Date[] => {
     let dayOfTheMonth : number = start.getDate();
     let initialMonth : number = start.getMonth();
@@ -197,6 +230,7 @@ export let getRangeMonthRepetitions = (start:Date, endsAfter:number, repeatEvery
 }
 
 
+
 export let getRangeDays = (start:Date, endDate:Date, step:number) : Date[] => {
 
     Date.prototype["addDays"] = function(days) {
@@ -220,6 +254,7 @@ export let getRangeDays = (start:Date, endDate:Date, step:number) : Date[] => {
 }
  
 
+
 export let getRangeRepetitions = (start:Date, repetitions:number, step:number) : Date[] => {
 
     Date.prototype["addDays"] = function(days){
@@ -238,6 +273,7 @@ export let getRangeRepetitions = (start:Date, repetitions:number, step:number) :
     return dates;
 }
 
+
  
 export let dateInputUpperLimit = (limit = 2050) : string => {
     let now = new Date();  
@@ -253,10 +289,14 @@ export let dateInputUpperLimit = (limit = 2050) : string => {
 } 
 
 
+
 export let daysInMonth = (date:Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 
 
+
 export let dateToYearMonthDay = (date:Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+
+
 
 export let yearFromDate = (date:Date) => {
     Date.prototype["addDays"] = function(days) {
@@ -268,7 +308,11 @@ export let yearFromDate = (date:Date) => {
     return date["addDays"](365);
 }
 
+
+
 export let isNewVersion = (current:string, next:string) => cmpVersions(current, next)<0;
+
+
 
 let cmpVersions = (current:string, next:string) => {
     var i, diff;
@@ -287,6 +331,7 @@ let cmpVersions = (current:string, next:string) => {
 }
 
 
+
 export let yearFromNow = () => {
     Date.prototype["addDays"] = function(days) {
         let date = new Date(this.valueOf());
@@ -296,6 +341,7 @@ export let yearFromNow = () => {
       
     return new Date()["addDays"](365);
 }
+
 
 
 export let threeDaysLater = (date:Date) : Date => { 
@@ -329,11 +375,12 @@ export let fiveMinutesLater = () : Date => {
     return new Date(new Date().getTime() + fiveMinutesMs);
 } 
 
+
+
 export let onHourLater = () : Date => {  
     let oneHourMs = 1000 * 60 * 60; 
     return new Date(new Date().getTime() + oneHourMs);
 } 
-
 
 
 
@@ -349,6 +396,7 @@ export let oneDayBehind = () : Date => {
 } 
 
 
+
 export let dateToDateInputValue = (date:Date) : string => {
     let month = date.getUTCMonth() + 1; 
     let d = date.getUTCDate();
@@ -359,6 +407,7 @@ export let dateToDateInputValue = (date:Date) : string => {
 
     return year + "-" + month + "-" + d;
 }
+
 
 
 export function arrayMove(arr, previousIndex, newIndex) {
@@ -374,17 +423,24 @@ export function arrayMove(arr, previousIndex, newIndex) {
 } 
 
 
+
 export type Item = Area | Project | Todo; 
+
 
 export let isItem = (item:Item) : boolean => item.type==="project" || item.type==="area" || item.type==="todo";
 
+
 export let isArray = (item:any[]) : boolean => Array.isArray(item); 
  
+
 export let isDate = (date) : boolean => (date instanceof Date) && !isNaN( date.getTime() ); 
  
+
 export let isFunction = (item) : boolean => typeof item==="function"; 
 
+
 export let isString = (item) : boolean => typeof item==="string"; 
+
 
 export let isCategory = (category : Category) : boolean => { 
 
@@ -399,41 +455,51 @@ export let isCategory = (category : Category) : boolean => {
     return yes; 
 }     
 
+
+
 export let bySomeday = (todo:Todo) : boolean => todo.category==="someday";
 
+
+
 export let isTodo = (todo:any) : boolean => { 
-    if(isNil(todo)){
-        return false;
-    } 
+    if(isNil(todo)){ return false } 
 
     return todo.type==="todo";
 }
+
+
 
 export let isArrayOfTodos = (array:any[]) : boolean => {
     return all((todo:Todo) => isTodo(todo), array );
 } 
 
+
+
 export let isProject = (project:Project) : boolean => {
-    if(isNil(project)){
-        return false;
-    }
+    if(isNil(project)){ return false }
 
     return project.type==="project"; 
 } 
- 
+
+
+
 export let isArrayOfProjects = (array:any[]) : boolean => {
    return all((project:Project) => isProject(project), array );
 } 
  
+
+
 export let isArea = (area:Area) : boolean => {
     if(isNil(area)){ return false }
     return area.type==="area"; 
 }
-     
+  
+
   
 export let isArrayOfAreas = (array:any[]) : boolean => {
     return all((area:Area) => isArea(area), array );
 }
+
 
 
 export let isArrayOfStrings = (array:any[]) : boolean => {
@@ -448,6 +514,7 @@ export let isArrayOfStrings = (array:any[]) : boolean => {
     return true; 
 }
  
+
  
 export let assert = (condition:boolean , error:string, throwError=true) : void => {
     if(not(condition)){ 
@@ -463,6 +530,7 @@ export let assert = (condition:boolean , error:string, throwError=true) : void =
 }  
 
 
+
 export let timeOfTheDay = (date:Date) : string => {
     assert(isDate(date), `input is not a date. ${JSON.stringify(date)}. timeOfTheDay.`);
 
@@ -476,8 +544,10 @@ export let timeOfTheDay = (date:Date) : string => {
 }  
 
 
+
 export let sameDay = (a:Date,b:Date) => { return keyFromDate(a)===keyFromDate(b) }
    
+
 
 export let keyFromDate = (date:Date) : string => {  
     
@@ -488,6 +558,7 @@ export let keyFromDate = (date:Date) : string => {
     let month = date.getMonth();
     return [year,month+1,day].join('-'); 
 }
+
 
 
 export type ItemWithPriority = Area | Project | Todo | Heading; 
@@ -533,13 +604,13 @@ let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {
     } 
  
 
-    if(deleted.length>0)
-        updateDB(deleted);
+    if(deleted.length>0){ updateDB(deleted) }
     
     return remainder;
     
 }
  
+
  
 export let layoutOrderChanged = (before:(Heading|Todo)[], after:(Heading|Todo)[]) : boolean => {
     
@@ -562,7 +633,6 @@ export let layoutOrderChanged = (before:(Heading|Todo)[], after:(Heading|Todo)[]
         return false;   
 }
     
-        
  
         
 export let removeDeletedTodos = (todos:Todo[]) : Todo[] => {
@@ -799,8 +869,10 @@ export let getTagsFromItems = (items:Item[]) : string[] => {
 } 
 
 
+
 export let attachDispatchToProps = (dispatch:Function,props) => ({...props, dispatch});
  
+
  
 export let debounce = (fun, mil=50) => {
     let timer; 
@@ -813,6 +885,7 @@ export let debounce = (fun, mil=50) => {
 } 
  
 
+
 export let stringToLength = (s : string, length : number) : string => {
 
     assert(isString(s),`s is not a string ${s}. stringToLength.`);
@@ -820,7 +893,8 @@ export let stringToLength = (s : string, length : number) : string => {
 
     return s.length<=length ? s : s.substring(0, length) + "...";
 }    
-      
+ 
+
 
 export let uppercase = (str:string) : string => { 
 
@@ -832,6 +906,7 @@ export let uppercase = (str:string) : string => {
     return str.substring(0,1).toUpperCase() + str.substring(1,str.length);
 }
  
+
  
 export let wrapMuiThemeDark = (component) => { 
  
@@ -844,6 +919,7 @@ export let wrapMuiThemeDark = (component) => {
 }
   
 
+
 export let wrapMuiThemeLight = (component) =>  {
 
     return <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
@@ -853,7 +929,6 @@ export let wrapMuiThemeLight = (component) =>  {
     </MuiThemeProvider>
 
 }   
-
 
 
 
@@ -868,7 +943,6 @@ export let wrapCustomMuiTheme = (component) =>  {
 }
 
 
- 
 
 export const muiTheme = getMuiTheme({ 
   spacing: spacing,  
@@ -890,22 +964,31 @@ export const muiTheme = getMuiTheme({
   } 
 });  
 
+
+
 let inPast = (date:Date) : boolean => {
     assert(isDate(date),'inPast');
     return new Date().getTime()>date.getTime();
 }
 
+
+
 let inFuture =  (date:Date) : boolean => {
-    assert(isDate(date),'inPast');
+    assert(isDate(date),'inFuture');
     return new Date().getTime()<date.getTime();
 } 
 
+
+
 export let byNotSomeday = (t:Todo) : boolean => { return t.category!=="someday"; }
+
+
 
 export let byHaveAttachedDate = (t:Todo) : boolean => {
     assert(isTodo(t), `t is not of type Todo ${JSON.stringify(t)}`);
     return not(isNil(t.attachedDate));
 } 
+
 
 
 export let byNotDeleted = (item:Item) : boolean => { 
@@ -921,6 +1004,7 @@ export let byDeleted = (item:Item) : boolean => {
 }  
 
 
+
 export let byNotCompleted = (item:Project | Todo) : boolean => { 
     assert(
         isProject(item as Project) || isTodo(item), 
@@ -930,6 +1014,7 @@ export let byNotCompleted = (item:Project | Todo) : boolean => {
 }   
   
 
+
 export let byCompleted = (item:Project | Todo) : boolean => { 
     assert(
         isProject(item as Project) || isTodo(item), 
@@ -937,6 +1022,7 @@ export let byCompleted = (item:Project | Todo) : boolean => {
     );
     return isNil(item.completed) ? false : inPast(item.completed);
 }  
+
 
    
 export let byTags = (selectedTag:string) => (item:Item) : boolean => { 
@@ -950,29 +1036,13 @@ export let byTags = (selectedTag:string) => (item:Item) : boolean => {
     return item.attachedTags.indexOf(selectedTag)!==-1;
 }  
 
+
     
 export let byCategory = (selectedCategory:Category) => (item:Todo) : boolean => { 
     assert(isCategory(selectedCategory), `selectedCategory is not of type Category. ${selectedCategory}. byCategory.`);
     return item.category===selectedCategory;
 } 
 
-
-export let insideTargetArea = (scrollableContainer:HTMLElement,target:HTMLElement,x:number,y:number) : boolean => {
-
-    if(target===null || target===undefined){ return false }
-
-    assert(isFunction(target.getBoundingClientRect), `target is not an HTMLElement. ${target}. insideTargetArea.`);
-
-    let {left,right,top,bottom} = target.getBoundingClientRect();
-    let scrolledLeft = left;
-    let scrolledTop = top;
-    
-    if(x>scrolledLeft && x<right){
-       if(y>scrolledTop && y<bottom){ return true }
-    }
-       
-    return false
-}
 
 
 
@@ -1158,7 +1228,7 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
      
         if(oldTodo.attachedTags[i]!==newTodo.attachedTags[i]){ return true }
     }
-}
+};
   
 
 
@@ -1216,7 +1286,6 @@ export let byAttachedToProject = (projects:Project[]) => (t:Todo) : boolean => {
 };  
 
 
-
  
 export let generateEmptyTodo = (
     _id:string,
@@ -1238,7 +1307,7 @@ export let generateEmptyTodo = (
     created : new Date(),  
     deleted : null, 
     completed : null
-})
+});
 
 
   
@@ -1267,7 +1336,7 @@ export let generateTagElement = (tag:string,idx:number) => {
             </div>
         </div>
     </div>
-}
+};
 
 
 
@@ -1294,9 +1363,7 @@ export let getDayName = (d:Date) : string => {
     return days[d.getDay()];
 }
 
-
-
-     
+   
     
 export let addDays = (date:Date, days:number) => {
  
@@ -1346,12 +1413,14 @@ export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
     return <p style={style}>{ Math.abs(daysLeft) }{ attachedText }</p>  
 } 
 
+
  
 export let isToday = (date : Date) => {
     if(isNil(date)){ return false }; 
   
     return daysRemaining(date)===0;
 }    
+
 
 
 export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:Todo | Project) => {
@@ -1372,22 +1441,28 @@ export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:
 }
 
 
+
 export let daysRemaining = (date:Date) : number => {
     assert(!isNil(date), `Date is Nil. daysRemaining.`);
     return dateDiffInDays(new Date(), date); 
 } 
  
 
+
 export let oneMinuteBefore = (date:Date) : Date => {
     let minuteInMs = 1000 * 60;
     return new Date(date.getTime() - minuteInMs); 
 }
+
+
 
 export let nextMidnight = () : Date => {
     let d = new Date()
     d.setHours(24,0,0,0); // next midnignt
     return d;
 }
+
+
 
 export let dateDiffInDays = (A : Date, B : Date) : number  => {
 
@@ -1440,12 +1515,15 @@ export let getDatesRange = (
 } 
 
 
+
 export let randomInteger = (n:number) : number => {
     return Math.round(Math.random() * n);
 } 
   
 
+
 export let randomDate = (start, end) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+
 
     
 export let randomArrayMember = (array : any[]) => {
@@ -1462,6 +1540,7 @@ export let randomArrayMember = (array : any[]) => {
 } 
     
 
+
 export let generateEmptyProject = () : Project => ({
     _id : generateId(), 
     type : "project", 
@@ -1477,6 +1556,7 @@ export let generateEmptyProject = () : Project => ({
 });
    
 
+
 export let generateEmptyArea = () : Area => ({
     _id : generateId(),
     name : "",
@@ -1489,7 +1569,8 @@ export let generateEmptyArea = () : Area => ({
     attachedTodosIds : [],  
     attachedProjectsIds : [],
 });
-    
+  
+
 
 export let timeDifferenceHours = (from:Date,to:Date) : number => {
     let first = isString(from) ? new Date(from).getTime() : from.getTime();
@@ -1497,6 +1578,7 @@ export let timeDifferenceHours = (from:Date,to:Date) : number => {
     let diff = (second - first)/(1000*60*60);
     return Math.abs(diff);  
 }    
+
 
 
 export let clearStorage = (onError:Function) : Promise<void> => {
@@ -1511,6 +1593,7 @@ export let clearStorage = (onError:Function) : Promise<void> => {
         }
     )
 }
+
 
 
 export let transformLoadDates = (load) : any => {
@@ -1556,7 +1639,6 @@ export let transformLoadDates = (load) : any => {
 
 
 
-
 export let convertTodoDates = (t:Todo) : Todo => ({
     ...t, 
     reminder : !t.reminder ? undefined :  
@@ -1585,6 +1667,7 @@ export let convertTodoDates = (t:Todo) : Todo => ({
 })
 
 
+
 export let convertProjectDates = (p:Project) : Project => ({
     ...p,
     created : !p.created ? undefined : 
@@ -1603,6 +1686,7 @@ export let convertProjectDates = (p:Project) : Project => ({
                  typeof p.completed==="string" ? new Date(p.completed) : 
                  p.completed  
 })
+
 
 
 export let convertAreaDates = (a:Area) : Area => ({
@@ -1684,7 +1768,8 @@ export let createHeading = (e, props:Store) : void => {
     props.dispatch({ type:"updateProject", load });
 }
 
- 
+
+
 interface ItemsAmount{  
     inbox:number,
     today:number,  
@@ -1693,9 +1778,11 @@ interface ItemsAmount{
     logbook:number  
 }
 
+
 export let isDeadlineTodayOrPast = (deadline:Date) : boolean => isNil(deadline) ? 
                                                                 false : 
                                                                 daysRemaining(deadline)<=0;
+
 
  
 export let isTodayOrPast = (date:Date) : boolean => isNil(date) ?    
@@ -1790,6 +1877,7 @@ export let groupObjects = (
 } 
 
 
+
 export interface SystemInfo{ 
     arch : string,
     cpus : any[], 
@@ -1802,6 +1890,7 @@ export interface SystemInfo{
     documentEncoding : string,
     userLanguage : string 
 }
+
 
 
 export let collectSystemInfo = () : SystemInfo => 
@@ -1837,6 +1926,7 @@ export let convertDates = (object) => {
 } 
 
 
+
 export let checkForUpdates = () : Promise<UpdateCheckResult> => {
     return new Promise( 
         resolve => {
@@ -1848,6 +1938,7 @@ export let checkForUpdates = () : Promise<UpdateCheckResult> => {
 } 
 
 
+
 export let downloadUpdates = () : Promise<string> => {
     return new Promise( 
         resolve => {
@@ -1857,6 +1948,7 @@ export let downloadUpdates = () : Promise<string> => {
         } 
     )
 }
+
 
 
 export let addIntroList = (dispatch:Function) => {
@@ -1885,6 +1977,8 @@ export let addIntroList = (dispatch:Function) => {
         }
     })
 }        
+
+
 
 export const introListLayout = [
     {

@@ -10,7 +10,7 @@ import { ipcRenderer, remote } from 'electron';
 import { 
     getTagsFromItems, defaultTags, removeDeletedProjects, 
     removeDeletedAreas, removeDeletedTodos, Item, ItemWithPriority, byNotDeleted, 
-    isTodo, assert, isProject, isArea 
+    isTodo, assert, isProject, isArea, isMainWindow 
 } from './utils';
 import { adjust, cond, equals, all, clone, isEmpty, contains, not, remove, uniq, isNil } from 'ramda';
 import { filter } from './Components/MainContainer';
@@ -21,8 +21,10 @@ let onError = (e) => globalErrorHandler(e);
 
 export let applicationObjectsReducer = (state:Store, action) : Store => { 
 
-    let shouldAffectDatabase : boolean = action.kind!=="external";
-    let shouldUpdateOtherInstances : boolean = action.kind!=="external";
+    let shouldAffectDatabase : boolean = action.kind!=="external" ||
+                                         (action.kind==="quick-entry" && isMainWindow());                       
+    
+    let shouldUpdateOtherInstances : boolean = action.kind!=="external" && action.kind!=="quick-entry";
     let newState : Store = undefined;
     
     newState = cond([    

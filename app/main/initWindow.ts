@@ -28,6 +28,11 @@ export let initWindow = (
               
     handler.on('ready-to-show', () => handler.show());
   
+    handler.on('close', (event) => {
+        event.preventDefault();
+        handler.hide(); 
+    });
+
     handler.on('closed', () => {handler = null;}); 
   
     return handler; 
@@ -44,12 +49,19 @@ export let initQuickEntry = (
         width,          
         height,   
         transparent:false,    
-        //useContentSize:true, 
-        opacity:1, 
+        useContentSize:true, 
+        opacity:1,  
         title:'Quick Entry',      
         center:true,       
         frame:false  
     } as any);               
   
+    handler.setAlwaysOnTop(true);
+    handler.setMovable(true); 
+    handler.setResizable(false); 
+    handler.setSkipTaskbar(true);
+    
+    handler.hide(); 
+    
     return handler; 
 };        

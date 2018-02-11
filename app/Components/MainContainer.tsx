@@ -6,14 +6,14 @@ import { ipcRenderer, remote } from 'electron';
 import IconButton from 'material-ui/IconButton';  
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, uppercase, insideTargetArea, 
+    attachDispatchToProps, uppercase,
     chooseIcon, debounce, byTags, byCategory, generateEmptyTodo, isArray, isTodo, isProject, 
     isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos, assert,  
     selectNeverTodos, updateNeverTodos, oneDayBehind, 
     convertTodoDates, convertProjectDates, convertAreaDates, clearStorage, oneDayAhead, measureTime, 
     byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
     byCompleted, isToday, byNotSomeday, daysRemaining, byScheduled, yearFromNow, isDate, 
-    timeDifferenceHours, isNewVersion, addIntroList
+    timeDifferenceHours, isNewVersion, addIntroList, printElement, isMainWindow
 } from "../utils";   
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -55,38 +55,20 @@ import {
 } from './Calendar';
 const Promise = require('bluebird');   
 const moment = require("moment"); 
-import printJS from 'print-js'; 
-var PHE = require("print-html-element");
 
-let printElement = (selectedCategory:Category, list:HTMLElement) => {
-    let opts = {
-        printMode: "iframe", //iframe (default), or popup
-        pageTitle: selectedCategory,
-        templateString: '{{printBody}}',
-        popupProperties: '', //such as menubar, scrollbars
-        stylesheets: '',
-        styles: ''
-    };  
-    
-    PHE.printElement( list, opts ); // Prints a DOM Element
-    //PHE.printHtml( list, opts ); // Prints an HTML string
-}
 
-let printTodos = (todos:Todo[]) : void => { 
-    printJS({printable:todos, type:'json', properties:[]});  
-} 
+
 
 export let filter = (array:any[],f:Function,caller:string) : any[] => {
-    let start : number = performance.now();
-    let result = lodashFilter(array,f); 
-    let finish : number = performance.now();
-
-    let report = `filter ${array.length} items ${(finish - start)} ms caller : ${caller}`;
-    return result;
+    return lodashFilter(array,f); 
 } 
 
 
 
+
+/**
+ * Find the most distant in time todo among todos attached to either project or area.
+ */
 export let getDateUpperLimit = (areas:Area[], projects:Project[], todos:Todo[], currentLimit:Date) => {
         let pIds = flatten( projects.map( (p:Project) => p.layout.filter(isString) ) );
         let aIds = flatten( areas.map( (a:Area) => a.attachedTodosIds ) );
@@ -110,6 +92,11 @@ export let getDateUpperLimit = (areas:Area[], projects:Project[], todos:Todo[], 
 }
 
 
+
+/**
+ * Remove todos which belong to repeating group and 
+ * located on timeline beyound current limiting point.
+ */
 export let selectTodos = (areas, projects, todos, limit) => {
     let isRepeated = (todo:Todo) => not(isNil(todo.group));
     let isAfterLimit = (limit:Date) => 
@@ -135,12 +122,15 @@ export let selectTodos = (areas, projects, todos, limit) => {
 
 
 
+/**
+ * Get items from database, convert dates from string to objects and
+ * set retrieved items to store.
+ */
 export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calendar[]> => { 
     let {clone,dispatch} = props;
     
     if(clone){ return } 
 
-    
     return Promise.all([
         getCalendars(onError)(true,max), 
         getProjects(onError)(true,max),
@@ -203,31 +193,25 @@ export class MainContainer extends Component<Store,MainContainerState>{
     }  
     
      
-     //TODO Test
-     requestAdditionalNeverTodos = () : void => { 
+    //TODO Test
+    requestAdditionalNeverTodos = () : void => { 
         let {todos, dispatch, limit} = this.props;
         let tomorrow : Date = oneDayAhead(); 
 
         let never = selectNeverTodos(todos) //last === true, last item in sequence  
-                    .filter(
-                      (todo:Todo) => todo.attachedDate.getTime() <= tomorrow.getTime()
-                    );   
+                    .filter((todo:Todo) => todo.attachedDate.getTime() <= tomorrow.getTime());   
   
         if(!isEmpty(never)){ updateNeverTodos(dispatch,never,limit) }
     }
+
   
 
     onError = (e) => globalErrorHandler(e)
 
-    
-    isMainWindow = () => { 
-        return remote.getCurrentWindow().id===1; 
-    }
-    
 
     initData = () => {
 
-        if(not(this.isMainWindow())){ return }  
+        if(not(isMainWindow())){ return }  
 
         if(isDev()){
             
@@ -249,13 +233,14 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 .then( () => fetchData(this.props,this.limit,this.onError) )  
                 .then((calendars) => this.configure(calendars))  
             });
-
         }else{ 
             
             fetchData(this.props,this.limit,this.onError) 
             .then((calendars) => this.configure(calendars))   
         } 
     }
+
+
 
     configure = (calendars:Calendar[]) => {
         let {dispatch} = this.props;
@@ -269,8 +254,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     updateConfig(dispatch)({hideHint:true}); 
                 };
 
-               
-            
                 if( isNil(hideHint) && !isEmpty(calendars) ){ closeHint() }
                 else if(hideHint){ closeHint() } 
                 else{ dispatch({type:"hideHint",load:false}) }; 
@@ -278,6 +261,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         )
     } 
  
+
 
     initObservables = () => {  
         let {dispatch} = this.props; 
@@ -309,11 +293,13 @@ export class MainContainer extends Component<Store,MainContainerState>{
     }
   
 
+
     componentDidMount(){   
         this.requestAdditionalNeverTodos();  
         this.initObservables(); 
     }      
      
+
 
     componentWillUnmount(){ 
         this.subscriptions.map( s => s.unsubscribe() );
@@ -321,12 +307,14 @@ export class MainContainer extends Component<Store,MainContainerState>{
     }  
  
 
+
     componentWillReceiveProps(nextProps){
         if(this.props.selectedCategory!==nextProps.selectedCategory){
            if(this.rootRef){ this.rootRef.scrollTop=0; } 
         }
     }
      
+
     
     render(){  
         let { 
@@ -364,20 +352,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             this.props.clone ? null :
                             <IconButton  
                                 iconStyle={{color:"rgba(100,100,100,0.6)", height:"22px", width:"22px"}} 
-                                className="no-drag" 
-                                onClick={() => ipcRenderer.send("hide")} 
-                            > 
-                                <Hide />   
-                            </IconButton>   
-                        }
-                        { 
-                            this.props.clone ? null :
-                            <IconButton  
-                                iconStyle={{ 
-                                    color:"rgba(100,100,100,0.6)",
-                                    height:"22px",
-                                    width:"22px"
-                                }} 
                                 className="no-drag" 
                                 onTouchTap={() => { 
                                     let {selectedCategory} = this.props;
@@ -585,8 +559,11 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     if(isNil(project)){ return null }
 
                                     let ids = project.layout.filter(isString);
-                                    let byContainedInLayout = (t:Todo) => contains(t._id)(ids);
-                                    let projectFilters = [ byContainedInLayout, byNotDeleted ].filter( f => f );  
+
+                                    let projectFilters = [ 
+                                        (t:Todo) => contains(t._id)(ids), 
+                                        byNotDeleted 
+                                    ];  
                                  
                                     return <ProjectComponent 
                                         project={project}
@@ -616,10 +593,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     let selectedProjects = projects.filter( 
                                         (p) => contains(p._id)(area.attachedProjectsIds)
                                     );
+
                                     let ids = flatten([
                                         area.attachedTodosIds,
                                         selectedProjects.map((p) => p.layout.filter(isString))
                                     ]); 
+
                                     return <AreaComponent    
                                         area={area} 
                                         todos={filter(todos, (todo:Todo) => contains(todo._id)(ids), "area")}

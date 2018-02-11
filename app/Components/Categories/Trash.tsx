@@ -11,8 +11,7 @@ import { TodosList } from '../../Components/TodosList';
 import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '../ContainerHeader';
 import { 
-    byTags, chooseIcon, insideTargetArea, 
-    getTagsFromItems, byDeleted, Item, attachDispatchToProps 
+    byTags, chooseIcon, getTagsFromItems, byDeleted, Item, attachDispatchToProps 
 } from '../../utils';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { TodoInput } from '../TodoInput/TodoInput';

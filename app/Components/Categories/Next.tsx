@@ -6,8 +6,10 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, uppercase, insideTargetArea, chooseIcon, byTags, 
-    byNotCompleted, byNotDeleted, byCategory, getTagsFromItems, isString, attachEmptyTodo, generateEmptyTodo, isProject, assert, isArea, isTodo, isArrayOfStrings, isToday, groupObjects 
+    attachDispatchToProps, uppercase, chooseIcon, byTags, 
+    byNotCompleted, byNotDeleted, byCategory, getTagsFromItems, 
+    isString, attachEmptyTodo, generateEmptyTodo, isProject, 
+    assert, isArea, isTodo, isArrayOfStrings, isToday, groupObjects 
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';

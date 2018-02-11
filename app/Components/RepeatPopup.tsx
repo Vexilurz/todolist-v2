@@ -10,7 +10,7 @@ import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
 import {  
-    attachDispatchToProps, insideTargetArea, assert, isTodo, isDate, getMonthName, 
+    attachDispatchToProps, assert, isTodo, isDate, getMonthName, 
     dateToYearMonthDay, getRangeDays, getRangeRepetitions, daysInMonth, getRangeMonthUntilDate, 
     getRangeMonthRepetitions, getRangeYearUntilDate, getRangeYearRepetitions, 
     dateToDateInputValue, dateInputUpperLimit
@@ -26,6 +26,7 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import FlatButton from 'material-ui/FlatButton';
+import { insideTargetArea } from '../insideTargetArea';
 
 const never : number = 100;
 

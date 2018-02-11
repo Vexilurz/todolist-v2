@@ -7,7 +7,7 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
 module.exports = {     
     entry: {     
         'app':'./app/app.tsx',
-        'quickentry':'./app/quickentry.tsx',
+        'quickentry':'./app/quickentry.tsx'
     },                                 
     output: {            
         filename : '[name].js' , 
@@ -48,9 +48,7 @@ module.exports = {
     devtool: 'sourcemap', 
         
     plugins :[
-        new CopyWebpackPlugin([{ 
-            from : './app/assets' 
-        }]),   
+        new CopyWebpackPlugin([{from : './app/assets'}]),   
         new HtmlWebpackPlugin({
             inject:true, 
             title:'tasklist',     
@@ -62,7 +60,7 @@ module.exports = {
             title:'Quick Entry',     
             chunks:['quickentry'],
             filename: 'quickentry.html' 
-        })      
+        })     
     ],  
     
     node: { 

@@ -25,7 +25,7 @@ import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
 import { 
     uppercase, debounce, stringToLength, daysLeftMark, byNotCompleted, 
-    byNotDeleted, generateDropStyle, insideTargetArea, hideChildrens, 
+    byNotDeleted, generateDropStyle, hideChildrens, 
     makeChildrensVisible, assert, isArrayOfProjects, isProject, isCategory, 
     isString, arrayMove 
 } from '../../utils'; 
