@@ -46,26 +46,21 @@ import { UpdateNotification } from './Components/UpdateNotification';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 const storage = remote.require('electron-json-storage');
 import printJS from 'print-js';  
-
 const MockDate = require('mockdate'); 
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
-
 injectTapEventPlugin();  
 
-
-  
+ 
 
 export let isDev = () => { return true };   
 
 
 
-
-(() => {     
+(() => {      
     let app=document.createElement('div'); 
     app.id='application';     
     document.body.appendChild(app);     
 })(); 
-
 
 
 
@@ -390,9 +385,9 @@ export class App extends Component<AppProps,{}>{
     initObservables = () => {
         let {dispatch} = this.props;
 
-        let updateInterval = Observable.interval(1000 * 60 * 5).subscribe(() => dispatch({type:'update'}));   
+        let updateInterval = Observable.interval(5000)//.subscribe(() => dispatch({type:'update'}));   
 
-        let actionListener = Observable
+        let actionListener = Observable 
                              .fromEvent(ipcRenderer, "action", (event,action) => action)
                              .map((action) => ({ 
                                 ...action,
@@ -416,7 +411,7 @@ export class App extends Component<AppProps,{}>{
                                     dispatch({type:"openTodoInputPopup", load:true});
                                 });  
 
-        this.subscriptions.push(actionListener,errorListener,ctrlAltTListener,progressListener,updateInterval);
+        this.subscriptions.push(actionListener,errorListener,ctrlAltTListener,progressListener);
     }
 
 
@@ -469,12 +464,17 @@ ipcRenderer.once(
                 areas:areas.map(convertAreaDates) 
             }
         }   
-        ReactDOM.render(   
-            <Provider store={createStore(applicationReducer, defaultStore)}>   
-                <App {...{} as any} />
-            </Provider>,
-            document.getElementById('application')
-        )     
+
+        getConfig().then(
+            (config) => {
+                ReactDOM.render(   
+                    <Provider store={createStore(applicationReducer, {...defaultStore, ...config} )}>   
+                        <App {...{} as any} />
+                    </Provider>,
+                    document.getElementById('application')
+                ) 
+            }
+        )
     }
 );    
  

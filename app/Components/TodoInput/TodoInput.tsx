@@ -497,7 +497,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     
     
     
-    onRightClickMenu = (e) => { 
+    onRightClickMenu = (e) => {  
         if(!this.state.open){
             this.props.dispatch({ 
                 type:"openRightClickMenu",  

@@ -57,13 +57,9 @@ const Promise = require('bluebird');
 const moment = require("moment"); 
 
 
-
-
 export let filter = (array:any[],f:Function,caller:string) : any[] => {
     return lodashFilter(array,f); 
 } 
-
-
 
 
 /**
@@ -90,7 +86,6 @@ export let getDateUpperLimit = (areas:Area[], projects:Project[], todos:Todo[], 
 
         return futureLimit.getTime() > currentLimit.getTime() ? futureLimit : currentLimit;
 }
-
 
 
 /**
@@ -188,8 +183,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
         this.subscriptions = [];
  
         this.state = { fullWindowSize:true };
-
-        this.initData(); 
     }  
     
      
@@ -297,6 +290,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
     componentDidMount(){   
         this.requestAdditionalNeverTodos();  
         this.initObservables(); 
+        this.initData(); 
     }      
      
 

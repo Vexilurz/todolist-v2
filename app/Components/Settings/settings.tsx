@@ -369,7 +369,7 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
         let {dispatch, todos, defaultTags} = this.props;
         
         let updatedTodos = compose(
-            map(
+            map( 
                 (todo:Todo) : Todo => compose(
                     (idx) => ({...todo,attachedTags:remove(idx,1,todo.attachedTags)}),
                     findIndex((todoTag:string) => todoTag===tag),

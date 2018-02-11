@@ -1,12 +1,12 @@
 {
   "name": "tasklist",
-  "version": "1.2.1-master",
+  "version": "1.2.2-master",
   "description": "tasklist",
   "main": "dist/main.js",
-  "scripts": {
+  "scripts": { 
     "start": "electron .",
     "rebuild": "electron-rebuild -f -w printer",
-    "pack": "build --win  --publish always",
+    "pack": "build --win --publish always",
     "build": "start webpack -w --config webpack.config.main.js && webpack -w --config webpack.config.renderer.js",
     "production": "start webpack -w --config webpack.config.main.prod.js && webpack -w --config webpack.config.renderer.prod.js"
   },
@@ -28,7 +28,6 @@
     "clean-webpack-plugin": "^0.1.17",
     "copy-webpack-plugin": "^4.0.1",
     "css-loader": "^0.28.4",
-    "electron": "^1.7.12",
     "electron-builder": "19.54.0",
     "electron-publisher-s3": "^20.0.0",
     "electron-rebuild": "^1.7.3",
@@ -37,6 +36,7 @@
     "source-map-loader": "^0.2.1",
     "style-loader": "^0.17.0",
     "typescript": "^2.4.2",
+    "electron": "1.8.2",
     "uglifyjs-webpack-plugin": "^0.4.6",
     "webpack": "^2.7.0"
   },
@@ -61,7 +61,7 @@
     "moment": "^2.19.3",
     "path": "^0.12.7",
     "pouchdb-browser": "^6.4.2",
-    "print-html-element": "^0.5.1", 
+    "print-html-element": "^0.5.1",
     "print-js": "^1.0.31",
     "prop-types": "^15.6.0",
     "ramda": "^0.25.0",
@@ -104,10 +104,11 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64","ia32"]
-        },
-        {"target":"portable"},
-        {"target":"zip"}
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
       ],
       "icon": "./icon.ico"
     },

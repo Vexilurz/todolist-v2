@@ -19,7 +19,7 @@ export let initWindow = (
         icon,
         width,         
         height,    
-        transparent:false,    
+        transparent:false,     
         opacity:1, 
         title:'Tasklist',      
         center:true,       
@@ -29,12 +29,11 @@ export let initWindow = (
     handler.on('ready-to-show', () => handler.show());
   
     handler.on('close', (event) => {
-        event.preventDefault();
-        handler.hide(); 
+        event.preventDefault(); 
+        handler.id===1 ? handler.hide() : handler.close();  
     });
-
+    
     handler.on('closed', () => {handler = null;}); 
-  
     return handler; 
 };         
 
@@ -60,7 +59,7 @@ export let initQuickEntry = (
     handler.setMovable(true); 
     handler.setResizable(false); 
     handler.setSkipTaskbar(true);
-    
+    handler.on('closed', () => {handler = null;}); 
     handler.hide(); 
     
     return handler; 

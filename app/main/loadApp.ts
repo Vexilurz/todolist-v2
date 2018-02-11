@@ -1,7 +1,6 @@
 import { ipcMain, BrowserWindow } from 'electron';
 import { mainWindow } from "./main";
 import fs = require('fs');    
-     
 export let dev = () : boolean => { return true }
     
 let templateLoader = (
@@ -25,7 +24,6 @@ let templateLoader = (
                 );       
             } 
         );   
-       
 
  
 export let loadApp = (window) : Promise<void> => 
@@ -38,6 +36,7 @@ export let loadApp = (window) : Promise<void> =>
        );    
   
 
+ 
 export let loadQuickEntry = (window) : Promise<void> => 
         templateLoader(
             (resolve) => resolve(), 

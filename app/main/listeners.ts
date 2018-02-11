@@ -13,20 +13,24 @@ const log = require("electron-log");
 
 let initAutoUpdater = () => {
 
-    if(dev()){
-        log.transports.file.level = "info"; 
-        autoUpdater.logger = log; 
-    };
+    autoUpdater.logger = log;
+    log.transports.file.level = "error";  
+    log.transports.console.level = "error";
 
     autoUpdater.autoDownload = false; 
-    autoUpdater.on(
+    autoUpdater.on( 
         'error', 
-        (error) => mainWindow.webContents.send("error",error)
+        (error) => { 
+            console.log(error) 
+            if(mainWindow){ mainWindow.webContents.send("error",error) }
+        }
     );
 
     autoUpdater.on( 
         'download-progress', 
-        (progress) => mainWindow.webContents.send("progress",progress)
+        (progress) => {
+            if(mainWindow){ mainWindow.webContents.send("progress",progress) }
+        }  
     );
 }     
 
@@ -82,7 +86,14 @@ export class Listeners{
             },
             {
                 name:"quitAndInstall",
-                callback : (event) => autoUpdater.quitAndInstall(true,true)
+                callback : (event) => {
+                    setImmediate(() => {
+                        app.removeAllListeners("window-all-closed")
+                        let windows = BrowserWindow.getAllWindows();
+                        windows.forEach( w => w.destroy() );
+                        autoUpdater.quitAndInstall(true,true);
+                    })
+                }
             },
             {  
                 name:"reload", 

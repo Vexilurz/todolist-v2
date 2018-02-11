@@ -37,6 +37,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
         [
             (action:{type:string}) : boolean => 'update'===action.type,  
             (action:{type:string}) : Store => {
+              console.log("update");  
               return  ({...state, todos:[...state.todos]}) 
             }
         ],
