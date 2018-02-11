@@ -63,8 +63,8 @@ export interface TodoInputState{
     category : Category,
     title : string,  
     note : string,
-    checked : boolean,
-    completed : Date,
+    completedWhen : Date,
+    completedSet : Date,
     reminder : Date,
     deadline : Date,
     deleted : Date,
@@ -121,8 +121,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             category, 
             title,  
             note, 
-            checked,
-            completed,
+            completedWhen,
+            completedSet,
             reminder,
             deadline,
             deleted,
@@ -140,8 +140,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             display:"flex",
             translateX:0,
             opacity:1,
-            checked, 
-            completed,
+            completedWhen,
+            completedSet,
             reminder, 
             deadline, 
             deleted, 
@@ -320,8 +320,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         category:todo.category, 
         title:todo.title,
         note:todo.note,  
-        checked:todo.checked, 
-        completed:todo.completed,
+        completedWhen:todo.completedWhen,
+        completedSet:todo.completedSet,
         reminder:todo.reminder, 
         deadline:todo.deadline, 
         deleted:todo.deleted, 
@@ -345,9 +345,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         deleted : this.state.deleted, 
         attachedDate : this.state.attachedDate,  
         attachedTags : this.state.attachedTags, 
-        completed : this.state.completed, 
-        checked : this.state.checked,
-
+        completedWhen:this.state.completedWhen,
+        completedSet:this.state.completedSet,
         group:this.props.todo.group   
     }) 
 
@@ -431,21 +430,22 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
       
       
   
-    onCheckBoxClick = () => {   
-            let { selectedCategory, creation, showCompleted, moveCompletedItemsToLogbook} = this.props;
-            let { checked, open } = this.state; 
+    onCheckBoxClick = () => {  
+            if( this.props.creation ){ return } 
+
+            let { selectedCategory, showCompleted, moveCompletedItemsToLogbook} = this.props;
+            let { completedSet, open } = this.state; 
             let preventSlideAway = selectedCategory==="project" && showCompleted;
-            let shouldAnimateSlideAway = not(checked) && 
+            let shouldAnimateSlideAway = isNil(completedSet) && 
                                          selectedCategory!=="logbook" &&  
                                          selectedCategory!=="trash" &&
                                          selectedCategory!=="search" &&
                                          moveCompletedItemsToLogbook==="immediately" &&
                                          not(preventSlideAway);  
                 
-            if(not(creation)){
-                let isChecked : boolean = !checked; 
-                let timeSeconds = Math.round( (new Date().getTime()) / 1000 );
-                let completed = cond([
+
+            let timeSeconds = Math.round( (new Date().getTime()) / 1000 );
+            let completedWhen = cond([
                     [
                         (value:string) => value==="immediately",
                         () => new Date(),
@@ -462,37 +462,37 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         (value:string) => value==="day",
                         () => oneDayAhead()
                     ],
-                ])(moveCompletedItemsToLogbook);
+            ])(moveCompletedItemsToLogbook);
 
-
-                googleAnalytics.send(    
-                    'event',  
-                    {   
-                       ec:'TodoCompleted', 
-                       ea:`Todo Completed ${new Date().toString()}`, 
-                       el:`Todo Completed`, 
-                       ev:timeSeconds 
-                    }
-                )  
-                .then((e) => console.log(`Todo completed`))  
-                .catch(err => this.onError(err))
+            
+            googleAnalytics.send(    
+                'event',  
+                {   
+                    ec:'TodoCompleted', 
+                    ea:`Todo Completed ${new Date().toString()}`, 
+                    el:`Todo Completed`, 
+                    ev:timeSeconds 
+                }
+            )  
+            .then((e) => console.log(`Todo completed`))  
+            .catch(err => this.onError(err));
                 
-                this.setState(    
-                    { 
-                      checked:isChecked,  
-                      completed:isChecked ? completed : null
-                    },  
-                    () => setTimeout(   
-                        () => shouldAnimateSlideAway ?   
-                              this
-                              .animateSlideAway()
-                              .then(() => setTimeout(() => this.updateTodo(), 0)) : 
-                              this.updateTodo() 
-                        , 
-                        30
-                    )
-                )  
-            }   
+
+            this.setState(    
+                { 
+                    completedSet: isNil(completedSet) ? new Date() : null, 
+                    completedWhen : isNil(completedSet) ? completedWhen : null,
+                },  
+                () => setTimeout(   
+                    () => shouldAnimateSlideAway ?   
+                            this
+                            .animateSlideAway()
+                            .then(() => setTimeout(() => this.updateTodo(), 0)) : 
+                            this.updateTodo() 
+                    , 
+                    30
+                )
+            );  
     }
     
     
@@ -674,10 +674,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
   
     render(){  
         let {
-            open, deleted, checked, 
-            attachedDate, title, showAdditionalTags, 
-            attachedTags, note, deadline, showChecklist,
-            checklist, category, completed, showDateCalendar   
+            open, deleted, attachedDate, title, showAdditionalTags, 
+            attachedTags, note, deadline, showChecklist, completedWhen,
+            checklist, category, completedSet, showDateCalendar   
         } = this.state;
   
         let {selectedCategory, id, todo, creation} = this.props; 
@@ -752,8 +751,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     open={open}
                     deleted={deleted} 
                     rootRef={this.props.rootRef} 
-                    completed={completed}
-                    checked={checked}
+                    completedWhen={completedWhen}
+                    completedSet={completedSet}
                     category={category}
                     attachedDate={attachedDate}
                     selectedCategory={selectedCategory}
@@ -1295,10 +1294,10 @@ interface TodoInputTopLevelProps{
     onRestoreButtonClick:Function,
     onCheckBoxClick:Function,
     onTitleChange:Function, 
-    completed:Date,
+    completedWhen:Date,
+    completedSet:Date,
     open:boolean,
     deleted:Date,
-    checked:boolean,
     category:Category,
     attachedDate:Date,
     selectedCategory:Category,
@@ -1337,24 +1336,15 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
         this.ro = new ResizeObserver( 
             (entries, observer) => { 
                 const {left, top, width, height} = entries[0].contentRect;
-                if(
-                    isNil(this.inputRef) ||
-                    isNil(this.ref) 
-                ){ 
-                    return
-                }
+
+                if(isNil(this.inputRef) || isNil(this.ref)){ return }
 
                 let container = this.ref.getBoundingClientRect();
                 let input = this.inputRef.getBoundingClientRect();
                 let threshold = (container.width/100) * 50;
  
-                if( 
-                    input.width>threshold 
-                ){
-                   this.setState({overflow:true}); 
-                }else{    
-                   this.setState({overflow:false}); 
-                }    
+                if(input.width>threshold){ this.setState({overflow:true}) }
+                else{ this.setState({overflow:false}) }    
             }      
         );         
             
@@ -1383,9 +1373,9 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
         let {
             open,
             deleted,
-            checked,
-            category,
-            completed, 
+            completedWhen,
+            completedSet,
+            category, 
             attachedDate,
             selectedCategory,
             todo,
@@ -1435,7 +1425,7 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                         style={{paddingLeft:"5px", paddingRight:"5px"}}
                     > 
                         <Checkbox  
-                          checked={checked}  
+                          checked={!!completedSet}  
                           onClick={this.props.onCheckBoxClick}
                         />
                     </div>   
@@ -1444,7 +1434,7 @@ class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLe
                         <DueDate  
                             category={category} 
                             date={attachedDate} 
-                            completed={completed} 
+                            completed={completedWhen} 
                             selectedCategory={selectedCategory}
                         />
                     } 

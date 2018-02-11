@@ -1005,22 +1005,35 @@ export let byDeleted = (item:Item) : boolean => {
 
 
 
-export let byNotCompleted = (item:Project | Todo) : boolean => { 
+export let byNotCompleted = (item:Project & Todo) : boolean => { 
     assert(
         isProject(item as Project) || isTodo(item), 
         `item have incorrect type. ${JSON.stringify(item)}. byNotCompleted`
     );
-    return isNil(item.completed) ? true : inFuture(item.completed);
+
+    let date = isNil(item) ? null :
+               isTodo(item) ? item.completedWhen :
+               isProject(item) ? item.completed : null;
+
+
+    return isNil(date) ? true : inFuture(date);
 }   
   
 
 
-export let byCompleted = (item:Project | Todo) : boolean => { 
+export let byCompleted = (item:Project & Todo) : boolean => { 
     assert(
         isProject(item as Project) || isTodo(item), 
         `item have incorrect type. ${JSON.stringify(item)}. byCompleted`
     );
-    return isNil(item.completed) ? false : inPast(item.completed);
+
+
+    let date = isNil(item) ? null :
+               isTodo(item) ? item.completedWhen :
+               isProject(item) ? item.completed : null;
+
+
+    return isNil(date) ? false : inPast(item.completed);
 }  
 
 
@@ -1149,7 +1162,6 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
     assert(isCategory(newTodo.category), `newTodo.category is not of type Category ${newTodo.category}. todoChanged.`);
 
     if(oldTodo.category!==newTodo.category){ return true }
-    if(oldTodo.checked!==newTodo.checked){ return true }  
     
     assert(isArray(oldTodo.checklist), `oldTodo.checklist is not an Array. ${oldTodo.checklist}. todoChanged.`);
     assert(isArray(newTodo.checklist), `newTodo.checklist is not an Array. ${newTodo.checklist}. todoChanged.`);
@@ -1189,10 +1201,10 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
     }
 
 
-    if(isDate(newTodo.completed) && isDate(oldTodo.completed)){
-        if(oldTodo.completed.getTime()!==newTodo.completed.getTime()){ return true }   
+    if(isDate(newTodo.completedWhen) && isDate(oldTodo.completedWhen)){
+        if(oldTodo.completedWhen.getTime()!==newTodo.completedWhen.getTime()){ return true }   
     }else{ 
-        if(oldTodo.completed!==newTodo.completed){ return true }
+        if(oldTodo.completedWhen!==newTodo.completedWhen){ return true }
     }
 
 
@@ -1298,7 +1310,6 @@ export let generateEmptyTodo = (
     title : '', 
     priority, 
     reminder : null, 
-    checked : false,  
     note : '',
     checklist : [],   
     attachedTags : [],
@@ -1306,7 +1317,8 @@ export let generateEmptyTodo = (
     deadline : null,
     created : new Date(),  
     deleted : null, 
-    completed : null
+    completedWhen : null,
+    completedSet : null
 });
 
 
@@ -1644,26 +1656,24 @@ export let convertTodoDates = (t:Todo) : Todo => ({
     reminder : !t.reminder ? undefined :  
                 typeof t.reminder==="string" ? new Date(t.reminder) : 
                 t.reminder,
-
     deadline : !t.deadline ? undefined : 
                 typeof t.deadline==="string" ? new Date(t.deadline) : 
                 t.deadline,
-    
     created : !t.created ? undefined : 
                typeof t.created==="string" ? new Date(t.created) : 
                t.created,
-    
     deleted : !t.deleted ? undefined : 
                typeof t.deleted==="string" ? new Date(t.deleted) : 
                t.deleted,
-    
     attachedDate : !t.attachedDate ? undefined : 
                     typeof t.attachedDate==="string" ? new Date(t.attachedDate) : 
                     t.attachedDate,
-    
-    completed : !t.completed ? undefined : 
-                typeof t.completed==="string" ? new Date(t.completed) : 
-                t.completed
+    completedSet : !t.completedSet ? undefined : 
+                    typeof t.completedSet==="string" ? new Date(t.completedSet) : 
+                    t.completedSet,
+    completedWhen : !t.completedWhen ? undefined : 
+                    typeof t.completedWhen==="string" ? new Date(t.completedWhen) : 
+                    t.completedWhen           
 })
 
 

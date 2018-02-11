@@ -19,7 +19,50 @@ import { isDev } from '../../app';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink, ProjectLinkLogbook } from '../Project/ProjectLink';
 import { Category, filter } from '../MainContainer';
-     
+
+
+
+let getDateFromObject = (i : Todo & Project) => { 
+    if(isNil(i)){ return new Date() }
+
+    if(isTodo(i)){ 
+        return new Date(i.completedWhen) 
+    }
+    else if(isProject(i)){ 
+        return new Date(i.completed) 
+    } 
+};
+
+
+
+let sortByCompleted = (a:(Todo & Project),b:(Todo & Project)) => {
+    let aTime = 0;
+    let bTime = 0;
+
+    if(isTodo(b)){
+        if(b.completedWhen){ 
+           bTime = b.completedWhen.getTime(); 
+        }
+    }else if(isProject(b)){
+        if(b.completed){
+           bTime = b.completed.getTime();  
+        }
+    }
+
+    if(isTodo(a)){
+        if(a.completedWhen){
+           aTime = a.completedWhen.getTime();  
+        }
+    }else if(isProject(a)){
+        if(a.completed){
+           aTime = a.completed.getTime();  
+        }
+    }
+
+    return bTime-aTime;
+};
+
+
 
 interface LogbookProps{
     dispatch:Function,
@@ -27,16 +70,18 @@ interface LogbookProps{
     moveCompletedItemsToLogbook:string,
     selectedAreaId:string,
     selectedProjectId:string, 
-    selectedCategory:string,  
+    selectedCategory:Category,  
     projects:Project[],
     areas:Area[],    
     selectedTag:string,
     rootRef:HTMLElement 
-}
+};
  
-         
+
+
 interface LogbookState{}   
  
+
 
 export class Logbook extends Component<LogbookProps,LogbookState>{
  
@@ -70,7 +115,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
             "completedProjects"
         );  
          
-        let compare = compareByDate( (i : Todo | Project) => new Date(i.completed) );
+        let compare = compareByDate(getDateFromObject);
 
         let objects = [...completedTodos, ...completedProjects].sort(compare);
 
@@ -84,9 +129,9 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
  
         for(let i=0; i<objects.length-1; i++){ 
 
-            let key = getKey(new Date(objects[i].completed));
+            let key = compose(getKey,getDateFromObject)(objects[i] as (Todo & Project));
 
-            let nextKey = getKey(new Date(objects[i+1].completed));
+            let nextKey = compose(getKey,getDateFromObject)(objects[i+1] as (Todo & Project)); 
    
             if(i === last){
                 if(key===nextKey){
@@ -106,12 +151,13 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
             if(key !== nextKey){
                 groups.push(group);
-                group = []; 
+                group = [];  
             } 
         }
 
         return groups;
     }
+
 
 
     getComponent = (month:string, todos:Todo[], projects:Project[]) : JSX.Element => {
@@ -120,22 +166,21 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
         return <div style={{position:"relative", display:"flex", flexDirection:"column", WebkitUserSelect:"none"}}>
             <div 
                 style={{
-                    WebkitUserSelect: "none", 
+                    WebkitUserSelect:"none", 
                     display:"flex",
                     width:"100%", 
                     fontWeight:"bold", 
                     fontFamily:"sans-serif",
-                    paddingTop: "20px",
+                    paddingTop:"20px",
                     paddingBottom: "20px" 
                 }}
             >  
                 {month}
             </div> 
-
             <div style={{position:"relative", width:"100%"}}>
                 {
                     [...todos,...projects]
-                    .sort((a:Todo|Project,b:Todo|Project) => b.completed.getTime()-a.completed.getTime())
+                    .sort(sortByCompleted)
                     .map(  
                         (value:Todo|Project,index) => 
 
@@ -172,8 +217,9 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
     }
     
 
+
     render(){  
- 
+        let { selectedCategory, dispatch, selectedTag } = this.props;
         let tags = getTagsFromItems(this.props.todos);
         let groups = this.init(this.props);  
  
@@ -181,24 +227,27 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                isEmpty(groups) ? null : 
                 <div>
                     <ContainerHeader 
-                        selectedCategory={"logbook"} 
-                        dispatch={this.props.dispatch}  
+                        selectedCategory={selectedCategory} 
+                        dispatch={dispatch}  
                         tags={tags} 
                         showTags={true} 
-                        selectedTag={this.props.selectedTag}
+                        selectedTag={selectedTag}
                     />
-                    <div id={`logbook-list`} style={{display:"flex", flexDirection:"column", width:"100%"}}> 
-                    {   
+                    <div 
+                        id={`${selectedCategory}-list`} 
+                        style={{display:"flex", flexDirection:"column", width:"100%"}}
+                    > 
+                        {   
                         groups.map( 
-                         (group:any[], index:number) : JSX.Element => {
-                            let todos:Todo[] = group.filter((item:Todo) => item.type==="todo");
-                            let projects:Project[] = group.filter((item:Project) => item.type==="project"); 
-                            let month:string = getMonthName(new Date(group[0].completed));
-                                  
-                            return <div key={index}> {this.getComponent(month, todos, projects)} </div>   
-                          }   
+                            (group:any[], index:number) : JSX.Element => {
+                             let todos:Todo[] = filter(group, isTodo, "");
+                             let projects:Project[] = filter(group, isProject, "");
+                             let month:string = getMonthName(getDateFromObject(group[0]));
+                                    
+                             return <div key={index}> {this.getComponent(month, todos, projects)} </div>   
+                            }   
                         )   
-                    }  
+                        }  
                     </div>
                 </div>
     } 

@@ -149,8 +149,8 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                     created : new Date(),
                     deleted : null,
                     attachedDate : null, 
-                    completed : c.checked ? new Date() : null, 
-                    checked:c.checked
+                    completedSet : c.checked ? new Date() : null,
+                    completedWhen : c.checked ? new Date() : null
             })
         );
 
@@ -167,7 +167,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
             created : todo.created, 
             deadline : todo.deadline,
             deleted : todo.deleted,
-            completed : todo.completed, 
+            completed : todo.completedWhen, 
             attachedTags : todo.attachedTags
         };
         
@@ -331,8 +331,8 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         let projectSelected = this.props.selectedCategory==="project" && !!this.props.selectedProjectId;
         let areaSelected = this.props.selectedCategory==="area" && !!this.props.selectedAreaId;                          
         let canWhen = false; 
-        let canMove = false;   
-        let canComplete = isNil(todo.deleted) && isNil(todo.completed);
+        let canMove = false;    
+        let canComplete = isNil(todo.deleted) && isNil(todo.completedWhen);
         let canShortcuts = false;   
         let canRepeat = isNil(todo.deleted) && isNil(todo.group);
         let canDuplicate = isNil(todo.deleted); 

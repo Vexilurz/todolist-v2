@@ -36,7 +36,7 @@ import PieChart from 'react-minimal-pie-chart';
 import { ProjectLink } from '../Project/ProjectLink';
 import { allPass, isNil, not, contains, isEmpty } from 'ramda';
 import { TodosList } from '../TodosList';
-import { Category } from '../MainContainer';
+import { Category, filter } from '../MainContainer';
 import { changeProjectsOrder, removeFromArea, attachToArea } from './AreasList';
 import { isDev } from '../../app';
 import { deleteProject } from '../Project/ProjectMenu';
@@ -169,10 +169,13 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
 
         let attachedTodosIds = project.layout.filter(isString) as string[];
 
-        let selected = todos.filter((t:Todo) => 
-            contains(t._id)(attachedTodosIds) && 
-            byNotCompleted(t) &&
-            byNotDeleted(t) 
+        let selected = filter(
+            todos,
+            (t:Todo) => 
+                contains(t._id)(attachedTodosIds) && 
+                byNotCompleted(t as (Project & Todo)) &&
+                byNotDeleted(t),
+            "" 
         );   
   
         return  isEmpty(todos) ? null : 

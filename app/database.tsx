@@ -123,15 +123,15 @@ export interface Todo{
   deleted : Date, 
   attachedDate : Date,  
   attachedTags : string[], 
-  completed : Date, 
-  checked : boolean,
+  completedSet : Date,
+  completedWhen : Date, 
   group?:Group
 }; 
   
 
 export interface Query<T>{
-  total_rows: 2, 
-  offset: 0, 
+  total_rows: number, 
+  offset: number,  
   rows: QueryResult<T>[]
 };
 

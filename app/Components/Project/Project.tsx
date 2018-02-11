@@ -30,7 +30,10 @@ import {
 } from '../../utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
-import { adjust, remove, allPass, uniq, isNil, not, contains, isEmpty, map } from 'ramda';
+import { 
+    adjust, remove, allPass, uniq, contains, isEmpty, map,
+    compose, not, isNil 
+} from 'ramda';
 import { isDev } from '../../app';
 import { getProgressStatus } from './ProjectLink';
 import { filter } from '../MainContainer';
@@ -194,37 +197,44 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
         if(isNil(project)){ return null } 
 
+       
         let byNotFuture = (t:Todo) => !isNil(t.attachedDate) ? daysRemaining(t.attachedDate)<=0 : true;
+        
         let projectFilters = [ 
             showCompleted ? null : byNotCompleted, 
             showScheduled ? null : byNotFuture, 
             showScheduled ? null : byNotSomeday 
         ].filter( f => f );
 
-        let layout = project.layout
-                     .map( 
-                       (item:LayoutItem) => isString(item) ? 
-                                            todos.find(todo => todo._id===item) : 
-                                            item 
-                     )
-                     .filter( v => v ) as (Todo | Heading)[] 
 
-        let toProjectHeader = layout.filter( 
-            (i:Todo) => isTodo(i) ? 
-                        allPass(projectFilters)(i) : 
-                        false 
-        ) as Todo[];
-         
-        let toProjectBody = layout.filter( 
-            (i:Todo) => isTodo(i) ? 
-                        allPass([
-                            byTags(selectedTag),
-                            ...projectFilters
-                        ])(i) : 
-                        true 
+        let layout = project.layout
+                            .map(
+                                (item:LayoutItem) => 
+                                    isString(item) ?
+                                    todos.find(todo => todo._id===item) :
+                                    item 
+                            )
+                            .filter(
+                                (item) => not(isNil(item))
+                            );  
+                 
+
+        let toProjectHeader = filter(
+            layout,
+            (i:Todo) => isTodo(i) ? allPass(projectFilters)(i as (Project & Todo)) : false, 
+            ""
         );
-      
+        
+          
+        let toProjectBody = filter(
+            layout,
+            (i:Todo) => isTodo(i) ? allPass([byTags(selectedTag),...projectFilters])(i as (Project & Todo)) : true, 
+            ""
+        );
+
+
         let progress = getProgressStatus(project, todos, false);
+
 
         return <div>      
                     <div className="unselectable">     

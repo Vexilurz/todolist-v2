@@ -30,10 +30,9 @@ import {
 } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
-import { TodoInputPopup } from './Components/TodoInput/TodoInputPopup';
 import { cond, assoc, isNil, not, defaultTo, map, isEmpty } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
-import { Settings, section, SettingsPopup } from './Components/Settings/settings';
+import { Settings, section, SettingsPopup } from './Components/Settings/settings'; 
 import { SimplePopup } from './Components/SimplePopup';
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { TopSnackbar } from './Components/Snackbar';
@@ -439,8 +438,7 @@ export class App extends Component<AppProps,{}>{
                     <MainContainer {...{} as any}/>    
                 </div>       
                 <UpdateNotification {...{} as any} />    
-                <SettingsPopup {...{} as any} />      
-                <TodoInputPopup {...{} as any} />  
+                <SettingsPopup {...{} as any} />   
                 <ChangeGroupPopup {...{} as any} /> 
                 <TrashPopup {...{} as any} />
             </div>            
@@ -448,7 +446,7 @@ export class App extends Component<AppProps,{}>{
     }           
 };   
 
-  
+   
 //render application
 ipcRenderer.once(
     'loaded',     
@@ -483,9 +481,9 @@ ipcRenderer.once(
 let reducer = (reducers) => (state:Store, action) => {
     for(let i=0; i<reducers.length; i++){
         let newState = reducers[i](state, action);
-        if(newState){ return newState }  
+        if(newState){ return newState; }  
     }   
-    return state      
+    return state;      
 }; 
  
 

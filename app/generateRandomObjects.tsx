@@ -89,8 +89,8 @@ let fakeTodo = (tags:string[]) : Todo => {
     }
     
     
-    return ({ 
-        _id : generateId(),   
+    return ({  
+        _id : generateId(),    
         type:"todo",
         category : randomCategory(), 
         title : title.join(' '),
@@ -109,10 +109,11 @@ let fakeTodo = (tags:string[]) : Todo => {
                        Math.random() > 0.5 ?
                        randomDate(new Date(), new Date()["addDays"](50)) : 
                        new Date(), 
-        completed : checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,
-        checked 
+
+        completedSet : checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,
+        completedWhen : checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,
     });   
-       
+         
 }
     
     
