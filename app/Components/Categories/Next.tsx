@@ -40,6 +40,7 @@ import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category } from '../MainContainer';
 import { AreaLink } from '../Area/AreaLink';
+import { TodoCreationForm } from '../TodoInput/TodoCreation';
 
 
 interface NextProps{
@@ -96,7 +97,7 @@ export class Next extends Component<NextProps, NextState>{
 
         let tags = getTagsFromItems(todos);
  
-        let emptyTodo = generateEmptyTodo(generateId(), selectedCategory, 0);  
+        let empty = generateEmptyTodo(generateId(), selectedCategory, 0);  
 
         return  <div style={{WebkitUserSelect:"none"}}>
                     <ContainerHeader 
@@ -110,21 +111,17 @@ export class Next extends Component<NextProps, NextState>{
                         container={this.props.rootRef} 
                         selectedCategory={selectedCategory}    
                         show={isEmpty(todos)}  
-                    />   
-                    <TodoInput   
-                        id={emptyTodo._id}
-                        key={"next-todo-creation-form"} 
+                    />    
+                    <TodoCreationForm  
                         dispatch={this.props.dispatch}  
-                        moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}
-                        selectedCategory={selectedCategory}  
-                        projects={this.props.projects} 
+                        selectedCategory={this.props.selectedCategory} 
                         selectedProjectId={this.props.selectedProjectId}
-                        selectedAreaId={this.props.selectedAreaId}  
-                        todos={this.props.todos}
-                        rootRef={this.props.rootRef}  
-                        todo={emptyTodo}
-                        creation={true}
-                    />   
+                        selectedAreaId={this.props.selectedAreaId} 
+                        todos={this.props.todos} 
+                        projects={this.props.projects}
+                        rootRef={this.props.rootRef} 
+                        todo={empty} 
+                    />  
 
                     <div id={`next-list`}>
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>

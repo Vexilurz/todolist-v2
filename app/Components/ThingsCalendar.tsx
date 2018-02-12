@@ -17,13 +17,14 @@ import BusinessCase from 'material-ui/svg-icons/places/business-center';
 import RaisedButton from 'material-ui/RaisedButton';
 import { Category } from './MainContainer';  
 import Clear from 'material-ui/svg-icons/content/clear'; 
-import { isNil } from 'ramda';
+import { isNil, not } from 'ramda';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
 import { Observable } from 'rxjs/Rx';
 import { insideTargetArea } from '../insideTargetArea';
+import { isFunction } from '../utils';
 
 
 
@@ -91,7 +92,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
      
     render(){    
         let {onRepeatTodo, close} = this.props;
-        let hideRepeatButton = typeof onRepeatTodo !== "function";
+        let hideRepeatButton = not(isFunction(onRepeatTodo));
 
         return <Popover 
             open={this.props.open}

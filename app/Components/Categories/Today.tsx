@@ -46,6 +46,7 @@ import { ipcRenderer, remote } from 'electron';
 import { CalendarEvent } from '../Calendar';
 import { GroupsByProjectArea } from './Next';
 import { insideTargetArea } from '../../insideTargetArea';
+import { TodoCreationForm } from '../TodoInput/TodoCreation';
 
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map((item,index:number) => assoc("priority",index,item)) 
@@ -397,20 +398,16 @@ export class Today extends Component<TodayProps,TodayState>{
                         } 
                     /> 
                 <div id="todos" style={{marginBottom:"50px", marginTop:"20px"}}>         
-                    <TodoInput   
-                        id={empty._id}  
-                        key={"today-todo-creation-form"} 
+                    <TodoCreationForm  
                         dispatch={this.props.dispatch}  
+                        selectedCategory={this.props.selectedCategory} 
                         selectedProjectId={this.props.selectedProjectId}
                         selectedAreaId={this.props.selectedAreaId} 
-                        todos={this.props.todos}
-                        moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                        selectedCategory={"today"} 
-                        projects={this.props.projects}   
-                        rootRef={this.props.rootRef}  
-                        todo={empty}
-                        creation={true}
-                    />  
+                        todos={this.props.todos} 
+                        projects={this.props.projects}
+                        rootRef={this.props.rootRef} 
+                        todo={empty}  
+                    /> 
                     <div id={`today-list`} style={{position:"relative"}}>   
                         {
                             groupTodos ? 

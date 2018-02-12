@@ -37,6 +37,7 @@ import { onDrop } from '../TodosList';
 import { isDev } from '../../app'; 
 import { SortableContainer } from '../../sortable/CustomSortableContainer';
 import { insideTargetArea } from '../../insideTargetArea';
+import { TodoCreationForm } from '../TodoInput/TodoCreation';
 
 
 
@@ -290,20 +291,16 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             
         return <div className="unselectable">   
             <div>  
-                <TodoInput    
-                    id={empty._id}
-                    key={"project-todo-creation-form"} 
-                    dispatch={this.props.dispatch} 
-                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                    projects={this.props.projects} 
-                    selectedProjectId={this.props.selectedProjectId} 
+                <TodoCreationForm  
+                    dispatch={this.props.dispatch}  
+                    selectedCategory={"project"} 
+                    selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
-                    todos={this.props.todos}
-                    selectedCategory={"project"}   
-                    rootRef={this.props.rootRef}  
-                    todo={empty}
-                    creation={true}
-                />   
+                    todos={this.props.todos} 
+                    projects={this.props.projects}
+                    rootRef={this.props.rootRef} 
+                    todo={empty} 
+                />  
             </div>      
             <div id={`project-list`}>
                 <SortableContainer

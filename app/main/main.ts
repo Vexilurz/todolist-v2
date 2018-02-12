@@ -15,7 +15,7 @@ export let mainWindow : BrowserWindow;
 export let quickEntry : BrowserWindow;   
 export let listeners : Listeners;  
 export let dateCalendar : BrowserWindow; 
-
+export let tray : Tray;
  
 
 const CtrlAltT : string = 'Ctrl+Alt+T';
@@ -156,7 +156,7 @@ let onReady = () => {
        return;
     }    
 
-    createTray();
+    tray = createTray();
 
     preventAnnoyingErrorPopups(); 
 

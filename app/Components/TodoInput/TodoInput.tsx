@@ -468,7 +468,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
   
     render(){  
-        let { open, showAdditionalTags, showChecklist, showDateCalendar } = this.state;
+        let { open, showChecklist, showDateCalendar } = this.state;
         let { selectedCategory, id, todo, rootRef } = this.props; 
 
 
@@ -476,9 +476,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let relatedProjectName = this.getRelatedProjectName();
         let removePadding = isNil(relatedProjectName) || selectedCategory==="project";
         let padding = open ? "20px" : removePadding ? "0px" : "5px";
-        let flagColor = "rgba(200,0,0,0.7)";
+        let flagColor = "rgba(100,100,100,0.7)";
         let canRepeat = isNil(todo.group); 
- 
+        
 
         return <div       
             id={id}    
@@ -521,9 +521,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             >          
             <div style={{display:"flex",flexDirection:"column",padding:"2px",width:"100%"}}>
                 <TodoInputTopLevel 
-                    onAdditionalTagsHover={(e) => this.setState({showAdditionalTags:true})}
-                    onAdditionalTagsOut={(e) => this.setState({showAdditionalTags:false})}
-                    onAdditionalTagsPress={(e) => this.setState({showAdditionalTags:false})} 
+                    onAdditionalTagsHover={(e) => {}}
+                    onAdditionalTagsOut={(e) => {}}
+                    onAdditionalTagsPress={(e) => {}}
                     setInputRef={e => {this.inputRef=e;}}
                     onRestoreButtonClick={this.onRestoreButtonClick}
                     onCheckBoxClick={this.onCheckBoxClick}
@@ -532,7 +532,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     rootRef={rootRef} 
                     selectedCategory={selectedCategory}
                     todo={todo}
-                    showAdditionalTags={showAdditionalTags}
+                    showAdditionalTags={false}
                     relatedProjectName={relatedProjectName}
                     flagColor={flagColor}   
                 />  
@@ -628,7 +628,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         iconStyle={{   
                           transition: "opacity 0.2s ease-in-out",
                           opacity: this.state.open ? 1 : 0,
-                          olor:"rgb(207,206,207)",
+                          color:"rgb(207,206,207)",
                           width:25, 
                           height:25 
                         }}
@@ -707,7 +707,7 @@ interface TodoInputTopLevelProps{
 interface TodoInputTopLevelState{}
 
 
-class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLevelState>{
+export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLevelState>{
 
     ref:HTMLElement; 
     inputRef:HTMLElement;
@@ -889,7 +889,7 @@ interface TodoInputMiddleLevelProps{
 
 interface TodoInputMiddleLevelState{}
  
-class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,TodoInputMiddleLevelState>{
+export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,TodoInputMiddleLevelState>{
     
     constructor(props){ super(props) }
 
@@ -1305,7 +1305,7 @@ interface TodoInputLabelsProps{
 interface TodoInputLabelsState{}
  
  
-class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLabelsState>{
+export class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLabelsState>{
 
     constructor(props){
         super(props);

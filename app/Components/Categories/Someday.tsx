@@ -38,6 +38,7 @@ import { TodoInput } from '../TodoInput/TodoInput';
 import { Category } from '../MainContainer';
 import { ProjectLink } from '../Project/ProjectLink';
 import { ExpandableTodosList, GroupsByProjectArea } from './Next';
+import { TodoCreationForm } from '../TodoInput/TodoCreation';
 
   
  
@@ -90,21 +91,17 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                 container={this.props.rootRef}  
                 selectedCategory={selectedCategory}  
                 show={isEmpty(todos)}
-            /> 
-            <TodoInput   
-                id={empty._id} 
-                key={"someday-todo-creation-form"} 
+            />  
+            <TodoCreationForm  
                 dispatch={this.props.dispatch}  
-                selectedCategory={selectedCategory}    
-                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                selectedCategory={this.props.selectedCategory} 
                 selectedProjectId={this.props.selectedProjectId}
                 selectedAreaId={this.props.selectedAreaId} 
                 todos={this.props.todos} 
-                projects={this.props.projects}  
-                rootRef={this.props.rootRef}  
+                projects={this.props.projects}
+                rootRef={this.props.rootRef} 
                 todo={empty} 
-                creation={true}
-            />     
+            />   
             <div id={`someday-list`} >    
                 <div id="todos" style={{paddingTop:"20px", paddingBottom:"20px"}}>      
                     {

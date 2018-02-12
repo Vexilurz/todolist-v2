@@ -13,7 +13,7 @@ import {
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { compose, filter, allPass, prepend, contains, not, isNil, isEmpty } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
-import { TodoCreation } from '../TodoInput/TodoCreation';
+import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { Category } from '../MainContainer';
 
  
@@ -66,20 +66,21 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 selectedCategory={this.props.selectedCategory}  
                 show={isEmpty(this.props.todos)}
             />  
-            <div    
+            <div     
                 className="unselectable" 
                 id="todos" 
                 style={{marginBottom:"100px", marginTop:"50px"}} 
             >    
-                <TodoCreation  
+                <TodoCreationForm  
                     dispatch={this.props.dispatch}  
                     selectedCategory={this.props.selectedCategory} 
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos} 
                     projects={this.props.projects}
-                    rootRef={this.props.rootRef}  
-                />
+                    rootRef={this.props.rootRef} 
+                    todo={empty} 
+                />  
                 <div id={`${selectedCategory}-list`}>
                 <TodosList          
                     selectedAreaId={this.props.selectedAreaId}
