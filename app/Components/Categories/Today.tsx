@@ -9,7 +9,8 @@ import {
     attachDispatchToProps, uppercase, chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, 
     attachEmptyTodo, generateEmptyTodo, isToday, daysRemaining, isTodo, assert, makeChildrensVisible, 
     hideChildrens, generateDropStyle, arrayMove, keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, 
-    timeOfTheDay 
+    timeOfTheDay, 
+    sameDay
 } from "../../utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -172,7 +173,7 @@ export class Today extends Component<TodayProps,TodayState>{
         ]; 
 
         dispatch({type:"todayAmount",load:todos.filter((t:Todo) => allPass(todayFilters)(t)).length});
-        dispatch({type:"hotAmount",load:todos.filter((t:Todo) => allPass(hotFilters)(t)).length});
+        dispatch({type:"hotAmount",load:todos.filter((t:Todo) => allPass(hotFilters)(t as (Project & Todo))).length});
     }
 
     onError = (error) => globalErrorHandler(error)
@@ -469,7 +470,9 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
 
     render(){
         let {show, events} = this.props;
-
+        let wholeDay : CalendarEvent[] = events.filter((event) => not(sameDay(event.start,event.end)));
+        let timed : CalendarEvent[] = events.filter((event) => sameDay(event.start,event.end));
+        
         return not(show) ? null : 
         <div style={{paddingTop:"20px"}}>    
             <div style={{          
@@ -480,38 +483,38 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                 width:"100%",
                 fontFamily: "sans-serif", 
                 height:"auto"
-            }}>{ 
-                events.map(  
+            }}> 
+            {
+                wholeDay
+                .map(  
                     (event) => 
-                    <div style={{padding:"10px"}}>
-                        <div style={{
-                            display:"flex",
-                            height:"20px",
-                            alignItems:"center"
-                        }}>
-                            <div style={{
-                                paddingRight:"5px",
-                                height:"100%", 
-                                backgroundColor:"dimgray"
-                            }}>
-                            </div>
-                            <div style={{paddingLeft:"5px", fontSize:"14px", fontWeight:500}}>
-                                {timeOfTheDay(event.start)}
-                            </div>
-                            <div style={{  
-                                fontSize:"14px",
-                                userSelect:"none",
-                                cursor:"default",
-                                fontWeight:500,
-                                paddingLeft:"5px",
-                                overflowX:"hidden" 
-                            }}>   
-                                {event.name}  
-                            </div>
+                    <div   key={`event-${event.name}`} style={{padding:"10px"}}>
+                     <div style={{display:"flex",height:"20px",alignItems:"center"}}>
+                        <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
+                        <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
+                            {event.name}  
+                        </div>
+                     </div>
+                    </div> 
+                )  
+            }
+            {
+                timed
+                .map(  
+                    (event) => 
+                    <div  key={`event-${event.name}`} style={{padding:"10px"}}>
+                        <div style={{display:"flex",height:"20px",alignItems:"center"}}>
+                        <div style={{paddingLeft:"5px", fontSize:"14px", fontWeight:500}}>
+                            {timeOfTheDay(event.start)}
+                        </div>
+                        <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
+                            {event.name}  
+                        </div>
                         </div>
                     </div> 
                 )  
-            }</div>
+            }
+            </div>
         </div>
     }   
 } 
@@ -529,21 +532,23 @@ export class Hint extends Component<HintProps,HintState>{
         super(props);
     } 
 
-    onError = (error) => globalErrorHandler(error)
+    onError = (error) => globalErrorHandler(error);
      
     onLoad = (e) => { 
         let {dispatch} = this.props; 
-        dispatch({type:"selectedSettingsSection", load:'CalendarEvents'});
-        dispatch({type:"openSettings",load:true}); 
-
-        this.onClose(null);
-    }
+        updateConfig(dispatch)({hideHint:true})
+        .then(
+            () => {
+                dispatch({type:"selectedSettingsSection",load:'CalendarEvents'});
+                dispatch({type:"openSettings",load:true}); 
+            }
+        );
+    };
     
     onClose = (e) => {  
         let {dispatch} = this.props;
-        dispatch({type:"hideHint",load:true});
         updateConfig(dispatch)({hideHint:true});
-    }
+    }; 
 
     render(){
         let {hideHint} = this.props;
@@ -560,22 +565,30 @@ export class Hint extends Component<HintProps,HintState>{
             alignItems:"center",
             backgroundColor:"rgb(238, 237, 239)" 
         }}>   
+
             <div style={{
                 fontSize:"15px",
-                fontWeight:500,
-                color:"rgba(100, 100, 100,0.9)",
+                fontWeight:500, 
+                color:"rgba(100, 100, 100, 0.9)",
                 width:"90%",
+                height:"50%",
+                overflow:"hidden",
+                display:"flex",
+                justifyContent:"center",
+                alignItems:"center",
                 textAlign:"center"
             }}>
                 {this.props.text}
             </div>   
             <div style={{  
-                display:"flex",  
-                alignItems: "flex-end", 
-                justifyContent: "space-around",
-                height: "50%"
+                display:"flex",
+                alignItems:"flex-end",
+                justifyContent:"center",
+                height:"50%",
+                width:"100%",
+                overflow:"hidden"
             }}>
-                <div style={{padding: "10px"}}>
+                <div style={{padding:"10px"}}>
                     <div     
                         onClick={this.onClose} 
                         style={{      
@@ -589,7 +602,9 @@ export class Hint extends Component<HintProps,HintState>{
                             backgroundColor:"rgb(81, 151, 246)" 
                         }}    
                     > 
-                    <div style={{color:"white",fontSize:"15px",fontWeight:500,whiteSpace:"nowrap"}}>No</div>   
+                        <div style={{color:"white",fontSize:"15px",fontWeight:500,whiteSpace:"nowrap"}}>
+                            No
+                        </div>   
                     </div> 
                 </div> 
                 <div style={{padding: "10px"}}>
@@ -606,12 +621,7 @@ export class Hint extends Component<HintProps,HintState>{
                             backgroundColor:"rgb(81, 151, 246)" 
                         }}
                     > 
-                        <div style={{
-                            color:"white",
-                            fontSize:"15px",
-                            fontWeight:500,
-                            whiteSpace:"nowrap"  
-                        }}>    
+                        <div style={{color:"white",fontSize:"15px",fontWeight:500,whiteSpace:"nowrap"}}>    
                             Include Events
                         </div>   
                     </div> 

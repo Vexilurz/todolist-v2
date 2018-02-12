@@ -185,7 +185,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         this.state = { fullWindowSize:true };
     }  
     
-     
+      
     //TODO Test
     requestAdditionalNeverTodos = () : void => { 
         let {todos, dispatch, limit} = this.props;
@@ -205,9 +205,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
     initData = () => {
 
         if(not(isMainWindow())){ return }  
+        let {dispatch} = this.props;
 
-        if(isDev()){
-            
+        if(isDev()){ 
+
             destroyEverything()    
             .then(() => {  
                 initDB(); 
@@ -223,64 +224,35 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     addAreas(this.onError,areas),  
                     clearStorage(this.onError)     
                 ])  
-                .then( () => fetchData(this.props,this.limit,this.onError) )  
-                .then((calendars) => this.configure(calendars))  
+                .then(() => fetchData(this.props,this.limit,this.onError) )  
+                .then((calendars) => isEmpty(calendars) ? null : updateConfig(dispatch)({hideHint:true}))  
             });
         }else{ 
-            
+
             fetchData(this.props,this.limit,this.onError) 
-            .then((calendars) => this.configure(calendars))   
+            .then((calendars) => isEmpty(calendars) ? null : updateConfig(dispatch)({hideHint:true}))   
         } 
     }
 
 
 
-    configure = (calendars:Calendar[]) => {
-        let {dispatch} = this.props;
-                        
-        getConfig() 
-        .then( 
-            (config:Config) => {
-                let hideHint = config.hideHint;
-                let closeHint = () => { 
-                    dispatch({type:"hideHint",load:true});
-                    updateConfig(dispatch)({hideHint:true}); 
-                };
-
-                if( isNil(hideHint) && !isEmpty(calendars) ){ closeHint() }
-                else if(hideHint){ closeHint() } 
-                else{ dispatch({type:"hideHint",load:false}) }; 
-            }
-        )
-    } 
- 
-
-
     initObservables = () => {  
-        let {dispatch} = this.props; 
+        let {dispatch,showRightClickMenu} = this.props; 
         let minute = 1000 * 60;  
      
-        let calendars = Observable.interval(10 * minute)
+        let calendars = Observable.interval(2 * minute)
                         .flatMap( () =>  updateCalendars(this.props.calendars, this.onError))
-                        .subscribe( 
-                            (calendars:Calendar[]) => this.props.dispatch({type:"setCalendars", load:calendars}) 
-                        );   
+                        .subscribe((calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars}));   
 
         let resize = Observable
                     .fromEvent(window,"resize")
                     .debounceTime(100) 
-                    .subscribe(
-                        () => this.props.dispatch({type:"leftPanelWidth", load:window.innerWidth/3.7})
-                    );
+                    .subscribe(() => dispatch({type:"leftPanelWidth", load:window.innerWidth/3.7}));
  
         let click = Observable  
                     .fromEvent(window,"click")
                     .debounceTime(100)
-                    .subscribe(() => {
-                        if(this.props.showRightClickMenu){
-                           this.props.dispatch({type:"showRightClickMenu", load:false})
-                        }
-                    }); 
+                    .subscribe(() => showRightClickMenu ? dispatch({type:"showRightClickMenu", load:false}) : null); 
 
         this.subscriptions.push(resize,click,calendars);
     }
@@ -310,7 +282,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
      
 
     
-    render(){  
+    render(){   
         let { 
             todos, projects, areas, selectedProjectId, 
             selectedAreaId, showCompleted, showScheduled,

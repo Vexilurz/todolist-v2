@@ -1,5 +1,5 @@
 Arguments: 
-  C:\Program Files\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js remove electron-printer
+  C:\Program Files\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js add @types/ramda
 
 PATH: 
   C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files\Git\cmd;C:\Program Files (x86)\Yarn\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\Java\jdk1.8.0_141\bin;C:\Android\android-sdk\tools;C:\Android\android-sdk\platform-tools;C:\Program Files\MATLAB\R2014b\runtime\win64;C:\Program Files\MATLAB\R2014b\bin;C:\Program Files\MATLAB\R2014b\polyspace\bin;C:\Program Files (x86)\Skype\Phone\;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;C:\Program Files\nodejs\;C:\Users\Anatoly\AppData\Local\Programs\Python\Python36\Scripts\;C:\Users\Anatoly\AppData\Local\Programs\Python\Python36\;C:\Program Files (x86)\Microsoft VS Code\bin;C:\Users\Anatoly\AppData\Local\Yarn\bin;C:\Program Files\Docker Toolbox;C:\Users\Anatoly\AppData\Roaming\npm
@@ -16,13 +16,13 @@ Platform:
 npm manifest: 
   {
     "name": "tasklist",
-    "version": "1.2.1-master",
+    "version": "1.2.2-master",
     "description": "tasklist",
     "main": "dist/main.js",
-    "scripts": {
+    "scripts": { 
       "start": "electron .",
-      "rebuild": "electron-rebuild -f -w node-printer",
-      "pack": "build --win  --publish always",
+      "rebuild": "electron-rebuild -f -w printer",
+      "pack": "build --win --publish always",
       "build": "start webpack -w --config webpack.config.main.js && webpack -w --config webpack.config.renderer.js",
       "production": "start webpack -w --config webpack.config.main.prod.js && webpack -w --config webpack.config.renderer.prod.js"
     },
@@ -44,7 +44,6 @@ npm manifest:
       "clean-webpack-plugin": "^0.1.17",
       "copy-webpack-plugin": "^4.0.1",
       "css-loader": "^0.28.4",
-      "electron": "^1.7.12",
       "electron-builder": "19.54.0",
       "electron-publisher-s3": "^20.0.0",
       "electron-rebuild": "^1.7.3",
@@ -53,6 +52,7 @@ npm manifest:
       "source-map-loader": "^0.2.1",
       "style-loader": "^0.17.0",
       "typescript": "^2.4.2",
+      "electron": "1.8.2",
       "uglifyjs-webpack-plugin": "^0.4.6",
       "webpack": "^2.7.0"
     },
@@ -75,10 +75,10 @@ npm manifest:
       "material-ui": "^0.19.4",
       "mockdate": "^2.0.2",
       "moment": "^2.19.3",
-      "node-printer": "^1.0.2",
       "path": "^0.12.7",
       "pouchdb-browser": "^6.4.2",
-      "printer": "^0.2.2",
+      "print-html-element": "^0.5.1",
+      "print-js": "^1.0.31",
       "prop-types": "^15.6.0",
       "ramda": "^0.25.0",
       "random-word": "^2.0.0",
@@ -189,7 +189,7 @@ Lockfile:
     version "7.0.52"
     resolved "https://registry.yarnpkg.com/@types/node/-/node-7.0.52.tgz#8990d3350375542b0c21a83cd0331e6a8fc86716"
   
-  "@types/node@^8.5.2":
+  "@types/node@^8.0.24", "@types/node@^8.5.2":
     version "8.5.2"
     resolved "https://registry.yarnpkg.com/@types/node/-/node-8.5.2.tgz#83b8103fa9a2c2e83d78f701a9aa7c9539739aa5"
   
@@ -2200,14 +2200,6 @@ Lockfile:
       minimist "^1.2.0"
       plist "^2.1.0"
   
-  electron-printer@^0.0.5:
-    version "0.0.5"
-    resolved "https://registry.yarnpkg.com/electron-printer/-/electron-printer-0.0.5.tgz#2b43681e8d0b58d2b2800113dcb1a0e9fda7a4f3"
-    dependencies:
-      nan "^2.1.0"
-      node-pre-gyp "^0.6.13"
-      node-pre-gyp-github "^1.1.2"
-  
   electron-publish@19.54.0:
     version "19.54.0"
     resolved "https://registry.yarnpkg.com/electron-publish/-/electron-publish-19.54.0.tgz#f7521550ce869f54b1c0e88d98620d4be56567e4"
@@ -2285,11 +2277,19 @@ Lockfile:
       lodash.template "^4.2.2"
       temp "^0.8.3"
   
-  electron@*, electron@^1.7.12:
+  electron@*:
     version "1.7.12"
     resolved "https://registry.yarnpkg.com/electron/-/electron-1.7.12.tgz#dcc61a2c1b0c3df25f68b3425379a01abd01190e"
     dependencies:
       "@types/node" "^7.0.18"
+      electron-download "^3.0.1"
+      extract-zip "^1.0.3"
+  
+  electron@1.8.2:
+    version "1.8.2"
+    resolved "https://registry.yarnpkg.com/electron/-/electron-1.8.2.tgz#a817cd733c2972b3c7cc4f777caf6e424b88014d"
+    dependencies:
+      "@types/node" "^8.0.24"
       electron-download "^3.0.1"
       extract-zip "^1.0.3"
   
@@ -2750,12 +2750,6 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/getpass/-/getpass-0.1.7.tgz#5eff8e3e684d569ae4cb2b1282604e8ba62149fa"
     dependencies:
       assert-plus "^1.0.0"
-  
-  github@^0.2.4:
-    version "0.2.4"
-    resolved "https://registry.yarnpkg.com/github/-/github-0.2.4.tgz#24fa7f0e13fa11b946af91134c51982a91ce538b"
-    dependencies:
-      mime "^1.2.11"
   
   glob-base@^0.3.0:
     version "0.3.0"
@@ -3855,10 +3849,6 @@ Lockfile:
     version "1.2.6"
     resolved "https://registry.yarnpkg.com/mime/-/mime-1.2.6.tgz#b1f86c768c025fa87b48075f1709f28aeaf20365"
   
-  mime@^1.2.11:
-    version "1.6.0"
-    resolved "https://registry.yarnpkg.com/mime/-/mime-1.6.0.tgz#32cd9e5c64553bd58d19a568af452acff04981b1"
-  
   mime@^2.2.0:
     version "2.2.0"
     resolved "https://registry.yarnpkg.com/mime/-/mime-2.2.0.tgz#161e541965551d3b549fa1114391e3a3d55b923b"
@@ -3943,7 +3933,7 @@ Lockfile:
     version "2.0.0"
     resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
   
-  nan@^2.1.0, nan@^2.3.0:
+  nan@^2.3.0:
     version "2.7.0"
     resolved "https://registry.yarnpkg.com/nan/-/nan-2.7.0.tgz#d95bf721ec877e08db276ed3fc6eb78f9083ad46"
   
@@ -4076,14 +4066,7 @@ Lockfile:
     version "1.1.10"
     resolved "https://registry.yarnpkg.com/node-machine-id/-/node-machine-id-1.1.10.tgz#b4cb8f01b25b90d4e0675be00df30e61ee75179b"
   
-  node-pre-gyp-github@^1.1.2:
-    version "1.3.1"
-    resolved "https://registry.yarnpkg.com/node-pre-gyp-github/-/node-pre-gyp-github-1.3.1.tgz#c6965303995b5b083eca64a1aa35fd2b511dcbb3"
-    dependencies:
-      commander "^2.9.0"
-      github "^0.2.4"
-  
-  node-pre-gyp@^0.6.13, node-pre-gyp@^0.6.36:
+  node-pre-gyp@^0.6.36:
     version "0.6.38"
     resolved "https://registry.yarnpkg.com/node-pre-gyp/-/node-pre-gyp-0.6.38.tgz#e92a20f83416415bb4086f6d1fb78b3da73d113d"
     dependencies:
@@ -4097,12 +4080,6 @@ Lockfile:
       semver "^5.3.0"
       tar "^2.2.1"
       tar-pack "^3.4.0"
-  
-  node-printer@^1.0.2:
-    version "1.0.2"
-    resolved "https://registry.yarnpkg.com/node-printer/-/node-printer-1.0.2.tgz#1b26bcebf81e586f31ef146eccfca9851b22c583"
-    dependencies:
-      underscore ">=1.3.3"
   
   "nopt@2 || 3", nopt@^3.0.1:
     version "3.0.6"
@@ -4765,9 +4742,13 @@ Lockfile:
       renderkid "^2.0.1"
       utila "~0.4"
   
-  printer@^0.2.2:
-    version "0.2.2"
-    resolved "https://registry.yarnpkg.com/printer/-/printer-0.2.2.tgz#830b8f5c97b97fd9b464d4f4e105d43337792296"
+  print-html-element@^0.5.1:
+    version "0.5.1"
+    resolved "https://registry.yarnpkg.com/print-html-element/-/print-html-element-0.5.1.tgz#ad8a4b32045e0e8411bc55a30116b1f136bd7e86"
+  
+  print-js@^1.0.31:
+    version "1.0.31"
+    resolved "https://registry.yarnpkg.com/print-js/-/print-js-1.0.31.tgz#3c927c2d9be5705aa580e2d32c812fdaf99197d1"
   
   private@^0.1.6, private@^0.1.7:
     version "0.1.8"
@@ -6066,7 +6047,7 @@ Lockfile:
     version "1.4.4"
     resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.4.4.tgz#61a6a32010622afa07963bf325203cf12239d604"
   
-  underscore@>=1.3.3, underscore@~1.7.0:
+  underscore@~1.7.0:
     version "1.7.0"
     resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.7.0.tgz#6bbaf0877500d36be34ecaa584e0db9fef035209"
   
@@ -6543,4 +6524,4 @@ Lockfile:
       fd-slicer "~1.0.1"
 
 Trace: 
-  Error: EPERM: operation not permitted, lstat 'C:\Users\Anatoly\Desktop\lutzkeller\node_modules\electron-printer\bin'
+  Error: EPERM: operation not permitted, unlink 'C:\Users\Anatoly\Desktop\lutzkeller\node_modules\@types\ramda\src\$curriedFunctions.d.ts'

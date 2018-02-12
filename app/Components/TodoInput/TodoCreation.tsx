@@ -44,7 +44,7 @@ import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopup, TodoTags } from './TodoTags';
 import { TodoInputLabel } from './TodoInputLabel'; 
-import { uniq, isEmpty, contains, isNil, not, multiply, remove, cond } from 'ramda';
+import { uniq, isEmpty, contains, isNil, not, multiply, remove, cond, equals } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
 let moment = require("moment"); 
 import AutosizeInput from 'react-input-autosize'; 
@@ -85,7 +85,6 @@ export interface TodoCreationFormState{
   
     
 export interface TodoCreationFormProps{ 
-    showCompleted?:boolean, 
     dispatch:Function,  
     selectedCategory:Category, 
     selectedProjectId:string,
@@ -152,6 +151,29 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         }       
     }
 
+    shouldComponentUpdate(nextProps:TodoCreationFormProps,nextState:TodoCreationFormState){
+
+        let {todo,selectedCategory,selectedProjectId,selectedAreaId} = this.props;
+
+        if(!equals(this.state,nextState)){ 
+            return true;
+        }
+
+        if(selectedCategory!==nextProps.selectedCategory){
+            return true;
+        }
+
+        if(selectedProjectId!==nextProps.selectedProjectId){
+            return true; 
+        }
+
+        if(selectedAreaId!==nextProps.selectedAreaId){
+            return true;
+        }
+
+        return false;
+    }
+
 
     onError = (error) => globalErrorHandler(error);
     
@@ -159,6 +181,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     componentDidMount(){  
         let click = Observable.fromEvent(window,"click").subscribe(this.onOutsideClick); 
         this.subscriptions.push(click);
+        this.resetCreationForm(false);
         this.preventDragOfThisItem(); 
     }          
  
@@ -187,9 +210,10 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
     onFieldsContainerClick = (e) => {    
         e.stopPropagation();     
+        let {open} = this.state;
         this.preventDragOfThisItem();
 
-        if(!this.state.open){    
+        if(not(open)){    
             this.setState({open:true, showAdditionalTags:false});   
             this.props.dispatch({type:"showRepeatPopup", load:false});
             this.props.dispatch({type:"showRightClickMenu", load:false});
@@ -202,7 +226,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             this.addTodo();
             this.resetCreationForm(true);
         }
-         
     }        
     
 
@@ -228,13 +251,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             ); 
         }   
     }    
-    
-       
-    componentWillReceiveProps(nextProps:TodoCreationFormProps,nextState){
-        if(nextProps.todo!==this.props.todo){  
-           this.setState(this.stateFromTodo(this.state,nextProps.todo));  
-        }
-    }  
 
 
     addTodo = () => {

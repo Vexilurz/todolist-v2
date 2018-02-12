@@ -31,8 +31,9 @@ import {
     timeOfTheDay,
     yearFromDate,
     convertTodoDates,
+    getRangeDays,
 } from '../../utils';  
-import { allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map, flatten, prop, uniqBy } from 'ramda';
+import { allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map, flatten, prop, uniqBy, groupBy, defaultTo } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category, filter, selectTodos } from '../MainContainer';
 import { repeat, setRepeatedTodos } from '../RepeatPopup';
@@ -68,13 +69,44 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
         byNotDeleted  
     ];    
 
+    let splitLongEvents = (events:CalendarEvent[]) : CalendarEvent[] => {
+        if(isNil(events) || isEmpty(events)){ return [] }
+
+        return compose(
+            flatten,
+            map((event:CalendarEvent) => getRangeDays(event.start, event.end, 1, true).map((date) => ({...event,start:date}))) 
+        )(events) as CalendarEvent[];
+    }
+      
+ 
     let items = filter([...todos, ...projects], i => allPass(filters)(i), "upcoming");
      
-    if(showCalendarEvents){
-        calendars  
-        .filter( (c:Calendar) => c.active )
-        .forEach((c:Calendar) => items.push(...c.events))
-    }
+
+    if(showCalendarEvents && !isNil(calendars)){ 
+        let events : CalendarEvent[] = flatten(
+            calendars  
+            .filter((c:Calendar) => c.active)
+            .map( 
+                (c:Calendar) => c.events.map(
+                    (event:CalendarEvent) => ({...event,end:new Date(event.end.getTime()-1)})
+                ) 
+            )
+        );
+ 
+        if(!isEmpty(events)){
+
+            let {sameDayEvents,multipleDaysEvents} = groupBy(
+                (event) => sameDay(event.start,event.end) ? "sameDayEvents" : "multipleDaysEvents", 
+                events 
+            );
+            
+            items.push(...splitLongEvents(multipleDaysEvents)); 
+            items.push(
+                ...defaultTo([],sameDayEvents).map((event:CalendarEvent) => ({...event,end:new Date(event.end.getTime()+1)}))
+            );
+        }
+    }    
+
 
     let objectsByDate : objectsByDate = {};
 
@@ -83,7 +115,6 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
     }
   
     for(let i=0; i<items.length; i++){
-        
         let item = items[i] as any; 
         let keys = [];
         
@@ -103,9 +134,9 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
         .map(  
             (key:string) => {
                 if(isNil(objectsByDate[key])){
-                    objectsByDate[key] = [items[i]];
+                   objectsByDate[key] = [items[i]];
                 }else{
-                    objectsByDate[key].push(items[i]);
+                   objectsByDate[key].push(items[i]);
                 }
             } 
         )
@@ -163,7 +194,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
         let range = getDatesRange(from.date, this.n, false, true);
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
-        let todos = flatten(objects.map((object) => object.todos));
+        let todos = flatten(objects.map((object) => object.todos)) as any[];
 
         let never = selectNeverTodos(todos);
         let day = 1000 * 60 * 60 * 24;
@@ -377,6 +408,11 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
             selectedTodos,todos,scheduledProjects,
             day,idx,dayName,dispatch,selectedEvents
         } = this.props; 
+         
+        let events = uniqBy(prop("name"), selectedEvents) as CalendarEvent[];
+        let wholeDay : CalendarEvent[] = events.filter((event) => not(sameDay(event.start,event.end)));
+        let timed : CalendarEvent[] = events.filter((event) => sameDay(event.start,event.end));
+               
 
         return <div style={{
             display:"flex",
@@ -429,55 +465,66 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                     alignItems:"flex-start", 
                     justifyContent:"flex-start"
                 }}>  
-                    {
-                        uniqBy(prop("name"), selectedEvents)
-                        .map((event:CalendarEvent) : JSX.Element => 
-                        <div 
-                           key={`event-${event.name}`}
-                           style={{display:"flex", flexDirection:"column"}}
-                        >
-                            <div   
-                                style={{  
-                                    display:"flex",
-                                    height:"20px",
-                                    paddingTop:"5px", 
-                                    paddingBottom:"5px", 
-                                    alignItems:"center"
-                                }}   
-                            >
-                                <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
-                                <div style={{paddingLeft:"5px", fontSize:"14px", fontWeight:500}}>
-                                    {timeOfTheDay(event.start)}
+                        {
+                            wholeDay
+                            .map(  
+                                (event) => 
+                                <div  key={`event-${event.name}`} style={{padding:"10px"}}>
+                                <div style={{display:"flex",height:"20px",alignItems:"center"}}>
+                                    <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
+                                    <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
+                                        {event.name}  
+                                    </div>
                                 </div>
-                                <div style={{  
-                                    fontSize:"14px",
-                                    userSelect:"none",
-                                    cursor:"default",
-                                    fontWeight:500,
-                                    paddingLeft:"5px",
-                                    overflowX:"hidden" 
-                                }}>   
-                                    {event.name}   
-                                </div>
-                            </div> 
-                            { 
-                                isNil(event.description) ? null :
-                                isEmpty(event.description) ? null :
-                                <div 
-                                    style={{
-                                        paddingLeft:"10px",
-                                        textAlign:"left",
-                                        fontSize:"14px",
-                                        cursor:"default",
-                                        userSelect:"none" 
-                                    }}
-                                > 
-                                    {event.description} 
-                                </div>
-                            }
-                        </div>    
-                        )
-                    }
+                                { 
+                                    isNil(event.description) ? null :
+                                    isEmpty(event.description) ? null :
+                                    <div 
+                                        style={{
+                                            paddingLeft:"10px",
+                                            textAlign:"left",
+                                            fontSize:"14px",
+                                            cursor:"default",
+                                            userSelect:"none" 
+                                        }}
+                                    > 
+                                        {event.description} 
+                                    </div>
+                                }
+                                </div> 
+                            )  
+                        }
+                        {
+                            timed
+                            .map(  
+                                (event) => 
+                                <div  key={`event-${event.name}`} style={{padding:"10px"}}>
+                                    <div style={{display:"flex",height:"20px",alignItems:"center"}}>
+                                    <div style={{paddingLeft:"5px", fontSize:"14px", fontWeight:500}}>
+                                        {timeOfTheDay(event.start)}
+                                    </div>
+                                    <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
+                                        {event.name}  
+                                    </div>
+                                    </div>
+                                    { 
+                                        isNil(event.description) ? null :
+                                        isEmpty(event.description) ? null :
+                                        <div 
+                                            style={{
+                                                paddingLeft:"10px",
+                                                textAlign:"left",
+                                                fontSize:"14px",
+                                                cursor:"default",
+                                                userSelect:"none" 
+                                            }}
+                                        > 
+                                            {event.description} 
+                                        </div>
+                                    }
+                                </div> 
+                            )  
+                        }
                 </div>
                 {
                     scheduledProjects.length===0 ? null :

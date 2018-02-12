@@ -455,32 +455,17 @@ export let getTodoById = (onError:Function, _id : string) : Promise<Todo> => {
     return getItemFromDatabase<Todo>(onError, todos_db)(_id); 
 }
 
-
-let debounce = (fun, mil=50) => {
-  let timer; 
-  return function(...load){
-      clearTimeout(timer); 
-      timer = setTimeout(function(){  
-          fun(...load); 
-      }, mil); 
-  };  
-} 
-
   
-export let updateTodo = debounce(
-    (_id:string, replacement:Todo, onError:Function) : Promise<Todo> => {
-
+export let updateTodo = (_id:string, replacement:Todo, onError:Function) : Promise<Todo> => {
       assert(
         isTodo(replacement), 
         `Input value is not of type Todo ${JSON.stringify(replacement)}. updateTodo.`
       );
     
       return updateItemInDatabase(onError, todos_db)(_id, replacement);    
-    },
-    50 
-)  
+}
 
-
+ 
 export let getTodos = (onError:Function) => (descending,limit) : Promise<Todo[]> => {
 
     return getItems<Todo>(

@@ -252,7 +252,7 @@ export let getRangeMonthRepetitions = (start:Date, endsAfter:number, repeatEvery
 
 
 
-export let getRangeDays = (start:Date, endDate:Date, step:number) : Date[] => {
+export let getRangeDays = (start:Date, endDate:Date, step:number, includeStart=false) : Date[] => {
 
     Date.prototype["addDays"] = function(days) {
       let date = new Date(this.valueOf());
@@ -264,6 +264,8 @@ export let getRangeDays = (start:Date, endDate:Date, step:number) : Date[] => {
     let last = dateToYearMonthDay(start);
     let end = dateToYearMonthDay(endDate); 
 
+    if(includeStart){ dates.push(last) }; 
+    
     while(last.getTime() < end.getTime()){
       let next = new Date(last.getTime())["addDays"]( step );
 
@@ -1390,7 +1392,7 @@ export let addDays = (date:Date, days:number) => {
 
 export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
  
-    if(hide){ return null }
+    if(hide){ return null } 
      
     assert(not(isNil(deadline)), `deadline undefined. ${deadline}. daysLeftMark.`);
     assert(isDate(deadline), `deadline not a Date. ${deadline}. daysLeftMark.`);
@@ -1799,12 +1801,16 @@ export let isTodayOrPast = (date:Date) : boolean => isNil(date) ?
 
 
 export let todoToKeywords = (t:Todo) : string[] => {
-    let keywords : string[] = t.title.trim()
-                                     .toLowerCase()
-                                     .split(' ')
-                                     .filter(compose( not,isEmpty ));
+    let toWords = (s:string) => s.trim()
+                                 .toLowerCase()
+                                 .split(' ')
+                                 .filter(compose( not,isEmpty ));
+
+    let keywords : string[] = toWords(t.title);
      
-    return [].concat.apply([], [ keywords, t.attachedTags ]);
+    let attachedTags = flatten( t.attachedTags.map((tag) => toWords(tag)) );                                 
+      
+    return [].concat.apply([], [ keywords, attachedTags ]);
 } 
 
 

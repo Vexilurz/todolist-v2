@@ -188,27 +188,16 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
                 height:"30px",  
                 alignItems:"center"
             }}>  
-                <div style={{
-                    padding:"5px",
-                    display:"flex",
-                    alignItems:"center",
-                    justifyContent:"center"
-                }}>
-                    <SearchIcon 
-                        style={{   
-                            color:"rgb(100, 100, 100)",
-                            height:"20px",
-                            width:"20px"
-                        }}
-                    />   
+                <div style={{padding:"5px",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <SearchIcon style={{color:"rgb(100, 100, 100)",height:"20px",width:"20px"}}/>   
                 </div>   
                 <input 
                     style={{  
-                        outline: "none",
-                        border: "none", 
-                        width: "100%", 
-                        backgroundColor: "rgb(217,218,221)",
-                        caretColor: "cornflowerblue"  
+                      outline:"none",
+                      border:"none", 
+                      width:"100%", 
+                      backgroundColor:"rgb(217,218,221)",
+                      caretColor:"cornflowerblue"  
                     }} 
                     placeholder="Quick Find" 
                     type="text" 
@@ -227,14 +216,16 @@ interface SearchState{ limit:number }
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)
 export class Search extends Component<SearchProps,SearchState>{ 
-    limitReached:boolean 
+    limitReached:boolean;
+
+
     constructor(props){
         super(props);
         this.limitReached = false; 
         this.state = {limit:20};
     }    
 
-    
+
     scrollTop = () => {
         let rootRef = document.getElementById("maincontainer");
         if(rootRef){ rootRef.scrollTop=0 }   
@@ -249,15 +240,19 @@ export class Search extends Component<SearchProps,SearchState>{
             nextProps.todos!==this.props.todos ||
             nextProps.projects!==this.props.projects
         ){  
-           this.limitReached = false;  
-           this.setState({limit:20});  
+            this.limitReached = false;  
+            this.setState({limit:20});  
         }else if(nextProps.searchQuery!==this.props.searchQuery){
-           this.limitReached = false;  
-           this.setState({limit:20}, () => this.scrollTop()); 
+            this.limitReached = false;  
+            this.setState({limit:20}, () => this.scrollTop()); 
         }
     }
      
-
+    /**
+     * Limit search results from Repeat groups to n items from each group.
+     * We sort todos by date, and then we walk through sorted todos,
+     * collecting items for each group until n limit is exceeded for this particular group.
+     */
     limitGroups = (n:number, todos:Todo[]) : Todo[] => {
         let table = {};
         let result = [];
@@ -310,9 +305,7 @@ export class Search extends Component<SearchProps,SearchState>{
         let limitReached = true;
         let match = (searchKeywords:string[],keywords:string[]) => 
             any(
-                (searchKeyword:string) => contains(searchKeyword)(
-                                            cutBy(searchKeyword,keywords)
-                                          )
+                (searchKeyword:string) => contains(searchKeyword)(cutBy(searchKeyword,keywords))
             )(searchKeywords); 
 
 
@@ -321,11 +314,11 @@ export class Search extends Component<SearchProps,SearchState>{
 
             if((attached.length + detached.length) > this.state.limit){ 
                 limitReached = false;
-                break 
+                break; 
             }
         
             let todo = limitGroups[i];
-            let keywords = todoToKeywords(todo);
+            let keywords = todoToKeywords(todo); //lowercased and trimmed words from todo title + attachedTags
             let searchKeywords = searchQuery
                                  .trim()
                                  .toLowerCase()

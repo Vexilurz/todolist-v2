@@ -67,7 +67,7 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
 }  
 
 interface SettingsProps extends Store{}
-export type section =  'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags';
+export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags';
 interface SettingsState{}
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
@@ -85,19 +85,14 @@ export class Settings extends Component<SettingsProps,SettingsState>{
             flexDirection:"column", 
             height:height, 
             width:width,
+            overflow:"hidden",
+            maxWidth:"650px", 
+            minHeight:"400px",
             borderRadius:"5px",
             position:"relative", 
             backgroundColor:"rgba(254, 254, 254, 1)",
             boxShadow:"0 0 18px rgba(0,0,0,0.5)", 
         }}> 
-            <div style={{position:"absolute", top:5, right:5, cursor:"pointer",  zIndex:200}}>   
-                <div   
-                    style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
-                    onClick={() => dispatch({type:"openSettings",load:false})}
-                >
-                    <Clear style={{color:"rgba(100,100,100,0.5)",height:25,width:25}}/>
-                </div>
-            </div>
             <div style={{
                 width:"100%",
                 display:"flex",
@@ -105,20 +100,31 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                 alignItems:"center",
                 flexDirection:"column",
                 backgroundColor:"rgb(234, 235, 239)",
-            }}>  
+            }}>   
                 <div style={{
-                    padding:"5px",
-                    width:"100%",
-                    display:"flex",
-                    fontWeight:"bold",
-                    alignItems:"center",
-                    color:"rgba(10,10,10,0.8)",
-                    justifyContent:"center",
-                    cursor:"default"  
+                    width:"100%",alignItems:"center",position:"relative",justifyContent:"center",display:"flex"
                 }}>
-                    Settings
-                </div> 
- 
+                    <div style={{
+                        padding:"5px",
+                        width:"100%",
+                        display:"flex",
+                        fontWeight:"bold",
+                        alignItems:"center",
+                        color:"rgba(10,10,10,0.8)",
+                        justifyContent:"center",
+                        cursor:"default"  
+                    }}>
+                        Settings
+                    </div> 
+                    <div style={{position:"absolute", top:0, right:5, cursor:"pointer", zIndex:200}}>   
+                        <div   
+                            style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
+                            onClick={() => dispatch({type:"openSettings",load:false})}
+                        >
+                            <Clear style={{color:"rgba(100,100,100,0.5)",height:25,width:25}}/>
+                        </div>
+                    </div>
+                </div>
                 <div style={{ 
                     display:"flex",
                     justifyContent:"space-around",
@@ -409,15 +415,17 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
     }
      
     render(){
-        let tags = this.getTags();
+        let tags = this.getTags(); 
         
         return <div style={{
-            width:"100%", display:"flex", paddingTop:"25px", 
-            alignItems:"flex-start", paddingLeft:"25px", 
+            width:"100%", display:"flex", paddingTop:"25px", height:"100%",
+            alignItems:"center", paddingLeft:"25px", paddingRight:"25px",
             justifyContent:"space-between", flexDirection:"column" 
         }}>
-        <div style={{display:"flex",paddingTop:"5px",paddingBottom:"5px",flexWrap:"wrap"}}>
-            {      
+        <div style={{
+            display:"flex",justifyContent:"space-between",paddingTop:"5px",paddingBottom:"5px",flexWrap:"wrap"
+        }}>
+            {       
                 tags
                 .sort((a:string,b:string) : number => a.localeCompare(b))
                 .map( 
@@ -456,13 +464,13 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
         </div>
         <div     
             onClick={this.onReset}
-            style={{     
+            style={{ 
               display:"flex",
               alignItems:"center",
               cursor:"pointer",
-              marginRight:"15px", 
+              marginTop:"30px", 
               justifyContent:"center",
-              width: "40px",
+              width: "30%",
               height:"20px", 
               borderRadius:"5px",
               paddingLeft:"25px",
@@ -524,12 +532,12 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
             (data:IcalData) => { 
                 let {calendar,events,error} = data;
                 
-                if(!hideHint){ updateConfig(dispatch)({hideHint:true}) }  
+                if(!hideHint){ updateConfig(dispatch)({hideHint:true}) };  
                 
                 if(!isNil(error)){  
                    this.setState({error:error.message}, () => this.onError(error));
                    return null;  
-                }
+                };
                 
                 let load : Calendar = {
                     url, 
@@ -540,10 +548,9 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
                     timezone:calendar.timezone,
                     events,
                     type:"calendar"
-                } 
+                }; 
 
                 dispatch({type:'addCalendar', load});
-
                 this.setState({url:'', error:''});
             } 
         )   
@@ -612,16 +619,10 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
                                     {calendar.name}
                                 </div> 
                                 <div  
-                                style={{alignItems:"center", display:"flex", cursor:"pointer"}} 
-                                onClick={this.onRemoveCalendar(calendar._id)}
+                                    style={{alignItems:"center", display:"flex", cursor:"pointer"}} 
+                                    onClick={this.onRemoveCalendar(calendar._id)}
                                 >  
-                                    <Clear 
-                                        style={{
-                                            color:"rgba(100,100,100,0.5)",
-                                            height:30,
-                                            width:30 
-                                        }}
-                                    /> 
+                                    <Clear style={{color:"rgba(100,100,100,0.5)",height:30,width:30}}/> 
                                 </div>
                             </div> 
                         )

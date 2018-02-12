@@ -384,7 +384,7 @@ export class App extends Component<AppProps,{}>{
     initObservables = () => {
         let {dispatch} = this.props;
 
-        let updateInterval = Observable.interval(5000)//.subscribe(() => dispatch({type:'update'}));   
+        let updateInterval = Observable.interval(10000).subscribe(() => dispatch({type:'update'}));   
 
         let actionListener = Observable 
                              .fromEvent(ipcRenderer, "action", (event,action) => action)
@@ -410,7 +410,9 @@ export class App extends Component<AppProps,{}>{
                                     dispatch({type:"openTodoInputPopup", load:true});
                                 });  
 
-        this.subscriptions.push(actionListener,errorListener,ctrlAltTListener,progressListener);
+        this.subscriptions.push(
+            actionListener,errorListener,ctrlAltTListener,progressListener,updateInterval
+        );
     }
 
 
@@ -466,8 +468,8 @@ ipcRenderer.once(
         getConfig().then(
             (config) => {
                 ReactDOM.render(   
-                    <Provider store={createStore(applicationReducer, {...defaultStore, ...config} )}>   
-                        <App {...{} as any} />
+                    <Provider store={createStore(applicationReducer, {...defaultStore, ...config})}>   
+                        <App {...{} as any}/>
                     </Provider>,
                     document.getElementById('application')
                 ) 

@@ -56,13 +56,14 @@ import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
 import { Observable } from 'rxjs/Rx';
 import { googleAnalytics, globalErrorHandler } from '../../app';
-
+let Promise = require('bluebird');
 
 export interface TodoInputState{  
     open : boolean,
     tag : string, 
     translateX : number,
     display : string,
+    animatingSlideAway : boolean,
     showAdditionalTags : boolean, 
     showDateCalendar : boolean,  
     showTagsSelection : boolean,
@@ -106,18 +107,22 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let {checklist} = this.props.todo;
 
         this.state={   
-            open : false,
-            tag : '', 
+            open:false,
+            tag:'', 
             translateX:0,
+            animatingSlideAway:false,
             display:"flex",
-            showAdditionalTags : false, 
-            showDateCalendar : false,  
-            showTagsSelection : false, 
-            showChecklist : checklist.length>0,  
-            showDeadlineCalendar : false
+            showAdditionalTags:false, 
+            showDateCalendar:false,  
+            showTagsSelection:false, 
+            showChecklist:checklist.length>0,  
+            showDeadlineCalendar:false
         };       
     };
 
+    updateState = (props) => new Promise( resolve => this.setState(props, () => resolve()) );
+
+    timeout = (ms:number) => new Promise( resolve => setTimeout(() => resolve(),ms) );
 
     submitCompletedEvent = (timeSeconds:number) => {
         googleAnalytics.send(    
@@ -251,7 +256,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let { open } = this.state; 
 
         if(isNil(todo.completedSet)){
-           this.submitCompletedEvent(Math.round( (new Date().getTime()) / 1000 ));
+           this.submitCompletedEvent(Math.round((new Date().getTime())/1000));
         }
 
         let preventSlideAway = selectedCategory==="project" && showCompleted;
@@ -264,12 +269,22 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             
         let completedWhen = getCompletedWhen(moveCompletedItemsToLogbook,new Date());
 
-        this.update({ 
-          completedSet:isNil(todo.completedSet) ? new Date() : null, 
-          completedWhen:isNil(todo.completedSet) ? completedWhen : null,
-        });
 
-        setTimeout(() => { if(shouldAnimateSlideAway){ this.animateSlideAway() } }, 30);  
+        if(shouldAnimateSlideAway){
+            this.updateState({animatingSlideAway:true})
+            .then(() => this.timeout(100)) 
+            .then(() => this.animateSlideAway())
+            .then(() => this.updateState({animatingSlideAway:false}))
+            .then(() => this.update({ 
+                completedSet:isNil(todo.completedSet) ? new Date() : null, 
+                completedWhen:isNil(todo.completedSet) ? completedWhen : null,
+            }))
+        }else{
+            this.update({ 
+              completedSet:isNil(todo.completedSet) ? new Date() : null, 
+              completedWhen:isNil(todo.completedSet) ? completedWhen : null,
+            });
+        }
     };
 
 
@@ -300,16 +315,22 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
     animateSlideAway = () : Promise<void> => new Promise(resolve => {
-        let step = () => {
-            let translateX = this.state.translateX-30;
-            this.setState(
-                {translateX},
-                () => this.state.translateX<=-100 ?
-                      this.setState({display:"none"}, () => resolve()) :
-                      requestAnimationFrame(step)
-            ); 
-        } 
-            
+        let {rootRef} = this.props;
+        let width = window.innerWidth; 
+
+        if(rootRef){
+           width = rootRef.getBoundingClientRect().width;
+        }  
+
+        let step = () => {    
+            let translateX = this.state.translateX-25;
+            if(translateX<=-width){
+               this.setState({translateX:-width, display:"none"}, () => resolve());
+            }else{
+               this.setState({translateX}, () => requestAnimationFrame(step)); 
+            }    
+        };    
+             
         step();  
     }) 
       
@@ -467,18 +488,22 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }; 
 
   
-    render(){  
-        let { open, showChecklist, showDateCalendar } = this.state;
+    render(){   
+        let { open, showChecklist, showDateCalendar, animatingSlideAway } = this.state;
         let { selectedCategory, id, todo, rootRef } = this.props; 
-
 
         let todayCategory : boolean = todo.category==="evening" || todo.category==="today";   
         let relatedProjectName = this.getRelatedProjectName();
         let removePadding = isNil(relatedProjectName) || selectedCategory==="project";
         let padding = open ? "20px" : removePadding ? "0px" : "5px";
-        let flagColor = "rgba(100,100,100,0.7)";
         let canRepeat = isNil(todo.group); 
-        
+        let flagColor = "rgba(100,100,100,0.7)";
+        let daysLeft = 0;
+
+        if(!isNil(todo.deadline)){      
+            daysLeft = daysRemaining(todo.deadline);        
+            flagColor = daysLeft <= 1 ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
+        }    
 
         return <div       
             id={id}    
@@ -529,6 +554,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     onCheckBoxClick={this.onCheckBoxClick}
                     onTitleChange={this.onTitleChange}
                     open={open}
+                    animatingSlideAway={animatingSlideAway}
                     rootRef={rootRef} 
                     selectedCategory={selectedCategory}
                     todo={todo}
@@ -700,7 +726,8 @@ interface TodoInputTopLevelProps{
     showAdditionalTags:boolean,
     relatedProjectName:string,
     rootRef:HTMLElement,
-    flagColor:string   
+    flagColor:string,
+    animatingSlideAway?:boolean   
 }
 
 
@@ -726,7 +753,8 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
             showAdditionalTags,
             relatedProjectName,
             flagColor,  
-            rootRef
+            rootRef,
+            animatingSlideAway
         } = this.props;
 
  
@@ -766,7 +794,7 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
                         style={{paddingLeft:"5px", paddingRight:"5px"}}
                     > 
                         <Checkbox  
-                          checked={!!todo.completedSet}  
+                          checked={animatingSlideAway ? true : !!todo.completedSet}  
                           onClick={this.props.onCheckBoxClick}
                         />
                     </div>   
@@ -1100,7 +1128,12 @@ class RelatedProjectLabel extends Component<RelatedProjectLabelProps,RelatedProj
     
     render(){
         let {selectedCategory} = this.props;
-        let disable : Category[] = ["search", "project", "next", "area"];
+        let disable : Category[] = [
+            "search", 
+            "project", 
+            "next", 
+            "area"
+        ];
         
         if(contains(selectedCategory)(disable)){ return null }
 
