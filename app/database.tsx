@@ -9,7 +9,7 @@ import {
   randomArrayMember, randomInteger, randomDate, isString, 
   isTodo, assert, convertTodoDates, isArea, isProject 
 } from './utils';
-import { isNil, all, map } from 'ramda';
+import { isNil, all, map, isEmpty } from 'ramda';
 import { isDev } from './app';
 import { RepeatPopupState } from './Components/RepeatPopup';
 let uniqid = require("uniqid"); 
@@ -274,8 +274,12 @@ function updateItemInDatabase(
   return function(_id:string, changed:any) : Promise<any>{
     return db.get(_id)
              .then((doc) => {   
-                changed["_rev"] = doc["_rev"];
-                return db.put({...doc,...changed});  
+                if(isNil(doc) || isEmpty(doc)){ 
+                  return new Promise(resolve => resolve(changed));
+                }else{
+                  changed["_rev"] = doc["_rev"];
+                  return db.put({...doc,...changed});  
+                }
              })
              .catch(onError);   
   }   

@@ -7,10 +7,10 @@
     "allowJs": true,                          /* Allow javascript files to be compiled. */
     //"checkJs": true                         /* Report errors in .js files. */
     "exclude": [
-      "node_modules",
-      "production",
-      "dist",
-      "release" 
+      "./node_modules/*",
+      "./production/*",
+      "./dist/*",
+      "./release/*" 
     ],
     "jsx": "react",                     /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */
     //"declaration": true,                        /* Generates corresponding '.d.ts' file. */

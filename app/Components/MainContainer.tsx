@@ -189,7 +189,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
     //TODO Test
     requestAdditionalNeverTodos = () : void => { 
         let {todos, dispatch, limit} = this.props;
-        let tomorrow : Date = oneDayAhead(); 
+        let tomorrow : Date = oneDayAhead(new Date()); 
 
         let never = selectNeverTodos(todos) //last === true, last item in sequence  
                     .filter((todo:Todo) => todo.attachedDate.getTime() <= tomorrow.getTime());   

@@ -186,24 +186,44 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
             (action:{type:string, load:Todo}) : Store => {
 
-                let idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
-
-                assert(idx!==-1, `Attempt to update non-existing Todo. ${JSON.stringify(action.load)}.`);
                 assert(
                     isTodo(action.load), 
                     `Load is not of type Todo. ${JSON.stringify(action.load)}. updateTodo. objectsReducer.`
                 )
 
-                if(isEmpty(action.load.title)){
-                    if(shouldAffectDatabase){ removeTodo(action.load._id, onError) } 
-                    return{ ...state, todos:remove(idx, 1, state.todos) }  
-                } 
+                let idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
 
-                if(shouldAffectDatabase){ updateTodo(action.load._id, action.load, onError) }
+                if(idx===-1){
 
-                let todos = adjust(() => action.load, idx, state.todos);
-                 
-                return { ...state, todos } 
+                    if(isEmpty(action.load.title)){ 
+                        return {...state} 
+                    }else{
+                        if(shouldAffectDatabase){ addTodo(onError, action.load) }
+    
+                        return {
+                            ...state, 
+                            todos:[action.load,...state.todos]
+                        }
+                    }
+                }else{
+
+                    if(isEmpty(action.load.title)){
+
+                        if(shouldAffectDatabase){ removeTodo(action.load._id, onError) } 
+
+                        return{ 
+                            ...state, 
+                            todos:remove(idx, 1, state.todos) 
+                        } 
+                    }else{ 
+                        if(shouldAffectDatabase){ updateTodo(action.load._id, action.load, onError) }
+
+                        return{ 
+                            ...state, 
+                            todos:adjust(() => action.load, idx, state.todos) 
+                        } 
+                    }
+                }
             }
         ],
         [
@@ -235,16 +255,22 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
             (action:{type:string, load:{projectId:string,todoId:string}}) : Store => {
 
-                let idx = state.projects.findIndex( (p:Project) => p._id===action.load.projectId );
+                let idx = state.projects.findIndex((p:Project) => p._id===action.load.projectId);
 
                 assert(idx!==-1, "Attempt to update non existing object. attachTodoToProject. objectsReducer.");
     
                 let project : Project = {...state.projects[idx]};  
-                project.layout = [action.load.todoId, ...project.layout];
-    
-                if(shouldAffectDatabase){ updateProject(project._id,project,onError) }
 
-                return { ...state,projects:adjust(() => project, idx, state.projects) }
+                if(
+                    not(contains(action.load.todoId)(project.layout as any))
+                ){  project.layout = [action.load.todoId, ...project.layout]; }
+    
+
+                if(shouldAffectDatabase){ updateProject(project._id,project,onError) }
+                return { 
+                    ...state,
+                    projects:adjust(() => project, idx, state.projects) 
+                }
             }
         ],
         [
@@ -256,12 +282,18 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
                 assert(idx!==-1, "Attempt to update non existing object. attachTodoToArea. objectsReducer.");
               
-                let area = {...state.areas[idx]};
-                area.attachedTodosIds = [action.load.todoId, ...area.attachedTodosIds];
-    
-                if(shouldAffectDatabase){ updateArea(area._id,area,onError) }
+                let area : Area = {...state.areas[idx]};
 
-                return { ...state, areas:adjust(() => area, idx, state.areas) } 
+                if(
+                    not(contains(action.load.todoId)(area.attachedTodosIds))
+                ){  area.attachedTodosIds = [action.load.todoId, ...area.attachedTodosIds]; }
+
+
+                if(shouldAffectDatabase){ updateArea(area._id,area,onError) }
+                return { 
+                    ...state, 
+                    areas:adjust(() => area, idx, state.areas) 
+                } 
             } 
         ],  
         [ 

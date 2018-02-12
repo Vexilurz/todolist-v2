@@ -46,7 +46,7 @@ let moment = require("moment");
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { 
     contains, isNil, all, prepend, isEmpty, last,
-    not, assoc, flatten, toPairs, map, compose, allPass, uniq 
+    not, assoc, flatten, toPairs, map, compose, allPass, uniq, cond 
 } from 'ramda'; 
 import { isDev, Store, globalErrorHandler } from './app';
 import { setRepeatedTodos, repeat } from './Components/RepeatPopup';
@@ -201,6 +201,27 @@ export let getRangeMonthUntilDate = (start:Date, ends:Date, repeatEveryN:number)
 }
 
 
+export let getCompletedWhen = (moveCompletedItemsToLogbook:string,date:Date) => {
+    return cond([
+        [
+            (value:string) => value==="immediately",
+            () => date,
+        ],
+        [
+            (value:string) => value==="min",
+            () => fiveMinutesLater(date),
+        ],
+        [
+            (value:string) => value==="hour",
+            () => onHourLater(date)
+        ],
+        [
+            (value:string) => value==="day",
+            () => oneDayAhead(date)
+        ]
+    ])(moveCompletedItemsToLogbook);
+}
+
 
 export let getRangeMonthRepetitions = (start:Date, endsAfter:number, repeatEveryN:number) : Date[] => {
     let dayOfTheMonth : number = start.getDate();
@@ -315,18 +336,17 @@ export let isNewVersion = (current:string, next:string) => cmpVersions(current, 
 
 
 let cmpVersions = (current:string, next:string) => {
-    var i, diff;
-    var regExStrip0 = /(\.0+)+$/;
-    var segmentsA = current.replace(regExStrip0, '').split('.');
-    var segmentsB = next.replace(regExStrip0, '').split('.');
-    var l = Math.min(segmentsA.length, segmentsB.length);
+    let i, diff;
+    let regExStrip0 = /(\.0+)+$/;
+    let segmentsA = current.replace(regExStrip0, '').split('.');
+    let segmentsB = next.replace(regExStrip0, '').split('.');
+    let l = Math.min(segmentsA.length, segmentsB.length);
 
     for (i = 0; i < l; i++) {
         diff = parseInt(segmentsA[i], 10) - parseInt(segmentsB[i], 10);
-        if (diff) {
-            return diff;
-        }
+        if(diff){ return diff }
     }
+
     return segmentsA.length - segmentsB.length;
 }
 
@@ -357,7 +377,7 @@ export let threeDaysLater = (date:Date) : Date => {
 
 
 
-export let oneDayAhead = () : Date => { 
+export let oneDayAhead = (date:Date) : Date => { 
 
     Date.prototype["addDays"] = function(days) {
         let date = new Date(this.valueOf());
@@ -365,21 +385,21 @@ export let oneDayAhead = () : Date => {
         return date;   
     }
       
-    return new Date()["addDays"](1);
+    return new Date(date.getTime())["addDays"](1);
 } 
 
 
 
-export let fiveMinutesLater = () : Date => { 
+export let fiveMinutesLater = (date:Date) : Date => { 
     let fiveMinutesMs = 1000 * 60 * 5;
-    return new Date(new Date().getTime() + fiveMinutesMs);
+    return new Date(date.getTime() + fiveMinutesMs);
 } 
 
 
 
-export let onHourLater = () : Date => {  
+export let onHourLater = (date:Date) : Date => {  
     let oneHourMs = 1000 * 60 * 60; 
-    return new Date(new Date().getTime() + oneHourMs);
+    return new Date(date.getTime() + oneHourMs);
 } 
 
 
@@ -979,9 +999,7 @@ let inFuture =  (date:Date) : boolean => {
 } 
 
 
-
 export let byNotSomeday = (t:Todo) : boolean => { return t.category!=="someday"; }
-
 
 
 export let byHaveAttachedDate = (t:Todo) : boolean => {
@@ -990,12 +1008,7 @@ export let byHaveAttachedDate = (t:Todo) : boolean => {
 } 
 
 
-
-export let byNotDeleted = (item:Item) : boolean => { 
-    assert(isItem(item), `item have incorrect type. ${JSON.stringify(item)}. byNotDeleted`);
-    return !item.deleted;
-}  
-
+export let byNotDeleted = (item:Item) : boolean => not(byDeleted(item));
 
 
 export let byDeleted = (item:Item) : boolean => { 
@@ -1004,38 +1017,21 @@ export let byDeleted = (item:Item) : boolean => {
 }  
 
 
-
-export let byNotCompleted = (item:Project & Todo) : boolean => { 
-    assert(
-        isProject(item as Project) || isTodo(item), 
-        `item have incorrect type. ${JSON.stringify(item)}. byNotCompleted`
-    );
-
-    let date = isNil(item) ? null :
-               isTodo(item) ? item.completedWhen :
-               isProject(item) ? item.completed : null;
-
-
-    return isNil(date) ? true : inFuture(date);
-}   
-  
-
-
 export let byCompleted = (item:Project & Todo) : boolean => { 
     assert(
         isProject(item as Project) || isTodo(item), 
         `item have incorrect type. ${JSON.stringify(item)}. byCompleted`
     );
 
-
     let date = isNil(item) ? null :
                isTodo(item) ? item.completedWhen :
                isProject(item) ? item.completed : null;
 
-
-    return isNil(date) ? false : inPast(item.completed);
+    return isNil(date) ? false : inPast(date);
 }  
 
+
+export let byNotCompleted = (item:Project & Todo) : boolean => not(byCompleted(item));
 
    
 export let byTags = (selectedTag:string) => (item:Item) : boolean => { 

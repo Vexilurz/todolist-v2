@@ -30,7 +30,7 @@ import { Subscription } from 'rxjs/Rx';
 import { Checkbox } from '../TodoInput/TodoInput';
 import { 
     attachDispatchToProps, isString, debounce, isNewVersion, keyFromDate, 
-    checkForUpdates, uppercase, isArrayOfStrings, assert, defaultTags, isArrayOfTodos 
+    checkForUpdates, uppercase, isArrayOfStrings, assert, defaultTags, isArrayOfTodos, getCompletedWhen 
 } from '../../utils';
 import { Store, globalErrorHandler, updateConfig } from '../../app';
 import { 
@@ -934,9 +934,18 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
     moveCompletedTo = (event) => {
-        let {dispatch} = this.props;
-        updateConfig(dispatch)({moveCompletedItemsToLogbook:event.target.value}); 
-    };
+        let {dispatch, todos} = this.props;
+        updateConfig(dispatch)({moveCompletedItemsToLogbook:event.target.value})
+        .then((config) => {
+            let load = todos.map((todo:Todo) => {
+                if(isNil(todo.completedSet)){ return todo; }
+                let completedWhen = getCompletedWhen(config.moveCompletedItemsToLogbook,todo.completedSet);
+                return {...todo, completedWhen};
+            });
+
+            dispatch({type:"updateTodos",load});
+        }); 
+    }; 
 
 
     render(){   

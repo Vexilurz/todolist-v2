@@ -138,49 +138,48 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
                             overflowX:"hidden" 
                         }}
                     >    
-                        {  
-                            tags
-                            .sort((a:string,b:string) : number => a.localeCompare(b))
-                            .map(
-                                (tag:string) => {
-
-                                    return <div   
-                                        key={tag}  
-                                        onClick={(e) => {
-                                            e.stopPropagation();  
-                                            this.props.attachTag(tag)
-                                        }} 
-                                        className={"tagItem"} 
-                                        style={{
-                                            display:"flex", 
-                                            height:"auto",
-                                            width:"140px", 
-                                            paddingLeft:"5px", 
-                                            paddingRight:"10px"  
-                                        }}
-                                    >   
-                                            <div style={{width:"24px",height:"24px"}}>
-                                                <TriangleLabel style={{color:"gainsboro"}}/>
-                                            </div> 
-                                            <div style={{
-                                                color:"gainsboro", 
-                                                marginLeft:"5px", 
-                                                marginRight:"5px",
-                                                overflowX:"hidden",
-                                                whiteSpace: "nowrap" 
-                                            }}> 
-                                                {tag}   
-                                            </div>  
-                                    </div>
-                                }
-                            )
-                        } 
+                    {  
+                        tags
+                        .sort((a:string,b:string) : number => a.localeCompare(b))
+                        .map(
+                            (tag:string) => {
+                                return <div   
+                                    key={tag}  
+                                    onClick={(e) => {
+                                        e.stopPropagation();  
+                                        this.props.attachTag(tag);
+                                    }} 
+                                    className={"tagItem"} 
+                                    style={{
+                                        display:"flex", 
+                                        height:"auto",
+                                        width:"140px", 
+                                        paddingLeft:"5px", 
+                                        paddingRight:"10px"  
+                                    }}
+                                >   
+                                    <div style={{width:"24px",height:"24px"}}>
+                                        <TriangleLabel style={{color:"gainsboro"}}/>
+                                    </div> 
+                                    <div style={{
+                                        color:"gainsboro", 
+                                        marginLeft:"5px", 
+                                        marginRight:"5px",
+                                        overflowX:"hidden",
+                                        whiteSpace: "nowrap" 
+                                    }}> 
+                                        {tag}   
+                                    </div>  
+                                </div>
+                            }
+                        )
+                    } 
                     </div>  
                 </div>  
-            </Popover> 
-        } 
+        </Popover> 
+    } 
       
-    }
+}
  
 
 
@@ -190,9 +189,7 @@ interface TodoTagsProps{
     removeTag:(tag:string) => void,
 }    
 
-interface TodoTagsState{
-    tag:string
-}
+interface TodoTagsState{tag:string}
  
 export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
 
@@ -203,9 +200,7 @@ export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
     
     
     onEnterPress = (e) => { 
-
         if(e.keyCode!==13){ return }
-        
         e.stopPropagation(); 
 
         let {attachTag} = this.props;
@@ -226,13 +221,8 @@ export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
         let {tag} = this.state;
 
         return <div
-            onClick={(e) => {e.stopPropagation();}} 
-            style={{
-                display:"flex", 
-                paddingTop:"5px",
-                paddingBottom:"5px",
-                flexWrap:"wrap" 
-            }}
+          onClick={(e) => {e.stopPropagation();}} 
+          style={{display:"flex",paddingTop:"5px",paddingBottom:"5px",flexWrap:"wrap"}}
         >
             {      
                 this.props.tags
@@ -249,25 +239,29 @@ export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
                             WebkitUserSelect:"none"
                         }}   
                     > 
-                        <div style={{
-                            borderRadius:"15px", 
-                            backgroundColor:"rgb(189,219,209)",
-                            paddingLeft:"5px",
-                            paddingRight:"5px",
-                            display:"flex"   
-                        }}>
-                            <div style={{  
-                                height:"15px",
-                                display:"flex",
-                                alignItems:"center",
-                                padding:"4px", 
-                                color:"rgb(115,167,152)",
-                                fontWeight: 600    
-                            }}> 
+                        <div 
+                            style={{
+                                borderRadius:"15px", 
+                                backgroundColor:"rgb(189,219,209)",
+                                paddingLeft:"5px",
+                                paddingRight:"5px",
+                                display:"flex"   
+                            }}
+                        >
+                            <div 
+                                style={{  
+                                    height:"15px",
+                                    display:"flex",
+                                    alignItems:"center",
+                                    padding:"4px", 
+                                    color:"rgb(115,167,152)",
+                                    fontWeight: 600    
+                                }}
+                            > 
                                 {uppercase(tag)} 
                             </div> 
                             <div  
-                              style={{padding:"2px",alignItems:"center",display:"flex"}} 
+                              style={{padding:"2px",alignItems:"center",display:"flex",cursor:"pointer"}} 
                               onClick={this.onRemoveTag(tag)}
                             >
                                 <Clear style={{color:"rgba(100,100,100,0.5)",height:20,width:20}}/>
@@ -276,22 +270,12 @@ export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
                     </div> 
                 )   
             }
-            <div
-                style={{ 
-                    display:"flex",
-                    alignItems:"center",
-                    justifyContent:"center"
-                }}
-            >   
+            <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>   
                 <AutosizeInput   
                     type="text"  
                     name="form-field-name-tag"   
                     minWidth={40}
-                    style={{ 
-                        display:"flex", 
-                        alignItems:"center",      
-                        cursor:"default"  
-                    }}            
+                    style={{display:"flex", alignItems:"center", cursor:"default"}}            
                     inputStyle={{                
                         color:"black",  
                         fontSize:"16px",  

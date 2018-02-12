@@ -7,13 +7,13 @@ import { Todo, Project, Area, generateId } from '../../database';
 import { TodosList } from '.././TodosList';
 import { ContainerHeader } from '.././ContainerHeader';
 import { 
-    byTags, byCategory, byNotCompleted, byNotDeleted, 
+    byTags, byCategory, byNotCompleted, byNotDeleted, isString,
     generateEmptyTodo, attachEmptyTodo, byAttachedToProject, byAttachedToArea 
 } from '../../utils'; 
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { compose, filter, allPass, prepend, contains, not, isNil, isEmpty } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
-import { isString } from 'util';
+import { TodoCreation } from '../TodoInput/TodoCreation';
 import { Category } from '../MainContainer';
 
  
@@ -50,8 +50,8 @@ export class Inbox extends Component<InboxProps, InboxState>{
     }
 
     render(){  
-        let {moveCompletedItemsToLogbook} = this.props;
-        let empty = generateEmptyTodo(generateId(),"inbox",0);
+        let {moveCompletedItemsToLogbook,selectedCategory} = this.props;
+        let empty = generateEmptyTodo(generateId(),selectedCategory,0);
 
         return <div style={{WebkitUserSelect:"none"}}>  
             <ContainerHeader  
@@ -71,10 +71,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 id="todos" 
                 style={{marginBottom:"100px", marginTop:"50px"}} 
             >    
-                 <TodoInput    
-                    id={empty._id} 
-                    moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}
-                    key={"inbox-todo-creation-form"}   
+                <TodoCreation  
                     dispatch={this.props.dispatch}  
                     selectedCategory={this.props.selectedCategory} 
                     selectedProjectId={this.props.selectedProjectId}
@@ -82,10 +79,8 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     todos={this.props.todos} 
                     projects={this.props.projects}
                     rootRef={this.props.rootRef}  
-                    todo={empty} 
-                    creation={true} 
-                />  
-                <div id={`inbox-list`}>
+                />
+                <div id={`${selectedCategory}-list`}>
                 <TodosList          
                     selectedAreaId={this.props.selectedAreaId}
                     selectedProjectId={this.props.selectedProjectId}
