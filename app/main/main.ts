@@ -1,7 +1,7 @@
 import { loadApp, dev, loadQuickEntry } from './loadApp'; 
 import fs = require('fs');     
 import electron = require('electron');
-import { ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,globalShortcut,BrowserView,Tray,nativeImage} from 'electron';
+import { ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,globalShortcut,BrowserView,Tray,nativeImage,protocol} from 'electron';
 import { Listeners } from "./listeners";
 import { initWindow, initQuickEntry } from "./initWindow";
 import { isNil } from 'ramda'; 
@@ -17,7 +17,6 @@ export let listeners : Listeners;
 export let dateCalendar : BrowserWindow; 
 export let tray : Tray;
  
-
 const CtrlAltT : string = 'Ctrl+Alt+T';
 const CtrlD : string = 'Ctrl+D';
 const shouldQuit = app.makeSingleInstance(
@@ -74,13 +73,19 @@ let createTray = () : Tray => {
     ])
 
 
-    tray.on('click', () => {
-        let windows = BrowserWindow.getAllWindows();
-        if(mainWindow){
-            if(mainWindow.isVisible()){ windows.forEach((w) => w.hide()) }
-            else{ windows.forEach((w) => w.show()) }
+    tray.on(
+        'click', 
+        () => {
+            let windows = BrowserWindow.getAllWindows();
+            if(mainWindow){
+                if(mainWindow.isVisible()){ 
+                    windows.forEach((w) => w.hide()); 
+                }else{ 
+                    windows.forEach((w) => { if(w.getTitle()!=='Quick Entry'){ w.show() } }); 
+                }
+            }
         }
-    })
+    )
 
 
 
@@ -118,7 +123,7 @@ let initListeners = (window:BrowserWindow) => new Listeners(window);
 
 let onAppLoaded = () : void => {    
     mainWindow.webContents.send("loaded");
-    //if(dev()){ mainWindow.webContents.openDevTools(); }
+    if(dev()){ mainWindow.webContents.openDevTools(); }
 };
 
 
@@ -126,9 +131,9 @@ let onAppLoaded = () : void => {
 let onQuickEntryLoaded = () : void => {      
     quickEntry.webContents.send("loaded");
     quickEntry.on('blur', () => quickEntry.hide());  
-    //if(dev()){ quickEntry.webContents.openDevTools() }
+    if(dev()){ quickEntry.webContents.openDevTools() } 
 };
-  
+   
     
 let getWindowSize = () : {width:number,height:number} => {
     let mainWindowWidth : number = dev() ? 100 : 60;  
@@ -160,14 +165,21 @@ let onReady = () => {
 
     preventAnnoyingErrorPopups(); 
 
-    if(globalShortcut){
+    if(globalShortcut){ 
        globalShortcut.register(CtrlAltT, onCtrlAltT);   
        globalShortcut.register(CtrlD, onCtrlD);
     }  
 
-    mainWindow = initWindow(getWindowSize());  
+    mainWindow = initWindow(getWindowSize());   
     quickEntry = initQuickEntry(getQuickEntrySize());
     listeners = initListeners(mainWindow); 
+
+    mainWindow.on('show', () => {
+        tray.setToolTip('Hide Tasklist');
+    }) 
+    mainWindow.on('hide', () => { 
+        tray.setToolTip('Show hidden windows')
+    })
 
     loadApp(mainWindow).then(onAppLoaded);   
     loadQuickEntry(quickEntry).then(onQuickEntryLoaded);  

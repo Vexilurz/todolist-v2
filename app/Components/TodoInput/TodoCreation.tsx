@@ -493,7 +493,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     } 
 
 
-    onCalendarAddReminderClick = (reminder:Date) : void => this.setState({reminder, attachedDate:reminder})
+    onCalendarAddReminderClick = (reminder:Date) : void => this.setState({reminder, attachedDate:reminder});
 
 
     onCalendarClear = (e) => {

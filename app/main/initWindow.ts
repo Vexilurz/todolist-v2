@@ -7,10 +7,7 @@ import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';
 
  
  
-export let initWindow = (
-    {width,height} : {width:number,height:number}
-) : BrowserWindow  => { 
-        
+export let initWindow = ({width,height} : {width:number,height:number}) : BrowserWindow  => {       
     Menu.setApplicationMenu(null);   
 
     let icon = path.resolve(__dirname,'icon.ico');
@@ -25,7 +22,8 @@ export let initWindow = (
         center:true,       
         frame:true 
     } as any);               
-              
+ 
+
     handler.on('ready-to-show', () => handler.show());
   
     handler.on('close', (event) => {
@@ -44,23 +42,21 @@ export let initQuickEntry = (
         
     Menu.setApplicationMenu(null);   
     
-    let handler = new BrowserWindow({    
+    let handler = new BrowserWindow({   
         width,          
-        height,   
-        transparent:false,    
+        height,      
         useContentSize:true, 
-        opacity:1,  
-        title:'Quick Entry',      
+        title:'Quick Entry',    
         center:true,       
         frame:false  
     } as any);               
   
-    handler.setAlwaysOnTop(true);
-    handler.setMovable(true); 
+    handler.setAlwaysOnTop(true); 
     handler.setResizable(false); 
+    handler.setMovable(true); 
     handler.setSkipTaskbar(true);
     handler.on('closed', () => {handler = null;}); 
     handler.hide(); 
     
-    return handler; 
+    return handler;  
 };        

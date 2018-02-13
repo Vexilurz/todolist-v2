@@ -49,19 +49,7 @@ const MockDate = require('mockdate');
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
 
- 
-
 export let isDev = () => { return true };   
-
-
-
-(() => {      
-    let app=document.createElement('div'); 
-    app.id='application';     
-    document.body.appendChild(app);     
-})(); 
-
-
 
 const analytics = (() => {
     const sysInfo = collectSystemInfo();
@@ -453,7 +441,9 @@ export class App extends Component<AppProps,{}>{
 ipcRenderer.once(
     'loaded',     
     (event, clonedStore:Store) => { 
+
         let defaultStore = defaultStoreItems;
+
         if(!isNil(clonedStore)){ 
             let {todos,projects,areas} = clonedStore;
             defaultStore =  {
@@ -464,7 +454,11 @@ ipcRenderer.once(
                 areas:areas.map(convertAreaDates) 
             }
         }   
-
+   
+        let app=document.createElement('div'); 
+        app.id='application';     
+        document.body.appendChild(app);     
+   
         getConfig().then(
             (config) => {
                 ReactDOM.render(   

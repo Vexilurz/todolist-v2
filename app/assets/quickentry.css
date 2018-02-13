@@ -5,3 +5,30 @@ html{
 body{  
     height:100%;
 } 
+
+.dragItem{
+    -webkit-app-region: drag;
+}
+
+
+.noDragItem{
+   -webkit-app-region: no-drag;
+}
+
+
+.scroll {  
+    overflow-y: scroll;
+  } 
+  
+  .scroll::-webkit-scrollbar {
+     width: 12px;
+  } 
+   
+  .scroll::-webkit-scrollbar-track {
+     border-radius: 55px;
+  } 
+   
+  .scroll::-webkit-scrollbar-thumb {
+     border-radius: 55px;
+     background-color:rgba(114,113,114,0.7);
+  } 

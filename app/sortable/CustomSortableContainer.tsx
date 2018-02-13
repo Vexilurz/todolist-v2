@@ -15,7 +15,7 @@ let assert = (condition:boolean , error:string, throwError=true) : void => {
         if(throwError) { 
             throw new Error(error) 
         }
-    }   
+    }    
 }  
 
 
@@ -161,7 +161,7 @@ let cloneSelectedElements = (
     } 
 }
 
-let getNodes = (ref) : HTMLElement[] => {
+let getNodes = (ref) : HTMLElement[] => { 
     assert(!isNil(ref), `ref is Nil. getNodes.`);
     return [].slice.call(ref.children);
 }
