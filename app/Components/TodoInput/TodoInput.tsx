@@ -74,6 +74,7 @@ export interface TodoInputState{
     
 export interface TodoInputProps{ 
     dispatch : Function,  
+    groupTodos : boolean, 
     moveCompletedItemsToLogbook : string, 
     selectedCategory : Category,
     selectedProjectId:string,
@@ -549,6 +550,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     onAdditionalTagsHover={(e) => {}}
                     onAdditionalTagsOut={(e) => {}}
                     onAdditionalTagsPress={(e) => {}}
+                    groupTodos={this.props.groupTodos}
                     setInputRef={e => {this.inputRef=e;}}
                     onRestoreButtonClick={this.onRestoreButtonClick}
                     onCheckBoxClick={this.onCheckBoxClick}
@@ -717,6 +719,7 @@ interface TodoInputTopLevelProps{
     onAdditionalTagsOut:Function, 
     onAdditionalTagsPress:Function, 
     setInputRef:(e:any) => void  
+    groupTodos:boolean,
     onRestoreButtonClick:Function,
     onCheckBoxClick:Function,
     onTitleChange:Function, 
@@ -754,6 +757,7 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
             relatedProjectName,
             flagColor,  
             rootRef,
+            groupTodos,
             animatingSlideAway
         } = this.props;
 
@@ -897,7 +901,11 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
                 open ? null :  
                 isNil(relatedProjectName) ? null :
                 isEmpty(relatedProjectName) ? null :
-                <RelatedProjectLabel name={relatedProjectName} selectedCategory={selectedCategory}/>   
+                <RelatedProjectLabel 
+                    name={relatedProjectName} 
+                    groupTodos={groupTodos} 
+                    selectedCategory={selectedCategory
+                }/>   
             }   
     </div>  
   } 
@@ -1118,7 +1126,8 @@ export class DueDate extends Component<DueDateProps,{}>{
 
 interface RelatedProjectLabelProps{
     name:string,
-    selectedCategory:Category 
+    selectedCategory:Category,
+    groupTodos:boolean 
 } 
  
 interface RelatedProjectLabelState{}
@@ -1127,13 +1136,10 @@ class RelatedProjectLabel extends Component<RelatedProjectLabelProps,RelatedProj
 
     
     render(){
-        let {selectedCategory} = this.props;
-        let disable : Category[] = [
-            "search", 
-            "project", 
-            "next", 
-            "area"
-        ];
+        let {selectedCategory,groupTodos} = this.props;
+        let disable : Category[] = groupTodos ?
+                                    ["search", "project","someday","today","next","area"] : 
+                                    ["project","area"];
         
         if(contains(selectedCategory)(disable)){ return null }
 

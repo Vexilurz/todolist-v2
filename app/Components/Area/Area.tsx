@@ -17,6 +17,7 @@ interface AreaComponentProps{
     todos:Todo[], 
     areas:Area[],  
     selectedCategory:Category, 
+    groupTodos:boolean, 
     selectedAreaId:string,
     selectedTag:string, 
     moveCompletedItemsToLogbook:string,
@@ -80,6 +81,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                     area={this.props.area}  
                     selectedCategory={this.props.selectedCategory}
                     todos={this.props.todos} 
+                    groupTodos={this.props.groupTodos}
                     selectedAreaId={this.props.selectedAreaId}
                     selectedProjectId={this.props.selectedProjectId}
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}

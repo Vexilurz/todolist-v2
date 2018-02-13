@@ -54,6 +54,7 @@ interface ProjectComponentProps{
     project:Project, 
     moveCompletedItemsToLogbook:string,
     todos:Todo[],
+    groupTodos:boolean, 
     projects:Project[], 
     selectedTag:string, 
     dragged:string, 
@@ -260,6 +261,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         <ProjectBody    
                             items={toProjectBody}
                             dragged={this.props.dragged}
+                            groupTodos={this.props.groupTodos}
                             showCompleted={this.props.showCompleted}
                             updateLayoutOrder={this.updateLayoutOrder}
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}

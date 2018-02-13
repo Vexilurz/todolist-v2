@@ -166,7 +166,7 @@ export class Today extends Component<TodayProps,TodayState>{
             byNotDeleted   
         ];    
     
-        let hotFilters = [
+        let hotFilters = [ 
             (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
             byNotCompleted,  
             byNotDeleted  
@@ -255,6 +255,7 @@ export class Today extends Component<TodayProps,TodayState>{
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
+                    groupTodos={this.props.groupTodos}
                     todos={this.props.todos}
                     selectedCategory={this.props.selectedCategory as Category} 
                     rootRef={this.props.rootRef}  
@@ -419,6 +420,7 @@ export class Today extends Component<TodayProps,TodayState>{
                                         selectedProjectId, 
                                         selectedAreaId,
                                         selectedCategory, 
+                                        groupTodos,
                                         moveCompletedItemsToLogbook,
                                         selectedTag,
                                         rootRef,

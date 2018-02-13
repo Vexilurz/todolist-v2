@@ -68,6 +68,7 @@ interface LogbookProps{
     dispatch:Function,
     todos:Todo[],
     moveCompletedItemsToLogbook:string,
+    groupTodos:boolean, 
     selectedAreaId:string,
     selectedProjectId:string, 
     selectedCategory:Category,  
@@ -161,7 +162,10 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
 
     getComponent = (month:string, todos:Todo[], projects:Project[]) : JSX.Element => {
-        let {moveCompletedItemsToLogbook} = this.props;
+        let {
+            moveCompletedItemsToLogbook,selectedCategory,groupTodos,
+            dispatch,selectedProjectId,selectedAreaId,rootRef
+        } = this.props;
 
         return <div style={{position:"relative", display:"flex", flexDirection:"column", WebkitUserSelect:"none"}}>
             <div 
@@ -189,28 +193,29 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                           style={{position:"relative", marginTop:"5px", marginBottom:"5px"}}
                         > 
                             {
-                                value.type==="project" ? 
+                                isProject(value as any) ? 
                                 <ProjectLinkLogbook { ...{project:value} as any }/>
                                 : 
-                                value.type==="todo" ?
+                                isTodo(value) ?
                                 <TodoInput     
                                     id={value._id}
                                     key={value._id}
+                                    groupTodos={groupTodos}
                                     moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}
                                     projects={this.props.projects}  
-                                    dispatch={this.props.dispatch}  
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    selectedAreaId={this.props.selectedAreaId} 
+                                    dispatch={dispatch}  
+                                    selectedProjectId={selectedProjectId}
+                                    selectedAreaId={selectedAreaId} 
                                     todos={this.props.todos} 
-                                    selectedCategory={"logbook"}  
-                                    rootRef={this.props.rootRef}  
+                                    selectedCategory={selectedCategory}  
+                                    rootRef={rootRef}  
                                     todo={value as Todo}
                                 />    
                                 :
                                 null
                             }   
                         </div> 
-                    )
+                    ) 
                 }   
             </div>      
         </div> 

@@ -563,6 +563,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                             onAdditionalTagsHover={(e) => this.setState({showAdditionalTags:true})}
                             onAdditionalTagsOut={(e) => this.setState({showAdditionalTags:false})}
                             onAdditionalTagsPress={(e) => this.setState({showAdditionalTags:false})} 
+                            groupTodos={false}
                             setInputRef={e => {this.inputRef=e;}}
                             onRestoreButtonClick={() => {}}
                             onCheckBoxClick={() => {}}

@@ -21,6 +21,7 @@ import { Category } from '../MainContainer';
 interface InboxProps{ 
     dispatch:Function,
     selectedProjectId:string, 
+    groupTodos:boolean, 
     selectedAreaId:string,  
     moveCompletedItemsToLogbook:string,
     selectedTag:string,
@@ -86,6 +87,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                     selectedAreaId={this.props.selectedAreaId}
                     selectedProjectId={this.props.selectedProjectId}
                     areas={this.props.areas}
+                    groupTodos={this.props.groupTodos}
                     projects={this.props.projects}  
                     dispatch={this.props.dispatch}     
                     selectedCategory={this.props.selectedCategory} 

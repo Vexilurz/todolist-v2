@@ -152,6 +152,7 @@ interface UpcomingProps{
     dispatch:Function,
     showCalendarEvents:boolean,
     selectedCategory:Category, 
+    groupTodos:boolean, 
     todos:Todo[],
     moveCompletedItemsToLogbook:string, 
     calendars:Calendar[], 
@@ -322,6 +323,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 idx={idx} 
                 day={day} 
                 dayName={getDayName(object.date)}
+                groupTodos={this.props.groupTodos}
                 selectedTodos={object.todos} 
                 selectedEvents={object.events}
                 todos={this.props.todos}
@@ -383,6 +385,7 @@ interface CalendarDayProps{
     scheduledProjects:Project[],
     areas:Area[], 
     selectedTodos:Todo[],
+    groupTodos:boolean,
     selectedEvents:CalendarEvent[],
     todos:Todo[], 
     moveCompletedItemsToLogbook:string, 
@@ -527,7 +530,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         }
                 </div>
                 {
-                    scheduledProjects.length===0 ? null :
+                    isEmpty(scheduledProjects) ? null :
                     <div 
                         style={{
                             display:"flex", 
@@ -559,6 +562,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                     }}>   
                         <TodosList    
                             dispatch={this.props.dispatch}  
+                            groupTodos={this.props.groupTodos}
                             selectedCategory={this.props.selectedCategory}
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             selectedAreaId={this.props.selectedAreaId}

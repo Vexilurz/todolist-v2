@@ -52,6 +52,7 @@ interface AreaBodyProps{
     projects:Project[],
     moveCompletedItemsToLogbook:string, 
     selectedAreaId:string, 
+    groupTodos:boolean, 
     selectedProjectId:string, 
     todos:Todo[], 
     selectedCategory:Category, 
@@ -109,6 +110,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                 selectedTag={this.props.selectedTag}
                 rootRef={this.props.rootRef}
+                groupTodos={this.props.groupTodos}
                 selectedAreaId={this.props.selectedAreaId}
                 selectedProjectId={this.props.selectedProjectId}
                 selectedCategory={this.props.selectedCategory} 
@@ -138,6 +140,7 @@ interface ProjectElementProps{
     project:Project,
     index:number,
     todos:Todo[],
+    groupTodos:boolean,
     moveCompletedItemsToLogbook:string,
     dispatch:Function,
     selectedTag:string, 
@@ -184,8 +187,10 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     <ExpandableTodosList
                         dispatch={dispatch}   
                         selectedTag={this.props.selectedTag}  
+                        selectedCategory={this.props.selectedCategory}
                         rootRef={this.props.rootRef} 
                         selectedAreaId={this.props.selectedAreaId}
+                        groupTodos={this.props.groupTodos}
                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                         selectedProjectId={this.props.selectedProjectId}
                         todos={selected} 

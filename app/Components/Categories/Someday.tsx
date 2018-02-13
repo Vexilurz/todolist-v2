@@ -102,7 +102,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                 rootRef={this.props.rootRef} 
                 todo={empty} 
             />   
-            <div id={`someday-list`} >    
+            <div id={`${selectedCategory}-list`} >    
                 <div id="todos" style={{paddingTop:"20px", paddingBottom:"20px"}}>      
                     {
                         groupTodos ? 
@@ -113,6 +113,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                                     selectedProjectId, 
                                     moveCompletedItemsToLogbook,
                                     selectedAreaId,
+                                    groupTodos,
                                     selectedCategory, 
                                     selectedTag,
                                     rootRef,
@@ -128,6 +129,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                             selectedAreaId={this.props.selectedAreaId}
                             selectedProjectId={this.props.selectedProjectId}
                             projects={this.props.projects}
+                            groupTodos={this.props.groupTodos}
                             dispatch={this.props.dispatch}   
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             selectedCategory={selectedCategory}  

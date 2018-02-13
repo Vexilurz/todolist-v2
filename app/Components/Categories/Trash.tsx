@@ -27,6 +27,7 @@ import { AreaTrashLink } from '../Area/AreaLink';
 
 interface TrashProps{ 
     dispatch:Function,
+    groupTodos:boolean,
     selectedCategory:Category,  
     moveCompletedItemsToLogbook:string, 
     showTrashPopup:boolean, 
@@ -84,6 +85,7 @@ export class Trash extends Component<TrashProps,TrashState>{
                     projects={this.props.projects}   
                     selectedCategory={this.props.selectedCategory}
                     dispatch={this.props.dispatch}   
+                    groupTodos={this.props.groupTodos}
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
@@ -99,10 +101,10 @@ export class Trash extends Component<TrashProps,TrashState>{
      
     render(){  
         let {
-            todos, projects, areas, selectedProjectId,
+            todos, projects, areas, selectedProjectId, selectedCategory,
             dispatch, selectedAreaId, selectedTag, rootRef 
         } = this.props;   
- 
+  
         let filters = [byDeleted,byTags(selectedTag)]; 
         let deletedProjects = filter(projects, allPass(filters), "deletedProjects");
         let deletedAreas = filter(areas, allPass(filters), "deletedAreas"); 
@@ -178,9 +180,10 @@ export class Trash extends Component<TrashProps,TrashState>{
                                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                 dispatch={dispatch}  
                                 selectedProjectId={selectedProjectId}
+                                groupTodos={this.props.groupTodos}
                                 selectedAreaId={selectedAreaId} 
                                 todos={this.props.todos}
-                                selectedCategory={"trash"}
+                                selectedCategory={selectedCategory}
                                 rootRef={rootRef}  
                                 todo={value}
                             />     

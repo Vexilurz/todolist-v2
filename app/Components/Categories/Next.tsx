@@ -123,7 +123,7 @@ export class Next extends Component<NextProps, NextState>{
                         todo={empty} 
                     />  
 
-                    <div id={`next-list`}>
+                    <div id={`${selectedCategory}-list`}>
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
                         {
                             groupTodos ? 
@@ -134,6 +134,7 @@ export class Next extends Component<NextProps, NextState>{
                                         selectedProjectId, 
                                         selectedAreaId,
                                         moveCompletedItemsToLogbook,
+                                        groupTodos,
                                         selectedCategory, 
                                         selectedTag,
                                         rootRef,
@@ -147,6 +148,7 @@ export class Next extends Component<NextProps, NextState>{
                             <TodosList            
                                 dispatch={this.props.dispatch}     
                                 areas={this.props.areas}
+                                groupTodos={this.props.groupTodos}
                                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                 projects={this.props.projects}
                                 selectedCategory={this.props.selectedCategory} 
@@ -170,6 +172,7 @@ export class Next extends Component<NextProps, NextState>{
 interface GroupsByProjectAreaProps{
     dispatch:Function, 
     selectedProjectId:string, 
+    groupTodos:boolean, 
     moveCompletedItemsToLogbook:string,
     selectedAreaId:string,
     selectedCategory:Category, 
@@ -210,6 +213,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                 <TodosList            
                     dispatch={this.props.dispatch}     
                     areas={this.props.areas}
+                    groupTodos={this.props.groupTodos}
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     projects={this.props.projects}
                     selectedCategory={this.props.selectedCategory} 
@@ -239,6 +243,8 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             selectedProjectId={this.props.selectedProjectId}
                             rootRef={this.props.rootRef}
+                            groupTodos={this.props.groupTodos}
+                            selectedCategory={this.props.selectedCategory}
                             todos={todos} 
                             areas={this.props.areas}
                             projects={this.props.projects}
@@ -263,6 +269,8 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                                 selectedTag={this.props.selectedTag}  
                                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook} 
                                 rootRef={this.props.rootRef}
+                                groupTodos={this.props.groupTodos}
+                                selectedCategory={this.props.selectedCategory}
                                 selectedAreaId={this.props.selectedAreaId}
                                 selectedProjectId={this.props.selectedProjectId}
                                 todos={todos} 
@@ -283,6 +291,8 @@ interface ExpandableTodosListProps{
     dispatch:Function,   
     moveCompletedItemsToLogbook:string,
     selectedAreaId:string,
+    selectedCategory:Category,
+    groupTodos:boolean,
     selectedProjectId:string, 
     selectedTag:string, 
     areas:Area[],
@@ -319,9 +329,10 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
         return <div>          
                 <TodosList        
                     dispatch={this.props.dispatch}     
-                    selectedCategory={"next"} 
+                    selectedCategory={this.props.selectedCategory} 
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     areas={this.props.areas}
+                    groupTodos={this.props.groupTodos}
                     selectedAreaId={this.props.selectedAreaId}
                     selectedProjectId={this.props.selectedProjectId}
                     projects={this.props.projects}

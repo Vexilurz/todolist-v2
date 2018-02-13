@@ -361,6 +361,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         todos={filter(todos, allPass(inboxFilters), "Inbox")} 
                                         dispatch={this.props.dispatch}
                                         selectedCategory={this.props.selectedCategory}
+                                        groupTodos={this.props.groupTodos}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedTag={this.props.selectedTag} 
                                         selectedProjectId={this.props.selectedProjectId} 
@@ -401,7 +402,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 () => {
                                 
                                     return <Trash    
-                                        todos={filter(todos, byDeleted, "Trash")}  
+                                        todos={filter(todos, byDeleted, "Trash")}
+                                        groupTodos={this.props.groupTodos}  
                                         dispatch={this.props.dispatch} 
                                         selectedCategory={this.props.selectedCategory}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
@@ -423,6 +425,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
                                     return <Logbook   
                                         todos={filter(todos, allPass(logbookFilters), "Logbook")} 
+                                        groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedCategory={this.props.selectedCategory} 
@@ -503,6 +506,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     return <Upcoming  
                                         limit={this.props.limit}
                                         todos={filter(todos, allPass(upcomingFilters), "Upcoming")}
+                                        groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch}
                                         selectedCategory={this.props.selectedCategory}
                                         areas={this.props.areas}
@@ -534,6 +538,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     return <ProjectComponent 
                                         project={project}
                                         todos={filter(todos, allPass(projectFilters), "projectTodos")}
+                                        groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch} 
                                         selectedTag={this.props.selectedTag}  
                                         selectedCategory={this.props.selectedCategory}
@@ -568,6 +573,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     return <AreaComponent    
                                         area={area} 
                                         todos={filter(todos, (todo:Todo) => contains(todo._id)(ids), "area")}
+                                        groupTodos={this.props.groupTodos}
                                         areas={this.props.areas} 
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedCategory={this.props.selectedCategory}

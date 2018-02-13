@@ -43,6 +43,7 @@ import { TodoCreationForm } from '../TodoInput/TodoCreation';
 
 interface ProjectBodyProps{
     items:(Heading|Todo)[], 
+    groupTodos:boolean,
     updateLayoutOrder:(layout:LayoutItem[]) => void,
     updateHeading:(heading_id:string, newValue:string) => void,
     archiveHeading:(heading_id:string) => void,
@@ -82,16 +83,13 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     return  <div   
                         id = {value["_id"]}
                         key = {`${value["_id"]}-todo`}  
-                        style={{
-                            position:"relative",
-                            UserSelect:"none",
-                            WebkitUserSelect:"none"
-                        }}
+                        style = {{position:"relative",UserSelect:"none",WebkitUserSelect:"none"}}
                     >  
                         <TodoInput    
                             id={value["_id"]} 
                             key={value["_id"]} 
                             showCompleted={this.props.showCompleted}
+                            groupTodos={this.props.groupTodos}
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             projects={this.props.projects}
                             dispatch={this.props.dispatch}   
@@ -306,8 +304,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 <SortableContainer
                     items={this.props.items}
                     scrollableContainer={this.props.rootRef}
-                    selectElements={this.selectElements}   
-
+                    selectElements={this.selectElements}  
                     onSortStart={this.onSortStart} 
                     onSortMove={this.onSortMove}
                     onSortEnd={this.onSortEnd}

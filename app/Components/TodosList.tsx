@@ -277,6 +277,7 @@ interface TodosListProps{
     dispatch:Function, 
     projects:Project[],
     areas:Area[],
+    groupTodos:boolean,
     moveCompletedItemsToLogbook:string, 
     selectedCategory:Category,
     selectedTag:string,  
@@ -291,7 +292,7 @@ interface TodosListProps{
   
 interface TodosListState{}
   
-
+ 
    
 export class TodosList extends Component<TodosListProps, TodosListState>{
 
@@ -310,6 +311,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 id={value._id} 
                 key={value._id} 
                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                groupTodos={this.props.groupTodos}
                 projects={this.props.projects}  
                 dispatch={this.props.dispatch}  
                 selectedProjectId={this.props.selectedProjectId}

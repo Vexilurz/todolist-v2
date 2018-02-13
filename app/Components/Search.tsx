@@ -371,6 +371,7 @@ export class Search extends Component<SearchProps,SearchState>{
                                 id={todo._id} 
                                 key={todo._id} 
                                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                                groupTodos={this.props.groupTodos}
                                 projects={this.props.projects}  
                                 dispatch={this.props.dispatch}  
                                 selectedProjectId={this.props.selectedProjectId}
@@ -393,7 +394,6 @@ export class Search extends Component<SearchProps,SearchState>{
  
  
     render(){
-
         let {todos, projects, areas, dispatch, selectedTag, groupTodos} = this.props;
         let selectedTodos = filter(todos, byNotDeleted, "");
         let selectedProjects = filter(projects, byNotDeleted, "");
@@ -460,6 +460,7 @@ export class Search extends Component<SearchProps,SearchState>{
                                     key={todo._id} 
                                     projects={this.props.projects}  
                                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                                    groupTodos={this.props.groupTodos}
                                     dispatch={this.props.dispatch}  
                                     selectedProjectId={this.props.selectedProjectId}
                                     selectedAreaId={this.props.selectedAreaId} 
