@@ -43,8 +43,8 @@ export let initQuickEntry = (
     Menu.setApplicationMenu(null);   
     
     let handler = new BrowserWindow({   
-        width:800,          
-        height:800,      
+        width,          
+        height,      
         useContentSize:true, 
         title:'Quick Entry',    
         center:true,       

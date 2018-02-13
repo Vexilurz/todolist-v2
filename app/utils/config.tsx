@@ -43,7 +43,6 @@ export let getConfig = () : Promise<Config> => {
             storage.get( 
                 "config", 
                 (error, data:Config) => {  
-                    if(!isNil(error)){ globalErrorHandler(error) }
                     if(isNil(data) || isEmpty(data)){ resolve(defaultConfig) }
                     else{ resolve({...data,firstLaunch:false} ) }
                 }

@@ -1,6 +1,5 @@
 import { collectSystemInfo } from './utils/collectSystemInfo';
 import { getConfig, Config } from './utils/config';
-
 import Analytics from 'electron-ga';
 import { ipcRenderer, remote } from 'electron';
 
@@ -14,7 +13,7 @@ export const googleAnalytics = ({
     ) 
 });     
 
-
+ 
 const analytics = (() => {
     const sysInfo = collectSystemInfo();
     return new Analytics(

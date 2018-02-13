@@ -1,3 +1,6 @@
+import { isString } from "./isSomething";
+import { assert } from "./assert";
+
 export let stringToLength = (s : string, length : number) : string => {
 
     assert(isString(s),`s is not a string ${s}. stringToLength.`);

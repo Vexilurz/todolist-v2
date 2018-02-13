@@ -25,7 +25,7 @@ import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import { merge, isNil, not } from 'ramda';
 import { Category } from '../MainContainer';
-import { assert } from '../../utils';
+import { assert } from '../../utils/assert';
 
 
 let Hot = (hot:number) : JSX.Element => 

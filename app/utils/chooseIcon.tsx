@@ -1,8 +1,11 @@
 import {isString,isCategory} from './isSomething';
-import { assert } from './utile/assert'; 
+import { assert } from './../utils/assert'; 
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Inbox from 'material-ui/svg-icons/content/inbox';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';  
 import Star from 'material-ui/svg-icons/toggle/star';
+import Moon from 'material-ui/svg-icons/image/brightness-3';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
 import CheckBox from 'material-ui/svg-icons/toggle/check-box'; 
@@ -23,6 +26,7 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
+import { Category } from '../Components/MainContainer';
 
 
 export let chooseIcon = (

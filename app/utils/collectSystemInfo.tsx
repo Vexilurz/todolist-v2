@@ -1,5 +1,6 @@
+import { isNil } from 'ramda';
 import { ipcRenderer, remote } from 'electron';
-const os = remote.require('os'); 
+
 
 
 export interface SystemInfo{ 
@@ -16,13 +17,15 @@ export interface SystemInfo{
 }
 
 
-export let getScreenResolution = () : {width:number,height:number} => 
-           remote.screen.getPrimaryDisplay().workAreaSize;
+export let getScreenResolution = () : {width:number,height:number} => {
+    return remote.screen.getPrimaryDisplay().workAreaSize;
+}
+ 
 
 
-
-export let collectSystemInfo = () : SystemInfo => 
-        ({ 
+export let collectSystemInfo = () : SystemInfo => {
+    const os = remote.require('os'); 
+    return ({ 
             arch : os.arch(),
             cpus : os.cpus(),
             hostname : os.hostname(),
@@ -37,3 +40,4 @@ export let collectSystemInfo = () : SystemInfo =>
             documentEncoding : document.characterSet,
             userLanguage : remote.app.getLocale()
         })
+}

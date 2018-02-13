@@ -1,11 +1,11 @@
-import './assets/styles.css';     
+import './../assets/styles.css';     
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import {  
-  cyan500, cyan700,   
-  pinkA200,  
-  grey100, grey300, grey400, grey500,
-  white, darkBlack, fullBlack,   
+  cyan500, cyan700, pinkA200,  
+  grey100, grey300, grey400, 
+  grey500, white, darkBlack, 
+  fullBlack   
 } from 'material-ui/styles/colors'; 
 import {fade} from 'material-ui/utils/colorManipulator';
 import spacing from 'material-ui/styles/spacing'; 
@@ -56,7 +56,6 @@ import axios from 'axios';
 import { Table } from '.././Components/Categories/Next';
 const storage = remote.require('electron-json-storage');
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
-const os = remote.require('os'); 
 import printJS from 'print-js'; 
 import { globalErrorHandler } from './globalErrorHandler';
 var PHE = require("print-html-element"); 

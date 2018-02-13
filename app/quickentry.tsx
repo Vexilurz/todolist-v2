@@ -7,7 +7,7 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import * as injectTapEventPlugin from 'react-tap-event-plugin';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react";  
-import spacing from 'material-ui/styles/spacing'; 
+import spacing from 'material-ui/styles/spacing';  
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
@@ -387,18 +387,18 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             ref={(e) => { this.ref=e; }}  
             style={{                   
                 display:"flex",
-                overflowX:"hidden",   
-                height:"100%",   
-                justifyContent:"space-between",
+                overflowX:"hidden", 
+                justifyContent:"flex-start",
+                height:"100%",
                 position:"relative", 
                 alignItems:"center", 
-                flexDirection:"column",  
+                flexDirection:"column"  
             }}   
         >     
             <div style={{width:"100%"}}>    
             <div style={{
                 display:"flex", height:"30px", alignItems:"center", 
-                width:"100%", margin:"10px", paddingLeft: "20px" 
+                width:"100%", margin:"10px", paddingLeft: "20px"  
             }}>
                 <TextField   
                     ref={e => {this.inputRef=e;}}
@@ -445,25 +445,23 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                 />  
             </div>
             </div> 
-            <div className="scroll">
-                {    
-                !this.state.showChecklist ? null :  
-                <div style={{width:"90%", paddingBottom:"50px"}}> 
-                    <Checklist 
-                        checklist={this.state.checklist}  
-                        updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})} 
-                    /> 
-                </div> 
-                }   
-                {  
-                <TodoTags   
-                    tags={this.state.attachedTags}
-                    attachTag={this.onAttachTag}
-                    removeTag={this.onRemoveTag}
-                /> 
-                } 
-            </div>
-            <div style={{ 
+                <div className="scroll" style={{width:"90%",height:"75%"}}> 
+                    {    
+                        !this.state.showChecklist ? null :  
+                        <Checklist 
+                            checklist={this.state.checklist}  
+                            updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})} 
+                        /> 
+                    } 
+                    {  
+                        <TodoTags   
+                            tags={this.state.attachedTags}
+                            attachTag={this.onAttachTag}
+                            removeTag={this.onRemoveTag}
+                        /> 
+                    } 
+                </div>  
+            <div style={{  
                 display:"flex",
                 alignItems:"center",
                 width:"100%", 
@@ -1057,11 +1055,11 @@ class TodoInputLabel extends Component<TodoInputLabelProps, TodoInputLabelState>
                         background:"",
                         display:"flex",
                         alignItems:"baseline"
-                    }}  
+                    }}   
                 >
                     <div style={containerStyle}>
                         {
-                            chooseIcon({height: "25px", width: "25px"}, this.props.category)
+                            chooseIcon({height: "25px", width: "25px"}, this.props.category as any)
                         } 
                         {
                             this.props.content 
@@ -1367,7 +1365,7 @@ class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLabelsStat
                         </div>    
                     }  
                 />    
-            </div>   
+            </div>    
         } 
         { 
             isNil(deadline) ? null : 

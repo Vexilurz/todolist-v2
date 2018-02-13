@@ -1,11 +1,14 @@
-import { getConfig, Config } from './../utils/config';
 import { loadApp, dev, loadQuickEntry } from './loadApp'; 
 import fs = require('fs');     
 import electron = require('electron');
-import { ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,globalShortcut,BrowserView,Tray,nativeImage,protocol} from 'electron';
+import { 
+    ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,
+    globalShortcut,BrowserView,Tray,nativeImage,protocol
+} from 'electron';
 import { Listeners } from "./listeners";
 import { initWindow, initQuickEntry } from "./initWindow";
 import { isNil, isEmpty } from 'ramda'; 
+import {defaultTags} from './../utils/defaultTags';
 const os = require('os');
 let path = require("path");
 const log = require("electron-log");
@@ -19,7 +22,10 @@ export let dateCalendar : BrowserWindow;
 export let tray : Tray;
  
 const CtrlAltT : string = 'Ctrl+Alt+T';
+
 const CtrlD : string = 'Ctrl+D';
+
+
 const shouldQuit = app.makeSingleInstance(
     (commandLine, workingDirectory) => {
         if(mainWindow){
@@ -31,7 +37,54 @@ const shouldQuit = app.makeSingleInstance(
         } 
     }
 ); 
+
+
    
+const defaultConfig = { 
+    nextUpdateCheck:new Date(),
+    firstLaunch:true,
+    hideHint:false,
+    defaultTags:defaultTags,  
+    shouldSendStatistics:true,
+    showCalendarEvents:true,
+    groupTodos:false,
+    preserveWindowWidth:true, //when resizing sidebar
+    enableShortcutForQuickEntry:true,
+    quickEntrySavesTo:"inbox", //inbox today next someday
+    moveCompletedItemsToLogbook:"immediately"
+}
+
+
+interface Config{
+    nextUpdateCheck:Date,
+    firstLaunch:boolean, 
+    defaultTags:string[],
+    hideHint:boolean,
+    shouldSendStatistics:boolean,
+    showCalendarEvents:boolean,
+    groupTodos:boolean,
+    preserveWindowWidth:boolean, //when resizing sidebar
+    enableShortcutForQuickEntry:boolean,
+    quickEntrySavesTo:string, //inbox today next someday
+    moveCompletedItemsToLogbook, //immediatelly
+}
+
+
+
+let getConfig = () : Promise<any> => {
+    return new Promise( 
+        resolve => {
+            storage.get( 
+                "config", 
+                (error, data:any) => {  
+                    if(isNil(data) || isEmpty(data)){ resolve(defaultConfig) }
+                    else{ resolve({...data,firstLaunch:false} ) }
+                }
+            )   
+        }
+    )
+}; 
+
 
 let createTray = () : Tray => {
     let iconPath = path.join(__dirname,"icon.ico"); 
@@ -149,7 +202,7 @@ let getWindowSize = () : {width:number,height:number} => {
     let height = mainWindowHeight*(workingArea.height/100); 
  
     if(!dev()){ width = width <= 800 ? width : 800;} 
-    
+     
     return {width,height};  
 };  
 

@@ -1,13 +1,16 @@
-import './assets/styles.css'; 
+import './../assets/styles.css'; 
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { ipcRenderer } from 'electron';
 import PouchDB from 'pouchdb-browser';  
-import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
-import { Category } from './Components/MainContainer';
-import { randomArrayMember, randomInteger, randomDate, isString, assert } from './utils';
-import { generateId, Todo, Heading, LayoutItem, Project, Area } from './database';
+import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist'; 
+import { Category } from '.././Components/MainContainer'; 
+import { randomArrayMember, randomInteger, randomDate } from './utils';
+import { Todo, Heading, LayoutItem, Project, Area } from './../database';
 import { uniq, splitEvery, contains } from 'ramda';
+import { generateId } from './generateId';
+import { isString } from './isSomething';
+import { assert } from './assert';
 const randomWord = require('random-word');
 let uniqid = require("uniqid"); 
 
