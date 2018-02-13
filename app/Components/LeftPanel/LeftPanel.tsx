@@ -7,8 +7,9 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
-    byDeleted, dateDiffInDays, byAttachedToProject, byAttachedToArea, isDate, daysRemaining, isToday, assert, isTodayOrPast, isDeadlineTodayOrPast, isString, isArrayOfStrings 
-} from "../../utils";  
+    byDeleted, byAttachedToProject, byAttachedToArea, 
+    isToday, isTodayOrPast, isDeadlineTodayOrPast, 
+} from "../../utils/utils";  
 import { Provider, connect } from "react-redux";
 import Menu from 'material-ui/Menu';
 import Star from 'material-ui/svg-icons/toggle/star';
@@ -36,7 +37,7 @@ import Clear from 'material-ui/svg-icons/content/clear';
 import Remove from 'material-ui/svg-icons/content/remove'; 
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import FullScreen from 'material-ui/svg-icons/image/crop-square';
-import { Store, isDev, googleAnalytics, globalErrorHandler } from '../../app'; 
+import { Store, isDev } from '../../app'; 
 import { AreasList } from './../Area/AreasList';
 import { ResizableHandle } from './../ResizableHandle';
 import { LeftPanelMenu } from './LeftPanelMenu';
@@ -48,6 +49,10 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { filter } from '../MainContainer';
 import { SearchInput } from '../Search';
+import { globalErrorHandler } from '../../utils/globalErrorHandler';
+import { googleAnalytics } from '../../analytics';
+import { isArrayOfStrings, isString } from '../../utils/isSomething';
+import { assert } from '../../utils/assert';
 
 const ctrlKeyCode = 17;
 

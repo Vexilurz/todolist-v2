@@ -1,8 +1,13 @@
+import {isNil} from 'ramda';
  
+export let insideTargetArea = (
+     scrollableContainer:HTMLElement,
+     target:HTMLElement,
+     x:number,
+     y:number
+) : boolean => {
 
-export let insideTargetArea = (scrollableContainer:HTMLElement,target:HTMLElement,x:number,y:number) : boolean => {
-
-    if(target===null || target===undefined){ return false }
+    if(isNil(target)){ return false }
 
     let {left,right,top,bottom} = target.getBoundingClientRect();
     let scrolledLeft = left;

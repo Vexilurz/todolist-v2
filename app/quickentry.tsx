@@ -34,7 +34,6 @@ import Calendar from 'material-ui/svg-icons/action/date-range';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import { ipcRenderer, remote } from 'electron'; 
 import TextField from 'material-ui/TextField';  
-import { insideTargetArea } from './insideTargetArea';
 import List from 'material-ui/svg-icons/action/list';
 import { 
     cond, assoc, isNil, not, defaultTo, map,  isEmpty, 
@@ -58,15 +57,25 @@ import { Subscription } from 'rxjs/Rx';
 import { Provider, connect } from "react-redux";
 import Chip from 'material-ui/Chip';
 import DayPicker from 'react-day-picker'; 
-import { SortableContainer } from './sortable/CustomSortableContainer';
 import RaisedButton from 'material-ui/RaisedButton';
+import { Config } from './utils/config';
+import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight';
+import { generateId } from './utils/generateId';
+import { generateEmptyTodo } from './utils/generateEmptyTodo';
+import { daysRemaining } from './utils/daysRemaining';
+import { insideTargetArea } from './utils/insideTargetArea';
+import { chooseIcon } from './utils/chooseIcon';
+import { uppercase } from './utils/uppercase';
+import { SortableContainer } from './Components/CustomSortableContainer';
+import { arrayMove } from './utils/arrayMove';
+import { ChecklistItem, Checklist } from './Components/TodoInput/TodoChecklist';
 injectTapEventPlugin();  
 
 
 
 ipcRenderer.once( 
     'loaded',     
-    (event) => { 
+    (event,config:Config) => { 
         let app=document.createElement('div'); 
         app.style.width="100%"; 
         app.style.height="100%";
@@ -74,7 +83,7 @@ ipcRenderer.once(
         document.body.appendChild(app);    
 
         ReactDOM.render(   
-            wrapMuiThemeLight(<QuickEntry />),
+            wrapMuiThemeLight(<QuickEntry config={config}/>),
             document.getElementById('application')
         )     
     }
@@ -88,7 +97,6 @@ interface QuickEntryState{
     note : string, 
     checked : boolean,
     completed : Date,
-    reminder : Date,
     deadline : Date,
     deleted : Date,
     attachedDate : Date, 
@@ -103,7 +111,9 @@ interface QuickEntryState{
     showDeadlineCalendar : boolean
 }   
   
-interface  QuickEntryProps{}    
+interface  QuickEntryProps{
+    config:Config
+}    
    
 class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     
@@ -124,12 +134,11 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             note : '',  
             checked : false, 
             completed : undefined,
-            reminder : undefined, 
             deadline : undefined, 
             deleted : undefined, 
             attachedDate : undefined,
-            defaultTags : [], 
-            attachedTags : [], 
+            defaultTags : this.props.config.defaultTags, 
+            attachedTags : [],  
             checklist : [], 
             showAdditionalTags : false, 
             showDateCalendar : false,  
@@ -164,7 +173,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         priority : 0,
         note : this.state.note,  
         checklist : this.state.checklist,
-        reminder : this.state.reminder,  
         deadline : this.state.deadline, 
         created : new Date(),
         deleted : this.state.deleted, 
@@ -190,7 +198,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     
 
     clear = () => {
-        let emptyTodo = generateEmptyTodo(generateId(), this.state.category, 0);
+        let emptyTodo = generateEmptyTodo(generateId(), this.state.category as any, 0);
         
         let newState : QuickEntryState = {
             ...this.stateFromTodo(this.state,emptyTodo),
@@ -377,7 +385,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         
         <div  
             ref={(e) => { this.ref=e; }}  
-            className="scroll"
             style={{                   
                 display:"flex",
                 overflowX:"hidden",   
@@ -414,7 +421,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     underlineStyle={{borderColor:"rgba(0,0,0,0)"}}   
                 />  
             </div> 
-
             <div style={{
                 transition:"opacity 0.2s ease-in-out",
                 opacity:1,
@@ -439,23 +445,24 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                 />  
             </div>
             </div> 
-             
-            {    
+            <div className="scroll">
+                {    
                 !this.state.showChecklist ? null :  
                 <div style={{width:"90%", paddingBottom:"50px"}}> 
-                  <Checklist 
-                    checklist={this.state.checklist}  
-                    updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})} 
-                  /> 
+                    <Checklist 
+                        checklist={this.state.checklist}  
+                        updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})} 
+                    /> 
                 </div> 
-            }   
-            {  
+                }   
+                {  
                 <TodoTags   
-                  tags={this.state.attachedTags}
-                  attachTag={this.onAttachTag}
-                  removeTag={this.onRemoveTag}
+                    tags={this.state.attachedTags}
+                    attachTag={this.onAttachTag}
+                    removeTag={this.onRemoveTag}
                 /> 
-            } 
+                } 
+            </div>
             <div style={{ 
                 display:"flex",
                 alignItems:"center",
@@ -476,7 +483,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     point = {{vertical:"bottom", horizontal:"right"}}  
                     anchorEl={this.calendar}
                     rootRef = {document.body}
-                    reminder={this.state.reminder}  
                     attachedDate={this.state.attachedDate}
                     onDayClick = {this.onCalendarDayClick}
                     onSomedayClick = {this.onCalendarSomedayClick}
@@ -722,334 +728,6 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
     }
 }
  
-
-
-
-interface ChecklistItem{
-    text : string, 
-    checked : boolean,
-    idx : number,
-    key : string,
-    _id : string  
-}   
- 
-
-interface ChecklistProps{
-    checklist : ChecklistItem[],
-    updateChecklist : (checklist:ChecklistItem[]) => void   
-}
-
-interface ChecklistState{} 
-
-  
-class Checklist extends Component<ChecklistProps,ChecklistState>{
-
-    ref:HTMLElement; 
-    inputRef:HTMLElement;
-
-    constructor(props){
-        super(props); 
-    }
-
-  
-    shouldComponentUpdate(nextProps:ChecklistProps, nextState:ChecklistState){
-         
-        let checklistChanged = shouldUpdateChecklist(nextProps.checklist, this.props.checklist);
-
-        return checklistChanged;  
-    } 
- 
-
-    onChecklistItemChange = (key:string, event, newText:string) => {  
-        let idx : number = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
-        
-        if(idx!==-1){
-
-            let updatedItem = {...this.props.checklist[idx]};
-                
-            updatedItem.text = newText; 
-
-            let checklist = adjust(() => updatedItem, idx, this.props.checklist);
-
-            this.props.updateChecklist(checklist);  
-        } 
-    }    
-   
-
-    onChecklistItemCheck = (e, key:string) => {
-        let idx = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
-            
-        if(idx!==-1){
- 
-            let item = {...this.props.checklist[idx]};
-            
-            item.checked=!item.checked;
-
-            let checklist = adjust(() => item, idx, this.props.checklist);
-
-            this.props.updateChecklist(checklist);  
-        }
-    } 
-
-
-    selectElements = (index:number,items:any[]) => [index];
-
-
-    onSortMove = (oldIndex:number, event) : void => {} 
-
-    
-    onSortStart = (oldIndex:number, event:any) : void => {}
-
-
-    onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
-
-        if(oldIndex===newIndex){ return }
-             
-        let updateIndex = (el:ChecklistItem,idx:number) => {
-            el.idx=idx;
-            return el; 
-        };
- 
-        let moved = arrayMove([...this.props.checklist],oldIndex,newIndex);
-
-        let checklist = moved.map(updateIndex).filter((el:ChecklistItem) => !isEmpty(el.text));  
-
-        this.props.updateChecklist(checklist); 
-    }  
-      
-    
-    getCheckListItem = (value:ChecklistItem, index:number) => { 
-
-        let style = {
-            display:"flex",alignItems:"center"
-        } as any;
-
-        let checkedStyle = {
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            paddingRight: "3px",
-            paddingLeft: "3px"
-        } as any;
-            
-        return <li 
-          className={'checklistItem'}    
-          id={value._id} 
-          key={value.key} 
-          style={{width:"100%"}}    
-        >  
-            <div   
-                style={{   
-                    WebkitUserSelect:"none",
-                    transition: "opacity 0.4s ease-in-out", 
-                    opacity:1,
-                    width:"100%", 
-                    fontSize:"16px",
-                    borderRadius:"5px",
-                    alignItems:"center", 
-                    display:"flex" 
-                }} 
-            >  
-                <div  
-                    style={value.checked ? checkedStyle : style} 
-                    onClick={(e) => this.onChecklistItemCheck(e, value.key)}   
-                > 
-                    {
-                        value.checked ? <Checked style={{width:18, height:18, color:"rgba(100,100,100,0.7)"}}/> :
-                        <div
-                            style={{
-                                backgroundColor:value.checked ? 'rgb(10, 100, 240)' : '',
-                                width:"15px",  
-                                height:"15px", 
-                                borderRadius:"50px",
-                                display:"flex",
-                                justifyContent:"center",
-                                position:"relative", 
-                                border:value.checked ? '' : "2px solid rgb(10, 100, 240)",
-                                boxSizing:"border-box",
-                                marginRight:"5px",
-                                marginLeft:"5px" 
-                            }}    
-                        >        
-                        </div>  
-                    }    
-                </div> 
-                <div    
-                    style={{   
-                        display:"flex",
-                        justifyContent:"space-around",
-                        width:"100%",    
-                        alignItems:"center"
-                    }} 
-                >    
-                    <TextField     
-                        id={value.key} 
-                        fullWidth={true}   
-                        defaultValue={value.text}
-                        hintStyle={{top:"3px", left:0, width:"100%", height:"100%"}}  
-                        style={{height:"28px",cursor:"default"}}  
-                        inputStyle={{
-                            color:value.checked ? "rgba(100,100,100,0.7)" : "rgba(0,0,0,1)",  
-                            fontSize:"16px",
-                            textDecoration:value.checked ? "line-through" : "none"
-                        }}    
-                        underlineFocusStyle={{borderColor: "rgba(0,0,0,0)"}}   
-                        underlineStyle={{borderColor: "rgba(0,0,0,0)"}}   
-                        onClick={(e) => e.target.focus()}  
-                        onChange={(event, newText:string) => this.onChecklistItemChange(value.key, event, newText)}
-                        onKeyDown={(event) => { 
-                            if(event.which == 13 || event.keyCode == 13){
-                                event.stopPropagation(); 
-                            }      
-                        }} 
-                    />  
-                </div>  
-            </div>  
-        </li>     
-    } 
-
-
-    onBlankBlur = (event) => {
-        if(event.target.value==='')
-           return;  
-
-        let newItem = {
-            checked:false,  
-            text:event.target.value,  
-            idx:this.props.checklist.length, 
-            key:generateId(),
-            _id:generateId()
-        };
- 
-        let checklist = append(newItem)(this.props.checklist);
-        this.props.updateChecklist(checklist); 
-    }
-
-
-    onBlankEnterPress = (event) => { 
-        if(event.which == 13 || event.keyCode == 13){
-            event.stopPropagation();
- 
-            if(event.target.value==='')
-               return;  
-                 
-            let newItem = { 
-                checked:false,  
-                text:event.target.value,  
-                idx:this.props.checklist.length, 
-                key:generateId(),
-                _id:generateId()
-            };
-
-            let checklist = append(newItem)(this.props.checklist);
-            this.props.updateChecklist(checklist); 
-        }     
-    } 
-
-
-    componentDidMount(){
-        if(this.inputRef){
-           this.inputRef.focus();  
-        } 
-    }
-
-    
-    componentDidUpdate(){
-        if(this.inputRef){
-           this.inputRef.focus();  
-        }  
-    }
-
-
-    render(){  
- 
-        return <div  
-            ref={e => {this.ref=e;}}
-            style={{
-                marginTop:"5px",
-                marginBottom:"15px", 
-                position:"relative",
-                WebkitUserSelect:"none" 
-            }}
-            onClick={(e) => {e.stopPropagation();}}  
-        >    
-            <SortableContainer
-              items={this.props.checklist}
-              scrollableContainer={document.body}
-              selectElements={this.selectElements}   
-              onSortStart={this.onSortStart} 
-              onSortMove={this.onSortMove}
-              onSortEnd={this.onSortEnd}
-              shouldCancelStart={(event:any,item:any) => false}  
-              decorators={[]}   
-              lock={true}
-            >   
-                {this.props.checklist.map((item,index) => this.getCheckListItem(item,index))}
-            </SortableContainer> 
-            
-            {   
-                <div
-                    style={{   
-                        transition: "opacity 0.4s ease-in-out", 
-                        opacity:1,
-                        width:"100%", 
-                        fontSize:"16px",
-                        borderRadius:"5px",
-                        alignItems:"center", 
-                        display:"flex",   
-                    }} 
-                >  
-                    <div> 
-                        <div
-                            style={{
-                                backgroundColor:'',
-                                width:"15px",  
-                                height:"15px",
-                                borderRadius:"50px",
-                                display:"flex",
-                                justifyContent:"center",
-                                position:"relative", 
-                                border:"2px solid rgb(10, 100, 240)",
-                                boxSizing:"border-box",
-                                marginRight:"5px",
-                                marginLeft:"5px" 
-                            }}    
-                        >        
-                        </div>  
-                    </div>   
-                        <div     
-                            key={generateId()}
-                            style={{   
-                                display:"flex",
-                                justifyContent:"space-around",
-                                width:"100%",    
-                                alignItems:"center"
-                            }}   
-                        >    
-                            <TextField     
-                                ref={e => {this.inputRef=e;}}  
-                                id={generateId()} 
-                                key={generateId()}
-                                fullWidth={true}   
-                                defaultValue={''}
-                                hintStyle={{top:"3px", left:0, width:"100%", height:"100%"}}  
-                                style={{height:"28px", cursor:"default"}}  
-                                inputStyle={{
-                                    color:"rgba(0,0,0,1)",    
-                                    fontSize:"16px",
-                                    textDecoration:"none"
-                                }} 
-                                underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}}  
-                                underlineStyle={{borderColor:"rgba(0,0,0,0)"}}   
-                                onBlur={this.onBlankBlur}  
-                                onKeyDown={this.onBlankEnterPress} 
-                            />  
-                        </div>  
-                </div>   
-            }
-        </div>
-    }
-}
 
 
 
@@ -1403,14 +1081,12 @@ interface DateCalendarProps{
     anchorEl : HTMLElement,
     rootRef : HTMLElement, 
     attachedDate : Date,
-    reminder : Date, 
     point : any,  
     onDayClick : (day:Date, modifiers:Object, e:any) => void,
     onSomedayClick : (e:any) => void,  
     onTodayClick : (e:any) => void, 
     onThisEveningClick : (e:any) => void, 
-    onClear : (e:any) => void,
-    onRepeatTodo? : (top:number,left:number) => void
+    onClear : (e:any) => void
 }           
   
 
@@ -1458,8 +1134,8 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
                
      
     render(){     
-        let {onRepeatTodo, close} = this.props;
-        let hideRepeatButton = not(isFunction(onRepeatTodo));
+        let {close} = this.props;
+        let hideRepeatButton = true;
 
         return <Popover 
             open={this.props.open}
@@ -1827,266 +1503,3 @@ class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCalendarS
     } 
 }  
 
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-let dateDiffInDays = (A : Date, B : Date) : number  => {
-    let _MS_PER_DAY = 1000 * 60 * 60 * 24;
-
-    let utc1 = Date.UTC(A.getFullYear(), A.getMonth(), A.getDate());
-
-    let utc2 = Date.UTC(B.getFullYear(), B.getMonth(), B.getDate());
-  
-    return Math.floor((utc2 - utc1) / _MS_PER_DAY);
-}
-
-
-
-let daysRemaining = (date:Date) : number => {
-    return dateDiffInDays(new Date(), date); 
-} 
-    
-
-
-let generateId = () => uniqid() + new Date().toJSON(); 
-
-
-let wrapMuiThemeLight = (component) =>  {
-
-    return <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
-        
-        {component} 
-    
-    </MuiThemeProvider>
-
-}   
-
-
-let shouldUpdateChecklist = (
-    checklistBefore:ChecklistItem[],
-    checklistAfter:ChecklistItem[]
-) : boolean => {
-
-    let should = false;
-
-    if(checklistBefore.length!==checklistAfter.length){
-       should = true; 
-       return should; 
-    }
-
-
-    for(let i=0; i<checklistBefore.length; i++){
-        let before = checklistBefore[i];
-        let after = checklistAfter[i];
-
-        if(before.checked!==after.checked){
-           should = true; 
-        }else if(before.idx!==after.idx){
-           should = true; 
-        }else if(before.key!==after.key){
-           should = true; 
-        }
-    }
-
-    
-    return should;
-}
-
-
-
-function arrayMove(arr, previousIndex, newIndex) {
-    const array = arr.slice(0);
-    if (newIndex >= array.length) {
-      let k = newIndex - array.length;
-      while (k-- + 1) {
-        array.push(undefined);
-      }
-    }
-    array.splice(newIndex, 0, array.splice(previousIndex, 1)[0]);
-    return array;
-} 
-
-
-
-let isFunction = (item) : boolean => typeof item==="function"; 
-
-
-let generateEmptyTodo = (
-    _id:string,
-    selectedCategory:string,
-    priority:number
-) : Todo => ({    
-    _id,
-    type:"todo", 
-    category : selectedCategory,  
-    title : '', 
-    priority, 
-    reminder : null, 
-    checked : false,  
-    note : '',
-    checklist : [],   
-    attachedTags : [],
-    attachedDate : null,
-    deadline : null,
-    created : new Date(),  
-    deleted : null, 
-    completed : null
-});
-
-let chooseIcon = (
-    size : { width:string, height:string }, 
-    selectedCategory : string 
-) => {
-
-    switch(selectedCategory){  
-
-        case "inbox":
-            return <Inbox style={{
-                ...size,
-                ...{ 
-                    color:"dodgerblue", 
-                    cursor:"default" 
-                }
-            }} /> 
-
-        case "today":
-            return <Star style={{
-                ...size,
-                ...{
-                    color:"gold", 
-                    cursor:"default" 
-                }
-            }}/>
-
-        case "upcoming":
-            return <CalendarIco style={{
-                ...size,
-                ...{  
-                    color:"crimson", 
-                    cursor:"default"
-                }
-            }}/>
-
-        case "next":
-            return <Layers style={{
-                ...size,
-                ...{
-                    color:"darkgreen", 
-                    cursor:"default"
-                } 
-            }}/>
-
-        case "someday":
-            return <BusinessCase  style={{
-                ...size,
-                ...{
-                    color:"burlywood", 
-                    cursor:"default"
-                }
-            }}/>  
- 
-        case "logbook":
-            return <Logbook style={{
-                ...size,    
-                ...{
-                    color:"limegreen", 
-                    cursor:"default"
-                }
-            }}/>  
-
-        case "trash":
-            return <Trash style={{
-                ...size,
-                ...{
-                    color:"darkgray", 
-                    cursor:"default" 
-                }
-            }}/>
-
-        case "evening":
-            return <Moon style={{
-                ...size,
-                ...{  
-                    transform:"rotate(145deg)", 
-                    color:"cornflowerblue", 
-                    cursor:"default" 
-                }
-            }}/>;    
- 
-        case "deadline":
-            return <Flag style={{
-                ...size,
-                ...{   
-                    color:"black",  
-                    cursor:"default"  
-                }
-            }}/>
-            
-        case "area":
-            return <NewAreaIcon style={{
-                ...size,
-                ...{
-                    color:"lightblue"
-                }
-            }}/>       
- 
-        case "project":
-            return <div>          
-                <div style={{
-                    ...size,
-                    ...{ 
-                        display: "flex",
-                        borderRadius: "50px",
-                        border: "3px solid rgb(10, 100, 240)",
-                        justifyContent: "center",
-                        position: "relative" 
-                    }  
-                }}>   
-                </div>
-            </div>    
-
-        case "group":
-            return <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}> 
-                <Refresh  
-                    style={{     
-                       width:18,   
-                       height:18, 
-                       marginLeft:"3px", 
-                       color:"black", 
-                       cursor:"default", 
-                       marginRight:"5px"  
-                    }} 
-                /> 
-            </div>    
- 
-        default:
-            return <Inbox style={{  
-                ...size,
-                ...{  
-                    color:"dodgerblue", 
-                    cursor:"default"
-                }   
-            }}/> 
-    }
-} 
-
-
-let uppercase = (str:string) : string => { 
-    if(str.length===0)
-       return str; 
-    
-    return str.substring(0,1).toUpperCase() + str.substring(1,str.length);
-}
- 
- 

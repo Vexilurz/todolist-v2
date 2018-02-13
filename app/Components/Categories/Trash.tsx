@@ -10,9 +10,7 @@ import { Transition } from 'react-transition-group';
 import { TodosList } from '../../Components/TodosList';
 import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '../ContainerHeader';
-import { 
-    byTags, chooseIcon, getTagsFromItems, byDeleted, Item, attachDispatchToProps 
-} from '../../utils';
+import { byTags, getTagsFromItems, byDeleted, attachDispatchToProps } from '../../utils/utils';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
@@ -23,6 +21,7 @@ import { SimplePopup } from '../SimplePopup';
 import { Store } from '../../app';
 import { ProjectLinkTrash } from '../Project/ProjectLink';
 import { AreaTrashLink } from '../Area/AreaLink';
+import { chooseIcon } from '../../utils/chooseIcon';
 
 
 interface TrashProps{ 

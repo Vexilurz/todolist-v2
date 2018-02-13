@@ -14,7 +14,7 @@ import Moon from 'material-ui/svg-icons/image/brightness-3';
 import Chip from 'material-ui/Chip';
 import BusinessCase from 'material-ui/svg-icons/places/business-center';  
 import Flag from 'material-ui/svg-icons/image/assistant-photo';  
-import { chooseIcon } from '../../utils';
+import { chooseIcon } from '../../utils/chooseIcon';
 let moment = require("moment"); 
  
 

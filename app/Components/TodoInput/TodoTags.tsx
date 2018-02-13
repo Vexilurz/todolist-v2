@@ -30,8 +30,7 @@ import Reorder from 'material-ui/svg-icons/action/reorder';
 let uniqid = require("uniqid");  
 import Popover from 'material-ui/Popover';
 import { Todo } from '../../database';
-import { uppercase, attachDispatchToProps, assert, isArrayOfStrings } from '../../utils';
-import { insideTargetArea } from '../../insideTargetArea';
+import { attachDispatchToProps } from '../../utils/utils';
 import AutosizeInput from 'react-input-autosize'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -40,6 +39,10 @@ import { Subscription } from 'rxjs/Rx';
 import { Provider, connect } from "react-redux";
 import { Store } from '../../app';
 import { map, compose, uniq, flatten, concat, prop} from 'ramda';
+import { insideTargetArea } from '../../utils/insideTargetArea';
+import { assert } from '../../utils/assert';
+import { isArrayOfStrings } from '../../utils/isSomething';
+import { uppercase } from '../../utils/uppercase';
 
 
 interface TagsPopupProps extends Store{
@@ -256,7 +259,7 @@ export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
                                     padding:"4px", 
                                     color:"rgb(115,167,152)",
                                     fontWeight: 600    
-                                }}
+                                }} 
                             > 
                                 {uppercase(tag)} 
                             </div> 

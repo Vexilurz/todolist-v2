@@ -7,7 +7,7 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { isEmpty, not, contains, isNil } from 'ramda';
-import { insideTargetArea } from '../insideTargetArea';
+import { insideTargetArea } from '../utils/insideTargetArea';
 
 
 let assert = (condition:boolean , error:string, throwError=true) : void => {

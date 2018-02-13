@@ -7,14 +7,10 @@ import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area, Todo } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
-import { 
-    stringToLength, byNotCompleted, byNotDeleted, daysRemaining, 
-    dateDiffInDays, assert, isArrayOfStrings, isArrayOfProjects, 
-    isArea, isProject, arrayMove  
-} from '../../utils';
+import { byNotCompleted, byNotDeleted } from '../../utils/utils';
 import PieChart from 'react-minimal-pie-chart';
 import { 
-    uniq, allPass, remove, toPairs, intersection, 
+    uniq, allPass, remove, toPairs, intersection,  
     isEmpty, contains, assoc, isNil, not, all, merge 
 } from 'ramda'; 
 import { Category } from '../MainContainer';
@@ -26,7 +22,10 @@ import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
 import { AutoresizableText } from '../AutoresizableText';
 import { getProgressStatus } from '../Project/ProjectLink';
-import { SortableContainer } from '../../sortable/CustomSortableContainer';
+import { assert } from '../../utils/assert';
+import { isArrayOfProjects, isArrayOfStrings, isArea, isProject } from '../../utils/isSomething';
+import { arrayMove } from '../../utils/arrayMove';
+import { SortableContainer } from '../CustomSortableContainer';
 
 
 

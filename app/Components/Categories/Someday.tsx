@@ -6,14 +6,12 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, uppercase,  chooseIcon,
-    byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo, 
-    generateEmptyTodo, 
-    groupObjects
-} from "../../utils";  
+    attachDispatchToProps, byNotCompleted, byNotDeleted, 
+    getTagsFromItems, attachEmptyTodo, groupObjects
+} from "../../utils/utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none'; 
-import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area, generateId } from '../../database';
+import { queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, Project, Area } from '../../database';
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
@@ -30,7 +28,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui'; 
 import AutosizeInput from 'react-input-autosize';
 import { ContainerHeader } from '.././ContainerHeader';
-import { byTags, byCategory } from '../../utils';
+import { byTags, byCategory } from '../../utils/utils';
 import { TodosList } from '.././TodosList';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { allPass, compose, isEmpty, uniq, isNil, contains } from 'ramda';
@@ -39,6 +37,8 @@ import { Category } from '../MainContainer';
 import { ProjectLink } from '../Project/ProjectLink';
 import { ExpandableTodosList, GroupsByProjectArea } from './Next';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
+import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
+import { generateId } from '../../utils/generateId';
 
   
  
@@ -98,9 +98,9 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                 selectedProjectId={this.props.selectedProjectId}
                 selectedAreaId={this.props.selectedAreaId} 
                 todos={this.props.todos} 
-                projects={this.props.projects}
+                projects={this.props.projects} 
                 rootRef={this.props.rootRef} 
-                todo={empty} 
+                todo={empty as any} 
             />   
             <div id={`${selectedCategory}-list`} >    
                 <div id="todos" style={{paddingTop:"20px", paddingBottom:"20px"}}>      

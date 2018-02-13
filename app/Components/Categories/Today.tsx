@@ -6,17 +6,17 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, uppercase, chooseIcon, byNotCompleted, byNotDeleted, getTagsFromItems, 
-    attachEmptyTodo, generateEmptyTodo, isToday, daysRemaining, isTodo, assert, makeChildrensVisible, 
-    hideChildrens, generateDropStyle, arrayMove, keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, 
-    timeOfTheDay, 
-    sameDay
-} from "../../utils";  
+    attachDispatchToProps, byNotCompleted, byNotDeleted, getTagsFromItems, 
+    attachEmptyTodo,  isToday,  makeChildrensVisible, 
+    hideChildrens, generateDropStyle,  keyFromDate, 
+    isDeadlineTodayOrPast, isTodayOrPast, 
+    timeOfTheDay, sameDay, byTags, byCategory
+} from "../../utils/utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { 
     queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, 
-    Project, Area, generateId, Calendar
+    Project, Area, Calendar
 } from '../../database'; 
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
@@ -24,7 +24,7 @@ import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Repeat from 'material-ui/svg-icons/av/repeat';
-import { Store, isDev, globalErrorHandler, updateConfig } from '../../app';
+import { Store, isDev } from '../../app';
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Duplicate from 'material-ui/svg-icons/content/content-copy';
 import ShareIcon from 'material-ui/svg-icons/social/share';
@@ -36,18 +36,26 @@ import AutosizeInput from 'react-input-autosize';
 import { ContainerHeader } from '.././ContainerHeader';
 import { TodosList, getPlaceholderOffset, onDrop } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
-import { byTags, byCategory } from '../../utils';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { compose, allPass, isEmpty, not, assoc, isNil } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { Category, filter } from '../MainContainer';
-import { SortableContainer } from '../../sortable/CustomSortableContainer';
 import { isDate } from 'util';
 import { ipcRenderer, remote } from 'electron';
 import { CalendarEvent } from '../Calendar';
 import { GroupsByProjectArea } from './Next';
-import { insideTargetArea } from '../../insideTargetArea';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
+import { globalErrorHandler } from '../../utils/globalErrorHandler';
+import { arrayMove } from '../../utils/arrayMove';
+import { isTodo } from '../../utils/isSomething';
+import { assert } from '../../utils/assert';
+import { insideTargetArea } from '../../utils/insideTargetArea';
+import { generateId } from '../../utils/generateId';
+import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
+import { chooseIcon } from '../../utils/chooseIcon';
+import { uppercase } from '../../utils/uppercase';
+import { SortableContainer } from '../CustomSortableContainer';
+import { updateConfig } from '../../utils/config';
 
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map((item,index:number) => assoc("priority",index,item)) 
@@ -376,7 +384,7 @@ export class Today extends Component<TodayProps,TodayState>{
                             paddingLeft: "10px", 
                             cursor:"default" 
                         }}>   
-                            {uppercase("today")} 
+                            Today 
                         </div> 
                     </div> 
                     <FadeBackgroundIcon    
@@ -408,7 +416,7 @@ export class Today extends Component<TodayProps,TodayState>{
                         todos={this.props.todos} 
                         projects={this.props.projects}
                         rootRef={this.props.rootRef} 
-                        todo={empty}  
+                        todo={empty as any}  
                     /> 
                     <div id={`today-list`} style={{position:"relative"}}>   
                         {

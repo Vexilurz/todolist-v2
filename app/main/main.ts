@@ -1,10 +1,11 @@
+import { getConfig, Config } from './../utils/config';
 import { loadApp, dev, loadQuickEntry } from './loadApp'; 
 import fs = require('fs');     
 import electron = require('electron');
 import { ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,globalShortcut,BrowserView,Tray,nativeImage,protocol} from 'electron';
 import { Listeners } from "./listeners";
 import { initWindow, initQuickEntry } from "./initWindow";
-import { isNil } from 'ramda'; 
+import { isNil, isEmpty } from 'ramda'; 
 const os = require('os');
 let path = require("path");
 const log = require("electron-log");
@@ -39,7 +40,8 @@ let createTray = () : Tray => {
     if(fs.existsSync(iconPath)){
       tray =  new Tray(iconPath);   
     }else{
-      tray = new Tray(nativeImage.createEmpty()); //let image = nativeImage.createFromPath('/Users/somebody/images/icon.png')
+      tray = new Tray(nativeImage.createEmpty()); 
+      //let image = nativeImage.createFromPath('/Users/somebody/images/icon.png')
     }  
     
     const contextMenu = Menu.buildFromTemplate([
@@ -128,10 +130,14 @@ let onAppLoaded = () : void => {
 
 
 
-let onQuickEntryLoaded = () : void => {      
-    quickEntry.webContents.send("loaded");
-    quickEntry.on('blur', () => quickEntry.hide());  
-    if(dev()){ quickEntry.webContents.openDevTools() } 
+let onQuickEntryLoaded = () : void => {    
+    getConfig().then(
+        (config:Config) => {
+            quickEntry.webContents.send("loaded",config);
+            quickEntry.on('blur', () => quickEntry.hide());  
+            if(dev()){ quickEntry.webContents.openDevTools() } 
+        }
+    )
 };
    
     
@@ -174,12 +180,18 @@ let onReady = () => {
     quickEntry = initQuickEntry(getQuickEntrySize());
     listeners = initListeners(mainWindow); 
 
-    mainWindow.on('show', () => {
-        tray.setToolTip('Hide Tasklist');
-    }) 
-    mainWindow.on('hide', () => { 
-        tray.setToolTip('Show hidden windows')
-    })
+    mainWindow.on(
+        'show', 
+        () => {
+            tray.setToolTip('Hide Tasklist');
+        }
+    ) 
+    mainWindow.on(
+        'hide', 
+        () => { 
+            tray.setToolTip('Show hidden windows')
+        }
+    )
 
     loadApp(mainWindow).then(onAppLoaded);   
     loadQuickEntry(quickEntry).then(onQuickEntryLoaded);  

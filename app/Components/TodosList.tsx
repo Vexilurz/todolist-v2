@@ -8,17 +8,11 @@ import {
     hideChildrens, 
     makeChildrensVisible, 
     generateDropStyle, 
-    getTagsFromItems,  
-    generateEmptyTodo,
-    isString,
-    isCategory,
-    assert,
-    isTodo,
-    arrayMove 
-} from '../utils';  
-import { insideTargetArea } from '../insideTargetArea';
+    getTagsFromItems
+} from '../utils/utils';  
+import { insideTargetArea } from '../utils/insideTargetArea';
 import { RightClickMenu } from './RightClickMenu'; 
-import { byTags, byCategory } from '../utils'; 
+import { byTags, byCategory } from '../utils/utils'; 
 import { TodoInput } from './TodoInput/TodoInput';
 import { 
     allPass, isNil, prepend, isEmpty, 
@@ -27,8 +21,10 @@ import {
 import { Category } from './MainContainer';
 import { isDev } from '../app';
 import { indexToPriority } from './Categories/Today'; 
-import { SortableContainer } from '../sortable/CustomSortableContainer';
-
+import { SortableContainer } from './CustomSortableContainer';
+import { isString, isCategory, isTodo } from '../utils/isSomething';
+import { assert } from '../utils/assert';
+import {arrayMove} from '../utils/arrayMove';
 
 
 export let getPlaceholderOffset = (nodes, currentIndex) : number => {

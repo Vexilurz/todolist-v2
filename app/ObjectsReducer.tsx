@@ -1,6 +1,6 @@
-import { Store, isDev, globalErrorHandler, Config } from './app';
+import { Store, isDev } from './app';
 import {  
-    Project, Area, Todo, removeProject, generateId, addProject, 
+    Project, Area, Todo, removeProject, addProject, 
     removeArea, updateProject, addTodo, updateArea, updateTodo, 
     addArea, removeTodo, removeAreas, removeTodos, removeProjects, 
     updateAreas, updateProjects, addTodos, addProjects, addAreas, 
@@ -8,12 +8,16 @@ import {
 } from './database';
 import { ipcRenderer, remote } from 'electron';
 import { 
-    getTagsFromItems, defaultTags, removeDeletedProjects, 
-    removeDeletedAreas, removeDeletedTodos, Item, ItemWithPriority, byNotDeleted, 
-    isTodo, assert, isProject, isArea, isMainWindow 
-} from './utils';
+    getTagsFromItems, removeDeletedProjects, 
+    removeDeletedAreas, removeDeletedTodos, ItemWithPriority, byNotDeleted, 
+    isMainWindow 
+} from './utils/utils';
 import { adjust, cond, equals, all, clone, isEmpty, contains, not, remove, uniq, isNil } from 'ramda';
 import { filter } from './Components/MainContainer';
+import { globalErrorHandler } from './utils/globalErrorHandler';
+import { Config } from './utils/config';
+import { assert } from './utils/assert';
+import { isTodo, isProject, isArea } from './utils/isSomething';
 
 
 let onError = (e) => globalErrorHandler(e); 

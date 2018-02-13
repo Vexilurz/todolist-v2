@@ -1,7 +1,6 @@
 import './assets/styles.css';     
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import {  
   cyan500, cyan700,   
   pinkA200,  
@@ -37,29 +36,40 @@ import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
 import { 
-    getTodos, queryToTodos, Todo, updateTodo, generateId, Project, Area, 
+    getTodos, queryToTodos, Todo, updateTodo, Project, Area, 
     removeTodos, removeProjects, removeAreas, updateProjects, updateTodos, 
-    updateAreas, Heading, LayoutItem, Calendar } from './database';
-import { Category } from './Components/MainContainer';
-import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
+    updateAreas, Heading, LayoutItem, Calendar } from './../database';
+import { Category } from '.././Components/MainContainer';
+import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist';
 let moment = require("moment");
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { 
     contains, isNil, all, prepend, isEmpty, last,
     not, assoc, flatten, toPairs, map, compose, allPass, uniq, cond 
 } from 'ramda'; 
-import { isDev, Store, globalErrorHandler } from './app';
-import { setRepeatedTodos, repeat } from './Components/RepeatPopup';
+import { isDev, Store } from '.././app';
+import { setRepeatedTodos, repeat } from '.././Components/RepeatPopup';
 import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
 let ical = require('ical.js');
 import axios from 'axios';
-import { Table } from './Components/Categories/Next';
+import { Table } from '.././Components/Categories/Next';
 const storage = remote.require('electron-json-storage');
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 const os = remote.require('os'); 
 import printJS from 'print-js'; 
+import { globalErrorHandler } from './globalErrorHandler';
 var PHE = require("print-html-element"); 
+import {generateId} from './generateId';
+import {assert}  from './assert';
+import {daysRemaining} from './daysRemaining'; 
+import {stringToLength} from './stringToLength';
+import {isItem,isArray,isDate,isFunction,isString,  
+ isCategory,bySomeday,isTodo,isArrayOfTodos, 
+ isProject,isArrayOfProjects,isArea, 
+ isArrayOfAreas,isArrayOfStrings,Item
+} from './isSomething';
+import {generateEmptyTodo} from './generateEmptyTodo';
 
 export let isMainWindow = () => { 
     return remote.getCurrentWindow().id===1; 
@@ -85,12 +95,6 @@ export let printElement = (selectedCategory:Category, list:HTMLElement) => {
 export let printTodos = (todos:Todo[]) : void => { 
     printJS({printable:todos, type:'json', properties:[]});  
 } 
-
-
-
-export let getScreenResolution = () : {width:number,height:number} => 
-           remote.screen.getPrimaryDisplay().workAreaSize;
-
 
 
 export let measureTime = (f:() => void) => {
@@ -432,124 +436,6 @@ export let dateToDateInputValue = (date:Date) : string => {
 
 
 
-export function arrayMove(arr, previousIndex, newIndex) {
-    const array = arr.slice(0);
-    if (newIndex >= array.length) {
-      let k = newIndex - array.length;
-      while (k-- + 1) {
-        array.push(undefined);
-      }
-    }
-    array.splice(newIndex, 0, array.splice(previousIndex, 1)[0]);
-    return array;
-} 
-
-
-
-export type Item = Area | Project | Todo; 
-
-
-export let isItem = (item:Item) : boolean => item.type==="project" || item.type==="area" || item.type==="todo";
-
-
-export let isArray = (item:any[]) : boolean => Array.isArray(item); 
- 
-
-export let isDate = (date) : boolean => (date instanceof Date) && !isNaN( date.getTime() ); 
- 
-
-export let isFunction = (item) : boolean => typeof item==="function"; 
-
-
-export let isString = (item) : boolean => typeof item==="string"; 
-
-
-export let isCategory = (category : Category) : boolean => { 
-
-    let categories : Category[] = [
-        "inbox" , "today" , "upcoming" , "next" , "someday" , 
-        "logbook" , "trash" , "project" , "area" , "evening" , 
-        "deadline", "group", "search"
-    ];  
-
-    let yes = contains(category,categories);
- 
-    return yes; 
-}     
-
-
-
-export let bySomeday = (todo:Todo) : boolean => todo.category==="someday";
-
-
-
-export let isTodo = (todo:any) : boolean => { 
-    if(isNil(todo)){ return false } 
-
-    return todo.type==="todo";
-}
-
-
-
-export let isArrayOfTodos = (array:any[]) : boolean => {
-    return all((todo:Todo) => isTodo(todo), array );
-} 
-
-
-
-export let isProject = (project:Project) : boolean => {
-    if(isNil(project)){ return false }
-
-    return project.type==="project"; 
-} 
-
-
-
-export let isArrayOfProjects = (array:any[]) : boolean => {
-   return all((project:Project) => isProject(project), array );
-} 
- 
-
-
-export let isArea = (area:Area) : boolean => {
-    if(isNil(area)){ return false }
-    return area.type==="area"; 
-}
-  
-
-  
-export let isArrayOfAreas = (array:any[]) : boolean => {
-    return all((area:Area) => isArea(area), array );
-}
-
-
-
-export let isArrayOfStrings = (array:any[]) : boolean => {
-    if(!isArray(array))
-       return false;
-
-    for(let i=0; i<array.length; i++){
-        if(!isString(array[i]))
-           return false;   
-    }
-
-    return true; 
-}
- 
-
- 
-export let assert = (condition:boolean , error:string, throwError=true) : void => {
-    if(not(condition)){ 
-        globalErrorHandler(error)
-        .then( 
-            () => { 
-                if(isDev() && throwError) { 
-                    throw new Error(error) 
-                }
-            }
-        )  
-    }   
-}  
 
 
 
@@ -675,167 +561,6 @@ export let removeDeletedAreas = (areas:Area[]) : Area[] => {
   
  
 
-export let chooseIcon = (
-    size : { width:string, height:string }, 
-    selectedCategory : Category
-) => {
-
-    assert(isString(size.width),`Width is not a string. ${size.width}. chooseIcon.`);
-    assert(isString(size.height), `Height is not a string. ${size.height}. chooseIcon.`);
-    assert(isCategory(selectedCategory), `selectedCategory is not a category. ${size.height}. chooseIcon.`);
-   
-    switch(selectedCategory){  
-
-        case "inbox":
-            return <Inbox style={{
-                ...size,
-                ...{ 
-                    color:"dodgerblue", 
-                    cursor:"default" 
-                }
-            }} /> 
-
-        case "today":
-            return <Star style={{
-                ...size,
-                ...{
-                    color:"gold", 
-                    cursor:"default" 
-                }
-            }}/>
-
-        case "upcoming":
-            return <CalendarIco style={{
-                ...size,
-                ...{  
-                    color:"crimson", 
-                    cursor:"default"
-                }
-            }}/>
-
-        case "next":
-            return <Layers style={{
-                ...size,
-                ...{
-                    color:"darkgreen", 
-                    cursor:"default"
-                } 
-            }}/>
-
-        case "someday":
-            return <BusinessCase  style={{
-                ...size,
-                ...{
-                    color:"burlywood", 
-                    cursor:"default"
-                }
-            }}/>  
- 
-        case "logbook":
-            return <Logbook style={{
-                ...size,    
-                ...{
-                    color:"limegreen", 
-                    cursor:"default"
-                }
-            }}/>  
-
-        case "trash":
-            return <Trash style={{
-                ...size,
-                ...{
-                    color:"darkgray", 
-                    cursor:"default" 
-                }
-            }}/>
-
-        case "evening":
-            return <Moon style={{
-                ...size,
-                ...{  
-                    transform:"rotate(145deg)", 
-                    color:"cornflowerblue", 
-                    cursor:"default" 
-                }
-            }}/>;    
- 
-        case "deadline":
-            return <Flag style={{
-                ...size,
-                ...{   
-                    color:"black",  
-                    cursor:"default"  
-                }
-            }}/>
-            
-        case "area":
-            return <NewAreaIcon style={{
-                ...size,
-                ...{
-                    color:"lightblue"
-                }
-            }}/>       
- 
-        case "project":
-            return <div>          
-                <div style={{
-                    ...size,
-                    ...{ 
-                        display: "flex",
-                        borderRadius: "50px",
-                        border: "3px solid rgb(10, 100, 240)",
-                        justifyContent: "center",
-                        position: "relative" 
-                    }  
-                }}>   
-                </div>
-            </div>    
-
-        case "group":
-            return <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}> 
-                <Refresh  
-                    style={{     
-                       width:18,   
-                       height:18, 
-                       marginLeft:"3px", 
-                       color:"black", 
-                       cursor:"default", 
-                       marginRight:"5px"  
-                    }} 
-                /> 
-            </div>    
- 
-        default:
-            return <Inbox style={{  
-                ...size,
-                ...{  
-                    color:"dodgerblue", 
-                    cursor:"default"
-                }   
-            }}/> 
-    }
-}
-
-
-
-export let defaultTags = [ 
-    "Priority:Low", 
-    "Priority:Medium",
-    "Priority:High",
-    "Location:Home",
-    "Location:Office",
-    "Location:Everywhere",
-    "Status:Waiting",
-    "Time:5min",
-    "Time:15min",
-    "Time:1h",
-    "Energy:easy",
-    "Energy:hard",
-    "Errand", 
-    "Private",  
-    "Work" 
-];
-
 
 
 export let getTagsFromItems = (items:Item[]) : string[] => {
@@ -905,86 +630,9 @@ export let debounce = (fun, mil=50) => {
         }, mil); 
     };  
 } 
- 
-
-
-export let stringToLength = (s : string, length : number) : string => {
-
-    assert(isString(s),`s is not a string ${s}. stringToLength.`);
-    assert(!isNaN(length),`length is not a number ${length}. stringToLength.`);
-
-    return s.length<=length ? s : s.substring(0, length) + "...";
-}    
- 
-
-
-export let uppercase = (str:string) : string => { 
-
-    assert(isString(str),`str is not a string ${str}. uppercase.`);
-    
-    if(str.length===0)
-       return str; 
-    
-    return str.substring(0,1).toUpperCase() + str.substring(1,str.length);
-}
- 
-
- 
-export let wrapMuiThemeDark = (component) => { 
- 
-    return <MuiThemeProvider muiTheme={getMuiTheme(darkBaseTheme)}>
-        
-        {component}  
-    
-    </MuiThemeProvider>
-
-}
-  
-
-
-export let wrapMuiThemeLight = (component) =>  {
-
-    return <MuiThemeProvider muiTheme={getMuiTheme(lightBaseTheme)}>
-        
-        {component} 
-    
-    </MuiThemeProvider>
-
-}   
 
 
 
-export let wrapCustomMuiTheme = (component) =>  {
-    
-    return <MuiThemeProvider muiTheme={muiTheme}>  
-    
-        {component} 
-    
-    </MuiThemeProvider> 
-
-}
-
-
-
-export const muiTheme = getMuiTheme({ 
-  spacing: spacing,  
-  fontFamily: 'Roboto, serif', 
-  palette: {  
-    primary1Color: cyan500, 
-    primary2Color: cyan700, 
-    primary3Color: grey400,
-    accent1Color: pinkA200,
-    accent2Color: grey100,
-    accent3Color: grey500,
-    textColor: cyan700, 
-    alternateTextColor: white,
-    canvasColor: white,    
-    borderColor: grey300,
-    disabledColor: fade(darkBlack, 0.3),
-    clockCircleColor: fade(darkBlack, 0.07),
-    shadowColor: fullBlack, 
-  } 
-});  
 
 
 
@@ -1296,30 +944,6 @@ export let byAttachedToProject = (projects:Project[]) => (t:Todo) : boolean => {
 };  
 
 
- 
-export let generateEmptyTodo = (
-    _id:string,
-    selectedCategory:Category,
-    priority:number
-) : Todo => ({    
-    _id,
-    type:"todo", 
-    category : selectedCategory,  
-    title : '', 
-    priority, 
-    reminder : null, 
-    note : '',
-    checklist : [],   
-    attachedTags : [],
-    attachedDate : null,
-    deadline : null,
-    created : new Date(),  
-    deleted : null, 
-    completedWhen : null,
-    completedSet : null
-});
-
-
   
 export let generateTagElement = (tag:string,idx:number) => {
 
@@ -1452,13 +1076,6 @@ export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:
 
 
 
-export let daysRemaining = (date:Date) : number => {
-    assert(!isNil(date), `Date is Nil. daysRemaining.`);
-    return dateDiffInDays(new Date(), date); 
-} 
- 
-
-
 export let oneMinuteBefore = (date:Date) : Date => {
     let minuteInMs = 1000 * 60;
     return new Date(date.getTime() - minuteInMs); 
@@ -1468,29 +1085,10 @@ export let oneMinuteBefore = (date:Date) : Date => {
 
 export let nextMidnight = () : Date => {
     let d = new Date()
-    d.setHours(24,0,0,0); // next midnignt
+    d.setHours(24,0,0,0); // next midnight
     return d;
 }
 
-
-
-export let dateDiffInDays = (A : Date, B : Date) : number  => {
-
-    assert(!isNil(A), `A is Nil. dateDiffInDays.`);
-    assert(!isNil(B), `B is Nil. dateDiffInDays.`);
-
-    assert(isDate(A), `A is not of type Date. dateDiffInDays.`);
-    assert(isDate(B), `B is not of type Date. dateDiffInDays.`);
-   
-    let _MS_PER_DAY = 1000 * 60 * 60 * 24;
-
-    let utc1 = Date.UTC(A.getFullYear(), A.getMonth(), A.getDate());
-
-    let utc2 = Date.UTC(B.getFullYear(), B.getMonth(), B.getDate());
-  
-    return Math.floor((utc2 - utc1) / _MS_PER_DAY);
-}
-    
 
      
 export let getDatesRange = (
@@ -1887,40 +1485,6 @@ export let groupObjects = (
 
     return table; 
 } 
-
-
-
-export interface SystemInfo{ 
-    arch : string,
-    cpus : any[], 
-    hostname : string,
-    platform : string,
-    release : string,
-    type : string,
-    screenResolution : {width:number,height:number},
-    viewportSize : {width:number,height:number},
-    documentEncoding : string,
-    userLanguage : string 
-}
-
-
-
-export let collectSystemInfo = () : SystemInfo => 
-    ({ 
-        arch : os.arch(),
-        cpus : os.cpus(),
-        hostname : os.hostname(),
-        platform : os.platform(),
-        release : os.release(),
-        type : os.type(),
-        screenResolution : getScreenResolution(),
-        viewportSize : {
-            width:window.innerWidth,
-            height:window.innerHeight
-        },
-        documentEncoding : document.characterSet,
-        userLanguage : remote.app.getLocale()
-    })
 
 
 

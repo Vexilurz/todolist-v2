@@ -33,21 +33,15 @@ import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
 import {  
     daysLeftMark, generateTagElement, 
-    attachDispatchToProps, chooseIcon, 
-    stringToLength,  
-    isItem,
+    attachDispatchToProps, 
     byNotDeleted, 
     findAttachedArea,
     findAttachedProject, 
-    assert,
-    isString,
     debounce,
     todoToKeywords,
-    uppercase,
-    isArray,
     getTagsFromItems
-} from '../utils';
-import { Todo, removeTodo, updateTodo, generateId, ObjectType, Area, Project, Heading } from '../database';
+} from '../utils/utils';
+import { Todo, removeTodo, updateTodo,ObjectType, Area, Project, Heading } from '../database';
 import { Store, isDev } from '../app'; 
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection } from 'ramda';
@@ -60,6 +54,7 @@ import { Subscription } from 'rxjs/Rx';
 import PieChart from 'react-minimal-pie-chart';
 import { TodoInput } from './TodoInput/TodoInput';
 import { Tags } from './Tags';
+import { isArray, isString } from '../utils/isSomething';
 
 
 let getProjectHeading = (project:Project, todos:Todo[]) : JSX.Element => {
@@ -424,7 +419,7 @@ export class Search extends Component<SearchProps,SearchState>{
                    cursor:"default" 
                 }} 
             >     
-                {uppercase("Search results")}
+                Search results
             </div>  
             <div style={{ paddingTop:"15px", paddingBottom:"15px" }}>
                 <Tags  

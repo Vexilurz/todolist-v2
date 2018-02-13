@@ -7,7 +7,7 @@ import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area, Todo } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
-import { stringToLength, chooseIcon, attachDispatchToProps } from '../../utils'; 
+import { attachDispatchToProps } from '../../utils/utils'; 
 import Restore from 'material-ui/svg-icons/content/undo';
 import { contains, isEmpty } from 'ramda';
 import { Store } from '../../app';

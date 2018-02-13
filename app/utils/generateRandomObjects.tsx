@@ -306,7 +306,6 @@ export let generateRandomDatabase = (
         projects : projectItems,
         areas : areasItems 
     }
-
 }
     
     

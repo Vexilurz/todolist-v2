@@ -4,11 +4,7 @@ import { Component } from "react";
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
-import { 
-    stringToLength, byNotCompleted, byNotDeleted, 
-    daysRemaining, dateDiffInDays, assert, isArrayOfStrings, 
-    isArrayOfProjects, isArea, isProject, debounce 
-} from '../utils'; 
+import {  byNotCompleted, byNotDeleted, debounce } from '../utils/utils'; 
 import PieChart from 'react-minimal-pie-chart';
 import { 
     uniq, allPass, remove, toPairs, 
@@ -20,6 +16,7 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
+import { stringToLength } from '../utils/stringToLength';
 
 interface AutoresizableTextProps{
     text:string,

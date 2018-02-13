@@ -10,14 +10,16 @@ import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import { Component } from "react";  
 import { ipcRenderer, remote } from 'electron';
 import {    
-    wrapMuiThemeLight, wrapMuiThemeDark, attachDispatchToProps, 
-    defaultTags, isTodo, isProject, isArea, isArrayOfAreas, 
-    isArrayOfProjects, isArrayOfTodos, isArray, transformLoadDates, 
-    yearFromNow, isString, stringToLength, assert, convertTodoDates, 
+    attachDispatchToProps, transformLoadDates, yearFromNow, convertTodoDates, 
     convertProjectDates, convertAreaDates, timeDifferenceHours, 
-    collectSystemInfo, convertDates, checkForUpdates, isNewVersion, nextMidnight,
-    oneMinuteBefore, threeDaysLater, isFunction
-} from "./utils";  
+    convertDates, checkForUpdates, isNewVersion, nextMidnight,
+    oneMinuteBefore, threeDaysLater 
+} from "./utils/utils";  
+import {wrapMuiThemeLight} from './utils/wrapMuiThemeLight'; 
+import {
+    isTodo, isProject, isArea, isArrayOfAreas, 
+    isArrayOfProjects, isArrayOfTodos, isArray, isString, isFunction
+} from './utils/isSomething';
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
 import './assets/fonts/index.css'; 
@@ -26,7 +28,7 @@ import { MainContainer, Category } from './Components/MainContainer';
 import { 
     Project, Area, Todo, removeProject, addProject, removeArea, updateProject, 
     addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, 
-    removeProjects, updateAreas, updateProjects, addTodos, Calendar, Heading, generateId 
+    removeProjects, updateAreas, updateProjects, addTodos, Calendar, Heading,
 } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
@@ -36,48 +38,23 @@ import { Settings, section, SettingsPopup } from './Components/Settings/settings
 import { SimplePopup } from './Components/SimplePopup';
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { TopSnackbar } from './Components/Snackbar';
-import Analytics from 'electron-ga';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber"; 
 import { Subscription } from 'rxjs/Rx';
 import { UpdateNotification } from './Components/UpdateNotification';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
-const storage = remote.require('electron-json-storage');
 import printJS from 'print-js';  
+import { googleAnalytics } from './analytics';
+import { globalErrorHandler } from './utils/globalErrorHandler';
+import { Config, defaultConfig, updateConfig, getConfig } from './utils/config';
+import { collectSystemInfo } from './utils/collectSystemInfo';
 const MockDate = require('mockdate'); 
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
 
+
 export let isDev = () => { return true };   
-
-const analytics = (() => {
-    const sysInfo = collectSystemInfo();
-    return new Analytics(
-        'UA-113407516-1',
-        {
-            appName:"tasklist",
-            appVersion:remote.app.getVersion(),
-            language:sysInfo.userLanguage,
-            userAgent:navigator.userAgent,
-            viewport:`${sysInfo.viewportSize.width}x${sysInfo.viewportSize.height}`,
-            screenResolution:`${sysInfo.screenResolution.width}x${sysInfo.screenResolution.height}`
-        }
-    );
-})()
-
-
-
-export const googleAnalytics = ({
-    send:(type:string,load:any) =>
-    getConfig()
-    .then(
-        (config:Config) => {
-            if(config.shouldSendStatistics){ analytics.send(type,load) }
-        }            
-    ) 
-});     
-
 
 
 window.onerror = function (msg, url, lineNo, columnNo, error) {
@@ -93,119 +70,6 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
     return false;
 };
 
-
-
-export let globalErrorHandler = (error:any) : Promise<void> => {
-    let message = '';
-    let value = 0;     
-
-    if(isNil(error)){
-        message = 'Unknown error occured.';
-    }else if(isString(error)){
-        message = error;
-    }else if(error.response || error.request){
-        if(error.response){
-           message = [error.response.data,error.response.status,error.response.headers].join(' ');
-        }else if(error.request){
-           message = [error.request,error.config].join(' ');
-        }
-    }else if(error.message){
-        message = [error.fileName,error.name,error.message,error.stack].join(' ');
-    }else{
-        try{ message = JSON.stringify(error) }catch(e){ }
-    }
-
-    if(!isNil(error)){
-        if(error.code){ value = error.code; }
-        else if(error.lineNumber){ value = error.lineNumber; } 
-    } 
-           
-    return Promise.all(
-        [
-            googleAnalytics.send(
-                'event',  
-                { ec:'Error', ea:stringToLength(message, 400), el:'Error occured', ev:value }
-            ),
-            googleAnalytics.send(
-                'exception',  
-                { exd:stringToLength(message, 120), exf:1 } 
-            )  
-        ]
-    )
-    .then(() => console.log('Error report submitted'))
-};    
-
-
-
-export let getConfig = () : Promise<Config> => {
-    return new Promise( 
-        resolve => {
-            storage.get( 
-                "config", 
-                (error, data:Config) => {  
-                    if(!isNil(error)){ globalErrorHandler(error) }
-                    if(isNil(data) || isEmpty(data)){ resolve(defaultConfig) }
-                    else{ resolve({...data,firstLaunch:false} ) }
-                }
-            )   
-        }
-    )
-}; 
-
-
-
-export let updateConfig = (dispatch:Function) => 
-        (load:any) : Promise<any> => {
-            return getConfig()
-                    .then( 
-                      (config:Config) => {
-                        let updated = { ...config, ...load } as Config;
-
-                        return new Promise(
-                            resolve => 
-                                storage.set(  
-                                    "config", 
-                                    updated, 
-                                    (error) => {
-                                        if(!isNil(error)){ globalErrorHandler(error) }
-                                        dispatch({type:"updateConfig",load:updated}) 
-                                        resolve(updated as Config); 
-                                    }
-                                )
-                        )
-                      }
-                    )
-        }
-
-
-export const defaultConfig = { 
-    nextUpdateCheck:new Date(),
-    firstLaunch:true,
-    hideHint:false,
-    defaultTags,  
-    shouldSendStatistics:true,
-    showCalendarEvents:true,
-    groupTodos:false,
-    preserveWindowWidth:true, //when resizing sidebar
-    enableShortcutForQuickEntry:true,
-    quickEntrySavesTo:"inbox", //inbox today next someday
-    moveCompletedItemsToLogbook:"immediately"
-}
-
-
-export interface Config{
-    nextUpdateCheck:Date,
-    firstLaunch:boolean, 
-    defaultTags:string[],
-    hideHint:boolean,
-    shouldSendStatistics:boolean,
-    showCalendarEvents:boolean,
-    groupTodos:boolean,
-    preserveWindowWidth:boolean, //when resizing sidebar
-    enableShortcutForQuickEntry:boolean,
-    quickEntrySavesTo:string, //inbox today next someday
-    moveCompletedItemsToLogbook, //immediatelly
-}
 
 
 export interface Store extends Config{
@@ -309,7 +173,6 @@ export class App extends Component<AppProps,{}>{
 
 
     onError = (error) => globalErrorHandler(error)
-
 
 
     reportStart = ({ arch, cpus, platform, release, type, timeSeconds }) => googleAnalytics.send(   
@@ -459,7 +322,7 @@ ipcRenderer.once(
         app.id='application';     
         document.body.appendChild(app);     
    
-        getConfig().then(
+        getConfig().then( 
             (config) => {
                 ReactDOM.render(   
                     <Provider store={createStore(applicationReducer, {...defaultStore, ...config})}>   

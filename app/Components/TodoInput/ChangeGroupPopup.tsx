@@ -32,17 +32,12 @@ let uniqid = require("uniqid");
 import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
-import {  
-    daysRemaining, todoChanged, 
-    daysLeftMark, generateTagElement, uppercase, 
-    generateEmptyTodo, isToday, getMonthName, stringToLength, 
-    attachDispatchToProps, 
-    assert,
-    byNotDeleted,
-    byNotCompleted
-} from '../../utils'; 
-import { insideTargetArea } from '../../insideTargetArea';
-import { Todo, removeTodo, updateTodo, generateId, Project } from '../../database';
+import { 
+  todoChanged, daysLeftMark, generateTagElement, 
+  isToday, getMonthName, attachDispatchToProps, 
+  byNotDeleted, byNotCompleted
+} from '../../utils/utils'; 
+import { Todo, removeTodo, updateTodo, Project } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopup, TodoTags } from './TodoTags';

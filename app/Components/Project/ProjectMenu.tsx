@@ -24,13 +24,15 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui'; 
 import AutosizeInput from 'react-input-autosize';
-import { Todo, Project, Heading, generateId, addProject, removeProject, LayoutItem } from '../../database';
-import { uppercase, debounce, attachDispatchToProps, assert, createHeading } from '../../utils';
+import { Todo, Project, Heading, addProject, removeProject, LayoutItem } from '../../database';
+import { debounce, attachDispatchToProps, createHeading } from '../../utils/utils';
 import { Store, isDev } from '../../app';
 import { isString } from 'util'; 
 import { contains, not, isNil, isEmpty, remove } from 'ramda';
 import { Category, filter } from '../MainContainer';
-
+import { assert } from '../../utils/assert';
+import { generateId } from '../../utils/generateId';
+import { uppercase } from '../../utils/uppercase';
  
 
 

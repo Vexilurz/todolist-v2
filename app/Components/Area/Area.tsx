@@ -7,9 +7,11 @@ import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
 import { Area, Project, Todo } from '../../database'; 
 import { AreaHeader } from './AreaHeader';
 import { AreaBody } from './AreaBody';
-import { debounce, assert, isArea } from '../../utils';
+import { debounce } from '../../utils/utils';
 import { Category } from '../MainContainer';
 import { uniq, isNil } from 'ramda'; 
+import { isArea } from '../../utils/isSomething';
+import { assert } from '../../utils/assert';
    
   
 interface AreaComponentProps{

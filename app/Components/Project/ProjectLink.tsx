@@ -24,11 +24,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
-import { 
-    uppercase, debounce, stringToLength, daysRemaining, 
-    daysLeftMark, chooseIcon, dateDiffInDays, assert, isProject, 
-    isArrayOfTodos, byNotDeleted, byCompleted, attachDispatchToProps  
-} from '../../utils'; 
+import { debounce, daysLeftMark, byNotDeleted, byCompleted, attachDispatchToProps } from '../../utils/utils'; 
 import { TodoInput, Checkbox, DueDate } from '../TodoInput/TodoInput';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import Checked from 'material-ui/svg-icons/navigation/check';
@@ -40,6 +36,8 @@ import { isDev, Store } from '../../app';
 import { Category, filter } from '../MainContainer';
 import Hide from 'material-ui/svg-icons/action/visibility-off';
 import Count from 'material-ui/svg-icons/editor/format-list-numbered';
+import { assert } from '../../utils/assert';
+import { uppercase } from '../../utils/uppercase';
 
 
 export let getProgressStatus = (

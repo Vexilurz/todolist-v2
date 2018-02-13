@@ -9,9 +9,7 @@ import ClearArrow from 'material-ui/svg-icons/content/backspace';
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { insideTargetArea } from '../insideTargetArea';
-import { attachDispatchToProps, assert } from '../utils';
-import { Todo, removeTodo, addTodo, generateId, Project, Area, LayoutItem } from '../database';
+import { Todo, removeTodo, addTodo, Project, Area, LayoutItem } from '../database';
 import { Store, isDev } from '../app';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { Category } from './MainContainer';
@@ -21,6 +19,10 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
+import { attachDispatchToProps } from '../utils/utils';
+import { insideTargetArea } from '../utils/insideTargetArea';
+import { generateId } from '../utils/generateId';
+import { assert } from '../utils/assert';
  
    
 

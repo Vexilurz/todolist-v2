@@ -6,16 +6,15 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, uppercase, chooseIcon, byTags, 
+    attachDispatchToProps, byTags, 
     byNotCompleted, byNotDeleted, byCategory, getTagsFromItems, 
-    isString, attachEmptyTodo, generateEmptyTodo, isProject, 
-    assert, isArea, isTodo, isArrayOfStrings, isToday, groupObjects 
-} from "../../utils";  
+    attachEmptyTodo, isToday, groupObjects 
+} from "../../utils/utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { 
     queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, 
-    Project, Area, LayoutItem, generateId 
+    Project, Area, LayoutItem
 } from '../../database';
 import Popover from 'material-ui/Popover';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
@@ -41,6 +40,8 @@ import { ProjectLink } from '../Project/ProjectLink';
 import { Category } from '../MainContainer';
 import { AreaLink } from '../Area/AreaLink';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
+import { generateId } from '../../utils/generateId';
+import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 
 
 interface NextProps{
@@ -120,9 +121,8 @@ export class Next extends Component<NextProps, NextState>{
                         todos={this.props.todos} 
                         projects={this.props.projects}
                         rootRef={this.props.rootRef} 
-                        todo={empty} 
+                        todo={empty as any} 
                     />  
-
                     <div id={`${selectedCategory}-list`}>
                     <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
                         {

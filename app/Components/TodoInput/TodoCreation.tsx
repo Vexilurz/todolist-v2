@@ -34,12 +34,11 @@ import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui';  
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
-    daysRemaining, todoChanged, 
-    daysLeftMark, generateTagElement, uppercase, generateEmptyTodo,  
-    isToday, getMonthName, stringToLength, debounce, fiveMinutesLater, onHourLater, oneDayAhead 
-} from '../../utils'; 
-import { insideTargetArea } from '../../insideTargetArea';
-import { Todo, removeTodo, updateTodo, Project, generateId } from '../../database';
+    todoChanged, daysLeftMark, generateTagElement,  
+    isToday, getMonthName, debounce, fiveMinutesLater, 
+    onHourLater, oneDayAhead 
+} from '../../utils/utils'; 
+import { Todo, removeTodo, updateTodo, Project } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopup, TodoTags } from './TodoTags';
@@ -55,8 +54,12 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
 import { Observable } from 'rxjs/Rx';
-import { googleAnalytics, globalErrorHandler } from '../../app';
 import { TodoInputLabels, TodoInputTopLevel, TodoInputMiddleLevel } from './TodoInput';
+import { globalErrorHandler } from '../../utils/globalErrorHandler';
+import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
+import { generateId } from '../../utils/generateId';
+import { insideTargetArea } from '../../utils/insideTargetArea';
+import { googleAnalytics } from '../../analytics';
   
 
 export interface TodoCreationFormState{  
@@ -196,7 +199,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     resetCreationForm = (open) => {
         let emptyTodo = generateEmptyTodo(generateId(), this.props.selectedCategory, 0);
         let newState = {
-            ...this.stateFromTodo(this.state,emptyTodo),
+            ...this.stateFromTodo(this.state,emptyTodo as any),
             open, 
             showDateCalendar:false,     
             showTagsSelection:false, 

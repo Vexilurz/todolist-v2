@@ -4,11 +4,11 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, uppercase, chooseIcon } from "../utils"; 
 import { Tags } from './Tags';
 import { Category } from './MainContainer';
- 
- 
+import { chooseIcon } from '../utils/chooseIcon';
+import { uppercase } from '../utils/uppercase';
+
 
 export interface ContainerHeaderProps{
     selectedCategory:Category, 

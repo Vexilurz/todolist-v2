@@ -3,18 +3,19 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react";  
-import { Todo, Project, Area, generateId } from '../../database';
+import { Todo, Project, Area } from '../../database';
 import { TodosList } from '.././TodosList';
 import { ContainerHeader } from '.././ContainerHeader';
 import { 
-    byTags, byCategory, byNotCompleted, byNotDeleted, isString,
-    generateEmptyTodo, attachEmptyTodo, byAttachedToProject, byAttachedToArea 
-} from '../../utils'; 
+    byTags, byCategory, byNotCompleted, byNotDeleted, attachEmptyTodo, byAttachedToProject, byAttachedToArea 
+} from '../../utils/utils'; 
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { compose, filter, allPass, prepend, contains, not, isNil, isEmpty } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { Category } from '../MainContainer';
+import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
+import { generateId } from '../../utils/generateId';
 
  
  
@@ -52,7 +53,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
 
     render(){  
         let {moveCompletedItemsToLogbook,selectedCategory} = this.props;
-        let empty = generateEmptyTodo(generateId(),selectedCategory,0);
+        let empty = generateEmptyTodo(generateId(),selectedCategory,0) as any;
 
         return <div style={{WebkitUserSelect:"none"}}>  
             <ContainerHeader  

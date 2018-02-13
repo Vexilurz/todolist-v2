@@ -17,14 +17,10 @@ import {
     getDatesRange, 
     keyFromDate, 
     daysLeftMark,
-    stringToLength,
     byNotCompleted,
     byNotDeleted,
     getTagsFromItems,
-    assert,
-    isDate,
     getMonthName,
-    isTodo,
     selectNeverTodos,
     updateNeverTodos,
     sameDay,
@@ -32,14 +28,18 @@ import {
     yearFromDate,
     convertTodoDates,
     getRangeDays,
-} from '../../utils';  
-import { allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map, flatten, prop, uniqBy, groupBy, defaultTo } from 'ramda';
+} from '../../utils/utils';  
+import {
+    allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map, flatten, prop, uniqBy, groupBy, defaultTo 
+} from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category, filter, selectTodos } from '../MainContainer';
 import { repeat, setRepeatedTodos } from '../RepeatPopup';
 import { Hint } from './Today'; 
 import { CalendarEvent } from '../Calendar';
-import { globalErrorHandler } from '../../app';
+import { isDate } from '../../utils/isSomething';
+import { assert } from '../../utils/assert';
+import { globalErrorHandler } from '../../utils/globalErrorHandler';
 
 
 type Item = Project | Todo | CalendarEvent

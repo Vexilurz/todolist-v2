@@ -23,8 +23,8 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
 import { Observable } from 'rxjs/Rx';
-import { insideTargetArea } from '../insideTargetArea';
-import { isFunction } from '../utils';
+import { insideTargetArea } from '../utils/insideTargetArea';
+import { isFunction } from '../utils/isSomething';
 
 
 

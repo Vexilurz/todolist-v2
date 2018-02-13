@@ -29,12 +29,10 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { Checkbox } from '../TodoInput/TodoInput';
 import { 
-    attachDispatchToProps, isString, debounce, isNewVersion, keyFromDate, 
-    checkForUpdates, uppercase, isArrayOfStrings, assert, defaultTags, isArrayOfTodos, getCompletedWhen 
-} from '../../utils';
-import { Store, globalErrorHandler, updateConfig } from '../../app';
+ attachDispatchToProps, debounce, isNewVersion, keyFromDate, checkForUpdates, getCompletedWhen 
+} from '../../utils/utils';
 import { 
-    generateId, Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, 
+    Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, 
     Todo, destroyEverything, initDB, addTodos, addProjects, addAreas, addCalendars 
 } from '../../database';
 import { isDate } from 'util';
@@ -42,6 +40,14 @@ import { SimplePopup } from '../SimplePopup';
 import { getIcalData, IcalData, AxiosError } from '../Calendar';
 import { fetchData, filter } from '../MainContainer';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
+import { Store } from '../../app';
+import { updateConfig } from '../../utils/config';
+import { isArrayOfTodos } from '../../utils/isSomething';
+import { assert } from '../../utils/assert';
+import { defaultTags } from '../../utils/defaultTags';
+import { uppercase } from '../../utils/uppercase';
+import { globalErrorHandler } from '../../utils/globalErrorHandler';
+import { generateId } from '../../utils/generateId';
 const Promise = require('bluebird');   
 const fs = remote.require('fs');
 const path = require("path");

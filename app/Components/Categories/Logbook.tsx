@@ -11,14 +11,14 @@ import { TodosList } from '../../Components/TodosList';
 import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '.././ContainerHeader';
 import { 
-    compareByDate, getMonthName, byTags, isTodo, isProject, 
-    byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems, assert, isArrayOfStrings 
-} from '../../utils';
+  compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems
+} from '../../utils/utils';
 import { allPass, compose, or, assoc, isNil, isEmpty } from 'ramda';
 import { isDev } from '../../app';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink, ProjectLinkLogbook } from '../Project/ProjectLink';
 import { Category, filter } from '../MainContainer';
+import { isTodo, isProject } from '../../utils/isSomething';
 
 
 
@@ -27,8 +27,7 @@ let getDateFromObject = (i : Todo & Project) => {
 
     if(isTodo(i)){ 
         return new Date(i.completedWhen) 
-    }
-    else if(isProject(i)){ 
+    }else if(isProject(i)){ 
         return new Date(i.completed) 
     } 
 };

@@ -8,17 +8,17 @@ import Popover from 'material-ui/Popover';
 import { Transition } from 'react-transition-group';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { uniq, compose, contains, allPass, isNil, not, isEmpty } from 'ramda';
-import { isString } from 'util';
-import { 
-    attachDispatchToProps, threeDaysLater, debounce, downloadUpdates 
-} from '../utils';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { Store, googleAnalytics, globalErrorHandler, updateConfig } from '../app';
+import { Store } from '../app';
 import { ipcRenderer, remote } from 'electron';
 import { TopSnackbar } from './Snackbar';
+import { attachDispatchToProps, downloadUpdates, threeDaysLater } from '../utils/utils';
+import { globalErrorHandler } from '../utils/globalErrorHandler';
+import { googleAnalytics } from '../analytics';
+import { updateConfig } from '../utils/config';
 
  
 

@@ -5,13 +5,12 @@ import { ipcRenderer } from 'electron';
 import PouchDB from 'pouchdb-browser';  
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 import { Category } from './Components/MainContainer';
-import { 
-  randomArrayMember, randomInteger, randomDate, isString, 
-  isTodo, assert, convertTodoDates, isArea, isProject 
-} from './utils';
+import { randomArrayMember, randomInteger, randomDate, convertTodoDates } from './utils/utils';
 import { isNil, all, map, isEmpty } from 'ramda';
 import { isDev } from './app';
 import { RepeatPopupState } from './Components/RepeatPopup';
+import { assert } from './utils/assert';
+import { isArea, isString, isProject, isTodo } from './utils/isSomething';
 let uniqid = require("uniqid"); 
 let path = require('path');
 let Promise = require('bluebird');
@@ -143,8 +142,6 @@ export interface QueryResult<T>{
   value:Object 
 };
 
-
-export let generateId = () => uniqid() + new Date().toJSON(); 
   
 
 function queryToObjects<T>(query:Query<T>){
@@ -509,11 +506,11 @@ export let queryToProjects = (query:Query<Project>) : Project[] => queryToObject
 export let queryToAreas = (query:Query<Area>) : Area[] => queryToObjects<Area>(query); 
 
 export let destroyEverything = () : Promise<void[]> => 
-  Promise.all([ 
-      calendars_db.destroy(),
-      todos_db.destroy(),
-      projects_db.destroy(),
-      areas_db.destroy()
-  ]) 
+        Promise.all([ 
+            calendars_db.destroy(),
+            todos_db.destroy(),
+            projects_db.destroy(),
+            areas_db.destroy()
+        ]) 
 
 

@@ -24,11 +24,10 @@ import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
 import { 
-    uppercase, debounce, stringToLength, daysLeftMark, byNotCompleted, 
+    debounce, daysLeftMark, byNotCompleted, 
     byNotDeleted, generateDropStyle, hideChildrens, 
-    makeChildrensVisible, assert, isArrayOfProjects, isProject, isCategory, 
-    isString, arrayMove 
-} from '../../utils'; 
+    makeChildrensVisible
+} from '../../utils/utils'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import Checked from 'material-ui/svg-icons/navigation/check';
@@ -41,7 +40,8 @@ import { changeProjectsOrder, removeFromArea, attachToArea } from './AreasList';
 import { isDev } from '../../app';
 import { deleteProject } from '../Project/ProjectMenu';
 import { ExpandableTodosList } from '../Categories/Next';
-import { SortableContainer } from '../../sortable/CustomSortableContainer';
+import { assert } from '../../utils/assert';
+import { isArrayOfProjects, isString } from '../../utils/isSomething';
 
 
  

@@ -23,21 +23,26 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
-import { Todo, Project, Heading, LayoutItem, Area, generateId } from '../../database';
+import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
 import { 
-    uppercase, debounce, byNotDeleted, generateEmptyTodo, byNotCompleted, 
+    debounce, byNotDeleted, byNotCompleted, 
     generateDropStyle, hideChildrens, makeChildrensVisible, 
-    layoutOrderChanged, assert, isTodo, isString, arrayMove 
-} from '../../utils'; 
+    layoutOrderChanged,
+} from '../../utils/utils'; 
 import { ProjectHeading } from './ProjectHeading';  
 import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
 import { equals, allPass, isEmpty, isNil, not, uniq, contains } from 'ramda';
 import { onDrop } from '../TodosList';
 import { isDev } from '../../app'; 
-import { SortableContainer } from '../../sortable/CustomSortableContainer';
-import { insideTargetArea } from '../../insideTargetArea';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
+import { arrayMove } from '../../utils/arrayMove';
+import { assert } from '../../utils/assert';
+import { isTodo, isString } from '../../utils/isSomething';
+import { insideTargetArea } from '../../utils/insideTargetArea';
+import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
+import { generateId } from '../../utils/generateId';
+import { SortableContainer } from '../CustomSortableContainer';
 
 
 
@@ -50,6 +55,7 @@ interface ProjectBodyProps{
     moveHeading:(heading_id:string) => void,  
     removeHeading:(heading_id:string) => void,
     showCompleted:boolean,
+    selectedCategory:string, 
     todos:Todo[],  
     selectedTag:string,
     moveCompletedItemsToLogbook:string,
@@ -280,7 +286,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     
     render(){  
         let empty = generateEmptyTodo(generateId(),"project",0);
-
+        let {selectedCategory} = this.props;
         let decorators = [{  
             area:document.getElementById("leftpanel"),  
             decorator:generateDropStyle("nested"),
@@ -291,16 +297,16 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             <div>  
                 <TodoCreationForm  
                     dispatch={this.props.dispatch}  
-                    selectedCategory={"project"} 
+                    selectedCategory={selectedCategory as any} 
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
                     todos={this.props.todos} 
                     projects={this.props.projects}
                     rootRef={this.props.rootRef} 
-                    todo={empty} 
+                    todo={empty as any} 
                 />  
             </div>      
-            <div id={`project-list`}>
+            <div id={`${selectedCategory}-list`}>
                 <SortableContainer
                     items={this.props.items}
                     scrollableContainer={this.props.rootRef}

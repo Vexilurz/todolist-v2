@@ -6,23 +6,21 @@ import { ipcRenderer, remote } from 'electron';
 import IconButton from 'material-ui/IconButton';  
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, uppercase,
-    chooseIcon, debounce, byTags, byCategory, generateEmptyTodo, isArray, isTodo, isProject, 
-    isArea, isArrayOfAreas, isArrayOfProjects, isArrayOfTodos, assert,  
+    attachDispatchToProps, debounce, byTags, byCategory, 
     selectNeverTodos, updateNeverTodos, oneDayBehind, 
     convertTodoDates, convertProjectDates, convertAreaDates, clearStorage, oneDayAhead, measureTime, 
     byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
-    byCompleted, isToday, byNotSomeday, daysRemaining, byScheduled, yearFromNow, isDate, 
+    byCompleted, isToday, byNotSomeday, byScheduled, yearFromNow,
     timeDifferenceHours, isNewVersion, addIntroList, printElement, isMainWindow
-} from "../utils";   
+} from "../utils/utils";   
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Hide from 'material-ui/svg-icons/navigation/arrow-drop-down';
 import { getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects, 
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, 
-    removeProject, destroyEverything, addArea, addProject, generateId, addTodos, 
+    removeProject, destroyEverything, addArea, addProject, addTodos, 
     addProjects, addAreas, Heading, LayoutItem, getCalendars, Calendar} from '.././database';
-import { Store, isDev, globalErrorHandler, updateConfig, getConfig, Config } from '.././app';    
+import { Store, isDev } from '.././app';    
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Print from 'material-ui/svg-icons/action/print'; 
 import { AreaComponent } from './Area/Area';
@@ -35,7 +33,6 @@ import { Upcoming } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
-import { generateRandomDatabase } from '../generateRandomObjects';
 import { 
     isEmpty, last, isNil, contains, all, not, assoc, flatten, 
     toPairs, map, compose, allPass, cond, defaultTo 
@@ -53,6 +50,11 @@ import {
     CalendarProps, CalendarEvent, getIcalData, 
     IcalData, AxiosError, updateCalendars 
 } from './Calendar';
+import { globalErrorHandler } from '../utils/globalErrorHandler';
+import { generateRandomDatabase } from '../utils/generateRandomObjects';
+import { updateConfig } from '../utils/config';
+
+
 const Promise = require('bluebird');   
 const moment = require("moment"); 
 

@@ -2,7 +2,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { 
-    getTodos, queryToTodos, Todo, updateTodo, generateId, Project, Area, 
+    getTodos, queryToTodos, Todo, updateTodo, Project, Area, 
     removeTodos, removeProjects, removeAreas, updateProjects, updateTodos, 
     updateAreas, Heading, LayoutItem, Calendar } from './../database';
 import Moon from 'material-ui/svg-icons/image/brightness-3';

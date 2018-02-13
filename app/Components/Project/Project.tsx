@@ -24,10 +24,10 @@ import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area, getTodoById, todos_db, queryToTodos } from '../../database'; 
 import { 
-    uppercase, debounce, byNotDeleted, byNotCompleted, byTags, assert, 
-    isProject, isTodo, byHaveAttachedDate, byNotSomeday, isString,  
-    byScheduled, bySomeday, daysRemaining, convertTodoDates 
-} from '../../utils'; 
+    debounce, byNotDeleted, byNotCompleted, byTags,  
+    byHaveAttachedDate, byNotSomeday,   
+    byScheduled, convertTodoDates 
+} from '../../utils/utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
 import { 
@@ -37,6 +37,9 @@ import {
 import { isDev } from '../../app';
 import { getProgressStatus } from './ProjectLink';
 import { filter } from '../MainContainer';
+import { bySomeday, isProject, isTodo, isString } from '../../utils/isSomething';
+import { assert } from '../../utils/assert';
+import { daysRemaining } from '../../utils/daysRemaining';
 let Promise = require('bluebird'); 
 
 
@@ -262,6 +265,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             items={toProjectBody}
                             dragged={this.props.dragged}
                             groupTodos={this.props.groupTodos}
+                            selectedCategory={this.props.selectedCategory}
                             showCompleted={this.props.showCompleted}
                             updateLayoutOrder={this.updateLayoutOrder}
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}

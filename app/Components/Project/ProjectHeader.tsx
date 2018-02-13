@@ -24,9 +24,10 @@ import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize'; 
 import { Todo, Project, Heading } from '../../database';
 import { 
-    uppercase, debounce, daysRemaining, dateDiffInDays, getTagsFromItems, 
-    byCategory, byNotCompleted, byNotDeleted, daysLeftMark, getMonthName 
-} from '../../utils';
+    debounce, getTagsFromItems, 
+    byCategory, byNotCompleted, 
+    byNotDeleted, daysLeftMark, getMonthName 
+} from '../../utils/utils';
 import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
@@ -34,6 +35,7 @@ import { DeadlineCalendar } from '../ThingsCalendar';
 import { isNil, compose, allPass, isEmpty, not } from 'ramda';
 import { Tags } from '../Tags';
 import { TagsPopup } from '../TodoInput/TodoTags';
+import { daysRemaining } from '../../utils/daysRemaining';
 let moment = require("moment");  
 
 

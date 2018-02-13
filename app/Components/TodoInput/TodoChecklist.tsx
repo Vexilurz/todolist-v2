@@ -31,17 +31,10 @@ import Reorder from 'material-ui/svg-icons/action/reorder';
 let uniqid = require("uniqid");  
 import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
-import { 
-    daysRemaining, 
-    todoChanged, daysLeftMark, 
-    generateTagElement,
-    arrayMove
-} from '../../utils';
-import { insideTargetArea } from '../../insideTargetArea';
-import { Category } from '.././MainContainer';
-import { Todo, removeTodo, updateTodo, generateId } from '../../database'; 
 import { replace, adjust, append, prepend, isEmpty } from 'ramda';
-import { SortableContainer } from '../../sortable/CustomSortableContainer';
+import { SortableContainer } from '../CustomSortableContainer';
+import { arrayMove } from '../../utils/arrayMove';
+import { generateId } from '../../utils/generateId';
 
 
 let shouldUpdateChecklist = (

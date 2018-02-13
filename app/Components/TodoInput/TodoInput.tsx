@@ -34,12 +34,10 @@ import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui';  
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
-    daysRemaining, todoChanged, 
-    daysLeftMark, generateTagElement, uppercase, generateEmptyTodo,  
-    isToday, getMonthName, stringToLength, debounce, fiveMinutesLater, onHourLater, oneDayAhead, getCompletedWhen, isFunction 
-} from '../../utils'; 
-import { insideTargetArea } from '../../insideTargetArea';
-import { Todo, removeTodo, updateTodo, Project, generateId } from '../../database';
+ todoChanged, daysLeftMark, generateTagElement, isToday, getMonthName, debounce, fiveMinutesLater, 
+ onHourLater, oneDayAhead, getCompletedWhen
+} from '../../utils/utils'; 
+import { Todo, removeTodo, updateTodo, Project} from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopup, TodoTags } from './TodoTags';
@@ -55,7 +53,12 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
 import { Observable } from 'rxjs/Rx';
-import { googleAnalytics, globalErrorHandler } from '../../app';
+import { insideTargetArea } from '../../utils/insideTargetArea';
+import { googleAnalytics } from '../../analytics';
+import { globalErrorHandler } from '../../utils/globalErrorHandler';
+import { isFunction } from '../../utils/isSomething';
+import { daysRemaining } from '../../utils/daysRemaining';
+import { stringToLength } from '../../utils/stringToLength';
 let Promise = require('bluebird');
 
 export interface TodoInputState{  
