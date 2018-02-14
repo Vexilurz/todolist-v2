@@ -42,7 +42,7 @@ import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopup, TodoTags } from './TodoTags';
 import { TodoInputLabel } from './TodoInputLabel'; 
-import { uniq, isEmpty, contains, isNil, not, multiply, remove, cond } from 'ramda';
+import { uniq, isEmpty, contains, isNil, not, multiply, remove, cond, equals } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
 let moment = require("moment"); 
 import AutosizeInput from 'react-input-autosize'; 
@@ -123,6 +123,26 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             showDeadlineCalendar:false
         };       
     };
+
+
+    shouldComponentUpdate(nextProps:TodoInputProps,nextState:TodoInputState){
+        if(
+            not(equals(this.state,nextState)) ||
+            not(equals(this.props.todo,nextProps.todo)) ||
+            this.props.groupTodos!==nextProps.groupTodos || 
+            this.props.showCompleted!==nextProps.showCompleted ||
+            this.props.moveCompletedItemsToLogbook!==nextProps.moveCompletedItemsToLogbook ||
+            this.props.selectedCategory!==nextProps.selectedCategory ||
+            this.props.selectedProjectId!==nextProps.selectedProjectId ||
+            this.props.selectedAreaId!==nextProps.selectedAreaId ||
+            this.props.projects!==nextProps.projects
+        ){
+            return true;
+        }
+
+        return false;
+    }; 
+
 
     updateState = (props) => new Promise( resolve => this.setState(props, () => resolve()) );
 
