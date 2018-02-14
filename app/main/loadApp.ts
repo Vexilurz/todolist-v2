@@ -1,7 +1,6 @@
 import { ipcMain, BrowserWindow } from 'electron';
 import { mainWindow } from "./main";
 import fs = require('fs');    
-export let dev = () : boolean => { return true }
     
 let templateLoader = (
     onDidFinishLoad : Function,  

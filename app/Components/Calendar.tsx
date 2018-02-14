@@ -10,7 +10,7 @@ import {
     contains, isNil, all, prepend, isEmpty, last,
     not, assoc, flatten, toPairs, map, compose, allPass, uniq 
 } from 'ramda'; 
-import { isDev, Store } from './../app';
+import { Store } from './../app';
 import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
 let ical = require('ical.js'); 

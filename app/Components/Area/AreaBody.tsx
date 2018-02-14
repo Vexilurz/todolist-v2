@@ -37,7 +37,6 @@ import { allPass, isNil, not, contains, isEmpty } from 'ramda';
 import { TodosList } from '../TodosList';
 import { Category, filter } from '../MainContainer';
 import { changeProjectsOrder, removeFromArea, attachToArea } from './AreasList';
-import { isDev } from '../../app';
 import { deleteProject } from '../Project/ProjectMenu';
 import { ExpandableTodosList } from '../Categories/Next';
 import { assert } from '../../utils/assert';

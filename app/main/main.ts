@@ -1,4 +1,4 @@
-import { loadApp, dev, loadQuickEntry } from './loadApp'; 
+import { loadApp, loadQuickEntry } from './loadApp'; 
 import fs = require('fs');     
 import electron = require('electron');
 import { 
@@ -7,13 +7,31 @@ import {
 } from 'electron';
 import { Listeners } from "./listeners";
 import { initWindow, initQuickEntry } from "./initWindow";
-import { isNil, isEmpty } from 'ramda'; 
-import {defaultTags} from './../utils/defaultTags';
+import { isNil, isEmpty, not } from 'ramda';  
+import { defaultTags } from './../utils/defaultTags';
+import { isDev } from './../utils/isDev';
+
 const os = require('os');
 let path = require("path");
 const log = require("electron-log");
 const storage = require('electron-json-storage'); 
 storage.setDataPath(os.tmpdir()); 
+let AutoLaunch = require('auto-launch');
+let appAutoLauncher = new AutoLaunch({
+    name: 'Tasklist',
+    isHidden: true 
+});
+
+//appAutoLauncher.enable();
+//appAutoLauncher.disable();
+
+appAutoLauncher
+.isEnabled()
+.then((enabled:boolean) => not(enabled) ? appAutoLauncher.enable() : null)
+.catch((err) => console.log(err));
+
+
+
 
 export let mainWindow : BrowserWindow;   
 export let quickEntry : BrowserWindow;   
@@ -29,14 +47,12 @@ const CtrlD : string = 'Ctrl+D';
 const shouldQuit = app.makeSingleInstance(
     (commandLine, workingDirectory) => {
         if(mainWindow){
-            if(mainWindow.isMinimized()){ 
-                mainWindow.show();
-                mainWindow.restore();  
-            }
+            mainWindow.show();
+            mainWindow.restore();  
             mainWindow.focus();
         } 
     }
-); 
+);  
 
 
    
@@ -178,7 +194,7 @@ let initListeners = (window:BrowserWindow) => new Listeners(window);
 
 let onAppLoaded = () : void => {    
     mainWindow.webContents.send("loaded");
-    if(dev()){ mainWindow.webContents.openDevTools(); }
+    if(isDev()){ mainWindow.webContents.openDevTools(); }
 };
 
 
@@ -188,20 +204,20 @@ let onQuickEntryLoaded = () : void => {
         (config:Config) => {
             quickEntry.webContents.send("loaded",config);
             quickEntry.on('blur', () => quickEntry.hide());  
-            if(dev()){ quickEntry.webContents.openDevTools() } 
+            //if(dev()){ quickEntry.webContents.openDevTools() } 
         }
     )
 };
    
     
 let getWindowSize = () : {width:number,height:number} => {
-    let mainWindowWidth : number = dev() ? 100 : 60;  
-    let mainWindowHeight : number = dev() ? 100 : 70; 
+    let mainWindowWidth : number = isDev() ? 100 : 60;  
+    let mainWindowHeight : number = isDev() ? 100 : 70; 
     let workingArea = electron.screen.getPrimaryDisplay().workAreaSize; 
     let width = mainWindowWidth*(workingArea.width/100); 
     let height = mainWindowHeight*(workingArea.height/100); 
  
-    if(!dev()){ width = width <= 800 ? width : 800;} 
+    if(!isDev()){ width = width <= 800 ? width : 800;} 
      
     return {width,height};  
 };  
@@ -210,13 +226,13 @@ let getWindowSize = () : {width:number,height:number} => {
 let getQuickEntrySize = () : {width:number,height:number} => {
     let {width,height} = electron.screen.getPrimaryDisplay().workAreaSize;
   
-    return {width:500,height:250};  
+    return {width:500,height:300};  
 };  
 
 
 let onReady = () => {       
     if(shouldQuit){
-       app.exit();  
+       app.exit();   
        return;
     }    
 
@@ -242,7 +258,7 @@ let onReady = () => {
     mainWindow.on(
         'hide', 
         () => { 
-            tray.setToolTip('Show hidden windows')
+            tray.setToolTip('Show hidden windows');
         }
     )
 
@@ -258,9 +274,9 @@ process.on(
     "unchaughtException" as any,
     (error) => {
         if(isNil(mainWindow)){ 
-            console.log(error)
+            console.log(error);
         }else{ 
-            mainWindow.webContents.send("error", error) 
+            mainWindow.webContents.send("error", error); 
         }
     }
 );

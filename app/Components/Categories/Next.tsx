@@ -21,7 +21,7 @@ import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Repeat from 'material-ui/svg-icons/av/repeat';
-import { Store, isDev } from '../../app';
+import { Store } from '../../app';
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Duplicate from 'material-ui/svg-icons/content/content-copy';
 import ShareIcon from 'material-ui/svg-icons/social/share';
@@ -124,7 +124,7 @@ export class Next extends Component<NextProps, NextState>{
                         todo={empty as any} 
                     />  
                     <div id={`${selectedCategory}-list`}>
-                    <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
+                    <div>
                         {
                             groupTodos ? 
                             <GroupsByProjectArea
@@ -207,7 +207,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         );
 
         return <div>
-        <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
+        <div>
             {
                 isEmpty(table.detached) ? null :
                 <TodosList            

@@ -6,17 +6,15 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, byNotCompleted, byNotDeleted, getTagsFromItems, 
-    attachEmptyTodo,  isToday,  makeChildrensVisible, 
-    hideChildrens, generateDropStyle,  keyFromDate, 
-    isDeadlineTodayOrPast, isTodayOrPast, 
-    timeOfTheDay, sameDay, byTags, byCategory
+    attachDispatchToProps, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo,  isToday,  makeChildrensVisible, 
+    hideChildrens, generateDropStyle,  keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, timeOfTheDay, sameDay, byTags, 
+    byCategory
 } from "../../utils/utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { 
-    queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, 
-    Project, Area, Calendar
+    queryToTodos, getTodos, updateTodo, Todo, 
+    removeTodo, addTodo, Project, Area, Calendar
 } from '../../database'; 
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';
@@ -24,7 +22,7 @@ import TrashIcon from 'material-ui/svg-icons/action/delete';
 import CheckCircle from 'material-ui/svg-icons/action/check-circle';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Repeat from 'material-ui/svg-icons/av/repeat';
-import { Store, isDev } from '../../app';
+import { Store } from '../../app';
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Duplicate from 'material-ui/svg-icons/content/content-copy';
 import ShareIcon from 'material-ui/svg-icons/social/share';
@@ -57,6 +55,8 @@ import { uppercase } from '../../utils/uppercase';
 import { SortableContainer } from '../CustomSortableContainer';
 import { updateConfig } from '../../utils/config';
 
+
+
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map((item,index:number) => assoc("priority",index,item)) 
 }
@@ -66,7 +66,6 @@ export let indexToPriority = (items:any[]) : any[] => {
 class ThisEveningSeparator extends Component<{},{}>{
     ref:HTMLElement;
 
- 
     componentDidMount(){
         if(this.ref){
            this.ref["preventDrag"] = true; 
@@ -78,7 +77,6 @@ class ThisEveningSeparator extends Component<{},{}>{
            this.ref["preventDrag"] = true;  
         } 
     } 
-
 
     render(){    
 
@@ -307,13 +305,13 @@ export class Today extends Component<TodayProps,TodayState>{
         assert(isTodo(draggedTodo), `draggedTodo is not of type Todo. onSortEnd. ${JSON.stringify(draggedTodo)}`);
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
-           onDrop(
-             event, 
-             draggedTodo, 
-             dispatch,
-             areas,
-             projects
-           ); 
+            onDrop(
+               event, 
+               draggedTodo, 
+               dispatch,
+               areas,
+               projects
+            ); 
         }else{     
             if(oldIndex===newIndex){ return }
             this.changeOrder(oldIndex,newIndex,items);  
@@ -389,7 +387,7 @@ export class Today extends Component<TodayProps,TodayState>{
                     </div> 
                     <FadeBackgroundIcon    
                         container={this.props.rootRef} 
-                        selectedCategory={"today"}  
+                        selectedCategory={selectedCategory as Category}
                         show={isEmpty(items)}
                     />  
                     <Tags  
@@ -407,7 +405,7 @@ export class Today extends Component<TodayProps,TodayState>{
                             } as any  
                         } 
                     /> 
-                <div id="todos" style={{marginBottom:"50px", marginTop:"20px"}}>         
+                <div id="todos">         
                     <TodoCreationForm  
                         dispatch={this.props.dispatch}  
                         selectedCategory={this.props.selectedCategory} 
@@ -418,7 +416,7 @@ export class Today extends Component<TodayProps,TodayState>{
                         rootRef={this.props.rootRef} 
                         todo={empty as any}  
                     /> 
-                    <div id={`today-list`} style={{position:"relative"}}>   
+                    <div id={`${selectedCategory}-list`} style={{position:"relative"}}>   
                         {
                             groupTodos ? 
                             <GroupsByProjectArea
@@ -482,8 +480,10 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
         let {show, events} = this.props;
         let wholeDay : CalendarEvent[] = events.filter((event) => not(sameDay(event.start,event.end)));
         let timed : CalendarEvent[] = events.filter((event) => sameDay(event.start,event.end));
-        
-        return not(show) ? null : 
+        let empty : boolean = isEmpty(wholeDay) && isEmpty(timed);
+
+        return not(show) ? null :
+               empty ? null : 
         <div style={{paddingTop:"20px"}}>    
             <div style={{          
                 display:"flex",

@@ -37,7 +37,7 @@ import Clear from 'material-ui/svg-icons/content/clear';
 import Remove from 'material-ui/svg-icons/content/remove'; 
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import FullScreen from 'material-ui/svg-icons/image/crop-square';
-import { Store, isDev } from '../../app'; 
+import { Store } from '../../app'; 
 import { AreasList } from './../Area/AreasList';
 import { ResizableHandle } from './../ResizableHandle';
 import { LeftPanelMenu } from './LeftPanelMenu';
@@ -55,7 +55,6 @@ import { isArrayOfStrings, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 
 const ctrlKeyCode = 17;
-
 const bKeyCode = 66;
  
 interface LeftPanelState{ collapsed:boolean }
@@ -217,20 +216,11 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
             projects.map((p) => p.layout.filter(isString) as string[]) 
         ]) as any;
           
-        if(isDev()){
-           assert(isArrayOfStrings(ids),`ids is not an array of strings. AreasList.`);
-        }
+        assert(isArrayOfStrings(ids),`ids is not an array of strings. AreasList.`);
+   
+        let areasFilters = [(todo:Todo) => contains(todo._id)(ids), byNotDeleted]; 
 
-        let areasFilters = [
-            (todo:Todo) => contains(todo._id)(ids),
-            byNotDeleted 
-        ]; 
-
-        return  <div style={{
-            display:"flex",  
-            flexDirection:"row-reverse", 
-            height:window.innerHeight
-        }}> 
+        return  <div style={{display:"flex",flexDirection:"row-reverse",height:window.innerHeight}}> 
             {    
                 not(collapsed) ? 
                 <ResizableHandle onDrag={this.onResizableHandleDrag}/> : 

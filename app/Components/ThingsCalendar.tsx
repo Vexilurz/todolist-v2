@@ -220,7 +220,9 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                         onClick={() => {
                             let { top, left } = this.ref.getBoundingClientRect();
                             this.props.close(); 
-                            setTimeout(() => this.props.onRepeatTodo(top,left), 10);  
+                            //setTimeout(() => 
+                            this.props.onRepeatTodo(top,left); 
+                            //, 10);  
                         }}  
                         style={{
                             display: "flex",

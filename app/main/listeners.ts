@@ -1,5 +1,5 @@
 import { mainWindow } from './main';
-import { loadApp, dev } from './loadApp'; 
+import { loadApp } from './loadApp'; 
 import * as electron from 'electron'; 
 import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,FileFilter} from 'electron';
 import { initWindow } from './initWindow';
@@ -10,6 +10,7 @@ const storage = require('electron-json-storage');
 storage.setDataPath(os.tmpdir());
 import { autoUpdater } from "electron-updater";
 const log = require("electron-log");
+import { isDev } from './../utils/isDev';
 
 let initAutoUpdater = () => {
 
@@ -36,8 +37,8 @@ let initAutoUpdater = () => {
 
 let getClonedWindowDimensions = () => {
     let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
-    let clonedWindowWidth : number =  dev() ? 100 : 30;
-    let clonedWindowHeight : number = dev() ? 100 : 80;  
+    let clonedWindowWidth : number =  isDev() ? 100 : 30;
+    let clonedWindowHeight : number = isDev() ? 100 : 80;  
     let width = clonedWindowWidth*(workingArea.width/100);  
     let height = clonedWindowHeight*(workingArea.height/100); 
     return {width,height};
@@ -122,7 +123,7 @@ export class Listeners{
                     .then(
                         () => {
                             newWindow.webContents.send("loaded", store); 
-                            if(dev()){ newWindow.webContents.openDevTools() }
+                            if(isDev()){ newWindow.webContents.openDevTools() }
                         }   
                     );  
                 }

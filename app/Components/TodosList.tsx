@@ -19,12 +19,13 @@ import {
     compose, map, assoc, contains, remove, not, equals 
 } from 'ramda';
 import { Category } from './MainContainer';
-import { isDev } from '../app';
 import { indexToPriority } from './Categories/Today'; 
 import { SortableContainer } from './CustomSortableContainer';
 import { isString, isCategory, isTodo } from '../utils/isSomething';
 import { assert } from '../utils/assert';
-import {arrayMove} from '../utils/arrayMove';
+import { arrayMove } from '../utils/arrayMove';
+import { isDev } from '../utils/isDev';
+
 
 
 export let getPlaceholderOffset = (nodes, currentIndex) : number => {

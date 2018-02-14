@@ -34,7 +34,6 @@ import {
     adjust, remove, allPass, uniq, contains, isEmpty, map,
     compose, not, isNil 
 } from 'ramda';
-import { isDev } from '../../app';
 import { getProgressStatus } from './ProjectLink';
 import { filter } from '../MainContainer';
 import { bySomeday, isProject, isTodo, isString } from '../../utils/isSomething';

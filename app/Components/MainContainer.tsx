@@ -12,7 +12,8 @@ import {
     byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
     byCompleted, isToday, byNotSomeday, byScheduled, yearFromNow,
     timeDifferenceHours, isNewVersion, addIntroList, printElement, isMainWindow
-} from "../utils/utils";   
+} from "../utils/utils";  
+import {isDev} from "../utils/isDev"; 
 import { connect } from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Hide from 'material-ui/svg-icons/navigation/arrow-drop-down';
@@ -20,7 +21,7 @@ import { getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects,
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, 
     removeProject, destroyEverything, addArea, addProject, addTodos, 
     addProjects, addAreas, Heading, LayoutItem, getCalendars, Calendar} from '.././database';
-import { Store, isDev } from '.././app';    
+import { Store } from '.././app';    
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Print from 'material-ui/svg-icons/action/print'; 
 import { AreaComponent } from './Area/Area';

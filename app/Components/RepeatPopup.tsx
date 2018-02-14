@@ -10,13 +10,12 @@ import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
 import {  
-    attachDispatchToProps, getMonthName, 
-    dateToYearMonthDay, getRangeDays, getRangeRepetitions, daysInMonth, getRangeMonthUntilDate, 
-    getRangeMonthRepetitions, getRangeYearUntilDate, getRangeYearRepetitions, 
-    dateToDateInputValue, dateInputUpperLimit
+    attachDispatchToProps, getMonthName, dateToYearMonthDay, getRangeDays, getRangeRepetitions, 
+    daysInMonth, getRangeMonthUntilDate, getRangeMonthRepetitions, getRangeYearUntilDate, 
+    getRangeYearRepetitions, dateToDateInputValue, dateInputUpperLimit
 } from '../utils/utils'; 
 import { Todo, removeTodo, addTodo,  Project, Area, LayoutItem, Group } from '../database';
-import { Store, isDev } from '../app'; 
+import { Store } from '../app'; 
 import { ChecklistItem } from './TodoInput/TodoChecklist'; 
 import { Category, filter } from './MainContainer';
 import { remove, isNil, not, isEmpty, last } from 'ramda';
@@ -29,6 +28,7 @@ import FlatButton from 'material-ui/FlatButton';
 import { generateId } from '../utils/generateId';
 import { isDate, isTodo } from '../utils/isSomething';
 import { assert } from '../utils/assert';
+import { isDev } from '../utils/isDev';
 import { insideTargetArea } from '../utils/insideTargetArea';
 
 const never : number = 100;

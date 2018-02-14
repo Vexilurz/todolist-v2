@@ -1,4 +1,4 @@
-import { Store, isDev } from './app';
+import { Store } from './app';
 import {  
     Project, Area, Todo, removeProject, addProject, 
     removeArea, updateProject, addTodo, updateArea, updateTodo, 
@@ -6,6 +6,7 @@ import {
     updateAreas, updateProjects, addTodos, addProjects, addAreas, 
     updateTodos, addCalendar, Calendar, updateCalendar, removeCalendar 
 } from './database';
+import { isDev } from './utils/isDev';
 import { ipcRenderer, remote } from 'electron';
 import { 
     getTagsFromItems, removeDeletedProjects, 

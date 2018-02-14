@@ -122,6 +122,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     tags:HTMLElement;
     ref:HTMLElement; 
     inputRef:HTMLElement; 
+    checklist:HTMLElement; 
     
     constructor(props){
 
@@ -185,7 +186,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
     setSmallSize = () => {
         let defaultWidth = 500;
-        let defaultHeight = 250;
+        let defaultHeight = 300;
         let wnd = remote.getCurrentWindow(); 
         wnd.setSize(defaultWidth, defaultHeight); 
     }
@@ -385,7 +386,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         
         <div  
             ref={(e) => { this.ref=e; }}  
-            style={{                   
+            style={{                    
                 display:"flex",
                 overflowX:"hidden", 
                 justifyContent:"flex-start",
@@ -397,8 +398,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         >     
             <div style={{width:"100%"}}>    
             <div style={{
-                display:"flex", height:"30px", alignItems:"center", 
-                width:"100%", margin:"10px", paddingLeft: "20px"  
+                display:"flex", height:"25px", alignItems:"center", 
+                width:"100%", marginLeft:"10px", paddingLeft:"20px" ,
+                marginRight:"10px", marginTop:"5px", marginBottom:"5px" 
             }}>
                 <TextField   
                     ref={e => {this.inputRef=e;}}
@@ -407,11 +409,11 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     value={this.state.title} 
                     hintText="New To-Do" 
                     fullWidth={true}  
-                    hintStyle={{top:"3px", left:0, height:"30px", color:"rgba(0,0,0,0.7)"}}      
+                    hintStyle={{top:"3px", left:0, height:"25px", color:"rgba(0,0,0,0.7)"}}      
                     onChange={this.onTitleChange} 
-                    style={{display:"flex", alignItems:"center", width:"100%", height:"30px", cursor:"default"}}       
+                    style={{display:"flex", alignItems:"center", width:"100%", height:"25px", cursor:"default"}}       
                     inputStyle={{        
-                        height:"30px",
+                        height:"25px",
                         color:"black", fontSize:"16px", 
                         cursor:"default", boxSizing:"content-box", 
                         backgroundColor:"rgba(0,0,0,0)",
@@ -424,7 +426,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             <div style={{
                 transition:"opacity 0.2s ease-in-out",
                 opacity:1,
-                minHeight:"40px",
+                minHeight:"25px",
                 width:"100%",
                 marginLeft:"30px",
                 paddingRight:"25px"  
@@ -445,13 +447,32 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                 />  
             </div>
             </div> 
-                <div className="scroll" style={{width:"90%",height:"75%"}}> 
+                <div 
+                    ref={(e) => {this.checklist=e;}} 
+                    className="scroll" 
+                    style={{
+                        width:"85%",
+                        height:"50%", 
+                        paddingBottom:"80px",
+                        paddingRight:"30px",
+                        paddingLeft:"20px"
+                    }}
+                > 
                     {    
                         !this.state.showChecklist ? null :  
-                        <Checklist 
-                            checklist={this.state.checklist}  
-                            updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})} 
-                        /> 
+                        <Checklist  
+                            checklist={this.state.checklist}   
+                            updateChecklist={
+                                (checklist:ChecklistItem[]) => { 
+                                    this.setState(
+                                        {checklist}, 
+                                        () => {
+                                            if(this.checklist){ this.checklist.scrollTop=0; }
+                                        }
+                                    )
+                                }
+                            } 
+                        />  
                     } 
                     {  
                         <TodoTags   
@@ -464,12 +485,12 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             <div style={{  
                 display:"flex",
                 alignItems:"center",
-                width:"100%", 
+                width:"30%%", 
                 position:"fixed",
                 justifyContent:"flex-end",
                 bottom:30, 
                 padding:"5px", 
-                right:10, 
+                right:10,  
                 zIndex:30001    
             }}>  
             <div style={{display:"flex"}}>

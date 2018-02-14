@@ -103,7 +103,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                 todo={empty as any} 
             />   
             <div id={`${selectedCategory}-list`} >    
-                <div id="todos" style={{paddingTop:"20px", paddingBottom:"20px"}}>      
+                <div id="todos">      
                     {
                         groupTodos ? 
                         <GroupsByProjectArea

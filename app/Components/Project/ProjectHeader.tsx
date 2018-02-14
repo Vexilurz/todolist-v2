@@ -304,20 +304,20 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             }    
             <div>                
                 <TextField       
-                    id = {"project_notes"}  
-                    hintText = "Notes"      
+                    id={"project_notes"}  
+                    hintText="Notes"      
                     hintStyle={{top:"12px"}}
-                    value = {this.state.description}    
-                    multiLine = {true}  
-                    fullWidth = {true}   
-                    onChange = {(event, newValue:string) => this.updateProjectDescription(newValue)} 
-                    rows = {1}    
-                    inputStyle = {{color:"rgba(100,100,100,0.7)", fontSize:"15px"}}   
-                    underlineFocusStyle = {{borderColor:"rgba(0,0,0,0)"}}    
-                    underlineStyle = {{borderColor:"rgba(0,0,0,0)"}}   
+                    value={this.state.description}    
+                    multiLine={true}  
+                    fullWidth={true}   
+                    onChange={(event, newValue:string) => this.updateProjectDescription(newValue)} 
+                    rows={1}    
+                    inputStyle={{color:"rgba(100,100,100,0.7)", fontSize:"15px"}}   
+                    underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}}    
+                    underlineStyle={{borderColor:"rgba(0,0,0,0)"}}   
                 />   
             </div>
-            <div style={{paddingTop:"20px", paddingBottom:"40px"}}>  
+            <div>  
                 <Tags  
                     selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
                     tags={tags} 

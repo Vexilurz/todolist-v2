@@ -32,7 +32,7 @@ import PieChart from 'react-minimal-pie-chart';
 import Restore from 'material-ui/svg-icons/content/undo';
 import { isString } from 'util';
 import { contains, isNil, allPass, not, isEmpty } from 'ramda';
-import { isDev, Store } from '../../app';
+import { Store } from '../../app';
 import { Category, filter } from '../MainContainer';
 import Hide from 'material-ui/svg-icons/action/visibility-off';
 import Count from 'material-ui/svg-icons/editor/format-list-numbered';

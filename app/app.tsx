@@ -54,9 +54,6 @@ let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
 
 
-export let isDev = () => { return true };   
-
-
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
     var message = [ 

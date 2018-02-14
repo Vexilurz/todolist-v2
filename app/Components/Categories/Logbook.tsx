@@ -14,7 +14,6 @@ import {
   compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems
 } from '../../utils/utils';
 import { allPass, compose, or, assoc, isNil, isEmpty } from 'ramda';
-import { isDev } from '../../app';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink, ProjectLinkLogbook } from '../Project/ProjectLink';
 import { Category, filter } from '../MainContainer';

@@ -42,7 +42,7 @@ import {
     getTagsFromItems
 } from '../utils/utils';
 import { Todo, removeTodo, updateTodo,ObjectType, Area, Project, Heading } from '../database';
-import { Store, isDev } from '../app'; 
+import { Store } from '../app'; 
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection } from 'ramda';
 import { Category, filter } from './MainContainer';

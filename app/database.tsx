@@ -2,12 +2,12 @@ import './assets/styles.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { ipcRenderer } from 'electron';
-import PouchDB from 'pouchdb-browser';  
+import PouchDB from 'pouchdb-browser';   
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 import { Category } from './Components/MainContainer';
 import { randomArrayMember, randomInteger, randomDate, convertTodoDates } from './utils/utils';
-import { isNil, all, map, isEmpty } from 'ramda';
-import { isDev } from './app';
+import { isNil, all, map, isEmpty } from 'ramda'; 
+import { isDev } from './utils/isDev';
 import { RepeatPopupState } from './Components/RepeatPopup';
 import { assert } from './utils/assert';
 import { isArea, isString, isProject, isTodo } from './utils/isSomething';
@@ -124,7 +124,8 @@ export interface Todo{
   attachedTags : string[], 
   completedSet : Date,
   completedWhen : Date, 
-  group?:Group
+  group?:Group,
+  completed?:Date 
 }; 
   
 
@@ -465,13 +466,19 @@ export let updateTodo = (_id:string, replacement:Todo, onError:Function) : Promi
  
 export let getTodos = (onError:Function) => (descending,limit) : Promise<Todo[]> => {
 
-    return getItems<Todo>(
-      onError, 
-      todos_db
-    )( 
-      descending,
-      limit
-    ).then(queryToTodos)
+    return getItems<Todo>(onError, todos_db)(descending,limit)
+           .then(queryToTodos)
+           .then(
+                (todos:Todo[]) => todos.map(
+                    (t:Todo) => isNil(t.completed) ? t :  
+                                {
+                                  ...t,
+                                  completedSet:t.completed,
+                                  completedWhen:t.completed
+                                } 
+                )
+            )  
+
 }
 
 

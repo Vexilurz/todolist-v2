@@ -30,8 +30,6 @@ import Checked from 'material-ui/svg-icons/navigation/check';
 import { ProjectMenuPopover } from '../Project/ProjectMenu';
 import { contains, isEmpty, isNil } from 'ramda';
 import { TagsPopup } from '../TodoInput/TodoTags';
-import { isDev } from '../../app';
-
 
 
 interface AreaHeaderProps{

@@ -26,13 +26,13 @@ import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, addProject, removeProject, LayoutItem } from '../../database';
 import { debounce, attachDispatchToProps, createHeading } from '../../utils/utils';
-import { Store, isDev } from '../../app';
-import { isString } from 'util'; 
+import { Store } from '../../app'; 
 import { contains, not, isNil, isEmpty, remove } from 'ramda';
 import { Category, filter } from '../MainContainer';
 import { assert } from '../../utils/assert';
 import { generateId } from '../../utils/generateId';
 import { uppercase } from '../../utils/uppercase';
+import { isString } from '../../utils/isSomething';
  
 
 
@@ -45,7 +45,7 @@ export let deleteProject = (dispatch:Function, project:Project, todos:Todo[]) =>
         deleteProject`
     )
     
-    let relatedTodosIds : string[] = project.layout.filter(isString);
+    let relatedTodosIds : string[] = project.layout.filter(isString) as string[];
     
     let selectedTodos : Todo[] = todos.filter(
         (t:Todo) : boolean => contains(t._id)(relatedTodosIds)

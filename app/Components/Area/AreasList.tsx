@@ -14,7 +14,6 @@ import {
     isEmpty, contains, assoc, isNil, not, all, merge 
 } from 'ramda'; 
 import { Category } from '../MainContainer';
-import { isDev } from '../../app';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx'; 
 import { Subscriber } from "rxjs/Subscriber";
@@ -285,14 +284,13 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
         let idx : number = fromArea.attachedProjectsIds.findIndex((id:string) => id===selectedProject._id);
         
-        if(isDev()){ 
-           assert(isArea(fromArea),`fromArea is not of type Area.${JSON.stringify(fromArea)}. moveToClosestArea.`);
-           assert(isArea(closestArea),`closestArea is not of type Area. ${JSON.stringify(closestArea)}. moveToClosestArea.`);
-           assert(isProject(selectedProject),`selectedProject is not of type Project. ${JSON.stringify(selectedProject)}. moveToClosestArea.`);
-           assert(idx!==-1,`selectedProject is not attached to fromArea.${JSON.stringify(selectedProject)}.${JSON.stringify(fromArea)}.`); 
-           assert(isArrayOfStrings(fromArea.attachedProjectsIds),`fromArea.attachedProjectsIds is not an array of strings. ${JSON.stringify(fromArea.attachedProjectsIds)}`);
-           assert(isArrayOfStrings(closestArea.attachedProjectsIds),`closestArea.attachedProjectsIds is not an array of strings.${JSON.stringify(closestArea.attachedProjectsIds)}`);
-        }
+        assert(isArea(fromArea),`fromArea is not of type Area.${JSON.stringify(fromArea)}. moveToClosestArea.`);
+        assert(isArea(closestArea),`closestArea is not of type Area. ${JSON.stringify(closestArea)}. moveToClosestArea.`);
+        assert(isProject(selectedProject),`selectedProject is not of type Project. ${JSON.stringify(selectedProject)}. moveToClosestArea.`);
+        assert(idx!==-1,`selectedProject is not attached to fromArea.${JSON.stringify(selectedProject)}.${JSON.stringify(fromArea)}.`); 
+        assert(isArrayOfStrings(fromArea.attachedProjectsIds),`fromArea.attachedProjectsIds is not an array of strings. ${JSON.stringify(fromArea.attachedProjectsIds)}`);
+        assert(isArrayOfStrings(closestArea.attachedProjectsIds),`closestArea.attachedProjectsIds is not an array of strings.${JSON.stringify(closestArea.attachedProjectsIds)}`);
+    
         
         fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
         closestArea.attachedProjectsIds = [selectedProject._id,...closestArea.attachedProjectsIds];

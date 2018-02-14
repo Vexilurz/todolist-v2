@@ -23,7 +23,7 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
-import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
+import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
 import { 
     debounce, byNotDeleted, byNotCompleted, 
     generateDropStyle, hideChildrens, makeChildrensVisible, 
@@ -34,7 +34,6 @@ import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
 import { equals, allPass, isEmpty, isNil, not, uniq, contains } from 'ramda';
 import { onDrop } from '../TodosList';
-import { isDev } from '../../app'; 
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { arrayMove } from '../../utils/arrayMove';
 import { assert } from '../../utils/assert';
