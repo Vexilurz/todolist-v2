@@ -87,20 +87,28 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
         let relatedTodosIds : string[] = p.layout.filter(isString);
         let selectedTodos : Todo[] = filter(todos, (t:Todo) : boolean => contains(t._id)(relatedTodosIds), "restoreProject");  
 
-        dispatch({type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))})
-        dispatch({type:"updateProject", load:{...p,deleted:undefined}})
+        dispatch({type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))});
+        dispatch({type:"updateProject", load:{...p,deleted:undefined}});
     }
 
 
     onHideFrom = () => {
         let {dispatch,project,todos,selectedCategory} = this.props;
-         
-        let hide = isNil(project.hide) ? [selectedCategory] : 
-                   contains(selectedCategory)(project.hide) ? project.hide :
-                   [...project.hide,selectedCategory]; 
- 
-        dispatch({type:"updateProject", load:{...project,hide}})
-        this.setState({openMenu:false}) 
+        let hide = project.hide;
+
+        if(isNil(hide)){
+            hide = [selectedCategory];
+        }else if(not(contains(selectedCategory)(project.hide))){
+            hide = [...project.hide,selectedCategory];
+        }
+        
+        this.setState(
+            {openMenu:false}, 
+            () => dispatch({
+                type:"updateProject", 
+                load:{...project,hide}
+            }) 
+        );
     }  
 
 

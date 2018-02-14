@@ -35,10 +35,10 @@ import { allPass, compose, isEmpty, uniq, isNil, contains } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { Category } from '../MainContainer';
 import { ProjectLink } from '../Project/ProjectLink';
-import { ExpandableTodosList, GroupsByProjectArea } from './Next';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
+import { GroupsByProjectArea } from '../GroupsByProjectArea';
 
   
  
@@ -107,21 +107,19 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                     {
                         groupTodos ? 
                         <GroupsByProjectArea
-                            {
-                                ...{
-                                    dispatch, 
-                                    selectedProjectId, 
-                                    moveCompletedItemsToLogbook,
-                                    selectedAreaId,
-                                    groupTodos,
-                                    selectedCategory, 
-                                    selectedTag,
-                                    rootRef,
-                                    areas, 
-                                    projects, 
-                                    todos
-                                }
-                            }
+                            dispatch={this.props.dispatch}  
+                            selectedProjectId={this.props.selectedProjectId}
+                            moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                            selectedAreaId={this.props.selectedAreaId}
+                            groupTodos={this.props.groupTodos}
+                            selectedCategory={this.props.selectedCategory}
+                            selectedTag={this.props.selectedTag}
+                            rootRef={this.props.rootRef}
+                            areas={this.props.areas}
+                            projectsFilters={[byNotCompleted, byNotDeleted]}
+                            areasFilters={[byNotDeleted]}
+                            projects={this.props.projects}  
+                            todos={this.props.todos}
                         />
                         :
                         <TodosList      

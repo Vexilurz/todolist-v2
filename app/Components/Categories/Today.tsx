@@ -32,7 +32,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { ContainerHeader } from '.././ContainerHeader';
-import { TodosList, getPlaceholderOffset, onDrop } from '.././TodosList'; 
+import { onDrop } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { compose, allPass, isEmpty, not, assoc, isNil } from 'ramda';
@@ -41,7 +41,6 @@ import { Category, filter } from '../MainContainer';
 import { isDate } from 'util';
 import { ipcRenderer, remote } from 'electron';
 import { CalendarEvent } from '../Calendar';
-import { GroupsByProjectArea } from './Next';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { arrayMove } from '../../utils/arrayMove';
@@ -54,6 +53,7 @@ import { chooseIcon } from '../../utils/chooseIcon';
 import { uppercase } from '../../utils/uppercase';
 import { SortableContainer } from '../CustomSortableContainer';
 import { updateConfig } from '../../utils/config';
+import { GroupsByProjectArea } from '../GroupsByProjectArea';
 
 
 
@@ -305,13 +305,7 @@ export class Today extends Component<TodayProps,TodayState>{
         assert(isTodo(draggedTodo), `draggedTodo is not of type Todo. onSortEnd. ${JSON.stringify(draggedTodo)}`);
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
-            onDrop(
-               event, 
-               draggedTodo, 
-               dispatch,
-               areas,
-               projects
-            ); 
+            onDrop(event, draggedTodo, dispatch, areas, projects); 
         }else{     
             if(oldIndex===newIndex){ return }
             this.changeOrder(oldIndex,newIndex,items);  
@@ -420,24 +414,22 @@ export class Today extends Component<TodayProps,TodayState>{
                         {
                             groupTodos ? 
                             <GroupsByProjectArea
-                                {
-                                    ...{
-                                        dispatch, 
-                                        selectedProjectId, 
-                                        selectedAreaId,
-                                        selectedCategory, 
-                                        groupTodos,
-                                        moveCompletedItemsToLogbook,
-                                        selectedTag,
-                                        rootRef,
-                                        areas, 
-                                        projects, 
-                                        todos
-                                    }   
-                                }
+                                dispatch={dispatch}
+                                selectedProjectId={selectedProjectId}
+                                selectedAreaId={selectedAreaId}
+                                selectedCategory={selectedCategory}
+                                groupTodos={groupTodos}
+                                moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}
+                                selectedTag={selectedTag}
+                                rootRef={rootRef}
+                                areas={areas} 
+                                projectsFilters={[byNotCompleted, byNotDeleted]}
+                                areasFilters={[byNotDeleted]}
+                                projects={projects} 
+                                todos={todos}
                             />
                             :
-                            <SortableContainer  
+                            <SortableContainer   
                                 items={items}
                                 scrollableContainer={this.props.rootRef}
                                 selectElements={(index:number,items:any[]) => [index]}
@@ -445,7 +437,7 @@ export class Today extends Component<TodayProps,TodayState>{
                                 decorators={decorators}
                                 onSortStart={this.onSortStart}   
                                 onSortMove={this.onSortMove} 
-                                onSortEnd={this.onSortEnd}  
+                                onSortEnd={this.onSortEnd}   
                             >   
                                 {items.map((item,index) => this.getElement(item,index))}
                             </SortableContainer> 

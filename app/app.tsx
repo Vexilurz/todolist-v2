@@ -156,11 +156,10 @@ export let defaultStoreItems : Store = {
 
 interface AppProps extends Store{};  
 
-@connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
+@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)  
 export class App extends Component<AppProps,{}>{  
     subscriptions:Subscription[]; 
     timeouts:any[]; 
-
 
     constructor(props){  
         super(props);  
@@ -191,7 +190,6 @@ export class App extends Component<AppProps,{}>{
     ) 
     .then(() => console.log('Application launched'))
     .catch(err => this.onError(err));
-
 
 
     initUpdateTimeout = () => {

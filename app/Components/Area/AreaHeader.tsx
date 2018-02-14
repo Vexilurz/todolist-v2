@@ -30,217 +30,140 @@ import Checked from 'material-ui/svg-icons/navigation/check';
 import { ProjectMenuPopover } from '../Project/ProjectMenu';
 import { contains, isEmpty, isNil } from 'ramda';
 import { TagsPopup } from '../TodoInput/TodoTags';
+import { filter } from '../MainContainer';
+import { isArrayOfTodos, isArrayOfProjects, isArea } from '../../utils/isSomething';
+import { assert } from '../../utils/assert';
 
 
 interface AreaHeaderProps{
-    area:Area,
     name:string, 
     selectedAreaId:string,
-    areas:Area[],
-    projects:Project[],
-    rootRef:HTMLElement, 
-    todos:Todo[], 
     updateAreaName:(value:string) => void,
-    attachTagToArea:(tag:string) => void, 
-    dispatch:Function  
+    deleteArea:() => void
 } 
-  
- 
+
 
 interface AreaHeaderState{
+    name:string,
     menuAnchor:HTMLElement,
     openMenu:boolean,
-    showTagsPopup:boolean,
-    name:string   
+    showTagsPopup:boolean
 }  
-   
-  
+
 
 export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
-
-    menuAnchor:HTMLElement;  
+    menuAnchor:HTMLElement;
     inputRef:HTMLElement;  
-  
+    
     constructor(props){ 
-         
         super(props);
-        
         this.state = {
+            name:this.props.name,
             menuAnchor:null,
             openMenu:false,
-            showTagsPopup:false, 
-            name:this.props.name   
+            showTagsPopup:false 
         }; 
     }  
+ 
 
     componentDidMount(){
-        if(this.inputRef && isEmpty(this.state.name)){
-           this.inputRef.focus()  
+        if(this.inputRef && isEmpty(this.props.name)){
+           this.inputRef.focus();  
         }
 
         if(this.menuAnchor){
-           this.setState({menuAnchor:this.menuAnchor})
+           this.setState({menuAnchor:this.menuAnchor});
         }
     }
+
 
     componentWillReceiveProps(nextProps:AreaHeaderProps){
         if(nextProps.selectedAreaId!==this.props.selectedAreaId){
-            this.setState({
-                openMenu:false,
-                showTagsPopup:false, 
-                name:nextProps.name    
-            }) 
+           this.setState({openMenu:false}); 
+        }
+
+        if(nextProps.name!==this.props.name){
+           this.setState({name:nextProps.name}); 
         }
     }
 
-    openMenu = () => {
-        this.setState({openMenu:true})
-    }
- 
-    closeMenu = () => { 
-        this.setState({openMenu:false})
-    } 
- 
-    onAddTags = () => {
-        this.closeMenu(); 
-        this.setState({showTagsPopup:true})
-    }
- 
-    onDeleteArea = () => {
-        this.closeMenu();  
 
-        let {area} = this.props; 
-
-        if(isNil(area)){ return }
-
-        let relatedTodosIds : string[] = area.attachedTodosIds;
-           
-        let relatedProjectsIds : string[] = area.attachedProjectsIds;
-
-        let selectedProjects : Project[] = this.props.projects.filter(
-            (p:Project) : boolean => contains(p._id)(relatedProjectsIds)
-        );    
-
-        let selectedTodos : Todo[] = this.props.todos.filter(
-            (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
-        );   
-        
-        this.props.dispatch({
-            type:"updateTodos", 
-            load:selectedTodos.map((t:Todo) => ({...t,deleted:new Date()}))
-        });
-
-        this.props.dispatch({
-            type:"updateProjects", 
-            load:selectedProjects.map((p:Project) => ({...p,deleted:new Date()}))
-        });
+    openMenu = () => this.setState({openMenu:true});
  
-        this.props.dispatch({type:"updateArea", load:{...area,deleted:new Date()}});   
-        
-        this.props.dispatch({type:"selectedCategory",load:"inbox"});
-    }
- 
- 
-  
-    updateAreaName = (event) => { 
-        this.setState(
-            {name:event.target.value},  
-            () => this.props.updateAreaName(this.state.name) 
-        )
-    }
-  
+
+    closeMenu = () => this.setState({openMenu:false});
+
+
     render(){ 
+     let {updateAreaName,deleteArea} = this.props;   
 
      return <div>  
-            <div style={{display:"flex", alignItems:"center"}}>
-                <div style={{    
-                       width: "30px",
-                       height: "30px",
-                       position: "relative",
-                       display: "flex",
-                       justifyContent: "center",
-                       alignItems: "center",
-                       boxSizing: "border-box",
-                       marginRight: "10px"
-                }}> 
-                    <NewAreaIcon style={{color:"lightblue", width:"30px", height:"30px"}}/>    
-                </div>  
-                <div style={{width:"100%", overflow:"hidden"}}>
-                    <AutosizeInput 
-                        ref={e => {this.inputRef=e;}}
-                        type="text"
-                        name="form-field-name" 
-                        minWidth={"170px"}
-                        inputStyle={{  
-                            boxSizing: "content-box", 
-                            backgroundColor:"rgba(0,0,0,0)",   
-                            height: "42px",
-                            fontWeight: "bold", 
-                            maxWidth:"450px",
-                            fontFamily: "sans-serif",
-                            border: "none",
-                            fontSize: "26px",
-                            outline: "none"  
-                        }}     
-                        value={this.state.name}
-                        placeholder="New Area" 
-                        onChange={this.updateAreaName} 
-                    />  
-                </div>   
-                <div    
-                    onClick={this.openMenu}  
-                    style={{ 
-                        marginLeft: "5px",
-                        marginRight: "5px",
-                        width: "32px",
-                        height: "32px",
-                        cursor: "pointer"
-                    }}  
-                    ref={ (e) => { this.menuAnchor=e; } }  
-                > 
-                    <ThreeDots style={{  
-                        color:"rgb(179, 179, 179)",
-                        width:"32px", 
-                        height:"32px", 
-                        cursor: "pointer" 
-                    }}/>
-                </div>  
-                {
-                    !this.state.showTagsPopup ? null : 
-                    <TagsPopup   
-                        {
-                            ...{
-                                attachTag:this.props.attachTagToArea, 
-                                rootRef:this.props.rootRef,
-                                close:() => this.setState({showTagsPopup:false}),
-                                open:this.state.showTagsPopup,    
-                                anchorEl:this.menuAnchor, 
-                                origin:{vertical:"top", horizontal:"left"},
-                                point:{vertical:"top", horizontal:"right"}
-                            } as any 
-                        } 
-                    /> 
-                }
-                <AreaMenu
-                    open={this.state.openMenu}
-                    close={this.closeMenu}
-                    onAddTags={this.onAddTags}
-                    onDeleteArea={this.onDeleteArea}
-                    anchorEl={this.state.menuAnchor}  
-                />
-            </div>
-        </div> 
+        <div style={{display:"flex", alignItems:"center"}}>
+            <div style={{    
+                width:"30px",
+                height:"30px",
+                position:"relative",
+                display:"flex",
+                justifyContent:"center",
+                alignItems:"center",
+                boxSizing:"border-box",
+                marginRight:"10px" 
+            }}> 
+                <NewAreaIcon style={{color:"lightblue", width:"30px", height:"30px"}}/>    
+            </div>  
+            <div style={{width:"100%", overflow:"hidden"}}>
+                <AutosizeInput 
+                    ref={e => {this.inputRef=e;}}
+                    type="text"
+                    name="form-field-name" 
+                    minWidth={"170px"}
+                    inputStyle={{  
+                        boxSizing: "content-box", 
+                        backgroundColor:"rgba(0,0,0,0)",   
+                        height: "42px",
+                        fontWeight: "bold", 
+                        maxWidth:"450px",
+                        fontFamily: "sans-serif",
+                        border: "none",
+                        fontSize: "26px",
+                        outline: "none"  
+                    }}     
+                    value={this.state.name}
+                    placeholder="New Area" 
+                    onChange={(event) => {
+                        let name = event.target.value;
+                        this.setState({name},() => updateAreaName(name));
+                    }} 
+                />  
+            </div>   
+            <div    
+                onClick={this.openMenu}  
+                style={{marginLeft:"5px",marginRight:"5px",width:"32px",height:"32px",cursor:"pointer"}}  
+                ref={(e) => { this.menuAnchor=e; }}  
+            > 
+                <ThreeDots style={{color:"rgb(179, 179, 179)",width:"32px",height:"32px",cursor:"pointer"}}/>
+            </div> 
+            <AreaMenu 
+                open={this.state.openMenu}
+                close={this.closeMenu}
+                onDeleteArea={() => {
+                    this.closeMenu();
+                    deleteArea();
+                }}
+                anchorEl={this.state.menuAnchor}  
+            />
+        </div>
+     </div> 
     }
 }
- 
- 
+
+
 
 interface AreaMenuProps{
-    open : boolean,
-    close : Function,
-    onAddTags : Function,
-    onDeleteArea : Function,
-    anchorEl : HTMLElement  
+    open:boolean,
+    close:Function,
+    onDeleteArea:Function,
+    anchorEl:HTMLElement  
 }    
  
 interface AreaMenuState{}
@@ -268,23 +191,19 @@ export class AreaMenu extends Component<AreaMenuProps,AreaMenuState>{
         >   
             <div  className={"darkscroll"}
                   style={{  
-                    backgroundColor: "rgb(39, 43, 53)",
-                    paddingRight: "10px",
-                    paddingLeft: "10px",
-                    borderRadius: "10px",
-                    paddingTop: "5px",
-                    paddingBottom: "5px",
-                    cursor:"pointer" 
+                        backgroundColor: "rgb(39, 43, 53)",
+                        paddingRight: "10px",
+                        paddingLeft: "10px",
+                        borderRadius: "10px",
+                        paddingTop: "5px",
+                        paddingBottom: "5px",
+                        cursor:"pointer" 
                   }} 
             >      
                     <div    
                         onClick={this.props.onDeleteArea as any} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
+                        className="tagItem" 
+                        style={{display:"flex", height:"auto", alignItems:"center", padding:"5px"}}
                     >  
                         <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
                         <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>

@@ -37,17 +37,16 @@ import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
 import { 
     getTodos, queryToTodos, Todo, updateTodo, Project, Area, 
-    removeTodos, removeProjects, removeAreas, updateProjects, updateTodos, 
-    updateAreas, Heading, LayoutItem, Calendar 
+    removeTodos, removeProjects, removeAreas, updateProjects, 
+    updateTodos, updateAreas, Heading, LayoutItem, Calendar 
 } from './../database';
 import { Category } from '.././Components/MainContainer';
 import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist';
 let moment = require("moment");
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { 
-    contains, isNil, all, prepend, isEmpty, last,
-    not, assoc, flatten, toPairs, map, compose, allPass, 
-    uniq, cond 
+    contains, isNil, all, prepend, isEmpty, last, not, assoc, 
+    flatten, toPairs, map, compose, allPass, uniq, cond 
 } from 'ramda'; 
 import { Store } from '.././app';
 import { isDev } from './isDev';
@@ -66,7 +65,8 @@ import {generateId} from './generateId';
 import {assert}  from './assert';
 import {daysRemaining} from './daysRemaining'; 
 import {stringToLength} from './stringToLength';
-import {isItem,isArray,isDate,isFunction,isString,  
+import {
+ isItem,isArray,isDate,isFunction,isString,  
  isCategory,bySomeday,isTodo,isArrayOfTodos, 
  isProject,isArrayOfProjects,isArea, 
  isArrayOfAreas,isArrayOfStrings,Item

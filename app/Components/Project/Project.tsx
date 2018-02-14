@@ -24,21 +24,20 @@ import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area, getTodoById, todos_db, queryToTodos } from '../../database'; 
 import { 
-    debounce, byNotDeleted, byNotCompleted, byTags,  
-    byHaveAttachedDate, byNotSomeday,   
-    byScheduled, convertTodoDates 
+    byNotDeleted, byNotCompleted, byTags, byHaveAttachedDate, byNotSomeday, byScheduled, convertTodoDates 
 } from '../../utils/utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
 import { 
-    adjust, remove, allPass, uniq, contains, isEmpty, map,
-    compose, not, isNil 
+    adjust, remove, allPass, uniq, contains, 
+    isEmpty, map, compose, not, isNil 
 } from 'ramda';
 import { getProgressStatus } from './ProjectLink';
 import { filter } from '../MainContainer';
 import { bySomeday, isProject, isTodo, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { daysRemaining } from '../../utils/daysRemaining';
+import {debounce} from 'lodash'; 
 let Promise = require('bluebird'); 
 
 
@@ -48,7 +47,7 @@ let haveScheduledTodos = (todos:Todo[]) : boolean => {
         (todo:Todo) => byScheduled(todo) || bySomeday(todo), 
         "haveScheduledTodos"
     );
-    return not(isEmpty(filtered)); 
+    return not(isEmpty(filtered));  
 } 
 
 
@@ -82,46 +81,31 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
 
     updateProject = (updatedProps) : void => { 
-        let type = "updateProject";  
-        let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
-        let load = { ...project, ...updatedProps }; 
-        
-        assert(
-           isProject(load), 
-          `load is not a project. ${JSON.stringify(load)}. updateProject. ProjectComponent.`
-        );  
-    
-        this.props.dispatch({type, load}); 
-    } 
+        let load = { ...this.props.project, ...updatedProps }; 
+        assert(isProject(load),`load is not a project. ${JSON.stringify(load)}. updateProject. ProjectComponent.`);  
+        this.props.dispatch({type:"updateProject", load}); 
+    }; 
  
 
-    updateProjectName = debounce((value:string) : void => this.updateProject({name:value}), 50)
+    updateProjectName = debounce((value:string) : void => this.updateProject({name:value}),150);
 
      
-    updateProjectDescription = debounce((value:string) : void => this.updateProject({description:value}), 50)
+    updateProjectDescription = debounce((value:string) : void => this.updateProject({description:value}),150);
 
     
     updateHeading = debounce(
-        (heading_id:string, newValue:string) => { 
-            let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
+        (headingId:string, newValue:string) => { 
+            let {project} = this.props;
             let layout = project.layout;
-            let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
+            let idx = layout.findIndex((i:any) => isString(i) ? false : i._id===headingId);
          
-            assert(
-                idx!==-1, 
-                `Item does not exist.  
-                ${heading_id}.
-                updateHeading. 
-                ${JSON.stringify(layout)}`
-            ) 
+            assert(idx!==-1, `Item does not exist. ${headingId} updateHeading. ${JSON.stringify(layout)}`); 
 
-            let heading : Heading = {...layout[idx] as Heading};
-            heading.title=newValue;
-            let updatedLayout = adjust(() => heading, idx, layout);
+            let updatedLayout = adjust(() => ({...layout[idx] as Heading, title:newValue}), idx, layout);
             this.updateProject({layout:updatedLayout});
         },
         50
-    ) 
+    ); 
     
      
     updateLayoutOrder = (layout:LayoutItem[]) => {
@@ -132,47 +116,33 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         if(allLayoutItemsPresent){ 
 
             this.updateProject({layout});
-        }else{ 
 
+        }else{ 
             let fixed = previousLayout.filter(
-                (item:LayoutItem) => -1===layout.findIndex((updated:LayoutItem) => 
-                    typeof item==="string" ? 
-                    item===updated : 
-                    item["_id"]===updated["_id"]
+                (item:LayoutItem) => -1===layout.findIndex(
+                    (updated:LayoutItem) => isString(item) ? item===updated : item["_id"]===updated["_id"]
                 ) 
             );   
 
             let newLayout : LayoutItem[] = [...fixed,...layout];
             
-            assert( 
-                newLayout.length===project.layout.length, 
-                `Updated layout has incorrect length.
-                ${JSON.stringify(newLayout)}.
-                ${JSON.stringify(project.layout)}.
-                updateLayoutOrder.`  
+            assert(
+               newLayout.length===project.layout.length, 
+              `Updated layout has incorrect length.${JSON.stringify(newLayout)}.${JSON.stringify(project.layout)}.updateLayoutOrder.`  
             );    
 
             this.updateProject({layout:newLayout});
         }   
-    }
+    };
      
 
     removeHeading = (heading_id:string) => {
-        let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
+        let {project} = this.props;
         let layout = project.layout;
-        let idx = layout.findIndex( (i:LayoutItem) => typeof i === "string" ? false : i._id===heading_id );
-
-        assert(
-            idx!==-1, 
-            `Item does not exist. 
-            ${heading_id}.
-            archiveHeading.
-            ${JSON.stringify(layout)}
-            `
-        ) 
-
+        let idx = layout.findIndex((i:any) => isString(i) ? false : i._id===heading_id);
+        assert(idx!==-1,`Item does not exist.${heading_id}.archiveHeading.${JSON.stringify(layout)}`); 
         this.updateProject({layout:remove(idx,1,layout)});
-    }
+    };
 
     
     updateProjectDeadline = (value:Date) => this.updateProject({deadline:value});
@@ -182,25 +152,20 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
         let attachedTags = uniq([tag, ...project.attachedTags]);    
         this.updateProject({attachedTags}); 
-    } 
+    }; 
 
 
-    archiveHeading = (heading_id:string) => {
-        this.removeHeading(heading_id); 
-    } 
+    archiveHeading = (heading_id:string) => { this.removeHeading(heading_id) }; 
       
 
     moveHeading = (heading_id:string) => {}
     
       
     render(){   
-        let { 
-            selectedTag, project, showCompleted, showScheduled, todos
-        } = this.props;
+        let {selectedTag, project, showCompleted, showScheduled, todos} = this.props;
 
         if(isNil(project)){ return null } 
 
-       
         let byNotFuture = (t:Todo) => !isNil(t.attachedDate) ? daysRemaining(t.attachedDate)<=0 : true;
         
         let projectFilters = [ 
@@ -211,15 +176,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
 
         let layout = project.layout
-                            .map(
-                                (item:LayoutItem) => 
-                                    isString(item) ?
-                                    todos.find(todo => todo._id===item) :
-                                    item 
-                            )
-                            .filter(
-                                (item) => not(isNil(item))
-                            );  
+                            .map( (item:LayoutItem) => isString(item) ? todos.find(todo => todo._id===item) : item )
+                            .filter( (item) => not(isNil(item)) );  
                  
 
         let toProjectHeader = filter(
@@ -244,13 +202,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         <ProjectHeader 
                             project={project}
                             rootRef={this.props.rootRef}
-                            name={project.name} 
                             attachTagToProject={this.attachTagToProject}
                             progress={progress}   
-                            description={project.description}
-                            created={project.created as any}   
-                            deadline={project.deadline as any} 
-                            completed={project.completed as any} 
                             selectedTag={this.props.selectedTag}    
                             updateProjectDeadline={this.updateProjectDeadline}
                             updateProjectName={this.updateProjectName}

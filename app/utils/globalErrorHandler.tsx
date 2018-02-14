@@ -28,7 +28,9 @@ export let globalErrorHandler = (error:any) : Promise<void> => {
         if(error.code){ value = error.code; }
         else if(error.lineNumber){ value = error.lineNumber; } 
     } 
-           
+    
+    console.log(message);
+
     return Promise.all(
         [
             googleAnalytics.send(

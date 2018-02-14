@@ -7,10 +7,10 @@ import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
 import { Area, Project, Todo } from '../../database'; 
 import { AreaHeader } from './AreaHeader';
 import { AreaBody } from './AreaBody';
-import { debounce } from '../../utils/utils';
-import { Category } from '../MainContainer';
-import { uniq, isNil } from 'ramda'; 
-import { isArea } from '../../utils/isSomething';
+import { debounce } from 'lodash';
+import { Category, filter } from '../MainContainer';
+import { uniq, isNil, contains } from 'ramda'; 
+import { isArea, isArrayOfTodos, isArrayOfProjects } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
    
   
@@ -28,72 +28,87 @@ interface AreaComponentProps{
     projects:Project[],
     rootRef:HTMLElement 
 } 
-  
- 
+
  
 interface AreaComponentState{}
  
  
 export class AreaComponent extends Component<AreaComponentProps,AreaComponentState>{
-     
-
+    
     constructor(props){ 
         super(props); 
-    }
- 
+    }  
 
-    updateArea = (selectedArea:Area, updatedProps) : void => { 
-        let type = "updateArea"; 
-        let load = { ...selectedArea, ...updatedProps };
+
+    updateArea = (updatedProps) : void => { 
+        let {area,dispatch} = this.props;
+        let load = { ...area, ...updatedProps };
 
         assert(isArea(load), `Load is not an Area. ${JSON.stringify(load)}`);
 
-        this.props.dispatch({type, load});
+        dispatch({type:"updateArea", load});
     }
 
 
-    updateAreaName = debounce((area:Area, value:string) : void => this.updateArea(area, {name:value}), 50) 
-  
-
-    attachTagToArea = (area:Area, tag:string) => {
-        let attachedTags = uniq([tag, ...area.attachedTags]); 
-        this.updateArea(area, {attachedTags});
-    } 
-    
+    updateAreaName = debounce((value:string) : void => this.updateArea({name:value}),150); 
  
+
+    deleteArea = () => {
+        let {area, projects, todos, dispatch} = this.props;
+        
+        
+        let relatedTodosIds : string[] = area.attachedTodosIds;
+        let relatedProjectsIds : string[] = area.attachedProjectsIds;
+        let selectedProjects : Project[] = filter(projects, (p) => contains(p._id)(relatedProjectsIds), "");   
+        let selectedTodos : Todo[] = filter(todos, (t) => contains(t._id)(relatedTodosIds), "");  
+        
+
+        assert(isArea(area),`area is not of type Area. onDeleteArea. ${JSON.stringify(area)}`);
+
+        assert(
+            isArrayOfTodos(selectedTodos),
+            `selectedTodos is not of type Todo[]. onDeleteArea. ${JSON.stringify(selectedTodos)}`
+        );
+
+        assert(
+            isArrayOfProjects(selectedProjects),
+            `selectedProjects is not of type Project[]. onDeleteArea. ${JSON.stringify(selectedProjects)}`
+        );
+        
+        
+        dispatch({ type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:new Date()})) });
+        dispatch({ type:"updateProjects", load:selectedProjects.map((p:Project) => ({...p,deleted:new Date()})) });
+        dispatch({ type:"updateArea", load:{...area,deleted:new Date()} });     
+        dispatch({ type:"selectedCategory", load:"inbox" });
+    }
+
+
+
     render(){
-       
-        return <div>  
-            <div> 
-                <AreaHeader 
-                    area={this.props.area} 
-                    name={this.props.area.name}  
-                    rootRef={this.props.rootRef}
-                    areas={this.props.areas}    
-                    attachTagToArea={(tag:string) => this.attachTagToArea(this.props.area,tag)}
-                    projects={this.props.projects}
-                    todos={this.props.todos} 
-                    selectedAreaId={this.props.selectedAreaId}
-                    updateAreaName={(value:string) => this.updateAreaName(this.props.area,value)}
-                    dispatch={this.props.dispatch}  
-                />   
-            </div> 
-            <div> 
-                <AreaBody  
-                    area={this.props.area}  
-                    selectedCategory={this.props.selectedCategory}
-                    todos={this.props.todos} 
-                    groupTodos={this.props.groupTodos}
-                    selectedAreaId={this.props.selectedAreaId}
-                    selectedProjectId={this.props.selectedProjectId}
-                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                    selectedTag={this.props.selectedTag}
-                    areas={this.props.areas}
-                    projects={this.props.projects}
-                    rootRef={this.props.rootRef} 
-                    dispatch={this.props.dispatch}
-                />
-            </div>  
+        let {area} = this.props;
+
+        return isNil(area) ? null : 
+        <div>  
+            <AreaHeader 
+                name={area.name}  
+                selectedAreaId={this.props.selectedAreaId}
+                updateAreaName={this.updateAreaName}
+                deleteArea={this.deleteArea}
+            />   
+            <AreaBody  
+                area={area}  
+                selectedCategory={this.props.selectedCategory}
+                todos={this.props.todos} 
+                groupTodos={this.props.groupTodos}
+                selectedAreaId={this.props.selectedAreaId}
+                selectedProjectId={this.props.selectedProjectId}
+                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                selectedTag={this.props.selectedTag}
+                areas={this.props.areas}
+                projects={this.props.projects}
+                rootRef={this.props.rootRef} 
+                dispatch={this.props.dispatch}
+            /> 
         </div> 
     }
 } 

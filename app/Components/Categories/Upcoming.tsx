@@ -554,11 +554,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                 {   
                     isEmpty(selectedTodos) ? null :
                     <div style={{
-                        display:"flex",  
-                        flexDirection:"column", 
-                        width:"100%",
-                        paddingTop : "10px",
-                        paddingBottom : "10px" 
+                        display:"flex",flexDirection:"column",width:"100%",paddingTop:"10px",paddingBottom:"10px"
                     }}>   
                         <TodosList    
                             dispatch={this.props.dispatch}  

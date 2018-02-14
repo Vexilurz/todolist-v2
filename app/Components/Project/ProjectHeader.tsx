@@ -24,10 +24,10 @@ import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize'; 
 import { Todo, Project, Heading } from '../../database';
 import { 
-    debounce, getTagsFromItems, 
-    byCategory, byNotCompleted, 
+    getTagsFromItems, byCategory, byNotCompleted, 
     byNotDeleted, daysLeftMark, getMonthName 
 } from '../../utils/utils';
+import { debounce } from 'lodash'; 
 import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
@@ -39,113 +39,93 @@ import { daysRemaining } from '../../utils/daysRemaining';
 let moment = require("moment");  
 
 
+
 interface ProjectHeaderProps{
-    project:Project,
-    rootRef:HTMLElement, 
-    name:string, 
-    selectedTag:string,
-    todos:Todo[],  
-    description:string,
-    created:Date,
-    deadline:Date, 
-    completed:Date,  
-    updateProjectDeadline:(value:Date) => void,
     updateProjectName:(value:string) => void,
     updateProjectDescription:(value:string) => void,
+    updateProjectDeadline:(value:Date) => void,
     attachTagToProject:(tag:string) => void,
+    project:Project,
+    rootRef:HTMLElement, 
+    selectedTag:string,
+    todos:Todo[],  
     progress:{done:number,left:number}, 
     dispatch:Function   
 }
-     
+
+
   
 interface ProjectHeaderState{
-    projectMenuPopoverAnchor:HTMLElement,
-    name:string, 
-    description:string,
     showTagsPopup:boolean,
-    showDeadlineCalendar:boolean   
+    showDeadlineCalendar:boolean,
+    name:string,
+    description:string  
 }
   
 
-export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderState>{
 
+export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderState>{
     projectMenuPopoverAnchor:HTMLElement;  
     inputRef:HTMLElement;  
 
     constructor(props){ 
-         
         super(props);
-
-        this.state = {
-            projectMenuPopoverAnchor:null,
-            name:this.props.name,
-            description:this.props.description, 
+        let {project} = this.props;
+        this.state={
             showDeadlineCalendar:false,
-            showTagsPopup:false    
-        }
+            showTagsPopup:false,
+            name:project.name,
+            description:project.description    
+        };  
     }   
  
-   
 
     componentDidMount(){ 
-        if(this.inputRef && isEmpty(this.state.name)){
+        let {project} = this.props; 
+
+        if(this.inputRef && isEmpty(project.name)){
            this.inputRef.focus();  
-        } 
- 
-        if(this.projectMenuPopoverAnchor){
-           this.setState({projectMenuPopoverAnchor:this.projectMenuPopoverAnchor});
         }
     }
-     
-   
 
-    componentWillReceiveProps(nextProps:ProjectHeaderProps, nextState:ProjectHeaderState){
 
-        if(this.props.name!==nextProps.name){
-           this.setState({name:nextProps.name});
+    componentWillReceiveProps(nextProps:ProjectHeaderProps,nextState:ProjectHeaderState){
+        if(this.props.project.description!==nextProps.project.description){
+           this.setState({description:nextProps.project.description}); 
         }
 
-        if(this.props.description!==nextProps.description){
-           this.setState({description:nextProps.description});
+        if(this.props.project.name!==nextProps.project.name){
+           this.setState({name:nextProps.project.name}); 
         }
-           
-        if(!this.state.projectMenuPopoverAnchor && !!this.projectMenuPopoverAnchor){
-            this.setState({projectMenuPopoverAnchor:this.projectMenuPopoverAnchor});
-        }
-    }    
+    }
+
     
-
-    updateProjectName = (value : string) => {
-        this.setState({name:value}, () => this.props.updateProjectName(value));
-    }
+    updateProjectName = (value) => this.setState({name:value}, () => this.props.updateProjectName(value));
  
 
-    updateProjectDescription = (newValue : string) => {    
-        this.setState({description:newValue}, () => this.props.updateProjectDescription(newValue));
-    }
+    updateProjectDescription = (newValue) => this.setState(
+        {description:newValue}, 
+        () => this.props.updateProjectDescription(newValue)
+    );
  
+
     openMenu = (e) => this.props.dispatch({type:"showProjectMenuPopover", load:true});
     
-    closeDeadlineCalendar = (e) => {
-        this.setState({showDeadlineCalendar:false}); 
-    }
 
-    onDeadlineCalendarClear = (e) => {
-        this.setState({showDeadlineCalendar:false});  
-    }
+    closeDeadlineCalendar = (e) => this.setState({showDeadlineCalendar:false});
+
+
+    onDeadlineCalendarClear = (e) => this.setState({showDeadlineCalendar:false});
+
 
     onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
-        let remaining = daysRemaining(day);
-            
-        if(remaining>=0){
-           this.props.updateProjectDeadline(day); 
-           this.setState({showDeadlineCalendar:false});  
-        }
+        this.setState({showDeadlineCalendar:false}, () => this.props.updateProjectDeadline(day));  
     };   
  
+
     render(){ 
         let {todos,project,rootRef} = this.props;
-        let {projectMenuPopoverAnchor,showDeadlineCalendar,showTagsPopup} = this.state; 
+        let {showDeadlineCalendar,showTagsPopup} = this.state; 
         let {done,left} = this.props.progress; 
         let tags = getTagsFromItems(todos); 
         let totalValue = (done+left)===0 ? 1 : (done+left);
@@ -153,15 +133,15 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
 
         return <div>  
             <ProjectMenuPopover 
-            {
+                {
                 ...{
                     project,   
-                    anchorEl:projectMenuPopoverAnchor,
+                    anchorEl:this.projectMenuPopoverAnchor,
                     rootRef,   
                     openDeadlineCalendar:() => this.setState({showDeadlineCalendar:true}),    
                     openTagsPopup:() => this.setState({showTagsPopup:true}) 
-                } as any  
-            }     
+                } as any
+                }     
             />    
             {      
                 not(showDeadlineCalendar) ? null : 
@@ -274,33 +254,28 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                 </div>   
             </div> 
             {     
-                isNil(this.props.deadline) ? null :        
-                <div 
-                    className="unselectable"
-                    style={{ 
-                        paddingTop:'15px', 
-                        cursor:"default",
-                        WebkitUserSelect:"none", 
-                        display:"flex",  
-                        alignItems:"center",  
-                        height:"30px"
-                    }}
-                > 
-                    <div style={{paddingRight:"5px", paddingTop:"5px"}}> 
-                        <Flag style={{        
-                            color:"black",   
-                            cursor:"default",  
-                            width:"20px",   
-                            height:"20px"
-                        }}/>   
-                    </div>   
-                    <div style={{color:"black", fontSize:"15px", fontWeight:"bold", paddingRight:"20px"}}>
-                        {`Deadline: ${getMonthName(this.props.deadline).slice(0,3)}. ${this.props.deadline.getDate()}`} 
-                    </div> 
-                    <div> 
-                        {daysLeftMark(false, this.props.deadline, 15)}
-                    </div>    
+            isNil(project.deadline) ? null :        
+            <div 
+                className="unselectable"
+                style={{ 
+                    paddingTop:'15px', 
+                    cursor:"default",
+                    WebkitUserSelect:"none", 
+                    display:"flex",  
+                    alignItems:"center",  
+                    height:"30px"
+                }}
+            > 
+                <div style={{paddingRight:"5px", paddingTop:"5px"}}> 
+                    <Flag style={{color:"black",cursor:"default",width:"20px",height:"20px"}}/>   
+                </div>   
+                <div style={{color:"black", fontSize:"15px", fontWeight:"bold", paddingRight:"20px"}}>
+                    {`Deadline: ${getMonthName(project.deadline).slice(0,3)}. ${project.deadline.getDate()}`} 
                 </div> 
+                <div> 
+                    {daysLeftMark(false, project.deadline, 15)}
+                </div>    
+            </div> 
             }    
             <div>                
                 <TextField       

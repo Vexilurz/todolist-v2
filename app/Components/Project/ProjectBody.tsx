@@ -42,6 +42,7 @@ import { insideTargetArea } from '../../utils/insideTargetArea';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
 import { SortableContainer } from '../CustomSortableContainer';
+import { Category } from '../MainContainer';
 
 
 
@@ -80,7 +81,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     }  
     
 
-
     getElement = (value:Heading | Todo, index:number) : JSX.Element => { 
         
         switch(value.type){ 
@@ -101,7 +101,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                             selectedProjectId={this.props.selectedProjectId}
                             selectedAreaId={this.props.selectedAreaId} 
                             todos={this.props.todos}
-                            selectedCategory={"project"}
+                            selectedCategory={this.props.selectedCategory as Category}
                             rootRef={this.props.rootRef}  
                             todo={value as Todo}
                         />     
@@ -217,7 +217,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         this.props.updateLayoutOrder(layoutItems);    
     }
 
-    
        
     onSortStart = (oldIndex:number, event:any) : void => {
         let {dispatch, items} = this.props;
@@ -227,11 +226,11 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         
         dispatch({type:"dragged",load:item.type});
     } 
-         
-    onSortMove = (oldIndex:number, event) : void => {
-        
-    } 
     
+    
+    onSortMove = (oldIndex:number, event) : void => {} 
+    
+
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
         this.props.dispatch({type:"dragged",load:null}); 
         let x = event.clientX;  
@@ -285,7 +284,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     
     render(){  
         let empty = generateEmptyTodo(generateId(),"project",0);
+        
         let {selectedCategory} = this.props;
+
         let decorators = [{  
             area:document.getElementById("leftpanel"),  
             decorator:generateDropStyle("nested"),
