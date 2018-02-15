@@ -68,6 +68,10 @@ acorn@^5.0.0:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.2.1.tgz#317ac7821826c22c702d66189ab8359675f135d7"
 
+adler32cs@0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/adler32cs/-/adler32cs-0.0.1.tgz#9e29cd8087564d7055209ced1206a58d22e778eb"
+
 ajv-keywords@^1.1.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/ajv-keywords/-/ajv-keywords-1.5.1.tgz#314dd0a4b3368fad3dfcdc54ede6171b886daf3c"
@@ -814,7 +818,7 @@ babel-register@^6.26.0:
     mkdirp "^0.5.1"
     source-map-support "^0.4.15"
 
-babel-runtime@^6.18.0, babel-runtime@^6.22.0, babel-runtime@^6.23.0, babel-runtime@^6.26.0:
+babel-runtime@^6.11.6, babel-runtime@^6.18.0, babel-runtime@^6.22.0, babel-runtime@^6.23.0, babel-runtime@^6.26.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-runtime/-/babel-runtime-6.26.0.tgz#965c7058668e82b55d7bfe04ff2337bc8b5647fe"
   dependencies:
@@ -1233,6 +1237,10 @@ center-align@^0.1.1:
   dependencies:
     align-text "^0.1.3"
     lazy-cache "^1.0.3"
+
+cf-blob.js@0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/cf-blob.js/-/cf-blob.js-0.0.1.tgz#f5ab7e12e798caf08ccf828c69aba0f063d83f99"
 
 chain-function@^1.0.0:
   version "1.0.0"
@@ -1879,6 +1887,10 @@ dom-serializer@0:
     domelementtype "~1.1.1"
     entities "~1.1.1"
 
+dom-to-image@^2.6.0:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/dom-to-image/-/dom-to-image-2.6.0.tgz#8a503608088c87b1c22f9034ae032e1898955867"
+
 domain-browser@^1.1.1:
   version "1.1.7"
   resolved "https://registry.yarnpkg.com/domain-browser/-/domain-browser-1.1.7.tgz#867aa4b093faa05f1de08c06f4d7b21fdf8698bc"
@@ -2197,7 +2209,7 @@ error-ex@^1.2.0:
   dependencies:
     is-arrayish "^0.2.1"
 
-es6-promise@^4.0.5:
+es6-promise@^4.0.5, es6-promise@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/es6-promise/-/es6-promise-4.1.1.tgz#8811e90915d9a0dba36274f0b242dbda78f9c92a"
 
@@ -2318,7 +2330,7 @@ fastparse@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/fastparse/-/fastparse-1.1.1.tgz#d1e2643b38a94d7583b479060e6c4affc94071f8"
 
-fbjs@^0.8.1, fbjs@^0.8.16, fbjs@^0.8.6, fbjs@^0.8.9:
+fbjs@^0.8.0, fbjs@^0.8.1, fbjs@^0.8.16, fbjs@^0.8.6, fbjs@^0.8.9:
   version "0.8.16"
   resolved "https://registry.yarnpkg.com/fbjs/-/fbjs-0.8.16.tgz#5e67432f550dc41b572bf55847b8aca64e5337db"
   dependencies:
@@ -2341,6 +2353,10 @@ file-loader@^0.11.2:
   resolved "https://registry.yarnpkg.com/file-loader/-/file-loader-0.11.2.tgz#4ff1df28af38719a6098093b88c82c71d1794a34"
   dependencies:
     loader-utils "^1.0.2"
+
+file-saver@1.3.3:
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/file-saver/-/file-saver-1.3.3.tgz#cdd4c44d3aa264eac2f68ec165bc791c34af1232"
 
 filename-regex@^2.0.0:
   version "2.0.1"
@@ -2856,6 +2872,18 @@ html-webpack-plugin@^2.30.1:
     pretty-error "^2.0.2"
     toposort "^1.0.0"
 
+"html2canvas@https://github.com/eKoopmans/html2canvas/tarball/develop":
+  version "0.5.0-beta4"
+  resolved "https://github.com/eKoopmans/html2canvas/tarball/develop#e6b1adecf77ed8213421c3cce96fe6796b4403a0"
+
+html2pdf.js@^0.8.2:
+  version "0.8.2"
+  resolved "https://registry.yarnpkg.com/html2pdf.js/-/html2pdf.js-0.8.2.tgz#fcea973fec01c2f7d726d88c8424805e831bbef7"
+  dependencies:
+    es6-promise "^4.1.1"
+    html2canvas "https://github.com/eKoopmans/html2canvas/tarball/develop"
+    jspdf "^1.3.5"
+
 htmlparser2@~3.3.0:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/htmlparser2/-/htmlparser2-3.3.0.tgz#cc70d05a59f6542e43f0e685c982e14c924a9efe"
@@ -3322,6 +3350,14 @@ jsonfile@^4.0.0:
 jsonify@~0.0.0:
   version "0.0.0"
   resolved "https://registry.yarnpkg.com/jsonify/-/jsonify-0.0.0.tgz#2c74b6ee41d93ca51b7b5aaee8f503631d252a73"
+
+jspdf@^1.3.5:
+  version "1.3.5"
+  resolved "https://registry.yarnpkg.com/jspdf/-/jspdf-1.3.5.tgz#e8c9d96fe1c1f152fce430f41d5ec66f17e10f19"
+  dependencies:
+    adler32cs "0.0.1"
+    cf-blob.js "0.0.1"
+    file-saver "1.3.3"
 
 jsprim@^1.2.2:
   version "1.4.1"
@@ -4595,6 +4631,10 @@ print-js@^1.0.31:
   version "1.0.31"
   resolved "https://registry.yarnpkg.com/print-js/-/print-js-1.0.31.tgz#3c927c2d9be5705aa580e2d32c812fdaf99197d1"
 
+printd@^0.0.9:
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/printd/-/printd-0.0.9.tgz#bf0aa11fbf774f3bcbfa38edb149f204d0e4a633"
+
 private@^0.1.6, private@^0.1.7:
   version "0.1.8"
   resolved "https://registry.yarnpkg.com/private/-/private-0.1.8.tgz#2381edb3689f7a53d653190060fcf822d2f368ff"
@@ -4715,6 +4755,12 @@ range-parser@0.0.4:
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/range-parser/-/range-parser-0.0.4.tgz#c0427ffef51c10acba0782a46c9602e744ff620b"
 
+rc-print@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/rc-print/-/rc-print-1.0.2.tgz#f490bd0558aafaca398acd55f7b9c865c10718ca"
+  dependencies:
+    babel-runtime "^6.11.6"
+
 rc@^1.0.1, rc@^1.1.2, rc@^1.1.6, rc@^1.1.7, rc@^1.2.1:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/rc/-/rc-1.2.2.tgz#d8ce9cb57e8d64d9c7badd9876c7c34cbe3c7077"
@@ -4744,6 +4790,10 @@ react-day-picker@^7.0.4:
   dependencies:
     object-assign "^4.1.1"
     prop-types "^15.6.0"
+
+react-dom@15.0.1:
+  version "15.0.1"
+  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-15.0.1.tgz#33c67f557b43ab27a6ba3ec3200321681921c48d"
 
 react-dom@^15.6.1:
   version "15.6.2"
@@ -4782,6 +4832,13 @@ react-minimal-pie-chart@^3.0.1:
   dependencies:
     prop-types "^15.5.7"
 
+react-print@^1.3.1:
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/react-print/-/react-print-1.3.1.tgz#dc66e4a279e10edc0cc484169aa9e0e1fb285e12"
+  dependencies:
+    react "15.0.1"
+    react-dom "15.0.1"
+
 react-redux@^5.0.6:
   version "5.0.6"
   resolved "https://registry.yarnpkg.com/react-redux/-/react-redux-5.0.6.tgz#23ed3a4f986359d68b5212eaaa681e60d6574946"
@@ -4818,6 +4875,13 @@ react-test-renderer@^15.6.1:
     fbjs "^0.8.9"
     object-assign "^4.1.0"
 
+react-to-print@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/react-to-print/-/react-to-print-1.0.6.tgz#e9a49f20344d2ceb4faf552a520aba97eb4a8be6"
+  dependencies:
+    prop-types "^15.6.0"
+    react "^16.2.0"
+
 react-transition-group@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/react-transition-group/-/react-transition-group-1.2.1.tgz#e11f72b257f921b213229a774df46612346c7ca6"
@@ -4846,6 +4910,14 @@ react-waypoint@^7.3.2:
     consolidated-events "^1.1.0"
     prop-types "^15.0.0"
 
+react@15.0.1:
+  version "15.0.1"
+  resolved "https://registry.yarnpkg.com/react/-/react-15.0.1.tgz#262d4f073a384c2a0421afb82d97c8f7df581c09"
+  dependencies:
+    fbjs "^0.8.0"
+    loose-envify "^1.1.0"
+    object-assign "^4.0.1"
+
 react@^15.6.1:
   version "15.6.2"
   resolved "https://registry.yarnpkg.com/react/-/react-15.6.2.tgz#dba0434ab439cfe82f108f0f511663908179aa72"
@@ -4855,6 +4927,15 @@ react@^15.6.1:
     loose-envify "^1.1.0"
     object-assign "^4.1.0"
     prop-types "^15.5.10"
+
+react@^16.2.0:
+  version "16.2.0"
+  resolved "https://registry.yarnpkg.com/react/-/react-16.2.0.tgz#a31bd2dab89bff65d42134fa187f24d054c273ba"
+  dependencies:
+    fbjs "^0.8.16"
+    loose-envify "^1.1.0"
+    object-assign "^4.1.1"
+    prop-types "^15.6.0"
 
 reactcss@^1.2.0:
   version "1.2.3"
@@ -5750,6 +5831,10 @@ to-object-path@^0.3.0:
   resolved "https://registry.yarnpkg.com/to-object-path/-/to-object-path-0.3.0.tgz#297588b7b0e7e0ac08e04e672f85c1f4999e17af"
   dependencies:
     kind-of "^3.0.2"
+
+to-png@^0.2.5:
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/to-png/-/to-png-0.2.5.tgz#22f69f02e0d466ad366636a6752dd59e822e4982"
 
 to-regex-range@^2.1.0:
   version "2.1.1"

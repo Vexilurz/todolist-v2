@@ -123,7 +123,7 @@ export class Next extends Component<NextProps, NextState>{
         }
 
 
-        return  <div style={{WebkitUserSelect:"none"}}>
+        return  <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}>
                     <ContainerHeader 
                         selectedCategory={selectedCategory}  
                         dispatch={this.props.dispatch}  
@@ -146,7 +146,7 @@ export class Next extends Component<NextProps, NextState>{
                         rootRef={this.props.rootRef} 
                         todo={empty as any}  
                     />  
-                    <div id={`${selectedCategory}-list`}>
+                    <div>
                         <div>
                             {
                                 groupTodos ? 

@@ -85,10 +85,10 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
 
 
     render(){
-        let {area} = this.props;
+        let {area,selectedCategory} = this.props;
 
         return isNil(area) ? null : 
-        <div>  
+        <div id={`${selectedCategory}-list`}>  
             <AreaHeader 
                 name={area.name}  
                 selectedAreaId={this.props.selectedAreaId}
@@ -108,7 +108,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                 projects={this.props.projects}
                 rootRef={this.props.rootRef} 
                 dispatch={this.props.dispatch}
-            /> 
+            />  
         </div> 
     }
 } 

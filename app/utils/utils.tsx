@@ -4,7 +4,7 @@ import * as ReactDOM from 'react-dom';
 import {  
   cyan500, cyan700, pinkA200,  
   grey100, grey300, grey400, 
-  grey500, white, darkBlack, 
+  grey500, white, darkBlack,  
   fullBlack   
 } from 'material-ui/styles/colors'; 
 import {fade} from 'material-ui/utils/colorManipulator';
@@ -58,9 +58,7 @@ import axios from 'axios';
 import { Table } from '.././Components/Categories/Next';
 const storage = remote.require('electron-json-storage');
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
-import printJS from 'print-js'; 
 import { globalErrorHandler } from './globalErrorHandler';
-var PHE = require("print-html-element"); 
 import {generateId} from './generateId';
 import {assert}  from './assert';
 import {daysRemaining} from './daysRemaining'; 
@@ -72,31 +70,37 @@ import {
  isArrayOfAreas,isArrayOfStrings,Item
 } from './isSomething';
 import {generateEmptyTodo} from './generateEmptyTodo';
-
+import toPng from 'to-png';
+let PHE = require("print-html-element");
+var domtoimage = require('dom-to-image');
 export let isMainWindow = () => { 
     return remote.getCurrentWindow().id===1; 
 }
 
 
 export let printElement = (selectedCategory:Category, list:HTMLElement) => {
-    let opts = {
-        printMode: "iframe", //iframe (default), or popup
-        pageTitle: selectedCategory,
-        templateString: '{{printBody}}',
-        popupProperties: '', //such as menubar, scrollbars
-        stylesheets: '', 
-        styles: ''
-    };  
-    
-    PHE.printElement( list, opts ); // Prints a DOM Element
-    //PHE.printHtml( list, opts ); // Prints an HTML string
+    //const clone = list.cloneNode(true) as HTMLElement;
+    //const removeElements = (elms) => [...elms].forEach(el => el.remove());
+    //removeElements( clone.querySelectorAll(".no-print") );
+
+    domtoimage
+    .toPng(
+        list, 
+        { 
+            filter:(node) => {
+                if(node.className==='no-print'){ console.log(`${node} no-print should exclude.`) };
+                   return node.className!=='no-print'; 
+            }
+        }  
+    )
+    .then(function (dataUrl) {
+        let img = document.createElement("img");
+        img.src = dataUrl;
+        PHE.printElement( img );
+    })
+    .catch(function (error) { globalErrorHandler(error) });
 }
 
-
-
-export let printTodos = (todos:Todo[]) : void => { 
-    printJS({printable:todos, type:'json', properties:[]});  
-} 
 
 
 export let measureTime = (f:() => void) => {

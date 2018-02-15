@@ -35,7 +35,7 @@ import { ContainerHeader } from '.././ContainerHeader';
 import { onDrop } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { compose, allPass, isEmpty, not, assoc, isNil, flatten, contains, intersection } from 'ramda';
+import { compose, allPass, isEmpty, not, assoc, isNil, flatten, contains, intersection, defaultTo } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { Category, filter } from '../MainContainer';
 import { isDate } from 'util';
@@ -55,13 +55,13 @@ import { SortableContainer } from '../CustomSortableContainer';
 import { updateConfig } from '../../utils/config';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
-
+import Print from 'rc-print';
 
 
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map((item,index:number) => assoc("priority",index,item)) 
 }
- 
+  
 
 
 class ThisEveningSeparator extends Component<{},{}>{
@@ -158,7 +158,7 @@ interface TodaySeparator{
 
  
 export class Today extends Component<TodayProps,TodayState>{
-
+    ref:HTMLElement;
 
     constructor(props){
         super(props);
@@ -377,94 +377,95 @@ export class Today extends Component<TodayProps,TodayState>{
             ) 
         }
         
-        return <div style={{disaply:"flex", flexDirection:"column"}}> 
-            <div style={{width: "100%"}}> 
-                    <div style={{  
-                        display:"flex", 
-                        position:"relative",
-                        alignItems:"center",
-                        marginBottom:"20px"
-                    }}>   
-                        <div>
-                            {chooseIcon({width:"50px",height:"50px"}, "today")}
-                        </div> 
-                        <div style={{  
-                            fontFamily: "sans-serif",   
-                            fontSize: "xx-large",
-                            fontWeight: 600,
-                            paddingLeft: "10px", 
-                            cursor:"default" 
-                        }}>   
-                            Today 
-                        </div> 
-                    </div> 
-                    <FadeBackgroundIcon    
-                        container={this.props.rootRef} 
-                        selectedCategory={selectedCategory as Category}
-                        show={isEmpty(items)}
-                    />  
-                    <Tags  
-                        selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
-                        tags={tags} 
-                        selectedTag={this.props.selectedTag}
-                        show={true}  
-                    />     
-                    <TodaySchedule show={showCalendarEvents} events={events}/>  
-                    <Hint 
-                        {
-                            ...{
-                            text:`These are your tasks for today. 
-                            Do you also want to include the events from your calendar?`
-                            } as any  
-                        } 
-                    /> 
-                <div id="todos">         
+        
+
+        return <div 
+            id={`${selectedCategory}-list`}
+            ref={(e) => {this.ref=e;}}             
+            style={{disaply:"flex", flexDirection:"column", width: "100%"}}
+        > 
+            <div style={{ display:"flex", position:"relative", alignItems:"center", marginBottom:"20px"}}>   
+                <div>{chooseIcon({width:"50px",height:"50px"}, "today")}</div> 
+                <div style={{  
+                    fontFamily: "sans-serif",   
+                    fontSize: "xx-large",
+                    fontWeight: 600,
+                    paddingLeft: "10px", 
+                    cursor:"default" 
+                }}>   
+                    Today  
+                </div> 
+            </div> 
+            <FadeBackgroundIcon    
+                container={this.props.rootRef} 
+                selectedCategory={selectedCategory as Category}
+                show={isEmpty(items)}
+            />  
+            <div className={`no-print`}>
+                <Tags  
+                    selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
+                    tags={tags} 
+                    selectedTag={this.props.selectedTag}
+                    show={true}  
+                />  
+                <TodaySchedule show={showCalendarEvents} events={events}/>  
+                <Hint 
+                    {
+                        ...{
+                        text:`These are your tasks for today. 
+                        Do you also want to include the events from your calendar?`
+                        } as any  
+                    } 
+                /> 
+            </div>
+            <div id="todos">  
+                <div className={`no-print`}>        
                     <TodoCreationForm  
                         dispatch={this.props.dispatch}  
                         selectedCategory={this.props.selectedCategory} 
                         selectedProjectId={this.props.selectedProjectId}
                         selectedAreaId={this.props.selectedAreaId} 
                         todos={this.props.todos} 
-                        projects={this.props.projects}
+                        projects={this.props.projects} 
                         rootRef={this.props.rootRef} 
                         todo={empty as any}  
                     /> 
-                    <div id={`${selectedCategory}-list`} style={{position:"relative"}}>   
-                        {
-                            groupTodos ? 
-                            <GroupsByProjectArea
-                                dispatch={dispatch}
-                                selectedProjectId={selectedProjectId}
-                                selectedAreaId={selectedAreaId}
-                                selectedCategory={selectedCategory}
-                                groupTodos={groupTodos}
-                                moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}
-                                selectedTag={selectedTag}
-                                rootRef={rootRef}
-                                areas={areas} 
-                                projectsFilters={[byNotCompleted, byNotDeleted]}
-                                areasFilters={[byNotDeleted]}
-                                projects={projects} 
-                                todos={todos}
-                            />
-                            :
-                            <SortableContainer   
-                                items={items}
-                                scrollableContainer={this.props.rootRef}
-                                selectElements={(index:number,items:any[]) => [index]}
-                                shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
-                                decorators={decorators}
-                                onSortStart={this.onSortStart}   
-                                onSortMove={this.onSortMove} 
-                                onSortEnd={this.onSortEnd}   
-                            >   
-                                {items.map((item,index) => this.getElement(item,index))}
-                            </SortableContainer> 
-                        }
-                    </div>  
-                </div>     
-            </div>
-    </div>
+                </div>
+                <div style={{position:"relative"}}>   
+                    {
+                        groupTodos ? 
+                        <GroupsByProjectArea
+                            dispatch={dispatch}
+                            selectedProjectId={selectedProjectId}
+                            selectedAreaId={selectedAreaId}
+                            selectedCategory={selectedCategory}
+                            groupTodos={groupTodos}
+                            moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}
+                            selectedTag={selectedTag}
+                            rootRef={rootRef}
+                            areas={areas} 
+                            projectsFilters={[byNotCompleted, byNotDeleted]}
+                            areasFilters={[byNotDeleted]}
+                            projects={projects} 
+                            todos={todos}
+                        />
+                        :
+                        <SortableContainer   
+                            items={items}
+                            scrollableContainer={this.props.rootRef}
+                            selectElements={(index:number,items:any[]) => [index]}
+                            shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
+                            decorators={decorators}
+                            onSortStart={this.onSortStart}   
+                            onSortMove={this.onSortMove} 
+                            onSortEnd={this.onSortEnd}   
+                        >   
+                            {items.map((item,index) => this.getElement(item,index))}
+                        </SortableContainer> 
+                    }
+                </div>  
+            </div> 
+        </div>
   } 
 }
 

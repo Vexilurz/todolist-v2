@@ -346,7 +346,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         let {todos,projects,selectedTag,dispatch,selectedCategory} = this.props;
         let tags = getTagsFromItems(todos);
 
-        return <div style={{WebkitUserSelect:"none"}}> 
+        return <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}> 
                 <div style={{paddingBottom:"20px"}}>
                     <ContainerHeader 
                         selectedCategory={selectedCategory} 
@@ -356,18 +356,19 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                         selectedTag={selectedTag} 
                     />
                 </div>
-                <Hint {
-                    ...{
-                        text:`These are your tasks for the next days. 
-                        Do you also want to include the events from your calendar?`
-                    } as any  
-                }/> 
-                <div id={`upcoming-list`}>{this.state.objects.map(this.objectToComponent)}</div>
-
-                <div style={{width:"100%", height:"1px"}}> 
+                <div className={`no-print`}>
+                    <Hint {
+                        ...{
+                            text:`These are your tasks for the next days. 
+                            Do you also want to include the events from your calendar?`
+                        } as any  
+                    }/>
+                </div> 
+                <div>{this.state.objects.map(this.objectToComponent)}</div>
+                <div className={`no-print`} style={{width:"100%", height:"1px"}}> 
                     <Waypoint  
                         onEnter={this.onEnter} 
-                        onLeave={({ previousPosition, currentPosition, event }) => {}}
+                        onLeave={({previousPosition, currentPosition, event}) => {}}
                     />
                 </div> 
         </div> 

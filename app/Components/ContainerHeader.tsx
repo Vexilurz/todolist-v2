@@ -56,8 +56,8 @@ export class ContainerHeader extends Component<ContainerHeaderProps,ContainerHea
                     {uppercase(this.props.selectedCategory)}
                 </div> 
              
-            </div> 
-            <div>       
+            </div>  
+            <div className={`no-print`}>       
                 <Tags  
                   selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
                   tags={this.props.tags} 

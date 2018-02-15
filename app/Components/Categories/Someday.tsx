@@ -71,15 +71,15 @@ export class Someday extends Component<SomedayProps, SomedayState>{
     } 
  
     render(){
-        let {
-          projects, areas, todos, selectedTag, selectedCategory, groupTodos,
-          dispatch, selectedProjectId, selectedAreaId, rootRef, 
-          moveCompletedItemsToLogbook
+        let { 
+            projects, areas, todos, selectedTag, selectedCategory, groupTodos,
+            dispatch, selectedProjectId, selectedAreaId, rootRef, moveCompletedItemsToLogbook
         } = this.props;
+
         let tags = getTagsFromItems(todos);
         let empty = generateEmptyTodo(generateId(),selectedCategory,0);   
-         
-        return <div style={{WebkitUserSelect:"none"}}>
+          
+        return <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}>
             <ContainerHeader  
                 selectedCategory={selectedCategory} 
                 dispatch={this.props.dispatch} 
@@ -92,52 +92,52 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                 selectedCategory={selectedCategory}  
                 show={isEmpty(todos)}
             />  
-            <TodoCreationForm  
-                dispatch={this.props.dispatch}  
-                selectedCategory={this.props.selectedCategory} 
-                selectedProjectId={this.props.selectedProjectId}
-                selectedAreaId={this.props.selectedAreaId} 
-                todos={this.props.todos} 
-                projects={this.props.projects} 
-                rootRef={this.props.rootRef} 
-                todo={empty as any} 
-            />   
-            <div id={`${selectedCategory}-list`} >    
-                <div id="todos">      
-                    {
-                        groupTodos ? 
-                        <GroupsByProjectArea
-                            dispatch={this.props.dispatch}  
-                            selectedProjectId={this.props.selectedProjectId}
-                            moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                            selectedAreaId={this.props.selectedAreaId}
-                            groupTodos={this.props.groupTodos}
-                            selectedCategory={this.props.selectedCategory}
-                            selectedTag={this.props.selectedTag}
-                            rootRef={this.props.rootRef}
-                            areas={this.props.areas}
-                            projectsFilters={[byNotCompleted, byNotDeleted]}
-                            areasFilters={[byNotDeleted]}
-                            projects={this.props.projects}  
-                            todos={this.props.todos}
-                        />
-                        :
-                        <TodosList      
-                            areas={this.props.areas}
-                            selectedAreaId={this.props.selectedAreaId}
-                            selectedProjectId={this.props.selectedProjectId}
-                            projects={this.props.projects}
-                            groupTodos={this.props.groupTodos}
-                            dispatch={this.props.dispatch}   
-                            moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                            selectedCategory={selectedCategory}  
-                            selectedTag={this.props.selectedTag}  
-                            rootRef={this.props.rootRef}
-                            todos={todos}  
-                        />
-                    }
-                </div> 
-            </div>
+            <div className={`no-print`}>
+                <TodoCreationForm  
+                    dispatch={this.props.dispatch}  
+                    selectedCategory={this.props.selectedCategory} 
+                    selectedProjectId={this.props.selectedProjectId}
+                    selectedAreaId={this.props.selectedAreaId} 
+                    todos={this.props.todos} 
+                    projects={this.props.projects} 
+                    rootRef={this.props.rootRef} 
+                    todo={empty as any} 
+                />  
+            </div>    
+            <div id="todos">      
+                {
+                    groupTodos ? 
+                    <GroupsByProjectArea
+                        dispatch={this.props.dispatch}  
+                        selectedProjectId={this.props.selectedProjectId}
+                        moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                        selectedAreaId={this.props.selectedAreaId}
+                        groupTodos={this.props.groupTodos}
+                        selectedCategory={this.props.selectedCategory}
+                        selectedTag={this.props.selectedTag}
+                        rootRef={this.props.rootRef}
+                        areas={this.props.areas}
+                        projectsFilters={[byNotCompleted, byNotDeleted]}
+                        areasFilters={[byNotDeleted]}
+                        projects={this.props.projects}  
+                        todos={this.props.todos}
+                    />
+                    :
+                    <TodosList      
+                        areas={this.props.areas}
+                        selectedAreaId={this.props.selectedAreaId}
+                        selectedProjectId={this.props.selectedProjectId}
+                        projects={this.props.projects}
+                        groupTodos={this.props.groupTodos}
+                        dispatch={this.props.dispatch}   
+                        moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                        selectedCategory={selectedCategory}  
+                        selectedTag={this.props.selectedTag}  
+                        rootRef={this.props.rootRef}
+                        todos={todos}  
+                    />
+                }
+            </div> 
         </div>
     }
 }

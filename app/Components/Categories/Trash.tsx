@@ -54,8 +54,9 @@ export class Trash extends Component<TrashProps,TrashState>{
                 <ProjectLinkTrash { ...{project:value} as any }/>  
             </div>   
         </div>    
-    }
+    };
    
+
     getDeletedAreaElement = (value:Area, index:number) : JSX.Element => { 
         return <div 
             key={`deletedArea-${index}`} 
@@ -65,8 +66,9 @@ export class Trash extends Component<TrashProps,TrashState>{
                 <AreaTrashLink {...{area:value} as any}/>
             </div>  
         </div>    
-    } 
+    }; 
  
+
     getDeletedTodoElement = (value:Todo, index:number) : JSX.Element => {  
          return <div 
             key={`deletedTodo-${index}`} 
@@ -93,10 +95,12 @@ export class Trash extends Component<TrashProps,TrashState>{
                 />   
             </div>   
         </div>   
-    }    
+    };    
         
-    onEmptyTrash = () => this.props.dispatch({type:"showTrashPopup", load:true})
+
+    onEmptyTrash = () => this.props.dispatch({type:"showTrashPopup", load:true});
      
+
     render(){  
         let {
             todos, projects, areas, selectedProjectId, selectedCategory,
@@ -112,26 +116,22 @@ export class Trash extends Component<TrashProps,TrashState>{
         let empty = isEmpty(todos) && isEmpty(deletedProjects) && isEmpty(deletedAreas);
  
 
-        return <div style={{WebkitUserSelect:"none"}}> 
-            <div> 
-                <ContainerHeader  
-                    selectedCategory={"trash"}  
-                    dispatch={dispatch}  
-                    tags={tags} 
-                    selectedTag={selectedTag}
-                    showTags={true} 
-                /> 
-            </div>     
-
+        return <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}> 
+            <ContainerHeader  
+                selectedCategory={selectedCategory}  
+                dispatch={dispatch}  
+                tags={tags} 
+                selectedTag={selectedTag}
+                showTags={true} 
+            />    
             <FadeBackgroundIcon    
                 container={rootRef} 
-                selectedCategory={"trash"}  
+                selectedCategory={selectedCategory}  
                 show={empty}
-            />               
-
-            <div style={{paddingTop:"20px", paddingBottom:"20px"}}>
+            />   
+            <div className={`no-print`} style={{paddingTop:"20px", paddingBottom:"20px"}}>
                 <div    
-                    onClick={(e) => {
+                    onClick={(e) => { 
                         e.stopPropagation();
                         e.preventDefault();
                         this.onEmptyTrash();
@@ -152,24 +152,12 @@ export class Trash extends Component<TrashProps,TrashState>{
                     </div>  
                 </div>  
             </div>  
-             
-            <div 
-            id={`trash-list`} 
-            style={{
-                paddingTop:"20px", 
-                paddingBottom:"20px",
-                position:"relative", 
-                width:"100%"
-            }}>
+            <div style={{paddingTop:"20px", paddingBottom:"20px", position:"relative",  width:"100%"}}>
                 {   
                     deltedTodos.map( 
                         (value:Todo,index) => <div
                             key={value._id}
-                            style={{
-                                position:"relative", 
-                                marginTop:"5px",
-                                marginBottom:"5px"
-                            }}
+                            style={{position:"relative", marginTop:"5px", marginBottom:"5px"}}
                         >
                             <TodoInput   
                                 id={value._id}
