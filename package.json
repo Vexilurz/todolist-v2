@@ -1,12 +1,13 @@
 {
   "name": "tasklist",
-  "version": "1.2.2-master",
+  "version": "1.2.4-master",
   "description": "tasklist",
-  "main": "dist/main.js",
-  "scripts": {
+  "main": "production/main.js",
+  "scripts": { 
     "start": "electron .",
     "rebuild": "electron-rebuild -f -w printer",
-    "pack": "build --win --publish always",
+    "publish": "build --win --publish always",
+    "pack": "build --win",
     "build": "start webpack -w --config webpack.config.main.js && webpack -w --config webpack.config.renderer.js",
     "production": "start webpack -w --config webpack.config.main.prod.js && webpack -w --config webpack.config.renderer.prod.js"
   },
@@ -14,7 +15,7 @@
   "keywords": [],
   "author": "Anatoly Strashkevich",
   "license": "",
-  "devDependencies": {
+  "devDependencies":{
     "@types/electron": "^1.6.10",
     "@types/node": "^8.5.2",
     "@types/react": "^15.6.1",
@@ -113,10 +114,7 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
+          "arch": ["x64","ia32"]
         }
       ],
       "icon": "./icon.ico"
@@ -127,12 +125,12 @@
       "acl": "public-read"
     },
     "nsis": {
-      "oneClick": false,
-      "warningsAsErrors": false,
-      "perMachine": true,
-      "unicode": false,
-      "allowToChangeInstallationDirectory": true,
-      "menuCategory": true
+      "oneClick":false,
+      "warningsAsErrors":false,
+      "perMachine":true,
+      "unicode":false,
+      "allowToChangeInstallationDirectory":true,
+      "menuCategory":true
     },
     "directories": {
       "output": "release"

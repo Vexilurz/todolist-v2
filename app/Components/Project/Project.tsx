@@ -162,7 +162,10 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     
       
     render(){   
-        let {selectedTag, project, showCompleted, showScheduled, todos} = this.props;
+        let {
+            selectedTag, project, showCompleted, 
+            showScheduled, todos, selectedCategory
+        } = this.props;
 
         if(isNil(project)){ return null } 
 
@@ -196,8 +199,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
         let progress = getProgressStatus(project, todos, false);
 
-
-        return <div>      
+  
+        return <div id={`${selectedCategory}-list`}>      
                     <div className="unselectable">     
                         <ProjectHeader 
                             project={project}
@@ -211,30 +214,28 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                             todos={toProjectHeader} 
                             dispatch={this.props.dispatch}   
                         />           
-                    </div>   
-                    <div>   
-                        <ProjectBody    
-                            items={toProjectBody}
-                            dragged={this.props.dragged}
-                            groupTodos={this.props.groupTodos}
-                            selectedCategory={this.props.selectedCategory}
-                            showCompleted={this.props.showCompleted}
-                            updateLayoutOrder={this.updateLayoutOrder}
-                            moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                            removeHeading={this.removeHeading}
-                            updateHeading={this.updateHeading}
-                            archiveHeading={this.archiveHeading}
-                            moveHeading={this.moveHeading}   
-                            selectedTag={this.props.selectedTag}    
-                            areas={this.props.areas}      
-                            selectedProjectId={this.props.selectedProjectId}
-                            selectedAreaId={this.props.selectedAreaId}  
-                            projects={this.props.projects}
-                            todos={toProjectBody as Todo[]}  
-                            rootRef={this.props.rootRef}
-                            dispatch={this.props.dispatch} 
-                        />  
-                    </div>   
+                    </div>    
+                    <ProjectBody    
+                        items={toProjectBody}
+                        dragged={this.props.dragged}
+                        groupTodos={this.props.groupTodos}
+                        selectedCategory={this.props.selectedCategory}
+                        showCompleted={this.props.showCompleted}
+                        updateLayoutOrder={this.updateLayoutOrder}
+                        moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                        removeHeading={this.removeHeading}
+                        updateHeading={this.updateHeading}
+                        archiveHeading={this.archiveHeading}
+                        moveHeading={this.moveHeading}   
+                        selectedTag={this.props.selectedTag}    
+                        areas={this.props.areas}      
+                        selectedProjectId={this.props.selectedProjectId}
+                        selectedAreaId={this.props.selectedAreaId}  
+                        projects={this.props.projects}
+                        todos={toProjectBody as Todo[]}  
+                        rootRef={this.props.rootRef}
+                        dispatch={this.props.dispatch} 
+                    />    
                     {  
                         not(haveScheduledTodos(toProjectBody as Todo[])) ? null:
                         <div 

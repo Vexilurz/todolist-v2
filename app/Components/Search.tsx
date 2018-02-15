@@ -39,7 +39,8 @@ import {
     findAttachedProject, 
     debounce,
     todoToKeywords,
-    getTagsFromItems
+    getTagsFromItems,
+    byTags
 } from '../utils/utils';
 import { Todo, removeTodo, updateTodo,ObjectType, Area, Project, Heading } from '../database';
 import { Store } from '../app'; 
@@ -389,14 +390,17 @@ export class Search extends Component<SearchProps,SearchState>{
  
  
     render(){
-        let {todos, projects, areas, dispatch, selectedTag, groupTodos} = this.props;
-        let selectedTodos = filter(todos, byNotDeleted, "");
+        let {todos, projects, areas, dispatch, selectedTag, groupTodos, selectedCategory} = this.props; 
+      
+        let selectedTodos = filter(todos, allPass([byNotDeleted,byTags(selectedTag)]), "");
         let selectedProjects = filter(projects, byNotDeleted, "");
         let selectedAreas = filter(areas, byNotDeleted, "");
+
         let suggestions = this.getSuggestions(selectedTodos,selectedProjects,selectedAreas);
         let ids = flatten(selectedProjects.map((p) => p.layout.filter(isString))) as string[];
         let attachedTodos = filter(selectedTodos, (todo:Todo) => contains(todo._id)(ids), "");
-        let noresults = {
+
+        let noresults = { 
             fontSize:"18px",
             userSelect:"none",
             cursor:"default",
@@ -405,37 +409,38 @@ export class Search extends Component<SearchProps,SearchState>{
             alignItems:"center",
             justifyContent:"center" 
         };  
+
         let allTodos = flatten([suggestions.detached, suggestions.attached.map(i => i.todos)]);
         let tags = getTagsFromItems(allTodos); 
     
-        return <div>   
+        return <div id={`${selectedCategory}-list`}>   
             <div 
-                style={{  
-                   fontSize:"xx-large",
-                   paddingBottom:"10px",
-                   fontWeight: 600,
-                   textAlign:"center",
-                   userSelect:"none", 
-                   cursor:"default" 
+                style={{
+                    fontSize:"xx-large", 
+                    paddingBottom:"10px", 
+                    fontWeight:600, 
+                    textAlign:"center", 
+                    userSelect:"none",   
+                    cursor:"default" 
                 }} 
             >     
                 Search results
             </div>  
-            <div style={{ paddingTop:"15px", paddingBottom:"15px" }}>
+            <div className="no-print" style={{paddingTop:"15px", paddingBottom:"15px"}}>
                 <Tags  
-                  selectTag={(tag) => dispatch({type:"selectedTag", load:tag})}
-                  tags={tags} 
-                  selectedTag={selectedTag}
-                  show={true}  
+                    selectTag={(tag) => dispatch({type:"selectedTag", load:tag})}
+                    tags={tags} 
+                    selectedTag={selectedTag}
+                    show={true}  
                 />  
             </div> 
             { 
                 isEmpty(suggestions.attached) && 
                 isEmpty(suggestions.detached) ? 
-                <div style={noresults as any}>No results were found...</div> : 
+                <div className="no-print" style={noresults as any}>No results were found...</div> : 
                 null
             }
-            <div id={`search-list`}> 
+            <div> 
                 {         
                     suggestions.attached.map(
                         ( projectWithTodos:{ project:Project, todos:Todo[] }, index ) => 
@@ -469,13 +474,13 @@ export class Search extends Component<SearchProps,SearchState>{
                 }
             </div>
             </div>
-            <div style={{width:"100%", height:"1px"}}> 
+            <div className="no-print" style={{width:"100%", height:"1px"}}> 
                 <Waypoint  
                     onEnter={this.onEnter} 
                     onLeave={({ previousPosition, currentPosition, event }) => {}}
                 />
             </div>      
-        </div> 
+        </div>  
     }
 }
 

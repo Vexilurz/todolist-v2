@@ -126,7 +126,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
     render(){ 
         let {todos,project,rootRef} = this.props;
         let {showDeadlineCalendar,showTagsPopup} = this.state; 
-        let {done,left} = this.props.progress; 
+        let {done,left} = this.props.progress;  
         let tags = getTagsFromItems(todos); 
         let totalValue = (done+left)===0 ? 1 : (done+left);
         let currentValue = done;
@@ -236,6 +236,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                 </div>   
                 <div    
                     onClick={this.openMenu}  
+                    className={`no-print`}
                     style={{ 
                         marginLeft: "5px",
                         marginRight: "5px",
@@ -243,41 +244,36 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         height: "32px",
                         cursor: "pointer"
                     }} 
-                    ref={ (e) => { this.projectMenuPopoverAnchor=e; } }
+                    ref={(e) => { this.projectMenuPopoverAnchor=e; }}
                 >
-                        <ThreeDots style={{  
-                            color:"rgb(179, 179, 179)",
-                            width:"32px", 
-                            height:"32px",
-                            cursor: "pointer" 
-                        }} />
+                    <ThreeDots style={{color:"rgb(179, 179, 179)",width:"32px",height:"32px",cursor: "pointer"}}/>
                 </div>   
             </div> 
-            {     
-            isNil(project.deadline) ? null :        
-            <div 
-                className="unselectable"
-                style={{ 
-                    paddingTop:'15px', 
-                    cursor:"default",
-                    WebkitUserSelect:"none", 
-                    display:"flex",  
-                    alignItems:"center",  
-                    height:"30px"
-                }}
-            > 
-                <div style={{paddingRight:"5px", paddingTop:"5px"}}> 
-                    <Flag style={{color:"black",cursor:"default",width:"20px",height:"20px"}}/>   
-                </div>   
-                <div style={{color:"black", fontSize:"15px", fontWeight:"bold", paddingRight:"20px"}}>
-                    {`Deadline: ${getMonthName(project.deadline).slice(0,3)}. ${project.deadline.getDate()}`} 
+            {      
+                isNil(project.deadline) ? null :        
+                <div  
+                    className="unselectable"
+                    style={{ 
+                        paddingTop:'15px', 
+                        cursor:"default",
+                        WebkitUserSelect:"none", 
+                        display:"flex",  
+                        alignItems:"center",  
+                        height:"30px"
+                    }}
+                > 
+                    <div style={{paddingRight:"5px", paddingTop:"5px"}}> 
+                        <Flag style={{color:"black", cursor:"default", width:"20px", height:"20px"}}/>   
+                    </div>   
+                    <div style={{color:"black", fontSize:"15px", fontWeight:"bold", paddingRight:"20px"}}>
+                        {`Deadline: ${getMonthName(project.deadline).slice(0,3)}. ${project.deadline.getDate()}`} 
+                    </div> 
+                    <div> 
+                        {daysLeftMark(false, project.deadline, 15)}
+                    </div>    
                 </div> 
-                <div> 
-                    {daysLeftMark(false, project.deadline, 15)}
-                </div>    
-            </div> 
             }    
-            <div>                
+            <div className={`no-print`}>                
                 <TextField       
                     id={"project_notes"}  
                     hintText="Notes"      
@@ -292,7 +288,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     underlineStyle={{borderColor:"rgba(0,0,0,0)"}}   
                 />   
             </div>
-            <div>  
+            <div className={`no-print`}>  
                 <Tags  
                     selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
                     tags={tags} 

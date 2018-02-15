@@ -227,7 +227,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
  
         return isNil(groups) ? null :
                isEmpty(groups) ? null : 
-                <div>
+                <div id={`${selectedCategory}-list`} >
                     <ContainerHeader 
                         selectedCategory={selectedCategory} 
                         dispatch={dispatch}  
@@ -235,10 +235,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                         showTags={true} 
                         selectedTag={selectedTag}
                     />
-                    <div 
-                        id={`${selectedCategory}-list`} 
-                        style={{display:"flex", flexDirection:"column", width:"100%"}}
-                    > 
+                    <div style={{display:"flex", flexDirection:"column", width:"100%"}}> 
                         {   
                         groups.map( 
                             (group:any[], index:number) : JSX.Element => {

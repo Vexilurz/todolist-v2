@@ -136,18 +136,19 @@ export class Next extends Component<NextProps, NextState>{
                         selectedCategory={selectedCategory}    
                         show={isEmpty(todos)}  
                     />    
-                    <TodoCreationForm  
-                        dispatch={this.props.dispatch}  
-                        selectedCategory={this.props.selectedCategory} 
-                        selectedProjectId={this.props.selectedProjectId}
-                        selectedAreaId={this.props.selectedAreaId} 
-                        todos={this.props.todos} 
-                        projects={this.props.projects}
-                        rootRef={this.props.rootRef} 
-                        todo={empty as any}  
-                    />  
+                    <div className={`no-print`}> 
+                        <TodoCreationForm  
+                            dispatch={this.props.dispatch}  
+                            selectedCategory={this.props.selectedCategory} 
+                            selectedProjectId={this.props.selectedProjectId}
+                            selectedAreaId={this.props.selectedAreaId} 
+                            todos={this.props.todos} 
+                            projects={this.props.projects}
+                            rootRef={this.props.rootRef} 
+                            todo={empty as any}  
+                        /> 
+                    </div> 
                     <div>
-                        <div>
                             {
                                 groupTodos ? 
                                 <GroupsByProjectArea
@@ -179,8 +180,7 @@ export class Next extends Component<NextProps, NextState>{
                                     rootRef={this.props.rootRef}
                                     todos={todos}  
                                 />  
-                            }
-                        </div>  
+                            } 
                     </div> 
                 </div> 
     }

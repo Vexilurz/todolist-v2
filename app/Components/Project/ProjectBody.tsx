@@ -294,7 +294,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         }];    
             
         return <div className="unselectable">   
-            <div>  
+            <div className={`no-print`}>  
                 <TodoCreationForm  
                     dispatch={this.props.dispatch}  
                     selectedCategory={selectedCategory as any} 
@@ -305,22 +305,20 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     rootRef={this.props.rootRef} 
                     todo={empty as any} 
                 />  
-            </div>      
-            <div id={`${selectedCategory}-list`}>
-                <SortableContainer
-                    items={this.props.items}
-                    scrollableContainer={this.props.rootRef}
-                    selectElements={this.selectElements}  
-                    onSortStart={this.onSortStart} 
-                    onSortMove={this.onSortMove}
-                    onSortEnd={this.onSortEnd}
-                    shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
+            </div>  
+            <SortableContainer
+                items={this.props.items}
+                scrollableContainer={this.props.rootRef}
+                selectElements={this.selectElements}  
+                onSortStart={this.onSortStart} 
+                onSortMove={this.onSortMove}
+                onSortEnd={this.onSortEnd}
+                shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
 
-                    decorators={decorators}  
-                >   
-                    {this.props.items.map((item,index) => this.getElement(item,index))}
-                </SortableContainer> 
-            </div>
+                decorators={decorators}  
+            >   
+                {this.props.items.map((item,index) => this.getElement(item,index))}
+            </SortableContainer> 
         </div> 
     }
 } 

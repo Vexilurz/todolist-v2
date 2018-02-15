@@ -533,7 +533,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
          
         let {scrollTop, scrollHeight} = container;
         let {height} = container.getBoundingClientRect(); 
-        let speed = 10;
+        let speed = 5;
 
         if(this.scroll==="up"){ 
 

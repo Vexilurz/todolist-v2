@@ -64,41 +64,31 @@ import {assert}  from './assert';
 import {daysRemaining} from './daysRemaining'; 
 import {stringToLength} from './stringToLength';
 import {
- isItem,isArray,isDate,isFunction,isString,  
- isCategory,bySomeday,isTodo,isArrayOfTodos, 
- isProject,isArrayOfProjects,isArea, 
- isArrayOfAreas,isArrayOfStrings,Item
+    isItem,isArray,isDate,isFunction,isString,  
+    isCategory,bySomeday,isTodo,isArrayOfTodos, 
+    isProject,isArrayOfProjects,isArea, 
+    isArrayOfAreas,isArrayOfStrings,Item
 } from './isSomething';
 import {generateEmptyTodo} from './generateEmptyTodo';
-import toPng from 'to-png';
 let PHE = require("print-html-element");
 var domtoimage = require('dom-to-image');
+
+
 export let isMainWindow = () => { 
     return remote.getCurrentWindow().id===1; 
 }
 
 
-export let printElement = (selectedCategory:Category, list:HTMLElement) => {
-    //const clone = list.cloneNode(true) as HTMLElement;
-    //const removeElements = (elms) => [...elms].forEach(el => el.remove());
-    //removeElements( clone.querySelectorAll(".no-print") );
 
+export let printElement = (selectedCategory:Category, list:HTMLElement) => {
     domtoimage
-    .toPng(
-        list, 
-        { 
-            filter:(node) => {
-                if(node.className==='no-print'){ console.log(`${node} no-print should exclude.`) };
-                   return node.className!=='no-print'; 
-            }
-        }  
-    )
-    .then(function (dataUrl) {
+    .toPng(list, { filter:(node) => node.className!=='no-print' })
+    .then((dataUrl) => {
         let img = document.createElement("img");
         img.src = dataUrl;
         PHE.printElement( img );
     })
-    .catch(function (error) { globalErrorHandler(error) });
+    .catch((error) => globalErrorHandler(error));
 }
 
 
