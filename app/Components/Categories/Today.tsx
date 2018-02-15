@@ -35,7 +35,7 @@ import { ContainerHeader } from '.././ContainerHeader';
 import { onDrop } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { compose, allPass, isEmpty, not, assoc, isNil } from 'ramda';
+import { compose, allPass, isEmpty, not, assoc, isNil, flatten, contains, intersection } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { Category, filter } from '../MainContainer';
 import { isDate } from 'util';
@@ -44,7 +44,7 @@ import { CalendarEvent } from '../Calendar';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { arrayMove } from '../../utils/arrayMove';
-import { isTodo } from '../../utils/isSomething';
+import { isTodo, isNotArray, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { generateId } from '../../utils/generateId';
@@ -54,6 +54,7 @@ import { uppercase } from '../../utils/uppercase';
 import { SortableContainer } from '../CustomSortableContainer';
 import { updateConfig } from '../../utils/config';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
+import { isDev } from '../../utils/isDev';
 
 
 
@@ -332,6 +333,24 @@ export class Today extends Component<TodayProps,TodayState>{
         let { items, tags } = this.getItems();
         let empty = generateEmptyTodo(generateId(), "today", 0);  
 
+        if(isDev()){
+            let todos = filter(items, isTodo, "");
+            let hiddenProjects = filter(
+                projects, 
+                (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide),
+                ""
+            );
+            let ids : string[] = flatten(hiddenProjects.map((p:Project) => filter(p.layout,isString,"")));
+            let hiddenTodos = filter(todos, (todo:Todo) => contains(todo._id)(ids), "");
+            let tagsFromTodos : string[] = flatten(hiddenTodos.map((todo:Todo) => todo.attachedTags));
+
+            assert(
+                isEmpty(intersection(tags,tagsFromTodos)),
+                `tags from hidden Todos still displayed ${selectedCategory}.`
+            ); 
+        }
+
+        
         let decorators = [{
             area:document.getElementById("leftpanel"),
             decorator:generateDropStyle("nested"),

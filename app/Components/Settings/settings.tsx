@@ -33,9 +33,9 @@ import {
 } from '../../utils/utils';
 import { 
     Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, 
-    Todo, destroyEverything, initDB, addTodos, addProjects, addAreas, addCalendars 
+    Todo, destroyEverything, initDB, addTodos, addProjects, addAreas, 
+    addCalendars, getDatabaseObjects 
 } from '../../database';
-import { isDate } from 'util';
 import { SimplePopup } from '../SimplePopup';
 import { getIcalData, IcalData, AxiosError } from '../Calendar';
 import { fetchData, filter } from '../MainContainer';
@@ -48,6 +48,7 @@ import { defaultTags } from '../../utils/defaultTags';
 import { uppercase } from '../../utils/uppercase';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { generateId } from '../../utils/generateId';
+import { readJsonFile, writeJsonFile } from '../../utils/jsonFile';
 const Promise = require('bluebird');   
 const fs = remote.require('fs');
 const path = require("path");
@@ -740,37 +741,6 @@ let closeClonedWindows = () => new Promise(resolve => {
 })
 
 
-let writeJsonFile = (obj:any,pathToFile:string) : Promise<any> => 
-    new Promise(
-        resolve => {
-            let json : string = JSON.stringify(obj);
-            fs.writeFile(
-                pathToFile, 
-                json, 
-                'utf8', 
-                (err) => {
-                    if (err){ resolve(err) }
-                    else{ resolve() }
-                } 
-            );
-        }
-    )
-
-
-let readJsonFile = (path:string) : Promise<any> => 
-    new Promise(
-        resolve => {
-            fs.readFile(
-                path, 
-                'utf8', 
-                (err, data) => {
-                    if (err){ resolve(err) }
-                    else{ resolve(JSON.parse(data)) }
-                }
-            );
-        }
-    )
-
 
 let correctFormat = (json:any) : boolean => not(isNil(json.database));
 
@@ -813,15 +783,6 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
     updateState = (state) => new Promise( resolve => this.setState(state, () => resolve()) );
 
-    getDatabaseObjects = () : Promise<[Calendar[],Project[],Area[],Todo[]]> => {
-        return Promise.all([
-            getCalendars(this.onError)(true, this.limit), 
-            getProjects(this.onError)(true, this.limit),
-            getAreas(this.onError)(true, this.limit),
-            getTodos(this.onError)(true, this.limit) 
-        ])  
-    };
-
     replaceDatabaseObjects = (json) : Promise<void> => {
         let { todos, projects, areas, calendars } = json.database;
 
@@ -844,7 +805,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     export = (folder:string) => {   
         if(isNil(folder)){ return }
         let to:string = path.resolve(folder, `${keyFromDate(new Date())}-${uniqid()}.json`);
-        return this.getDatabaseObjects()
+        return getDatabaseObjects(this.onError,this.limit)
         .then(
             ([calendars,projects,areas,todos]) => 
                 writeJsonFile(

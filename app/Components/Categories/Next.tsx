@@ -34,15 +34,18 @@ import { TodosList } from '../TodosList';
 import { ContainerHeader } from '../ContainerHeader';
 import { Tags } from '../Tags';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { uniq, allPass, isEmpty, isNil, not, any, contains } from 'ramda';
+import { uniq, allPass, isEmpty, isNil, not, any, contains, intersection, flatten } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink } from '../Project/ProjectLink';
-import { Category } from '../MainContainer';
+import { Category, filter } from '../MainContainer';
 import { AreaLink } from '../Area/AreaLink';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { generateId } from '../../utils/generateId';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
+import { isDev } from '../../utils/isDev';
+import { isNotArray, isString } from '../../utils/isSomething';
+import { assert } from '../../utils/assert';
 
 
 interface NextProps{
@@ -100,6 +103,25 @@ export class Next extends Component<NextProps, NextState>{
         let tags = getTagsFromItems(todos);
  
         let empty = generateEmptyTodo(generateId(), selectedCategory, 0);  
+
+
+        if(isDev()){
+            let hiddenProjects = filter(
+                projects, 
+                (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide),
+                ""
+            );
+
+            let ids : string[] = flatten(hiddenProjects.map((p:Project) => filter(p.layout,isString,"")));
+            let hiddenTodos = filter(todos, (todo:Todo) => contains(todo._id)(ids), "");
+            let tagsFromTodos : string[] = flatten(hiddenTodos.map((todo:Todo) => todo.attachedTags));
+
+            assert(
+                isEmpty(intersection(tags,tagsFromTodos)),
+                `tags from hidden Todos still displayed in ${selectedCategory}.`
+            ); 
+        }
+
 
         return  <div style={{WebkitUserSelect:"none"}}>
                     <ContainerHeader 

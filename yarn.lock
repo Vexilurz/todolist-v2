@@ -3907,7 +3907,7 @@ node-libs-browser@^2.0.0:
     util "^0.10.3"
     vm-browserify "0.0.4"
 
-node-machine-id@^1.1.9:
+node-machine-id@^1.1.10, node-machine-id@^1.1.9:
   version "1.1.10"
   resolved "https://registry.yarnpkg.com/node-machine-id/-/node-machine-id-1.1.10.tgz#b4cb8f01b25b90d4e0675be00df30e61ee75179b"
 

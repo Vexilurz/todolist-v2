@@ -28,7 +28,7 @@ import { MainContainer, Category } from './Components/MainContainer';
 import { 
     Project, Area, Todo, removeProject, addProject, removeArea, updateProject, 
     addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, 
-    removeProjects, updateAreas, updateProjects, addTodos, Calendar, Heading,
+    removeProjects, updateAreas, updateProjects, addTodos, Calendar, Heading, getDatabaseObjects,
 } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
@@ -49,7 +49,11 @@ import { googleAnalytics } from './analytics';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { Config, defaultConfig, updateConfig, getConfig } from './utils/config';
 import { collectSystemInfo } from './utils/collectSystemInfo';
+import { writeJsonFile } from './utils/jsonFile';
+import { getMachineIdSync } from './utils/userid';
 const MockDate = require('mockdate'); 
+const os = remote.require('os'); 
+const path = require('path');
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
 
@@ -232,6 +236,22 @@ export class App extends Component<AppProps,{}>{
 
         let updateInterval = Observable.interval(10000).subscribe(() => dispatch({type:'update'}));   
 
+        let backupInterval = Observable.interval(60000).subscribe(() => {
+             let id = getMachineIdSync();   
+             let to = path.resolve(os.homedir(), `${id}.json`);
+             
+             getDatabaseObjects(this.onError,1000000)
+             .then(([calendars,projects,areas,todos]) => 
+                writeJsonFile(
+                    { database : { todos, projects, areas, calendars } },
+                    to 
+                )
+                .then((err) => ({err,to}))
+             )
+             .then(({err,to}) => console.log(`Backup saved to ${to}.`));
+        });   
+        
+
         let actionListener = Observable 
                              .fromEvent(ipcRenderer, "action", (event,action) => action)
                              .map((action) => ({ 
@@ -257,7 +277,12 @@ export class App extends Component<AppProps,{}>{
                                 });  
 
         this.subscriptions.push(
-            actionListener,errorListener,ctrlAltTListener,progressListener,updateInterval
+            actionListener,
+            errorListener,
+            ctrlAltTListener,
+            progressListener,
+            updateInterval,
+            backupInterval
         );
     }
 

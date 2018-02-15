@@ -86,6 +86,12 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
 
         let selectedProjects = filter(projects, allPass(projectsFilters), "");
         let ids = flatten([area.attachedTodosIds,selectedProjects.map((p) => p.layout.filter(isString))]); 
+        let selectedTodos = filter(
+            todos, 
+            allPass([byNotDeleted, byNotCompleted, (todo:Todo) => contains(todo._id)(ids)]), 
+            ""
+        );
+
 
         return <div ref={(e) => {this.ref=e;}} id={`${selectedCategory}-list`}> 
             <GroupsByProjectArea
@@ -101,7 +107,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 rootRef={rootRef}
                 areas={[]}
                 projects={projects} 
-                todos={filter(todos, allPass([byNotDeleted,(todo:Todo) => contains(todo._id)(ids)]), "")}
+                todos={selectedTodos}
             />
         </div> 
     }

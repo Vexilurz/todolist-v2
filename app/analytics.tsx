@@ -2,7 +2,7 @@ import { collectSystemInfo } from './utils/collectSystemInfo';
 import { getConfig, Config } from './utils/config';
 import Analytics from 'electron-ga';
 import { ipcRenderer, remote } from 'electron';
-
+import { getMachineIdSync } from './utils/userid';
 export const googleAnalytics = ({
     send:(type:string,load:any) =>
     getConfig()
@@ -19,6 +19,7 @@ const analytics = (() => {
     return new Analytics(
         'UA-113407516-1',
         {
+            userId:getMachineIdSync(),
             appName:"tasklist",
             appVersion:remote.app.getVersion(),
             language:sysInfo.userLanguage,

@@ -20,7 +20,8 @@ import Hide from 'material-ui/svg-icons/navigation/arrow-drop-down';
 import { getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects, 
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, removeArea, 
     removeProject, destroyEverything, addArea, addProject, addTodos, 
-    addProjects, addAreas, Heading, LayoutItem, getCalendars, Calendar} from '.././database';
+    addProjects, addAreas, Heading, LayoutItem, getCalendars, Calendar, getDatabaseObjects
+} from '.././database';
 import { Store } from '.././app';    
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Print from 'material-ui/svg-icons/action/print'; 
@@ -36,7 +37,7 @@ import { Inbox } from './Categories/Inbox';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { 
     isEmpty, last, isNil, contains, all, not, assoc, flatten, 
-    toPairs, map, compose, allPass, cond, defaultTo 
+    toPairs, map, compose, allPass, cond, defaultTo, reject 
 } from 'ramda';
 import { isString } from 'util';
 import { Observable } from 'rxjs/Rx';
@@ -54,6 +55,7 @@ import {
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 import { generateRandomDatabase } from '../utils/generateRandomObjects';
 import { updateConfig } from '../utils/config';
+import { isNotArray } from '../utils/isSomething';
 
 
 const Promise = require('bluebird');   
@@ -129,12 +131,7 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
     
     if(clone){ return } 
 
-    return Promise.all([
-        getCalendars(onError)(true,max), 
-        getProjects(onError)(true,max),
-        getAreas(onError)(true,max),
-        getTodos(onError)(true,max)
-    ]) 
+    return getDatabaseObjects(onError,max)
     .then(
         ([calendars,projects,areas,todos]) => [
             calendars,
@@ -349,7 +346,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             [ 
                                 (selectedCategory:Category) : boolean => 'inbox'===selectedCategory,  
                                 () => {
-
                                     let inboxFilters = [
                                         (todo:Todo) => not(byAttachedToArea(this.props.areas)(todo)), 
                                         (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
@@ -359,7 +355,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         byNotCompleted,  
                                         byNotDeleted   
                                     ];     
-
                                     return <Inbox 
                                         todos={filter(todos, allPass(inboxFilters), "Inbox")} 
                                         dispatch={this.props.dispatch}
@@ -372,19 +367,34 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         rootRef={this.rootRef}
                                         areas={this.props.areas}
                                         projects={this.props.projects} 
-                                    />
+                                    />;
                                 }
                             ],  
                             [ 
                                 (selectedCategory:Category) : boolean => 'today'===selectedCategory,  
                                 () => {
+                                    let {projects,groupTodos} = this.props;
+
                                     let todayFilters = [   
                                         (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
                                         byNotCompleted,  
                                         byNotDeleted   
                                     ];   
+
+                                    let selectedTodos = filter(todos, allPass(todayFilters), "");
+
+                                    if(groupTodos){
+                                        let hidden = filter(
+                                           projects, 
+                                           (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide),
+                                           ""
+                                        );
+                                        let ids : string[] = flatten(hidden.map((p:Project) => p.layout.filter(isString)));
+                                        selectedTodos = reject((todo:Todo) => contains(todo._id)(ids),selectedTodos);
+                                    };
+ 
                                     return <Today  
-                                        todos={filter(todos, allPass(todayFilters), "Today")}
+                                        todos={selectedTodos}
                                         dispatch={this.props.dispatch}
                                         groupTodos={this.props.groupTodos}
                                         selectedProjectId={this.props.selectedProjectId}
@@ -403,15 +413,17 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             [ 
                                 (selectedCategory:Category) : boolean => 'someday'===selectedCategory,  
                                 () => {
-
                                     let somedayFilters = [
                                         byCategory("someday"),
                                         (todo:Todo) => isNil(todo.deadline),
                                         byNotCompleted,  
                                         byNotDeleted 
                                     ];
+
+                                    let selectedTodos = filter(todos, allPass(somedayFilters), "");
+
                                     return <Someday 
-                                        todos={filter(todos, allPass(somedayFilters), "Someday")}
+                                        todos={selectedTodos}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         dispatch={this.props.dispatch}
                                         groupTodos={this.props.groupTodos}
@@ -428,7 +440,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             [ 
                                 (selectedCategory:Category) : boolean => 'next'===selectedCategory,  
                                 () => {
- 
+                                    let {groupTodos} = this.props;
                                     let nextFilters = [
                                         (t:Todo) => not(isToday(t.attachedDate)) && not(isToday(t.deadline)),
                                         (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
@@ -437,8 +449,21 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         byNotCompleted,  
                                         byNotDeleted   
                                     ]; 
+
+                                    let selectedTodos = filter(todos, allPass(nextFilters), "");
+
+                                    if(groupTodos){
+                                        let hidden = filter(
+                                           projects, 
+                                           (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide),
+                                           ""
+                                        );
+                                        let ids : string[] = flatten(hidden.map((p:Project) => p.layout.filter(isString)));
+                                        selectedTodos = reject((todo:Todo) => contains(todo._id)(ids),selectedTodos);
+                                    };
+
                                     return <Next   
-                                        todos={filter(todos, allPass(nextFilters), "Next")}
+                                        todos={selectedTodos}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         dispatch={this.props.dispatch}
                                         groupTodos={this.props.groupTodos}
@@ -536,9 +561,11 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         byNotDeleted 
                                     ];  
                                  
+                                    let selectedTodos = filter(todos, allPass(projectFilters), "");
+
                                     return <ProjectComponent 
                                         project={project}
-                                        todos={filter(todos, allPass(projectFilters), "projectTodos")}
+                                        todos={selectedTodos}
                                         groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch} 
                                         selectedTag={this.props.selectedTag}  
