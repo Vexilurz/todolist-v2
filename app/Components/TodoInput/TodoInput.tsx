@@ -265,7 +265,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         e.stopPropagation(); 
-        this.update({attachedDate:day, category:isToday(day) ? "today" : "next"}); 
+        let {todo} = this.props;
+        this.update({attachedDate:day, category:isToday(day) ? "today" : todo.category}); 
     };
 
 
@@ -282,7 +283,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         if(isNil(todo.completedSet)){
            this.submitCompletedEvent(Math.round((new Date().getTime())/1000));
         }
-
+        
         let preventSlideAway = selectedCategory==="project" && showCompleted;
         let shouldAnimateSlideAway = isNil(todo.completedSet) && 
                                      selectedCategory!=="logbook" &&  
