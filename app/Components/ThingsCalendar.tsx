@@ -367,7 +367,7 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                                         backgroundColor:"rgb(87, 87, 87)",
                                         caretColor:"cornflowerblue"  
                                     }}     
-                                    placeholder=""    
+                                    placeholder=""
                                     type="time"  
                                     name="time"  
                                     value={this.state.time}   

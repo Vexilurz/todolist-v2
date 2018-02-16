@@ -68,7 +68,7 @@ export let initNotification = ({width,height}:{width:number,height:number}):Brow
         frame:false  
     } as any);               
   
-    //handler.flashFrame(true)  
+    handler.setAlwaysOnTop(true);
     handler.setResizable(false); 
     handler.setMovable(false); 
     handler.setSkipTaskbar(true);
