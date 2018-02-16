@@ -24,7 +24,6 @@ import {
     selectNeverTodos,
     updateNeverTodos,
     sameDay,
-    timeOfTheDay,
     yearFromDate,
     convertTodoDates,
     getRangeDays,
@@ -40,6 +39,7 @@ import { CalendarEvent } from '../Calendar';
 import { isDate } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
+import { timeOfTheDay } from '../../utils/time';
 
 
 type Item = Project | Todo | CalendarEvent

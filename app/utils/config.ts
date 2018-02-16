@@ -1,8 +1,6 @@
 import { isNil, isEmpty } from 'ramda';
 import { ipcRenderer, remote } from 'electron';
-import { globalErrorHandler } from './globalErrorHandler';
 import {defaultTags} from './defaultTags';
-const storage = remote.require('electron-json-storage');
 
  
 export const defaultConfig = { 
@@ -37,14 +35,14 @@ export interface Config{
 
 
 
-export let getConfig = () : Promise<Config> => {
+export let getConfig = (storage) : Promise<Config> => {
     return new Promise( 
         resolve => {
             storage.get( 
                 "config", 
                 (error, data:Config) => {  
-                    if(isNil(data) || isEmpty(data)){ resolve(defaultConfig) }
-                    else{ resolve({...data,firstLaunch:false} ) }
+                    if(isNil(data) || isEmpty(data)){resolve(defaultConfig)}
+                    else{ resolve({...data,firstLaunch:false} ) } 
                 }
             )   
         }
@@ -53,9 +51,9 @@ export let getConfig = () : Promise<Config> => {
 
 
 
-export let updateConfig = (dispatch:Function) => 
+export let updateConfig = (storage,dispatch:Function) => 
         (load:any) : Promise<any> => {
-            return getConfig()
+            return getConfig(storage)
                     .then( 
                       (config:Config) => {
                         let updated = { ...config, ...load } as Config;
@@ -66,7 +64,7 @@ export let updateConfig = (dispatch:Function) =>
                                     "config", 
                                     updated, 
                                     (error) => {
-                                        if(!isNil(error)){ globalErrorHandler(error) }
+                                        if(!isNil(error)){ resolve(defaultConfig) }
                                         dispatch({type:"updateConfig",load:updated}) 
                                         resolve(updated as Config); 
                                     }

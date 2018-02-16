@@ -96,7 +96,6 @@ interface QuickEntryState{
     title : string,  
     note : string, 
     checked : boolean,
-    completed : Date,
     deadline : Date,
     deleted : Date,
     attachedDate : Date, 
@@ -134,7 +133,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             title : '',
             note : '',  
             checked : false, 
-            completed : undefined,
             deadline : undefined, 
             deleted : undefined, 
             attachedDate : undefined,
@@ -156,7 +154,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         title:todo.title,
         note:todo.note,  
         checked:todo.checked, 
-        completed:todo.completed,
         reminder:todo.reminder, 
         deadline:todo.deadline, 
         deleted:todo.deleted, 
@@ -179,7 +176,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         deleted : this.state.deleted, 
         attachedDate : this.state.attachedDate,  
         attachedTags : this.state.attachedTags, 
-        completed : this.state.completed, 
         checked : this.state.checked
     }) 
 
@@ -251,12 +247,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     onTitleChange = (event,newValue:string) : void => {
         this.setState({title:newValue})
     }  
-
-
-    onCheckBoxClick = () => {  
-        let checked : boolean = !this.state.checked; 
-        this.setState({checked:checked, completed:checked ? new Date() : null})
-    }   
 
 
     onChecklistButtonClick = (e) => {
@@ -746,35 +736,14 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
         </div>
     }
 }
- 
 
-
-
-interface Todo{ 
-    _id : string,
-    category : string, 
-    type : string,
-    title : string,
-    priority : number,
-    note : string,  
-    checklist : ChecklistItem[],
-    reminder : Date,  
-    deadline : Date,
-    created : Date,
-    deleted : Date, 
-    attachedDate : Date,  
-    attachedTags : string[], 
-    completed : Date, 
-    checked : boolean,
-    group?:any
-}; 
 
 interface TagsPopupProps{
     close : Function,
     open : boolean,
     attachTag:(tag:string) => void,
     origin : any,  
-    todos:Todo[],
+    todos:any[],
     defaultTags:string[],
     rootRef : HTMLElement, 
     anchorEl : HTMLElement,

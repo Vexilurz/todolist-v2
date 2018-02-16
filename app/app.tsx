@@ -54,6 +54,7 @@ import { getMachineIdSync } from './utils/userid';
 const MockDate = require('mockdate'); 
 const os = remote.require('os'); 
 const path = require('path');
+const storage = remote.require('electron-json-storage');
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
 
@@ -204,8 +205,13 @@ export class App extends Component<AppProps,{}>{
                                 let currentAppVersion = remote.app.getVersion(); 
                                 let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
 
-                                if(canUpdate){ dispatch({type:"showUpdatesNotification", load:true}) }
-                                else{ updateConfig(dispatch)({nextUpdateCheck:threeDaysLater(new Date())}) }
+                                if(canUpdate){ 
+                                    dispatch({type:"showUpdatesNotification", load:true}) 
+                                }else{ 
+                                    updateConfig(storage,dispatch)({
+                                        nextUpdateCheck:threeDaysLater(new Date())
+                                    }) 
+                                }
                            })    
           
         if(isNil(nextUpdateCheck)){ check() }
@@ -342,7 +348,8 @@ ipcRenderer.once(
         app.id='application';     
         document.body.appendChild(app);     
    
-        getConfig().then( 
+        getConfig(storage) 
+        .then( 
             (config) => {
                 ReactDOM.render(   
                     <Provider store={createStore(applicationReducer, {...defaultStore, ...config})}>   

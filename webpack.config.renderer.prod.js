@@ -8,13 +8,14 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 
 module.exports = {     
-    entry: {    
+    entry:{    
         'app':'./app/app.tsx',
-        'quickentry':'./app/quickentry.tsx'
+        'quickentry':'./app/quickentry.tsx',
+        'notification':'./app/notification.tsx'
     },                                 
-    output: {             
-        filename : '[name].js' , 
-        path : path.resolve(__dirname,"production") 
+    output:{             
+        filename:'[name].js', 
+        path:path.resolve(__dirname,"production") 
     },     
      
     resolve: { 
@@ -73,9 +74,14 @@ module.exports = {
             title:'Quick Entry',     
             chunks:['quickentry'],
             filename: 'quickentry.html' 
-        })    
+        }),
+        new HtmlWebpackPlugin({
+            inject:true, 
+            title:'Notification',     
+            chunks:['notification'],
+            filename: 'notification.html' 
+        })        
     ],  
-    
     node: { 
         __dirname: false, 
         __filename: false

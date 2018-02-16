@@ -35,7 +35,6 @@ export let loadApp = (window) : Promise<void> =>
        );    
   
 
- 
 export let loadQuickEntry = (window) : Promise<void> => 
         templateLoader(
             (resolve) => resolve(), 
@@ -43,5 +42,14 @@ export let loadQuickEntry = (window) : Promise<void> =>
             window 
         )( 
             `file://${__dirname}/quickentry.html`
-        );           
+        );  
 
+
+export let loadNotification = (window) : Promise<void> => 
+        templateLoader(
+            (resolve) => resolve(), 
+            (reject, error) => reject(),
+            window 
+        )( 
+            `file://${__dirname}/notification.html`
+        );      

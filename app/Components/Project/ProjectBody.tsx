@@ -232,28 +232,37 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     
 
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
-        this.props.dispatch({type:"dragged",load:null}); 
+        let {
+            moveCompletedItemsToLogbook,
+            dispatch,
+            areas,
+            projects
+        } = this.props;
+ 
+        dispatch({type:"dragged",load:null}); 
+
         let x = event.clientX;  
         let y = event.clientY;  
         let items = this.props.items;   
-        let draggedItem : (Todo | Heading) = items[oldIndex];
+        let draggedTodo : (Todo | Heading) = items[oldIndex];
         let leftpanel = document.getElementById("leftpanel");
 
-        if(draggedItem.type==="heading"){ 
+        if(draggedTodo.type==="heading"){ 
             
             this.changeHeadingsOrder(oldIndex,newIndex);  
-        }else if(draggedItem.type==="todo"){
+        }else if(isTodo(draggedTodo)){
 
-            if(isEmpty(draggedItem.title)){ return }
+            if(isEmpty(draggedTodo.title)){ return }
   
             if(insideTargetArea(null,leftpanel,x,y)){    
-               onDrop(
-                    event, 
-                    draggedItem as Todo,
-                    this.props.dispatch,
-                    this.props.areas,
-                    this.props.projects, 
-               )  
+                onDrop({
+                    event,
+                    draggedTodo,
+                    dispatch,
+                    areas, 
+                    moveCompletedItemsToLogbook,
+                    projects  
+                })
             }else{   
                this.changeOrder(oldIndex,newIndex); 
             }   

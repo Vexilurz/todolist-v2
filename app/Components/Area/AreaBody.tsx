@@ -35,7 +35,6 @@ import PieChart from 'react-minimal-pie-chart';
 import { ProjectLink } from '../Project/ProjectLink';
 import { allPass, isNil, not, contains, isEmpty, flatten } from 'ramda';
 import { Category, filter } from '../MainContainer';
-import { changeProjectsOrder, removeFromArea, attachToArea } from './AreasList';
 import { deleteProject } from '../Project/ProjectMenu';
 import { assert } from '../../utils/assert';
 import { isArrayOfProjects, isString } from '../../utils/isSomething';

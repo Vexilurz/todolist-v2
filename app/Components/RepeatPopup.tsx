@@ -72,7 +72,8 @@ let selectedDatesToTodos = (todo:Todo, data:{dates:Date[],group:Group}) : Todo[]
               reminder:null,  
               created:new Date(),
               deleted:undefined, 
-              completed:undefined,
+              completedSet:undefined, 
+              completedWhen:undefined, 
               checked:false
             } as Todo
         }

@@ -33,7 +33,7 @@ export let initWindow = ({width,height}:{width:number,height:number}):BrowserWin
     return handler; 
 };         
 
-  
+
 export let initQuickEntry = ({width,height}:{width:number,height:number}):BrowserWindow => { 
     Menu.setApplicationMenu(null);   
     let handler = new BrowserWindow({   
@@ -54,3 +54,25 @@ export let initQuickEntry = ({width,height}:{width:number,height:number}):Browse
     handler.hide(); 
     return handler;  
 };        
+
+
+export let initNotification = ({width,height}:{width:number,height:number}):BrowserWindow => { 
+    Menu.setApplicationMenu(null);   
+    let handler = new BrowserWindow({   
+        width,          
+        height,      
+        show:false, 
+        useContentSize:true, 
+        title:'Notification',    
+        center:false,       
+        frame:false  
+    } as any);               
+  
+    //handler.flashFrame(true)  
+    handler.setResizable(false); 
+    handler.setMovable(false); 
+    handler.setSkipTaskbar(true);
+    handler.on('closed', () => {handler = null;}); 
+    handler.hide(); 
+    return handler;  
+};   

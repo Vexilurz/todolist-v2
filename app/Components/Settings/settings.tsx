@@ -54,7 +54,7 @@ const fs = remote.require('fs');
 const path = require("path");
 const os = remote.require('os'); 
 const dialog = remote.dialog;
-
+const storage = remote.require('electron-json-storage');
 
 interface SettingsPopupProps extends Store{}
 interface SettingsPopupState{}
@@ -238,7 +238,7 @@ class Section extends Component<SectionProps,{}>{
     }   
 }
 
-let findQuickEntryWindow = (title:string) => {
+let findWindowByTitle = (title:string) => {
     let windows = remote.BrowserWindow.getAllWindows();
     return windows.find((w) => w.getTitle()===title); 
 }
@@ -256,27 +256,28 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
     enableQuickEntry = debounce(() => {
         let {enableShortcutForQuickEntry,dispatch} = this.props;
 
-        updateConfig(dispatch)({enableShortcutForQuickEntry:!enableShortcutForQuickEntry})
+        updateConfig(storage,dispatch)({enableShortcutForQuickEntry:!enableShortcutForQuickEntry})
         .then(
             (config) => {
-                if(config.enableShortcutForQuickEntry){
-                    if(!remote.globalShortcut.isRegistered('Ctrl+Alt+T')){
-                        remote.globalShortcut.register(
-                            'Ctrl+Alt+T', 
-                            () => {
-                                let quickEntry = findQuickEntryWindow('Quick Entry');
-                                if(isNil(quickEntry)){  return  }    
-                                
-                                if(quickEntry.isVisible()){
-                                   quickEntry.hide();
-                                }else{
-                                   quickEntry.show();
-                                   quickEntry.focus(); 
-                                }
+                let registered = remote.globalShortcut.isRegistered('Ctrl+Alt+T');
+                let enable = config.enableShortcutForQuickEntry;
+
+                if(enable && not(registered)){
+                    remote.globalShortcut.register(
+                        'Ctrl+Alt+T', 
+                        () => {
+                            let quickEntry = findWindowByTitle('Quick Entry');
+                            if(isNil(quickEntry)){  return  }    
+                            
+                            if(quickEntry.isVisible()){
+                                quickEntry.hide();
+                            }else{
+                                quickEntry.show();
+                                quickEntry.focus(); 
                             }
-                        );
-                    }
-                }else{
+                        }
+                    );
+                }else if(not(enable) && registered){
                     if(remote.globalShortcut.isRegistered('Ctrl+Alt+T')){
                        remote.globalShortcut.unregister('Ctrl+Alt+T');
                     }
@@ -288,10 +289,10 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
 
     quickEntrySavesTo = (event) => {
         let {dispatch} = this.props;
-        updateConfig(dispatch)({quickEntrySavesTo:event.target.value})
+        updateConfig(storage,dispatch)({quickEntrySavesTo:event.target.value})
         .then(
             (config) => {
-                let window = findQuickEntryWindow('Quick Entry');
+                let window = findWindowByTitle('Quick Entry');
                 if(window){
                     window.webContents.send('config',config)
                 }
@@ -299,6 +300,7 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
         ); 
     };
 
+    
     render(){
         let {enableShortcutForQuickEntry, quickEntrySavesTo} = this.props;
 
@@ -398,7 +400,7 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
 
         if(contains(tag)(defaultTags)){
             compose(
-                updateConfig(dispatch),
+                updateConfig(storage,dispatch),
                 (idx:number) => ({defaultTags:remove(idx,1,defaultTags)}),
                 findIndex((item) => item===tag)
             )(defaultTags)
@@ -408,7 +410,7 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
     onReset = () => {
        let {todos,dispatch} = this.props;
 
-       updateConfig(dispatch)({defaultTags})
+       updateConfig(storage,dispatch)({defaultTags})
        .then(() => {
             let updatedTodos = todos.map(
                 (todo:Todo) => ({ 
@@ -539,9 +541,9 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
             (data:IcalData) => { 
                 let {calendar,events,error} = data;
                 
-                if(!hideHint){ updateConfig(dispatch)({hideHint:true}) };  
+                if(not(hideHint)){ updateConfig(storage,dispatch)({hideHint:true}) };  
                 
-                if(!isNil(error)){  
+                if(not(isNil(error))){  
                    this.setState({error:error.message}, () => this.onError(error));
                    return null;  
                 };
@@ -891,19 +893,19 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
     shouldSendStatistics = debounce(() => {
         let {shouldSendStatistics,dispatch} = this.props;
-        updateConfig(dispatch)({shouldSendStatistics:!shouldSendStatistics}); 
+        updateConfig(storage,dispatch)({shouldSendStatistics:!shouldSendStatistics}); 
     },50);
 
 
     shouldGroup = debounce(() => {
         let {groupTodos,dispatch} = this.props;
-        updateConfig(dispatch)({groupTodos:!groupTodos}); 
+        updateConfig(storage,dispatch)({groupTodos:!groupTodos}); 
     },50);
 
 
     moveCompletedTo = (event) => {
         let {dispatch, todos} = this.props;
-        updateConfig(dispatch)({moveCompletedItemsToLogbook:event.target.value})
+        updateConfig(storage,dispatch)({moveCompletedItemsToLogbook:event.target.value})
         .then((config) => {
             let load = todos.map((todo:Todo) => {
                 if(isNil(todo.completedSet)){ return todo; }

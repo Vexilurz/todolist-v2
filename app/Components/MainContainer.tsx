@@ -35,6 +35,7 @@ import { Upcoming } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
+const storage = remote.require('electron-json-storage');
 import { 
     isEmpty, last, isNil, contains, all, not, assoc, flatten, 
     toPairs, map, compose, allPass, cond, defaultTo, reject 
@@ -57,12 +58,10 @@ import { generateRandomDatabase } from '../utils/generateRandomObjects';
 import { updateConfig } from '../utils/config';
 import { isNotArray } from '../utils/isSomething';
 
-
 const Promise = require('bluebird');   
 const moment = require("moment"); 
 
-
-export let filter = (array:any[],f:Function,caller:string) : any[] => {
+export let filter = (array:any[],f:Function,caller?:string) : any[] => {
     return lodashFilter(array,f); 
 } 
 
@@ -225,12 +224,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     clearStorage(this.onError)     
                 ])  
                 .then(() => fetchData(this.props,this.limit,this.onError) )  
-                .then((calendars) => isEmpty(calendars) ? null : updateConfig(dispatch)({hideHint:true}))  
+                .then((calendars) => isEmpty(calendars) ? null : updateConfig(storage,dispatch)({hideHint:true}))  
             });
         }else{ 
 
             fetchData(this.props,this.limit,this.onError) 
-            .then((calendars) => isEmpty(calendars) ? null : updateConfig(dispatch)({hideHint:true}))   
+            .then((calendars) => isEmpty(calendars) ? null : updateConfig(storage,dispatch)({hideHint:true}))   
         } 
     }
 

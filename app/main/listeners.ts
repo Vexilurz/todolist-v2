@@ -64,9 +64,7 @@ export class Listeners{
       this.registeredListeners = [ 
             {
                 name:"hide",
-                callback:(event) => {
-                    this.spawnedWindows.map((win:BrowserWindow) => win.hide())
-                }
+                callback:(event) => BrowserWindow.getAllWindows().map((win:BrowserWindow) => win.hide())
             }, 
             {
                 name:"downloadUpdates",
@@ -91,24 +89,18 @@ export class Listeners{
                     setImmediate(() => {
                         app.removeAllListeners("window-all-closed")
                         let windows = BrowserWindow.getAllWindows();
-                        windows.forEach( w => w.destroy() );
+                        windows.forEach(w => w.destroy());
                         autoUpdater.quitAndInstall(true,true);
-                    })
+                    })  
                 }
-            },
-            {  
-                name:"reload", 
-                callback : (event) => {
-                    mainWindow.reload();  
-                    loadApp(mainWindow).then(() => mainWindow.webContents.send("loaded"));   
-                }
-            },  
+            }, 
             {
                 name:"closeClonedWindows",
                 callback : (event) => { 
                     this.spawnedWindows
                     .filter(w => !w.isDestroyed())
                     .forEach((window) => window.id===mainWindow.id ? null : window.destroy())
+
                     this.spawnedWindows = [mainWindow]; 
                     event.sender.send("closeClonedWindows");  
                 }   
@@ -119,13 +111,9 @@ export class Listeners{
                     let newWindow = initWindow(getClonedWindowDimensions()); 
                     this.spawnedWindows.push(newWindow); 
                     this.spawnedWindows = this.spawnedWindows.filter(w => !w.isDestroyed());
+
                     loadApp(newWindow)
-                    .then(
-                        () => {
-                            newWindow.webContents.send("loaded", store); 
-                            if(isDev()){ newWindow.webContents.openDevTools() }
-                        }   
-                    );  
+                    .then(() => newWindow.webContents.send("loaded", store) );  
                 }
             },  
             {
@@ -161,27 +149,13 @@ export class Listeners{
         this.startToListenOnAllChannels(); 
     } 
  
-
-    registerListener(listener : RegisteredListener) : void{
-        this.registeredListeners.push(listener);
-    }  
-    
-
-    unregisterListener(name : string) : void{
-        let idx = this.registeredListeners.findIndex((listener : RegisteredListener) => listener.name==name)
-        if(idx===-1){ return }
-        this.registeredListeners = remove(idx, 1, this.registeredListeners); 
-        ipcMain.removeAllListeners(name); 
-    } 
-  
- 
     startToListenOnAllChannels = () => {
-        this.registeredListeners.map(({name,callback}) => ipcMain.on(name, callback));  
+        this.registeredListeners.forEach(({name,callback}) => ipcMain.on(name, callback));  
     }
     
  
     stopToListenOnAllChannels = () => {
-        this.registeredListeners.map(({name,callback}) => ipcMain.removeAllListeners(name));  
+        this.registeredListeners.forEach(({name,callback}) => ipcMain.removeAllListeners(name));  
     }
 }         
 

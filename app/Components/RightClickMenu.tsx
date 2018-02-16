@@ -13,14 +13,14 @@ import { Todo, removeTodo, addTodo, Project, Area, LayoutItem } from '../databas
 import { Store } from '../app';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { Category } from './MainContainer';
-import { remove, isNil, not } from 'ramda';
+import { remove, isNil, not, and, equals } from 'ramda';
 let uniqid = require("uniqid");    
 import { isDev } from '../utils/isDev'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { attachDispatchToProps } from '../utils/utils';
+import { attachDispatchToProps, getCompletedWhen } from '../utils/utils';
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { generateId } from '../utils/generateId';
 import { assert } from '../utils/assert';
@@ -61,82 +61,87 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
 
     onOutsideClick = (e) => {
-
-        if(this.ref===null || this.ref===undefined){ return }
+        if(isNil(this.ref)){ return }
+        let {dispatch} = this.props;
 
         let x = e.pageX;
         let y = e.pageY; 
 
         let inside = insideTargetArea(null,this.ref,x,y);
     
-        if(!inside){
-           this.props.dispatch({
+        if(not(inside)){
+            dispatch({
                 type: "openRightClickMenu",
                 load: {
-                    showRightClickMenu: false,
-                    rightClickedTodoId: null,
-                    rightClickMenuX: 0,
-                    rightClickMenuY: 0
+                    showRightClickMenu:false,
+                    rightClickedTodoId:null,
+                    rightClickMenuX:0,
+                    rightClickMenuY:0
                 }
-           }); 
+            }); 
         }   
-    }   
-               
+    };
+
+
+    getRightClickedTodo = () : Todo => {
+        let { todos, dispatch, rightClickedTodoId } = this.props; 
+        let todo : Todo = todos.find( (t:Todo) => t._id===rightClickedTodoId );
+        return todo;
+    };
 
 
     onDeleteToDo = (e) => {
-        let { todos, dispatch, rightClickedTodoId } = this.props; 
-           
-        let todo : Todo = todos.find( (t:Todo) => t._id===rightClickedTodoId );
+        let { dispatch } = this.props; 
+        let todo : Todo = this.getRightClickedTodo();
+
+        if(isNil(todo)){ return }
          
-        if(!isNil(todo.group)){  
+        if( not(isNil(todo.group)) ){  
            dispatch({type:"openChangeGroupPopup", load:true});         
         }else{ 
            dispatch({type:"updateTodo", load:{...todo,deleted:new Date()}});
         } 
-    }  
+    };  
 
- 
 
     onDuplicate = (e) => {
-        let todo : Todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId );
+        let { dispatch } = this.props; 
+        let todo : Todo = this.getRightClickedTodo();
+        
+        if(isNil(todo)){ return }
         
         let duplicate : Todo = {...todo};
         duplicate._id = generateId();
         delete duplicate['_rev']; 
  
-        this.props.dispatch({type:"addTodo", load:duplicate}); 
-    } 
-
+        dispatch({type:"addTodo", load:duplicate}); 
+    }; 
 
 
     onComplete = (e) => {
-        let todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId ); 
+        let { dispatch, moveCompletedItemsToLogbook } = this.props; 
+        let todo : Todo = this.getRightClickedTodo();
 
-        if(!todo){  
-            if(isDev()){ 
-                throw new Error(`
-                    todo undefined. 
-                    ${JSON.stringify(todo)} 
-                    ${this.props.rightClickedTodoId}. 
-                    onComplete.
-                `);  
-            }
-        } 
-         
-        this.props.dispatch({ 
+        if(isNil(todo)){ return }
+
+        dispatch({ 
             type:"updateTodo", 
-            load:{ ...todo, ...{completed:new Date()}, checked:true } 
+            load:{ 
+                ...todo, 
+                completedSet:isNil(todo.completedSet) ? new Date() : todo.completedSet, 
+                completedWhen:getCompletedWhen(moveCompletedItemsToLogbook,new Date())
+            } 
         });
-    }
+    };
     
     
 
     onConvertToProject = (e) => { 
-        let todo : Todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId); 
+        let {dispatch} = this.props;
+        let todo : Todo = this.getRightClickedTodo();
 
-        assert(!isNil(todo),`todo undefined. ${todo} ${this.props.rightClickedTodoId}. onConvertToProject.`);
-      
+        if(isNil(todo)){ return }
+
         let todos = todo.checklist.map( 
             (c : ChecklistItem) : Todo => ({ 
                     _id : uniqid(),  
@@ -157,7 +162,6 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
             })
         );
 
- 
         let layout : string[] = todos.map( (t:Todo) : string => t._id ); 
 
         let converted : Project = {  
@@ -175,142 +179,80 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         };
         
 
-        this.props.dispatch({type:"removeTodo", load:todo._id});
-        this.props.dispatch({type:"addTodos", load:todos});
-        this.props.dispatch({type:"addProject", load:converted});
-    }
+        dispatch({type:"removeTodo", load:todo._id});
+        dispatch({type:"addTodos", load:todos});
+        dispatch({type:"addProject", load:converted});
+    };
  
-      
-
+    
     removeFromProject = () => {
-
-        let project : Project = this.props.projects.find((p:Project) => p._id===this.props.selectedProjectId);
+        let {projects, dispatch, selectedProjectId, rightClickedTodoId} = this.props;
+        let project : Project = projects.find((p:Project) => p._id===selectedProjectId);
         
-        if(!project){ 
-            if(isDev()){ 
-                throw new Error(`
-                    project undefined. 
-                    ${JSON.stringify(project)} 
-                    ${this.props.selectedProjectId}. 
-                    removeFromProject.
-                `);
-            }
-        } 
-
-        if(project.type!=="project"){
-            if(isDev()){ 
-                throw new Error(`
-                    project is not of type Project. 
-                    ${JSON.stringify(project)} 
-                    ${this.props.selectedProjectId}. 
-                    removeFromProject .
-                `); 
-            }
-        }  
-
+        if(isNil(project)){ return }
+        
         let layout : LayoutItem[] = [...project.layout]; 
-        let idx : number = layout.findIndex((i:LayoutItem) => i===this.props.rightClickedTodoId);
-             
-        if(idx===-1){
-            if(isDev()){ 
-                throw new Error(  
-                    `rightClickedTodo is not attached to project. 
-                    ${JSON.stringify(project)}. 
-                    ${this.props.rightClickedTodoId}. 
-                    removeFromProject.`
-                ) 
-            }
-        }  
+        let idx : number = layout.findIndex((i:LayoutItem) => i===rightClickedTodoId);
  
-        this.props.dispatch({type:"updateProject", load:{...project, layout:remove(idx,1,layout)}});
-
-    }
-
+        if(idx!==-1){
+            dispatch({
+                type:"updateProject", 
+                load:{
+                    ...project, 
+                    layout:remove(idx,1,layout)
+                }
+            });
+        }
+    };
 
 
     removeFromArea = () => {
+        let {areas, dispatch, selectedAreaId, rightClickedTodoId} = this.props;
+        let area : Area = areas.find((a:Area) => a._id===selectedAreaId);
+      
+        if(isNil(area)){ return }
 
-        let area : Area = this.props.areas.find((a:Area) => a._id===this.props.selectedAreaId);
-        
-        if(!area){ 
-            if(isDev()){ 
-                throw new Error(`
-                    area undefined. 
-                    ${JSON.stringify(area)} 
-                    ${this.props.selectedAreaId}. 
-                    removeFromArea.
-                `);
-            }
-        }  
- 
-        if(area.type!=="area"){
-            if(isDev()){ 
-                throw new Error(`
-                    area is not of type Area. 
-                    ${JSON.stringify(area)} 
-                    ${this.props.selectedAreaId}. 
-                    removeFromArea. 
-                `); 
-            }  
-        } 
- 
-        let idx : number = area.attachedTodosIds.indexOf(this.props.rightClickedTodoId);
+        let idx : number = area.attachedTodosIds.indexOf(rightClickedTodoId);
 
-        if(idx===-1){ 
-            if(isDev()){ 
-                throw new Error(  
-                    `rightClickedTodo is not attached to area. 
-                    ${JSON.stringify(area)}. 
-                    ${this.props.rightClickedTodoId}.
-                    removeFromArea.` 
-                )
-            }
-        }   
-
-        this.props.dispatch({
-            type:"updateArea", 
-            load:{
-                ...area,
-                attachedTodosIds:remove(idx,1,area.attachedTodosIds)
-            }
-        });
+        if(idx!==-1){
+            dispatch({
+                type:"updateArea",
+                load:{
+                   ...area,
+                   attachedTodosIds:remove(idx,1,area.attachedTodosIds)
+                }
+            });
+        }
+    };
  
-    }
- 
-
 
     onRemoveFromProjectArea = (e) => {
+        let {selectedCategory, selectedProjectId, selectedAreaId} = this.props;
 
-        let projectSelected : boolean = this.props.selectedCategory==="project" && 
-                                        !!this.props.selectedProjectId;
+        let projectSelected : boolean = and(
+            equals(selectedCategory,"project"),
+            not(isNil(selectedProjectId))
+        );
 
-        let areaSelected : boolean = this.props.selectedCategory==="area" && 
-                                     !!this.props.selectedAreaId;
-                            
+        let areaSelected : boolean = and(
+            equals(selectedCategory,"area"),
+            not(isNil(selectedAreaId))
+        );
+                        
         if(projectSelected){
            this.removeFromProject();
         }else if(areaSelected){
            this.removeFromArea();
         }   
-    }  
+    };  
 
 
-    onWhen = (e) => {} 
-    onMove = (e) => {}
-    onShortcuts = (e) => {}
-      
- 
     onRepeatTodo = (e) => {
-        let {
-            rightClickedTodoId,
-            rightClickMenuX,
-            rightClickMenuY,
-            todos 
-        } = this.props;   
+        let {rightClickMenuX,rightClickMenuY,dispatch} = this.props;   
 
-        let repeatTodo : Todo = todos.find( t => t._id===rightClickedTodoId );
+        let repeatTodo : Todo = this.getRightClickedTodo();
         
-        this.props.dispatch({
+        dispatch({
             type : "openRepeatPopup",
             load : {
                 showRepeatPopup : true, 
@@ -320,31 +262,38 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                 showRightClickMenu : false
             } 
         }); 
-    }
+    };
 
 
-    onShare = (e) => {}
+    onWhen = (e) => {}; 
+    onMove = (e) => {};
+    onShortcuts = (e) => {};
+    onShare = (e) => {};
 
  
     render(){ 
-        let todo = this.props.todos.find( (t:Todo) => t._id===this.props.rightClickedTodoId );
+        let todo : Todo = this.getRightClickedTodo();
         
         if(isNil(todo)){ return null }
 
-        let projectSelected = this.props.selectedCategory==="project" && !!this.props.selectedProjectId;
-        let areaSelected = this.props.selectedCategory==="area" && !!this.props.selectedAreaId;                          
-        let canWhen = false; 
-        let canMove = false;    
+        let {selectedCategory,selectedProjectId,selectedAreaId,showRightClickMenu} = this.props;
+
+        let projectSelected : boolean = and( equals(selectedCategory,"project"), not(isNil(selectedProjectId)) );
+        let areaSelected : boolean = and( equals(selectedCategory,"area"), not(isNil(selectedAreaId)) );    
+
         let canComplete = isNil(todo.deleted) && isNil(todo.completedWhen);
-        let canShortcuts = false;   
         let canRepeat = isNil(todo.deleted) && isNil(todo.group);
         let canDuplicate = isNil(todo.deleted); 
         let canConvert = isNil(todo.deleted);
         let canDelete = isNil(todo.deleted); 
         let canRemoveFromProjectArea = isNil(todo.deleted) && (projectSelected || areaSelected);
-        let canShare = false; 
         
-        return  !this.props.showRightClickMenu ? null:
+        let canWhen = false; 
+        let canMove = false;  
+        let canShortcuts = false;  
+        let canShare = false;  
+
+        return  not(showRightClickMenu) ? null:
                 <div  
                     ref={(e) => { this.ref=e; }}   
                     onClick = {(e) => {
@@ -373,12 +322,8 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             e.stopPropagation();
                             e.preventDefault(); 
                         }}  
-                        style={{
-                            display: "flex",
-                            flexDirection: "column"
-                        }}
+                        style={{display:"flex",flexDirection:"column"}}
                     > 
-
                         <RightClickMenuItem 
                             title={"When..."} 
                             dispatch={this.props.dispatch}
@@ -386,100 +331,76 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             disabled={!canWhen}
                             icon={null}
                         />
-
                         <RightClickMenuItem  
                             title={"Move..."}
                             dispatch={this.props.dispatch}
-                            onClick = {this.onMove}
-                            disabled = {!canMove}
-                            icon = {null}
+                            onClick={this.onMove}
+                            disabled={!canMove}
+                            icon={null}
                         />
-
                         <RightClickMenuItem 
                             title={"Complete"} 
                             dispatch={this.props.dispatch}
-                            onClick = {this.onComplete}
-                            disabled = {!canComplete}
-                            icon = {null}
-                        />
-
-                        <RightClickMenuItem 
-                            title = {"Shortcuts"}
-                            dispatch={this.props.dispatch}
-                            onClick = {this.onShortcuts}
-                            disabled = {!canShortcuts}
+                            onClick={this.onComplete}
+                            disabled={!canComplete}
                             icon={null}
                         />
- 
-                        <div style={{
-                            border:"1px solid rgba(200,200,200,0.5)",
-                            marginTop: "5px",
-                            marginBottom: "5px"
-                        }}>
-                        </div>
-                           
+                        <RightClickMenuItem 
+                            title={"Shortcuts"}
+                            dispatch={this.props.dispatch}
+                            onClick={this.onShortcuts}
+                            disabled={!canShortcuts}
+                            icon={null}
+                        />
+                        
+                        <div style={{border:"1px solid rgba(200,200,200,0.5)", marginTop:"5px",marginBottom:"5px"}}></div>  
+
                         <RightClickMenuItem 
                             title={"Repeat..."} 
                             dispatch={this.props.dispatch}
-                            onClick = {this.onRepeatTodo}
+                            onClick={this.onRepeatTodo}
                             disabled={!canRepeat}
                             icon={null} 
                         />
-                                 
-
                         <RightClickMenuItem 
                             title={"Duplicate To-Do"}
                             dispatch={this.props.dispatch}
-                            onClick = {this.onDuplicate}
-                            disabled = {!canDuplicate}
+                            onClick={this.onDuplicate}
+                            disabled={!canDuplicate}
                             icon={null}
                         />
-           
-
                         <RightClickMenuItem 
                             title={"Convert to Project"}
                             dispatch={this.props.dispatch}
-                            onClick = {this.onConvertToProject}
-                            disabled = {!canConvert}
+                            onClick={this.onConvertToProject}
+                            disabled={!canConvert}
                             icon={null}
                         />
-
-
                         <RightClickMenuItem 
                             title={"Delete To-Do"}
                             dispatch={this.props.dispatch}
-                            onClick = {this.onDeleteToDo}
-                            disabled = {!canDelete}
+                            onClick={this.onDeleteToDo}
+                            disabled={!canDelete}
                             icon={null}
                         />
 
-                        <div style={{
-                            border:"1px solid rgba(200,200,200,0.5)",
-                            marginTop: "5px",
-                            marginBottom: "5px"
-                        }}>
-                        </div>  
+                        <div style={{border:"1px solid rgba(200,200,200,0.5)", marginTop:"5px",marginBottom:"5px"}}></div>  
 
                         <RightClickMenuItem 
                             title={"Remove From Project/Area"}
                             dispatch={this.props.dispatch}
-                            onClick = {this.onRemoveFromProjectArea}
-                            disabled = {!canRemoveFromProjectArea}
+                            onClick={this.onRemoveFromProjectArea}
+                            disabled={not(canRemoveFromProjectArea)}
                             icon={null} 
                         />
 
-                        <div style={{
-                            border:"1px solid rgba(200,200,200,0.5)",
-                            marginTop: "5px",
-                            marginBottom: "5px"
-                        }}>
-                        </div>
+                        <div style={{border:"1px solid rgba(200,200,200,0.5)", marginTop:"5px",marginBottom:"5px"}}></div>  
 
                         <RightClickMenuItem 
                             title={"Share"}
                             dispatch={this.props.dispatch}
-                            onClick = {this.onShare}
-                            disabled = {!canShare}
+                            onClick={this.onShare}
+                            disabled={not(canShare)}
                             icon={null} 
                         />
                        </div> 

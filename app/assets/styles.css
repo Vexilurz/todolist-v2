@@ -267,18 +267,6 @@ ul {
   background-color:white; 
 } 
 
-.close:hover{
-  background-color:#FF0000;
-}
-
-.reload:hover{
-  background-color:orange;
-}
-
-.hide:hover{
-  background-color:green;
-}
-
 .unselectable::selection {
   text-shadow: none;
   background: rgba(0,0,0,0);

@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo,  isToday,  makeChildrensVisible, 
-    hideChildrens, generateDropStyle,  keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, timeOfTheDay, sameDay, byTags, 
+    hideChildrens, generateDropStyle,  keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, sameDay, byTags, 
     byCategory
 } from "../../utils/utils";  
 import { connect } from "react-redux";
@@ -56,7 +56,8 @@ import { updateConfig } from '../../utils/config';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
 import Print from 'rc-print';
-
+import { timeOfTheDay } from '../../utils/time';
+const storage = remote.require('electron-json-storage');
 
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map((item,index:number) => assoc("priority",index,item)) 
@@ -295,7 +296,7 @@ export class Today extends Component<TodayProps,TodayState>{
         this.props.dispatch({type:"dragged",load:null});
         let leftpanel = document.getElementById("leftpanel");
 
-        let {todos, dispatch, areas, projects} = this.props;
+        let {todos, dispatch, areas, projects, moveCompletedItemsToLogbook} = this.props;
         let {items, tags} = this.getItems();
 
         let x = event.clientX; 
@@ -306,7 +307,14 @@ export class Today extends Component<TodayProps,TodayState>{
         assert(isTodo(draggedTodo), `draggedTodo is not of type Todo. onSortEnd. ${JSON.stringify(draggedTodo)}`);
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
-            onDrop(event, draggedTodo, dispatch, areas, projects); 
+            onDrop({
+                event, 
+                draggedTodo, 
+                dispatch, 
+                areas, 
+                projects, 
+                moveCompletedItemsToLogbook
+            }); 
         }else{     
             if(oldIndex===newIndex){ return }
             this.changeOrder(oldIndex,newIndex,items);  
@@ -558,7 +566,7 @@ export class Hint extends Component<HintProps,HintState>{
      
     onLoad = (e) => { 
         let {dispatch} = this.props; 
-        updateConfig(dispatch)({hideHint:true})
+        updateConfig(storage,dispatch)({hideHint:true})
         .then(
             () => {
                 dispatch({type:"selectedSettingsSection",load:'CalendarEvents'});
@@ -569,7 +577,7 @@ export class Hint extends Component<HintProps,HintState>{
     
     onClose = (e) => {  
         let {dispatch} = this.props;
-        updateConfig(dispatch)({hideHint:true});
+        updateConfig(storage,dispatch)({hideHint:true});
     }; 
 
     render(){

@@ -198,8 +198,9 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
             anchorOrigin={{vertical: "center", horizontal: "middle"}} 
             targetOrigin={{vertical: "top", horizontal: "middle"}} 
         >   
-            <div  className={"darkscroll"}
-                  style={{  
+            <div  
+                className={"darkscroll"}
+                style={{  
                     backgroundColor: "rgb(39, 43, 53)",
                     paddingRight: "10px",
                     paddingLeft: "10px",
@@ -207,11 +208,12 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                     paddingTop: "5px",
                     paddingBottom: "5px",
                     cursor:"pointer" 
-                  }} 
+                }} 
             >      
                     <div  
                         onClick={this.onComplete} 
-                        className={"tagItem"} style={{
+                        className={"tagItem"} 
+                        style={{
                             display:"flex", 
                             height:"auto",
                             alignItems:"center",
@@ -343,30 +345,30 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                     }}>
                     </div>
 
- 
-                    <div  
-                        onClick={this.onRepeat} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
-                    >  
-                        <Repeat style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                            Repeat...  
-                        </div>     
-                    </div>
+                    {
+                        /*
+                        <div  
+                            onClick={this.onRepeat} 
+                            className={"tagItem"} 
+                            style={{
+                                display:"flex", 
+                                height:"auto",
+                                alignItems:"center",
+                                padding:"5px"
+                            }}
+                        >  
+                            <Repeat style={{color:"rgb(69, 95, 145)"}}/> 
+                            <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                                Repeat...  
+                            </div>     
+                        </div>
+                        */
+                    }
 
                     <div  
                         onClick={this.onDuplicate} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
+                        className={"tagItem"} 
+                        style={{display:"flex", height:"auto", alignItems:"center", padding:"5px"}}
                     >  
                         <Duplicate style={{color:"rgb(69, 95, 145)"}}/> 
                         <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>

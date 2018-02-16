@@ -218,6 +218,10 @@ export let getCompletedWhen = (moveCompletedItemsToLogbook:string,date:Date) => 
         [
             (value:string) => value==="day",
             () => oneDayAhead(date)
+        ],
+        [
+            () => true,
+            () => date,
         ]
     ])(moveCompletedItemsToLogbook);
 }
@@ -429,23 +433,6 @@ export let dateToDateInputValue = (date:Date) : string => {
 
     return year + "-" + month + "-" + d;
 }
-
-
-
-
-
-
-export let timeOfTheDay = (date:Date) : string => {
-    assert(isDate(date), `input is not a date. ${JSON.stringify(date)}. timeOfTheDay.`);
-
-    let hours = String(date.getHours());
-    let minutes = String(date.getMinutes());
-    
-    hours = hours.length === 1 ? `0${hours}` : hours;
-    minutes = minutes.length === 1 ? `0${minutes}` : minutes;                                                                                         
-    
-    return `${hours}:${minutes}`;
-}  
 
 
 
@@ -1573,7 +1560,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1590,7 +1578,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1607,7 +1596,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1624,7 +1614,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1641,7 +1632,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1658,7 +1650,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1682,7 +1675,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1699,7 +1693,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1716,7 +1711,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1740,7 +1736,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     }, 
@@ -1757,7 +1754,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     }, 
@@ -1774,7 +1772,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1791,7 +1790,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1808,7 +1808,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1825,7 +1826,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1842,7 +1844,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1859,7 +1862,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1876,7 +1880,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1893,7 +1898,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },
@@ -1910,7 +1916,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     },            
@@ -1934,7 +1941,8 @@ export const introListLayout = [
         created:new Date(),
         deleted:null,
         attachedDate:null,
-        completed:null,
+        completedSet:null,
+        completedWhen:null,
         checked:false,
         _id:generateId()
     }
