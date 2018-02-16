@@ -324,19 +324,18 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                             alignItems: "center",
                             justifyContent: "center"
                         }}>
-                            <div style={{position: "relative"}}>
-                                <Alert style={{ 
-                                    color:"rgb(192, 192, 192)",
-                                    WebkitUserSelect: "none"  
-                                }}/>
-                                <div style={{
-                                    width:"8px",
-                                    height:"8px",
-                                    top:"8px",
-                                    left:"8px",
-                                    position:"absolute",
-                                    backgroundColor:"rgb(192, 192, 192)" 
-                                }}> 
+                            <div style={{position:"relative"}}>
+                                <Alert style={{color:"rgb(192, 192, 192)", WebkitUserSelect:"none"}}/>
+                                <div 
+                                    style={{
+                                        width:"8px",
+                                        height:"8px",
+                                        top:"8px",
+                                        left:"8px",
+                                        position:"absolute",
+                                        backgroundColor:"rgb(192, 192, 192)" 
+                                    }}
+                                > 
                                 </div>
                             </div>
                             <div style={{ 

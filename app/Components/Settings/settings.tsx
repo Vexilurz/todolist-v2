@@ -29,7 +29,7 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { Checkbox } from '../TodoInput/TodoInput';
 import { 
- attachDispatchToProps, debounce, isNewVersion, keyFromDate, checkForUpdates, getCompletedWhen 
+ attachDispatchToProps, debounce, isNewVersion, keyFromDate, checkForUpdates, getCompletedWhen, findWindowByTitle 
 } from '../../utils/utils';
 import { 
     Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, 
@@ -238,10 +238,7 @@ class Section extends Component<SectionProps,{}>{
     }   
 }
 
-let findWindowByTitle = (title:string) => {
-    let windows = remote.BrowserWindow.getAllWindows();
-    return windows.find((w) => w.getTitle()===title); 
-}
+
 
 interface QuickEntrySettingsProps extends Store{}
 
@@ -264,7 +261,7 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
 
                 if(enable && not(registered)){
                     remote.globalShortcut.register(
-                        'Ctrl+Alt+T', 
+                        'Ctrl+Alt+T',  
                         () => {
                             let quickEntry = findWindowByTitle('Quick Entry');
                             if(isNil(quickEntry)){  return  }    

@@ -13,7 +13,7 @@ import {
     attachDispatchToProps, transformLoadDates, yearFromNow, convertTodoDates, 
     convertProjectDates, convertAreaDates, timeDifferenceHours, 
     convertDates, checkForUpdates, isNewVersion, nextMidnight,
-    oneMinuteBefore, threeDaysLater 
+    oneMinuteBefore, threeDaysLater, findWindowByTitle 
 } from "./utils/utils";  
 import {wrapMuiThemeLight} from './utils/wrapMuiThemeLight'; 
 import {
@@ -231,11 +231,15 @@ export class App extends Component<AppProps,{}>{
         const sysInfo = collectSystemInfo();
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
 
+        let notification = findWindowByTitle('Notification');
+        notification.show();
+        notification.center();
+
         this.initObservables();  
         this.initUpdateTimeout(); 
         this.reportStart({...sysInfo, timeSeconds} as any);
     }    
-
+    
 
     initObservables = () => {
         let {dispatch} = this.props;

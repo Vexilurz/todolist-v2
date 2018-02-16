@@ -88,7 +88,7 @@ export class Reminders extends Component<RemindersProps,RemindersState>{
         </div>
     }
 }
- 
+  
 
 interface ReminderState{}
 

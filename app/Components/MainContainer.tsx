@@ -160,7 +160,7 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
 
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
-                       "deadline" | "search" | "group" | "search";
+                       "deadline" | "search" | "group" | "search" | "reminder";
  
                   
                        

@@ -27,17 +27,13 @@ import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
 import { Category } from '../Components/MainContainer';
-
+import Alert from 'material-ui/svg-icons/alert/add-alert';
 
 export let chooseIcon = (
     size : { width:string, height:string }, 
     selectedCategory : Category
 ) => {
-
-    assert(isString(size.width),`Width is not a string. ${size.width}. chooseIcon.`);
-    assert(isString(size.height), `Height is not a string. ${size.height}. chooseIcon.`);
-    assert(isCategory(selectedCategory), `selectedCategory is not a category. ${size.height}. chooseIcon.`);
-   
+    
     switch(selectedCategory){  
 
         case "inbox":
@@ -157,8 +153,29 @@ export let chooseIcon = (
                        marginRight:"5px"  
                     }} 
                 /> 
-            </div>    
- 
+            </div> 
+             
+        case "reminder":
+            return <div style={{position:"relative"}}>
+                <Alert style={{
+                    color:"rgb(192, 192, 192)", 
+                    WebkitUserSelect:"none",
+                    width:"48px",
+                    height:"48px"
+                }}/>
+                <div 
+                    style={{
+                        width:"22px",
+                        height:"22px",
+                        top:"14px",
+                        left:"13px",
+                        position:"absolute",
+                        backgroundColor:"rgb(192, 192, 192)"
+                    }}
+                > 
+                </div>
+            </div>
+
         default:
             return <Inbox style={{  
                 ...size,

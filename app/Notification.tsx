@@ -84,8 +84,7 @@ interface NotificationProps{}
 
 interface  NotificationState{
     title:string,
-    message:string,
-    iconName:string
+    message:string
 }    
 
 class Notification extends Component<NotificationProps,NotificationState>{
@@ -93,7 +92,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
 
     constructor(props){
         super(props);  
-        let defaultState={title:'', message:'', iconName:'inbox'};    
+        let defaultState={title:'', message:''};    
         this.state={...defaultState};       
     }
 
@@ -130,7 +129,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
 
 
     render(){  
-        let {title, message, iconName} = this.state;
+        let {title, message} = this.state;
 
         return <div style={{display:"flex",flexDirection:"column",width:"100%",height:"100%"}}>
             <div 
@@ -145,7 +144,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
                 }}
             >
                 <div style={{fontWeight:500,color:"rgba(255,255,255,1)"}}>{title}</div>
-                <div style={{position:"absolute",right:10,cursor:"pointer",zIndex:200}}>   
+                <div style={{position:"absolute",right:5,cursor:"pointer",zIndex:200}}>   
                     <div    
                         style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
                         onClick={() => this.close()}
@@ -175,12 +174,12 @@ class Notification extends Component<NotificationProps,NotificationState>{
                     overflowX:"hidden", 
                     justifyContent:"center",
                     height:"70%",
-                    position:"relative", 
+                    position:"relative",  
                     alignItems:"center", 
                     flexDirection:"column"  
                 }}   
             >     
-                <div>{chooseIcon({width:"30px",height:"30px"},iconName as any)}</div>
+                <div>{chooseIcon({width:"",height:""},"reminder")}</div>
 
                 <div>
                     <Reminders reminders={[]}/> 

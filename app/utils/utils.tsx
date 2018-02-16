@@ -1147,6 +1147,11 @@ export let generateEmptyProject = () : Project => ({
 });
    
 
+export let findWindowByTitle = (title:string) => {
+    let windows = remote.BrowserWindow.getAllWindows();
+    return windows.find((w) => w.getTitle()===title); 
+};
+
 
 export let generateEmptyArea = () : Area => ({
     _id : generateId(),
