@@ -338,7 +338,7 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                                 > 
                                 </div>
                             </div>
-                            <div style={{ 
+                            <div style={{  
                                 color:"rgb(192, 192, 192)",
                                 WebkitUserSelect: "none", 
                                 cursor:"default", 

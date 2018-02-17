@@ -35,7 +35,7 @@ import { TextField } from 'material-ui';
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
  todoChanged, daysLeftMark, generateTagElement, isToday, getMonthName, debounce, fiveMinutesLater, 
- onHourLater, oneDayAhead, getCompletedWhen
+ onHourLater, oneDayAhead, getCompletedWhen, findWindowByTitle
 } from '../../utils/utils'; 
 import { Todo, removeTodo, updateTodo, Project} from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
@@ -56,9 +56,11 @@ import { Observable } from 'rxjs/Rx';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { googleAnalytics } from '../../analytics';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
-import { isFunction } from '../../utils/isSomething';
+import { isFunction, isDate } from '../../utils/isSomething';
 import { daysRemaining } from '../../utils/daysRemaining';
 import { stringToLength } from '../../utils/stringToLength';
+import { assert } from '../../utils/assert';
+import { setCallTimeout } from '../../utils/setCallTimeout';
 let Promise = require('bluebird');
 
 export interface TodoInputState{  
@@ -73,7 +75,7 @@ export interface TodoInputState{
     showChecklist : boolean,   
     showDeadlineCalendar : boolean
 }   
-  
+   
     
 export interface TodoInputProps{ 
     dispatch : Function,  
@@ -91,7 +93,7 @@ export interface TodoInputProps{
     onClose? : Function,
     showCompleted? : boolean
 }    
-  
+ 
    
 export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     
@@ -468,7 +470,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
     onCalendarAddReminderClick = (reminder:Date) : void => {
-        this.update({reminder, attachedDate:reminder});
+        let {dispatch} = this.props;
+        this.update({reminder, attachedDate:reminder}); 
+        dispatch({type:"resetReminders"});
     };
 
 

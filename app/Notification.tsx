@@ -37,7 +37,7 @@ import List from 'material-ui/svg-icons/action/list';
 import { 
     cond, assoc, isNil, not, defaultTo, map, isEmpty, 
     uniq, remove, contains, append, adjust, compose, 
-    flatten, concat, prop  
+    flatten, concat, prop, ifElse, last
 } from 'ramda';
 let moment = require("moment");
 import Popover from 'material-ui/Popover';
@@ -58,10 +58,9 @@ import { generateId } from './utils/generateId';
 import { daysRemaining } from './utils/daysRemaining';
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight';
 import { chooseIcon } from './utils/chooseIcon';
-import { Reminders } from './Components/Reminders';
+import { Reminder } from './Components/Reminder';
 
 injectTapEventPlugin();  
-
 
 ipcRenderer.once( 
     'loaded',     
@@ -79,71 +78,173 @@ ipcRenderer.once(
     }
 );   
 
-
 interface NotificationProps{}   
 
 interface  NotificationState{
-    title:string,
-    message:string
+    message:string,
+    reminder:Date,
+    todo:any 
 }    
 
 class Notification extends Component<NotificationProps,NotificationState>{
     subscriptions:Subscription[];
+    queue:NotificationState[];
 
     constructor(props){
         super(props);  
-        let defaultState={title:'', message:''};    
-        this.state={...defaultState};       
-    }
+        this.subscriptions=[];
+        let defaultState={message:'',reminder:new Date(),todo:null};    
+        this.state={...defaultState};   
+        this.queue=[];
+    };
+
 
     updateState = (state) => new Promise(resolve => this.setState(state, () => resolve()));
 
+
     componentDidMount(){
         let update = Observable 
-                        .fromEvent(ipcRenderer, 'remind', (event,state:NotificationState) => state)
-                        .flatMap((state) => this.updateState(state))
-                        .subscribe(() => this.show());
+                     .fromEvent(ipcRenderer, 'remind', (event,state:NotificationState) => state)
+                     .subscribe((state) => {
+                        state.reminder = new Date(state.reminder);  
+                        if(isEmpty(this.queue)){
+                           this.queue.push(state);
+                           this.notify();
+                        }else{ 
+                           this.queue.push(state)
+                        }
+                     });
 
         this.subscriptions.push(update);
-    }
+    };
+
 
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = [];
+    };
+
+
+    notify = () => { 
+        if(isEmpty(this.queue)){ return }
+        let next = this.queue[0];
+        this.updateState(next)
+        .then(() => this.open())
+        .then(() => this.playSound())
+    };
+
+
+    playSound = () => {
+        //const noise = new Audio('/path/to/noise.ogg')
+        //noise.play()
     }
 
+
+    open = () => new Promise( 
+        resolve => { 
+            const window = remote.getCurrentWindow();
+            const {width,height} = remote.screen.getPrimaryDisplay().workAreaSize;
+            const size = window.getSize();
+            const offset = 25;
+            const initialX = width-size[0]-offset;
+
+            const initialY = height+size[1];
+            const finalY = height-size[1]-offset; 
+            
+            window.setPosition(initialX, initialY);
+            window.show();
+
+            let move = () => {
+                let currentPosition = window.getPosition();
+                let [x,y] = currentPosition;
+                let delta = 20;
+
+                if(y<=finalY){ 
+                   window.setPosition(initialX, finalY);
+                   resolve();
+                }else{
+                   window.setPosition(initialX, y-delta);
+                   requestAnimationFrame(move);   
+                }
+            };
+  
+            move();
+        } 
+    );
     
-    show = () => {  }
-
-
-    changeSize = ({width,height}) =>  remote.getCurrentWindow().setSize(width, height); 
-
-
-    close = () => remote.getCurrentWindow().hide();
-
-
-    getPosition = () : number[] => remote.getCurrentWindow().getPosition();
     
+    close = () => {
+        const window = remote.getCurrentWindow();
+        const {width,height} = remote.screen.getPrimaryDisplay().workAreaSize;
+        const size = window.getSize();
+        const offset = 25;
+        const initialX = width-size[0]-offset;
+        const initialY = height+size[1];
 
-    setPosition = (x:number,y:number) => remote.getCurrentWindow().setPosition(x, y);
+        window.setPosition(initialX, initialY);
+        this.queue.shift(); 
+        this.notify();
+    };
+
+
+    onOpenTodo = (e) => { 
+        let {todo} = this.state;
+        if(todo){
+            let mainWindow = remote.BrowserWindow.getAllWindows().find( w => w.id===1 );
+            if(mainWindow){
+               mainWindow.webContents.send('openTodo', todo);
+            }
+            this.close();
+        }
+    };
+
+
+    onClose = (e) => this.close();
 
 
     render(){  
-        let {title, message} = this.state;
+        let {reminder, message} = this.state;
+        let buttonStyle = {      
+            display:"flex",
+            alignItems:"center",
+            cursor:"pointer",
+            margin:"5px",
+            justifyContent:"center",
+            width: "40px", 
+            height:"20px", 
+            borderRadius:"5px", 
+            paddingLeft:"25px",
+            paddingRight:"25px",
+            paddingTop:"10px", 
+            paddingBottom:"10px", 
+            backgroundColor:"rgba(81, 144, 247, 1)"  
+        } as any;
 
         return <div style={{display:"flex",flexDirection:"column",width:"100%",height:"100%"}}>
             <div 
-                style={{
-                    width:"100%",
-                    position:"relative",
-                    height:"10%",
-                    backgroundColor:"rgba(40,45,40,1)",
-                    display:"flex",
-                    alignItems:"center",
-                    justifyContent:"center" 
-                }}
+              style={{
+                width:"100%", 
+                position:"relative",
+                height:"20%",
+                backgroundColor:"rgba(81, 144, 247, 1)",
+                display:"flex",
+                alignItems:"center",
+                textAlign:"center", 
+                justifyContent:"space-between" 
+              }} 
             >
-                <div style={{fontWeight:500,color:"rgba(255,255,255,1)"}}>{title}</div>
+                <div 
+                    style={{
+                        fontWeight:500,
+                        paddingLeft:"5px",
+                        fontSize:"16px",
+                        display:"flex",
+                        alignItems:"center",
+                        color:"white"
+                    }}
+                >
+                    A task is due
+                </div>
                 <div style={{position:"absolute",right:5,cursor:"pointer",zIndex:200}}>   
                     <div    
                         style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
@@ -152,41 +253,36 @@ class Notification extends Component<NotificationProps,NotificationState>{
                         <Clear style={{color:"rgba(255,255,255,1)",height:25,width:25}}/>
                     </div>
                 </div>
-            </div>
-            <div 
-                style={{
-                    width:"100%",
-                    position:"relative",
-                    height:"20%",
-                    backgroundColor:"rgba(100,100,100,0.8)",
-                    display:"flex",
-                    alignItems:"center",
-                    textAlign:"center", 
-                    justifyContent:"center"
-                }} 
-            >
-                <div style={{fontWeight:500,color:"white"}}>{message}</div>
-            </div>
+
+            </div> 
 
             <div  
                 style={{                    
                     display:"flex",
                     overflowX:"hidden", 
-                    justifyContent:"center",
-                    height:"70%",
-                    position:"relative",  
+                    justifyContent:"space-between",
+                    height:"80%",
+                    position:"relative",   
                     alignItems:"center", 
                     flexDirection:"column"  
                 }}   
             >     
                 <div>{chooseIcon({width:"",height:""},"reminder")}</div>
-
-                <div>
-                    <Reminders reminders={[]}/> 
-                </div>
+                <div style={{display:"flex", alignItmes:"center", justifyContent:"center"}}>
+                    <Reminder message={message} date={reminder}/> 
+                </div> 
+                <div onClick={this.onOpenTodo} style={buttonStyle}>   
+                    <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
+                        Open
+                    </div>   
+                </div> 
+                <div onClick={this.onClose} style={buttonStyle}>   
+                    <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
+                        Close
+                    </div>   
+                </div> 
             </div> 
     </div>  
   } 
 }
-
 

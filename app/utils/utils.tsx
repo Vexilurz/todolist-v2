@@ -599,10 +599,8 @@ export let getTagsFromItems = (items:Item[]) : string[] => {
 } 
 
 
-
 export let attachDispatchToProps = (dispatch:Function,props) => ({...props, dispatch});
  
-
  
 export let debounce = (fun, mil=50) => {
     let timer; 
@@ -615,18 +613,13 @@ export let debounce = (fun, mil=50) => {
 } 
 
 
-
-
-
-
-let inPast = (date:Date) : boolean => {
+export let inPast = (date:Date) : boolean => {
     assert(isDate(date),'inPast');
     return new Date().getTime()>date.getTime();
 }
 
 
-
-let inFuture =  (date:Date) : boolean => {
+export let inFuture =  (date:Date) : boolean => {
     assert(isDate(date),'inFuture');
     return new Date().getTime()<date.getTime();
 } 

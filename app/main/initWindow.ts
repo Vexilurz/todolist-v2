@@ -43,10 +43,9 @@ export let initQuickEntry = ({width,height}:{width:number,height:number}):Browse
         useContentSize:true, 
         title:'Quick Entry',    
         center:true,       
-        frame:false  
+        frame:false    
     } as any);               
   
-    //handler.setAlwaysOnTop(true); 
     handler.setResizable(false); 
     handler.setMovable(true); 
     handler.setSkipTaskbar(true);
@@ -70,7 +69,6 @@ export let initNotification = ({width,height}:{width:number,height:number}):Brow
   
     handler.setAlwaysOnTop(true);
     handler.setResizable(false); 
-    handler.setMovable(false); 
     handler.setSkipTaskbar(true);
     handler.on('closed', () => {handler = null;}); 
     handler.hide(); 

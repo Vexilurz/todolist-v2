@@ -11,7 +11,7 @@ import {
     convertTodoDates, convertProjectDates, convertAreaDates, clearStorage, oneDayAhead, measureTime, 
     byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
     byCompleted, isToday, byNotSomeday, byScheduled, yearFromNow,
-    timeDifferenceHours, isNewVersion, addIntroList, printElement, isMainWindow
+    timeDifferenceHours, isNewVersion, addIntroList, printElement, isMainWindow, inFuture
 } from "../utils/utils";  
 import {isDev} from "../utils/isDev"; 
 import { connect } from "react-redux"; 
@@ -56,7 +56,8 @@ import {
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 import { generateRandomDatabase } from '../utils/generateRandomObjects';
 import { updateConfig } from '../utils/config';
-import { isNotArray } from '../utils/isSomething';
+import { isNotArray, isDate } from '../utils/isSomething';
+import { scheduleReminder } from '../utils/scheduleReminder';
 
 const Promise = require('bluebird');   
 const moment = require("moment"); 
@@ -143,21 +144,44 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
         ([calendars,projects,areas,todos]) => {
             let {limit,firstLaunch} = props; 
             let selected = selectTodos(areas, projects, todos, limit);
+
             dispatch({type:"setProjects", load:projects});
             dispatch({type:"setAreas", load:areas});
             dispatch({type:"setTodos", load:selected});
+
             if(firstLaunch){ addIntroList(dispatch) }; 
             return updateCalendars(calendars,onError);
         }
     )
-    .then( (calendars) => {  
-        dispatch({type:"setCalendars", load:calendars});
-        return calendars; 
-    } )
+    .then( 
+        (calendars) => {  
+            dispatch({type:"setCalendars", load:calendars});
+            return calendars; 
+        } 
+    )
 } 
 
 
+/**
+ * 1)Retrieve reminders (located in future) from todos.
+ * 2)If reminders already scheduled, clear timeouts in current session.
+ * 3)Set timeouts for invocation in current session for each of the reminders. 
+ */
+export let activateReminders = (scheduledReminders:number[],todos:Todo[]) : number[] => {
+    let todosToBeRemindedOf : Todo[] = filter( 
+        todos, 
+        allPass([
+            (todo:Todo) => isDate(todo.reminder),
+            (todo:Todo) => isNil(todo.reminder) ? false : inFuture(todo.reminder)
+        ])
+    );
 
+    scheduledReminders.map(t => clearTimeout(t)); 
+
+    return todosToBeRemindedOf.map((todo) : number => scheduleReminder(todo)) 
+}; 
+
+ 
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
                        "deadline" | "search" | "group" | "search" | "reminder";
@@ -183,7 +207,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
  
         this.state = { fullWindowSize:true };
     }  
-    
+     
       
     //TODO Test
     requestAdditionalNeverTodos = () : void => { 
@@ -195,7 +219,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
   
         if(!isEmpty(never)){ updateNeverTodos(dispatch,never,limit) }
     }
-
+ 
   
 
     onError = (e) => globalErrorHandler(e)
@@ -216,7 +240,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 let todos = fakeData.todos; 
                 let projects = fakeData.projects; 
                 let areas = fakeData.areas;  
-                    
+                     
                 Promise.all([ 
                     addTodos(this.onError,todos),    
                     addProjects(this.onError,projects), 
@@ -224,12 +248,14 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     clearStorage(this.onError)     
                 ])  
                 .then(() => fetchData(this.props,this.limit,this.onError) )  
-                .then((calendars) => isEmpty(calendars) ? null : updateConfig(storage,dispatch)({hideHint:true}))  
+                .then((calendars) => isEmpty(calendars) ? null : updateConfig(storage,dispatch)({hideHint:true})) 
+                .then(() => dispatch({type:"resetReminders"}))
             });
         }else{ 
 
             fetchData(this.props,this.limit,this.onError) 
             .then((calendars) => isEmpty(calendars) ? null : updateConfig(storage,dispatch)({hideHint:true}))   
+            .then(() => dispatch({type:"resetReminders"}))
         } 
     }
 

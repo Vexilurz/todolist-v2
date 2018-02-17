@@ -1,4 +1,5 @@
 import { Store } from "./app";
+import { activateReminders } from "./Components/MainContainer";
 
 
  
@@ -13,6 +14,16 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                     progress : action.load,
                 };  
                 break; 
+
+
+            case "resetReminders":
+                let scheduledReminders = activateReminders(state.scheduledReminders,state.todos);
+                console.log(`scheduledReminders ${scheduledReminders}`); 
+                newState = {  
+                    ...state,
+                    scheduledReminders,
+                };  
+                break;
 
 
             case "showUpdatesNotification":

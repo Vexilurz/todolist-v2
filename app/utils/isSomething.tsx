@@ -1,4 +1,4 @@
-import { all, isNil, contains, not, has, compose } from 'ramda';
+import { all, isNil, contains, not, has, compose, and } from 'ramda';
 import { Area, Project, Todo } from './../database';
 import { Category } from '.././Components/MainContainer';
 export type Item = Area | Project | Todo; 
@@ -31,11 +31,12 @@ export let isItem = (item:Item) : boolean => item.type==="project" || item.type=
 export let isArray = (item:any[]) : boolean => Array.isArray(item); 
  
 
-export let isDate = (date) : boolean => (date instanceof Date) && !isNaN( date.getTime() ); 
+export let isDate = (date) : boolean => isNil(date) ? false : 
+                                        and(date instanceof Date, not(isNaN(date.getTime())) ); 
  
 
 export let isFunction = (item) : boolean => typeof item==="function"; 
-
+ 
 
 export let isString = (item) : boolean => typeof item==="string"; 
 

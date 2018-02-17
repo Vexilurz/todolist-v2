@@ -60,63 +60,37 @@ interface ReminderProps{
     date:Date
 }
 
-interface RemindersProps{
-    reminders:ReminderProps[]
-}
- 
-interface RemindersState{}
-
-export class Reminders extends Component<RemindersProps,RemindersState>{
-
-    constructor(props){
-        super(props);
-        this.state={};
-    }
-
-    render(){
-        let {reminders} = this.props;
-
-        return <div style={{
-            backgroundColor:"rgb(234, 235, 239)",
-            display:"flex",
-            overflowX:"hidden",
-            flexDirection:"column",
-            justifyContent:"space-between",
-            height:"100%"
-        }}>     
-               {reminders.map((reminder:ReminderProps) => <Reminder {...reminder}/>)}
-        </div>
-    }
-}
-  
-
 interface ReminderState{}
 
-class Reminder extends Component<ReminderProps,ReminderState>{
+export class Reminder extends Component<ReminderProps,ReminderState>{
 
     render(){
         let { message, date } = this.props;
 
         return <div style={{
             display:"flex",
-            height:"20px",
+            flexDirection:"column",
             alignItems:"center",
+            textAlign:"center",
+            height:"auto",
+            justifyContent:"space-between",
             backgroundColor:"white",
-            color:"black"
-        }}>
-            <div style={{paddingLeft:"5px", fontSize:"15px", fontWeight:500}}>
+            color:"black" 
+        }}> 
+            <div style={{paddingLeft:"5px", fontSize:"16px", fontWeight:500}}>
                 {timeOfTheDay(date)}
             </div>
-            <div style={{
-                fontSize:"15px",
+            <div style={{ 
+                fontSize:"16px",
                 userSelect:"none",
                 cursor:"default",
+                textAlign:"center",
                 fontWeight:500,
                 paddingLeft:"5px",
-                overflowX:"hidden"
+                overflow:"hidden",
             }}>   
-                {message}  
+                {message}   
             </div>
-        </div>
+        </div> 
     }
 }

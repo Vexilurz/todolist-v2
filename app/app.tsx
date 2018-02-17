@@ -18,7 +18,7 @@ import {
 import {wrapMuiThemeLight} from './utils/wrapMuiThemeLight'; 
 import {
     isTodo, isProject, isArea, isArrayOfAreas, 
-    isArrayOfProjects, isArrayOfTodos, isArray, isString, isFunction
+    isArrayOfProjects, isArrayOfTodos, isArray, isString, isFunction, isDate
 } from './utils/isSomething';
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
@@ -51,12 +51,16 @@ import { Config, defaultConfig, updateConfig, getConfig } from './utils/config';
 import { collectSystemInfo } from './utils/collectSystemInfo';
 import { writeJsonFile } from './utils/jsonFile';
 import { getMachineIdSync } from './utils/userid';
+import { assert } from './utils/assert';
+import { setCallTimeout } from './utils/setCallTimeout';
+
 const MockDate = require('mockdate'); 
 const os = remote.require('os'); 
 const path = require('path');
 const storage = remote.require('electron-json-storage');
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
+
 
 
 window.onerror = function (msg, url, lineNo, columnNo, error) {
@@ -77,6 +81,8 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 export interface Store extends Config{
     progress : any,
     showUpdatesNotification : boolean, 
+    scheduledReminders : number[],
+    resetReminders : any,
     limit : Date, 
     searchQuery : string,  
     openChangeGroupPopup : boolean,
@@ -118,8 +124,10 @@ export interface Store extends Config{
 export let defaultStoreItems : Store = {
     ...defaultConfig,
     shouldSendStatistics : true, 
-    hideHint : true, 
+    hideHint : true,  
+    resetReminders : null,
     progress : null,  
+    scheduledReminders : [],
     showUpdatesNotification : false, 
     limit : yearFromNow(),
     searchQuery : "",
@@ -216,12 +224,8 @@ export class App extends Component<AppProps,{}>{
           
         if(isNil(nextUpdateCheck)){ check() }
         else{
-            let now = new Date();
             let next = isString(nextUpdateCheck) ? new Date(nextUpdateCheck) : nextUpdateCheck;
-            let timeMs = next.getTime() - now.getTime();
-
-            if(timeMs<=0){ check() }
-            else{ this.timeouts.push(setTimeout(() => check(), timeMs)) }   
+            this.timeouts.push(setCallTimeout(() => check(), next ));
         }
     }
 
@@ -230,10 +234,6 @@ export class App extends Component<AppProps,{}>{
     componentDidMount(){    
         const sysInfo = collectSystemInfo();
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
-
-        let notification = findWindowByTitle('Notification');
-        notification.show();
-        notification.center();
 
         this.initObservables();  
         this.initUpdateTimeout(); 
@@ -244,7 +244,11 @@ export class App extends Component<AppProps,{}>{
     initObservables = () => {
         let {dispatch} = this.props;
 
-        let updateInterval = Observable.interval(10000).subscribe(() => dispatch({type:'update'}));   
+        let updateInterval = Observable.interval(15000).subscribe(
+            (v) => {
+                dispatch({type:'update'});
+            }
+        );    
 
         let backupInterval = Observable.interval(60000).subscribe(() => {
              let id = getMachineIdSync();   
@@ -262,6 +266,11 @@ export class App extends Component<AppProps,{}>{
         });   
         
 
+        let openTodo = Observable
+                       .fromEvent(ipcRenderer,'openTodo', (event,todo) => todo)
+                       .subscribe((todo) => { console.log(todo) });  
+
+
         let actionListener = Observable 
                              .fromEvent(ipcRenderer, "action", (event,action) => action)
                              .map((action) => ({ 
@@ -270,21 +279,24 @@ export class App extends Component<AppProps,{}>{
                              }))
                              .subscribe((action) => action.type==="@@redux/INIT" ? null : dispatch(action));   
 
+
         let errorListener = Observable
                             .fromEvent(ipcRenderer, "error", (event,error) => error)
                             .subscribe((error) => this.onError(error));  
+
 
         let progressListener = Observable
                                .fromEvent(ipcRenderer, "progress", (event,progress) => progress)
                                .subscribe((progress) => dispatch({type:"progress",load:progress}));                     
 
+
         let ctrlAltTListener = Observable  
-                                .fromEvent(ipcRenderer, "Ctrl+Alt+T", (event) => event)
-                                .subscribe((event) => {
+                               .fromEvent(ipcRenderer, "Ctrl+Alt+T", (event) => event)
+                               .subscribe((event) => {
                                     dispatch({type:"openNewProjectAreaPopup", load:false});
                                     dispatch({type:"showTrashPopup", load:false});
                                     dispatch({type:"openTodoInputPopup", load:true});
-                                });  
+                               });  
 
         this.subscriptions.push(
             actionListener,

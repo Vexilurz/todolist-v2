@@ -158,7 +158,7 @@ let onReady = () => {
 
     mainWindow = initWindow(getWindowSize());   
     quickEntry = initQuickEntry({width:500,height:300});
-    notification = initNotification({width:300,height:350});
+    notification = initNotification({width:250,height:300});
     
  
     mainWindow.on('show', () => tray.setToolTip(`Hide ${AppName}`)); 
@@ -199,7 +199,7 @@ process.on(
         (error) => mainWindow.webContents.send("error", error)
     )(error)
 );
-
+ 
  
 app.on(     
    'window-all-closed', 

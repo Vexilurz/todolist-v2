@@ -5,7 +5,7 @@ import { ipcRenderer } from 'electron';
 import PouchDB from 'pouchdb-browser';  
 import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist'; 
 import { Category } from '.././Components/MainContainer'; 
-import { randomArrayMember, randomInteger, randomDate } from './utils';
+import { randomArrayMember, randomInteger, randomDate, fiveMinutesLater, onHourLater } from './utils';
 import { Todo, Heading, LayoutItem, Project, Area } from './../database';
 import { uniq, splitEvery, contains } from 'ramda';
 import { generateId } from './generateId';
@@ -96,11 +96,11 @@ let fakeTodo = (tags:string[]) : Todo => {
         _id : generateId(),    
         type:"todo",
         category : randomCategory(), 
-        title : title.join(' '),
+        title : title.join(' '), 
         priority : Math.random()*999999999,
         note : note.join(' '),
-        checklist : checklist, 
-        reminder : Math.random() > 0.7 ? randomDate(new Date(), new Date()["addDays"](50)) : null, 
+        checklist : checklist,   
+        reminder : randomDate(new Date(), onHourLater(new Date())), //onHourLater(date) //fiveMinutesLater(date)
         attachedTags:tags,  
         deadline : Math.random() < 0.3 ? null :
                    Math.random() > 0.5 ?
