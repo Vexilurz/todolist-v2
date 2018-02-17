@@ -230,7 +230,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
             (action:{type:string, load:Project}) : Store => {
                 
-                assert(isProject(action.load), `Load is not of type Project. ${JSON.stringify(action.load)} addProject. objectsReducer.`)
+                assert(isProject(action.load), `Load is not of type Project. ${action.load} addProject. objectsReducer.`)
 
                 if(shouldAffectDatabase){ addProject(onError,action.load) }
  
@@ -242,7 +242,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
             (action:{type:string, load:Area}) : Store => {
                 
-                assert(isArea(action.load), `Load is not of type Area. ${JSON.stringify(action.load)} addArea. objectsReducer.`)   
+                assert(isArea(action.load), `Load is not of type Area. ${action.load} addArea. objectsReducer.`)   
 
                 if(shouldAffectDatabase){ addArea(onError,action.load) } 
  
@@ -299,7 +299,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
             (action:{type:string}) => "updateProject"===action.type,
 
             (action:{type:string, load:Project}) : Store => {
-                assert(isProject(action.load),`Load is not of type Project. ${JSON.stringify(action.load)} updateProject. objectsReducer.`)
+                assert(isProject(action.load),`Load is not of type Project. ${action.load} updateProject. objectsReducer.`)
               
                 let idx = state.projects.findIndex((p:Project) => action.load._id===p._id);
                 
@@ -314,7 +314,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
             (action:{type:string}) => "updateArea"===action.type,
 
             (action:{type:string, load:Area}) : Store => {
-                assert(isArea(action.load),`Load is not of type Area. ${JSON.stringify(action.load)} updateArea. objectsReducer.`);
+                assert(isArea(action.load),`Load is not of type Area. ${action.load} updateArea. objectsReducer.`);
 
                 let idx = state.areas.findIndex((a:Area) => action.load._id===a._id);
                 

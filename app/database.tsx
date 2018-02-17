@@ -150,7 +150,7 @@ export interface QueryResult<T>{
 export let updateProjects = debounce((projects : Project[], onError : Function) : Promise<any[]> => {
     assert(
       all(isProject,projects),
-      `Not all input values are of type Project ${JSON.stringify(projects)}. updateProjects.`
+      `Not all input values are of type Project ${projects}. updateProjects.`
     ); 
     return updateItemsInDatabase<Project>(onError,projects_db)(projects);
 },200);
@@ -158,21 +158,21 @@ export let updateProjects = debounce((projects : Project[], onError : Function) 
 
 
 export let updateArea = debounce((_id:string, replacement:Area, onError:Function) : Promise<Area> => {
-    assert(isArea(replacement),`Input value is not of type area. ${JSON.stringify(replacement)}. updateArea.`);
+    assert(isArea(replacement),`Input value is not of type area. ${replacement}. updateArea.`);
     return updateItemInDatabase(onError, areas_db)(_id, replacement);  
 },200);
 
 
 
 export let updateAreas = debounce((areas : Area[], onError : Function) : Promise<any[]> => {
-    assert(all(isArea,areas),`Not all input values are of type Area ${JSON.stringify(areas)}. updateAreas.`);
+    assert(all(isArea,areas),`Not all input values are of type Area ${areas}. updateAreas.`);
     return updateItemsInDatabase<Area>(onError,areas_db)(areas);
 },200);
 
 
 
 export let updateProject = debounce((_id : string, replacement : Project, onError:Function) : Promise<Project> => {
-    assert(isProject(replacement),`Input value is not of type Project ${JSON.stringify(replacement)}. updateProject.`);
+    assert(isProject(replacement),`Input value is not of type Project ${replacement}. updateProject.`);
     return updateItemInDatabase(onError, projects_db)(_id, replacement); 
 },200);
 
@@ -181,7 +181,7 @@ export let updateProject = debounce((_id : string, replacement : Project, onErro
 export let updateTodo = debounce((_id:string, replacement:Todo, onError:Function) : Promise<Todo> => {
     assert(
       isTodo(replacement), 
-      `Input value is not of type Todo ${JSON.stringify(replacement)}. updateTodo.`
+      `Input value is not of type Todo ${replacement}. updateTodo.`
     );
     return updateItemInDatabase(onError, todos_db)(_id, replacement);    
 },200); 
@@ -189,7 +189,7 @@ export let updateTodo = debounce((_id:string, replacement:Todo, onError:Function
 
 
 export let updateTodos = debounce((todos : Todo[], onError : Function) : Promise<any[]> => {
-    assert(all(isTodo,todos),`Not all input values are of type Todo ${JSON.stringify(todos)}. updateTodos.`);
+    assert(all(isTodo,todos),`Not all input values are of type Todo ${todos}. updateTodos.`);
     return updateItemsInDatabase<Todo>(onError, todos_db)(todos);
 },200);
 
@@ -198,7 +198,7 @@ export let updateTodos = debounce((todos : Todo[], onError : Function) : Promise
 function queryToObjects<T>(query:Query<T>){
     let docs = [];
 
-    assert(!isNil(query),`query undefined ${JSON.stringify(query)}. queryToObjects.`);
+    assert(!isNil(query),`query undefined ${query}. queryToObjects.`);
 
     if(isNil(query)){ return docs };
 
@@ -231,7 +231,7 @@ function setItemsToDatabase<T>(
   db:any
 ){ 
   return function(items:T[]) : Promise<void>{
-    return db.bulkDocs(items).catch(onError); 
+      return db.bulkDocs(items).catch(onError); 
   }  
 }  
 
@@ -241,7 +241,7 @@ export function removeObject<T>(
   db:any
 ){
   return function(_id:string) : Promise<void>{
-    return updateItemInDatabase(onError, db)(_id, {_deleted: true});
+      return updateItemInDatabase(onError, db)(_id, {_deleted: true});
   }  
 }  
 
@@ -251,7 +251,7 @@ function getItemFromDatabase<T>(
   db:any
 ){
   return function(_id:string) : Promise<T>{
-    return db.get(_id).catch(onError);  
+      return db.get(_id).catch(onError);  
   }
 } 
 
@@ -261,7 +261,6 @@ function getItems<T>(
   db:any
 ){
   return function(descending,limit) : Promise<Query<T>>{
- 
       return db
              .allDocs({ 
                 include_docs:true,  
@@ -330,71 +329,71 @@ function updateItemInDatabase(
                       onError(err);
                   }
             }); 
-  } 
+  }; 
   
   return update;
-}
+};
 
 
 export let addArea = (onError:Function, area : Area) : Promise<void> => {
-      assert(isArea(area),`area is not of type Area. addArea. ${JSON.stringify(area)}`); 
+      assert(isArea(area),`area is not of type Area. addArea. ${area}`); 
       return setItemToDatabase<Area>(
         onError, 
         areas_db
       )(area);
-}
+};
 
 
 export let addAreas = (onError:Function, areas:Area[]) : Promise<void> => {
-      assert(all(isArea,areas), `Not all input values are of type Area. addAreas. ${JSON.stringify(areas)}`);
+      assert(all(isArea,areas), `Not all input values are of type Area. addAreas. ${areas}`);
       return setItemsToDatabase<Area>(onError, areas_db)(areas);   
-}
+};
  
 
 export let removeArea = (onError:Function,_id:string) : Promise<void> => {
     return removeObject<string>(onError, areas_db)(_id); 
-}
+};
 
 
 export let getAreaById = (onError:Function, _id : string) : Promise<Area> => {
     assert(isString(_id), `_id is not of type String.getAreaById. ${_id}`);
     return getItemFromDatabase<Area>(onError,areas_db)(_id); 
-}
+};
 
 
 export let getAreas = (onError:Function) => (descending,limit) : Promise<Area[]> => {
     return getItems<Area>(onError, areas_db)(descending,limit).then(queryToAreas);
-}
+};
 
 
 export let removeAreas = (areas : Area[], onError : Function) : Promise<any[]> => {
-    assert(all(isArea,areas),`Not all input values are of type Area ${JSON.stringify(areas)}. removeAreas.`);
+    assert(all(isArea,areas),`Not all input values are of type Area ${areas}. removeAreas.`);
     return updateItemsInDatabase<Area>(onError,areas_db)(areas.map( a => ({...a, _deleted: true}) ));
-}   
+};   
 
 
 export let addProject = (onError:Function, project : Project) : Promise<void> => {
-    assert(isProject(project),`Input value is not of type project. ${JSON.stringify(project)}. addProject.`);
+    assert(isProject(project),`Input value is not of type project. ${project}. addProject.`);
     return setItemToDatabase<Project>(onError, projects_db)(project);
-}
+};
 
 
 export let addProjects = (onError:Function, projects:Project[]) : Promise<void> => {
-    assert(all(isProject,projects),`Not all input values are of type Project ${JSON.stringify(projects)}. addProjects.`);
+    assert(all(isProject,projects),`Not all input values are of type Project ${projects}. addProjects.`);
     return setItemsToDatabase<Project>(onError, projects_db)(projects); 
-}
+};
 
 
 export let removeProject = (_id:string, onError:Function) : Promise<void> => {
     assert(isString(_id), `_id is not a string. ${_id}. removeProject.`);
     return removeObject<string>(onError,projects_db)(_id); 
-}
+};
 
 
 export let getProjectById = (onError:Function, _id : string) : Promise<Project> => {
     assert(isString(_id), `_id is not a string. ${_id}. getProjectById.`);
     return getItemFromDatabase<Project>(onError, projects_db)(_id);
-}
+};
 
 
 export let getProjects = (onError:Function) => (descending,limit) : Promise<Project[]> => {
@@ -406,71 +405,70 @@ export let getProjects = (onError:Function) => (descending,limit) : Promise<Proj
       descending,
       limit
     ).then(queryToProjects);
- 
-}
+};
 
  
 export let removeProjects = (projects : Project[], onError:Function) : Promise<any[]> => {
     assert(
       all(isProject,projects),
-      `Not all input values are of type Project ${JSON.stringify(projects)}. removeProjects.`
+      `Not all input values are of type Project ${projects}. removeProjects.`
     );
    
     return updateItemsInDatabase<Project>(
       onError,
       projects_db 
     )(projects.map( p => ({...p, _deleted: true}) ))
-}    
+};    
 
 
 export let addTodo = (onError:Function, todo : Todo) : Promise<void> => {
-    assert(isTodo(todo),`Input value is not of type Todo ${JSON.stringify(todo)}. addTodo.`);
+    assert(isTodo(todo),`Input value is not of type Todo ${todo}. addTodo.`);
     return setItemToDatabase<Todo>(onError,todos_db)(todo);
-}
+};
   
 
 export let addCalendar = (onError:Function, calendar:Calendar) : Promise<void> => {
     return setItemToDatabase<Calendar>(onError,calendars_db)(calendar);
-}
+};
  
 
 export let updateCalendar = (_id:string, replacement:Calendar, onError:Function) : Promise<Calendar> => {
     return updateItemInDatabase(onError, calendars_db)(_id, replacement);    
-}
+};
 
 
 export let addCalendars = (onError:Function, calendars:Calendar[]) : Promise<void> => {
     return setItemsToDatabase<Calendar>(onError, calendars_db)(calendars);
-}
+};
 
 
 export let addTodos = (onError:Function, todos : Todo[]) : Promise<void> => {
-    assert(all(isTodo,todos),`Not all input values are of type Todo ${JSON.stringify(todos)}. addTodos.`);    
+    assert(all(isTodo,todos),`Not all input values are of type Todo ${todos}. addTodos.`);    
     return setItemsToDatabase<Todo>(onError, todos_db)(todos); 
-}
+};
     
 
 export let removeCalendars = (calendars : Calendar[], onError:Function) : Promise<any[]> => {
     return updateItemsInDatabase<Calendar>(onError,calendars_db)(calendars.map( t => ({...t, _deleted: true})))
-}     
+};     
 
 
 export let removeCalendar = (_id:string, onError:Function) : Promise<void> => {
     assert(isString(_id),`_id is not a string. ${_id}. removeCalendar.`);  
     return removeObject<string>(onError, calendars_db)(_id); 
-}
+};
 
 
 export let removeTodo = (_id:string,onError:Function) : Promise<void> => {
     assert(isString(_id),`_id is not a string. ${_id}. removeTodo.`);
     return removeObject<string>(onError,todos_db)(_id); 
-}
+};
 
   
 export let getTodoById = (onError:Function, _id : string) : Promise<Todo> => {
     assert(isString(_id),`_id is not a string. ${_id}. getTodoById.`);  
     return getItemFromDatabase<Todo>(onError, todos_db)(_id); 
-}
+};
 
  
 export let getTodos = (onError:Function) => (descending,limit) : Promise<Todo[]> => {
@@ -488,7 +486,7 @@ export let getTodos = (onError:Function) => (descending,limit) : Promise<Todo[]>
                 )
             )  
 
-}
+};
 
 
 export let getCalendars = (onError:Function) => (descending,limit) : Promise<Calendar[]> => {
@@ -496,20 +494,20 @@ export let getCalendars = (onError:Function) => (descending,limit) : Promise<Cal
       descending,
       limit 
     ).then(queryToCalendars)
-}
+};
 
   
 export let removeTodos = (todos:Todo[], onError:Function) : Promise<any[]> => {
-  assert(all(isTodo,todos),`Not all input values are of type Todo ${JSON.stringify(todos)}. removeTodos.`);
+  assert(all(isTodo,todos),`Not all input values are of type Todo ${todos}. removeTodos.`);
   return updateItemsInDatabase<Todo>(onError, todos_db)(todos.map(t => ({...t, _deleted: true})))
-}     
+};     
 
 
 export let queryToCalendars = (query:Query<Calendar>) : Calendar[] => queryToObjects<Calendar>(query); 
 
 export let queryToTodos = (query:Query<Todo>) : Todo[] => {
   return queryToObjects<Todo>(query); 
-}
+};
 
 export let queryToProjects = (query:Query<Project>) : Project[] => queryToObjects<Project>(query); 
 

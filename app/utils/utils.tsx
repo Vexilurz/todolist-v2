@@ -442,7 +442,7 @@ export let sameDay = (a:Date,b:Date) => { return keyFromDate(a)===keyFromDate(b)
 
 export let keyFromDate = (date:Date) : string => {  
     
-    assert(isDate(date), `keyFromDate. input is not a date. ${JSON.stringify(date)}`);
+    assert(isDate(date), `keyFromDate. input is not a date. ${date}`);
     
     let year = date.getFullYear();
     let day = date.getDate(); 
@@ -459,19 +459,19 @@ let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {
  
     if(!objects){
         if(isDev()){ 
-           throw new Error(`objects undefined. ${JSON.stringify(objects)} removeDeleted.`);
+           throw new Error(`objects undefined. ${objects} removeDeleted.`);
         }
     }
 
     if(!updateDB){
         if(isDev()){ 
-           throw new Error(`updateDB undefined. ${JSON.stringify(updateDB)} removeDeleted.`); 
+           throw new Error(`updateDB undefined. ${updateDB} removeDeleted.`); 
         }
     }   
 
     if(!isFunction(updateDB)){ 
         if(isDev()){   
-           throw new Error(`updateDB is not a function. ${JSON.stringify(updateDB)} removeDeleted.`);  
+           throw new Error(`updateDB is not a function. ${updateDB} removeDeleted.`);  
         }
     }  
     
@@ -484,7 +484,7 @@ let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {
 
         let object = objects[i];
         
-        assert(isItem(object), `object has incorrect type ${JSON.stringify(object)} ${i} ${JSON.stringify(objects)}`);
+        assert(isItem(object), `object has incorrect type ${object} ${i} ${objects}`);
 
         if(!!objects[i]["deleted"]){
             deleted.push(objects[i]);
@@ -553,42 +553,13 @@ export let getTagsFromItems = (items:Item[]) : string[] => {
     for(let i = 0; i<items.length; i++){
 
         let item : Item = items[i];
-
-        if(!item){
-            if(isDev()){ 
-               throw new Error(`item undefined ${JSON.stringify(item)}. getTagsFromItems.`);
-            }
-        }
-            
-        if(!isItem(item)){
-            if(isDev()){ 
-               throw new Error(`item is not Item ${JSON.stringify(item)}. getTagsFromItems.`);
-            }
-        } 
   
         let attachedTags : string[] = item.attachedTags;
-
-        if(!isArray(attachedTags)){
-            if(isDev()){ 
-                throw new Error(
-                    `attachedTags is not array. ${attachedTags} ${JSON.stringify(item)} getTagsFromItems.`
-                ) 
-            }
-        } 
-
 
         for(let j = 0; j<attachedTags.length; j++){
 
             let tag : string = attachedTags[j];
 
-            if(!isString(tag)){
-                if(isDev()){ 
-                    throw new Error(
-                        `tag is not a string ${tag} ${JSON.stringify(attachedTags)}.getTagsFromItems.`
-                    );
-                }
-            }
- 
             if(tags.indexOf(item.attachedTags[j])===-1){
                tags.push(item.attachedTags[j])
             }
@@ -629,7 +600,7 @@ export let byNotSomeday = (t:Todo) : boolean => { return t.category!=="someday";
 
 
 export let byHaveAttachedDate = (t:Todo) : boolean => {
-    assert(isTodo(t), `t is not of type Todo ${JSON.stringify(t)}`);
+    assert(isTodo(t), `t is not of type Todo ${t}`);
     return not(isNil(t.attachedDate));
 } 
 
@@ -638,17 +609,13 @@ export let byNotDeleted = (item:Item) : boolean => not(byDeleted(item));
 
 
 export let byDeleted = (item:Item) : boolean => { 
-    assert(isItem(item), `item have incorrect type. ${JSON.stringify(item)}. byDeleted`);
+    assert(isItem(item), `item have incorrect type. ${item}. byDeleted`);
     return !!item.deleted;
 }  
 
 
 export let byCompleted = (item:Project & Todo) : boolean => { 
-    assert(
-        isProject(item as Project) || isTodo(item), 
-        `item have incorrect type. ${JSON.stringify(item)}. byCompleted`
-    );
-
+    assert(isProject(item as Project) || isTodo(item),`item have incorrect type. ${item}. byCompleted`);
     let date = isNil(item) ? null :
                isTodo(item) ? item.completedWhen :
                isProject(item) ? item.completed : null;
@@ -760,8 +727,8 @@ export let generateDropStyle = (id:string) : HTMLElement => {
 
 export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
 
-    assert(oldTodo.type==="todo",`oldTodo is not todo ${JSON.stringify(oldTodo)}. todoChanged.`);
-    assert(newTodo.type==="todo",`newTodo is not todo ${JSON.stringify(newTodo)}. todoChanged.`);
+    assert(oldTodo.type==="todo",`oldTodo is not todo ${oldTodo}. todoChanged.`);
+    assert(newTodo.type==="todo",`newTodo is not todo ${newTodo}. todoChanged.`);
     assert(isString(oldTodo._id),`oldTodo._id is not string ${oldTodo._id}. todoChanged.`);
     assert(isString(newTodo._id),`newTodo._id is not string ${newTodo._id}. todoChanged.`);
 
@@ -838,7 +805,6 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
 
 
     for(let i=0; i<oldTodo.checklist.length; i++){
-
         let oldItem : ChecklistItem = oldTodo.checklist[i];
         let newItem : ChecklistItem = newTodo.checklist[i];
 
@@ -855,11 +821,8 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
 
 
     for(let i=0; i<newTodo.attachedTags.length; i++){
-
         assert(isString(oldTodo.attachedTags[i]), `oldTodo.attachedTags[${i}] is not a string ${oldTodo.attachedTags[i]}. todoChanged.`);
-
         assert(isString(newTodo.attachedTags[i]), `newTodo.attachedTags[${i}] is not a string ${newTodo.attachedTags[i]}. todoChanged.`);
-     
         if(oldTodo.attachedTags[i]!==newTodo.attachedTags[i]){ return true }
     }
 };
@@ -870,7 +833,6 @@ export let attachEmptyTodo = (selectedCategory:Category) => (todos:Todo[]) => {
     let sorted = todos.sort((a:Todo,b:Todo) => a.priority-b.priority);
     let priority = sorted[0] ? sorted[0].priority - 1 : 0;
     let emptyTodo = generateEmptyTodo(generateId(),selectedCategory,priority);  
-
     return prepend(emptyTodo)(todos);
 }
   
@@ -880,7 +842,6 @@ export let findAttachedArea = (areas:Area[]) => (t:Todo) : Area => {
     for(let i=0; i<areas.length; i++){
         if(contains(t._id)(areas[i].attachedTodosIds)){ return areas[i] }
     }
-
     return undefined;             
 }; 
  
@@ -890,7 +851,6 @@ export let findAttachedProject = (projects:Project[]) => (t:Todo) : Project => {
         let attachedTodosIds = projects[i].layout.filter(isString) as string[];
         if(contains(t._id)(attachedTodosIds)){ return projects[i] }
     } 
-
     return undefined;     
 };  
 
@@ -904,18 +864,11 @@ export let byAttachedToArea = (areas:Area[]) => (t:Todo) : boolean => {
 
 
 export let byAttachedToProject = (projects:Project[]) => (t:Todo) : boolean => {
-
     for(let i=0; i<projects.length; i++){
         let attachedTodosIds = projects[i].layout.filter(isString) as string[];
-
-        assert(
-          isArrayOfStrings(attachedTodosIds), 
-         `attachedTodosIds is not an array of strings ${JSON.stringify(attachedTodosIds)}.`
-        ); 
-         
+        assert(isArrayOfStrings(attachedTodosIds),`attachedTodosIds is not an array of strings ${attachedTodosIds}.`); 
         if(contains(t._id)(attachedTodosIds)){ return true }
-    }   
-
+    }  
     return false;     
 };  
 
@@ -1290,54 +1243,37 @@ export let convertAreaDates = (a:Area) : Area => ({
 
 
 export let createHeading = (e, props:Store) : void => {
-     
     let id : string = props.selectedProjectId;
-
 
     assert(
         props.selectedCategory==="project",   
         `Attempt to create heading outside of project template. 
         ${props.selectedCategory}. 
         createHeading.`
-    )
+    );
 
     assert(not(isNil(id)), `selectedProjectId undefined ${id}. createHeading.`);
 
-  
     let project = props.projects.find( (p:Project) => p._id===id );
-
 
     assert( 
         isProject(project),   
         `this.props.selectedProjectId ${props.selectedProjectId} do not correspond to existing project.
-        ${JSON.stringify(props.projects)}. createHeading`
-    )
-
+        ${props.projects}. createHeading`
+    );
 
     let priority = 0; 
-
 
     if(!isEmpty(project.layout)){
         let item : LayoutItem = last(project.layout);
 
         if(isString(item)){ 
-
-            let todo = props.todos.find( (t:Todo) => t._id===item );
-            assert(
-                isTodo(todo), 
-                `todo is not of type Todo. 
-                 todo : ${JSON.stringify(todo)}. 
-                 item : ${JSON.stringify(item)}. 
-                 createHeading.`
-            )
-        
-            priority = todo.priority + 1; 
-             
+           let todo = props.todos.find( (t:Todo) => t._id===item );
+           assert(isTodo(todo), `todo is not of type Todo. todo : ${todo}. item : ${item}. createHeading.`);
+           priority = todo.priority + 1; 
         }else if(item["type"]==="heading"){
- 
-            let heading : Heading = item as Heading; 
-            priority = heading.priority + 1;
-
+           let heading : Heading = item as Heading; 
+           priority = heading.priority + 1;
         } 
     }
 
@@ -1350,8 +1286,8 @@ export let createHeading = (e, props:Store) : void => {
         key : generateId()
     }; 
 
-    let load = {...project, layout:[heading,...project.layout]};
     
+    let load = {...project, layout:[heading,...project.layout]};
     props.dispatch({ type:"updateProject", load });
 }
 
