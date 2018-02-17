@@ -38,12 +38,7 @@ import { isString } from '../../utils/isSomething';
 
 export let deleteProject = (dispatch:Function, project:Project, todos:Todo[]) => {
     
-    assert(
-        not(isNil(project)), 
-        `project with id selectedProjectId does not exist.
-        ${JSON.stringify(project)}
-        deleteProject`
-    )
+    assert(not(isNil(project)),`project with id selectedProjectId does not exist. ${project}. deleteProject`);
     
     let relatedTodosIds : string[] = project.layout.filter(isString) as string[];
     

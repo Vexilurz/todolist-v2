@@ -191,7 +191,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
         if(isNil(from)){ return }
 
-        assert(isDate(from.date), `from.date is not Date. ${JSON.stringify(from)}. onEnter.`);
+        assert(isDate(from.date), `from.date is not Date. ${from}. onEnter.`);
 
         let range = getDatesRange(from.date, this.n, false, true);
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 

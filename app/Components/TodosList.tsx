@@ -391,7 +391,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             `incorrect index. ${newIndex} ${item} ${selected} onSortEnd. TodosList.` 
         );
 
-        assert(isTodo(draggedTodo), `draggedTodo is not of type Todo ${JSON.stringify(draggedTodo)}. TodosList.`);
+        assert(isTodo(draggedTodo), `draggedTodo is not of type Todo ${draggedTodo}. TodosList.`);
 
         if(isEmpty(draggedTodo.title)){ return }
   

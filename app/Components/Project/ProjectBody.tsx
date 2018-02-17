@@ -155,10 +155,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         let items = [...this.props.items];
          
-        assert(
-            items[oldIndex].type==="heading", 
-            `item is not heading. ${JSON.stringify(items[oldIndex])}. changeHeadingsOrder. `
-        )
+        assert(items[oldIndex].type==="heading",`item is not heading. ${items[oldIndex]}. changeHeadingsOrder.`);
 
         let before = [];
         let after = [];
@@ -207,10 +204,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             ...after 
         ];  
 
-        assert(
-            heading._id===updated[newIndex]._id, 
-            `incorrect item placement. ${JSON.stringify(updated[newIndex])} changeHeadingsOrder.`
-        ); 
+        assert(heading._id===updated[newIndex]._id,`incorrect item placement. ${updated[newIndex]} changeHeadingsOrder.`); 
 
         let layoutItems = updated.map( i => isTodo(i) ? i._id : i as any); 
    

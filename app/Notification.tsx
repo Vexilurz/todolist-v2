@@ -75,7 +75,6 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
         'Error object: ' + JSON.stringify(error)
     ].join(' - ');
     globalErrorHandler(message);
-    console.log(message);
     return false;
 };
 
@@ -96,11 +95,10 @@ ipcRenderer.once(
     }
 );   
 
+
 interface NotificationProps{}   
 
 interface  NotificationState{
-    message:string,
-    reminder:Date,
     todo:any 
 }    
 
@@ -108,13 +106,15 @@ class Notification extends Component<NotificationProps,NotificationState>{
     subscriptions:Subscription[];
     queue:NotificationState[];
     beep:any;
+    soundPath:string;
 
     constructor(props){
         super(props);  
         this.subscriptions=[];
-        let defaultState={message:'',reminder:new Date(),todo:null};    
+        let defaultState={ todo:null };
         this.state={...defaultState};   
         this.queue=[];
+        this.soundPath=path.resolve(__dirname,"job-done.ogg");
     };
 
 
@@ -123,14 +123,15 @@ class Notification extends Component<NotificationProps,NotificationState>{
 
     componentDidMount(){
         let update = Observable 
-                     .fromEvent(ipcRenderer, 'remind', (event,state:NotificationState) => state)
-                     .subscribe((state) => {
-                        state.reminder = new Date(state.reminder);  
+                     .fromEvent(ipcRenderer, 'remind', (event,todo) => todo)
+                     .subscribe((todo) => {
+                        if(isNil(todo) || isNil(todo.reminder)){ return } 
+
                         if(isEmpty(this.queue)){
-                           this.queue.push(state);
+                           this.queue.push({todo});
                            this.notify();
                         }else{ 
-                           this.queue.push(state)
+                           this.queue.push({todo});
                         }
                      });
 
@@ -144,50 +145,65 @@ class Notification extends Component<NotificationProps,NotificationState>{
     };
 
 
+    getInitialPosition = () : {initialX:number,initialY:number} => {
+        const window = remote.getCurrentWindow();
+        const {width,height} = remote.screen.getPrimaryDisplay().workAreaSize;
+        const size = window.getSize();
+        const offset = 25; 
+        const initialX = width-size[0]-offset;
+        const initialY = height+size[1];
+        return {initialX,initialY};
+    };
+
+
+    getFinalPosition = () : {finalX:number,finalY:number} => {
+        const window = remote.getCurrentWindow();
+        const {width,height} = remote.screen.getPrimaryDisplay().workAreaSize;
+        const size = window.getSize();
+        const offset = 25;
+        const finalX = width-size[0]-offset;
+        const finalY = height-size[1]-offset; 
+        return {finalX,finalY};
+    };
+
+
     notify = () => { 
         if(isEmpty(this.queue)){ return }
         let next = this.queue[0];
         this.updateState(next)
         .then(() => this.open())
-        .then(() => this.playSound())
+        .then(() => {
+            if(this.beep){
+               this.beep.audioEl.play();
+            }   
+        })
     };
-
-
-    playSound = () => {  
-        if(this.beep){
-           this.beep.audioEl.play();
-        }   
-    }
 
 
     open = () => new Promise( 
         resolve => { 
             const window = remote.getCurrentWindow();
-            const {width,height} = remote.screen.getPrimaryDisplay().workAreaSize;
-            const size = window.getSize();
-            const offset = 25;
-            const initialX = width-size[0]-offset;
+            let {initialX, initialY} = this.getInitialPosition();
+            let {finalX, finalY} = this.getFinalPosition();
 
-            const initialY = height+size[1];
-            const finalY = height-size[1]-offset; 
-            
-            window.setPosition(initialX, initialY);
-            window.show();
-
+             
             let move = () => {
                 let currentPosition = window.getPosition();
                 let [x,y] = currentPosition;
                 let delta = 20;
 
                 if(y<=finalY){ 
-                   window.setPosition(initialX, finalY);
+                   window.setPosition(finalX, finalY);
                    resolve();
                 }else{
-                   window.setPosition(initialX, y-delta);
+                   window.setPosition(x, y-delta);
                    requestAnimationFrame(move);   
                 }
             };
-  
+
+
+            window.setPosition(initialX, initialY);
+            window.show();
             move();
         } 
     );
@@ -195,19 +211,14 @@ class Notification extends Component<NotificationProps,NotificationState>{
     
     close = () => {
         const window = remote.getCurrentWindow();
-        const {width,height} = remote.screen.getPrimaryDisplay().workAreaSize;
-        const size = window.getSize();
-        const offset = 25;
-        const initialX = width-size[0]-offset;
-        const initialY = height+size[1];
-
+        let {initialX, initialY} = this.getInitialPosition();
         window.setPosition(initialX, initialY);
         this.queue.shift(); 
         this.notify();
     };
 
-
-    onOpenTodo = (e) => { 
+    
+    openTodoInApp = (e) => { 
         let {todo} = this.state;
         if(todo){
             let mainWindow = remote.BrowserWindow.getAllWindows().find( w => w.id===1 );
@@ -219,11 +230,8 @@ class Notification extends Component<NotificationProps,NotificationState>{
     };
 
 
-    onClose = (e) => this.close();
-
-
     render(){  
-        let {reminder, message} = this.state;
+        let {todo} = this.state;
         let buttonStyle = {      
             display:"flex",
             alignItems:"center",
@@ -243,13 +251,12 @@ class Notification extends Component<NotificationProps,NotificationState>{
         return <div style={{display:"flex",flexDirection:"column",width:"100%",height:"100%"}}>
             <ReactAudioPlayer
                 ref={(e) => { this.beep = e; }}
-                src={path.resolve(__dirname,"job-done.ogg")}
+                src={this.soundPath}
                 autoPlay={false}
                 controls={false}
             />
-            <div 
-              style={{
-                width:"100%", 
+            <div style={{
+                width:"100%",  
                 position:"relative",
                 height:"10%",
                 backgroundColor:"rgba(81, 144, 247, 1)",
@@ -257,18 +264,15 @@ class Notification extends Component<NotificationProps,NotificationState>{
                 alignItems:"center",
                 textAlign:"center", 
                 justifyContent:"space-between" 
-              }} 
-            >
-                <div 
-                    style={{
-                        fontWeight:500,
-                        paddingLeft:"5px",
-                        fontSize:"16px",
-                        display:"flex",
-                        alignItems:"center",
-                        color:"white"
-                    }}
-                >
+            }}>
+                <div style={{
+                    fontWeight:500,
+                    paddingLeft:"5px",
+                    fontSize:"16px",
+                    display:"flex",
+                    alignItems:"center",
+                    color:"white"
+                }}>
                     A task is due
                 </div>
                 <div style={{position:"absolute",right:5,cursor:"pointer",zIndex:200}}>   
@@ -293,14 +297,14 @@ class Notification extends Component<NotificationProps,NotificationState>{
             >     
                 <div>{chooseIcon({width:"",height:""},"reminder")}</div>
                 <div style={{display:"flex", alignItmes:"center", justifyContent:"center"}}>
-                    <Reminder message={message} date={reminder}/> 
-                </div> 
-                <div onClick={this.onOpenTodo} style={buttonStyle}>   
+                    <Reminder message={todo.title} date={todo.reminder} /> 
+                </div>  
+                <div onClick={this.openTodoInApp} style={buttonStyle}>   
                     <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
                         Open
                     </div>   
                 </div> 
-                <div onClick={this.onClose} style={buttonStyle}>   
+                <div onClick={() => this.close()} style={buttonStyle}>   
                     <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
                         Close
                     </div>   

@@ -44,7 +44,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
         let {area,dispatch} = this.props;
         let load = { ...area, ...updatedProps };
 
-        assert(isArea(load), `Load is not an Area. ${JSON.stringify(load)}`);
+        assert(isArea(load), `Load is not an Area. ${load}`);
 
         dispatch({type:"updateArea", load});
     }
@@ -63,16 +63,16 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
         let selectedTodos : Todo[] = filter(todos, (t) => contains(t._id)(relatedTodosIds), "");  
         
 
-        assert(isArea(area),`area is not of type Area. onDeleteArea. ${JSON.stringify(area)}`);
+        assert(isArea(area),`area is not of type Area. onDeleteArea. ${area}`);
 
         assert(
             isArrayOfTodos(selectedTodos),
-            `selectedTodos is not of type Todo[]. onDeleteArea. ${JSON.stringify(selectedTodos)}`
+            `selectedTodos is not of type Todo[]. onDeleteArea. ${selectedTodos}`
         );
 
         assert(
-            isArrayOfProjects(selectedProjects),
-            `selectedProjects is not of type Project[]. onDeleteArea. ${JSON.stringify(selectedProjects)}`
+            isArrayOfProjects(selectedProjects), 
+            `selectedProjects is not of type Project[]. onDeleteArea. ${selectedProjects}`
         );
         
         

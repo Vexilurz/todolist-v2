@@ -304,7 +304,7 @@ export class Today extends Component<TodayProps,TodayState>{
 
         let draggedTodo = items[oldIndex] as Todo;
 
-        assert(isTodo(draggedTodo), `draggedTodo is not of type Todo. onSortEnd. ${JSON.stringify(draggedTodo)}`);
+        assert(isTodo(draggedTodo), `draggedTodo is not of type Todo. onSortEnd. ${draggedTodo}`);
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
             onDrop({

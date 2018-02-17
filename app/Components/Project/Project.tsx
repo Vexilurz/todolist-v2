@@ -82,7 +82,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     updateProject = (updatedProps) : void => { 
         let load = { ...this.props.project, ...updatedProps }; 
-        assert(isProject(load),`load is not a project. ${JSON.stringify(load)}. updateProject. ProjectComponent.`);  
+        assert(isProject(load),`load is not a project. ${load}. updateProject. ProjectComponent.`);  
         this.props.dispatch({type:"updateProject", load}); 
     }; 
  
@@ -99,7 +99,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             let layout = project.layout;
             let idx = layout.findIndex((i:any) => isString(i) ? false : i._id===headingId);
          
-            assert(idx!==-1, `Item does not exist. ${headingId} updateHeading. ${JSON.stringify(layout)}`); 
+            assert(idx!==-1, `Item does not exist. ${headingId} updateHeading. ${layout}`); 
 
             let updatedLayout = adjust(() => ({...layout[idx] as Heading, title:newValue}), idx, layout);
             this.updateProject({layout:updatedLayout});
@@ -128,7 +128,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             
             assert(
                newLayout.length===project.layout.length, 
-              `Updated layout has incorrect length.${JSON.stringify(newLayout)}.${JSON.stringify(project.layout)}.updateLayoutOrder.`  
+              `Updated layout has incorrect length.${newLayout}.${project.layout}.updateLayoutOrder.`  
             );    
 
             this.updateProject({layout:newLayout});
@@ -140,7 +140,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         let {project} = this.props;
         let layout = project.layout;
         let idx = layout.findIndex((i:any) => isString(i) ? false : i._id===heading_id);
-        assert(idx!==-1,`Item does not exist.${heading_id}.archiveHeading.${JSON.stringify(layout)}`); 
+        assert(idx!==-1,`Item does not exist.${heading_id}.archiveHeading.${layout}`); 
         this.updateProject({layout:remove(idx,1,layout)});
     };
 

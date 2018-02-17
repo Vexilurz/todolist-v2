@@ -4,14 +4,13 @@ import { setCallTimeout } from './setCallTimeout';
 import { findWindowByTitle } from './utils';
 
 export let scheduleReminder = (todo) : number => { 
-    let reminder = todo.reminder; 
     
-    assert(isDate(reminder),`reminder is not of type Date. scheduleReminder. ${reminder}.`);
+    assert(isDate(todo.reminder),`reminder is not of type Date. scheduleReminder. ${todo.reminder}.`);
 
     let schedule = () => {
         let notification : any = findWindowByTitle('Notification');
-        notification.webContents.send('remind', {message:todo.title,reminder,todo});
-    };
+        notification.webContents.send('remind', todo);
+    };  
 
-    return setCallTimeout(() => schedule(), reminder ); 
+    return setCallTimeout(() => schedule(), todo.reminder); 
 };

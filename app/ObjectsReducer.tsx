@@ -64,7 +64,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 let { calendars } = state;
                 let idx = calendars.findIndex(c => c._id===action.load);
                 
-                assert(idx!==-1, `attempt to remove non existing calendar. ObjectsReducer. ${JSON.stringify(action.load)}`)
+                assert(idx!==-1, `attempt to remove non existing calendar. ObjectsReducer. ${action.load}`)
         
                 if(shouldAffectDatabase){ removeCalendar(action.load, onError) }  
                 return {...state, calendars:remove(idx, 1, calendars)};
@@ -172,10 +172,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
             (action:{type:string, load:Todo}) : Store => {
 
-                assert(
-                    isTodo(action.load), 
-                    `Load is not of type Todo. ${JSON.stringify(action.load)}. addTodo. objectsReducer.`
-                )
+                assert(isTodo(action.load),`Load is not of type Todo. ${action.load}. addTodo. objectsReducer.`);
 
                 if(isEmpty(action.load.title)){ return {...state}; }
  
@@ -191,10 +188,7 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
             (action:{type:string, load:Todo}) : Store => {
 
-                assert(
-                    isTodo(action.load), 
-                    `Load is not of type Todo. ${JSON.stringify(action.load)}. updateTodo. objectsReducer.`
-                )
+                assert(isTodo(action.load), `Load is not of type Todo. ${action.load}. updateTodo. objectsReducer.`);
 
                 let idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
 
