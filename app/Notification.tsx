@@ -59,8 +59,26 @@ import { daysRemaining } from './utils/daysRemaining';
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight';
 import { chooseIcon } from './utils/chooseIcon';
 import { Reminder } from './Components/Reminder';
-
+import { globalErrorHandler } from './utils/globalErrorHandler';
+const path = require("path");
+import ReactAudioPlayer from 'react-audio-player';
 injectTapEventPlugin();  
+
+
+window.onerror = function (msg, url, lineNo, columnNo, error) {
+    let string = msg.toLowerCase();
+    var message = [ 
+        'Message: ' + msg,
+        'URL: ' + url,
+        'Line: ' + lineNo,
+        'Column: ' + columnNo,
+        'Error object: ' + JSON.stringify(error)
+    ].join(' - ');
+    globalErrorHandler(message);
+    console.log(message);
+    return false;
+};
+
 
 ipcRenderer.once( 
     'loaded',     
@@ -89,6 +107,7 @@ interface  NotificationState{
 class Notification extends Component<NotificationProps,NotificationState>{
     subscriptions:Subscription[];
     queue:NotificationState[];
+    beep:any;
 
     constructor(props){
         super(props);  
@@ -134,9 +153,10 @@ class Notification extends Component<NotificationProps,NotificationState>{
     };
 
 
-    playSound = () => {
-        //const noise = new Audio('/path/to/noise.ogg')
-        //noise.play()
+    playSound = () => {  
+        if(this.beep){
+           this.beep.audioEl.play();
+        }   
     }
 
 
@@ -221,11 +241,17 @@ class Notification extends Component<NotificationProps,NotificationState>{
         } as any;
 
         return <div style={{display:"flex",flexDirection:"column",width:"100%",height:"100%"}}>
+            <ReactAudioPlayer
+                ref={(e) => { this.beep = e; }}
+                src={path.resolve(__dirname,"job-done.ogg")}
+                autoPlay={false}
+                controls={false}
+            />
             <div 
               style={{
                 width:"100%", 
                 position:"relative",
-                height:"20%",
+                height:"10%",
                 backgroundColor:"rgba(81, 144, 247, 1)",
                 display:"flex",
                 alignItems:"center",
@@ -253,15 +279,13 @@ class Notification extends Component<NotificationProps,NotificationState>{
                         <Clear style={{color:"rgba(255,255,255,1)",height:25,width:25}}/>
                     </div>
                 </div>
-
             </div> 
-
             <div  
                 style={{                    
                     display:"flex",
                     overflowX:"hidden", 
                     justifyContent:"space-between",
-                    height:"80%",
+                    height:"90%",
                     position:"relative",   
                     alignItems:"center", 
                     flexDirection:"column"  

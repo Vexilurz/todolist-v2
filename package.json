@@ -3,7 +3,7 @@
   "version": "1.2.6-master",
   "description": "tasklist",
   "main": "dist/main.js",
-  "scripts": { 
+  "scripts": {
     "start": "electron .",
     "rebuild": "electron-rebuild -f -w printer",
     "publish": "build --win --publish always",
@@ -15,7 +15,7 @@
   "keywords": [],
   "author": "Anatoly Strashkevich",
   "license": "",
-  "devDependencies":{
+  "devDependencies": {
     "@types/electron": "^1.6.10",
     "@types/node": "^8.5.2",
     "@types/react": "^15.6.1",
@@ -40,7 +40,7 @@
     "uglifyjs-webpack-plugin": "^0.4.6",
     "webpack": "^2.7.0"
   },
-  "dependencies":{
+  "dependencies": {
     "auto-launch": "^5.0.5",
     "axios": "^0.17.1",
     "bluebird": "^3.5.1",
@@ -57,6 +57,7 @@
     "html2pdf.js": "^0.8.2",
     "ical.js": "^1.2.2",
     "invariant": "^2.2.2",
+    "ion-sound": "^3.0.7",
     "jsftp": "^2.1.3",
     "jspdf": "^1.3.5",
     "lodash": "^4.17.4",
@@ -76,6 +77,7 @@
     "rc-print": "^1.0.2",
     "react": "^15.6.1",
     "react-addons-test-utils": "^15.6.0",
+    "react-audio-player": "^0.9.0",
     "react-color": "^2.13.8",
     "react-day-picker": "^7.0.4",
     "react-dom": "^15.6.1",
@@ -107,9 +109,19 @@
     "compression": "store",
     "productName": "tasklist",
     "appId": "org.tasklist.app",
-    "files": ["production"],
+    "files": [
+      "production"
+    ],
     "win": {
-      "target": [ { "target": "nsis", "arch": ["x64","ia32"] } ],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ],
       "icon": "./icon.ico"
     },
     "publish": {
@@ -118,12 +130,12 @@
       "acl": "public-read"
     },
     "nsis": {
-      "oneClick":false,
-      "warningsAsErrors":false,
-      "perMachine":true,
-      "unicode":false,
-      "allowToChangeInstallationDirectory":true,
-      "menuCategory":true
+      "oneClick": false,
+      "warningsAsErrors": false,
+      "perMachine": true,
+      "unicode": false,
+      "allowToChangeInstallationDirectory": true,
+      "menuCategory": true
     },
     "directories": {
       "output": "release"

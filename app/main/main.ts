@@ -158,8 +158,10 @@ let onReady = () => {
 
     mainWindow = initWindow(getWindowSize());   
     quickEntry = initQuickEntry({width:500,height:300});
-    notification = initNotification({width:250,height:300});
-    
+    notification = initNotification({
+        width:250, 
+        height:300
+    });
  
     mainWindow.on('show', () => tray.setToolTip(`Hide ${AppName}`)); 
     mainWindow.on('hide', () => tray.setToolTip(`Show ${AppName}`));
