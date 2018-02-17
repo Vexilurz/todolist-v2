@@ -9,7 +9,7 @@ import { Transition } from 'react-transition-group';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { uniq, compose, contains, allPass, isNil, not, isEmpty } from 'ramda';
 import { isString } from 'util';
-import { attachDispatchToProps, threeDaysLater, debounce } from '../utils/utils';
+import { attachDispatchToProps, threeDaysLater } from '../utils/utils';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";

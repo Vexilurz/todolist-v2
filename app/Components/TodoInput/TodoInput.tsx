@@ -34,7 +34,7 @@ import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui';  
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
- todoChanged, daysLeftMark, generateTagElement, isToday, getMonthName, debounce, fiveMinutesLater, 
+ todoChanged, daysLeftMark, generateTagElement, isToday, getMonthName, fiveMinutesLater, 
  onHourLater, oneDayAhead, getCompletedWhen, findWindowByTitle
 } from '../../utils/utils'; 
 import { Todo, removeTodo, updateTodo, Project} from '../../database';
@@ -61,6 +61,7 @@ import { daysRemaining } from '../../utils/daysRemaining';
 import { stringToLength } from '../../utils/stringToLength';
 import { assert } from '../../utils/assert';
 import { setCallTimeout } from '../../utils/setCallTimeout';
+import { debounce } from 'lodash';
 let Promise = require('bluebird');
 
 export interface TodoInputState{  

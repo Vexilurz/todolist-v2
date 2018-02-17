@@ -81,7 +81,7 @@ let createTray = () : Tray => {
        tray = new Tray(iconPath);   
     }else{
        tray = new Tray(nativeImage.createEmpty()); 
-    }  
+    }   
     
     const contextMenu = Menu.buildFromTemplate([
         {
@@ -90,7 +90,7 @@ let createTray = () : Tray => {
             click:() => {
                 let windows = BrowserWindow.getAllWindows();
                 windows.forEach((w) => w.hide())
-            }   
+            }     
         }, 
         {
             label: 'Restore', 
@@ -118,10 +118,18 @@ let createTray = () : Tray => {
         () => {
             let windows = BrowserWindow.getAllWindows();
             if(mainWindow){
-                if(mainWindow.isVisible()){ 
-                   windows.forEach((w) => w.hide()); 
-                }else{ 
-                   windows.forEach((w) => { if(w.getTitle()!=='Quick Entry'){ w.show() } }); 
+                let visible : boolean = mainWindow.isVisible();
+
+                if(visible){ 
+                    windows.forEach((w) => w.hide()); 
+                }else if(not(visible)){ 
+                    windows.forEach((w) => { 
+                        let title = w.getTitle();
+
+                        if(title!=='Quick Entry' && title!=='Notification'){ 
+                           w.show() 
+                        } 
+                    }); 
                 }
             }
         }
@@ -162,14 +170,16 @@ let onReady = () => {
         width:250, 
         height:300
     });
- 
+
+
     mainWindow.on('show', () => tray.setToolTip(`Hide ${AppName}`)); 
     mainWindow.on('hide', () => tray.setToolTip(`Show ${AppName}`));
+    mainWindow.minimize(); 
 
 
     loadApp(mainWindow)
     .then(() => {    
-        mainWindow.webContents.send("loaded");
+        mainWindow.webContents.send("loaded"); 
         if(isDev()){ mainWindow.webContents.openDevTools(); }
     });   
 

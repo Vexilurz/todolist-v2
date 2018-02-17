@@ -1,11 +1,8 @@
 import './../assets/styles.css';     
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
-import {  
-  cyan500, cyan700, pinkA200,  
-  grey100, grey300, grey400, 
-  grey500, white, darkBlack,  
-  fullBlack   
+import {
+    cyan500, cyan700, pinkA200, grey100, grey300, grey400, grey500, white, darkBlack, fullBlack
 } from 'material-ui/styles/colors'; 
 import {fade} from 'material-ui/utils/colorManipulator';
 import spacing from 'material-ui/styles/spacing'; 
@@ -73,10 +70,6 @@ import {generateEmptyTodo} from './generateEmptyTodo';
 let PHE = require("print-html-element");
 var domtoimage = require('dom-to-image');
 
-
-export let isMainWindow = () => { 
-    return remote.getCurrentWindow().id===1; 
-}
 
 
 
@@ -540,7 +533,7 @@ export let removeDeletedProjects = (projects:Project[]) : Project[] => {
 
 export let removeDeletedAreas = (areas:Area[]) : Area[] => { 
     return removeDeleted(areas, removeAreas) as Area[] 
-}
+};
   
  
 
@@ -567,42 +560,31 @@ export let getTagsFromItems = (items:Item[]) : string[] => {
     } 
     
     return tags; 
-} 
+}; 
 
 
 export let attachDispatchToProps = (dispatch:Function,props) => ({...props, dispatch});
- 
- 
-export let debounce = (fun, mil=50) => {
-    let timer; 
-    return function(...load){
-        clearTimeout(timer); 
-        timer = setTimeout(function(){
-            fun(...load); 
-        }, mil); 
-    };  
-} 
 
 
 export let inPast = (date:Date) : boolean => {
     assert(isDate(date),'inPast');
     return new Date().getTime()>date.getTime();
-}
+};
 
 
 export let inFuture =  (date:Date) : boolean => {
     assert(isDate(date),'inFuture');
     return new Date().getTime()<date.getTime();
-} 
+};
 
 
-export let byNotSomeday = (t:Todo) : boolean => { return t.category!=="someday"; }
+export let byNotSomeday = (t:Todo) : boolean => { return t.category!=="someday"; };
 
 
 export let byHaveAttachedDate = (t:Todo) : boolean => {
     assert(isTodo(t), `t is not of type Todo ${t}`);
     return not(isNil(t.attachedDate));
-} 
+}; 
 
 
 export let byNotDeleted = (item:Item) : boolean => not(byDeleted(item));
@@ -611,7 +593,7 @@ export let byNotDeleted = (item:Item) : boolean => not(byDeleted(item));
 export let byDeleted = (item:Item) : boolean => { 
     assert(isItem(item), `item have incorrect type. ${item}. byDeleted`);
     return !!item.deleted;
-}  
+};  
 
 
 export let byCompleted = (item:Project & Todo) : boolean => { 
@@ -621,7 +603,7 @@ export let byCompleted = (item:Project & Todo) : boolean => {
                isProject(item) ? item.completed : null;
 
     return isNil(date) ? false : inPast(date);
-}  
+};  
 
 
 export let byNotCompleted = (item:Project & Todo) : boolean => not(byCompleted(item));
@@ -633,17 +615,17 @@ export let byTags = (selectedTag:string) => (item:Item) : boolean => {
 
     if(selectedTag==="All"){ return true }
 
-    if(item===undefined || item===null){ return false }  
+    if(isNil(item)){ return false }  
   
     return item.attachedTags.indexOf(selectedTag)!==-1;
-}  
+}; 
 
 
     
 export let byCategory = (selectedCategory:Category) => (item:Todo) : boolean => { 
     assert(isCategory(selectedCategory), `selectedCategory is not of type Category. ${selectedCategory}. byCategory.`);
     return item.category===selectedCategory;
-} 
+}; 
 
 
 
@@ -656,7 +638,7 @@ export let hideChildrens = (elem:HTMLElement) : void => {
         children[i].style.visibility = 'hidden';
         children[i].style.opacity = 0; 
     }
-}  
+};  
   
 
  
@@ -668,8 +650,7 @@ export let makeChildrensVisible = (elem:HTMLElement) : void => {
         children[i].style.visibility = '';
         children[i].style.opacity = 1;
     }
-
-}
+};
     
 
     
@@ -719,7 +700,7 @@ export let generateDropStyle = (id:string) : HTMLElement => {
     rectangle.appendChild(container);
 
     return rectangle; 
-}
+};
 
 
 
@@ -834,7 +815,7 @@ export let attachEmptyTodo = (selectedCategory:Category) => (todos:Todo[]) => {
     let priority = sorted[0] ? sorted[0].priority - 1 : 0;
     let emptyTodo = generateEmptyTodo(generateId(),selectedCategory,priority);  
     return prepend(emptyTodo)(todos);
-}
+};
   
 
 
@@ -913,7 +894,7 @@ export let getMonthName = (d:Date) : string => {
     ];
  
     return monthNames[d.getMonth()];
-}
+};
 
  
  
@@ -924,7 +905,7 @@ export let getDayName = (d:Date) : string => {
     let days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
     return days[d.getDay()];
-}
+};
 
    
     
@@ -939,7 +920,7 @@ export let addDays = (date:Date, days:number) => {
     next.setDate(date.getDate() + days);
 
     return next; 
-}
+};
  
 
 
@@ -974,7 +955,7 @@ export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
     }
 
     return <p style={style}>{ Math.abs(daysLeft) }{ attachedText }</p>  
-} 
+}; 
 
 
  
@@ -982,7 +963,7 @@ export let isToday = (date : Date) => {
     if(isNil(date)){ return false }; 
   
     return daysRemaining(date)===0;
-}    
+};    
 
 
 
@@ -1001,14 +982,14 @@ export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:
 
     if(iDate.getTime() < jDate.getTime()){ return 1 }
     else{ return -1 }   
-}
+};
 
 
 
 export let oneMinuteBefore = (date:Date) : Date => {
     let minuteInMs = 1000 * 60;
     return new Date(date.getTime() - minuteInMs); 
-}
+};
 
 
 
@@ -1016,7 +997,7 @@ export let nextMidnight = () : Date => {
     let d = new Date()
     d.setHours(24,0,0,0); // next midnight
     return d;
-}
+};
 
 
      
@@ -1049,13 +1030,13 @@ export let getDatesRange = (
     
     return dates; 
       
-} 
+}; 
 
 
 
 export let randomInteger = (n:number) : number => {
     return Math.round(Math.random() * n);
-} 
+}; 
   
 
 
@@ -1074,7 +1055,7 @@ export let randomArrayMember = (array : any[]) => {
     let member = array[idx]; 
 
     return member;
-} 
+}; 
     
 
 
@@ -1119,7 +1100,7 @@ export let timeDifferenceHours = (from:Date,to:Date) : number => {
     let second = isString(to) ? new Date(to).getTime() : to.getTime();
     let diff = (second - first)/(1000*60*60);
     return Math.abs(diff);  
-}    
+};    
 
 
 
@@ -1134,7 +1115,7 @@ export let clearStorage = (onError:Function) : Promise<void> => {
             )
         }
     )
-}
+};
 
 
 
@@ -1204,7 +1185,7 @@ export let convertTodoDates = (t:Todo) : Todo => ({
     completedWhen : !t.completedWhen ? undefined : 
                     typeof t.completedWhen==="string" ? new Date(t.completedWhen) : 
                     t.completedWhen           
-})
+});
 
 
 
@@ -1225,7 +1206,7 @@ export let convertProjectDates = (p:Project) : Project => ({
     completed : !p.completed ? undefined : 
                  typeof p.completed==="string" ? new Date(p.completed) : 
                  p.completed  
-})
+});
 
 
 
@@ -1238,7 +1219,7 @@ export let convertAreaDates = (a:Area) : Area => ({
     deleted : !a.deleted ? undefined : 
                typeof a.deleted==="string" ? new Date(a.deleted) : 
                a.deleted,
-})
+});
 
 
 
@@ -1289,7 +1270,7 @@ export let createHeading = (e, props:Store) : void => {
     
     let load = {...project, layout:[heading,...project.layout]};
     props.dispatch({ type:"updateProject", load });
-}
+};
 
 
 
@@ -1326,7 +1307,7 @@ export let todoToKeywords = (t:Todo) : string[] => {
     let attachedTags = flatten( t.attachedTags.map((tag) => toWords(tag)) );                                 
       
     return [].concat.apply([], [ keywords, attachedTags ]);
-} 
+}; 
 
 
 
@@ -1340,7 +1321,7 @@ let collectProjects = (projects:Project[], projectsFilters, table:Table) : Table
         }
     };
     return table;
-}  
+};  
 
 
 
@@ -1354,7 +1335,7 @@ let collectAreas = (areas:Area[], areasFilters, table:Table) : Table => {
         }
     };
     return table;
-}
+};
 
 
 
@@ -1401,7 +1382,7 @@ export let groupObjects = (
     }
 
     return table; 
-} 
+}; 
 
 
 
@@ -1416,7 +1397,7 @@ export let convertDates = (object) => {
             return convertAreaDates(object as Area)  
     }
     return object    
-} 
+}; 
 
 
 
@@ -1428,7 +1409,7 @@ export let checkForUpdates = () : Promise<UpdateCheckResult> => {
             ipcRenderer.on("checkForUpdates", (event,updateCheckResult) => resolve(updateCheckResult))
         }  
     )
-} 
+}; 
 
 
 
@@ -1440,7 +1421,7 @@ export let downloadUpdates = () : Promise<string> => {
             ipcRenderer.on("downloadUpdates", (event,path) => resolve(path)) 
         } 
     )
-}
+};
 
 
 
@@ -1469,11 +1450,11 @@ export let addIntroList = (dispatch:Function) => {
             attachedTags : [] 
         }
     })
-}        
+};        
 
 
 
-export const introListLayout = [
+export const introListLayout : (Todo | Heading)[] = [
     {
         type : "heading", 
         priority:1,
@@ -1496,7 +1477,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1514,7 +1494,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1532,7 +1511,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1550,7 +1528,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1568,7 +1545,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1586,7 +1562,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1611,7 +1586,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1629,7 +1603,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1647,7 +1620,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1672,7 +1644,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     }, 
     {
@@ -1690,7 +1661,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     }, 
     {
@@ -1708,7 +1678,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1726,7 +1695,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1744,7 +1712,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1762,7 +1729,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1780,7 +1746,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1798,7 +1763,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1816,7 +1780,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1834,7 +1797,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },
     {
@@ -1852,7 +1814,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     },            
     {
@@ -1877,7 +1838,6 @@ export const introListLayout = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        checked:false,
         _id:generateId()
     }
 ];

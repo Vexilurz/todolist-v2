@@ -10,7 +10,7 @@ import spacing from 'material-ui/styles/spacing';
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
-import Star from 'material-ui/svg-icons/toggle/star';
+import Star from 'material-ui/svg-icons/toggle/star'; 
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
 import CheckBox from 'material-ui/svg-icons/toggle/check-box';  
@@ -141,7 +141,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
 
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
-        this.subscriptions = [];
+        this.subscriptions=[];
     };
 
 
@@ -232,6 +232,9 @@ class Notification extends Component<NotificationProps,NotificationState>{
 
     render(){  
         let {todo} = this.state;
+        let title = isNil(todo) ? '' : todo.title;
+        let reminder = isNil(todo) ? new Date() : todo.reminder;
+
         let buttonStyle = {      
             display:"flex",
             alignItems:"center",
@@ -284,20 +287,18 @@ class Notification extends Component<NotificationProps,NotificationState>{
                     </div>
                 </div>
             </div> 
-            <div  
-                style={{                    
-                    display:"flex",
-                    overflowX:"hidden", 
-                    justifyContent:"space-between",
-                    height:"90%",
-                    position:"relative",   
-                    alignItems:"center", 
-                    flexDirection:"column"  
-                }}   
-            >     
+            <div style={{                    
+                display:"flex",
+                overflowX:"hidden", 
+                justifyContent:"space-between",
+                height:"90%",
+                position:"relative",   
+                alignItems:"center", 
+                flexDirection:"column"  
+            }}>     
                 <div>{chooseIcon({width:"",height:""},"reminder")}</div>
                 <div style={{display:"flex", alignItmes:"center", justifyContent:"center"}}>
-                    <Reminder message={todo.title} date={todo.reminder} /> 
+                    <Reminder message={title} date={new Date(reminder)} /> 
                 </div>  
                 <div onClick={this.openTodoInApp} style={buttonStyle}>   
                     <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  

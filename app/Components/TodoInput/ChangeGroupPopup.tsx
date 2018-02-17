@@ -76,26 +76,31 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
     onClose = () => {
        let { dispatch } = this.props;     
        dispatch({type:"openChangeGroupPopup", load:false}); 
-    }   
-      
+    };  
+
+
     onCancel = (e) => {
        this.onClose();  
-    }  
+    };  
  
+
     onDeleteSingleItem = (e) => {
         let {rightClickedTodoId, dispatch, todos} = this.props; 
         let todo : Todo = todos.find( (todo) => todo._id===rightClickedTodoId );
-        dispatch({type:"updateTodo", load:{...todo,deleted:new Date()}});
+        dispatch({type:"updateTodo", load:{...todo,reminder:null,deleted:new Date()}});
+        dispatch({type:"resetReminders"}); 
         this.onClose(); 
-    } 
+    }; 
+
 
     onDeleteGroup = () => {
         let {rightClickedTodoId, dispatch, todos} = this.props; 
         let todo : Todo = todos.find( (todo) => todo._id===rightClickedTodoId );
         dispatch({type:"removeGroup", load:todo.group._id});
         this.onClose();   
-    }
+    };
  
+    
     render(){ 
     
         let { openChangeGroupPopup } = this.props; 

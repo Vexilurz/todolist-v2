@@ -533,7 +533,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
          
         let {scrollTop, scrollHeight} = container;
         let {height} = container.getBoundingClientRect(); 
-        let speed = 5;
+        let speed = 2;
 
         if(this.scroll==="up"){ 
 
@@ -694,7 +694,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         
         this.suspendDecorator(); 
         if(this.paused){ this.resume() } 
-    }
+    } 
 
 
     suspendDecorator = () => { 
@@ -722,8 +722,12 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         let {decorator, id} = target;
          
         if(this.decorator){
-           if(this.decorator.id===id){ return }
-           else{ this.suspendDecorator() }
+            if(this.decorator.id===id){
+                if(not(this.paused)){ this.pause() }
+                return;  
+            }else{ 
+               this.suspendDecorator() 
+            }
         } 
           
         decorator.style.top = `${initialY}px`; 

@@ -99,7 +99,8 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         if( not(isNil(todo.group)) ){  
            dispatch({type:"openChangeGroupPopup", load:true});         
         }else{ 
-           dispatch({type:"updateTodo", load:{...todo,deleted:new Date()}});
+           dispatch({type:"updateTodo", load:{...todo,reminder:null,deleted:new Date()}});
+           dispatch({type:"resetReminders"});
         } 
     };  
 
@@ -409,9 +410,6 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 }
  
 
-
-
-
 interface RightClickMenuItemProps{
     title:string, 
     onClick:(e) => void,
@@ -427,7 +425,6 @@ export class RightClickMenuItem extends Component<RightClickMenuItemProps,RightC
     constructor(props){
         super(props);
     }  
-
 
     render(){ 
 
@@ -470,5 +467,4 @@ export class RightClickMenuItem extends Component<RightClickMenuItemProps,RightC
                     </div>
                 </div> 
     }
-
 }

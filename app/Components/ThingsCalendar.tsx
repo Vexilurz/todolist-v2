@@ -398,7 +398,7 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                                                  .replace(/[a-z]/ig, "")
                                                  .trim() : '',  
                                         openReminderInput:false
-                                    }) 
+                                    })  
                                 }}
                                 style={{
                                     margin:"15px",  
@@ -425,7 +425,7 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                                     date.setHours(hours);
                                     date.setMinutes(minutes);
                                     this.props.onAddReminder(date); 
-                                    this.setState({openReminderInput:false, timeSet:false}); 
+                                    this.setState({openReminderInput:true, timeSet:false}); //TODO openReminderInput:false ?
                                 }}
                                 style={{
                                     margin:"15px",   

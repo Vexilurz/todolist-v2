@@ -25,7 +25,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui'; 
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, addProject, removeProject, LayoutItem } from '../../database';
-import { debounce, attachDispatchToProps, createHeading } from '../../utils/utils';
+import { attachDispatchToProps, createHeading } from '../../utils/utils';
 import { Store } from '../../app'; 
 import { contains, not, isNil, isEmpty, remove } from 'ramda';
 import { Category, filter } from '../MainContainer';
@@ -42,16 +42,14 @@ export let deleteProject = (dispatch:Function, project:Project, todos:Todo[]) =>
     
     let relatedTodosIds : string[] = project.layout.filter(isString) as string[];
     
-    let selectedTodos : Todo[] = todos.filter(
-        (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
-    );   
+    let selectedTodos : Todo[] = todos.filter((t:Todo) : boolean => contains(t._id)(relatedTodosIds));   
         
     dispatch({
         type:"updateTodos",   
-        load:selectedTodos.map((t:Todo) => ({...t,deleted:new Date()}))
-    })
-
+        load:selectedTodos.map((t:Todo) : Todo => ({...t,reminder:null,deleted:new Date()}))
+    });
     dispatch({type:"updateProject", load:{...project,deleted:new Date()}});
+    dispatch({type:"resetReminders"}); 
 }
 
 

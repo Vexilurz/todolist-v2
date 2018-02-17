@@ -17,7 +17,7 @@ export let initWindow = ({width,height}:{width:number,height:number}):BrowserWin
         frame:true 
     } as any);               
  
-    handler.on('ready-to-show', () => handler.show());
+    //handler.on('ready-to-show', () => handler.show());
     handler.on(
         'close', 
         (event) => {

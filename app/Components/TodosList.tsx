@@ -224,10 +224,12 @@ let dropTodoOnCategory = ({
             () => {
                 let todo : Todo = {
                     ...draggedTodo, 
+                    reminder:null,
                     deleted:new Date()
                 };
 
                 dispatch({type:"updateTodo",load:todo});  
+                dispatch({type:"resetReminders"}); 
             }
         ],
         [

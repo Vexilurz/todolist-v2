@@ -267,7 +267,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
         //2) Based on new order, generate hash table of form { areaId : projectId[] }
         let target = null;
-        let byArea = {};
+        let byArea = {}; 
         for(let i=0; i<layoutAfterSort.length; i++){
             let item = layoutAfterSort[i];
 
@@ -288,9 +288,10 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         //3) Assign to each area attachedProjectsIds collected into coresponding cell in hash table
         let updatedProjects : Project[] = layoutAfterSort.filter(isProject);
         let updatedAreas : Area[] = layoutAfterSort.filter(isArea).map(
-            (area:Area) => compose(
+            (area:Area) => compose(  
                 (ids) => assoc("attachedProjectsIds",ids,area),
-                concat(
+                uniq,
+                concat(  
                     defaultTo([])(
                         byArea[area._id]
                     )

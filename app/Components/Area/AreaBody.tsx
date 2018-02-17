@@ -23,11 +23,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
-import { 
-    debounce, daysLeftMark, byNotCompleted, 
-    byNotDeleted, generateDropStyle, hideChildrens, 
-    makeChildrensVisible
-} from '../../utils/utils'; 
+import { daysLeftMark, byNotCompleted, byNotDeleted, generateDropStyle, hideChildrens, makeChildrensVisible } from '../../utils/utils'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import Checked from 'material-ui/svg-icons/navigation/check';

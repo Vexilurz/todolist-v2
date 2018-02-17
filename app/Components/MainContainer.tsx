@@ -6,12 +6,11 @@ import { ipcRenderer, remote } from 'electron';
 import IconButton from 'material-ui/IconButton';  
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, debounce, byTags, byCategory, 
-    selectNeverTodos, updateNeverTodos, oneDayBehind, 
+    attachDispatchToProps, byTags, byCategory, selectNeverTodos, updateNeverTodos, oneDayBehind, 
     convertTodoDates, convertProjectDates, convertAreaDates, clearStorage, oneDayAhead, measureTime, 
     byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
-    byCompleted, isToday, byNotSomeday, byScheduled, yearFromNow,
-    timeDifferenceHours, isNewVersion, addIntroList, printElement, isMainWindow, inFuture
+    byCompleted, isToday, byNotSomeday, byScheduled, yearFromNow, timeDifferenceHours, 
+    isNewVersion, addIntroList, printElement, inFuture
 } from "../utils/utils";  
 import {isDev} from "../utils/isDev"; 
 import { connect } from "react-redux"; 
@@ -58,7 +57,7 @@ import { generateRandomDatabase } from '../utils/generateRandomObjects';
 import { updateConfig } from '../utils/config';
 import { isNotArray, isDate } from '../utils/isSomething';
 import { scheduleReminder } from '../utils/scheduleReminder';
-
+import { debounce } from 'lodash';
 const Promise = require('bluebird');   
 const moment = require("moment"); 
 
@@ -178,9 +177,14 @@ export let activateReminders = (scheduledReminders:number[],todos:Todo[]) : numb
 
     scheduledReminders.map(t => clearTimeout(t)); 
 
+    console.log(`todosToBeRemindedOf ${JSON.stringify(todosToBeRemindedOf)}`)
+
     return todosToBeRemindedOf.map((todo) : number => scheduleReminder(todo)) 
 }; 
 
+let isMainWindow = () => { 
+    return remote.getCurrentWindow().id===1; 
+}
  
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
@@ -200,11 +204,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     constructor(props){ 
         super(props);  
-
         this.limit = 10000;
-        
         this.subscriptions = [];
- 
         this.state = { fullWindowSize:true };
     }  
      
@@ -226,6 +227,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
 
     initData = () => {
+
 
         if(not(isMainWindow())){ return }  
         let {dispatch} = this.props;
@@ -304,7 +306,15 @@ export class MainContainer extends Component<Store,MainContainerState>{
            if(this.rootRef){ this.rootRef.scrollTop=0; } 
         }
     }
-     
+      
+
+    printCurrentList = debounce(() => {
+        let {selectedCategory} = this.props;
+        let list = document.getElementById(`${selectedCategory}-list`); 
+        if(list){ 
+           printElement(selectedCategory, list) 
+        }
+    },100);
 
     
     render(){   
@@ -344,11 +354,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             <IconButton  
                                 iconStyle={{color:"rgba(100,100,100,0.6)", height:"22px", width:"22px"}} 
                                 className="no-drag" 
-                                onTouchTap={() => { 
-                                    let {selectedCategory} = this.props;
-                                    let list = document.getElementById(`${selectedCategory}-list`); 
-                                    if(list){ printElement(selectedCategory, list) }
-                                }}
+                                onTouchTap={this.printCurrentList}
                             > 
                                 <Print />   
                             </IconButton>   

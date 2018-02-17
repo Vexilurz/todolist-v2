@@ -27,10 +27,9 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx'; 
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
+import { debounce } from 'lodash';
 import { Checkbox } from '../TodoInput/TodoInput';
-import { 
- attachDispatchToProps, debounce, isNewVersion, keyFromDate, checkForUpdates, getCompletedWhen, findWindowByTitle 
-} from '../../utils/utils';
+import { attachDispatchToProps, isNewVersion, keyFromDate, checkForUpdates, getCompletedWhen, findWindowByTitle } from '../../utils/utils';
 import { 
     Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, 
     Todo, destroyEverything, initDB, addTodos, addProjects, addAreas, 

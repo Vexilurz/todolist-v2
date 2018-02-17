@@ -35,7 +35,7 @@ import { TextField } from 'material-ui';
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
     todoChanged, daysLeftMark, generateTagElement,  
-    isToday, getMonthName, debounce, fiveMinutesLater, 
+    isToday, getMonthName, fiveMinutesLater, 
     onHourLater, oneDayAhead 
 } from '../../utils/utils'; 
 import { Todo, removeTodo, updateTodo, Project } from '../../database';
@@ -244,7 +244,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
         let inside = insideTargetArea(rootRef,this.ref,x,y);
      
-        if(!inside){  
+        if(not(inside)){  
             this.setState(
                 {open:false}, 
                 () => {
@@ -257,7 +257,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
 
     addTodo = () => {
-        let todo : Todo = this.todoFromState();  
+        let todo : Todo = this.todoFromState();   
 
         if(!isEmpty(todo.title)){
             let timeSeconds = Math.round(new Date().getTime() / 1000);
@@ -288,6 +288,12 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             }
             
             this.props.dispatch({type:"addTodo", load:todo}); 
+
+            if(
+                not(isNil(todo.reminder))
+            ){
+                this.props.dispatch({type:"resetReminders"});  
+            }
 
             if(this.props.selectedCategory==="project"){ 
 

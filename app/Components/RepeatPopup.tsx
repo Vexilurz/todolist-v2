@@ -18,7 +18,7 @@ import { Todo, removeTodo, addTodo,  Project, Area, LayoutItem, Group } from '..
 import { Store } from '../app'; 
 import { ChecklistItem } from './TodoInput/TodoChecklist'; 
 import { Category, filter } from './MainContainer';
-import { remove, isNil, not, isEmpty, last } from 'ramda';
+import { remove, isNil, not, isEmpty, last, compose, map } from 'ramda';
 let uniqid = require("uniqid");    
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -250,11 +250,15 @@ export let setRepeatedTodos = ({
     };
     
     repeatedTodos[repeatedTodos.length - 1] = {...newLastTodo, group:newLastTodoGroup};    
-    
+     
     dispatch({
         type:"addTodos", 
-        load:filter(repeatedTodos, isBeforeLimit(limit), "setRepeatedTodos")  
+        load:compose(
+            (todos) => filter(todos, isBeforeLimit(limit), "setRepeatedTodos"),
+            map((todo:Todo) : Todo => ({...todo,reminder:null})) 
+        )(repeatedTodos)
     });  
+
     dispatch({type:"updateTodo", load:{...todo, group:oldLastTodoGroup}}); 
 }
 

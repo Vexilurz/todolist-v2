@@ -76,10 +76,11 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
         );
         
         
-        dispatch({ type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:new Date()})) });
+        dispatch({ type:"updateTodos", load:selectedTodos.map((t:Todo) : Todo => ({...t,reminder:null,deleted:new Date()})) });
         dispatch({ type:"updateProjects", load:selectedProjects.map((p:Project) => ({...p,deleted:new Date()})) });
         dispatch({ type:"updateArea", load:{...area,deleted:new Date()} });     
         dispatch({ type:"selectedCategory", load:"inbox" });
+        dispatch({type:"resetReminders"}); 
     }
 
 

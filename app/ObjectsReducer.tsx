@@ -9,12 +9,10 @@ import {
 import { isDev } from './utils/isDev';
 import { ipcRenderer, remote } from 'electron';
 import { 
-    getTagsFromItems, removeDeletedProjects, 
-    removeDeletedAreas, removeDeletedTodos, ItemWithPriority, byNotDeleted, 
-    isMainWindow 
+    getTagsFromItems, removeDeletedProjects, removeDeletedAreas, removeDeletedTodos, ItemWithPriority, byNotDeleted 
 } from './utils/utils';
 import { adjust, cond, equals, all, clone, isEmpty, contains, not, remove, uniq, isNil } from 'ramda';
-import { filter } from './Components/MainContainer';
+import { filter, activateReminders } from './Components/MainContainer';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { Config } from './utils/config';
 import { assert } from './utils/assert';
@@ -23,6 +21,9 @@ import { isTodo, isProject, isArea } from './utils/isSomething';
 
 let onError = (e) => globalErrorHandler(e); 
 
+let isMainWindow = () => {  
+    return remote.getCurrentWindow().id===1; 
+}
 
 export let applicationObjectsReducer = (state:Store, action) : Store => { 
 
@@ -119,10 +120,9 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
             (action:{type:string}) : boolean => "removeGroup"===action.type, 
 
             (action:{type:string, load:string}) : Store => {  
-               
                 let groupId : string = action.load;
                 let group : Todo[] = [];
-                let todos : Todo[] = [];
+                let todos : Todo[] = []; 
 
                 for(let i=0; i<state.todos.length; i++){
                     let todo : Todo = state.todos[i];
@@ -131,13 +131,17 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                     }else if(todo.group._id!==groupId){
                         todos.push(todo);
                     }else{
-                        group.push(todo);
+                        group.push(todo); 
                     }
-                }
+                } 
   
                 if(shouldAffectDatabase){ removeTodos(group,onError) } 
 
-                return { ...state, todos } 
+                return{   
+                   ...state,  
+                   todos, 
+                   scheduledReminders:activateReminders(state.scheduledReminders,todos) 
+                } 
             }
         ],
         [
@@ -263,8 +267,8 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
                 if(
                     not(contains(action.load.todoId)(project.layout as any))
                 ){  project.layout = [action.load.todoId, ...project.layout]; }
-    
-
+      
+   
                 if(shouldAffectDatabase){ updateProject(project._id,project,onError) }
                 return { 
                     ...state,
@@ -276,17 +280,14 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
             (action:{type:string}) => "attachTodoToArea"===action.type,
 
             (action:{type:string, load:{areaId:string,todoId:string}}) : Store => {
-
+  
                 let idx = state.areas.findIndex( (a:Area) => a._id===action.load.areaId );
 
                 assert(idx!==-1, "Attempt to update non existing object. attachTodoToArea. objectsReducer.");
               
                 let area : Area = {...state.areas[idx]};
 
-                if(
-                    not(contains(action.load.todoId)(area.attachedTodosIds))
-                ){  area.attachedTodosIds = [action.load.todoId, ...area.attachedTodosIds]; }
-
+                area.attachedTodosIds = uniq([action.load.todoId, ...area.attachedTodosIds]);
 
                 if(shouldAffectDatabase){ updateArea(area._id,area,onError) }
                 return { 

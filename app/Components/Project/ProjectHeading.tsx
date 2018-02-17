@@ -23,7 +23,6 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem } from '../../database';
-import { debounce } from '../../utils/utils';
 import { isEmpty, isNil } from 'ramda';
 import { uppercase } from '../../utils/uppercase';
 
