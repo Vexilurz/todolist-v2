@@ -24,7 +24,7 @@ import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area, getTodoById, todos_db, queryToTodos } from '../../database'; 
 import { 
-    byNotDeleted, byNotCompleted, byTags, byHaveAttachedDate, byNotSomeday, byScheduled, convertTodoDates 
+    byNotDeleted, byNotCompleted, byTags, byHaveAttachedDate, byNotSomeday, byScheduled, convertTodoDates, removeHeading 
 } from '../../utils/utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
@@ -139,10 +139,9 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     removeHeading = (heading_id:string) => {
         let {project} = this.props;
-        let layout = project.layout;
-        let idx = layout.findIndex((i:any) => isString(i) ? false : i._id===heading_id);
-        assert(idx!==-1,`Item does not exist.${heading_id}.archiveHeading.${layout}`); 
-        this.updateProject({layout:remove(idx,1,layout)});
+        this.updateProject(
+            removeHeading(heading_id,project)
+        );
     };
 
     

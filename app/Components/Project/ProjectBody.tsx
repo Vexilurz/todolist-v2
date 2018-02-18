@@ -25,17 +25,17 @@ import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
 import { 
-    byNotDeleted, byNotCompleted, generateDropStyle, hideChildrens, makeChildrensVisible, layoutOrderChanged 
+    byNotDeleted, byNotCompleted, generateDropStyle, hideChildrens, makeChildrensVisible, layoutOrderChanged, removeHeading 
 } from '../../utils/utils'; 
 import { ProjectHeading } from './ProjectHeading';  
 import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
 import { equals, allPass, isEmpty, isNil, not, uniq, contains, drop, map, compose } from 'ramda';
-import { onDrop, onDropMany } from '../TodosList';
+import { onDrop, removeTodosFromProjects, removeTodosFromAreas, dropTodoOnCategory } from '../TodosList';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { arrayMove } from '../../utils/arrayMove';
 import { assert } from '../../utils/assert';
-import { isTodo, isString, isHeading, isArrayOfTodos } from '../../utils/isSomething';
+import { isTodo, isString, isHeading, isArrayOfTodos, isCategory } from '../../utils/isSomething';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
@@ -44,7 +44,7 @@ import { Category } from '../MainContainer';
 
 
 
-interface ProjectBodyProps{
+interface ProjectBodyProps{ 
     items:(Heading|Todo)[], 
     groupTodos:boolean,
     updateLayoutOrder:(layout:LayoutItem[]) => void,
@@ -223,21 +223,105 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     
     
     onSortMove = (oldIndex:number, event) : void => {}; 
+
+
+    onDropMany = (event:any,heading:Heading,todos:Todo[]) => { 
+        assert(isArrayOfTodos(todos), `onDropMany. todos is not of type array of todos.`);
+        assert(isHeading(heading), `onDropMany. heading is not of type Heading.`);
+        let {projects, areas, selectedProjectId, dispatch, moveCompletedItemsToLogbook} = this.props;
+        //currently selected project
+        let project = projects.find((p:Project) => p._id===selectedProjectId);
+
+
+        //find target
+        let el = document.elementFromPoint(event.clientX, event.clientY);
+        let id = el.id || el.parentElement.id;
+        let projectTarget : Project = projects.find((p:Project) => p._id===id);
+        let areaTarget : Area = areas.find((a:Area) => a._id===id);
+
+    
+        //remove todos under the heading from all projects & areas
+        //let updatedProjects = removeTodosFromProjects(projects,todos);
+        //let updatedAreas = removeTodosFromAreas(areas,todos);
+
+        let selectedProject = {
+            ...project,
+            layout:project.layout.filter(
+                (item:any) => isString(item) ? !contains(item)(todos.map(t => t._id)) :
+                              item._id!==heading._id  
+            )
+        };
+  
+        //update projects & areas
+        dispatch({type:"updateProject", load:selectedProject});
+        
+        //removeHeading(heading._id,project)});
+        //dispatch({type:"updateProjects", load:updatedProjects});
+        //dispatch({type:"updateAreas", load:updatedAreas}); 
+
+
+        //let fromProject = updatedProjects.find(p => p._id===project._id);
+        //dispatch({type:"updateProject", load:removeHeading(heading._id,fromProject)});
+    
+        if(projectTarget){ 
+            dispatch({ 
+                type:"updateProject", 
+                load:{
+                    ...projectTarget, 
+                    layout:[ 
+                        heading, 
+                        ...todos.map((todo:Todo) => todo._id), 
+                        ...projectTarget.layout 
+                    ]   
+                } 
+            });  
+        }else if(areaTarget){
+            dispatch({
+                type:"updateArea", 
+                load:{
+                    ...areaTarget,
+                    attachedTodosIds:uniq([
+                        ...areaTarget.attachedTodosIds, 
+                        ...todos.map((todo:Todo) => todo._id)
+                    ])
+                }
+            });  
+        }else{   
+            let nodes = [].slice.call(event.path); 
+            
+            for(let i=0; i<nodes.length; i++){
+                if(isCategory(nodes[i].id)){
+                    todos.forEach( 
+                        (todo:Todo) => dropTodoOnCategory({
+                            dispatch, 
+                            draggedTodo:todo,
+                            projects, 
+                            areas, 
+                            category:nodes[i].id,
+                            moveCompletedItemsToLogbook
+                        }) 
+                    );
+                    break;
+                }
+            } 
+        } 
+    };
     
 
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
-        let {moveCompletedItemsToLogbook,dispatch,areas,projects} = this.props;
- 
+        let {moveCompletedItemsToLogbook,dispatch,areas,projects,selectedProjectId} = this.props;
         dispatch({type:"dragged",load:null});  
-
         let x = event.clientX;  
         let y = event.clientY;  
         let items = this.props.items;   
         let draggedTodo : (Todo | Heading) = items[oldIndex];
         let leftpanel = document.getElementById("leftpanel");
+        let selectedItems = compose(
+            map(index => items[index]),
+            (items) => this.selectElements(oldIndex, items)
+        )(items);
 
         if(insideTargetArea(null,leftpanel,x,y)){
-
             if(isTodo(draggedTodo)){
                 onDrop({
                     event,
@@ -248,20 +332,10 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     projects  
                 });
             }else if(isHeading(draggedTodo as Heading)){
-                onDropMany({ 
-                    event,
-                    todos:compose(
-                        map(index => items[index]),
-                        drop(1),
-                        (items) => this.selectElements(oldIndex, items)
-                    )(items), 
-                    dispatch,
-                    areas, 
-                    moveCompletedItemsToLogbook,
-                    projects  
-                });  
+                let heading = selectedItems[0];
+                let todos = drop(1,selectedItems);
+                this.onDropMany(event,heading,todos);  
             };
-            
         }else{   
             if(isTodo(draggedTodo)){
                 this.changeOrder(oldIndex,newIndex); 

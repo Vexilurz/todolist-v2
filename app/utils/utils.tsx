@@ -43,7 +43,7 @@ let moment = require("moment");
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { 
     contains, isNil, all, prepend, isEmpty, last, not, assoc, 
-    flatten, toPairs, map, compose, allPass, uniq, cond 
+    flatten, toPairs, map, compose, allPass, uniq, cond, remove 
 } from 'ramda'; 
 import { Store } from '.././app';
 import { isDev } from './isDev';
@@ -657,6 +657,18 @@ export let generateDropStyle = (id:string) : HTMLElement => {
 
     return rectangle; 
 };
+
+
+export let removeHeading = (heading_id:string,project:Project) : Project => {
+    let layout = project.layout;
+    let idx = layout.findIndex((i:any) => isString(i) ? false : i._id===heading_id);
+    if(idx!==-1){
+        return {
+           ...project,
+           layout:remove(idx,1,layout)
+        };
+    }
+}; 
 
 
 export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
