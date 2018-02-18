@@ -24,16 +24,18 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
-import { byNotDeleted, byNotCompleted, generateDropStyle, hideChildrens, makeChildrensVisible, layoutOrderChanged } from '../../utils/utils'; 
+import { 
+    byNotDeleted, byNotCompleted, generateDropStyle, hideChildrens, makeChildrensVisible, layoutOrderChanged 
+} from '../../utils/utils'; 
 import { ProjectHeading } from './ProjectHeading';  
 import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
-import { equals, allPass, isEmpty, isNil, not, uniq, contains } from 'ramda';
-import { onDrop } from '../TodosList';
+import { equals, allPass, isEmpty, isNil, not, uniq, contains, drop, map, compose } from 'ramda';
+import { onDrop, onDropMany } from '../TodosList';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { arrayMove } from '../../utils/arrayMove';
 import { assert } from '../../utils/assert';
-import { isTodo, isString } from '../../utils/isSomething';
+import { isTodo, isString, isHeading, isArrayOfTodos } from '../../utils/isSomething';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
@@ -128,7 +130,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             default:  
                 return null;
         }
-    }
+    };
 
 
     shouldCancelStart = (e) => {
@@ -138,7 +140,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 return true;
         }
         return false; 
-    }
+    };
 
 
     changeOrder = (oldIndex:number,newIndex:number) => { 
@@ -146,14 +148,14 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         items = items.map(i => i.type==="todo" ? i._id : i) as any; 
         let changed = arrayMove(items, oldIndex, newIndex); 
         this.props.updateLayoutOrder(changed);    
-    }  
+    };  
 
 
     changeHeadingsOrder = (oldIndex:number,newIndex:number) => {
 
         let items = [...this.props.items];
          
-        assert(items[oldIndex].type==="heading",`item is not heading. ${items[oldIndex]}. changeHeadingsOrder.`);
+        assert(isHeading(items[oldIndex] as Heading),`item is not heading. ${items[oldIndex]}. changeHeadingsOrder.`);
 
         let before = [];
         let after = [];
@@ -207,7 +209,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let layoutItems = updated.map( i => isTodo(i) ? i._id : i as any); 
    
         this.props.updateLayoutOrder(layoutItems);    
-    }
+    };
 
        
     onSortStart = (oldIndex:number, event:any) : void => {
@@ -217,21 +219,16 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         assert(isString(item.type), `item is Nil. incorrect index. onSortStart. ProjectBody.`);
         
         dispatch({type:"dragged",load:item.type});
-    } 
+    }; 
     
     
-    onSortMove = (oldIndex:number, event) : void => {} 
+    onSortMove = (oldIndex:number, event) : void => {}; 
     
 
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
-        let {
-            moveCompletedItemsToLogbook,
-            dispatch,
-            areas,
-            projects
-        } = this.props;
+        let {moveCompletedItemsToLogbook,dispatch,areas,projects} = this.props;
  
-        dispatch({type:"dragged",load:null}); 
+        dispatch({type:"dragged",load:null});  
 
         let x = event.clientX;  
         let y = event.clientY;  
@@ -239,14 +236,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let draggedTodo : (Todo | Heading) = items[oldIndex];
         let leftpanel = document.getElementById("leftpanel");
 
-        if(draggedTodo.type==="heading"){ 
-            
-            this.changeHeadingsOrder(oldIndex,newIndex);  
-        }else if(isTodo(draggedTodo)){
+        if(insideTargetArea(null,leftpanel,x,y)){
 
-            if(isEmpty(draggedTodo.title)){ return }
-  
-            if(insideTargetArea(null,leftpanel,x,y)){    
+            if(isTodo(draggedTodo)){
                 onDrop({
                     event,
                     draggedTodo,
@@ -254,13 +246,31 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     areas, 
                     moveCompletedItemsToLogbook,
                     projects  
-                })
-            }else{   
-               this.changeOrder(oldIndex,newIndex); 
-            }   
-        }
-    }
-    
+                });
+            }else if(isHeading(draggedTodo as Heading)){
+                onDropMany({ 
+                    event,
+                    todos:compose(
+                        map(index => items[index]),
+                        drop(1),
+                        (items) => this.selectElements(oldIndex, items)
+                    )(items), 
+                    dispatch,
+                    areas, 
+                    moveCompletedItemsToLogbook,
+                    projects  
+                });  
+            };
+            
+        }else{   
+            if(isTodo(draggedTodo)){
+                this.changeOrder(oldIndex,newIndex); 
+            }else if(isHeading(draggedTodo as Heading)){
+                this.changeHeadingsOrder(oldIndex,newIndex); 
+            }
+        };   
+    };
+     
 
     selectElements = (index:number,items:any[]) => {
         let selected = [index];
@@ -268,11 +278,11 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         assert(!isNil(item),`item is Nil. selectElements. index ${index}`);
 
-        if(item.type==="heading"){
+        if(isHeading(item)){   
             for(let i=index+1; i<items.length; i++){
                 let item = items[i];
 
-                if(isNil(item)){ break; }
+                if(isNil(item)){ break; } 
                 else{
                     if(item.type==="todo"){ selected.push(i); }
                     else{ break; }  
@@ -280,7 +290,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             }   
         } 
         return selected; 
-    }   
+    };   
 
     
     render(){  
@@ -315,7 +325,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 onSortMove={this.onSortMove}
                 onSortEnd={this.onSortEnd}
                 shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
-
                 decorators={decorators}  
             >   
                 {this.props.items.map((item,index) => this.getElement(item,index))}

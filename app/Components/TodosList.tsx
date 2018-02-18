@@ -22,7 +22,7 @@ import {
 import { Category, filter } from './MainContainer';
 import { indexToPriority } from './Categories/Today'; 
 import { SortableContainer } from './CustomSortableContainer';
-import { isString, isCategory, isTodo } from '../utils/isSomething';
+import { isString, isCategory, isTodo, isArrayOfTodos } from '../utils/isSomething';
 import { assert } from '../utils/assert';
 import { arrayMove } from '../utils/arrayMove';
 import { isDev } from '../utils/isDev';
@@ -250,7 +250,6 @@ let dropTodoOnCategory = ({
 };
  
 
-
 export let onDrop = ({
     event,
     draggedTodo,
@@ -259,10 +258,8 @@ export let onDrop = ({
     moveCompletedItemsToLogbook,
     projects  
 }) => {
-
     let el = document.elementFromPoint(event.clientX, event.clientY);
     let id = el.id || el.parentElement.id;
-
     let projectTarget : Project = projects.find( (p:Project) => p._id===id );
     let areaTarget : Area = areas.find( (a:Area) => a._id===id );
  
@@ -294,17 +291,73 @@ export let onDrop = ({
                     areas, 
                     category:nodes[i].id,
                     moveCompletedItemsToLogbook
-                }) 
+                });  
+            }
+        } 
+    } 
+};
+ 
+
+export let onDropMany = ({
+    event,
+    todos,
+    dispatch,
+    areas, 
+    moveCompletedItemsToLogbook,
+    projects  
+}) => { 
+    assert(isArrayOfTodos(todos), `onDropMany. todos is not of type array of todos.`);
+
+    let el = document.elementFromPoint(event.clientX, event.clientY);
+    let id = el.id || el.parentElement.id;
+    let projectTarget : Project = projects.find((p:Project) => p._id===id);
+    let areaTarget : Area = areas.find((a:Area) => a._id===id);
+ 
+    if(projectTarget){
+        todos.forEach(
+            (todo : Todo) => dropTodoOnProject({
+                dispatch,
+                areas,
+                projects, 
+                projectTarget,
+                draggedTodo:todo
+            })
+        );  
+    }else if(areaTarget){ 
+        todos.forEach(
+            (todo:Todo) => dropTodoOnArea({
+                dispatch,
+                areas,
+                projects, 
+                areaTarget,
+                draggedTodo:todo
+            }) 
+        );
+    }else{ 
+        let nodes = [].slice.call(event.path);
+        
+        for(let i=0; i<nodes.length; i++){
+            if(isCategory(nodes[i].id)){
+                todos.forEach(
+                    (todo:Todo) => dropTodoOnCategory({
+                        dispatch, 
+                        draggedTodo:todo,
+                        projects, 
+                        areas, 
+                        category:nodes[i].id,
+                        moveCompletedItemsToLogbook
+                    })
+                );
             }
         } 
     } 
 };
 
 
-
 interface TodosListProps{ 
     dispatch:Function, 
     projects:Project[],
+    sortBy:(a:Todo,b:Todo) => number,  
     selectedTodo:Todo,
     areas:Area[],
     groupTodos:boolean, 
@@ -419,15 +472,15 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
  
         
     render(){    
-        let {todos, selectedCategory} = this.props;
+        let {todos, selectedCategory, sortBy} = this.props;
 
         let decorators = [{  
             area:document.getElementById("leftpanel"),  
             decorator:generateDropStyle("nested"),
             id:"default"
-        }];    
+        }];       
 
-        let selected = todos.sort((a:Todo,b:Todo) => a.priority-b.priority); 
+        let selected = todos.sort(sortBy);  
         
         return <div style={{WebkitUserSelect:"none",position:"relative"}}>   
                 <SortableContainer

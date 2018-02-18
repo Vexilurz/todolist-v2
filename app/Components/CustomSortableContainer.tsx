@@ -9,7 +9,7 @@ import { Subscription } from 'rxjs/Rx';
 import { isEmpty, not, contains, isNil } from 'ramda';
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { assert } from '../utils/assert';
-import { isArrayOfDOMElements, allHave, isDomElement, isArrayOfNumbers } from '../utils/isSomething';
+import { isArrayOfDOMElements, allHave, isDomElement, isArrayOfNumbers, isHeading } from '../utils/isSomething';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 
 
@@ -18,7 +18,7 @@ let getCSSPixelValue = (stringValue) => {
       return parseFloat(stringValue);
     }
     return 0;
-}
+};
 
 
 let getElementMargin = (element) => {
@@ -30,25 +30,25 @@ let getElementMargin = (element) => {
       bottom: getCSSPixelValue(style.marginBottom),
       left: getCSSPixelValue(style.marginLeft),
     };
-}   
+};   
 
 
 let getNodes = (ref) : HTMLElement[] => { 
     assert(!isNil(ref), `ref is Nil. getNodes.`);
     return [].slice.call(ref.children);
-}
+};
 
 
 let hideElement = (node:HTMLElement) : void => {
     node.style.visibility = 'hidden';
     node.style.opacity = '0';  
-}
+};
 
 
 let showElement = (node:HTMLElement) : void => {
     node.style.visibility = 'visible';
     node.style.opacity = '1';  
-}
+};
 
 
 /**
@@ -63,7 +63,7 @@ let selectContainer = (x:number,y:number,containers:HTMLElement[]) : HTMLElement
         }
     } 
     return undefined;
-}
+};
 
 
 /**
@@ -85,7 +85,7 @@ let match = (nodes:HTMLElement[],items:{_id:string}[]) : boolean => {
     } 
 
     return true;
-}
+};
 
 
 /**
@@ -115,7 +115,7 @@ let cloneOne = (node:HTMLElement) : HTMLElement => {
     clone.style.zIndex = '200000';
 
     return clone;
-}
+};
 
 
 /**
@@ -166,7 +166,7 @@ let cloneMany = (nodes:HTMLElement[]) : HTMLElement => {
     container.style.zIndex = '200000';
 
     return container;  
-}    
+};    
 
  
 /**
@@ -195,10 +195,15 @@ let cloneSelectedElements = (
  
        return { selectedElements:selected, clone }; 
     } 
-}
+};
 
 
-interface Decorator{area:HTMLElement,decorator:HTMLElement,id:string} 
+interface Decorator{
+    area:HTMLElement,
+    decorator:HTMLElement,
+    id:string
+} 
+
 interface SortableContainerProps{
     items:any[],
     scrollableContainer:HTMLElement,
@@ -253,7 +258,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         this.initial={
             initialIndex:0,
             initialX:0,
-            initialY:0,
+            initialY:0, 
             initialRect:null
         };
     }
@@ -484,8 +489,8 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     animateScroll = (event:any) => {
         let container = this.selectScrollableContainer(event);
         if(isNil(container)){ 
-            this.scroll = null;
-            return; 
+           this.scroll = null;
+           return; 
         }
         this.setScrollDirection(container);
         this.performScrolling(container); 
@@ -711,6 +716,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
     
     initDecorator = (target:Decorator) : void => {
+        let {items} = this.props;
         let { top, left, transform, position } = this.cloned.style;
         let {
             initialIndex,
@@ -718,6 +724,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             initialY,
             initialRect
         } = this.initial;
+        let draggedItem = items[initialIndex];
 
         let {decorator, id} = target;
          
@@ -729,14 +736,21 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                this.suspendDecorator() 
             }
         } 
-          
+           
         decorator.style.top = `${initialY}px`; 
         decorator.style.left = `${initialX}px`;  
         decorator.style.transform = transform;
         decorator.style.position = position; 
         decorator.style.cursor = "default";
-        document.body.appendChild(decorator);    
-         
+        document.body.appendChild(decorator);  
+        
+        if(isHeading(draggedItem)){
+           let counter = document.getElementById(`nested-counter`); 
+           if(counter && this.selected){
+              counter.innerHTML = `${this.selected.length-1}`
+           }
+        };
+        
         this.decorator = target;  
         
         if(not(this.paused)){ this.pause() }

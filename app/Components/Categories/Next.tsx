@@ -172,6 +172,7 @@ export class Next extends Component<NextProps, NextState>{
                                 <TodosList            
                                     dispatch={this.props.dispatch}     
                                     selectedTodo={this.props.selectedTodo}
+                                    sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                                     areas={this.props.areas}
                                     groupTodos={this.props.groupTodos}
                                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}

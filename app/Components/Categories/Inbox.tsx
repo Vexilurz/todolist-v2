@@ -89,6 +89,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 <div>
                     <TodosList          
                         selectedAreaId={this.props.selectedAreaId}
+                        sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                         selectedProjectId={this.props.selectedProjectId}
                         areas={this.props.areas}
                         selectedTodo={this.props.selectedTodo}

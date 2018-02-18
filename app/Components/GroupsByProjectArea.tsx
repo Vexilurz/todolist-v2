@@ -42,9 +42,7 @@ import { AreaLink } from './Area/AreaLink';
 import { TodoCreationForm } from './TodoInput/TodoCreation';
 import { generateId } from './../utils/generateId';
 import { generateEmptyTodo } from './../utils/generateEmptyTodo';
-
-
-
+import { isString } from '../utils/isSomething';
 
 interface GroupsByProjectAreaProps{
     dispatch:Function, 
@@ -71,6 +69,24 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         super(props);
     }
 
+
+    sortByLayoutOrder = (project:Project) => (a:Todo,b:Todo) : number => {
+        let aIdx : number = project.layout.findIndex(
+            (item:LayoutItem) => isString(item) ? item===a._id : false
+        );
+
+        let bIdx : number = project.layout.findIndex(
+            (item:LayoutItem) => isString(item) ? item===b._id : false
+        );
+
+        if(aIdx!==-1 && bIdx!==-1){
+            return aIdx - bIdx; 
+        }else{
+            return 0;
+        }
+    };
+
+
     render(){
 
         let { 
@@ -94,6 +110,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                 <TodosList            
                     dispatch={this.props.dispatch}     
                     areas={this.props.areas}
+                    sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                     groupTodos={this.props.groupTodos}
                     selectedTodo={this.props.selectedTodo}
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
@@ -121,7 +138,8 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                     <div key={`project-link-${project._id}`}>  
                         <ProjectLink {...{project,showMenu:true} as any}/> 
                         <ExpandableTodosList
-                            dispatch={this.props.dispatch}   
+                            dispatch={this.props.dispatch}    
+                            sortBy={this.sortByLayoutOrder(project)}
                             selectedTag={this.props.selectedTag} 
                             selectedTodo={this.props.selectedTodo}
                             selectedAreaId={this.props.selectedAreaId}
@@ -143,13 +161,14 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         <div style={{paddingTop:"10px", paddingBottom:"10px", WebkitUserSelect:"none"}}> 
             {  
                 table.areas.map(
-                    (a:Area, index:number) : JSX.Element => { 
+                    (a:Area, index:number) : JSX.Element => {
                         let todos = table[a._id] as Todo[];
                         return isEmpty(todos) ? null : 
                         <div key={`area${index}`}>
-                            <AreaLink {...{area:a} as any}/>
+                            <AreaLink {...{area:a} as any}/> 
                             <ExpandableTodosList
                                 dispatch={this.props.dispatch}   
+                                sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                                 selectedTag={this.props.selectedTag}  
                                 selectedTodo={this.props.selectedTodo}
                                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook} 
@@ -169,11 +188,12 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         </div> 
         </div> 
     }
-
 }
+
 
 interface ExpandableTodosListProps{
     dispatch:Function,   
+    sortBy:(a:Todo,b:Todo) => number,
     moveCompletedItemsToLogbook:string,
     selectedTodo:Todo,
     selectedAreaId:string,
@@ -215,6 +235,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
         return <div>          
                 <TodosList        
                     dispatch={this.props.dispatch}     
+                    sortBy={this.props.sortBy}
                     selectedCategory={this.props.selectedCategory} 
                     selectedTodo={this.props.selectedTodo}
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}

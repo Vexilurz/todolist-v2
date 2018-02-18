@@ -128,6 +128,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                     <TodosList      
                         areas={this.props.areas}
                         selectedAreaId={this.props.selectedAreaId}
+                        sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                         selectedProjectId={this.props.selectedProjectId}
                         selectedTodo={this.props.selectedTodo}
                         projects={this.props.projects}

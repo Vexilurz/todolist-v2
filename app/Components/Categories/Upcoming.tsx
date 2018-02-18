@@ -563,8 +563,9 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         <TodosList    
                             dispatch={this.props.dispatch}  
                             groupTodos={this.props.groupTodos}
+                            sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                             selectedCategory={this.props.selectedCategory}
-                            selectedTodo={this.props.selectedTodo}
+                            selectedTodo={this.props.selectedTodo} 
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             selectedAreaId={this.props.selectedAreaId}
                             selectedProjectId={this.props.selectedProjectId}

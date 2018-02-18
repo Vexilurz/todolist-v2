@@ -13,7 +13,7 @@ import { isString } from './isSomething';
 import { assert } from './assert';
 const randomWord = require('random-word');
 let uniqid = require("uniqid"); 
-
+ 
 
 
 let randomCategory = () : Category => {
@@ -97,6 +97,10 @@ let fakeTodo = (tags:string[]) : Todo => {
 
     let deleted = Math.random() < 0.2 ? new Date() : undefined; 
     
+    let reminder = isToday(attachedDate) && isNil(deleted) ?  
+                   randomDate( new Date(), fiveMinutesLater(new Date()) ) : 
+                   null; //onHourLater(date) //fiveMinutesLater(date);
+
     return ({  
         _id : generateId(),    
         type : "todo",
@@ -105,14 +109,12 @@ let fakeTodo = (tags:string[]) : Todo => {
         priority : Math.random()*999999999,
         note : note.join(' '),
         checklist : checklist,   
-        reminder : isToday(attachedDate) && isNil(deleted) ?  
-                   randomDate( new Date(), fiveMinutesLater(new Date()) ) : 
-                   null, //onHourLater(date) //fiveMinutesLater(date)
+        reminder : null, 
         attachedTags : tags,   
         deadline : Math.random() < 0.3 ? null :
                    Math.random() > 0.5 ?
                    randomDate(new Date(), new Date()["addDays"](50)) : 
-                   new Date(),
+                   new Date(), 
         created : randomDate(new Date(), new Date()["addDays"](50)),
         deleted,
         attachedDate,

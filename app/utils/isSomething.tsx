@@ -1,5 +1,5 @@
 import { all, isNil, contains, not, has, compose, and } from 'ramda';
-import { Area, Project, Todo } from './../database';
+import { Area, Project, Todo, Heading } from './../database';
 import { Category } from '.././Components/MainContainer';
 export type Item = Area | Project | Todo; 
 
@@ -14,9 +14,9 @@ export let isNumber = (item) => compose(not,isNaN)(item);
 
 
 export let isArrayOfDOMElements = (array:any) : boolean => 
-            isNotArray(array) ? 
-            false : 
-            all((item) => isDomElement(item), array);
+           isNotArray(array) ? 
+           false : 
+           all((item) => isDomElement(item), array);
 
 
 export let isArrayOfNumbers = (array:any[]) : boolean => isNotArray(array) ? false : all(isNumber,array);
@@ -25,7 +25,13 @@ export let isArrayOfNumbers = (array:any[]) : boolean => isNotArray(array) ? fal
 export let isNotArray = (items:any[]) => compose(not, isArray)(items); 
 
 
-export let isItem = (item:Item) : boolean => item.type==="project" || item.type==="area" || item.type==="todo";
+export let isItem = (item:Item) : boolean => isNil(item) ? false : item.type==="project" || 
+                                                                   item.type==="area" || 
+                                                                   item.type==="todo";
+
+
+export let isHeading = (item:Heading) : boolean => isNil(item) ? false : item.type==="heading";
+
 
 
 export let isArray = (item:any[]) : boolean => Array.isArray(item); 

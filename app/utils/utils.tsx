@@ -9,7 +9,7 @@ import spacing from 'material-ui/styles/spacing';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
-import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
+import Refresh from 'material-ui/svg-icons/navigation/refresh';  
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
@@ -82,7 +82,7 @@ export let printElement = (selectedCategory:Category, list:HTMLElement) => {
         PHE.printElement( img );
     })
     .catch((error) => globalErrorHandler(error));
-}
+};
 
 
 
@@ -91,14 +91,14 @@ export let measureTime = (f:() => void) => {
     f(); 
     let finish : number = performance.now();
     return finish - start; 
-} 
+}; 
 
 
 
 export let byScheduled = (item : Todo) : boolean => {
     if(isNil(item)){ return false } 
     return !isNil(item.deadline) || !isNil(item.attachedDate); 
-} 
+}; 
 
 
 
@@ -111,7 +111,7 @@ export let selectNeverTodos = (todos:Todo[]) : Todo[] => {
                            !isNil(todo.group.options)
                        )
     );
-} 
+}; 
 
 
 
@@ -126,7 +126,7 @@ export let updateNeverTodos = (dispatch:Function,never:Todo[],limit:Date) => {
 
         setRepeatedTodos({dispatch,todo,repeatedTodos,options,limit});
     }
-}
+};
  
 
 
@@ -143,7 +143,7 @@ export let getRangeYearUntilDate = (start:Date,endsDate:Date,repeatEveryN:number
         if(next.getTime()<=endsDate.getTime()){ dates.push(next) }
     }   
     return dates;  
-} 
+}; 
 
 
 
@@ -158,7 +158,7 @@ export let getRangeYearRepetitions = (start:Date,endsAfter:number,repeatEveryN:n
     }
 
     return dates;
-} 
+}; 
 
 
 
@@ -191,7 +191,7 @@ export let getRangeMonthUntilDate = (start:Date, ends:Date, repeatEveryN:number)
         if(next.getTime()<=ends.getTime()){ dates.push(next) }
     }
     return dates;
-}
+};
 
 
 export let getCompletedWhen = (moveCompletedItemsToLogbook:string,date:Date) => {
@@ -217,7 +217,7 @@ export let getCompletedWhen = (moveCompletedItemsToLogbook:string,date:Date) => 
             () => date,
         ]
     ])(moveCompletedItemsToLogbook);
-}
+};
 
 
 export let getRangeMonthRepetitions = (start:Date, endsAfter:number, repeatEveryN:number) : Date[] => {
@@ -245,8 +245,7 @@ export let getRangeMonthRepetitions = (start:Date, endsAfter:number, repeatEvery
     }
 
     return dates;
-}
-
+};
 
 
 export let getRangeDays = (start:Date, endDate:Date, step:number, includeStart=false) : Date[] => {
@@ -271,7 +270,7 @@ export let getRangeDays = (start:Date, endDate:Date, step:number, includeStart=f
     } 
 
     return dates; 
-}
+};
  
 
 
@@ -291,11 +290,11 @@ export let getRangeRepetitions = (start:Date, repetitions:number, step:number) :
     }
 
     return dates;
-}
+};
 
 
  
-export let dateInputUpperLimit = (limit = 2050) : string => {
+export let dateInputUpperLimit = (limit = 2030) : string => {
     let now = new Date();  
     let month = now.getUTCMonth() + 1; 
     let d = now.getUTCDate();
@@ -306,7 +305,7 @@ export let dateInputUpperLimit = (limit = 2050) : string => {
     let end = String(limit) + "-" + month + "-" + d; 
 
     return end;
-} 
+}; 
 
 
 
@@ -326,7 +325,7 @@ export let yearFromDate = (date:Date) => {
     }
       
     return date["addDays"](365);
-}
+};
 
 
 
@@ -347,7 +346,7 @@ let cmpVersions = (current:string, next:string) => {
     }
 
     return segmentsA.length - segmentsB.length;
-}
+};
 
 
 
@@ -359,61 +358,54 @@ export let yearFromNow = () => {
     }
       
     return new Date()["addDays"](365);
-}
+};
 
 
 
 export let threeDaysLater = (date:Date) : Date => { 
-
     Date.prototype["addDays"] = function(days) {
         let date = new Date(this.valueOf());
         date.setDate(date.getDate() + days);
         return date;   
-    }
+    };
       
     return new Date(date.getTime())["addDays"](3);
-} 
+}; 
 
 
 
 export let oneDayAhead = (date:Date) : Date => { 
-
     Date.prototype["addDays"] = function(days) {
         let date = new Date(this.valueOf());
         date.setDate(date.getDate() + days);
         return date;   
-    }
+    };
       
     return new Date(date.getTime())["addDays"](1);
-} 
-
+}; 
 
 
 export let fiveMinutesLater = (date:Date) : Date => { 
     let fiveMinutesMs = 1000 * 60 * 5;
     return new Date(date.getTime() + fiveMinutesMs);
-} 
-
+}; 
 
 
 export let onHourLater = (date:Date) : Date => {  
     let oneHourMs = 1000 * 60 * 60; 
     return new Date(date.getTime() + oneHourMs);
-} 
-
+}; 
 
 
 export let oneDayBehind = () : Date => { 
-
     Date.prototype["addDays"] = function(days) {
         let date = new Date(this.valueOf());
         date.setDate(date.getDate() + days);
         return date;   
-    } 
+    };
       
     return new Date()["addDays"](-1);
-} 
-
+}; 
 
 
 export let dateToDateInputValue = (date:Date) : string => {
@@ -425,12 +417,10 @@ export let dateToDateInputValue = (date:Date) : string => {
     month = month < 10 ? `0${month}` : month.toString() as any;
 
     return year + "-" + month + "-" + d;
-}
+};
 
 
-
-export let sameDay = (a:Date,b:Date) => { return keyFromDate(a)===keyFromDate(b) }
-   
+export let sameDay = (a:Date,b:Date) => keyFromDate(a)===keyFromDate(b); 
 
 
 export let keyFromDate = (date:Date) : string => {  
@@ -441,8 +431,7 @@ export let keyFromDate = (date:Date) : string => {
     let day = date.getDate(); 
     let month = date.getMonth();
     return [year,month+1,day].join('-'); 
-}
-
+};
 
 
 export type ItemWithPriority = Area | Project | Todo | Heading; 
@@ -450,56 +439,32 @@ export type ItemWithPriority = Area | Project | Todo | Heading;
 
 let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {
  
-    if(!objects){
-        if(isDev()){ 
-           throw new Error(`objects undefined. ${objects} removeDeleted.`);
-        }
-    }
+    assert(not(isNil(objects)),`objects undefined. ${objects} removeDeleted.`);
+    assert(isFunction(updateDB),`updateDB is not a function. ${updateDB} removeDeleted.`);
 
-    if(!updateDB){
-        if(isDev()){ 
-           throw new Error(`updateDB undefined. ${updateDB} removeDeleted.`); 
-        }
-    }   
-
-    if(!isFunction(updateDB)){ 
-        if(isDev()){   
-           throw new Error(`updateDB is not a function. ${updateDB} removeDeleted.`);  
-        }
-    }  
-    
- 
     let deleted = [];
     let remainder = [];
 
-
     for(let i=0; i<objects.length; i++){ 
-
         let object = objects[i];
         
         assert(isItem(object), `object has incorrect type ${object} ${i} ${objects}`);
 
-        if(!!objects[i]["deleted"]){
+        if(!!objects[i]["deleted"]){ 
             deleted.push(objects[i]);
         }else{
             remainder.push(objects[i]);  
-        } 
-
+        }  
     } 
  
-
     if(deleted.length>0){ updateDB(deleted) }
-    
     return remainder;
-    
-}
- 
+};
 
  
 export let layoutOrderChanged = (before:(Heading|Todo)[], after:(Heading|Todo)[]) : boolean => {
     
-        if(before.length!==after.length) 
-           return true;
+        if(before.length!==after.length){ return true }
     
         for(let i=0; i<before.length; i++){
             let beforeItem : Heading|Todo = before[i];
@@ -515,19 +480,19 @@ export let layoutOrderChanged = (before:(Heading|Todo)[], after:(Heading|Todo)[]
             }
         }
         return false;   
-}
+};
     
  
         
 export let removeDeletedTodos = (todos:Todo[]) : Todo[] => {
     return removeDeleted(todos, removeTodos) as Todo[]
-}  
+};  
 
  
 
 export let removeDeletedProjects = (projects:Project[]) : Project[] => {
     return removeDeleted(projects, removeProjects) as Project[]
-} 
+}; 
 
  
 
@@ -535,8 +500,6 @@ export let removeDeletedAreas = (areas:Area[]) : Area[] => {
     return removeDeleted(areas, removeAreas) as Area[] 
 };
   
- 
-
 
 
 export let getTagsFromItems = (items:Item[]) : string[] => {
@@ -578,7 +541,7 @@ export let inFuture =  (date:Date) : boolean => {
 };
 
 
-export let byNotSomeday = (t:Todo) : boolean => { return t.category!=="someday"; };
+export let byNotSomeday = (t:Todo) : boolean => t.category!=="someday"; 
 
 
 export let byHaveAttachedDate = (t:Todo) : boolean => {
@@ -598,6 +561,7 @@ export let byDeleted = (item:Item) : boolean => {
 
 export let byCompleted = (item:Project & Todo) : boolean => { 
     assert(isProject(item as Project) || isTodo(item),`item have incorrect type. ${item}. byCompleted`);
+
     let date = isNil(item) ? null :
                isTodo(item) ? item.completedWhen :
                isProject(item) ? item.completed : null;
@@ -613,13 +577,12 @@ export let byTags = (selectedTag:string) => (item:Item) : boolean => {
     assert(isString(selectedTag), `selectedTag is not a string. ${selectedTag}. byTags.`); 
     assert(selectedTag.length!==0, `selectedTag is empty. byTags.`);
 
-    if(selectedTag==="All"){ return true }
+    if(selectedTag==="All"){ return true };
 
-    if(isNil(item)){ return false }  
+    if(isNil(item)){ return false };  
   
     return item.attachedTags.indexOf(selectedTag)!==-1;
 }; 
-
 
     
 export let byCategory = (selectedCategory:Category) => (item:Todo) : boolean => { 
@@ -628,39 +591,32 @@ export let byCategory = (selectedCategory:Category) => (item:Todo) : boolean => 
 }; 
 
 
-
-
 export let hideChildrens = (elem:HTMLElement) : void => {
-    
     let children = [].slice.call(elem.children);
     
     for(let i=0; i<children.length; i++){ 
         children[i].style.visibility = 'hidden';
         children[i].style.opacity = 0; 
     }
-};  
-  
+}; 
 
  
 export let makeChildrensVisible = (elem:HTMLElement) : void => {
-
     let children = [].slice.call(elem.children);
     
     for(let i=0; i<children.length; i++){
         children[i].style.visibility = '';
         children[i].style.opacity = 1;
-    }
+    };
 };
-    
 
     
 export let generateDropStyle = (id:string) : HTMLElement => {
-
     let rectangle = document.createElement("div");
     let container = document.createElement("div");
     let counter = document.createElement("div");
     
-    rectangle.id = id;
+    rectangle.id = id; 
     rectangle.style.zIndex = "1000000";   
     
     rectangle.style.width="60px";
@@ -681,7 +637,7 @@ export let generateDropStyle = (id:string) : HTMLElement => {
     container.style.zIndex = "1000000";
     container.style.pointerEvents = 'none';
      
-    
+    counter.id=`${id}-counter`;
     counter.style.borderRadius="50px";
     counter.style.width="25px";
     counter.style.height="25px";
@@ -701,9 +657,6 @@ export let generateDropStyle = (id:string) : HTMLElement => {
 
     return rectangle; 
 };
-
-
-
 
 
 export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
@@ -807,7 +760,6 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
         if(oldTodo.attachedTags[i]!==newTodo.attachedTags[i]){ return true }
     }
 };
-  
 
 
 export let attachEmptyTodo = (selectedCategory:Category) => (todos:Todo[]) => {
@@ -816,7 +768,6 @@ export let attachEmptyTodo = (selectedCategory:Category) => (todos:Todo[]) => {
     let emptyTodo = generateEmptyTodo(generateId(),selectedCategory,priority);  
     return prepend(emptyTodo)(todos);
 };
-  
 
 
 export let findAttachedArea = (areas:Area[]) => (t:Todo) : Area => {
@@ -853,7 +804,6 @@ export let byAttachedToProject = (projects:Project[]) => (t:Todo) : boolean => {
     return false;     
 };  
 
-
   
 export let generateTagElement = (tag:string,idx:number) => {
 
@@ -883,7 +833,6 @@ export let generateTagElement = (tag:string,idx:number) => {
 };
 
 
-
 export let getMonthName = (d:Date) : string => {
 
     assert(isDate(d),`d is not a Date ${d}. getMonthName.`);
@@ -896,7 +845,6 @@ export let getMonthName = (d:Date) : string => {
     return monthNames[d.getMonth()];
 };
 
- 
  
 export let getDayName = (d:Date) : string => { 
 
@@ -957,14 +905,12 @@ export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
     return <p style={style}>{ Math.abs(daysLeft) }{ attachedText }</p>  
 }; 
 
-
  
 export let isToday = (date : Date) => {
     if(isNil(date)){ return false }; 
   
     return daysRemaining(date)===0;
 };    
-
 
 
 export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:Todo | Project) => {
@@ -974,8 +920,7 @@ export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:
     let iDate = getDateFromObject(i); 
     let jDate = getDateFromObject(j);
 
-    if(iDate===null || iDate===undefined || !iDate){ return -1 }; 
-    if(jDate===null || jDate===undefined || !jDate){ return -1 };  
+    if(isNil(iDate) || isNil(jDate)){ return -1 }; 
             
     assert(isDate(iDate), `iDate is not a Date. ${getDateFromObject}. compareByDate.`);
     assert(isDate(jDate), `jDate is not a Date. ${getDateFromObject}. compareByDate.`);
@@ -985,12 +930,10 @@ export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:
 };
 
 
-
 export let oneMinuteBefore = (date:Date) : Date => {
     let minuteInMs = 1000 * 60;
     return new Date(date.getTime() - minuteInMs); 
 };
-
 
 
 export let nextMidnight = () : Date => {
@@ -998,7 +941,6 @@ export let nextMidnight = () : Date => {
     d.setHours(24,0,0,0); // next midnight
     return d;
 };
-
 
      
 export let getDatesRange = (
@@ -1028,35 +970,25 @@ export let getDatesRange = (
         dates.push( new Date(start.getTime())["addDays"]( i ) );
     }
     
-    return dates; 
-      
+    return dates;   
 }; 
-
 
 
 export let randomInteger = (n:number) : number => {
     return Math.round(Math.random() * n);
 }; 
-  
 
 
 export let randomDate = (start, end) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 
-
     
 export let randomArrayMember = (array : any[]) => {
-
     assert(!isEmpty(array), `randomArrayMember. array empty.`);
-
     let range = array.length - 1;
-    
     let idx = randomInteger(range);
-
     let member = array[idx]; 
-
     return member;
 }; 
-    
 
 
 export let generateEmptyProject = () : Project => ({
@@ -1092,7 +1024,6 @@ export let generateEmptyArea = () : Area => ({
     attachedTodosIds : [],  
     attachedProjectsIds : [],
 });
-  
 
 
 export let timeDifferenceHours = (from:Date,to:Date) : number => {
@@ -1101,7 +1032,6 @@ export let timeDifferenceHours = (from:Date,to:Date) : number => {
     let diff = (second - first)/(1000*60*60);
     return Math.abs(diff);  
 };    
-
 
 
 export let clearStorage = (onError:Function) : Promise<void> => {
@@ -1118,9 +1048,7 @@ export let clearStorage = (onError:Function) : Promise<void> => {
 };
 
 
-
 export let transformLoadDates = (load) : any => {
-
     let converted = load;
 
     if(isTodo(load)){
@@ -1158,8 +1086,7 @@ export let transformLoadDates = (load) : any => {
     }
  
     return  converted;  
-}
-
+};
 
 
 export let convertTodoDates = (t:Todo) : Todo => ({
@@ -1256,8 +1183,7 @@ export let createHeading = (e, props:Store) : void => {
            let heading : Heading = item as Heading; 
            priority = heading.priority + 1;
         } 
-    }
-
+    };
 
     let heading : Heading = {
         type : "heading", 
@@ -1267,11 +1193,9 @@ export let createHeading = (e, props:Store) : void => {
         key : generateId()
     }; 
 
-    
     let load = {...project, layout:[heading,...project.layout]};
     props.dispatch({ type:"updateProject", load });
 };
-
 
 
 interface ItemsAmount{  
@@ -1288,12 +1212,9 @@ export let isDeadlineTodayOrPast = (deadline:Date) : boolean => isNil(deadline) 
                                                                 daysRemaining(deadline)<=0;
 
 
- 
 export let isTodayOrPast = (date:Date) : boolean => isNil(date) ?    
                                                     false :  
                                                     daysRemaining(date)<=0;  
-
- 
 
 
 export let todoToKeywords = (t:Todo) : string[] => {
@@ -1310,7 +1231,6 @@ export let todoToKeywords = (t:Todo) : string[] => {
 }; 
 
 
-
 let collectProjects = (projects:Project[], projectsFilters, table:Table) : Table => {
     for(let i=0;  i<projects.length; i++){
         let project : Project = projects[i]; 
@@ -1324,7 +1244,6 @@ let collectProjects = (projects:Project[], projectsFilters, table:Table) : Table
 };  
 
 
-
 let collectAreas = (areas:Area[], areasFilters, table:Table) : Table => {
     for(let i=0; i<areas.length; i++){
         let area : Area = areas[i]; 
@@ -1336,7 +1255,6 @@ let collectAreas = (areas:Area[], areasFilters, table:Table) : Table => {
     };
     return table;
 };
-
 
 
 export let groupObjects = (
@@ -1387,16 +1305,16 @@ export let groupObjects = (
 
 
 export let convertDates = (object) => {
-    if(isNil(object)){ return object }
+    if(isNil(object)){ return object; }
     switch(object.type){
         case "todo":
-            return convertTodoDates(object as Todo)
+            return convertTodoDates(object as Todo);
         case "project":
-            return convertProjectDates(object as Project)
+            return convertProjectDates(object as Project);
         case "area":
-            return convertAreaDates(object as Area)  
-    }
-    return object    
+            return convertAreaDates(object as Area);  
+    };
+    return object;    
 }; 
 
 
@@ -1406,11 +1324,10 @@ export let checkForUpdates = () : Promise<UpdateCheckResult> => {
         resolve => {
             ipcRenderer.removeAllListeners("checkForUpdates");  
             ipcRenderer.send("checkForUpdates");
-            ipcRenderer.on("checkForUpdates", (event,updateCheckResult) => resolve(updateCheckResult))
+            ipcRenderer.on("checkForUpdates", (event,updateCheckResult) => resolve(updateCheckResult));
         }  
-    )
+    );
 }; 
-
 
 
 export let downloadUpdates = () : Promise<string> => {
@@ -1418,11 +1335,10 @@ export let downloadUpdates = () : Promise<string> => {
         resolve => {
             ipcRenderer.removeAllListeners("downloadUpdates");  
             ipcRenderer.send("downloadUpdates");
-            ipcRenderer.on("downloadUpdates", (event,path) => resolve(path)) 
+            ipcRenderer.on("downloadUpdates", (event,path) => resolve(path)); 
         } 
-    )
+    );
 };
-
 
 
 export let addIntroList = (dispatch:Function) => {
@@ -1451,7 +1367,6 @@ export let addIntroList = (dispatch:Function) => {
         }
     })
 };        
-
 
 
 export const introListLayout : (Todo | Heading)[] = [
