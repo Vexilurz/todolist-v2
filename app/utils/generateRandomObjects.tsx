@@ -66,7 +66,7 @@ let fakeCheckListItem = (idx) : ChecklistItem => {
 }
     
     
-let fakeTodo = (tags:string[]) : Todo => {
+export let fakeTodo = (tags:string[], remind = null) : Todo => {
     
     let checked = Math.random() > 0.5 ? true : false ;
     
@@ -109,7 +109,7 @@ let fakeTodo = (tags:string[]) : Todo => {
         priority : Math.random()*999999999,
         note : note.join(' '),
         checklist : checklist,   
-        reminder : null, 
+        reminder : remind,  
         attachedTags : tags,   
         deadline : Math.random() < 0.3 ? null :
                    Math.random() > 0.5 ?

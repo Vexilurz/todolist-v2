@@ -69,8 +69,21 @@ import { uppercase } from './utils/uppercase';
 import { SortableContainer } from './Components/CustomSortableContainer';
 import { arrayMove } from './utils/arrayMove';
 import { ChecklistItem, Checklist } from './Components/TodoInput/TodoChecklist';
+import { globalErrorHandler } from './utils/globalErrorHandler';
 injectTapEventPlugin();  
 
+window.onerror = function (msg, url, lineNo, columnNo, error) {
+    let string = msg.toLowerCase();
+    var message = [ 
+        'Message: ' + msg,
+        'URL: ' + url,
+        'Line: ' + lineNo, 
+        'Column: ' + columnNo,
+        'Error object: ' + JSON.stringify(error)
+    ].join(' - ');
+    globalErrorHandler(message);
+    return false;
+};
 
 
 ipcRenderer.once( 
@@ -95,7 +108,6 @@ interface QuickEntryState{
     category : string,
     title : string,  
     note : string, 
-    checked : boolean,
     deadline : Date,
     deleted : Date,
     attachedDate : Date, 
@@ -132,7 +144,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             category : 'inbox', 
             title : '',
             note : '',  
-            checked : false, 
             deadline : undefined, 
             deleted : undefined, 
             attachedDate : undefined,
@@ -153,7 +164,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         category:todo.category, 
         title:todo.title,
         note:todo.note,  
-        checked:todo.checked, 
         reminder:todo.reminder, 
         deadline:todo.deadline, 
         deleted:todo.deleted, 
@@ -175,8 +185,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         created : new Date(),
         deleted : this.state.deleted, 
         attachedDate : this.state.attachedDate,  
-        attachedTags : this.state.attachedTags, 
-        checked : this.state.checked
+        attachedTags : this.state.attachedTags
     }) 
 
 
@@ -211,7 +220,8 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
     addTodo = () => {
-        let todo = this.todoFromState();  
+        let todo = this.todoFromState(); 
+        console.log(`todo from state ${todo}`) 
         if(!isEmpty(todo.title)){ ipcRenderer.send("quick-entry",todo); }
     } 
 

@@ -35,10 +35,9 @@ export let isHeading = (item:Heading) : boolean => isNil(item) ? false : item.ty
 
 
 export let isArray = (item:any[]) : boolean => Array.isArray(item); 
- 
+   
 
-export let isDate = (date) : boolean => isNil(date) ? false : 
-                                        and(date instanceof Date, not(isNaN(date.getTime())) ); 
+export let isDate = (date) : boolean => isNil(date) ? false : (date instanceof Date && isFunction(date.getTime)); 
  
 
 export let isFunction = (item) : boolean => typeof item==="function"; 

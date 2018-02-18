@@ -282,9 +282,12 @@ export class App extends Component<AppProps,{}>{
 
         let actionListener = Observable 
                              .fromEvent(ipcRenderer, "action", (event,action) => action)
+                             .do((action) => console.log(action)) 
                              .map((action) => ({ 
                                 ...action,
-                                load:map(convertDates)(defaultTo({})(convertDates(action.load))) 
+                                load:map(convertDates)(
+                                    defaultTo({})(convertDates(action.load))
+                                ) 
                              }))
                              .subscribe((action) => action.type==="@@redux/INIT" ? null : dispatch(action));   
 

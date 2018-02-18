@@ -62,7 +62,7 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
     
     let {showCalendarEvents,todos,projects,calendars} = props;
 
-    let filters = [ 
+    let filters = [  
         haveDate,  
         byTags(props.selectedTag),
         byNotCompleted, 
@@ -74,27 +74,33 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
 
         return compose(
             flatten,
-            map((event:CalendarEvent) => getRangeDays(event.start, event.end, 1, true).map((date) => ({...event,start:date}))) 
-        )(events) as CalendarEvent[];
-    }
-      
- 
+            map(
+                (event:CalendarEvent) => {
+                    return getRangeDays(event.start, event.end, 1, true).map((date) => ({...event,start:date}))
+                }
+            ) 
+        )(events) as CalendarEvent[];  
+    };
+    
     let items = filter([...todos, ...projects], i => allPass(filters)(i), "upcoming");
-     
-
+    
     if(showCalendarEvents && !isNil(calendars)){ 
         let events : CalendarEvent[] = flatten(
             calendars  
             .filter((c:Calendar) => c.active)
             .map( 
-                (c:Calendar) => c.events.map(
-                    (event:CalendarEvent) => ({...event,end:new Date(event.end.getTime()-1)})
-                ) 
+                (c:Calendar) => c.events
+                    .filter((event:CalendarEvent) => isDate(event.end) && isDate(event.start))
+                    .map(
+                        (event:CalendarEvent) => ({
+                            ...event,
+                            end:new Date(event.end.getTime()-1)
+                        })
+                    )  
             )
         );
  
-        if(!isEmpty(events)){
-
+        if(not(isEmpty(events))){
             let {sameDayEvents,multipleDaysEvents} = groupBy(
                 (event) => sameDay(event.start,event.end) ? "sameDayEvents" : "multipleDaysEvents", 
                 events 
@@ -102,11 +108,13 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
             
             items.push(...splitLongEvents(multipleDaysEvents)); 
             items.push(
-                ...defaultTo([],sameDayEvents).map((event:CalendarEvent) => ({...event,end:new Date(event.end.getTime()+1)}))
+                ...defaultTo([],sameDayEvents)
+                    .map(
+                        (event:CalendarEvent) => ({...event,end:new Date(event.end.getTime()+1)})
+                    )
             );
         }
-    }    
-
+    };    
 
     let objectsByDate : objectsByDate = {};
 

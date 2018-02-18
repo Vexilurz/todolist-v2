@@ -6,7 +6,7 @@ import PouchDB from 'pouchdb-browser';
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 import { Category } from './Components/MainContainer';
 import { randomArrayMember, randomInteger, randomDate, convertTodoDates } from './utils/utils';
-import { isNil, all, map, isEmpty } from 'ramda'; 
+import { isNil, all, map, isEmpty, not } from 'ramda'; 
 import { isDev } from './utils/isDev';
 import { RepeatPopupState } from './Components/RepeatPopup';
 import { assert } from './utils/assert';
@@ -278,27 +278,34 @@ function updateItemsInDatabase<T>(
   onError:Function, 
   db:any
 ){
-  return function(items:T[]) : Promise<T[]>{
-    return db
+  return function(values:T[]) : Promise<T[]>{
+
+    let items = values.filter(v => v);
+    return db 
            .allDocs({ 
               include_docs:true,  
               conflicts: true,
               descending:true,
-              keys:items.map((item) => item["_id"]),
+              keys:items.map((item) => item["_id"]), 
               limit 
            })    
            .then( (query:Query<T>) => queryToObjects<T>(query) )
-           .then( (itemsWithRev:T[]) => {
+           .then( (result:T[]) => {
+                let itemsWithRev = result.filter(v => v);
                 let revs = {};
 
                 for(let i=0; i<itemsWithRev.length; i++){
                     let item = itemsWithRev[i];
-                    revs[item["_id"]] = item["_rev"];
+                    if(not(isNil(item))){
+                        revs[item["_id"]] = item["_rev"];
+                    }
                 }
 
                 for(let i=0; i<items.length; i++){
                     let item = items[i];  
-                    item[`_rev`] = revs[item["_id"]];
+                    if(not(isNil(item))){
+                        item[`_rev`] = revs[item["_id"]];
+                    }
                 }    
                  
                 return db.bulkDocs(items).catch(onError); 

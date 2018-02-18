@@ -174,7 +174,11 @@ let onReady = () => {
     );   
     
 
-    quickEntry = initQuickEntry({width:500,height:300});
+    quickEntry = initQuickEntry({
+        width:800,//500,
+        height:300
+    });
+    quickEntry.webContents.openDevTools();
     notification = initNotification({width:250,height:300});
 
       
