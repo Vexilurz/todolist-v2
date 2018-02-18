@@ -164,27 +164,37 @@ let onReady = () => {
     listeners = new Listeners(mainWindow); 
     
 
-    mainWindow = initWindow(getWindowSize());   
+    mainWindow = initWindow(
+        getWindowSize(), 
+        {  
+            maximizable:false,
+            show:false
+        },
+        (handler) => {} 
+    );   
+    
+
     quickEntry = initQuickEntry({width:500,height:300});
-    notification = initNotification({
-        width:250, 
-        height:300
-    });
+    notification = initNotification({width:250,height:300});
 
-
-    mainWindow.on('show', () => tray.setToolTip(`Hide ${AppName}`)); 
-    mainWindow.on('hide', () => tray.setToolTip(`Show ${AppName}`));
-    mainWindow.minimize(); 
-
-
-    loadApp(mainWindow)
+      
+    mainWindow.on('show', ()=>tray.setToolTip(`Hide ${AppName}`));
+    mainWindow.on('hide', ()=>tray.setToolTip(`Show ${AppName}`));
+    
+    
+    loadApp(mainWindow)  
     .then(() => {    
-        mainWindow.webContents.send("loaded"); 
-        if(isDev()){ mainWindow.webContents.openDevTools(); }
-    });   
+        mainWindow.webContents.send("loaded");
 
+        mainWindow.setMaximizable(true); 
+        mainWindow.minimize(); 
+        //mainWindow.show(); 
+        
+        if(isDev()){ mainWindow.webContents.openDevTools(); }  
+    });    
+    
 
-    loadQuickEntry(quickEntry)
+    loadQuickEntry(quickEntry) 
     .then(() => getConfig(storage))
     .then((config:Config) => {
         quickEntry.webContents.send("loaded",config);
@@ -199,7 +209,7 @@ let onReady = () => {
         }
     );
 };               
-
+  
 
 app.on('ready', onReady);    
  

@@ -76,16 +76,15 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
   
 
     onOutsideClick = (e) => {
-        if(this.ref===null || this.ref===undefined)
-            return; 
+        if(isNil(this.ref)){ return }
 
         let x = e.pageX;
         let y = e.pageY; 
 
         let inside = insideTargetArea(null,this.ref,x,y);
     
-        if(!inside){
-            this.props.close(); 
+        if(not(inside)){
+           this.props.close(); 
         }   
     }   
                
@@ -220,9 +219,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                         onClick={() => {
                             let { top, left } = this.ref.getBoundingClientRect();
                             this.props.close(); 
-                            //setTimeout(() => 
                             this.props.onRepeatTodo(top,left); 
-                            //, 10);  
                         }}  
                         style={{
                             display: "flex",
@@ -423,12 +420,12 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
 
                                     let date = new Date(this.props.attachedDate.getTime());
                                     date.setHours(hours);
-                                    date.setMinutes(minutes);
+                                    date.setMinutes(minutes); 
                                     this.props.onAddReminder(date); 
-                                    this.setState({openReminderInput:true, timeSet:false}); //TODO openReminderInput:false ?
+                                    this.setState({openReminderInput:false, timeSet:false}); 
                                 }}
                                 style={{
-                                    margin:"15px",   
+                                    margin:"15px",    
                                     color:"white", 
                                     backgroundColor:"rgb(87, 87, 87)"
                                 }} 

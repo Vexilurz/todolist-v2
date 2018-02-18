@@ -51,6 +51,7 @@ import { assert } from '../../utils/assert';
 interface NextProps{
     dispatch:Function, 
     groupTodos:boolean,
+    selectedTodo:Todo,
     selectedProjectId:string, 
     moveCompletedItemsToLogbook:string, 
     selectedAreaId:string,
@@ -153,6 +154,7 @@ export class Next extends Component<NextProps, NextState>{
                                 groupTodos ? 
                                 <GroupsByProjectArea
                                     dispatch={this.props.dispatch} 
+                                    selectedTodo={this.props.selectedTodo}
                                     selectedAreaId={this.props.selectedAreaId}
                                     selectedProjectId={this.props.selectedProjectId}
                                     groupTodos={this.props.groupTodos}
@@ -169,6 +171,7 @@ export class Next extends Component<NextProps, NextState>{
                                 :
                                 <TodosList            
                                     dispatch={this.props.dispatch}     
+                                    selectedTodo={this.props.selectedTodo}
                                     areas={this.props.areas}
                                     groupTodos={this.props.groupTodos}
                                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}

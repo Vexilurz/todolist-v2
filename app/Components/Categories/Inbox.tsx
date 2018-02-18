@@ -23,6 +23,7 @@ interface InboxProps{
     dispatch:Function,
     selectedProjectId:string, 
     groupTodos:boolean, 
+    selectedTodo:Todo, 
     selectedAreaId:string,  
     moveCompletedItemsToLogbook:string,
     selectedTag:string,
@@ -31,7 +32,7 @@ interface InboxProps{
     projects:Project[],  
     rootRef:HTMLElement,
     todos:Todo[]
-} 
+}  
  
  
 
@@ -90,6 +91,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                         selectedAreaId={this.props.selectedAreaId}
                         selectedProjectId={this.props.selectedProjectId}
                         areas={this.props.areas}
+                        selectedTodo={this.props.selectedTodo}
                         groupTodos={this.props.groupTodos}
                         projects={this.props.projects}  
                         dispatch={this.props.dispatch}     

@@ -42,6 +42,7 @@ interface AreaBodyProps{
     area:Area, 
     areas:Area[], 
     projects:Project[],
+    selectedTodo:Todo, 
     moveCompletedItemsToLogbook:string, 
     selectedAreaId:string, 
     groupTodos:boolean, 
@@ -67,7 +68,8 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
     render(){  
         let { 
             dispatch, selectedProjectId, groupTodos, moveCompletedItemsToLogbook, area,
-            selectedAreaId, selectedCategory, selectedTag, rootRef, projects, todos 
+            selectedAreaId, selectedCategory, selectedTag, 
+            rootRef, projects, todos, selectedTodo 
         } = this.props;
 
         let projectsFilters=[
@@ -92,6 +94,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 projectsFilters={projectsFilters}
                 areasFilters={[]}
                 dispatch={dispatch} 
+                selectedTodo={selectedTodo}
                 selectedProjectId={selectedProjectId}
                 groupTodos={groupTodos}
                 moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}

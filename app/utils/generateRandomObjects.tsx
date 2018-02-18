@@ -5,9 +5,9 @@ import { ipcRenderer } from 'electron';
 import PouchDB from 'pouchdb-browser';  
 import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist'; 
 import { Category } from '.././Components/MainContainer'; 
-import { randomArrayMember, randomInteger, randomDate, fiveMinutesLater, onHourLater } from './utils';
+import { randomArrayMember, randomInteger, randomDate, fiveMinutesLater, onHourLater, isToday } from './utils';
 import { Todo, Heading, LayoutItem, Project, Area } from './../database';
-import { uniq, splitEvery, contains } from 'ramda';
+import { uniq, splitEvery, contains, isNil } from 'ramda';
 import { generateId } from './generateId';
 import { isString } from './isSomething';
 import { assert } from './assert';
@@ -19,9 +19,9 @@ let uniqid = require("uniqid");
 let randomCategory = () : Category => {
     
     let categories : Category[] = [
-    "inbox" , "today" , "upcoming" , "next" , "someday" , 
-    //"logbook" , "trash" , "project" , "area" , 
-    "evening"
+        "inbox" , "today" , "upcoming" , "next" , "someday" , 
+        //"logbook" , "trash" , "project" , "area" , 
+        "evening"
     ];  
 
     return randomArrayMember(categories); 
@@ -78,7 +78,6 @@ let fakeTodo = (tags:string[]) : Todo => {
     let n = randomInteger(6) + 2;
     let c = randomInteger(5) + 2;
     
-
     for(let i=0; i<k; i++){
         title.push(randomWord()); 
     } 
@@ -90,33 +89,36 @@ let fakeTodo = (tags:string[]) : Todo => {
     for(let i=0; i<c; i++){ 
         checklist.push(fakeCheckListItem(i));  
     }
-    
+
+    let attachedDate = Math.random() < 0.3 ? null :
+                       Math.random() > 0.5 ?
+                       randomDate(new Date(), new Date()["addDays"](50)) : 
+                       new Date();
+
+    let deleted = Math.random() < 0.2 ? new Date() : undefined; 
     
     return ({  
         _id : generateId(),    
-        type:"todo",
+        type : "todo",
         category : randomCategory(), 
         title : title.join(' '), 
         priority : Math.random()*999999999,
         note : note.join(' '),
         checklist : checklist,   
-        reminder : null, //randomDate(new Date(), onHourLater(new Date())), //onHourLater(date) //fiveMinutesLater(date)
-        attachedTags:tags,  
+        reminder : isToday(attachedDate) && isNil(deleted) ?  
+                   randomDate( new Date(), fiveMinutesLater(new Date()) ) : 
+                   null, //onHourLater(date) //fiveMinutesLater(date)
+        attachedTags : tags,   
         deadline : Math.random() < 0.3 ? null :
                    Math.random() > 0.5 ?
                    randomDate(new Date(), new Date()["addDays"](50)) : 
                    new Date(),
         created : randomDate(new Date(), new Date()["addDays"](50)),
-        deleted : Math.random() < 0.5 ? new Date() : undefined,
-        attachedDate : Math.random() < 0.3 ? null :
-                       Math.random() > 0.5 ?
-                       randomDate(new Date(), new Date()["addDays"](50)) : 
-                       new Date(), 
-
+        deleted,
+        attachedDate,
         completedSet : checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,
         completedWhen : checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,
     });   
-         
 }
     
     

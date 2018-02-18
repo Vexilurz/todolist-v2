@@ -305,8 +305,9 @@ export let onDrop = ({
 interface TodosListProps{ 
     dispatch:Function, 
     projects:Project[],
+    selectedTodo:Todo,
     areas:Area[],
-    groupTodos:boolean,
+    groupTodos:boolean, 
     moveCompletedItemsToLogbook:string, 
     selectedCategory:Category,
     selectedTag:string,  
@@ -334,20 +335,21 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         return <div   
             key={`${value._id}todo`} 
             id={value._id}  
-            style={{position:"relative"}}
+            style={{position:"relative"}} 
         > 
             <TodoInput        
                 id={value._id} 
                 key={value._id} 
+                selectedTodo={this.props.selectedTodo}
                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                 groupTodos={this.props.groupTodos}
                 projects={this.props.projects}  
                 dispatch={this.props.dispatch}  
                 selectedProjectId={this.props.selectedProjectId}
-                selectedAreaId={this.props.selectedAreaId} 
+                selectedAreaId={this.props.selectedAreaId}  
                 todos={this.props.todos}
                 selectedCategory={this.props.selectedCategory} 
-                rootRef={this.props.rootRef}  
+                rootRef={this.props.rootRef}   
                 todo={value}
             />     
         </div> 

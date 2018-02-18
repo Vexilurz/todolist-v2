@@ -61,8 +61,9 @@ import { daysRemaining } from '../../utils/daysRemaining';
 import { stringToLength } from '../../utils/stringToLength';
 import { assert } from '../../utils/assert';
 import { setCallTimeout } from '../../utils/setCallTimeout';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash'; 
 let Promise = require('bluebird');
+
 
 export interface TodoInputState{  
     open : boolean,
@@ -80,12 +81,13 @@ export interface TodoInputState{
     
 export interface TodoInputProps{ 
     dispatch : Function,  
-    groupTodos : boolean, 
+    groupTodos : boolean,  
+    selectedTodo : Todo,
     moveCompletedItemsToLogbook : string, 
     selectedCategory : Category,
-    selectedProjectId:string,
-    selectedAreaId:string,
-    todos:Todo[],
+    selectedProjectId : string,
+    selectedAreaId : string,
+    todos : Todo[],
     projects : Project[], 
     todo : Todo,  
     rootRef : HTMLElement,  
@@ -138,7 +140,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             this.props.selectedCategory!==nextProps.selectedCategory ||
             this.props.selectedProjectId!==nextProps.selectedProjectId ||
             this.props.selectedAreaId!==nextProps.selectedAreaId ||
-            this.props.projects!==nextProps.projects
+            this.props.projects!==nextProps.projects ||
+            this.props.selectedTodo!==nextProps.selectedTodo
         ){
             return true;
         }
@@ -147,9 +150,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     }; 
 
 
-    updateState = (props) => new Promise( resolve => this.setState(props, () => resolve()) );
+    updateState = (props) => new Promise(resolve => this.setState(props, () => resolve()));
 
-    timeout = (ms:number) => new Promise( resolve => setTimeout(() => resolve(),ms) );
+
+    timeout = (ms:number) => new Promise(resolve => setTimeout(() => resolve(),ms));
+
 
     submitCompletedEvent = (timeSeconds:number) => {
         googleAnalytics.send(    
@@ -169,7 +174,19 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onError = (error) => globalErrorHandler(error);
 
 
-    componentDidMount(){  
+    componentDidMount(){   
+        let { todo, selectedTodo } = this.props;
+
+        if(
+            not(isNil(selectedTodo)) && 
+            selectedTodo._id===todo._id
+        ){ 
+            this.updateState({open:true})
+            .then(
+                () => isNil(this.ref) ? null : this.ref.scrollIntoView()
+            )
+        };
+
         let click = Observable.fromEvent(window,"click").subscribe(this.onOutsideClick);
         this.subscriptions.push(click);
     };        
@@ -183,9 +200,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     componentDidUpdate(prevProps:TodoInputProps,prevState:TodoInputState){
         let { open } = this.state; 
-        let { todo } = this.props;
+        let { todo, selectedTodo } = this.props;
 
-        if(this.inputRef && isEmpty(todo.title) && open){ this.inputRef.focus() } 
+        if(this.inputRef && isEmpty(todo.title) && open){ 
+           this.inputRef.focus(); 
+        }; 
 
         if(isEmpty(todo.title) || open){ 
             this.preventDragOfThisItem(); 

@@ -391,6 +391,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         dispatch={this.props.dispatch}
                                         selectedCategory={this.props.selectedCategory}
                                         groupTodos={this.props.groupTodos}
+                                        selectedTodo={this.props.selectedTodo}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedTag={this.props.selectedTag} 
                                         selectedProjectId={this.props.selectedProjectId} 
@@ -427,6 +428,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     return <Today  
                                         todos={selectedTodos}
                                         dispatch={this.props.dispatch}
+                                        selectedTodo={this.props.selectedTodo}
                                         groupTodos={this.props.groupTodos}
                                         selectedProjectId={this.props.selectedProjectId}
                                         selectedAreaId={this.props.selectedAreaId} 
@@ -457,6 +459,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         todos={selectedTodos}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         dispatch={this.props.dispatch}
+                                        selectedTodo={this.props.selectedTodo}
                                         groupTodos={this.props.groupTodos}
                                         selectedProjectId={this.props.selectedProjectId}
                                         selectedAreaId={this.props.selectedAreaId} 
@@ -498,6 +501,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         dispatch={this.props.dispatch}
                                         groupTodos={this.props.groupTodos}
+                                        selectedTodo={this.props.selectedTodo}
                                         selectedCategory={this.props.selectedCategory}
                                         selectedTag={this.props.selectedTag}
                                         rootRef={this.rootRef}
@@ -516,6 +520,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         todos={filter(todos, byDeleted, "Trash")}
                                         groupTodos={this.props.groupTodos}  
                                         dispatch={this.props.dispatch} 
+                                        selectedTodo={this.props.selectedTodo}
                                         selectedCategory={this.props.selectedCategory}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedTag={this.props.selectedTag} 
@@ -538,6 +543,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         todos={filter(todos, allPass(logbookFilters), "Logbook")} 
                                         groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch}
+                                        selectedTodo={this.props.selectedTodo}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedCategory={this.props.selectedCategory} 
                                         selectedAreaId={this.props.selectedAreaId} 
@@ -566,6 +572,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch}
                                         selectedCategory={this.props.selectedCategory}
+                                        selectedTodo={this.props.selectedTodo}
                                         areas={this.props.areas}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedAreaId={this.props.selectedAreaId}
@@ -597,6 +604,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     return <ProjectComponent 
                                         project={project}
                                         todos={selectedTodos}
+                                        selectedTodo={this.props.selectedTodo}
                                         groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch} 
                                         selectedTag={this.props.selectedTag}  
@@ -621,8 +629,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     if(isNil(area)){ return null }
 
                                     return <AreaComponent    
-                                        area={area} 
-                                        todos={this.props.todos} 
+                                        area={area}  
+                                        todos={this.props.todos}  
+                                        selectedTodo={this.props.selectedTodo}
                                         groupTodos={this.props.groupTodos}
                                         areas={this.props.areas} 
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}

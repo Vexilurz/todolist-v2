@@ -53,7 +53,6 @@ import { writeJsonFile } from './utils/jsonFile';
 import { getMachineIdSync } from './utils/userid';
 import { assert } from './utils/assert';
 import { setCallTimeout } from './utils/setCallTimeout';
-
 const MockDate = require('mockdate'); 
 const os = remote.require('os'); 
 const path = require('path');
@@ -76,10 +75,11 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
     return false;
 };
 
-
+ 
 
 export interface Store extends Config{
     progress : any,
+    selectedTodo : Todo,
     showUpdatesNotification : boolean, 
     scheduledReminders : number[],
     resetReminders : any,
@@ -123,6 +123,7 @@ export interface Store extends Config{
 
 export let defaultStoreItems : Store = {
     ...defaultConfig,
+    selectedTodo : null, 
     shouldSendStatistics : true, 
     hideHint : true,  
     resetReminders : null,
@@ -240,8 +241,8 @@ export class App extends Component<AppProps,{}>{
         this.reportStart({...sysInfo, timeSeconds} as any);
     }    
     
-
-    initObservables = () => {
+ 
+    initObservables = () => { 
         let {dispatch} = this.props;
 
         let updateInterval = Observable.interval(15000).subscribe(
@@ -264,11 +265,19 @@ export class App extends Component<AppProps,{}>{
              )
              .then(({err,to}) => console.log(`Backup saved to ${to}.`));
         });   
-        
-
+           
+         
         let openTodo = Observable
                        .fromEvent(ipcRenderer,'openTodo', (event,todo) => todo)
-                       .subscribe((todo) => { console.log(todo) });  
+                       .do((todo) => dispatch({type:"selectedTodo",load:todo}))
+                       .delay(50)
+                       .do((todo) => dispatch({type:"selectedCategory",load:"today"}))
+                       .do((todo) => {
+                            const window = remote.getCurrentWindow();
+                            window.show();
+                            window.focus();
+                       })
+                       .subscribe((todo) => console.log(`selectedTodo ${todo.title}`));  
 
 
         let actionListener = Observable 
@@ -280,15 +289,15 @@ export class App extends Component<AppProps,{}>{
                              .subscribe((action) => action.type==="@@redux/INIT" ? null : dispatch(action));   
 
 
-        let errorListener = Observable
-                            .fromEvent(ipcRenderer, "error", (event,error) => error)
+        let errorListener = Observable 
+                            .fromEvent(ipcRenderer, "error", (event,error) => error)    
                             .subscribe((error) => this.onError(error));  
 
 
         let progressListener = Observable
                                .fromEvent(ipcRenderer, "progress", (event,progress) => progress)
                                .subscribe((progress) => dispatch({type:"progress",load:progress}));                     
-
+        
 
         let ctrlAltTListener = Observable  
                                .fromEvent(ipcRenderer, "Ctrl+Alt+T", (event) => event)

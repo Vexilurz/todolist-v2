@@ -59,6 +59,8 @@ import Print from 'rc-print';
 import { timeOfTheDay } from '../../utils/time';
 const storage = remote.require('electron-json-storage');
 
+
+
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map((item,index:number) => assoc("priority",index,item)) 
 }
@@ -129,6 +131,7 @@ interface TodayProps{
     dispatch:Function,
     groupTodos:boolean,
     showCalendarEvents:boolean,  
+    selectedTodo:Todo, 
     moveCompletedItemsToLogbook:string,
     selectedProjectId:string, 
     selectedAreaId:string, 
@@ -182,17 +185,17 @@ export class Today extends Component<TodayProps,TodayState>{
 
         dispatch({type:"todayAmount",load:todos.filter((t:Todo) => allPass(todayFilters)(t)).length});
         dispatch({type:"hotAmount",load:todos.filter((t:Todo) => allPass(hotFilters)(t as (Project & Todo))).length});
-    }
+    };
 
-    onError = (error) => globalErrorHandler(error)
+    onError = (error) => globalErrorHandler(error);
     
     componentDidMount(){ 
         this.calculateTodayAmount(this.props);
-    }     
+    };     
   
     componentWillReceiveProps(nextProps:TodayProps){
         this.calculateTodayAmount(nextProps); 
-    }
+    };
 
     changeOrder = (oldIndex,newIndex,selected) => {
         let load = [];
@@ -214,7 +217,7 @@ export class Today extends Component<TodayProps,TodayState>{
         }
 
         this.props.dispatch({type:"updateTodos", load});
-    }
+    };
 
     getItems = () : { items:(Todo|TodaySeparator)[], tags:string[] } => {
 
@@ -237,7 +240,7 @@ export class Today extends Component<TodayProps,TodayState>{
         let items = indexToPriority([...today, separator, ...evening]); 
  
         return {items,tags}
-    }
+    };
   
     getElement = (value:Todo | TodaySeparator, index:number) => {
 
@@ -258,6 +261,7 @@ export class Today extends Component<TodayProps,TodayState>{
                 <TodoInput   
                     id={todo._id}
                     key={todo._id}
+                    selectedTodo={this.props.selectedTodo}
                     projects={this.props.projects}  
                     dispatch={this.props.dispatch}  
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
@@ -271,7 +275,7 @@ export class Today extends Component<TodayProps,TodayState>{
                 />      
             </div> 
         }
-    } 
+    }; 
        
     shouldCancelStart = (e) => {
 
@@ -279,18 +283,18 @@ export class Today extends Component<TodayProps,TodayState>{
 
         for(let i=0; i<nodes.length; i++){
             if(nodes[i].preventDrag){
-               return true 
+               return true; 
             }
         }
            
-        return false
-    } 
+        return false;
+    }; 
 
     onSortStart = (oldIndex:number,event:any) => { 
         this.props.dispatch({type:"dragged",load:"todo"});  
-    }
+    };
 
-    onSortMove = (oldIndex:number,event:any) => { } 
+    onSortMove = (oldIndex:number,event:any) => { }; 
  
     onSortEnd = (oldIndex:number,newIndex:number,event:any) => { 
         this.props.dispatch({type:"dragged",load:null});
@@ -320,11 +324,11 @@ export class Today extends Component<TodayProps,TodayState>{
             this.changeOrder(oldIndex,newIndex,items);  
         }     
     }   
- 
-    render(){
-         
+    
+
+    render(){ 
         let { 
-            todos, 
+            todos,  
             selectedTag, 
             areas,  
             projects, 
@@ -336,7 +340,8 @@ export class Today extends Component<TodayProps,TodayState>{
             moveCompletedItemsToLogbook,
             selectedAreaId,
             selectedCategory,
-            rootRef  
+            rootRef, 
+            selectedTodo  
         } = this.props;
         let { items, tags } = this.getItems();
         let empty = generateEmptyTodo(generateId(), "today", 0);  
@@ -448,6 +453,7 @@ export class Today extends Component<TodayProps,TodayState>{
                             selectedAreaId={selectedAreaId}
                             selectedCategory={selectedCategory}
                             groupTodos={groupTodos}
+                            selectedTodo={selectedTodo}
                             moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}
                             selectedTag={selectedTag}
                             rootRef={rootRef}

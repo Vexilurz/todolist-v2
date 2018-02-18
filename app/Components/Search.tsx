@@ -367,6 +367,7 @@ export class Search extends Component<SearchProps,SearchState>{
                                 id={todo._id} 
                                 key={todo._id} 
                                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                                selectedTodo={this.props.selectedTodo}
                                 groupTodos={this.props.groupTodos}
                                 projects={this.props.projects}  
                                 dispatch={this.props.dispatch}  
@@ -465,6 +466,7 @@ export class Search extends Component<SearchProps,SearchState>{
                                     selectedProjectId={this.props.selectedProjectId}
                                     selectedAreaId={this.props.selectedAreaId} 
                                     todos={this.props.todos}  
+                                    selectedTodo={this.props.selectedTodo}
                                     selectedCategory={this.props.selectedCategory} 
                                     rootRef={document.getElementById("maincontainer")}  
                                     todo={todo}

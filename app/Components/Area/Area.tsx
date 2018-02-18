@@ -17,6 +17,7 @@ import { assert } from '../../utils/assert';
 interface AreaComponentProps{
     area:Area,
     todos:Todo[], 
+    selectedTodo:Todo,
     areas:Area[],  
     selectedCategory:Category, 
     groupTodos:boolean, 
@@ -102,6 +103,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                 todos={this.props.todos} 
                 groupTodos={this.props.groupTodos}
                 selectedAreaId={this.props.selectedAreaId}
+                selectedTodo={this.props.selectedTodo}
                 selectedProjectId={this.props.selectedProjectId}
                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                 selectedTag={this.props.selectedTag}

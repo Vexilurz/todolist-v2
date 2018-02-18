@@ -26,6 +26,7 @@ import { chooseIcon } from '../../utils/chooseIcon';
 interface TrashProps{ 
     dispatch:Function,
     groupTodos:boolean,
+    selectedTodo:Todo, 
     selectedCategory:Category,  
     moveCompletedItemsToLogbook:string, 
     showTrashPopup:boolean, 
@@ -82,7 +83,8 @@ export class Trash extends Component<TrashProps,TrashState>{
                 <TodoInput   
                     id={value._id} 
                     key = {value._id} 
-                    projects={this.props.projects}   
+                    projects={this.props.projects} 
+                    selectedTodo={this.props.selectedTodo}  
                     selectedCategory={this.props.selectedCategory}
                     dispatch={this.props.dispatch}   
                     groupTodos={this.props.groupTodos}
@@ -104,7 +106,7 @@ export class Trash extends Component<TrashProps,TrashState>{
     render(){  
         let {
             todos, projects, areas, selectedProjectId, selectedCategory,
-            dispatch, selectedAreaId, selectedTag, rootRef 
+            dispatch, selectedAreaId, selectedTag, rootRef, selectedTodo 
         } = this.props;   
   
         let filters = [byDeleted,byTags(selectedTag)]; 
@@ -163,6 +165,7 @@ export class Trash extends Component<TrashProps,TrashState>{
                                 id={value._id}
                                 key={value._id}
                                 projects={projects}  
+                                selectedTodo={selectedTodo}
                                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                 dispatch={dispatch}  
                                 selectedProjectId={selectedProjectId}

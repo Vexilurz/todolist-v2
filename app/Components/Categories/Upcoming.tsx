@@ -153,10 +153,11 @@ interface UpcomingProps{
     showCalendarEvents:boolean,
     selectedCategory:Category, 
     groupTodos:boolean, 
-    todos:Todo[],
+    todos:Todo[], 
+    selectedTodo:Todo,
     moveCompletedItemsToLogbook:string, 
     calendars:Calendar[], 
-    projects:Project[], 
+    projects:Project[],  
     selectedAreaId:string,
     selectedProjectId:string, 
     areas:Area[], 
@@ -333,6 +334,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 projects={this.props.projects}
                 selectedAreaId={this.props.selectedAreaId} 
                 selectedCategory={this.props.selectedCategory as Category}
+                selectedTodo={this.props.selectedTodo}
                 selectedProjectId={this.props.selectedProjectId}
                 dispatch={this.props.dispatch}
                 selectedTag={this.props.selectedTag}
@@ -386,6 +388,7 @@ interface CalendarDayProps{
     scheduledProjects:Project[],
     areas:Area[], 
     selectedTodos:Todo[],
+    selectedTodo:Todo, 
     groupTodos:boolean,
     selectedEvents:CalendarEvent[],
     todos:Todo[], 
@@ -561,6 +564,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             dispatch={this.props.dispatch}  
                             groupTodos={this.props.groupTodos}
                             selectedCategory={this.props.selectedCategory}
+                            selectedTodo={this.props.selectedTodo}
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             selectedAreaId={this.props.selectedAreaId}
                             selectedProjectId={this.props.selectedProjectId}

@@ -1475,9 +1475,36 @@ compare-version@^0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/compare-version/-/compare-version-0.1.2.tgz#0162ec2d9351f5ddd59a9202cba935366a725080"
 
+component-clone@0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/component-clone/-/component-clone-0.2.2.tgz#c7f5979822880fad8cfb0962ba29186d061ee04f"
+  dependencies:
+    component-type "*"
+
+component-emitter@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/component-emitter/-/component-emitter-1.2.0.tgz#ccd113a86388d06482d03de3fc7df98526ba8efe"
+
 component-emitter@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/component-emitter/-/component-emitter-1.2.1.tgz#137918d6d78283f7df7a6b7c5a63e140e69425e6"
+
+component-raf@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/component-raf/-/component-raf-1.2.0.tgz#b2bc72d43f1b014fde7a4b3c447c764bc73ccbaa"
+
+component-tween@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/component-tween/-/component-tween-1.2.0.tgz#cc39ce5dbab05b52825f41d1947638a0b01b2b8a"
+  dependencies:
+    component-clone "0.2.2"
+    component-emitter "1.2.0"
+    component-type "1.1.0"
+    ease-component "1.0.0"
+
+component-type@*, component-type@1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/component-type/-/component-type-1.1.0.tgz#95b666aad53e5c8d1f2be135c45b5d499197c0c5"
 
 concat-map@0.0.1:
   version "0.0.1"
@@ -1943,6 +1970,10 @@ duplexer3@^0.1.4:
 duplexer@~0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/duplexer/-/duplexer-0.1.1.tgz#ace6ff808c1ce66b57d1ebf97977acb02334cfc1"
+
+ease-component@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/ease-component/-/ease-component-1.0.0.tgz#b375726db0b5b04595b77440396fec7daa5d77c9"
 
 ecc-jsbn@~0.1.1:
   version "0.1.1"
@@ -4725,6 +4756,12 @@ querystring@0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/querystring/-/querystring-0.2.0.tgz#b209849203bb25df820da756e747005878521620"
 
+raf@^3.4.0:
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/raf/-/raf-3.4.0.tgz#a28876881b4bc2ca9117d4138163ddb80f781575"
+  dependencies:
+    performance-now "^2.1.0"
+
 ramda@^0.25.0:
   version "0.25.0"
   resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.25.0.tgz#8fdf68231cffa90bc2f9460390a0cb74a29b29a9"
@@ -4859,6 +4896,12 @@ react-redux@^5.0.6:
     lodash-es "^4.2.0"
     loose-envify "^1.1.0"
     prop-types "^15.5.10"
+
+react-scroll-to-component@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/react-scroll-to-component/-/react-scroll-to-component-1.0.2.tgz#f260dc936c62a53e772786d7832fe0884e195354"
+  dependencies:
+    scroll-to "0.0.2"
 
 react-shallow-testutils@2.0.x:
   version "2.0.0"
@@ -5314,6 +5357,13 @@ sax@1.2.1:
 sax@>=0.6.0, sax@^1.2.4, sax@~1.2.1:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
+
+scroll-to@0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/scroll-to/-/scroll-to-0.0.2.tgz#936d398a9133660a2492145c2c0081dfcb0728f3"
+  dependencies:
+    component-raf "1.2.0"
+    component-tween "1.2.0"
 
 semver-diff@^2.0.0:
   version "2.1.0"
@@ -5917,6 +5967,10 @@ tunnel-agent@^0.6.0:
   resolved "https://registry.yarnpkg.com/tunnel-agent/-/tunnel-agent-0.6.0.tgz#27a5dea06b36b04a0a9966774b290868f0fc40fd"
   dependencies:
     safe-buffer "^5.0.1"
+
+tween@^0.9.0:
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/tween/-/tween-0.9.0.tgz#f856c7a9c9ab85ca9a2bc02282591aa2513a20ed"
 
 tweetnacl@^0.14.3, tweetnacl@~0.14.0:
   version "0.14.5"

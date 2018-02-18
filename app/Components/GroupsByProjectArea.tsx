@@ -50,6 +50,7 @@ interface GroupsByProjectAreaProps{
     dispatch:Function, 
     selectedProjectId:string, 
     groupTodos:boolean, 
+    selectedTodo:Todo, 
     moveCompletedItemsToLogbook:string,
     selectedAreaId:string,
     selectedCategory:Category, 
@@ -94,6 +95,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                     dispatch={this.props.dispatch}     
                     areas={this.props.areas}
                     groupTodos={this.props.groupTodos}
+                    selectedTodo={this.props.selectedTodo}
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     projects={this.props.projects}
                     selectedCategory={this.props.selectedCategory} 
@@ -121,6 +123,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                         <ExpandableTodosList
                             dispatch={this.props.dispatch}   
                             selectedTag={this.props.selectedTag} 
+                            selectedTodo={this.props.selectedTodo}
                             selectedAreaId={this.props.selectedAreaId}
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             selectedProjectId={this.props.selectedProjectId}
@@ -148,6 +151,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                             <ExpandableTodosList
                                 dispatch={this.props.dispatch}   
                                 selectedTag={this.props.selectedTag}  
+                                selectedTodo={this.props.selectedTodo}
                                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook} 
                                 rootRef={this.props.rootRef}
                                 groupTodos={this.props.groupTodos}
@@ -171,6 +175,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
 interface ExpandableTodosListProps{
     dispatch:Function,   
     moveCompletedItemsToLogbook:string,
+    selectedTodo:Todo,
     selectedAreaId:string,
     selectedCategory:Category,
     groupTodos:boolean,
@@ -211,6 +216,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                 <TodosList        
                     dispatch={this.props.dispatch}     
                     selectedCategory={this.props.selectedCategory} 
+                    selectedTodo={this.props.selectedTodo}
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     areas={this.props.areas}
                     groupTodos={this.props.groupTodos}

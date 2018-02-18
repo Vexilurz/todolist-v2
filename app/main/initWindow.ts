@@ -5,19 +5,25 @@ import url = require('url');
 import electron = require('electron');
 import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';  
 
-export let initWindow = ({width,height}:{width:number,height:number}):BrowserWindow => {       
-    Menu.setApplicationMenu(null);   
+export let initWindow = (
+    {width,height}:{width:number,height:number},
+    options={},
+    onReady=(handler) => handler.show()
+):BrowserWindow => {       
+    Menu.setApplicationMenu(null);
+        
     let icon = path.resolve(__dirname,'icon.ico');
-    let handler = new BrowserWindow({    
-        icon,
-        width,         
-        height,   
-        title:'Tasklist',      
-        center:true,       
-        frame:true 
-    } as any);               
+    let handler = new BrowserWindow({
+            icon,
+            width,         
+            height,   
+            title:'Tasklist',      
+            center:true,
+            frame:true, 
+            ...options
+    });                
  
-    //handler.on('ready-to-show', () => handler.show());
+    handler.on('ready-to-show',() => onReady(handler));
     handler.on(
         'close', 
         (event) => {

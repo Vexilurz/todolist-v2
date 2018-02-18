@@ -45,11 +45,12 @@ import { GroupsByProjectArea } from '../GroupsByProjectArea';
 interface SomedayProps{
     dispatch:Function,
     selectedCategory:Category, 
+    selectedTodo:Todo,
     moveCompletedItemsToLogbook:string, 
     selectedProjectId:string, 
     selectedAreaId:string, 
     selectedTag:string,
-    rootRef:HTMLElement,
+    rootRef:HTMLElement, 
     todos:Todo[],
     groupTodos:boolean,
     areas:Area[],   
@@ -112,6 +113,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         selectedProjectId={this.props.selectedProjectId}
                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                         selectedAreaId={this.props.selectedAreaId}
+                        selectedTodo={this.props.selectedTodo}
                         groupTodos={this.props.groupTodos}
                         selectedCategory={this.props.selectedCategory}
                         selectedTag={this.props.selectedTag}
@@ -127,6 +129,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         areas={this.props.areas}
                         selectedAreaId={this.props.selectedAreaId}
                         selectedProjectId={this.props.selectedProjectId}
+                        selectedTodo={this.props.selectedTodo}
                         projects={this.props.projects}
                         groupTodos={this.props.groupTodos}
                         dispatch={this.props.dispatch}   

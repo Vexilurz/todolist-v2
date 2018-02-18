@@ -8,6 +8,13 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
        let newState = undefined;
        
        switch(action.type){ 
+            case "selectedTodo":
+                newState = {  
+                    ...state,
+                    selectedTodo : action.load,
+                };  
+                break; 
+
             case "progress":
                 newState = {  
                     ...state,

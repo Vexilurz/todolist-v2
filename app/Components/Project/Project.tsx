@@ -52,10 +52,11 @@ let haveScheduledTodos = (todos:Todo[]) : boolean => {
 
 
 interface ProjectComponentProps{ 
-    project:Project, 
+    project:Project,  
     moveCompletedItemsToLogbook:string,
     todos:Todo[],
     groupTodos:boolean, 
+    selectedTodo:Todo,
     projects:Project[], 
     selectedTag:string, 
     dragged:string, 
@@ -220,6 +221,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         dragged={this.props.dragged}
                         groupTodos={this.props.groupTodos}
                         selectedCategory={this.props.selectedCategory}
+                        selectedTodo={this.props.selectedTodo}
                         showCompleted={this.props.showCompleted}
                         updateLayoutOrder={this.updateLayoutOrder}
                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
