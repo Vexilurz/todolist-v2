@@ -8,7 +8,7 @@ import {
 } from 'electron';
 import { Listeners } from "./listeners";
 import { initWindow, initQuickEntry, initNotification } from "./initWindow";
-import { isNil, isEmpty, not, forEachObjIndexed, when, contains, compose } from 'ramda';  
+import { isNil, isEmpty, not, forEachObjIndexed, when, contains, compose, equals } from 'ramda';  
 import { defaultTags } from './../utils/defaultTags';
 import { isDev } from './../utils/isDev';
 const os = require('os');
@@ -46,6 +46,26 @@ export let notification : BrowserWindow;
 export let listeners : Listeners;  
 export let dateCalendar : BrowserWindow; 
 export let tray : Tray;
+
+export let getClonedWindows = () : BrowserWindow[] => {
+    let defaultWindowsTitles = ['Quick Entry','Notification'];
+    let mainWindowId = isNil(mainWindow) ? 1 : mainWindow.id;
+    let windows = BrowserWindow.getAllWindows();
+
+    if(isNil(windows)){ return [] }
+    
+    return windows
+            .filter(v => v)
+            .filter((window:BrowserWindow) => {
+                let title = window.getTitle();
+                let id = window.id;
+
+                let isDefaultWindow = contains(title)(defaultWindowsTitles);
+                let isMainWindow = equals(id,mainWindowId);
+
+                return not(isDefaultWindow) && not(isMainWindow);
+            }); 
+};
 
 
 let shortcuts = {
@@ -179,6 +199,9 @@ let onReady = () => {
         height:300
     });
     quickEntry.webContents.openDevTools();
+
+
+
     notification = initNotification({width:250,height:300});
 
       
@@ -189,10 +212,8 @@ let onReady = () => {
     loadApp(mainWindow)  
     .then(() => {    
         mainWindow.webContents.send("loaded");
-
         mainWindow.setMaximizable(true); 
         mainWindow.minimize(); 
-        //mainWindow.show(); 
         
         if(isDev()){ mainWindow.webContents.openDevTools(); }  
     });    

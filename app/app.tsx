@@ -32,7 +32,7 @@ import {
 } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
-import { cond, assoc, isNil, not, defaultTo, map, isEmpty } from 'ramda';
+import { cond, assoc, isNil, not, defaultTo, map, isEmpty, compose } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { Settings, section, SettingsPopup } from './Components/Settings/settings'; 
 import { SimplePopup } from './Components/SimplePopup';
@@ -242,81 +242,72 @@ export class App extends Component<AppProps,{}>{
     }    
     
  
-    initObservables = () => { 
+    initObservables = () => {  
         let {dispatch} = this.props;
 
-        let updateInterval = Observable.interval(15000).subscribe(
-            (v) => {
-                dispatch({type:'update'});
-            }
-        );    
-
-        let backupInterval = Observable.interval(60000).subscribe(() => {
-             let id = getMachineIdSync();   
-             let to = path.resolve(os.homedir(), `${id}.json`);
-             
-             getDatabaseObjects(this.onError,1000000)
-             .then(([calendars,projects,areas,todos]) => 
-                writeJsonFile(
-                    { database : { todos, projects, areas, calendars } },
-                    to 
-                )
-                .then((err) => ({err,to}))
-             )
-             .then(({err,to}) => console.log(`Backup saved to ${to}.`));
-        });   
-           
-         
-        let openTodo = Observable
-                       .fromEvent(ipcRenderer,'openTodo', (event,todo) => todo)
-                       .do((todo) => dispatch({type:"selectedTodo",load:todo}))
-                       .delay(50)
-                       .do((todo) => dispatch({type:"selectedCategory",load:"today"}))
-                       .do((todo) => {
-                            const window = remote.getCurrentWindow();
-                            window.show();
-                            window.focus();
-                       })
-                       .subscribe((todo) => console.log(`selectedTodo ${todo.title}`));  
-
-
-        let actionListener = Observable 
-                             .fromEvent(ipcRenderer, "action", (event,action) => action)
-                             .do((action) => console.log(action)) 
-                             .map((action) => ({ 
-                                ...action,
-                                load:map(convertDates)(
-                                    defaultTo({})(convertDates(action.load))
-                                ) 
-                             }))
-                             .subscribe((action) => action.type==="@@redux/INIT" ? null : dispatch(action));   
-
-
-        let errorListener = Observable 
-                            .fromEvent(ipcRenderer, "error", (event,error) => error)    
-                            .subscribe((error) => this.onError(error));  
-
-
-        let progressListener = Observable
-                               .fromEvent(ipcRenderer, "progress", (event,progress) => progress)
-                               .subscribe((progress) => dispatch({type:"progress",load:progress}));                     
-        
-
-        let ctrlAltTListener = Observable  
-                               .fromEvent(ipcRenderer, "Ctrl+Alt+T", (event) => event)
-                               .subscribe((event) => {
-                                    dispatch({type:"openNewProjectAreaPopup", load:false});
-                                    dispatch({type:"showTrashPopup", load:false});
-                                    dispatch({type:"openTodoInputPopup", load:true});
-                               });  
-
         this.subscriptions.push(
-            actionListener,
-            errorListener,
-            ctrlAltTListener,
-            progressListener,
-            updateInterval,
-            backupInterval
+            Observable.interval(15000).subscribe((v) => dispatch({type:'update'})), 
+
+
+            Observable.interval(60000).subscribe(() => {
+                let id = getMachineIdSync();   
+                let to = path.resolve(os.homedir(), `${id}.json`);
+                
+                getDatabaseObjects(this.onError,1000000)
+                .then(([calendars,projects,areas,todos]) => 
+                    writeJsonFile(
+                        { database : { todos, projects, areas, calendars } },
+                        to 
+                    )
+                    .then((err) => ({err,to}))
+                )
+            }),  
+
+            
+            Observable
+            .fromEvent(ipcRenderer,'openTodo', (event,todo) => todo)
+            .do((todo) => dispatch({type:"selectedCategory",load:"inbox"}))
+            .do((todo) => dispatch({type:"selectedTodo",load:todo}))
+            .do((todo) => dispatch({type:"selectedCategory",load:"today"}))
+            .subscribe((todo) => {
+                const window = remote.getCurrentWindow();
+                if(window){
+                    window.show();
+                    window.focus();
+                }
+            }),
+
+
+            Observable 
+            .fromEvent(ipcRenderer, "action", (event,action) => action)
+            .map((action) => ({ 
+                ...action,
+                load:compose(
+                    map(convertDates),
+                    defaultTo({}),
+                    convertDates
+                )(action.load)
+            }))
+            .subscribe((action) => action.type==="@@redux/INIT" ? null : dispatch(action)),  
+
+
+            Observable 
+            .fromEvent(ipcRenderer, "error", (event,error) => error)    
+            .subscribe((error) => this.onError(error)),
+
+
+            Observable
+            .fromEvent(ipcRenderer, "progress", (event,progress) => progress)
+            .subscribe((progress) => dispatch({type:"progress",load:progress})),  
+
+            
+            Observable  
+            .fromEvent(ipcRenderer, "Ctrl+Alt+T", (event) => event)
+            .subscribe((event) => {
+                dispatch({type:"openNewProjectAreaPopup", load:false});
+                dispatch({type:"showTrashPopup", load:false});
+                dispatch({type:"openTodoInputPopup", load:true});
+            })
         );
     }
 
@@ -358,18 +349,17 @@ export class App extends Component<AppProps,{}>{
 ipcRenderer.once(
     'loaded',     
     (event, clonedStore:Store) => { 
-
         let defaultStore = defaultStoreItems;
 
-        if(!isNil(clonedStore)){ 
+        if(not(isNil(clonedStore))){ 
             let {todos,projects,areas} = clonedStore;
-            defaultStore =  {
+            defaultStore={
                 ...clonedStore,
                 clone:true, 
                 todos:todos.map(convertTodoDates),
                 projects:projects.map(convertProjectDates), 
                 areas:areas.map(convertAreaDates) 
-            }
+            };
         }   
    
         let app=document.createElement('div'); 
@@ -377,19 +367,16 @@ ipcRenderer.once(
         document.body.appendChild(app);     
    
         getConfig(storage) 
-        .then( 
-            (config) => {
-                ReactDOM.render(   
-                    <Provider store={createStore(applicationReducer, {...defaultStore, ...config})}>   
-                        <App {...{} as any}/>
-                    </Provider>,
-                    document.getElementById('application')
-                ) 
-            }
-        )
+        .then((config) => 
+            ReactDOM.render(   
+                <Provider store={createStore(applicationReducer, {...defaultStore, ...config})}>   
+                    <App {...{} as any}/>
+                </Provider>,
+                document.getElementById('application')
+            ) 
+        );
     }
 );    
- 
 
 
 let reducer = (reducers) => (state:Store, action) => {
@@ -399,7 +386,6 @@ let reducer = (reducers) => (state:Store, action) => {
     }   
     return state;      
 }; 
- 
 
 
 let applicationReducer = reducer([applicationStateReducer, applicationObjectsReducer]); 

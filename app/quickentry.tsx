@@ -72,6 +72,7 @@ import { ChecklistItem, Checklist } from './Components/TodoInput/TodoChecklist';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 injectTapEventPlugin();  
 
+
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
     var message = [ 
@@ -103,7 +104,6 @@ ipcRenderer.once(
 );   
 
 
-
 interface QuickEntryState{
     category : string,
     title : string,  
@@ -122,40 +122,44 @@ interface QuickEntryState{
     showDeadlineCalendar : boolean
 }   
   
+
 interface  QuickEntryProps{
     config:Config
 }    
-   
+  
+
 class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
-    
+
     calendar:HTMLElement; 
     deadline:HTMLElement;
     tags:HTMLElement;
     ref:HTMLElement; 
     inputRef:HTMLElement; 
     checklist:HTMLElement; 
-    
-    constructor(props){
+    defaultWidth:number;
+    defaultHeight:number;
 
+    constructor(props){
         super(props);  
- 
+        this.defaultWidth=500;
+        this.defaultHeight=300;
         this.state={    
-            tag : '',
-            category : 'inbox', 
-            title : '',
-            note : '',  
-            deadline : undefined, 
-            deleted : undefined, 
-            attachedDate : undefined,
-            defaultTags : this.props.config.defaultTags, 
-            attachedTags : [],  
-            checklist : [], 
-            showAdditionalTags : false, 
-            showDateCalendar : false,  
-            showTagsSelection : false, 
-            showChecklist : false,  
-            showDeadlineCalendar : false
-        }       
+            tag:'',
+            category:'inbox', 
+            title:'',
+            note:'',  
+            deadline:undefined, 
+            deleted:undefined, 
+            attachedDate:undefined,
+            defaultTags:this.props.config.defaultTags, 
+            attachedTags:[],  
+            checklist:[], 
+            showAdditionalTags:false, 
+            showDateCalendar:false,  
+            showTagsSelection:false, 
+            showChecklist:false,  
+            showDeadlineCalendar:false
+        };       
     }
 
 
@@ -170,42 +174,59 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         attachedDate:todo.attachedDate, 
         attachedTags:todo.attachedTags, 
         checklist:todo.checklist  
-    })
+    });
     
 
     todoFromState = () : any => ({
-        _id : generateId(),
-        category : this.state.category as any, 
-        type : "todo",
-        title : this.state.title,
-        priority : 0,
-        note : this.state.note,  
-        checklist : this.state.checklist,
-        deadline : this.state.deadline, 
-        created : new Date(),
-        deleted : this.state.deleted, 
-        attachedDate : this.state.attachedDate,  
-        attachedTags : this.state.attachedTags
-    }) 
+        _id:generateId(),
+        category:this.state.category as any, 
+        type:"todo",
+        title:this.state.title,
+        priority:0,
+        note:this.state.note,  
+        checklist:this.state.checklist,
+        deadline:this.state.deadline, 
+        created:new Date(),
+        deleted:this.state.deleted, 
+        attachedDate:this.state.attachedDate,  
+        attachedTags:this.state.attachedTags
+    }); 
 
 
     setSmallSize = () => {
-        let defaultWidth = 500;
-        let defaultHeight = 300;
-        let wnd = remote.getCurrentWindow(); 
-        wnd.setSize(defaultWidth, defaultHeight); 
-    }
+        let window = remote.getCurrentWindow(); 
+        if(window){
+            window.setSize(this.defaultWidth, this.defaultHeight); 
+        }
+    };
 
 
     setBigSize = () => {
-        let wnd = remote.getCurrentWindow(); 
-        wnd.setSize(500, 400); 
-    }
+        let window = remote.getCurrentWindow(); 
+        if(window){
+            window.setSize(this.defaultWidth, 400); 
+        }
+    };
+
+
+    addTodo = () => isEmpty(this.state.title) ? null :
+                    ipcRenderer.send("quick-entry",this.todoFromState()); 
     
 
+    onSave = () => {
+        this.addTodo();
+        this.clear(); 
+    };
+    
+
+    onWindowEnterPress = (e) => e.keyCode===13 ? this.onSave() : null;   
+
+
     clear = () => {
+        let window = remote.getCurrentWindow();
+        if(window){ window.blur(); }
+
         let emptyTodo = generateEmptyTodo(generateId(), this.state.category as any, 0);
-        
         let newState : QuickEntryState = {
             ...this.stateFromTodo(this.state,emptyTodo),
             showDateCalendar:false,     
@@ -214,30 +235,14 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             showChecklist:false,   
             showDeadlineCalendar:false 
         };
-
         this.setState(newState);
-    }
+    };
 
-
-    addTodo = () => {
-        let todo = this.todoFromState(); 
-        console.log(`todo from state ${todo}`) 
-        if(!isEmpty(todo.title)){ ipcRenderer.send("quick-entry",todo); }
-    } 
-
-
-    onWindowEnterPress = (e) => {   
-        if(e.keyCode===13){ 
-           this.addTodo(); 
-           remote.getCurrentWindow().blur();  
-        }  
-    }       
-   
     
     onAttachTag = (tag) => { 
         if(isEmpty(tag)){ return }
         this.setState({tag:'', attachedTags:uniq([...this.state.attachedTags, tag])})
-    }  
+    };  
 
 
     onRemoveTag = (tag) => {
@@ -246,52 +251,52 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         let idx = attachedTags.findIndex( v => v===tag );
          if(idx===-1){ return }
         this.setState({attachedTags:remove(idx,1,attachedTags)})
-    } 
+    }; 
 
 
     onNoteChange = (event,newValue:string) : void => {
         this.setState({note:newValue})
-    }
+    };
 
 
     onTitleChange = (event,newValue:string) : void => {
         this.setState({title:newValue})
-    }  
+    };  
 
 
     onChecklistButtonClick = (e) => {
         this.setState({showChecklist:true}) 
-    }
+    };
       
 
     onFlagButtonClick = (e) => {
         this.setState({showDeadlineCalendar:true}, () => this.setBigSize())
-    }
+    };
 
 
     closeDeadlineCalendar = (e) => {
         this.setState({showDeadlineCalendar:false}, () => this.setSmallSize())
-    }
+    };
  
 
     onCalendarButtonClick = (e) => {
         this.setState({showDateCalendar:true}, () => this.setBigSize())
-    }
+    };
      
 
     closeDateCalendar = (e) => {
         this.setState({showDateCalendar:false}, () => this.setSmallSize())
-    }
+    };
 
     
     onTagsButtonClick = (e) => {
         this.setState({showTagsSelection:true})
-    }
+    };
 
 
     closeTagsSelection = (e) => {
         this.setState({showTagsSelection:false}) 
-    }
+    };
 
 
     onRemoveSelectedCategoryLabel = () => {
@@ -304,53 +309,53 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         }else if(somedayCategory){                            
            this.setState({category:'inbox'}); 
         }
-    }     
+    };     
 
 
     onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         let {attachedDate,category} = this.state;
         let deadlineToday = daysRemaining(day)===0;
         this.setState({deadline:day,category:deadlineToday ? "today" : category});
-    }   
+    };   
 
  
     onRemoveAttachedDateLabel = () => {
         let {category,deadline} = this.state;
         this.setState({attachedDate:null,category:isNil(deadline) ? "inbox" : category});
-    }
+    };
 
 
     onCalendarClear = (e) => {
         let {category,deadline} = this.state;
         this.setState({category:isNil(deadline) ? "inbox" : category,attachedDate:null});
-    } 
+    }; 
 
 
     onDeadlineCalendarClear = (e:any) : void => {
         let { category, attachedDate } = this.state;
         this.setState({deadline:null, category:isNil(attachedDate) ? "inbox" : category});
-    }
+    };
 
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         let {category} = this.state;
         this.setState({attachedDate:day,category:daysRemaining(day)===0 ? "today" : category});   
-    }
+    };
 
     
     onCalendarSomedayClick = (e) => {
         this.setState({category:"someday"});
-    }
+    };
 
 
     onCalendarTodayClick = (e) => {
         this.setState({category:"today", attachedDate:new Date()}); 
-    }
+    };
 
 
     onCalendarThisEveningClick = (e) => {
         this.setState({category:"evening", attachedDate:new Date()}); 
-    }
+    };
 
     render(){  
         let {category,attachedDate} = this.state;
@@ -374,10 +379,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     <div    
                         className="noDragItem" 
                         style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
-                        onClick={() => {
-                            this.clear(); 
-                            remote.getCurrentWindow().blur();
-                        }}
+                        onClick={() => this.clear()}
                     >
                         <Clear style={{color:"rgba(255,255,255,1)",height:25,width:25}}/>
                     </div>
@@ -606,15 +608,8 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             </div> 
             <div style={{width:"100%", position:"fixed", bottom:0, right:0}}>    
                 <TodoInputPopupFooter
-                    onCancel={() => {
-                        remote.getCurrentWindow().blur();
-                        this.clear();
-                    }}
-                    onSave={() => {
-                        this.addTodo();
-                        remote.getCurrentWindow().blur(); 
-                        this.clear(); 
-                    }}
+                    onCancel={this.clear}
+                    onSave={this.onSave}
                     onRemoveSelectedCategoryLabel={this.onRemoveSelectedCategoryLabel}
                     onRemoveAttachedDateLabel={this.onRemoveAttachedDateLabel}
                     onRemoveDeadlineLabel={this.onDeadlineCalendarClear}

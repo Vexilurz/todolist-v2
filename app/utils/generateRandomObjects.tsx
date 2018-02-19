@@ -7,7 +7,7 @@ import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist';
 import { Category } from '.././Components/MainContainer'; 
 import { randomArrayMember, randomInteger, randomDate, fiveMinutesLater, onHourLater, isToday } from './utils';
 import { Todo, Heading, LayoutItem, Project, Area } from './../database';
-import { uniq, splitEvery, contains, isNil } from 'ramda';
+import { uniq, splitEvery, contains, isNil, not } from 'ramda';
 import { generateId } from './generateId';
 import { isString } from './isSomething';
 import { assert } from './assert';
@@ -67,8 +67,7 @@ let fakeCheckListItem = (idx) : ChecklistItem => {
     
     
 export let fakeTodo = (tags:string[], remind = null) : Todo => {
-    
-    let checked = Math.random() > 0.5 ? true : false ;
+    let checked = Math.random() > 0.5 ? true : false;
     
     let title : string[] = [];
     let note : string[] = [];
@@ -97,31 +96,34 @@ export let fakeTodo = (tags:string[], remind = null) : Todo => {
 
     let deleted = Math.random() < 0.2 ? new Date() : undefined; 
     
-    let reminder = isToday(attachedDate) && isNil(deleted) ?  
-                   randomDate( new Date(), fiveMinutesLater(new Date()) ) : 
-                   null; //onHourLater(date) //fiveMinutesLater(date);
+    let completedSet = checked ? new Date() : null;
+    let completedWhen = checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null;               
 
+    let reminder = isToday(attachedDate) && isNil(deleted) && not(checked) ?  
+                   randomDate(new Date(), fiveMinutesLater(new Date())) : 
+                   null; //onHourLater(date) //fiveMinutesLater(date);
+    
     return ({  
-        _id : generateId(),    
-        type : "todo",
-        category : randomCategory(), 
-        title : title.join(' '), 
-        priority : Math.random()*999999999,
-        note : note.join(' '),
-        checklist : checklist,   
-        reminder : remind,  
-        attachedTags : tags,   
-        deadline : Math.random() < 0.3 ? null :
-                   Math.random() > 0.5 ?
-                   randomDate(new Date(), new Date()["addDays"](50)) : 
-                   new Date(), 
-        created : randomDate(new Date(), new Date()["addDays"](50)),
+        _id:generateId(),    
+        type:"todo",
+        category:randomCategory(), 
+        title:title.join(' '), 
+        priority:Math.random()*999999999,
+        note:note.join(' '),
+        checklist:checklist,   
+        reminder:null,// : remind,  
+        attachedTags:tags,   
+        deadline:Math.random() < 0.3 ? null :
+                 Math.random() > 0.5 ?
+                 randomDate(new Date(), new Date()["addDays"](50)) : 
+                 new Date(), 
+        created:randomDate(new Date(), new Date()["addDays"](50)),
         deleted,
         attachedDate,
-        completedSet : checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,
-        completedWhen : checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,
+        completedSet,
+        completedWhen 
     });   
-}
+};
     
     
 let fakeHeading = () : Heading => {

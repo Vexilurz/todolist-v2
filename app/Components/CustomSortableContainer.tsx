@@ -6,7 +6,7 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { isEmpty, not, contains, isNil } from 'ramda';
+import { isEmpty, not, contains, isNil, compose, ifElse } from 'ramda';
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { assert } from '../utils/assert';
 import { isArrayOfDOMElements, allHave, isDomElement, isArrayOfNumbers, isHeading } from '../utils/isSomething';
@@ -50,20 +50,6 @@ let showElement = (node:HTMLElement) : void => {
     node.style.opacity = '1';  
 };
 
-
-/**
- * Iterate through supplied elements, 
- * until element which contains point located at (x,y)
- * position is found.
- */
-let selectContainer = (x:number,y:number,containers:HTMLElement[]) : HTMLElement => {
-    for(let i=0; i<containers.length; i++){
-        if(insideTargetArea(null,containers[i],x,y)){
-           return containers[i]; 
-        }
-    } 
-    return undefined;
-};
 
 
 /**
@@ -268,49 +254,16 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
 
     componentDidMount(){ 
-        this.init() //Initialize event based Observables.
+        this.init(); //Initialize event based Observables.
     }  
 
 
     componentWillUnmount(){
         this.initial.initialRect=undefined; 
-        this.subscriptions.map(s => s.unsubscribe()); //Suspend event based Observables.
+        this.subscriptions.forEach(s => s.unsubscribe()); //Suspend event based Observables.
         this.subscriptions=[]; 
     }   
     
-
-    pause = () => {
-        //1) Hide clone of selected item.
-        hideElement(this.cloned);
-
-        //2) Remove displacement from all elements.
-        let nodes = getNodes(this.ref);
-        nodes.forEach((node) => {
-            node.style[`transition-duration`] = `${0}ms`; 
-            node.style[`transform`] = `translate3d(${0}px,${0}px, 0)`;
-        });
-        
-        //3) If one or multiple elements were cloned (Heading+Todos under this heading) -> Show original items.
-        this.selected.map((node:HTMLElement) => showElement(node));
-        this.paused = true;
-
-        //4) Hide placeholder.
-        this.setState({showPlaceholder:false});
-    }
-     
-
-    resume = () => {
-        //1)  Show clone of selected item.
-        showElement(this.cloned); 
-
-        //3) If one or multiple elements were cloned (Heading+Todos under this heading) -> Hide original items.
-        this.selected.map((node:HTMLElement) => hideElement(node));
-        this.paused = false; 
-
-        //5) Show placeholder.
-        this.setState({showPlaceholder:true});         
-    } 
-  
 
     init = () => {
         let { scrollableContainer, shouldCancelStart, items } = this.props;
@@ -325,44 +278,41 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
             let canStartDrag = y > dragStartThreshold || x > dragStartThreshold;
 
-            return not(canStartDrag);    
-            //skipWhile -> Skip emitted items from source until provided expression is false...    
-        }
-           
-         
-        let dragEnd = Observable
-                       .fromEvent(document.body,"mouseup")
-                       .do((event:any) => this.onDragEnd(event)); 
-           
-
-        let drag = Observable  
-                    .fromEvent(this.ref,"mousedown") 
-                    .filter(this.inside)
-                    .do((event:any) => { 
-                        this.initial.initialIndex = this.indexFromClick(event);
-                        this.initial.initialX = event.clientX;
-                        this.initial.initialY = event.clientY;
-                    })
-                    .switchMap(
-                        (event) => {
-                            let cancel = shouldCancelStart(event,items[this.initial.initialIndex]);
-                            
-                            if(cancel){
-                                return Observable.of();
-                            }else{
-                                event.preventDefault()
-                                return Observable 
-                                       .fromEvent(document.body,"mousemove")
-                                       .skipWhile(byExceedThreshold)
-                                       .takeUntil(dragEnd); 
-                            }
-                        }           
-                    )    
-                    .subscribe(this.onDragMove, this.onError);
-
+            return not(canStartDrag); //skipWhile -> Skip emitted items from source until provided expression is false...    
+        };
     
-        this.subscriptions.push(drag);
-    }
+    
+        this.subscriptions.push(
+            Observable  
+                .fromEvent(this.ref,"mousedown") 
+                .filter(this.inside)
+                .do((event:any) => { 
+                    this.initial.initialIndex = this.indexFromClick(event);
+                    this.initial.initialX = event.clientX;
+                    this.initial.initialY = event.clientY;
+                })
+                .switchMap((event) => {
+                    let cancel = shouldCancelStart(event,items[this.initial.initialIndex]);
+                    
+                    if(cancel){
+                        return Observable.of();
+                    }else{
+                        event.preventDefault()
+                        return Observable 
+                                .fromEvent(document.body,"mousemove")
+                                .skipWhile(byExceedThreshold)
+                                .takeUntil(
+
+                                    Observable
+                                    .fromEvent(document.body,"mouseup")
+                                    .do((event:any) => this.onDragEnd(event))
+
+                                ); 
+                    }
+                })    
+                .subscribe(this.onDragMove, this.onError)
+        );
+    };
 
     
     onDragStart = (event:any) : void => {
@@ -397,51 +347,10 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
 
        //Invoke supplied with props onSortStart function.
        onSortStart(initialIndex,event); 
-    }
-  
- 
-    onDragMove = (event:any) : void => { 
-        let {scrollableContainer,items,onSortMove,decorators} = this.props; 
-        let {initialIndex,initialX,initialY,initialRect} = this.initial;
-        
-        if(isNil(initialRect)){
-           this.onDragStart(event); //invoke onDragStart if initial variables are not defined
-           this.updatePlaceholder();
-           return; 
-        }
+    };
 
-        let deltaX = event.clientX-initialX;  //difference between current and initial position
-        let deltaY = event.clientY-initialY; 
-        let direction = deltaY-this.deltaY;
 
-        this.deltaY = deltaY;
-        this.deltaX = deltaX; 
-
-        //1)Animate motion of dragged item.
-        this.animateClone(this.deltaX,this.deltaY); 
-
-        //2)If cloned item with original style was substituted with different style. 
-        //animate this different item. 
-        this.animateDecorator(this.deltaX,this.deltaY);
-
-        //3)Displace DOM elements depending on position of dragged item.
-        this.animateNodes(event,direction); 
-
-        //4)If dragged item located on top of element which should invoke style changes
-        //substitute dragged element with element-decorator.
-        this.applyCustomStyle(event);
-
-        //5)If top/bottom of dragged item located at position top/bottom of container
-        //perform scrolling in necessary direction.
-        this.animateScroll(event);
-
-        //Invoke supplied with props onSortMove function.
-        onSortMove(initialIndex,event); 
-    }
-    
-    
     onDragEnd = (event:any) => {
-
         //If dragging cycle was not initialized - quit.
         if(isNil(this.initial.initialRect)){ return } 
 
@@ -483,33 +392,164 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
             initialY:0,
             initialRect:null
         };
-    }   
+    };
+  
+ 
+    onDragMove = (event:any) : void => { 
+        let {scrollableContainer,items,onSortMove,decorators} = this.props; 
+        let {initialIndex,initialX,initialY,initialRect} = this.initial;
+        
+        if(isNil(initialRect)){
+           this.onDragStart(event); //invoke onDragStart if initial variables are not defined
+           this.updatePlaceholder();
+           return; 
+        }
+
+        let deltaX = event.clientX-initialX; //difference between current and initial position
+        let deltaY = event.clientY-initialY; 
+        let direction = deltaY-this.deltaY;
+        this.deltaY = deltaY;
+        this.deltaX = deltaX; 
+
+        compose(
+            () => onSortMove(initialIndex,event),
+            () => this.animateScroll(event),
+            ifElse(
+                isNil,
+                () => {
+                    this.suspendDecorator();
+                    this.resume(); 
+                    this.animateClone(this.deltaX,this.deltaY); 
+                    this.animateNodes(event,direction); 
+                },
+                (decorator:Decorator) => {
+                    this.pause();
+                    this.initDecorator(decorator);
+                    this.animateDecorator(this.deltaX,this.deltaY);
+                }
+            ),
+            this.shouldDecorate
+        )(event);
+    };
     
+
+    shouldDecorate = (event:any) : Decorator => { 
+        let {decorators} = this.props;
+        let x = event.clientX;
+        let y = event.clientY;
+
+        return decorators.find(
+            ({area, decorator, id}) => insideTargetArea(null,area,x,y)
+        );
+    }; 
+
+
+    initDecorator = (target:Decorator) : void => {
+        let {items} = this.props;
+        let { top, left, transform, position } = this.cloned.style;
+        let {
+            initialIndex,
+            initialX,
+            initialY,
+            initialRect
+        } = this.initial;
+        let draggedItem = items[initialIndex];
+        let {decorator, id} = target;
+         
+        if(this.decorator){
+            if(this.decorator.id===id){ return }
+            else{ this.suspendDecorator() }
+        } 
+           
+        decorator.style.top = `${initialY}px`; 
+        decorator.style.left = `${initialX}px`;  
+        decorator.style.transform = transform;
+        decorator.style.position = position; 
+        decorator.style.cursor = "default";
+        document.body.appendChild(decorator);  
+        
+                //if heading dragged set number of selected todos on decorator
+                if(isHeading(draggedItem)){
+                    let counter = document.getElementById(`nested-counter`); 
+                    if(counter && this.selected){
+                        counter.innerHTML = `${this.selected.length-1}`
+                    }
+                };
+                
+        this.decorator = target;  
+    }; 
+
+
+    pause = () => {
+        //1) Hide clone of selected item.
+        hideElement(this.cloned);
+        //2) Remove displacement from all elements.
+        let nodes = getNodes(this.ref);
+        nodes.forEach((node) => {
+            node.style[`transition-duration`] = `${0}ms`; 
+            node.style[`transform`] = `translate3d(${0}px,${0}px, 0)`;
+        });
+        //3) If one or multiple elements were cloned (Heading+Todos under this heading) -> Show original items.
+        this.selected.map((node:HTMLElement) => showElement(node));
+        //4) Hide placeholder.
+        this.setState({showPlaceholder:false});
+    };
+     
+
+    resume = () => {
+        //Show clone of selected item.
+        showElement(this.cloned); 
+        //If one or multiple elements were cloned (Heading+Todos under this heading) -> Hide original items.
+        this.selected.map((node:HTMLElement) => hideElement(node));
+        //Show placeholder.
+        this.setState({showPlaceholder:true});         
+    }; 
+
+
+    suspendDecorator = () => { 
+        if(this.decorator){
+           this
+           .decorator
+           .decorator
+           .parentNode 
+           .removeChild(this.decorator.decorator); 
+
+           this.decorator = null;
+        } 
+    }; 
+
 
     animateScroll = (event:any) => {
         let container = this.selectScrollableContainer(event);
         if(isNil(container)){ 
-           this.scroll = null;
-           return; 
+           this.scroll=null; 
+           return;
         }
-        this.setScrollDirection(container);
+        this.setScrollDirection(container); 
         this.performScrolling(container); 
-    }   
+    };   
 
 
     selectScrollableContainer = (event:any) : HTMLElement => {
         let { scrollableContainer, decorators } = this.props; 
         let containers : HTMLElement[] = [scrollableContainer, ...decorators.map(d => d.area)];
-        let container = selectContainer(event.clientX,event.clientY,containers); 
+
+        let container = containers.find(
+            (container) => insideTargetArea(null,container,event.clientX,event.clientY)
+        );
+
         return container;  
-    }   
+    };   
     
 
     setScrollDirection = (container:HTMLElement) : void => {
         let {scrollTop, scrollHeight} = container;
         let scrollThreshold = 30;
+        let cloned = isNil(this.decorator) ? this.cloned : this.decorator.decorator;
+ 
+        if(isNil(cloned) || isNil(container)){ return }
 
-        let cloneClientRect = this.cloned.getBoundingClientRect();
+        let cloneClientRect = cloned.getBoundingClientRect();
         let containerClientRect = container.getBoundingClientRect();
 
         let max = scrollHeight - containerClientRect.height; 
@@ -523,17 +563,14 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         //prevent autoscroll if dragged item height bigger than container height.                 
         let preventScroll : boolean = cloneClientRect.height>=containerClientRect.height;
 
-        if(preventScroll){ console.log(`preventScroll`) }
-
         this.scroll = preventScroll ? null :
                       scrollDown ? "down" : 
                       scrollUp ? "up" : 
-                      null;  
-    }
+                      null;              
+    };  
     
 
     performScrolling = (container:HTMLElement) => {
-
         if(isNil(container) || isNil(this.scroll)){ return } 
          
         let {scrollTop, scrollHeight} = container;
@@ -568,11 +605,10 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                 }   
             }
         } 
-    }
+    };
  
 
     getCurrentIndex = (event:any) : number => {
-
         let { initialIndex } = this.initial;
         
         if(isNil(this.cloned)){ return 0 }
@@ -591,7 +627,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         } 
         
         return above.length;
-    }
+    };
 
 
     animateClone = (deltaX:number,deltaY:number) => { 
@@ -599,39 +635,10 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         let x = lock ? 0 : deltaX;
         
         this.cloned.style[`transform`] = `translate3d(${x}px,${deltaY}px, 0)`;
-    }
+    };
     
-    
-    updatePlaceholder = () => {
-        let placeholderOffset = 0;
-        let {initialIndex, initialX, initialY, initialRect} = this.initial;
-        
-        if(isNil(initialRect)){ return }
-
-        let nodes = this.getNodesToBeAnimated();
-        let cloneRect = this.cloned.getBoundingClientRect();
-        let cloneTop = cloneRect.top;
-        let cloneBottom = cloneRect.bottom;
-        let cloneCenter = (cloneTop+cloneBottom)/2;   
- 
-        for(let i=0; i<nodes.length; i++){  
-            let element = nodes[i];
-            let {top,bottom,height} = element.getBoundingClientRect();
-            let center = (top+bottom)/2; 
-            if(center<=cloneCenter){ placeholderOffset+=height }
-        }  
-
-        if(!isNil(this.placeholderRef)){
-            this.placeholderRef.style.transform=`translateY(${placeholderOffset}px)`;
-        }
-        
-        requestAnimationFrame(this.updatePlaceholder);
-    }
-
 
     animateNodes = (event, direction:number) => {
-        if(this.paused){ return }
-
         let {initialIndex, initialX, initialY, initialRect} = this.initial;
 
         let placeholderOffset = 0;
@@ -671,90 +678,42 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                 } 
             } 
         }  
-    }  
+    };  
    
+
+    updatePlaceholder = () => {
+        let placeholderOffset = 0;
+        let {initialIndex, initialX, initialY, initialRect} = this.initial;
+        
+        if(isNil(initialRect)){ return }
+
+        let nodes = this.getNodesToBeAnimated();
+        let cloneRect = this.cloned.getBoundingClientRect();
+        let cloneTop = cloneRect.top;
+        let cloneBottom = cloneRect.bottom;
+        let cloneCenter = (cloneTop+cloneBottom)/2;   
+ 
+        for(let i=0; i<nodes.length; i++){  
+            let element = nodes[i];
+            let {top,bottom,height} = element.getBoundingClientRect();
+            let center = (top+bottom)/2; 
+            if(center<=cloneCenter){ placeholderOffset+=height }
+        }  
+
+        if(!isNil(this.placeholderRef)){
+            this.placeholderRef.style.transform=`translateY(${placeholderOffset}px)`;
+        }
+        
+        requestAnimationFrame(this.updatePlaceholder);
+    };
+
 
     animateDecorator = (deltaX:number,deltaY:number) => { 
         if(this.decorator){
            let {decorator} = this.decorator; 
            decorator.style[`transform`] = `translate3d(${deltaX}px,${deltaY}px, 0)`;
         }
-    } 
-
-
-    applyCustomStyle = (event:any) : void => { 
-        let {decorators} = this.props;
-        let x = event.clientX;
-        let y = event.clientY;
-
-        for(let i=0; i<decorators.length; i++){
-
-            let {area, decorator, id} = decorators[i];
-
-            if(insideTargetArea(null,area,x,y)){
-                this.initDecorator(decorators[i]);
-                return;
-            }     
-        } 
-        
-        this.suspendDecorator(); 
-        if(this.paused){ this.resume() } 
-    } 
-
-
-    suspendDecorator = () => { 
-        if(this.decorator){
-           this
-           .decorator
-           .decorator
-           .parentNode 
-           .removeChild(this.decorator.decorator); 
-
-           this.decorator = null;
-        }
-    } 
-
-    
-    initDecorator = (target:Decorator) : void => {
-        let {items} = this.props;
-        let { top, left, transform, position } = this.cloned.style;
-        let {
-            initialIndex,
-            initialX,
-            initialY,
-            initialRect
-        } = this.initial;
-        let draggedItem = items[initialIndex];
-
-        let {decorator, id} = target;
-         
-        if(this.decorator){
-            if(this.decorator.id===id){
-                if(not(this.paused)){ this.pause() }
-                return;  
-            }else{ 
-               this.suspendDecorator() 
-            }
-        } 
-           
-        decorator.style.top = `${initialY}px`; 
-        decorator.style.left = `${initialX}px`;  
-        decorator.style.transform = transform;
-        decorator.style.position = position; 
-        decorator.style.cursor = "default";
-        document.body.appendChild(decorator);  
-        
-        if(isHeading(draggedItem)){
-           let counter = document.getElementById(`nested-counter`); 
-           if(counter && this.selected){
-              counter.innerHTML = `${this.selected.length-1}`
-           }
-        };
-        
-        this.decorator = target;  
-        
-        if(not(this.paused)){ this.pause() }
-    } 
+    }; 
 
     
     getNodesToBeAnimated = () : HTMLElement[] => {
@@ -762,7 +721,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
            
         let selectedNodesIds = this.selected.map( node => node.id );
         return getNodes(this.ref).filter((node:any) => !contains(node.id)(selectedNodesIds));
-    }
+    };
 
 
     indexFromClick = (event:any) : number => {
@@ -777,13 +736,13 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         }
  
         return -1; 
-    }   
+    };   
 
 
     inside = (event:any) : boolean => {
        let inside = this.indexFromClick(event)!==-1;
        return inside; 
-    }
+    };
 
     
     render(){   
@@ -813,7 +772,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                 >    
                     {this.props.children}    
                 </div>
-        </div>
+        </div>;
     }
 } 
 

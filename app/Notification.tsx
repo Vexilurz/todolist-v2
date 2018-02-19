@@ -114,7 +114,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
         let defaultState={ todo:null };
         this.state={...defaultState};   
         this.queue=[];
-        this.soundPath=path.resolve(__dirname,"job-done.ogg");
+        this.soundPath=path.resolve(__dirname,"sound.wav");
     };
 
 

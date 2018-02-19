@@ -1,9 +1,9 @@
-import { mainWindow } from './main';
+import { mainWindow, getClonedWindows } from './main';
 import { loadApp } from './loadApp'; 
 import * as electron from 'electron'; 
 import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,FileFilter} from 'electron';
 import { initWindow } from './initWindow';
-import { remove, isEmpty } from 'ramda';
+import { remove, isEmpty, isNil } from 'ramda';
 let uniqid = require("uniqid");  
 const os = require('os'); 
 const storage = require('electron-json-storage'); 
@@ -12,8 +12,8 @@ import { autoUpdater } from "electron-updater";
 const log = require("electron-log");
 import { isDev } from './../utils/isDev';
 
-let initAutoUpdater = () => {
 
+let initAutoUpdater = () => {
     autoUpdater.logger = log;
     log.transports.file.level = "error";  
     log.transports.console.level = "error";
@@ -33,7 +33,8 @@ let initAutoUpdater = () => {
             if(mainWindow){ mainWindow.webContents.send("progress",progress) }
         }  
     );
-}     
+};     
+
 
 let getClonedWindowDimensions = () => {
     let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
@@ -42,7 +43,8 @@ let getClonedWindowDimensions = () => {
     let width = clonedWindowWidth*(workingArea.width/100);  
     let height = clonedWindowHeight*(workingArea.height/100); 
     return {width,height};
-}
+};
+
 
 interface RegisteredListener{  
      name : string, 
@@ -53,18 +55,15 @@ interface RegisteredListener{
 export class Listeners{
        
     registeredListeners : RegisteredListener[]; 
-    spawnedWindows : any[];
     
     constructor(window){
-  
-      this.spawnedWindows = [mainWindow];  
 
       initAutoUpdater(); 
  
       this.registeredListeners = [ 
             {
                 name:"hide",
-                callback:(event) => BrowserWindow.getAllWindows().map((win:BrowserWindow) => win.hide())
+                callback:(event) => BrowserWindow.getAllWindows().forEach((win:BrowserWindow) => win.hide())
             }, 
             {
                 name:"downloadUpdates",
@@ -87,7 +86,7 @@ export class Listeners{
                 name:"quitAndInstall",
                 callback : (event) => {
                     setImmediate(() => {
-                        app.removeAllListeners("window-all-closed")
+                        app.removeAllListeners("window-all-closed");
                         let windows = BrowserWindow.getAllWindows();
                         windows.forEach(w => w.destroy());
                         autoUpdater.quitAndInstall(true,true);
@@ -97,11 +96,8 @@ export class Listeners{
             {
                 name:"closeClonedWindows",
                 callback : (event) => { 
-                    this.spawnedWindows
-                    .filter(w => !w.isDestroyed())
-                    .forEach((window) => window.id===mainWindow.id ? null : window.destroy())
-
-                    this.spawnedWindows = [mainWindow]; 
+                    let windows = getClonedWindows();
+                    windows.forEach((window) =>  window.destroy());
                     event.sender.send("closeClonedWindows");  
                 }   
             },
@@ -109,20 +105,19 @@ export class Listeners{
                 name:"store", 
                 callback : (event, store) => {
                     let newWindow = initWindow(getClonedWindowDimensions()); 
-                    this.spawnedWindows.push(newWindow); 
-                    this.spawnedWindows = this.spawnedWindows.filter(w => !w.isDestroyed());
-
                     loadApp(newWindow)
-                    .then(() => newWindow.webContents.send("loaded", store) );  
+                    .then(
+                        () => newWindow.webContents.send("loaded", store)
+                    );  
                 }
             },  
             {
                 name:"quick-entry",
                 callback : (event, todo) => {
-                    type kind = "quick-entry";
-                    let kind : kind = "quick-entry";
-                    let windows = this.spawnedWindows.filter(w => !w.isDestroyed());
-                    let action = {type:"addTodo",load:todo}; 
+                    type kind="quick-entry";
+                    let kind:kind="quick-entry";
+                    let action={type:"addTodo",load:todo}; 
+                    let windows=BrowserWindow.getAllWindows();
 
                     if(isEmpty(todo.title)){ return }
 
@@ -137,9 +132,9 @@ export class Listeners{
                     let {id,action} = data;
                     type kind = "external";
                     let kind : kind = "external";
-                    let windows = this.spawnedWindows.filter(w => !w.isDestroyed());
+                    let windows = getClonedWindows();
+
                     for(let i=0; i<windows.length; i++){
-                        if(windows[i].id===id){ continue }   
                         windows[i].webContents.send("action", {...action, kind});
                     }  
                 }
