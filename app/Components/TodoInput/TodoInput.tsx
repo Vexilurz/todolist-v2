@@ -495,6 +495,13 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         dispatch({type:"resetReminders"});
     };
 
+    
+    onRemoveReminderClick = () : void => {
+        let {dispatch} = this.props;
+        this.update({reminder:null}); 
+        dispatch({type:"resetReminders"});
+    };
+ 
 
     onCalendarClear = (e) => {
         e.stopPropagation();
@@ -728,6 +735,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 onRepeatTodo = {canRepeat ? this.onRepeatTodo : null}
                 onThisEveningClick = {this.onCalendarThisEveningClick}
                 onAddReminderClick = {this.onCalendarAddReminderClick}
+                onRemoveReminderClick = {this.onRemoveReminderClick}
                 onClear = {this.onCalendarClear}  
             />  
             <TagsPopup

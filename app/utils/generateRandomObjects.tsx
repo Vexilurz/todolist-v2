@@ -111,7 +111,7 @@ export let fakeTodo = (tags:string[], remind = null) : Todo => {
         priority:Math.random()*999999999,
         note:note.join(' '),
         checklist:checklist,   
-        reminder:null,// : remind,  
+        reminder, //:null,//:remind,  
         attachedTags:tags,   
         deadline:Math.random() < 0.3 ? null :
                  Math.random() > 0.5 ?

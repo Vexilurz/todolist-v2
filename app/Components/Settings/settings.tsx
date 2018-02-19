@@ -263,13 +263,14 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
                         'Ctrl+Alt+T',  
                         () => {
                             let quickEntry = findWindowByTitle('Quick Entry');
-                            if(isNil(quickEntry)){  return  }    
+                            if(isNil(quickEntry)){ return }    
                             
                             if(quickEntry.isVisible()){
-                                quickEntry.hide();
-                            }else{
-                                quickEntry.show();
-                                quickEntry.focus(); 
+                               quickEntry.hide();
+                            }else{ 
+                               quickEntry.show();
+                               quickEntry.focus(); 
+                               quickEntry.webContents.send("focus"); 
                             }
                         }
                     );

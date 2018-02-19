@@ -8,6 +8,7 @@ import { Component } from "react";
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Star from 'material-ui/svg-icons/toggle/star';
 import Plus from 'material-ui/svg-icons/content/add';
+import Minus from 'material-ui/svg-icons/content/remove';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Alert from 'material-ui/svg-icons/alert/add-alert';
 import Moon from 'material-ui/svg-icons/image/brightness-3';
@@ -24,7 +25,7 @@ import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
 import { Observable } from 'rxjs/Rx';
 import { insideTargetArea } from '../utils/insideTargetArea';
-import { isFunction } from '../utils/isSomething';
+import { isFunction, isDate } from '../utils/isSomething';
 
 
 
@@ -42,11 +43,12 @@ interface DateCalendarProps{
     onTodayClick : (e:any) => void, 
     onThisEveningClick : (e:any) => void, 
     onAddReminderClick : (reminder:Date) => void,
+    onRemoveReminderClick : () => void,
     onClear : (e:any) => void,
     onRepeatTodo? : (top:number,left:number) => void
-}           
+}            
   
-
+ 
 interface DateCalendarState{}
   
 
@@ -249,9 +251,9 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                     marginBottom:"10px"
                 }}>
                 </div>  
-    
                 <CalendarFooter 
                     onAddReminder={this.props.onAddReminderClick}
+                    onRemoveReminder={this.props.onRemoveReminderClick}
                     attachedDate={this.props.attachedDate}
                     onClear={this.props.onClear}
                     reminder={this.props.reminder}
@@ -274,6 +276,7 @@ interface CalendarFooterState{
  
 interface CalendarFooterProps{   
     onAddReminder:(reminder : Date) => void,
+    onRemoveReminder:() => void,
     attachedDate:Date,
     reminder:Date, 
     onClear:(e:any) => void 
@@ -283,6 +286,7 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
 
     constructor(props){ 
         super(props);
+
         this.state = {
            timeSet:false,
            openReminderInput:false,
@@ -292,6 +296,19 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
         };     
     }  
  
+    componentDidMount(){
+        let {attachedDate,reminder} = this.props;
+        if(isDate(reminder)){
+           this.setState({openReminderInput:false}); 
+        }
+    }
+
+    componentWillReceiveProps(nextProps){
+        let {attachedDate,reminder} = nextProps;
+        if(isDate(reminder)){
+           this.setState({openReminderInput:false}); 
+        }
+    } 
 
     onTimeInput = (e) => { 
         let time : string = e.target.value.replace(/[a-z]/ig, "").trim();
@@ -300,9 +317,12 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
   
 
     render(){
+        let {openReminderInput} = this.state;
+        let {reminder,attachedDate} = this.props;
+        
         return <div>
             { 
-            !this.state.openReminderInput ? null :
+            not(openReminderInput) ? null :
             <div>
                 <div style={{  
                     display:"flex", 
@@ -316,23 +336,17 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                         alignItems: "center",
                         justifyContent: "space-around" 
                     }}> 
-                        <div style={{  
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center"
-                        }}>
+                        <div style={{display: "flex",alignItems: "center",justifyContent: "center"}}>
                             <div style={{position:"relative"}}>
                                 <Alert style={{color:"rgb(192, 192, 192)", WebkitUserSelect:"none"}}/>
-                                <div 
-                                    style={{
-                                        width:"8px",
-                                        height:"8px",
-                                        top:"8px",
-                                        left:"8px",
-                                        position:"absolute",
-                                        backgroundColor:"rgb(192, 192, 192)" 
-                                    }}
-                                > 
+                                <div style={{
+                                    width:"8px",
+                                    height:"8px",
+                                    top:"8px",
+                                    left:"8px",
+                                    position:"absolute",
+                                    backgroundColor:"rgb(192, 192, 192)" 
+                                }}> 
                                 </div>
                             </div>
                             <div style={{  
@@ -344,44 +358,43 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                             }}>  
                                 Reminder
                             </div>
-                        </div>   
-                        <div>    
-                            <div style={{
-                                padding: "2px",
-                                position:"relative", 
-                                display:"flex", 
-                                alignItems:"center", 
-                                backgroundColor: "rgb(87, 87, 87)",
-                                borderRadius: "5px"   
+                        </div> 
+    
+                        <div style={{
+                            padding: "2px",
+                            position:"relative", 
+                            display:"flex", 
+                            alignItems:"center", 
+                            backgroundColor: "rgb(87, 87, 87)",
+                            borderRadius: "5px"   
+                        }}>
+                            <input  
+                                style={{    
+                                    outline:"none",
+                                    border:"none",
+                                    width:"100%",
+                                    color:"aliceblue",
+                                    fontSize:"18px",
+                                    backgroundColor:"rgb(87, 87, 87)",
+                                    caretColor:"cornflowerblue"  
+                                }}     
+                                placeholder=""
+                                type="time"  
+                                name="time"  
+                                value={this.state.time}   
+                                onChange={this.onTimeInput}
+                            />    
+                            <div  
+                            onClick={() => this.setState({time:'', timeSet:false})}
+                            style={{ 
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center", 
+                                justifyContent: "center"
                             }}>
-                                <input  
-                                    style={{    
-                                        outline:"none",
-                                        border:"none",
-                                        width:"100%",
-                                        color:"aliceblue",
-                                        fontSize:"18px",
-                                        backgroundColor:"rgb(87, 87, 87)",
-                                        caretColor:"cornflowerblue"  
-                                    }}     
-                                    placeholder=""
-                                    type="time"  
-                                    name="time"  
-                                    value={this.state.time}   
-                                    onChange={this.onTimeInput}
-                                />    
-                                <div  
-                                onClick={() => this.setState({time:'', timeSet:false})}
-                                style={{ 
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center", 
-                                    justifyContent: "center"
-                                }}>
-                                    <Clear style={{color:"rgb(192, 192, 192)"}}/>
-                                </div> 
-                            </div>   
-                        </div>
+                                <Clear style={{color:"rgb(192, 192, 192)"}}/>
+                            </div> 
+                        </div> 
                     </div> 
                     <div style={{display:"flex"}}>  
                         <div>    
@@ -442,13 +455,18 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
             </div> 
             }
             {  
-                this.state.openReminderInput ? null :
-                <div> 
+                openReminderInput ? null :
+                <div>  
                     {
-                        this.props.reminder ? null :    
+                        isDate(reminder) ? 
+                        <ClearReminderButton 
+                            clearReminder={(e) => this.props.onRemoveReminder()}
+                            disable={isNil(this.props.reminder)}
+                        />
+                        :     
                         <AddReminderButton 
                             openReminderInput={(e) => this.setState({openReminderInput:true})}
-                            disabled={isNil(this.props.attachedDate)}
+                            disable={isNil(this.props.attachedDate)}
                         />
                     }
                     <div style={{width:"90%"}}>
@@ -482,18 +500,18 @@ interface AddReminderButtonProps{
 }
 
 
-class AddReminderButton extends Component<any,{}>{
+class AddReminderButton extends Component<AddReminderButtonProps,{}>{
 
     constructor(props){
         super(props);
     }
 
     render(){
-        let {disabled,openReminderInput} = this.props;
+        let {disable,openReminderInput} = this.props;
 
         return <div  
-            className={disabled ? "" : "hoverDateType"}
-            onClick={(e) => disabled ? null : openReminderInput(e)} 
+            className={disable ? "" : "hoverDateType"}
+            onClick={(e) => disable ? null : openReminderInput(e)} 
             style={{
               display:"flex", 
               cursor:"default", 
@@ -504,7 +522,7 @@ class AddReminderButton extends Component<any,{}>{
         >       
             <Plus  
                 style={{       
-                  color:disabled ? "rgba(70,70,70,0.5)" : "white",    
+                  color:disable ? "rgba(70,70,70,0.5)" : "white",    
                   width:"25px", 
                   height:"25px"     
                 }} 
@@ -512,7 +530,7 @@ class AddReminderButton extends Component<any,{}>{
             <div style={{
                 fontFamily:"sans-serif",
                 fontWeight:600, 
-                color:disabled ? "rgba(70,70,70,0.5)" : "white",  
+                color:disable ? "rgba(70,70,70,0.5)" : "white",  
                 fontSize:"15px",  
                 cursor:"default",
                 WebkitUserSelect:"none"   
@@ -523,6 +541,61 @@ class AddReminderButton extends Component<any,{}>{
     }
 } 
  
+
+
+interface ClearReminderButtonProps{
+    clearReminder:Function,
+    disable:boolean
+}
+
+
+class ClearReminderButton extends Component<ClearReminderButtonProps,{}>{
+
+    constructor(props){
+        super(props);
+    }
+
+    render(){
+        let {disable,clearReminder} = this.props;
+
+        return <div  
+            className={disable ? "" : "hoverDateType"}
+            onClick={(e) => disable ? null : clearReminder()} 
+            style={{
+              display:"flex", 
+              cursor:"default", 
+              alignItems:"center",    
+              marginLeft:"15px", 
+              marginRight:"15px"  
+            }}  
+        >       
+            <Minus  
+                style={{       
+                  color:disable ? "rgba(70,70,70,0.5)" : "white",    
+                  width:"25px", 
+                  height:"25px"     
+                }} 
+            />   
+            <div style={{
+                fontFamily:"sans-serif",
+                fontWeight:600, 
+                color:disable ? "rgba(70,70,70,0.5)" : "white",  
+                fontSize:"15px",  
+                cursor:"default",
+                WebkitUserSelect:"none"   
+            }}> 
+                Remove reminder  
+            </div>      
+        </div>  
+    }
+} 
+
+
+
+
+
+
+
  
 interface DeadlineCalendarProps{   
     close : Function,

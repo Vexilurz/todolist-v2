@@ -55,7 +55,6 @@ import { SortableContainer } from '../CustomSortableContainer';
 import { updateConfig } from '../../utils/config';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
-import Print from 'rc-print';
 import { timeOfTheDay } from '../../utils/time';
 const storage = remote.require('electron-json-storage');
 

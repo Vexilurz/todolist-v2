@@ -77,6 +77,7 @@ let shortcuts = {
         }else{
            quickEntry.show();
            quickEntry.focus();
+           quickEntry.webContents.send("focus"); 
         }
     },
     'Ctrl+D':() => mainWindow.webContents.openDevTools()
@@ -195,19 +196,20 @@ let onReady = () => {
     
 
     quickEntry = initQuickEntry({
-        width:800,//500,
+        width:500,
         height:300
-    });
-    quickEntry.webContents.openDevTools();
+    }); 
 
 
+    notification = initNotification({
+        width:250, 
+        height:300,
+    }); 
 
-    notification = initNotification({width:250,height:300});
-
-      
+    //notification.webContents.openDevTools()
     mainWindow.on('show', ()=>tray.setToolTip(`Hide ${AppName}`));
     mainWindow.on('hide', ()=>tray.setToolTip(`Show ${AppName}`));
-    
+      
     
     loadApp(mainWindow)  
     .then(() => {    

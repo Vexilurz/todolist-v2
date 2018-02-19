@@ -76,7 +76,7 @@ export class Reminder extends Component<ReminderProps,ReminderState>{
             justifyContent:"space-between",
             backgroundColor:"white",
             color:"black" 
-        }}> 
+        }}>
             <div style={{paddingLeft:"5px", fontSize:"16px", fontWeight:500}}>
                 {timeOfTheDay(date)}
             </div>

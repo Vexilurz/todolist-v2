@@ -70,6 +70,7 @@ import { SortableContainer } from './Components/CustomSortableContainer';
 import { arrayMove } from './utils/arrayMove';
 import { ChecklistItem, Checklist } from './Components/TodoInput/TodoChecklist';
 import { globalErrorHandler } from './utils/globalErrorHandler';
+import { isString } from './utils/isSomething';
 injectTapEventPlugin();  
 
 
@@ -138,11 +139,14 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     checklist:HTMLElement; 
     defaultWidth:number;
     defaultHeight:number;
+    subscriptions:Subscription[]; 
+
 
     constructor(props){
         super(props);  
         this.defaultWidth=500;
         this.defaultHeight=300;
+        this.subscriptions=[];
         this.state={    
             tag:'',
             category:'inbox', 
@@ -160,6 +164,34 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             showChecklist:false,  
             showDeadlineCalendar:false
         };       
+    }
+
+
+    componentDidMount(){
+        this.subscriptions.push(
+            Observable
+            .fromEvent(ipcRenderer,"focus", (event) => event)
+            .subscribe(
+                (event) => this.inputRef ? this.inputRef.focus() : null
+            ),
+
+            Observable
+            .fromEvent(ipcRenderer,"config", (event,config) => config)
+            .subscribe(
+                (config) => { 
+                    let { quickEntrySavesTo } = config;
+                    if(isString(quickEntrySavesTo)){
+                       this.setState({category:quickEntrySavesTo})   
+                    }
+                }
+            )
+        )
+    }
+
+
+    componentWillUnmount(){ 
+        this.subscriptions.map(s => s.unsubscribe());
+        this.subscriptions=[];
     }
 
 
@@ -209,8 +241,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     };
 
 
-    addTodo = () => isEmpty(this.state.title) ? null :
-                    ipcRenderer.send("quick-entry",this.todoFromState()); 
+    addTodo = () => isEmpty(this.state.title) ? null : ipcRenderer.send("quick-entry",this.todoFromState()); 
     
 
     onSave = () => {

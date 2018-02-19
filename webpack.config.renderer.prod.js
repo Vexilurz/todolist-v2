@@ -4,14 +4,16 @@ var webpack = require('webpack');
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer');   
 var CopyWebpackPlugin = require('copy-webpack-plugin');      
 const CleanWebpackPlugin = require('clean-webpack-plugin');   
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
-
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const CompressionPlugin = require("compression-webpack-plugin");
 
 module.exports = {     
+    context: __dirname + "/app",
+    
     entry:{    
-        'app':'./app/app.tsx',
-        'quickentry':'./app/quickentry.tsx',
-        'notification':'./app/notification.tsx'
+        'app':'./app.tsx',
+        'quickentry':'./quickentry.tsx',
+        'notification':'./notification.tsx'
     },                                 
     output:{             
         filename:'[name].js', 
@@ -49,20 +51,38 @@ module.exports = {
           }     
         ]    
     }, 
+
+    devtool: 'cheap-module-source-map',
     
     target:'electron', 
           
     plugins : [
         new CleanWebpackPlugin(['production']),
         new webpack.DefinePlugin({
-         'process.env' : {
-            'NODE_ENV' : JSON.stringify('production')
-          } 
+            'process.env.NODE_ENV': '"production"'
         }),
-        new UglifyJSPlugin({minimize:true, sourceMap:false}), 
-        new CopyWebpackPlugin([{ 
-            from : './app/assets' 
-        }]),  
+        new UglifyJsPlugin({
+            uglifyOptions:{
+                mangle: true,
+                compress: {
+                    warnings: false, // Suppress uglification warnings
+                    pure_getters: true,
+                    unsafe: true,
+                    unsafe_comps: true
+                },
+                output: {
+                    comments: false,
+                }
+            }
+        }),
+        new CompressionPlugin({
+            asset: "[path].gz[query]",
+            algorithm: "gzip",
+            test: /\.js$|\.css$|\.html$/,
+            threshold: 10240,
+            minRatio: 0
+        }),
+        new CopyWebpackPlugin([{from : './assets'}]), 
         new HtmlWebpackPlugin({
             inject:true, 
             title:'tasklist',     

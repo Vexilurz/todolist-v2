@@ -158,19 +158,19 @@ export let chooseIcon = (
         case "reminder":
             return <div style={{position:"relative"}}>
                 <Alert style={{
-                    color:"rgb(192, 192, 192)", 
+                    color:"white", 
                     WebkitUserSelect:"none",
-                    width:"48px",
-                    height:"48px"
+                    width:"35px",
+                    height:"35px"
                 }}/>
                 <div 
                     style={{
-                        width:"22px",
-                        height:"22px",
-                        top:"14px",
-                        left:"13px",
+                        width:"16px",
+                        height:"16px",
+                        top:"10px",
+                        left:"9px",
                         position:"absolute",
-                        backgroundColor:"rgb(192, 192, 192)"
+                        backgroundColor:"white"
                     }}
                 > 
                 </div>

@@ -309,13 +309,13 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                 });  
             }
         }
-    }  
+    };  
 
 
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = []; 
-    } 
+    }; 
 
   
     stateFromTodo = (state:TodoCreationFormState,todo:Todo) : TodoCreationFormState => ({   
@@ -331,7 +331,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         attachedDate:todo.attachedDate, 
         attachedTags:todo.attachedTags, 
         checklist:todo.checklist  
-    }) 
+    }); 
     
 
     todoFromState = () : Todo => ({
@@ -351,26 +351,28 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         completedWhen:this.state.completedWhen,
         completedSet:this.state.completedSet,
         group:this.props.todo.group   
-    }) 
+    }); 
      
 
     enableDragOfThisItem = () => {
         if(this.ref){
            this.ref["preventDrag"] = false;  
         }
-    }
+    };
 
     
     preventDragOfThisItem = () => {
         if(this.ref){
            this.ref["preventDrag"] = true; 
         }
-    } 
+    };
+
 
     onAttachTag = (tag:string) => {
         if(isEmpty(tag)){ return };
         this.setState({tag:'', attachedTags:uniq([...this.state.attachedTags, tag])});
-    } 
+    };
+
 
     onRemoveTag = (tag:string) => {
         let {attachedTags} = this.state;
@@ -378,11 +380,14 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         let idx = attachedTags.findIndex( v => v===tag );
         if(idx===-1){ return }
         this.setState({attachedTags:remove(idx,1,attachedTags)});
-    } 
+    };
+
 
     onNoteChange = (event,newValue:string) : void => this.setState({note:newValue});
 
+
     onTitleChange = (event) :void => this.setState({title:event.target.value});
+
    
     onRightClickMenu = (e) => {  
         if(!this.state.open){
@@ -398,7 +403,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
             this.props.dispatch({type:"showRepeatPopup", load:false});
         }     
-    }  
+    };  
 
     
     onRemoveSelectedCategoryLabel = () => {
@@ -413,64 +418,64 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         ){
             this.setState({category:this.props.selectedCategory});    
         }
-    }   
+    };   
 
  
     onChecklistButtonClick = (e) => {
         e.stopPropagation();
         this.setState({showChecklist:true});
-    } 
+    }; 
       
 
     onFlagButtonClick = (e) => {
         e.stopPropagation();
         this.setState({showDeadlineCalendar:true});
-    }
+    };
 
 
     closeDeadlineCalendar = () => {
         this.setState({showDeadlineCalendar:false});
-    }
+    };
  
 
     onCalendarButtonClick = (e) => {
         e.stopPropagation();
         this.setState({showDateCalendar:true});
-    }
+    };
     
 
     closeDateCalendar = () => {
         this.setState({showDateCalendar:false});
-    }
+    };
     
 
     onTagsButtonClick = (e) => { 
         e.stopPropagation();
         this.setState({showTagsSelection:true});
-    }   
+    };   
 
 
     closeTagsSelection = (e) => {
         this.setState({showTagsSelection:false});
-    }
+    };
 
 
     onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         e.stopPropagation();
         this.setState({deadline:day});
-    }
+    };
 
  
     onDeadlineCalendarClear = (e:any) : void => {
         e.stopPropagation();
         this.setState({deadline:null});
-    }
+    };
     
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         e.stopPropagation(); 
         this.setState({attachedDate:day, category:isToday(day) ? "today" : "next"});   
-    }
+    };
     
 
     onRemoveAttachedDateLabel = () => {
@@ -481,28 +486,31 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
           attachedDate:null,  
           category:today ? "next" : this.props.selectedCategory
         });  
-    }  
+    };  
     
 
     onCalendarSomedayClick = (e) => {
         e.stopPropagation();
         this.setState({category:"someday", attachedDate:null});
-    }
+    };
 
 
     onCalendarTodayClick = (e) => {
         e.stopPropagation();
         this.setState({category:"today", attachedDate:new Date()});
-    } 
+    }; 
 
 
     onCalendarThisEveningClick = (e) => {
         e.stopPropagation();
         this.setState({category:"evening", attachedDate:new Date()});
-    } 
+    }; 
 
 
     onCalendarAddReminderClick = (reminder:Date) : void => this.setState({reminder, attachedDate:reminder});
+
+
+    onRemoveReminderClick = () : void => this.setState({reminder:null});
 
 
     onCalendarClear = (e) => {
@@ -512,7 +520,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             attachedDate:null, 
             reminder:null  
         }) 
-    }
+    };
   
   
     render(){  
@@ -703,6 +711,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                 onRepeatTodo = {null}
                 onThisEveningClick = {this.onCalendarThisEveningClick}
                 onAddReminderClick = {this.onCalendarAddReminderClick}
+                onRemoveReminderClick = {this.onRemoveReminderClick}
                 onClear = {this.onCalendarClear}  
             />  
             <TagsPopup

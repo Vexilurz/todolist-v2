@@ -235,22 +235,6 @@ class Notification extends Component<NotificationProps,NotificationState>{
         let title = isNil(todo) ? '' : todo.title;
         let reminder = isNil(todo) ? new Date() : todo.reminder;
 
-        let buttonStyle = {      
-            display:"flex",
-            alignItems:"center",
-            cursor:"pointer",
-            margin:"5px",
-            justifyContent:"center",
-            width: "40px", 
-            height:"20px", 
-            borderRadius:"5px", 
-            paddingLeft:"25px",
-            paddingRight:"25px",
-            paddingTop:"10px", 
-            paddingBottom:"10px", 
-            backgroundColor:"rgba(81, 144, 247, 1)"  
-        } as any;
-
         return <div style={{display:"flex",flexDirection:"column",width:"100%",height:"100%"}}>
             <ReactAudioPlayer
                 ref={(e) => { this.beep = e; }}
@@ -261,23 +245,26 @@ class Notification extends Component<NotificationProps,NotificationState>{
             <div style={{
                 width:"100%",  
                 position:"relative",
-                height:"10%",
+                height:"40%",
                 backgroundColor:"rgba(81, 144, 247, 1)",
                 display:"flex",
                 alignItems:"center",
                 textAlign:"center", 
-                justifyContent:"space-between" 
-            }}>
+                justifyContent:"flex-start" 
+            }}> 
+                <div style={{paddingLeft:"5px"}}>
+                    {chooseIcon({width:"",height:""},"reminder")}
+                </div>
                 <div style={{
-                    fontWeight:500,
                     paddingLeft:"5px",
+                    fontWeight:600,
                     fontSize:"16px",
                     display:"flex",
                     alignItems:"center",
                     color:"white"
                 }}>
-                    A task is due
-                </div>
+                    Task Reminder
+                </div>                
                 <div style={{position:"absolute",right:5,cursor:"pointer",zIndex:200}}>   
                     <div    
                         style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
@@ -287,29 +274,52 @@ class Notification extends Component<NotificationProps,NotificationState>{
                     </div>
                 </div>
             </div> 
-            <div style={{                    
+            <div style={{      
+                padding:"10px",              
                 display:"flex",
                 overflowX:"hidden", 
-                justifyContent:"space-between",
-                height:"90%",
-                position:"relative",   
-                alignItems:"center", 
+                justifyContent:"space-around",
+                height:"60%",
+                position:"relative",
+                alignItems:"flex-start", 
                 flexDirection:"column"  
             }}>     
-                <div>{chooseIcon({width:"",height:""},"reminder")}</div>
-                <div style={{display:"flex", alignItmes:"center", justifyContent:"center"}}>
-                    <Reminder message={title} date={new Date(reminder)} /> 
-                </div>  
-                <div onClick={this.openTodoInApp} style={buttonStyle}>   
-                    <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
-                        Open
-                    </div>   
-                </div> 
-                <div onClick={() => this.close()} style={buttonStyle}>   
-                    <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
-                        Close
-                    </div>   
-                </div> 
+                <div style={{color:"rgba(100,100,100,0.8)"}}>
+                    A task is due:
+                </div>
+                <div style={{
+                    fontWeight:600,
+                    fontSize:"17px",
+                    display:"flex",
+                    alignItems:"flex-start",
+                    color:"black"
+                }}>
+                    {title}  
+                </div>
+                {/*<Reminder message={title} date={new Date(reminder)} />*/} 
+                <div style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    <div  
+                        onClick={this.openTodoInApp} 
+                        style={{      
+                            display:"flex",
+                            alignItems:"center",
+                            cursor:"pointer",
+                            justifyContent:"center",
+                            width:"90%",  
+                            height:"20px", 
+                            borderRadius:"5px", 
+                            paddingLeft:"25px",
+                            paddingRight:"25px",
+                            paddingTop:"10px", 
+                            paddingBottom:"10px", 
+                            backgroundColor:"rgba(81, 144, 247, 1)"  
+                        }}
+                    >    
+                        <div style={{color:"white",whiteSpace:"nowrap",fontSize:"16px"}}>  
+                            Open Task 
+                        </div>   
+                    </div> 
+                </div>
             </div> 
     </div>  
   } 

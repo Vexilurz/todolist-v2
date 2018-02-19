@@ -3,9 +3,10 @@ var webpack = require('webpack');
 var CopyWebpackPlugin = require('copy-webpack-plugin');  
 
 module.exports = {     
-      
+    context: __dirname + "/app",
+    
     entry: { 
-        'main':'./app/main/main.ts',   
+        'main':'./main/main.ts',   
     },    
      
     output: {              
@@ -16,22 +17,29 @@ module.exports = {
  
     resolve: { 
         extensions: [".ts",".js",".json"]
-    },        
+    },   
                  
     module: {
         rules: [ 
           {   
             test:/\.(css|scss)$/,   
             use:[ 'style-loader', 'css-loader']
-          },   
+          },  
           {  
             test:/\.(ts|tsx)?$/,  
-            exclude: path.resolve(__dirname,'node_modules'), 
+            exclude:  [
+                path.resolve(__dirname,'production'),
+                path.resolve(__dirname,'node_modules')
+            ], 
             loader:"awesome-typescript-loader"
           },     
-          {     
+          {      
+            enforce:"pre", 
             test:/\.js$/,       
-            exclude:path.resolve(__dirname,'node_modules'), 
+            exclude:[
+                path.resolve(__dirname,'production'),
+                path.resolve(__dirname,'node_modules')
+            ], 
             loader:'babel-loader', 
             query:{presets: ['es2015']}  
           }    

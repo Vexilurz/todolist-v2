@@ -2,14 +2,17 @@ var path = require("path");
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var webpack = require('webpack');
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer');   
-var CopyWebpackPlugin = require('copy-webpack-plugin');      
+var CopyWebpackPlugin = require('copy-webpack-plugin');    
    
 module.exports = {     
+    context: __dirname + "/app",
+    
     entry: {     
-        'app':'./app/app.tsx',
-        'quickentry':'./app/quickentry.tsx',
-        'notification':'./app/notification.tsx'
-    },                                 
+        'app':'./app.tsx',
+        'quickentry':'./quickentry.tsx',
+        'notification':'./notification.tsx'
+    },  
+
     output: {            
         filename : '[name].js' , 
         path : path.resolve(__dirname,"dist") 
@@ -27,7 +30,10 @@ module.exports = {
           },  
           {  
             test:/\.(ts|tsx)?$/,  
-            exclude: path.resolve(__dirname,'node_modules'), 
+            exclude: [
+                path.resolve(__dirname,'production'),
+                path.resolve(__dirname,'node_modules')
+            ], 
             loader:"awesome-typescript-loader"
           },      
           {
@@ -37,7 +43,10 @@ module.exports = {
           {      
             enforce:"pre",  
             test:/\.js$/,       
-            exclude: path.resolve(__dirname,'node_modules'), 
+            exclude: [
+                path.resolve(__dirname,'production'),
+                path.resolve(__dirname,'node_modules')
+            ], 
             loader: 'babel-loader',
             query: {presets: ['es2015', 'react']}  
           }     
@@ -49,7 +58,7 @@ module.exports = {
     devtool: 'sourcemap', 
         
     plugins :[
-        new CopyWebpackPlugin([{from : './app/assets'}]),   
+        new CopyWebpackPlugin([{from : './assets'}]),   
         new HtmlWebpackPlugin({
             inject:true, 
             title:'tasklist',     

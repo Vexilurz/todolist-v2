@@ -44,7 +44,6 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { UpdateNotification } from './Components/UpdateNotification';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
-import printJS from 'print-js';  
 import { googleAnalytics } from './analytics';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { Config, defaultConfig, updateConfig, getConfig } from './utils/config';
