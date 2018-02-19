@@ -181,7 +181,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                 (config) => { 
                     let { quickEntrySavesTo } = config;
                     if(isString(quickEntrySavesTo)){
-                       this.setState({category:quickEntrySavesTo})   
+                        this.setState({category:quickEntrySavesTo}); 
                     }
                 }
             )
@@ -220,7 +220,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         deadline:this.state.deadline, 
         created:new Date(),
         deleted:this.state.deleted, 
-        attachedDate:this.state.attachedDate,  
+        attachedDate:this.state.category==="today" ? 
+                     new Date() : 
+                     this.state.attachedDate,  
         attachedTags:this.state.attachedTags
     }); 
 
