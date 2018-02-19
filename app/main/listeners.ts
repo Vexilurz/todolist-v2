@@ -1,16 +1,17 @@
+import { isDev } from './../utils/isDev';
 import { mainWindow, getClonedWindows } from './main';
 import { loadApp } from './loadApp'; 
-import * as electron from 'electron'; 
-import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,FileFilter} from 'electron';
+import { ipcMain,app,BrowserWindow, screen } from 'electron';
 import { initWindow } from './initWindow';
-import { remove, isEmpty, isNil } from 'ramda';
-let uniqid = require("uniqid");  
+import { isEmpty } from 'ramda';
+import { autoUpdater } from "electron-updater";
+
+const log = require("electron-log");
 const os = require('os'); 
 const storage = require('electron-json-storage'); 
+
+
 storage.setDataPath(os.tmpdir());
-import { autoUpdater } from "electron-updater";
-const log = require("electron-log");
-import { isDev } from './../utils/isDev';
 
 
 let initAutoUpdater = () => {
@@ -37,7 +38,7 @@ let initAutoUpdater = () => {
 
 
 let getClonedWindowDimensions = () => {
-    let workingArea = electron.screen.getPrimaryDisplay().workAreaSize;
+    let workingArea = screen.getPrimaryDisplay().workAreaSize;
     let clonedWindowWidth : number =  isDev() ? 100 : 30;
     let clonedWindowHeight : number = isDev() ? 100 : 80;  
     let width = clonedWindowWidth*(workingArea.width/100);  
@@ -70,8 +71,12 @@ export class Listeners{
                 callback:(event) => {
                     autoUpdater 
                     .checkForUpdates()
-                    .then((updateCheckResult) => autoUpdater.downloadUpdate(updateCheckResult.cancellationToken))
-                    .then((path) => mainWindow.webContents.send("downloadUpdates",path))
+                    .then(
+                        (updateCheckResult) => autoUpdater.downloadUpdate(updateCheckResult.cancellationToken)
+                    )
+                    .then(
+                        (path) => mainWindow.webContents.send("downloadUpdates",path)
+                    )
                 }
             }, 
             {
@@ -79,7 +84,9 @@ export class Listeners{
                 callback : (event) => {
                     autoUpdater
                     .checkForUpdates()
-                    .then((updateCheckResult) => mainWindow.webContents.send("checkForUpdates",updateCheckResult))
+                    .then(
+                        (updateCheckResult) => mainWindow.webContents.send("checkForUpdates",updateCheckResult)
+                    )
                 }
             },
             {
@@ -144,6 +151,7 @@ export class Listeners{
         this.startToListenOnAllChannels(); 
     } 
  
+    
     startToListenOnAllChannels = () => {
         this.registeredListeners.forEach(({name,callback}) => ipcMain.on(name, callback));  
     }

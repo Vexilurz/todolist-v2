@@ -1,9 +1,5 @@
-import {loadApp} from './loadApp'; 
-import fs = require('fs');   
 import path = require("path");
-import url = require('url'); 
-import electron = require('electron');
-import {ipcMain,dialog,app,BrowserWindow,Menu,MenuItem} from 'electron';  
+import {BrowserWindow,Menu} from 'electron';  
 
 export let initWindow = (
     {width,height}:{width:number,height:number},

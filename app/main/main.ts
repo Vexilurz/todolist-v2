@@ -1,31 +1,33 @@
-import { defaultConfig, Config, getConfig } from './../utils/config';
+import { Config, getConfig } from './../utils/config';
 import { loadApp, loadQuickEntry, loadNotification } from './loadApp'; 
 import fs = require('fs');     
-import electron = require('electron');
-import { 
-    ipcMain,dialog,app,BrowserWindow,Menu,MenuItem,
-    globalShortcut,BrowserView,Tray,nativeImage,protocol
-} from 'electron';
+import {dialog,app,BrowserWindow,Menu,screen,globalShortcut,Tray,nativeImage} from 'electron';
 import { Listeners } from "./listeners";
 import { initWindow, initQuickEntry, initNotification } from "./initWindow";
-import { isNil, isEmpty, not, forEachObjIndexed, when, contains, compose, equals } from 'ramda';  
-import { defaultTags } from './../utils/defaultTags';
+import { isNil, not, forEachObjIndexed, when, contains, compose, equals } from 'ramda';  
 import { isDev } from './../utils/isDev';
 const os = require('os');
-let path = require("path");
-const log = require("electron-log");
+const path = require("path");
 const storage = require('electron-json-storage'); 
-storage.setDataPath(os.tmpdir()); 
 let AutoLaunch = require('auto-launch');
-const AppName = 'Tasklist';
-let appAutoLauncher = new AutoLaunch({name: AppName, isHidden: true});
 
-//appAutoLauncher.enable();
-//appAutoLauncher.disable();
+
+export const AppName = 'Tasklist';
+export let mainWindow : BrowserWindow;   
+export let quickEntry : BrowserWindow;   
+export let notification : BrowserWindow;
+export let listeners : Listeners;  
+export let dateCalendar : BrowserWindow; 
+export let tray : Tray;
+
+
+storage.setDataPath(os.tmpdir());
+
+let appAutoLauncher = new AutoLaunch({name: AppName, isHidden: true});
 
 appAutoLauncher
     .isEnabled()
-    .then((enabled:boolean) => not(enabled) ? appAutoLauncher.enable() : null)
+    .then((enabled:boolean) => not(enabled) ? appAutoLauncher.enable() : null) //appAutoLauncher.disable();
     .catch((err) => console.log(err));
 
 
@@ -40,12 +42,6 @@ const shouldQuit = app.makeSingleInstance(
 );  
 
 
-export let mainWindow : BrowserWindow;   
-export let quickEntry : BrowserWindow;   
-export let notification : BrowserWindow;
-export let listeners : Listeners;  
-export let dateCalendar : BrowserWindow; 
-export let tray : Tray;
 
 export let getClonedWindows = () : BrowserWindow[] => {
     let defaultWindowsTitles = ['Quick Entry','Notification'];
@@ -165,7 +161,7 @@ let createTray = () : Tray => {
 let getWindowSize = () : {width:number,height:number} => {
     let mainWindowWidth : number = isDev() ? 100 : 60;  
     let mainWindowHeight : number = isDev() ? 100 : 70; 
-    let workingArea = electron.screen.getPrimaryDisplay().workAreaSize; 
+    let workingArea = screen.getPrimaryDisplay().workAreaSize; 
     let width = mainWindowWidth*(workingArea.width/100); 
     let height = mainWindowHeight*(workingArea.height/100); 
  
@@ -206,7 +202,7 @@ let onReady = () => {
         height:300,
     }); 
 
-    //notification.webContents.openDevTools()
+ 
     mainWindow.on('show', ()=>tray.setToolTip(`Hide ${AppName}`));
     mainWindow.on('hide', ()=>tray.setToolTip(`Show ${AppName}`));
       

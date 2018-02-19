@@ -147,15 +147,18 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         this.defaultWidth=500;
         this.defaultHeight=300;
         this.subscriptions=[];
+        let {defaultTags,quickEntrySavesTo} = this.props.config;
+        let category = isNil(quickEntrySavesTo) ? "inbox" : quickEntrySavesTo.toLowerCase();
+
         this.state={    
             tag:'',
-            category:'inbox', 
+            category, 
             title:'',
             note:'',  
             deadline:undefined, 
             deleted:undefined, 
             attachedDate:undefined,
-            defaultTags:this.props.config.defaultTags, 
+            defaultTags:defaultTo([])(defaultTags),  
             attachedTags:[],  
             checklist:[], 
             showAdditionalTags:false, 
@@ -170,7 +173,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     componentDidMount(){
         this.subscriptions.push(
             Observable
-            .fromEvent(ipcRenderer,"focus", (event) => event)
+            .fromEvent(ipcRenderer,"focus", (event) => event) 
             .subscribe(
                 (event) => this.inputRef ? this.inputRef.focus() : null
             ),
@@ -180,8 +183,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             .subscribe(
                 (config) => { 
                     let { quickEntrySavesTo } = config;
+                    let category = isNil(quickEntrySavesTo) ? "inbox" : quickEntrySavesTo.toLowerCase();
                     if(isString(quickEntrySavesTo)){
-                        this.setState({category:quickEntrySavesTo}); 
+                        this.setState({category}); 
                     }
                 }
             )

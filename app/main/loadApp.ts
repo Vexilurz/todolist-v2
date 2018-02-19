@@ -1,8 +1,4 @@
-import { ipcMain, BrowserWindow } from 'electron';
-import { mainWindow } from "./main";
-import fs = require('fs');    
-    
-let templateLoader = (
+ let templateLoader = (
     onDidFinishLoad : Function,  
     onDidFailLoad : Function,  
     window 
