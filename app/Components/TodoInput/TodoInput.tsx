@@ -289,12 +289,14 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         e.stopPropagation(); 
         let {todo} = this.props;
         this.update({attachedDate:day, category:isToday(day) ? "today" : todo.category}); 
+        this.closeDateCalendar();
     };
 
 
     onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         e.stopPropagation();
         this.update({deadline:day});
+        this.closeDeadlineCalendar();
     };
 
 
@@ -461,6 +463,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onDeadlineCalendarClear = (e:any) : void => {
         e.stopPropagation();
         this.update({deadline:null});
+        this.closeDeadlineCalendar(); 
     }
     
 
@@ -474,18 +477,21 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onCalendarSomedayClick = (e) => {
         e.stopPropagation();
         this.update({category:"someday"});
+        this.closeDateCalendar();
     };
 
 
     onCalendarTodayClick = (e) => {
         e.stopPropagation();
         this.update({category:"today", attachedDate:new Date()});
+        this.closeDateCalendar();
     }; 
 
 
     onCalendarThisEveningClick = (e) => {
         e.stopPropagation();
         this.update({category:"evening", attachedDate:new Date()});
+        this.closeDateCalendar();
     }; 
 
 
@@ -493,6 +499,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let {dispatch} = this.props;
         this.update({reminder, attachedDate:reminder}); 
         dispatch({type:"resetReminders"});
+        this.closeDateCalendar();
     };
 
     
@@ -507,6 +514,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         e.stopPropagation();
         let {todo} = this.props;
         this.update({category:todo.category,attachedDate:null,reminder:null}); 
+        this.closeDateCalendar();
     };
   
 
@@ -1432,7 +1440,7 @@ export class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLab
                     }}>      
                         <TodoInputLabel 
                             onRemove={this.props.onRemoveSelectedCategoryLabel}
-                            category={category}
+                            category={category==="evening" ? "evening" : "today"}
                             content={ 
                              <div style={{marginLeft:"15px"}}>
                                  { category==="evening" ? "This Evening" : "Today" }   

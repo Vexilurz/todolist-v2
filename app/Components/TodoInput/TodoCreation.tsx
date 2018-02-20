@@ -448,19 +448,22 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
     onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         e.stopPropagation();
-        this.setState({deadline:day});
+        this.setState({deadline:day}, () => this.closeDeadlineCalendar());
     };
 
  
     onDeadlineCalendarClear = (e:any) : void => {
         e.stopPropagation();
-        this.setState({deadline:null});
+        this.setState({deadline:null}, () => this.closeDeadlineCalendar());
     };
-    
+     
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         e.stopPropagation(); 
-        this.setState({attachedDate:day, category:isToday(day) ? "today" : "next"});   
+        this.setState(
+            {attachedDate:day, category:isToday(day) ? "today" : "next"},
+            () => this.closeDateCalendar()
+        );   
     };
     
 
@@ -477,23 +480,26 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
     onCalendarSomedayClick = (e) => {
         e.stopPropagation();
-        this.setState({category:"someday"});
+        this.setState({category:"someday"}, () => this.closeDateCalendar());
     };
 
 
     onCalendarTodayClick = (e) => {
         e.stopPropagation();
-        this.setState({category:"today", attachedDate:new Date()});
+        this.setState({category:"today", attachedDate:new Date()}, () => this.closeDateCalendar());
     }; 
 
 
     onCalendarThisEveningClick = (e) => {
         e.stopPropagation();
-        this.setState({category:"evening", attachedDate:new Date()});
+        this.setState({category:"evening", attachedDate:new Date()}, () => this.closeDateCalendar());
     }; 
 
 
-    onCalendarAddReminderClick = (reminder:Date) : void => this.setState({reminder, attachedDate:reminder});
+    onCalendarAddReminderClick = (reminder:Date) : void => this.setState(
+        {reminder, attachedDate:reminder}, 
+        () => this.closeDateCalendar()
+    );
 
 
     onRemoveReminderClick = () : void => this.setState({reminder:null});
@@ -501,11 +507,14 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
     onCalendarClear = (e) => {
         e.stopPropagation();
-        this.setState({  
-            category:this.props.todo.category as Category,
-            attachedDate:null, 
-            reminder:null  
-        }) 
+        this.setState(
+            {  
+                category:this.props.todo.category as Category,
+                attachedDate:null, 
+                reminder:null  
+            }, 
+            () => this.closeDateCalendar()
+        )  
     };
   
   

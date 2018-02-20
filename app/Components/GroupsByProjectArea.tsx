@@ -34,7 +34,7 @@ import { TodosList } from './TodosList';
 import { ContainerHeader } from './ContainerHeader';
 import { Tags } from './Tags';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
-import { uniq, allPass, isEmpty, isNil, not, any, contains } from 'ramda';
+import { uniq, allPass, isEmpty, isNil, not, any, contains, all } from 'ramda';
 import { TodoInput } from './TodoInput/TodoInput';
 import { ProjectLink } from './Project/ProjectLink';
 import { Category } from './MainContainer';
@@ -42,7 +42,7 @@ import { AreaLink } from './Area/AreaLink';
 import { TodoCreationForm } from './TodoInput/TodoCreation';
 import { generateId } from './../utils/generateId';
 import { generateEmptyTodo } from './../utils/generateEmptyTodo';
-import { isString } from '../utils/isSomething';
+import { isString, isDate } from '../utils/isSomething';
 
 interface GroupsByProjectAreaProps{
     dispatch:Function, 
@@ -133,8 +133,10 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                     let category = this.props.selectedCategory;
                     let todos = table[project._id] as Todo[];
                     let hide = isNil(project.hide) ? false : contains(category)(project.hide); 
-                          
-                    return (isEmpty(todos) || hide) ? null : 
+                    let allCompleted = all((todo:Todo) => isDate(todo.completedWhen), todos);
+                    let dontShow : boolean = isEmpty(todos) || hide || allCompleted;
+ 
+                    return dontShow ? null : 
                     <div key={`project-link-${project._id}`}>  
                         <ProjectLink {...{project,showMenu:true} as any}/> 
                         <ExpandableTodosList

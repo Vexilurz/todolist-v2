@@ -194,18 +194,16 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
         </div> 
     }   
 }
- 
 
 
 export class Separator extends Component<{},{}>{
-    render(){
-        return <div style={{outline:"none",position:"relative",width:"100%",height:"20px"}}></div>
-    }
+    render(){ 
+        return <div style={{outline:"none",position:"relative",width:"100%",height:"10px"}}></div>
+    } 
 }
 
 
-
-interface LeftPanelMenuProps{
+interface LeftPanelMenuProps{ 
     dragged:string, 
     dispatch:Function,
     selectedCategory:Category,

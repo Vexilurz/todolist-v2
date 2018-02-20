@@ -31,7 +31,6 @@ import Reorder from 'material-ui/svg-icons/action/reorder';
 let uniqid = require("uniqid");  
 import Popover from 'material-ui/Popover';
 import { TextField } from 'material-ui'; 
-import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import { 
   todoChanged, daysLeftMark, generateTagElement, 
   isToday, getMonthName, attachDispatchToProps, 

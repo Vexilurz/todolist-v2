@@ -115,12 +115,17 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
     closeDeadlineCalendar = (e) => this.setState({showDeadlineCalendar:false});
 
 
-    onDeadlineCalendarClear = (e) => this.setState({showDeadlineCalendar:false});
+    onDeadlineCalendarClear = (e) => this.setState(
+        {showDeadlineCalendar:false}, 
+        () => this.props.updateProjectDeadline(null)
+    );
 
 
-    onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
-        this.setState({showDeadlineCalendar:false}, () => this.props.updateProjectDeadline(day));  
-    };   
+    onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => this.setState(
+        {showDeadlineCalendar:false}, 
+        () => this.props.updateProjectDeadline(day)
+    );  
+       
  
 
     render(){ 

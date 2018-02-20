@@ -130,7 +130,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                 
                 <div  
                 style={{
-                    color: "dimgray",
+                    color: "white",
                     textAlign: "center",
                     padding: "5px",
                     cursor: "default"
@@ -667,18 +667,10 @@ export class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCa
                 backgroundColor:"rgb(39,43,53)", 
                 borderRadius: "20px"
             }}>    
-                <div style={{
-                    color: "dimgray",
-                    textAlign: "center",
-                    padding: "5px",
-                    cursor: "default"
-                }}> 
+                <div style={{color:"white",textAlign:"center",padding:"5px",cursor:"default"}}> 
                     Deadline
                 </div>
-                <div style={{
-                    display: "flex",
-                    justifyContent: "center" 
-                }}> 
+                <div style={{display: "flex",justifyContent: "center"}}> 
                     <DayPicker onDayClick={this.props.onDayClick} />
                 </div> 
                 <RaisedButton

@@ -10,9 +10,9 @@ import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
 import { byNotCompleted, byNotDeleted } from '../../utils/utils';
 import PieChart from 'react-minimal-pie-chart';
 import { 
-    uniq, allPass, remove, toPairs, intersection, when, reject,
+    uniq, allPass, remove, toPairs, intersection, when, reject, slice,
     isEmpty, contains, assoc, isNil, not, all, merge, map, concat,
-    addIndex, compose, cond, defaultTo, groupBy 
+    addIndex, compose, cond, defaultTo, groupBy, last, insertAll  
 } from 'ramda'; 
 import { Category } from '../MainContainer';
 import { Observable } from 'rxjs/Rx';
@@ -209,8 +209,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let nodes = [].slice.call(e.path);
 
         for(let i=0; i<nodes.length; i++){ 
-            if(nodes[i].id==="separator" || nodes[i].className==="area"){
-               return true
+            if(nodes[i].id==="separator"){ 
+               return true; 
             }
         } 
    
@@ -218,9 +218,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     } 
     
 
-    selectElements = (index:number,items:any[]) => [index];
- 
-    
     onSortMove = (oldIndex:number, event) : void => {} 
 
 
@@ -239,12 +236,13 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     
         //1) change projects order, detach projects from areas 
         let layoutAfterSort = compose(
-            mapIndexed( (item,index:number) => 
-                cond(
+            mapIndexed( 
+                (item,index:number) => cond(
                     [
                         [
                             isArea, //if area, remove attached projects ids (contained in current layout)
                             (area:Area) => compose(
+                                assoc("priority",index),
                                 (ids) => assoc("attachedProjectsIds",ids,area),
                                 reject((id) => contains(id)(layoutProjectsIds)),
                                 (area) => area.attachedProjectsIds
@@ -261,12 +259,23 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                     ]
                 )(item)
             ),
-            (layout) => arrayMove([...layout], oldIndex, newIndex) //move dragged project from oldIndex to newIndex
+            (layout) => {
+                let item = layout[oldIndex];
+                if(isArea(item)){
+                    let indices = this.selectElements(oldIndex,layout);
+                    let lastIndex = last(indices) + 1; 
+                    let collection = slice(oldIndex,lastIndex,layout);
+                    let without = remove(oldIndex,indices.length,layout);
+                    let updated = insertAll(newIndex,collection,without);
+                    return updated; 
+                }else if(isProject(item)){ 
+                    return arrayMove([...layout], oldIndex, newIndex); //move dragged project from oldIndex to newIndex
+                }
+            }
         )(layout);
-
-
+       
         //2) Based on new order, generate hash table of form { areaId : projectId[] }
-        let target = null;
+        let target = undefined;
         let byArea = {}; 
         for(let i=0; i<layoutAfterSort.length; i++){
             let item = layoutAfterSort[i];
@@ -302,11 +311,29 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
  
         //4) Update projects/areas in store/database
-        dispatch({type:"updateProjects", load:updatedProjects});  
+        dispatch({type:"updateProjects", load:updatedProjects}); 
         dispatch({type:"updateAreas", load:updatedAreas});  
-    } 
+    };
+
        
+    selectElements = (index:number,items:any[]) => {
+        let selected = [index];
+        let item = items[index];
+
+        assert(not(isNil(item)),`item is Nil. selectElements. index ${index}`);
+
+        if(isArea(item)){
+            for(let i=index+1; i<items.length; i++){
+                let next = items[i];
+                if(isProject(next)){ selected.push(i) }
+                else{ break }   
+            }
+        } 
  
+        return selected; 
+    };   
+ 
+
     render(){ 
         let scrollableContainer = document.getElementById("leftpanel");
         let {projects,areas} = this.props;
@@ -315,12 +342,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
         return <div   
             id="areas"
-            style={{  
-                userSelect:"none",
-                paddingRight:"15px",
-                paddingLeft:"15px",
-                paddingBottom:"80px"  
-            }}   
+            style={{userSelect:"none",paddingRight:"15px",paddingLeft:"15px",paddingBottom:"80px"}}   
         >     
             <SortableContainer
                 items={layout}
@@ -339,13 +361,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
          </div> 
     }
 }
-
-
-
-
-
-
-
 
 
 interface AreaElementProps{

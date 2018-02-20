@@ -311,7 +311,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     };
 
 
-    closeDeadlineCalendar = (e) => {
+    closeDeadlineCalendar = () => {
         this.setState({showDeadlineCalendar:false}, () => this.setSmallSize())
     };
  
@@ -321,7 +321,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     };
      
 
-    closeDateCalendar = (e) => {
+    closeDateCalendar = () => {
         this.setState({showDateCalendar:false}, () => this.setSmallSize())
     };
 
@@ -352,7 +352,10 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         let {attachedDate,category} = this.state;
         let deadlineToday = daysRemaining(day)===0;
-        this.setState({deadline:day,category:deadlineToday ? "today" : category});
+        this.setState(
+            {deadline:day,category:deadlineToday ? "today" : category}, 
+            () => this.closeDeadlineCalendar()
+        );
     };   
 
  
@@ -364,34 +367,43 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
     onCalendarClear = (e) => {
         let {category,deadline} = this.state;
-        this.setState({category:isNil(deadline) ? "inbox" : category,attachedDate:null});
+        this.setState(
+            {category:isNil(deadline) ? "inbox" : category,attachedDate:null}, 
+            () => this.closeDateCalendar()
+        );
     }; 
 
 
     onDeadlineCalendarClear = (e:any) : void => {
         let { category, attachedDate } = this.state;
-        this.setState({deadline:null, category:isNil(attachedDate) ? "inbox" : category});
+        this.setState(
+            {deadline:null, category:isNil(attachedDate) ? "inbox" : category},
+            () => this.closeDeadlineCalendar()
+        );
     };
-
+ 
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         let {category} = this.state;
-        this.setState({attachedDate:day,category:daysRemaining(day)===0 ? "today" : category});   
-    };
+        this.setState(
+            {attachedDate:day,category:daysRemaining(day)===0 ? "today" : category},
+            () => this.closeDateCalendar()
+        );   
+    }; 
 
     
     onCalendarSomedayClick = (e) => {
-        this.setState({category:"someday"});
+        this.setState({category:"someday"}, () => this.closeDateCalendar());
     };
 
 
     onCalendarTodayClick = (e) => {
-        this.setState({category:"today", attachedDate:new Date()}); 
+        this.setState({category:"today", attachedDate:new Date()}, () => this.closeDateCalendar()); 
     };
 
 
     onCalendarThisEveningClick = (e) => {
-        this.setState({category:"evening", attachedDate:new Date()}); 
+        this.setState({category:"evening", attachedDate:new Date()}, () => this.closeDateCalendar()); 
     };
 
     render(){  
@@ -1201,7 +1213,7 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
                 
                 <div  
                 style={{
-                    color: "dimgray",
+                    color: "white",
                     textAlign: "center",
                     padding: "5px",
                     cursor: "default"
@@ -1444,7 +1456,7 @@ class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCalendarS
 
     constructor(props){
         super(props);
-    }   
+    }    
 
 
     componentDidMount(){ 
@@ -1501,7 +1513,7 @@ class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCalendarS
                 borderRadius: "20px"
             }}>    
                 <div style={{
-                    color: "dimgray",
+                    color: "white",
                     textAlign: "center",
                     padding: "5px",
                     cursor: "default"

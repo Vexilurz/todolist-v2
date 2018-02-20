@@ -436,42 +436,32 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
         return <div style={{
             display:"flex",
             flexDirection:"column", 
-            paddingTop:"20px", 
-            paddingBottom:"20px",
+            paddingTop:"5px", 
+            paddingBottom:"5px",
             WebkitUserSelect: "none" 
         }}> 
                 <div style={{  
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    paddingTop : "10px",
-                    paddingBottom : "10px",
-                    WebkitUserSelect: "none" 
+                    width:"100%",
+                    display:"flex",
+                    alignItems:"center",
+                    WebkitUserSelect:"none" 
                 }}>  
-                    <div style={{  
-                        width: "80px",
-                        fontWeight: 900,
-                        fontSize: "45px",
-                        fontFamily: "sans-serif",
-                        WebkitUserSelect: "none" 
-                    }}>
+                    <div style={{width:"50px",fontWeight:900,fontSize:"35px",userSelect:"none"}}>
                         {day} 
                     </div>  
-                 
                     <div style={{
-                        width: "82%",
-                        fontSize: "17px",
-                        color: "dimgray",
-                        fontFamily: "sans-serif",
-                        display: "flex",
-                        height: "40px",
-                        alignItems: "flex-end",
-                        fontWeight: "bolder",
-                        borderTop: "1px solid rgba(100,100,100,0.3)",
-                        marginTop: "15px",
-                        WebkitUserSelect: "none" 
+                        width:"82%",
+                        fontSize:"17px",
+                        color:"dimgray",
+                        display:"flex",
+                        height:"30px",
+                        alignItems:"flex-end", 
+                        fontWeight:"bolder",
+                        borderTop:"1px solid rgba(100, 100, 100, 0.3)",
+                        marginTop:"5px",
+                        userSelect:"none" 
                     }}>  
-                        {
+                        { 
                             idx===0 ? "Today" :
                             idx===1 ? "Tomorrow" :
                             dayName
