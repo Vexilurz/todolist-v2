@@ -58,7 +58,6 @@ import { generateId } from './utils/generateId';
 import { daysRemaining } from './utils/daysRemaining';
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight';
 import { chooseIcon } from './utils/chooseIcon';
-import { Reminder } from './Components/Reminder';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 const path = require("path");
 import ReactAudioPlayer from 'react-audio-player';
@@ -245,14 +244,18 @@ class Notification extends Component<NotificationProps,NotificationState>{
             <div style={{
                 width:"100%",  
                 position:"relative",
-                height:"40%",
+                height:"15%",
                 backgroundColor:"rgba(81, 144, 247, 1)",
                 display:"flex",
                 alignItems:"center",
                 textAlign:"center", 
                 justifyContent:"flex-start" 
             }}> 
-                <div style={{paddingLeft:"5px"}}>
+                <div style={{
+                    paddingLeft:"5px",
+                    display:"flex", 
+                    alignItems:"center"
+                }}>
                     {chooseIcon({width:"",height:""},"reminder")}
                 </div>
                 <div style={{
@@ -262,7 +265,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
                     display:"flex",
                     alignItems:"center",
                     color:"white"
-                }}>
+                }}> 
                     Task Reminder
                 </div>                
                 <div style={{position:"absolute",right:5,cursor:"pointer",zIndex:200}}>   
@@ -279,7 +282,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
                 display:"flex",
                 overflowX:"hidden", 
                 justifyContent:"space-around",
-                height:"60%",
+                height:"85%",
                 position:"relative",
                 alignItems:"flex-start", 
                 flexDirection:"column"  
@@ -296,7 +299,6 @@ class Notification extends Component<NotificationProps,NotificationState>{
                 }}>
                     {title}  
                 </div>
-                {/*<Reminder message={title} date={new Date(reminder)} />*/} 
                 <div style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
                     <div  
                         onClick={this.openTodoInApp} 

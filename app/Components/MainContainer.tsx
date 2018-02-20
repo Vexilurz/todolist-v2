@@ -220,15 +220,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
   
         if(!isEmpty(never)){ updateNeverTodos(dispatch,never,limit) }
     }
- 
-  
 
-    onError = (e) => globalErrorHandler(e)
+
+    onError = (e) => globalErrorHandler(e); 
 
 
     initData = () => {
-
-
         if(not(isMainWindow())){ return }  
         let {dispatch} = this.props;
 
@@ -249,7 +246,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     addAreas(this.onError,areas),  
                     clearStorage(this.onError)     
                 ])  
-                .then(() => fetchData(this.props,this.limit,this.onError) )  
+                .then(() => fetchData(this.props,this.limit,this.onError))  
                 .then((calendars) => isEmpty(calendars) ? null : updateConfig(storage,dispatch)({hideHint:true})) 
                 .then(() => dispatch({type:"resetReminders"}))
             });
@@ -405,7 +402,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             [ 
                                 (selectedCategory:Category) : boolean => 'today'===selectedCategory,  
                                 () => {
-                                    let {projects,groupTodos} = this.props;
+                                    let {projects,groupTodos,clone} = this.props;
 
                                     let todayFilters = [   
                                         (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
@@ -427,6 +424,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
  
                                     return <Today  
                                         todos={selectedTodos}
+                                        clone={clone}
                                         dispatch={this.props.dispatch}
                                         selectedTodo={this.props.selectedTodo}
                                         groupTodos={this.props.groupTodos}
@@ -568,6 +566,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
                                     return <Upcoming  
                                         limit={this.props.limit}
+                                        clone={this.props.clone}
                                         todos={filter(todos, allPass(upcomingFilters), "Upcoming")}
                                         groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch}

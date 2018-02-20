@@ -30,12 +30,12 @@ import {
 import { ProjectHeading } from './ProjectHeading';  
 import { TodoInput } from '../TodoInput/TodoInput';
 import { RightClickMenu } from '../RightClickMenu';
-import { equals, allPass, isEmpty, isNil, not, uniq, contains, drop, map, compose } from 'ramda';
-import { onDrop, removeTodosFromProjects, removeTodosFromAreas, dropTodoOnCategory } from '../TodosList';
+import { equals, allPass, isEmpty, isNil, not, uniq, contains, drop, map, compose, adjust, findIndex, when } from 'ramda';
+import { onDrop, removeTodosFromProjects, removeTodosFromAreas, dropTodoOnCategory, findDropTarget } from '../TodosList';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { arrayMove } from '../../utils/arrayMove';
 import { assert } from '../../utils/assert';
-import { isTodo, isString, isHeading, isArrayOfTodos, isCategory } from '../../utils/isSomething';
+import { isTodo, isString, isHeading, isArrayOfTodos, isCategory, isArea, isProject } from '../../utils/isSomething';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
@@ -136,8 +136,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     shouldCancelStart = (e) => {
         let nodes = [].slice.call(e.path);
         for(let i=0; i<nodes.length; i++){
-            if(nodes[i].preventDrag)
-                return true;
+            if(nodes[i].preventDrag){ 
+               return true 
+            }
         }
         return false; 
     };
@@ -225,89 +226,83 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     onSortMove = (oldIndex:number, event) : void => {}; 
 
 
-    onDropMany = (event:any,heading:Heading,todos:Todo[]) => { 
+    onDropMany = (event:any,heading:Heading,todos:Todo[]) => {
+
         assert(isArrayOfTodos(todos), `onDropMany. todos is not of type array of todos.`);
         assert(isHeading(heading), `onDropMany. heading is not of type Heading.`);
-        let {projects, areas, selectedProjectId, dispatch, moveCompletedItemsToLogbook} = this.props;
-        //currently selected project
-        let project = projects.find((p:Project) => p._id===selectedProjectId);
+
+        let { projects, areas, selectedProjectId, dispatch, moveCompletedItemsToLogbook } = this.props;
+        let selectedProjectIdx = findIndex((p:Project) => p._id===selectedProjectId, projects);
+        let { project, area, category } = findDropTarget(event,projects,areas);
+
+        let updatedProjects = adjust(  
+            (p:Project) => removeHeading(heading._id,p),
+            selectedProjectIdx,
+            removeTodosFromProjects(projects,todos)
+        );
+        let updatedAreas = removeTodosFromAreas(areas,todos);
 
 
-        //find target
-        let el = document.elementFromPoint(event.clientX, event.clientY);
-        let id = el.id || el.parentElement.id;
-        let projectTarget : Project = projects.find((p:Project) => p._id===id);
-        let areaTarget : Area = areas.find((a:Area) => a._id===id);
+        if(isCategory(category)){ 
 
-    
-        //remove todos under the heading from all projects & areas
-        //let updatedProjects = removeTodosFromProjects(projects,todos);
-        //let updatedAreas = removeTodosFromAreas(areas,todos);
+            let updatedTodos = todos.map(
+                (todo:Todo) => dropTodoOnCategory({
+                    draggedTodo:todo, 
+                    projects:updatedProjects,
+                    areas:updatedAreas, 
+                    category, 
+                    moveCompletedItemsToLogbook
+                })
+            );
 
-        let selectedProject = {
-            ...project,
-            layout:project.layout.filter(
-                (item:any) => isString(item) ? !contains(item)(todos.map(t => t._id)) :
-                              item._id!==heading._id  
-            )
-        };
-  
-        //update projects & areas
-        dispatch({type:"updateProject", load:selectedProject});
-        
-        //removeHeading(heading._id,project)});
-        //dispatch({type:"updateProjects", load:updatedProjects});
-        //dispatch({type:"updateAreas", load:updatedAreas}); 
+           
+            dispatch({type:"updateAreas",load:updatedAreas});
+            dispatch({type:"updateProjects",load:updatedProjects});
+            dispatch({type:"updateTodos",load:updatedTodos});
 
+        }else if(isProject(project)){
 
-        //let fromProject = updatedProjects.find(p => p._id===project._id);
-        //dispatch({type:"updateProject", load:removeHeading(heading._id,fromProject)});
-    
-        if(projectTarget){ 
-            dispatch({ 
-                type:"updateProject", 
-                load:{
-                    ...projectTarget, 
-                    layout:[ 
-                        heading, 
-                        ...todos.map((todo:Todo) => todo._id), 
-                        ...projectTarget.layout 
-                    ]   
-                } 
-            });  
-        }else if(areaTarget){
-            dispatch({
-                type:"updateArea", 
-                load:{
-                    ...areaTarget,
-                    attachedTodosIds:uniq([
-                        ...areaTarget.attachedTodosIds, 
-                        ...todos.map((todo:Todo) => todo._id)
-                    ])
-                }
-            });  
-        }else{   
-            let nodes = [].slice.call(event.path); 
+            let idx = findIndex((p:Project) => project._id===p._id, updatedProjects);
             
-            for(let i=0; i<nodes.length; i++){
-                if(isCategory(nodes[i].id)){
-                    todos.forEach( 
-                        (todo:Todo) => dropTodoOnCategory({
-                            dispatch, 
-                            draggedTodo:todo,
-                            projects, 
-                            areas, 
-                            category:nodes[i].id,
-                            moveCompletedItemsToLogbook
-                        }) 
-                    );
-                    break;
-                }
-            } 
+            dispatch({type:"updateAreas",load:updatedAreas});
+            dispatch({ 
+                type:"updateProjects", 
+                load:adjust(
+                    (p:Project) => ({ 
+                        ...p, 
+                        layout:[ 
+                            heading, 
+                            ...todos.map((todo:Todo) => todo._id), 
+                            ...project.layout 
+                        ]   
+                    }),
+                    idx, 
+                    updatedProjects
+                )
+            }); 
+        }else if(isArea(area)){  
+
+            let idx = findIndex((a:Area) => area._id===a._id, updatedAreas);
+
+            dispatch({
+                type:"updateAreas", 
+                load:adjust(
+                    (a:Area) => ({ 
+                        ...a, 
+                        attachedTodosIds:uniq([
+                            ...todos.map((todo:Todo) => todo._id),
+                            ...area.attachedTodosIds
+                        ])
+                    }), 
+                    idx, 
+                    updatedAreas
+                )
+            }); 
+            dispatch({type:"updateProjects", load:updatedProjects});  
         } 
     };
     
-
+ 
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
         let {moveCompletedItemsToLogbook,dispatch,areas,projects,selectedProjectId} = this.props;
         dispatch({type:"dragged",load:null});  
@@ -323,14 +318,25 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         if(insideTargetArea(null,leftpanel,x,y)){
             if(isTodo(draggedTodo)){
-                onDrop({
-                    event,
-                    draggedTodo,
-                    dispatch,
+                let updated : { projects:Project[], areas:Area[], todo:Todo } = onDrop({
+                    event, 
+                    draggedTodo, 
                     areas, 
-                    moveCompletedItemsToLogbook,
-                    projects  
-                });
+                    projects, 
+                    config:{moveCompletedItemsToLogbook}
+                }); 
+
+                if(updated.projects){
+                    dispatch({type:"updateProjects", load:updated.projects});
+                }
+
+                if(updated.areas){
+                    dispatch({type:"updateAreas", load:updated.areas});
+                }
+                
+                if(updated.todo){
+                    dispatch({type:"updateTodo", load:updated.todo});
+                }
             }else if(isHeading(draggedTodo as Heading)){
                 let heading = selectedItems[0];
                 let todos = drop(1,selectedItems);

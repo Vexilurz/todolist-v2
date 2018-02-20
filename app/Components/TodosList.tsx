@@ -17,14 +17,14 @@ import { RightClickMenu } from './RightClickMenu';
 import { byTags, byCategory } from '../utils/utils'; 
 import { TodoInput } from './TodoInput/TodoInput';
 import { 
-    allPass, isNil, prepend, isEmpty, findIndex, when, cond,
-    compose, map, assoc, contains, remove, not, equals, all, 
-    ifElse, uniq, flatten, intersection
+    allPass, isNil, prepend, isEmpty, findIndex, when, cond, find, any,
+    compose, map, assoc, contains, remove, not, equals, all, propEq, update,
+    ifElse, uniq, flatten, intersection, path, pathOr, defaultTo, prop, adjust, reject
 } from 'ramda';
 import { Category, filter } from './MainContainer';
 import { indexToPriority } from './Categories/Today'; 
 import { SortableContainer } from './CustomSortableContainer';
-import { isString, isCategory, isTodo, isArrayOfTodos, isArrayOfProjects, isArrayOfAreas } from '../utils/isSomething';
+import { isString, isCategory, isTodo, isArrayOfTodos, isArrayOfProjects, isArrayOfAreas, isProject, isArea } from '../utils/isSomething';
 import { assert } from '../utils/assert';
 import { arrayMove } from '../utils/arrayMove';
 import { isDev } from '../utils/isDev';
@@ -81,180 +81,213 @@ export let removeTodoFromProjects = (projects:Project[], todo:Todo) : Project[] 
 
 
 export let removeTodosFromProjects =  (projects:Project[], todos:Todo[]) : Project[] => {
-    let result = projects;
-    for(let i=0; i<todos.length; i++){
-        result = removeTodoFromProjects(result, todos[i]);
-    };
-    return result;
+    let ids = todos.map( t => t._id );
+
+    let updated = projects.map( 
+        (p:Project) => ({ 
+            ...p, 
+            layout:reject(
+                (item) => contains(item)(ids),
+                p.layout
+            ) 
+        }) 
+    );
+
+    assert(
+        all(
+            (p:Project) => intersection(p.layout,ids).length===0 , 
+            updated
+        ), 
+        'removeTodosFromProjects. incorrect logic.'
+    ); 
+
+    return updated;
 };
 
 
 export let removeTodosFromAreas =  (areas:Area[], todos:Todo[]) : Area[] => {
-    let result = areas;
-    for(let i=0; i<todos.length; i++){
-        result = removeTodoFromAreas(result, todos[i]);
-    };
-    return result;
+    let ids = todos.map( t => t._id );
+
+    let updated = areas.map( 
+        (a:Area) => ({ 
+            ...a, 
+            attachedTodosIds:reject(
+                (item) => contains(item)(ids),
+                a.attachedTodosIds
+            ) 
+        }) 
+    );
+
+    assert(
+        all(
+            (a:Area) => intersection(a.attachedTodosIds,ids).length===0 , 
+            updated
+        ), 
+        'removeTodosFromAreas. incorrect logic.'
+    ); 
+
+    return updated;
 };
 
 
-
 export let dropTodoOnCategory = ({
-    dispatch, 
     draggedTodo,
     projects,
     areas, 
     category,
     moveCompletedItemsToLogbook
-}) : void => {
-    cond([
-        [
-            equals("inbox"),
-            () => {
-                dispatch({
-                    type:"updateTodo", 
-                    load:{
-                        ...draggedTodo, 
-                        category:"inbox", 
-                        attachedDate:undefined,
-                        deadline:undefined, 
-                        deleted:undefined,
-                        completedSet:null,
-                        completedWhen:null
-                    }
-                }); 
-            }
-        ],
-        [
-            equals("today"),
-            () => {
-                let todo : Todo = {
-                    ...draggedTodo, 
-                    category:"today",
-                    attachedDate:new Date(),
-                    deleted:undefined,
-                    completedSet:null,
-                    completedWhen:null
-                };
+}) : Todo => cond([
+    [
+        equals("inbox"),
+        () : Todo => ({
+            ...draggedTodo, 
+            category:"inbox", 
+            attachedDate:undefined,
+            deadline:undefined, 
+            deleted:undefined,
+            completedSet:null,
+            completedWhen:null
+        }) 
+    ],
+    [
+        equals("today"),
+        () : Todo => ({
+            ...draggedTodo, 
+            category:"today",
+            attachedDate:new Date(),
+            deleted:undefined,
+            completedSet:null,
+            completedWhen:null
+        })
+    ],
+    [
+        equals("next"),
+        () : Todo => ({
+            ...draggedTodo, 
+            category:"next",
+            attachedDate:undefined,
+            deleted:undefined,
+            completedSet:null,
+            completedWhen:null
+        })
+    ],
+    [
+        equals("someday"),
+        () : Todo => ({
+            ...draggedTodo, 
+            category:"someday",
+            deadline:undefined, 
+            deleted:undefined,
+            completedSet:null,
+            completedWhen:null
+        })
+    ],
+    [
+        equals("trash"),
+        () : Todo => ({
+            ...draggedTodo, 
+            reminder:null,
+            deleted:new Date()
+        })
+    ],
+    [
+        equals("logbook"),
+        () : Todo => ({
+            ...draggedTodo,
+            completedSet:new Date(),
+            completedWhen:getCompletedWhen(moveCompletedItemsToLogbook,new Date()),
+            deleted:undefined
+        })
+    ],
+    [   
+        () => true, 
+        () : Todo => ({...draggedTodo}) 
+    ]
+])(category);
 
-                dispatch({type:"updateTodo",load:todo});
-            }
-        ],
-        [
-            equals("next"),
-            () => {
-                let todo : Todo = {
-                    ...draggedTodo, 
-                    category:"next",
-                    attachedDate:undefined,
-                    deleted:undefined,
-                    completedSet:null,
-                    completedWhen:null
-                };
 
-                dispatch({type:"updateTodo", load:todo});
-            }
-        ],
-        [
-            equals("someday"),
-            () => {
-                let todo : Todo = {
-                    ...draggedTodo, 
-                    category:"someday",
-                    deadline:undefined, 
-                    deleted:undefined,
-                    completedSet:null,
-                    completedWhen:null
-                };
 
-                dispatch({type:"updateTodo",load:todo});
-            }
-        ],
-        [
-            equals("trash"),
-            () => {
-                let todo : Todo = {
-                    ...draggedTodo, 
-                    reminder:null,
-                    deleted:new Date()
-                };
+export let findDropTarget = (
+    event,
+    projects:Project[],
+    areas:Area[]
+) : {
+    project:Project,
+    area:Area,
+    category:Category
+} => {
+    let element = document.elementFromPoint(event.clientX, event.clientY);
+    let id = path(['id'], element) || path(['parentElement', 'id'],element);
+    let nodes = [].slice.call(event.path);
+    let project = find((p:Project) => p._id===id, projects);
+    let area = find((a:Area) => a._id===id, areas);
+    let category : Category = compose(find(isCategory),map(prop('id')))(nodes);
 
-                dispatch({type:"updateTodo",load:todo});  
-                dispatch({type:"resetReminders"}); 
-            }
-        ],
-        [
-            equals("logbook"),
-            () => {
-                let todo : Todo = {
-                    ...draggedTodo,
-                    completedSet:new Date(),
-                    completedWhen:getCompletedWhen(moveCompletedItemsToLogbook,new Date()),
-                    deleted:undefined
-                }; 
-
-                dispatch({type:"updateTodo",load:todo}); 
-            }
-        ]
-    ])(category);
-};
- 
-
+    return {project,area,category};
+}
 
 
 export let onDrop = ({
     event,
     draggedTodo,
-    dispatch,
-    areas,  
-    moveCompletedItemsToLogbook,
-    projects  
-}) => {
-    let el = document.elementFromPoint(event.clientX, event.clientY);
-    let id = el.id || el.parentElement.id;
-    let projectTarget : Project = projects.find((p:Project) => p._id===id);
-    let areaTarget : Area = areas.find((a:Area) => a._id===id);
- 
-    dispatch({type:"updateProjects", load:removeTodoFromProjects(projects,draggedTodo)});
-    dispatch({type:"updateAreas", load:removeTodoFromAreas(areas,draggedTodo)});
+    config,
+    areas,    
+    projects 
+}) : { projects:Project[], areas:Area[], todo:Todo } => { 
 
-    if(projectTarget){
-        dispatch({
-            type:"updateProject", 
-            load:{
-                ...projectTarget,
-                layout:[ 
-                    draggedTodo._id, 
-                    ...projectTarget.layout 
-                ]
-            }
-        }); 
-    }else if(areaTarget){  
-        dispatch({
-            type:"updateArea", 
-            load:{
-                ...areaTarget,
-                attachedTodosIds:uniq([
-                    draggedTodo._id,
-                    ...areaTarget.attachedTodosIds, 
-                ])
-            }
-        }); 
-    }else{ 
-        let nodes = [].slice.call(event.path);
-        for(let i=0; i<nodes.length; i++){
-            if(isCategory(nodes[i].id)){
-                dropTodoOnCategory({
-                    dispatch, 
-                    draggedTodo,
-                    projects,
-                    areas, 
-                    category:nodes[i].id,
-                    moveCompletedItemsToLogbook
-                });  
-            }
-        } 
-    } 
+    let {moveCompletedItemsToLogbook} = config;
+    let { project, area, category } = findDropTarget(event,projects,areas);
+    let updatedProjects = removeTodoFromProjects(projects,draggedTodo);
+    let updatedAreas = removeTodoFromAreas(areas,draggedTodo);
+
+    if(isCategory(category)){
+
+        return {
+            projects:updatedProjects,
+            areas:updatedAreas,
+            todo:dropTodoOnCategory({
+                draggedTodo, 
+                projects:updatedProjects,
+                areas:updatedAreas, 
+                category, 
+                moveCompletedItemsToLogbook
+            })
+        };
+
+    }else if(isProject(project)){
+
+        let idx = findIndex((p:Project) => project._id===p._id, updatedProjects);
+
+        return {
+            projects:adjust(
+                (p:Project) => ({ ...p, layout:[draggedTodo._id,...p.layout] }),
+                idx, 
+                updatedProjects
+            ),
+            areas:updatedAreas,
+            todo:null
+        };
+
+    }else if(isArea(area)){
+
+        let idx = findIndex((a:Area) => area._id===a._id, updatedAreas);
+
+        return {
+            projects:updatedProjects,
+            areas:adjust(
+                (area:Area) => ({
+                    ...area,
+                    attachedTodosIds:uniq([
+                        draggedTodo._id,
+                        ...area.attachedTodosIds, 
+                    ])
+                }),
+                idx,
+                updatedAreas
+            ),
+            todo:null
+        };
+    }
 };
 
 
@@ -360,7 +393,25 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){  
  
-            onDrop({event,draggedTodo,dispatch,areas,projects,moveCompletedItemsToLogbook}) 
+            let updated : { projects:Project[], areas:Area[], todo:Todo } = onDrop({
+                event, 
+                draggedTodo, 
+                areas, 
+                projects, 
+                config:{moveCompletedItemsToLogbook}
+            }); 
+
+            if(updated.projects){
+               dispatch({type:"updateProjects", load:updated.projects});
+            }
+
+            if(updated.areas){
+               dispatch({type:"updateAreas", load:updated.areas});
+            }
+            
+            if(updated.todo){
+               dispatch({type:"updateTodo", load:updated.todo});
+            }
 
         }else{     
             if(oldIndex===newIndex){ return }

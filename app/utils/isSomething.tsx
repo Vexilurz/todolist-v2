@@ -47,6 +47,7 @@ export let isString = (item) : boolean => typeof item==="string";
 
 
 export let isCategory = (category : Category) : boolean => { 
+    if(isNil(category)){ return false }
 
     let categories : Category[] = [
         "inbox" , "today" , "upcoming" , "next" , "someday" , 
@@ -89,6 +90,7 @@ export let isArrayOfProjects = (array:any[]) : boolean => {
 
 export let isArea = (area:Area) : boolean => {
     if(isNil(area)){ return false }
+    
     return area.type==="area"; 
 }
 

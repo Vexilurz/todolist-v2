@@ -257,57 +257,43 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
 
     addTodo = () => {
-        let todo : Todo = this.todoFromState();   
+        let todo : Todo = this.todoFromState(); 
+        if(isEmpty(todo.title)){ return };
+        let {selectedCategory,dispatch,selectedProjectId,selectedAreaId} = this.props;
+        let timeSeconds = Math.round(new Date().getTime() / 1000);
 
-        if(!isEmpty(todo.title)){
-            let timeSeconds = Math.round(new Date().getTime() / 1000);
+        googleAnalytics.send(  
+            'event', 
+            { 
+                ec:'TodoCreation', 
+                ea:`Todo Created ${new Date().toString()}`, 
+                el:'Todo Created', 
+                ev:timeSeconds 
+            }
+        )  
+        .then(() => console.log('Todo created')) 
+        .catch(err => this.onError(err)); 
 
-            googleAnalytics.send(  
-                'event', 
-                { 
-                   ec:'TodoCreation', 
-                   ea:`Todo Created ${new Date().toString()}`, 
-                   el:'Todo Created', 
-                   ev:timeSeconds 
-                }
-            )  
-            .then(() => console.log('Todo created')) 
-            .catch(err => this.onError(err)); 
+        let todos = [...this.props.todos].sort((a:Todo,b:Todo) => a.priority-b.priority);
     
-            let todos = [...this.props.todos].sort((a:Todo,b:Todo) => a.priority-b.priority);
+        if(not(isEmpty(todos))){ 
+            todo.priority = todos[0].priority - 1; 
+        }  
         
-            if(!isEmpty(todos)){ 
-                todo.priority = todos[0].priority - 1;
-            }  
-            
-            if(
-                this.props.selectedCategory==="today" || 
-                this.props.selectedCategory==="evening"
-            ){
-                todo = {...todo, attachedDate:new Date()}; 
-            }
-            
-            this.props.dispatch({type:"addTodo", load:todo}); 
+        dispatch({type:"addTodo", load:todo}); 
 
-            if(
-                not(isNil(todo.reminder))
-            ){
-                this.props.dispatch({type:"resetReminders"});  
-            }
+        if(not(isNil(todo.reminder))){ dispatch({type:"resetReminders"}) }
 
-            if(this.props.selectedCategory==="project"){ 
-
-                this.props.dispatch({ 
-                    type:"attachTodoToProject", 
-                    load:{ projectId:this.props.selectedProjectId, todoId:todo._id }
-                });    
-            }else if(this.props.selectedCategory==="area"){
-            
-                this.props.dispatch({
-                    type:"attachTodoToArea", 
-                    load:{ areaId:this.props.selectedAreaId, todoId:todo._id }
-                });  
-            }
+        if(selectedCategory==="project"){ 
+            dispatch({  
+                type:"attachTodoToProject", 
+                load:{ projectId:selectedProjectId, todoId:todo._id }
+            });    
+        }else if(selectedCategory==="area"){
+            dispatch({
+                type:"attachTodoToArea", 
+                load:{ areaId:selectedAreaId, todoId:todo._id }
+            });  
         }
     };  
 
@@ -491,7 +477,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
     onCalendarSomedayClick = (e) => {
         e.stopPropagation();
-        this.setState({category:"someday", attachedDate:null});
+        this.setState({category:"someday"});
     };
 
 

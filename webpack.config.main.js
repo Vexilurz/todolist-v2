@@ -1,24 +1,25 @@
-var path = require("path"); 
-var webpack = require('webpack');
-var CopyWebpackPlugin = require('copy-webpack-plugin');  
+const path = require("path"); 
+const webpack = require('webpack');
+const CopyWebpackPlugin = require('copy-webpack-plugin');  
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 module.exports = {     
     context: __dirname + "/app",
     
     entry: { 
         'main':'./main/main.ts',   
-    },    
-     
+    }, 
+
     output: {              
         filename : '[name].js' ,
         path : path.resolve(__dirname,"dist"),
         devtoolModuleFilenameTemplate: '[absolute-resource-path]' 
-    },      
- 
+    }, 
+
     resolve: { 
         extensions: [".ts",".js",".json"]
-    },   
-                 
+    },  
+
     module: {
         rules: [ 
           {   
@@ -49,6 +50,7 @@ module.exports = {
     devtool: 'sourcemap', 
 
     plugins:[ 
+        new CleanWebpackPlugin(['production']),
         new webpack.DefinePlugin({
           'process.env.NODE_ENV':JSON.stringify('development')
         }), 

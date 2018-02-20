@@ -158,6 +158,7 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
 interface UpcomingProps{
     limit:Date, 
     dispatch:Function,
+    clone:boolean,
     showCalendarEvents:boolean,
     selectedCategory:Category, 
     groupTodos:boolean, 
@@ -353,7 +354,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
 
     render(){ 
-        let {todos,projects,selectedTag,dispatch,selectedCategory} = this.props;
+        let {todos,projects,selectedTag,dispatch,selectedCategory,clone} = this.props;
         let tags = getTagsFromItems(todos);
 
         return <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}> 
@@ -366,14 +367,17 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                         selectedTag={selectedTag} 
                     />
                 </div>
-                <div className={`no-print`}>
-                    <Hint {
-                        ...{
-                            text:`These are your tasks for the next days. 
-                            Do you also want to include the events from your calendar?`
-                        } as any  
-                    }/>
-                </div> 
+                {
+                    clone ? null :
+                    <div className={`no-print`}>
+                        <Hint {
+                            ...{
+                                text:`These are your tasks for the next days. 
+                                Do you also want to include the events from your calendar?`
+                            } as any  
+                        }/>
+                    </div> 
+                }
                 <div>{this.state.objects.map(this.objectToComponent)}</div>
                 <div className={`no-print`} style={{width:"100%", height:"1px"}}> 
                     <Waypoint  

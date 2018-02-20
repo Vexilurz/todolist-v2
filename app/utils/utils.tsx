@@ -42,7 +42,7 @@ import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist';
 let moment = require("moment");
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { 
-    contains, isNil, all, prepend, isEmpty, last, not, assoc, 
+    contains, isNil, all, prepend, isEmpty, last, not, assoc, when,
     flatten, toPairs, map, compose, allPass, uniq, cond, remove 
 } from 'ramda'; 
 import { Store } from '.././app';
@@ -659,15 +659,13 @@ export let generateDropStyle = (id:string) : HTMLElement => {
 };
 
 
-export let removeHeading = (heading_id:string,project:Project) : Project => {
+export let removeHeading = (headingId:string,project:Project) : Project => {
     let layout = project.layout;
-    let idx = layout.findIndex((i:any) => isString(i) ? false : i._id===heading_id);
-    if(idx!==-1){
-        return {
-           ...project,
-           layout:remove(idx,1,layout)
-        };
-    }
+    let idx = layout.findIndex((i:any) => isString(i) ? false : i._id===headingId);
+    return when(
+        () => idx!==-1,
+        () => ({...project,layout:remove(idx,1,layout)})
+    )(project);
 }; 
 
 

@@ -4,7 +4,7 @@ import fs = require('fs');
 import {dialog,app,BrowserWindow,Menu,screen,globalShortcut,Tray,nativeImage} from 'electron';
 import { Listeners } from "./listeners";
 import { initWindow, initQuickEntry, initNotification } from "./initWindow";
-import { isNil, not, forEachObjIndexed, when, contains, compose, equals } from 'ramda';  
+import { isNil, not, forEachObjIndexed, when, contains, compose, equals, ifElse, reject } from 'ramda';  
 import { isDev } from './../utils/isDev';
 const os = require('os');
 const path = require("path");
@@ -19,7 +19,6 @@ export let notification : BrowserWindow;
 export let listeners : Listeners;  
 export let dateCalendar : BrowserWindow; 
 export let tray : Tray;
-
 
 storage.setDataPath(os.tmpdir());
 
@@ -40,7 +39,6 @@ const shouldQuit = app.makeSingleInstance(
         } 
     }
 );  
-
 
 
 export let getClonedWindows = () : BrowserWindow[] => {
@@ -94,63 +92,66 @@ let createTray = () : Tray => {
     let iconPath = path.join(__dirname,"icon.ico"); 
     let tray = null;
 
+
     if(fs.existsSync(iconPath)){
        tray = new Tray(iconPath);   
     }else{
        tray = new Tray(nativeImage.createEmpty()); 
     }   
     
+
+    let getWindows = () : BrowserWindow[] => {
+        let windows = BrowserWindow.getAllWindows();
+        let defaultWindowsTitles = ['Quick Entry','Notification'];
+
+        return reject(
+            compose(
+                (title:string) : boolean => contains(title)(defaultWindowsTitles),
+                (w:BrowserWindow) : string => w.getTitle()
+            ),
+            windows
+        )
+    };
+
+
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: 'Hide', 
-            type: 'normal', 
-            click:() => {
-                let windows = BrowserWindow.getAllWindows();
-                windows.forEach((w) => w.hide())
-            }     
+            label:'Hide', 
+            type:'normal', 
+            click:() => getWindows().forEach(w => w.hide()) 
         }, 
         {
-            label: 'Restore', 
-            type: 'normal',  
-            click:() => {
-                let windows = BrowserWindow.getAllWindows();
-                windows.forEach((w) => {
-                    if(w.getTitle()!=='Quick Entry'){ w.show() }
-                })
-            }
+            label:'Restore', 
+            type:'normal',  
+            click:() => getWindows().forEach(w => w.show()) 
         },
         {
             label:'Quit', 
             type: 'normal', 
             click:() => {
                 let windows = BrowserWindow.getAllWindows();
-                windows.forEach((w) => {w.destroy();});
+                windows.forEach((w) => w.destroy());
                 app.exit();
             }
         },
-    ])
+    ]);
+
 
     tray.on(
         'click', 
         () => {
-            let windows = BrowserWindow.getAllWindows();
-            if(mainWindow){
-                let visible : boolean = mainWindow.isVisible();
+            if(isNil(mainWindow)){ return }
 
-                if(visible){ 
-                    windows.forEach((w) => w.hide()); 
-                }else if(not(visible)){ 
-                    windows.forEach((w) => { 
-                        let title = w.getTitle();
-
-                        if(title!=='Quick Entry' && title!=='Notification'){ 
-                           w.show() 
-                        } 
-                    }); 
-                }
-            }
+            let visible : boolean = mainWindow.isVisible();
+            let windows = getWindows();
+            if(visible){ 
+               windows.forEach((w) => w.hide()); 
+            }else if(not(visible)){ 
+               windows.forEach((w) => w.show()); 
+            }  
         }
-    )
+    );
+
 
     tray.setToolTip(AppName);
     tray.setContextMenu(contextMenu);
@@ -165,7 +166,7 @@ let getWindowSize = () : {width:number,height:number} => {
     let width = mainWindowWidth*(workingArea.width/100); 
     let height = mainWindowHeight*(workingArea.height/100); 
  
-    if(!isDev()){ width = width <= 800 ? width : 800;} 
+    if(not(isDev())){ width = width <= 800 ? width : 800; } 
      
     return {width,height};  
 };  
@@ -180,7 +181,7 @@ let onReady = () => {
     tray = createTray();
     listeners = new Listeners(mainWindow); 
     
-
+    
     mainWindow = initWindow(
         getWindowSize(), 
         {  
@@ -202,7 +203,7 @@ let onReady = () => {
         height:300,
     }); 
 
- 
+
     mainWindow.on('show', ()=>tray.setToolTip(`Hide ${AppName}`));
     mainWindow.on('hide', ()=>tray.setToolTip(`Show ${AppName}`));
       
@@ -210,8 +211,8 @@ let onReady = () => {
     loadApp(mainWindow)  
     .then(() => {    
         mainWindow.webContents.send("loaded");
-        mainWindow.setMaximizable(true); 
-        mainWindow.minimize(); 
+        mainWindow.setMaximizable(true);
+        mainWindow.minimize();  
         
         if(isDev()){ mainWindow.webContents.openDevTools(); }  
     });    
@@ -227,9 +228,7 @@ let onReady = () => {
 
     loadNotification(notification)
     .then(
-        () => {
-            notification.webContents.send("loaded");
-        }
+        () => notification.webContents.send("loaded")
     );
 };               
   

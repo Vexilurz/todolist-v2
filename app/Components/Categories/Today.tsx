@@ -59,11 +59,9 @@ import { timeOfTheDay } from '../../utils/time';
 const storage = remote.require('electron-json-storage');
 
 
-
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map((item,index:number) => assoc("priority",index,item)) 
 }
-  
 
 
 class ThisEveningSeparator extends Component<{},{}>{
@@ -128,6 +126,7 @@ class ThisEveningSeparator extends Component<{},{}>{
 
 interface TodayProps{  
     dispatch:Function,
+    clone:boolean,
     groupTodos:boolean,
     showCalendarEvents:boolean,  
     selectedTodo:Todo, 
@@ -167,6 +166,7 @@ export class Today extends Component<TodayProps,TodayState>{
         super(props);
     }  
 
+
     calculateTodayAmount = (props:TodayProps) => {
         let {todos,dispatch} = this.props
 
@@ -182,19 +182,29 @@ export class Today extends Component<TodayProps,TodayState>{
             byNotDeleted  
         ]; 
 
-        dispatch({type:"todayAmount",load:todos.filter((t:Todo) => allPass(todayFilters)(t)).length});
-        dispatch({type:"hotAmount",load:todos.filter((t:Todo) => allPass(hotFilters)(t as (Project & Todo))).length});
+        dispatch({
+            type:"todayAmount",
+            load:todos.filter((t:Todo) => allPass(todayFilters)(t)).length
+        });
+        dispatch({
+            type:"hotAmount",
+            load:todos.filter((t:Todo) => allPass(hotFilters)(t as (Project & Todo))).length
+        });
     };
+
 
     onError = (error) => globalErrorHandler(error);
     
+
     componentDidMount(){ 
         this.calculateTodayAmount(this.props);
     };     
   
+
     componentWillReceiveProps(nextProps:TodayProps){
         this.calculateTodayAmount(nextProps); 
     };
+
 
     changeOrder = (oldIndex,newIndex,selected) => {
         let load = [];
@@ -218,8 +228,8 @@ export class Today extends Component<TodayProps,TodayState>{
         this.props.dispatch({type:"updateTodos", load});
     };
 
-    getItems = () : { items:(Todo|TodaySeparator)[], tags:string[] } => {
 
+    getItems = () : { items:(Todo|TodaySeparator)[], tags:string[] } => {
         let { todos, selectedTag } = this.props;
 
         let separator : TodaySeparator = { 
@@ -230,9 +240,8 @@ export class Today extends Component<TodayProps,TodayState>{
         };    
 
         let tags = getTagsFromItems(todos); 
-
-        let today = filter( todos, allPass([byTags(selectedTag), (t:Todo) => t.category!=="evening"]), "today" ); 
-        let evening = filter( todos, allPass([byTags(selectedTag), byCategory("evening")]), "evening" ); 
+        let today = filter(todos,allPass([byTags(selectedTag), (t:Todo) => t.category!=="evening"]),"today"); 
+        let evening = filter(todos,allPass([byTags(selectedTag), byCategory("evening")]),"evening"); 
         
         if(isEmpty(today) && isEmpty(evening)){ return {items:[],tags} }
  
@@ -241,8 +250,8 @@ export class Today extends Component<TodayProps,TodayState>{
         return {items,tags}
     };
   
-    getElement = (value:Todo | TodaySeparator, index:number) => {
 
+    getElement = (value:Todo | TodaySeparator, index:number) => {
         if(value.type==="separator"){ 
 
             return <div id={`today-separator`} key={`today-separator-key`}>
@@ -276,6 +285,7 @@ export class Today extends Component<TodayProps,TodayState>{
         }
     }; 
        
+
     shouldCancelStart = (e) => {
 
         let nodes = [].slice.call(e.path);
@@ -287,13 +297,16 @@ export class Today extends Component<TodayProps,TodayState>{
         }
            
         return false;
-    }; 
+    };
+
 
     onSortStart = (oldIndex:number,event:any) => { 
         this.props.dispatch({type:"dragged",load:"todo"});  
     };
 
-    onSortMove = (oldIndex:number,event:any) => { }; 
+
+    onSortMove = (oldIndex:number,event:any) => { };
+
  
     onSortEnd = (oldIndex:number,newIndex:number,event:any) => { 
         this.props.dispatch({type:"dragged",load:null});
@@ -310,19 +323,32 @@ export class Today extends Component<TodayProps,TodayState>{
         assert(isTodo(draggedTodo), `draggedTodo is not of type Todo. onSortEnd. ${draggedTodo}`);
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
-            onDrop({
+
+            let updated : { projects:Project[], areas:Area[], todo:Todo } = onDrop({
                 event, 
                 draggedTodo, 
-                dispatch, 
                 areas, 
                 projects, 
-                moveCompletedItemsToLogbook
+                config:{moveCompletedItemsToLogbook}
             }); 
+
+            if(updated.projects){
+               dispatch({type:"updateProjects", load:updated.projects});
+            }
+
+            if(updated.areas){
+               dispatch({type:"updateAreas", load:updated.areas});
+            }
+            
+            if(updated.todo){
+               dispatch({type:"updateTodo", load:updated.todo});
+            }
+            
         }else{     
             if(oldIndex===newIndex){ return }
             this.changeOrder(oldIndex,newIndex,items);  
         }     
-    }   
+    };   
     
 
     render(){ 
@@ -340,7 +366,8 @@ export class Today extends Component<TodayProps,TodayState>{
             selectedAreaId,
             selectedCategory,
             rootRef, 
-            selectedTodo  
+            selectedTodo,
+            clone  
         } = this.props;
         let { items, tags } = this.getItems();
         let empty = generateEmptyTodo(generateId(), "today", 0);  
@@ -421,14 +448,17 @@ export class Today extends Component<TodayProps,TodayState>{
                     show={true}  
                 />  
                 <TodaySchedule show={showCalendarEvents} events={events}/>  
-                <Hint 
-                    {
-                        ...{
-                        text:`These are your tasks for today. 
-                        Do you also want to include the events from your calendar?`
-                        } as any  
-                    } 
-                /> 
+                {  
+                    clone ? null :
+                    <Hint 
+                        {
+                            ...{
+                            text:`These are your tasks for today. 
+                            Do you also want to include the events from your calendar?`
+                            } as any  
+                        } 
+                    /> 
+                }
             </div>
             <div id="todos">  
                 <div className={`no-print`}>        
@@ -482,12 +512,6 @@ export class Today extends Component<TodayProps,TodayState>{
   } 
 }
 
- 
-
-
-
-
-
 
 
 interface TodayScheduleProps{
@@ -524,12 +548,12 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                 .map(  
                     (event) => 
                     <div   key={`event-${event.name}`} style={{padding:"10px"}}>
-                     <div style={{display:"flex",height:"20px",alignItems:"center"}}>
+                    <div style={{display:"flex",height:"20px",alignItems:"center"}}>
                         <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
                         <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
                             {event.name}  
                         </div>
-                     </div>
+                    </div>
                     </div> 
                 )  
             }

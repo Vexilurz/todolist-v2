@@ -264,12 +264,14 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
     
                 let project : Project = {...state.projects[idx]};  
 
-                if(
-                    not(contains(action.load.todoId)(project.layout as any))
-                ){  project.layout = [action.load.todoId, ...project.layout]; }
+                if(not(contains(action.load.todoId)(project.layout as any))){  
+                   project.layout = [action.load.todoId, ...project.layout]; 
+                }
       
-   
-                if(shouldAffectDatabase){ updateProject(project._id,project,onError) }
+                if(shouldAffectDatabase){ 
+                    updateProject(project._id,project,onError) 
+                }
+
                 return { 
                     ...state,
                     projects:adjust(() => project, idx, state.projects) 
@@ -289,7 +291,10 @@ export let applicationObjectsReducer = (state:Store, action) : Store => {
 
                 area.attachedTodosIds = uniq([action.load.todoId, ...area.attachedTodosIds]);
 
-                if(shouldAffectDatabase){ updateArea(area._id,area,onError) }
+                if(shouldAffectDatabase){ 
+                    updateArea(area._id,area,onError) 
+                }
+                
                 return { 
                     ...state, 
                     areas:adjust(() => area, idx, state.areas) 

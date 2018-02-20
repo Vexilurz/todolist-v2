@@ -3,7 +3,7 @@ import { mainWindow, getClonedWindows } from './main';
 import { loadApp } from './loadApp'; 
 import { ipcMain,app,BrowserWindow, screen } from 'electron';
 import { initWindow } from './initWindow';
-import { isEmpty } from 'ramda';
+import { isEmpty, when } from 'ramda';
 import { autoUpdater } from "electron-updater";
 
 const log = require("electron-log");
@@ -91,14 +91,12 @@ export class Listeners{
             },
             {
                 name:"quitAndInstall",
-                callback : (event) => {
-                    setImmediate(() => {
-                        app.removeAllListeners("window-all-closed");
-                        let windows = BrowserWindow.getAllWindows();
-                        windows.forEach(w => w.destroy());
-                        autoUpdater.quitAndInstall(true,true);
-                    })  
-                }
+                callback : (event) => setImmediate(() => {
+                    app.removeAllListeners("window-all-closed");
+                    let windows = BrowserWindow.getAllWindows();
+                    windows.forEach(w => w.destroy());
+                    autoUpdater.quitAndInstall(true,true);
+                })  
             }, 
             {
                 name:"closeClonedWindows",
@@ -139,11 +137,12 @@ export class Listeners{
                     let {id,action} = data;
                     type kind = "external";
                     let kind : kind = "external";
-                    let windows = getClonedWindows();
+                    let windows = BrowserWindow.getAllWindows();
 
-                    for(let i=0; i<windows.length; i++){
-                        windows[i].webContents.send("action", {...action, kind});
-                    }  
+                    windows.forEach(when(
+                        (w) => w.id!==id, //prevent sending action back to window in which it was created
+                        (w) => w.webContents.send("action", {...action, kind})
+                    ));
                 }
             }
         ];     

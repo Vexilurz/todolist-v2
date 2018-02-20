@@ -26,6 +26,7 @@ import ResizeObserver from 'resize-observer-polyfill';
 import { Observable } from 'rxjs/Rx';
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { isFunction, isDate } from '../utils/isSomething';
+import { timeOfTheDay } from '../utils/time';
 
 
 
@@ -88,7 +89,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
         if(not(inside)){
            this.props.close(); 
         }   
-    }   
+    };   
                
      
     render(){    
@@ -262,9 +263,6 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
         </Popover> 
     } 
 }  
-
- 
-
 
 
 
@@ -461,6 +459,7 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                         isDate(reminder) ? 
                         <ClearReminderButton 
                             clearReminder={(e) => this.props.onRemoveReminder()}
+                            reminder={reminder}
                             disable={isNil(this.props.reminder)}
                         />
                         :     
@@ -497,7 +496,7 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
 interface AddReminderButtonProps{
     openReminderInput:Function,
     disable:boolean 
-}
+} 
 
 
 class AddReminderButton extends Component<AddReminderButtonProps,{}>{
@@ -520,13 +519,11 @@ class AddReminderButton extends Component<AddReminderButtonProps,{}>{
               marginRight:"15px"  
             }}  
         >       
-            <Plus  
-                style={{       
-                  color:disable ? "rgba(70,70,70,0.5)" : "white",    
-                  width:"25px", 
-                  height:"25px"     
-                }} 
-            />   
+            <Plus style={{       
+                color:disable ? "rgba(70,70,70,0.5)" : "white",    
+                width:"25px", 
+                height:"25px"     
+            }}/>   
             <div style={{
                 fontFamily:"sans-serif",
                 fontWeight:600, 
@@ -545,9 +542,9 @@ class AddReminderButton extends Component<AddReminderButtonProps,{}>{
 
 interface ClearReminderButtonProps{
     clearReminder:Function,
+    reminder:Date,
     disable:boolean
 }
-
 
 class ClearReminderButton extends Component<ClearReminderButtonProps,{}>{
 
@@ -556,44 +553,37 @@ class ClearReminderButton extends Component<ClearReminderButtonProps,{}>{
     }
 
     render(){
-        let {disable,clearReminder} = this.props;
+        let {disable,clearReminder,reminder} = this.props;
 
         return <div  
             className={disable ? "" : "hoverDateType"}
             onClick={(e) => disable ? null : clearReminder()} 
             style={{
-              display:"flex", 
-              cursor:"default", 
-              alignItems:"center",    
-              marginLeft:"15px", 
-              marginRight:"15px"  
+                display:"flex", 
+                cursor:"default", 
+                alignItems:"center",    
+                marginLeft:"15px", 
+                marginRight:"15px"  
             }}  
         >       
-            <Minus  
-                style={{       
-                  color:disable ? "rgba(70,70,70,0.5)" : "white",    
-                  width:"25px", 
-                  height:"25px"     
-                }} 
-            />   
+            <Minus style={{       
+                color:disable?"rgba(70,70,70,0.5)":"white",    
+                width:"25px", 
+                height:"25px"     
+            }}/>   
             <div style={{
                 fontFamily:"sans-serif",
                 fontWeight:600, 
-                color:disable ? "rgba(70,70,70,0.5)" : "white",  
+                color:disable?"rgba(70,70,70,0.5)":"white",  
                 fontSize:"15px",  
                 cursor:"default",
                 WebkitUserSelect:"none"   
             }}> 
-                Remove reminder  
+                Remove reminder at {timeOfTheDay(reminder)}
             </div>      
         </div>  
     }
 } 
-
-
-
-
-
 
 
  
@@ -607,42 +597,46 @@ interface DeadlineCalendarProps{
     onClear : (e:any) => void,
     rootRef : HTMLElement 
 }   
-  
 
 interface DeadlineCalendarState{} 
   
 export class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCalendarState>{
-
-    ref:HTMLElement;
-
+    subscriptions:Subscription[];
+    ref:HTMLElement; 
+    
     constructor(props){
         super(props);
-    }   
+        this.subscriptions = [];
+    }
 
 
     componentDidMount(){ 
-        document.body.addEventListener("click", this.onOutsideClick);
+        let click = Observable
+                    .fromEvent(document.body,"click")
+                    .subscribe(this.onOutsideClick); 
+         
+        this.subscriptions.push(click);
     }
 
- 
+
     componentWillUnmount(){
-        document.body.removeEventListener("click", this.onOutsideClick);
+        this.subscriptions.map(s => s.unsubscribe());
+        this.subscriptions = []; 
     } 
   
 
     onOutsideClick = (e) => {
-        if(this.ref===null || this.ref===undefined)
-            return; 
+        if(isNil(this.ref)){ return }
 
         let x = e.pageX;
         let y = e.pageY; 
 
         let inside = insideTargetArea(null,this.ref,x,y);
     
-        if(!inside){
-            this.props.close(); 
+        if(not(inside)){
+           this.props.close(); 
         }   
-    }   
+    };   
                
       
     render(){  
@@ -689,15 +683,8 @@ export class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCa
                 </div> 
                 <RaisedButton
                     onClick={this.props.onClear}
-                    style={{
-                        margin:"15px",  
-                        color:"white", 
-                        backgroundColor:"rgb(49,53,63)"
-                    }} 
-                    buttonStyle={{  
-                        color:"white",  
-                        backgroundColor:"rgb(49,53,63)"
-                    }}
+                    style={{margin:"15px",color:"white",backgroundColor:"rgb(49,53,63)"}} 
+                    buttonStyle={{color:"white",backgroundColor:"rgb(49,53,63)"}}
                 >
                     Clear 
                 </RaisedButton>
