@@ -8,7 +8,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, byTags, 
     byNotCompleted, byNotDeleted, byCategory, getTagsFromItems, 
-    attachEmptyTodo, isToday, groupObjects 
+    attachEmptyTodo, isToday
 } from "../../utils/utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -68,13 +68,6 @@ interface NextState{};
  
 type Item = Area | Project | Todo;
 
-export interface Table{
-    [key:string]:Item[],
-    projects : Project[],
-    areas : Area[],
-    todos : Todo[],
-    detached : Todo[] 
-}
  
 export class Next extends Component<NextProps, NextState>{
     projectsFilters : ((p:Project) => boolean)[];

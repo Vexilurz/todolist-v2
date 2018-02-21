@@ -6,9 +6,8 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, byTags, 
-    byNotCompleted, byNotDeleted, byCategory, getTagsFromItems, 
-    attachEmptyTodo, isToday, groupObjects 
+    attachDispatchToProps, byTags, byNotCompleted, byNotDeleted, byCategory, 
+    getTagsFromItems, attachEmptyTodo, isToday
 } from "./../utils/utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
@@ -34,7 +33,7 @@ import { TodosList } from './TodosList';
 import { ContainerHeader } from './ContainerHeader';
 import { Tags } from './Tags';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
-import { uniq, allPass, isEmpty, isNil, not, any, contains, all } from 'ramda';
+import { uniq, allPass, isEmpty, isNil, not, any, contains, all, compose, groupBy, cond, defaultTo } from 'ramda';
 import { TodoInput } from './TodoInput/TodoInput';
 import { ProjectLink } from './Project/ProjectLink';
 import { Category } from './MainContainer';
@@ -42,7 +41,11 @@ import { AreaLink } from './Area/AreaLink';
 import { TodoCreationForm } from './TodoInput/TodoCreation';
 import { generateId } from './../utils/generateId';
 import { generateEmptyTodo } from './../utils/generateEmptyTodo';
-import { isString, isDate } from '../utils/isSomething';
+import { isString, isDate, Item, isProject } from '../utils/isSomething';
+import { groupProjectsByArea, generateLayout } from './Area/AreasList';
+
+
+
 
 interface GroupsByProjectAreaProps{
     dispatch:Function, 
@@ -88,50 +91,67 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
 
 
     render(){
+        let {projects, projectsFilters, areasFilters, areas, todos, selectedTag, selectedCategory} = this.props;
+ 
+        let selectedProjects = projects.filter(allPass(projectsFilters));
+        let selectedAreas = areas.filter(allPass(areasFilters));
+             
+        let conditions : [(todo:Todo) => boolean, (todo:Todo) => string][] = [
+            ...selectedProjects.map(
+                (project:Project) : [(todo:Todo) => boolean,(todo:Todo) => string] => [
+                   (todo:Todo) : boolean => contains(todo._id)(project.layout),
+                   (todo:Todo) : string => project._id
+                ]
+            ),
+            ...selectedAreas.map(
+                (area:Area) : [(todo:Todo) => boolean,(todo:Todo) => string] => [
+                   (todo:Todo) : boolean => contains(todo._id)(area.attachedTodosIds),
+                   (todo:Todo) : string => area._id
+                ]
+            ), 
+            [() => true, () => `detached`]
+        ];  
 
-        let { 
-            projects, projectsFilters, areasFilters, areas, todos, selectedTag, selectedCategory 
-        } = this.props;
 
-        let table = groupObjects(  
-            projects, 
-            areas, 
-            todos, 
-            projectsFilters,
-            areasFilters,
-            [],
-            selectedTag
-        );
+        //Projects sorted according to order in LeftPanel -> AreasList component
+        let sortedProjects : Project[] = compose(
+            (layout:any[]) => layout.filter(isProject),
+            ({table,detached}) => generateLayout(selectedAreas,{table, detached}),
+            () => groupProjectsByArea(selectedProjects,selectedAreas)
+        )();
 
-        return <div>
-        <div>
-            {
-                isEmpty(table.detached) ? null :
-                <TodosList            
-                    dispatch={this.props.dispatch}     
-                    areas={this.props.areas}
-                    sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
-                    groupTodos={this.props.groupTodos}
-                    selectedTodo={this.props.selectedTodo}
-                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                    projects={this.props.projects}
-                    selectedCategory={this.props.selectedCategory} 
-                    selectedAreaId={this.props.selectedAreaId}
-                    selectedProjectId={this.props.selectedProjectId}
-                    selectedTag={this.props.selectedTag}  
-                    rootRef={this.props.rootRef}
-                    todos={table.detached}  
-                /> 
-            }
-        </div>  
+        //Filtered todos grouped by areas and projects
+        let result : {[key: string]: Todo[];} = groupBy(cond(conditions),todos.filter(byTags(selectedTag)));
+
+        //Filtered todos which doesnt belong to any area or project
+        let detached = defaultTo([])(result.detached); 
+
+        return <div> 
+        {
+            isEmpty(detached) ? null :
+            <TodosList            
+                dispatch={this.props.dispatch}     
+                areas={this.props.areas}
+                sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
+                groupTodos={this.props.groupTodos}
+                selectedTodo={this.props.selectedTodo}
+                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                projects={this.props.projects}
+                selectedCategory={this.props.selectedCategory} 
+                selectedAreaId={this.props.selectedAreaId}
+                selectedProjectId={this.props.selectedProjectId}
+                selectedTag={this.props.selectedTag}  
+                rootRef={this.props.rootRef}
+                todos={detached}  
+            /> 
+        } 
         <div style={{paddingTop:"10px", paddingBottom:"10px", WebkitUserSelect:"none"}}> 
         {     
-            table.projects
-            .sort((a:Project, b:Project) => a.priority-b.priority)
+            sortedProjects
             .map( 
                 (project:Project, index:number) : JSX.Element => {
                     let category = this.props.selectedCategory;
-                    let todos = table[project._id] as Todo[];
+                    let todos = defaultTo([])(result[project._id]) as Todo[];
                     let hide = isNil(project.hide) ? false : contains(category)(project.hide); 
                     let allCompleted = all((todo:Todo) => isDate(todo.completedWhen), todos);
                     let dontShow : boolean = isEmpty(todos) || hide || allCompleted;
@@ -162,9 +182,12 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         </div>
         <div style={{paddingTop:"10px", paddingBottom:"10px", WebkitUserSelect:"none"}}> 
             {  
-                table.areas.map(
+                selectedAreas 
+                .sort((a:Area, b:Area) => a.priority-b.priority)
+                .map(
                     (a:Area, index:number) : JSX.Element => {
-                        let todos = table[a._id] as Todo[];
+                        let todos = defaultTo([])(result[a._id]) as Todo[]; 
+
                         return isEmpty(todos) ? null : 
                         <div key={`area${index}`}>
                             <AreaLink {...{area:a} as any}/> 
@@ -242,7 +265,6 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
         return <div>          
                 <TodosList  
                     todos={sortedSliced}
-
                     dispatch={this.props.dispatch}     
                     sortBy={this.props.sortBy}
                     selectedCategory={this.props.selectedCategory} 

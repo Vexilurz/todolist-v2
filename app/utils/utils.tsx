@@ -50,7 +50,6 @@ import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
 let ical = require('ical.js');
 import axios from 'axios';
-import { Table } from '.././Components/Categories/Next';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 import { globalErrorHandler } from './globalErrorHandler';
 import {generateId} from './generateId';
@@ -1221,78 +1220,6 @@ export let todoToKeywords = (t:Todo) : string[] => {
     let attachedTags = flatten( t.attachedTags.map((tag) => toWords(tag)) );                                 
       
     return [].concat.apply([], [ keywords, attachedTags ]);
-}; 
-
-
-let collectProjects = (projects:Project[], projectsFilters, table:Table) : Table => {
-    for(let i=0;  i<projects.length; i++){
-        let project : Project = projects[i]; 
-
-        if( allPass(projectsFilters)(project) ){
-           table[project._id] = [];
-           table.projects.push(project);  
-        }
-    };
-    return table;
-};  
-
-
-let collectAreas = (areas:Area[], areasFilters, table:Table) : Table => {
-    for(let i=0; i<areas.length; i++){
-        let area : Area = areas[i]; 
-        
-        if( allPass(areasFilters)(area) ){
-           table[area._id] = [];
-           table.areas.push(area);
-        }
-    };
-    return table;
-};
-
-
-export let groupObjects = (
-    projects:Project[],areas:Area[],todos:Todo[],
-    projectsFilters,areasFilters,todosFilters,
-    selectedTag:string 
-) : Table => { 
-
-    let table : Table = {  
-        projects : [],
-        areas : [],
-        todos : [],
-        detached : []   
-    };  
-
-    table = collectProjects(projects,projectsFilters,table);
-    table = collectAreas(areas,areasFilters,table);
-
-    for(let i = 0; i<todos.length; i++){
-        let todo : Todo = todos[i]; 
-
-        if(!allPass([byTags(selectedTag), ...todosFilters])(todo)){ continue }  
-          
-        table.todos.push(todo);  
-
-        let attached = false;
-
-        let project : Project = table.projects.find( (p:Project) => contains(todo._id)(p.layout as any) )    
-        
-        if(!isNil(project)){  
-            table[project._id].push(todo);
-            attached = true; 
-        } 
-      
-        let area : Area = table.areas.find( (a:Area) => contains(todo._id)(a.attachedTodosIds) )  
-        
-        if(!isNil(area)){
-            table[area._id].push(todo);
-            attached = true; 
-        }
-
-        if(not(attached)){ table.detached.push(todo) }; 
-    }
-
-    return table; 
 }; 
 
 

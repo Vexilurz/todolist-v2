@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, byNotCompleted, byNotDeleted, 
-    getTagsFromItems, attachEmptyTodo, groupObjects
+    getTagsFromItems, attachEmptyTodo
 } from "../../utils/utils";  
 import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none'; 

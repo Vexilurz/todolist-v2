@@ -30,7 +30,6 @@ const mapIndexed = addIndex(map);
 const isSeparator = (item) => item.type==="separator"; 
      
 
-
 export let removeFromArea = (dispatch:Function, fromArea:Area, selectedProject:Project) : void => {
     let idx = fromArea.attachedProjectsIds.findIndex((id:string) => id===selectedProject._id);  
 
@@ -40,8 +39,79 @@ export let removeFromArea = (dispatch:Function, fromArea:Area, selectedProject:P
      
     fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
     dispatch({type:"updateArea", load:fromArea});  
-}
+};
 
+
+
+export let groupProjectsByArea = (projects:Project[],areas:Area[]) : {
+    table : { [key: string]: Project[]; }, 
+    detached:Project[]  
+} => {
+    let table = {};
+    let detached : Project[] = [];
+
+    for(let i=0; i<areas.length; i++){
+        table[areas[i]._id] = [];
+    }  
+     
+    for(let i=0; i<projects.length; i++){
+        let projectId = projects[i]._id;
+        let haveArea = false;
+
+        for(let j=0; j<areas.length; j++){
+            let attachedProjectsIds : string[] = areas[j].attachedProjectsIds;
+
+            if(contains(projectId,attachedProjectsIds)){
+               let key = areas[j]._id;
+               table[key].push(projects[i]);
+               haveArea = true;
+               break; 
+            }
+        } 
+
+        if(not(haveArea)){
+           detached.push(projects[i]);
+        }
+    }   
+
+    return {table,detached};
+};
+
+
+
+export let generateLayout = (  
+    Areas : Area[],
+    { table, detached } : { table : { [key: string]: Project[]; }, detached:Project[] } 
+) : LayoutItem[] => { 
+
+    let areas : Area[] = Areas
+                          .filter(byNotDeleted)
+                          .sort((a:Area,b:Area) => a.priority-b.priority);
+                         
+    let layout : LayoutItem[] = [];
+
+    for(let i = 0; i<areas.length; i++){
+        let key : string = areas[i]._id;  
+
+        let attachedProjects : Project[] = table[key].sort((a:Project,b:Project) => a.priority-b.priority);
+
+        layout.push(areas[i]);
+         
+        for(let j=0; j<attachedProjects.length; j++){
+            layout.push(attachedProjects[j]);
+        }
+    }
+
+    layout.push({type:"separator", _id:"separator"});
+     
+    detached = detached.sort((a:Project, b:Project) => a.priority-b.priority);
+
+    for(let i=0; i<detached.length; i++){
+        layout.push(detached[i])
+    }
+
+    return layout; 
+} 
 
 
 interface AreasListProps{   
@@ -82,82 +152,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     }
 
 
-    groupProjectsByArea = (
-        Projects:Project[],
-        Areas:Area[]
-    ) : {
-        table : { [key: string]: Project[]; }, 
-        detached:Project[]  
-    } => {
-        let projects : Project[] = Projects.filter( allPass([byNotDeleted,byNotCompleted]) );
-        let areas : Area[] = Areas.filter( byNotDeleted );
-        let table = {};
-        let detached : Project[] = [];
-
-        for(let i=0; i<areas.length; i++){
-            table[areas[i]._id] = [];
-        }  
-         
-        for(let i=0; i<projects.length; i++){
-            let projectId = projects[i]._id;
-            let haveArea = false;
-
-            for(let j=0; j<areas.length; j++){
-                  
-                let attachedProjectsIds : string[] = areas[j].attachedProjectsIds;
-  
-                if(contains(projectId,attachedProjectsIds)){
-                   let key = areas[j]._id;
-                   table[key].push(projects[i]);
-                   haveArea = true;
-                   break; 
-                }
-            } 
-
-            if(!haveArea){
-               detached.push(projects[i])
-            }
-        }   
-
-        return {table,detached};
-    }
-
-
-    generateLayout = (  
-        { table, detached } : { table : { [key: string]: Project[]; }, detached:Project[] } 
-    ) : LayoutItem[] => { 
-
-        let areas : Area[] = this.props
-                                 .areas
-                                 .filter(byNotDeleted)
-                                 .sort((a:Area,b:Area) => a.priority-b.priority);
-                             
-        let layout : LayoutItem[] = [];
-
-        for(let i = 0; i<areas.length; i++){
-            let key : string = areas[i]._id;  
-
-            let attachedProjects : Project[] = table[key].sort((a:Project,b:Project) => a.priority-b.priority);
-
-            layout.push(areas[i]);
-             
-            for(let j=0; j<attachedProjects.length; j++){
-                layout.push(attachedProjects[j]);
-            }
-        }
-
-        layout.push({type:"separator", _id:"separator"});
-         
-        detached = detached.sort((a:Project, b:Project) => a.priority-b.priority);
-
-        for(let i=0; i<detached.length; i++){
-            layout.push(detached[i])
-        }
- 
-        return layout; 
-    } 
- 
- 
     getAreaElement = (a : Area, index : number) : JSX.Element => {
         return <AreaElement 
             area={a}
@@ -226,8 +220,12 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
         let {dispatch,projects,areas} = this.props;
-        let {table,detached} = this.groupProjectsByArea(projects,areas);
-        let layout = this.generateLayout({table,detached}); 
+
+        let {table,detached} = groupProjectsByArea(
+            projects.filter( allPass([byNotDeleted,byNotCompleted]) ),
+            areas.filter( byNotDeleted )
+        );
+        let layout = generateLayout(this.props.areas,{table,detached}); 
 
         if(isEmpty(layout)){ return }
 
@@ -337,8 +335,11 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     render(){ 
         let scrollableContainer = document.getElementById("leftpanel");
         let {projects,areas} = this.props;
-        let {table,detached} = this.groupProjectsByArea(projects,areas);
-        let layout = this.generateLayout({table,detached}); 
+        let {table,detached} = groupProjectsByArea(
+            projects.filter( allPass([byNotDeleted,byNotCompleted]) ),
+            areas.filter( byNotDeleted )
+        );
+        let layout = generateLayout(this.props.areas,{table,detached}); 
 
         return <div   
             id="areas"

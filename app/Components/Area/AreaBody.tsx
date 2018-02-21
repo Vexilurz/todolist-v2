@@ -92,7 +92,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         return <div ref={(e) => {this.ref=e;}}> 
             <GroupsByProjectArea
                 projectsFilters={projectsFilters}
-                areasFilters={[]}
+                areasFilters={[byNotDeleted]}
                 dispatch={dispatch} 
                 selectedTodo={selectedTodo}
                 selectedProjectId={selectedProjectId}

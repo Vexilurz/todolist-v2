@@ -434,18 +434,9 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                
 
         return <div style={{
-            display:"flex",
-            flexDirection:"column", 
-            paddingTop:"5px", 
-            paddingBottom:"5px",
-            WebkitUserSelect: "none" 
+            display:"flex",flexDirection:"column",paddingTop:"5px",paddingBottom:"5px",WebkitUserSelect: "none" 
         }}> 
-                <div style={{  
-                    width:"100%",
-                    display:"flex",
-                    alignItems:"center",
-                    WebkitUserSelect:"none" 
-                }}>  
+                <div style={{width:"100%",display:"flex",alignItems:"center",WebkitUserSelect:"none"}}>  
                     <div style={{width:"50px",fontWeight:900,fontSize:"35px",userSelect:"none"}}>
                         {day} 
                     </div>  
