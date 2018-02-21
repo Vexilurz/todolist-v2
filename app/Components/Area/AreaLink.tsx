@@ -6,7 +6,7 @@ import { Component } from "react";
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area, Todo } from '../../database';
-import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
+import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import { attachDispatchToProps } from '../../utils/utils'; 
 import Restore from 'material-ui/svg-icons/content/undo';
 import { contains, isEmpty } from 'ramda';
@@ -48,7 +48,7 @@ export class AreaLink extends Component<AreaLinkProps,AreaLinkState>{
                 }}
             >       
                 <div style={{display:"flex",alignItems:"center"}}>
-                    <NewAreaIcon style={{color:"lightblue", width:"26px", height:"26px"}}/> 
+                    <NewAreaIcon style={{color:"lightblue", width:"22px", height:"22px"}}/> 
                 </div>
                 <div style={{
                     overflowX:"hidden",
@@ -117,7 +117,7 @@ export class AreaTrashLink extends Component<AreaTrashLinkProps,AreaTrashLinkSta
                     <Restore style={{width:"20px", height:"20px"}}/> 
                 </div>  
                 <div style={{display:"flex",alignItems:"center"}}>
-                    <NewAreaIcon style={{color:"lightblue", width:"26px", height:"26px"}}/> 
+                    <NewAreaIcon style={{color:"lightblue", width:"22px", height:"22px"}}/> 
                 </div>
                 <div style={{
                     overflowX:"hidden",

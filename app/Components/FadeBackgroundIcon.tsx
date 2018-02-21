@@ -26,7 +26,7 @@ import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize';
 import Star from 'material-ui/svg-icons/toggle/star'; 
-import BusinessCase from 'material-ui/svg-icons/places/business-center';
+import BusinessCase from 'material-ui/svg-icons/content/archive';
 import Layers from 'material-ui/svg-icons/maps/layers';
 import Trash from 'material-ui/svg-icons/action/delete';
 import Logbook from 'material-ui/svg-icons/av/library-books';

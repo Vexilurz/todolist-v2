@@ -14,7 +14,7 @@ import Alert from 'material-ui/svg-icons/alert/add-alert';
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import DayPicker from 'react-day-picker';  
 import Popover from 'material-ui/Popover';
-import BusinessCase from 'material-ui/svg-icons/places/business-center';  
+import BusinessCase from 'material-ui/svg-icons/content/archive';  
 import RaisedButton from 'material-ui/RaisedButton';
 import { Category } from './MainContainer';  
 import Clear from 'material-ui/svg-icons/content/clear'; 

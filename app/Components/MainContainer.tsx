@@ -10,7 +10,7 @@ import {
     convertTodoDates, convertProjectDates, convertAreaDates, oneDayAhead, measureTime, 
     byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
     byCompleted, isToday, byNotSomeday, byScheduled, yearFromNow, timeDifferenceHours, 
-    isNewVersion, addIntroList, printElement, inFuture
+    isNewVersion, getIntroList, printElement, inFuture, introListIds
 } from "../utils/utils";  
 import {isDev} from "../utils/isDev"; 
 import { connect } from "react-redux"; 
@@ -54,7 +54,7 @@ import {
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 import { generateRandomDatabase } from '../utils/generateRandomObjects';
 import { updateConfig, clearStorage } from '../utils/config';
-import { isNotArray, isDate } from '../utils/isSomething';
+import { isNotArray, isDate, isTodo } from '../utils/isSomething';
 import { scheduleReminder } from '../utils/scheduleReminder';
 import { debounce } from 'lodash';
 const Promise = require('bluebird');   
@@ -147,13 +147,19 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
             dispatch({type:"setAreas", load:areas});
             dispatch({type:"setTodos", load:selected});
 
-            if(firstLaunch){ addIntroList(dispatch) }; 
+            if(firstLaunch){  
+                console.log(`first launch`);
+                let introList = getIntroList();
+                let { layout } = introList;
+                dispatch({type:"addTodos",load:layout.filter(isTodo)});
+                dispatch({type:"addProject",load:introList}) 
+            }; 
             return updateCalendars(calendars,onError);
         }
     )
     .then( 
         (calendars) => {  
-            dispatch({type:"setCalendars", load:calendars});
+            dispatch({type:"setCalendars",load:calendars});
             return calendars; 
         } 
     )
@@ -482,18 +488,21 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 (selectedCategory:Category) : boolean => 'next'===selectedCategory,  
                                 () => {
                                     let {groupTodos} = this.props;
+                                    let byIntroList = (item : (Project | Todo)) : boolean => contains(item._id)(introListIds);
+                                    let byNotIntroList = compose(not, byIntroList);
                                     let nextFilters = [
                                         (t:Todo) => not(isToday(t.attachedDate)) && not(isToday(t.deadline)),
                                         (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
                                         (t:Todo) => t.category!=="inbox",  
                                         (t:Todo) => t.category!=="someday",  
-                                        byNotCompleted,  
+                                        byNotIntroList,
+                                        byNotCompleted,   
                                         byNotDeleted   
                                     ]; 
 
                                     let selectedTodos = filter(todos, allPass(nextFilters), "");
 
-                                    if(groupTodos){
+                                    if(groupTodos){ 
                                         let hidden = filter(
                                            projects, 
                                            (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide),
@@ -514,8 +523,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         rootRef={this.rootRef}
                                         selectedProjectId={this.props.selectedProjectId}
                                         selectedAreaId={this.props.selectedAreaId} 
-                                        areas={this.props.areas}
-                                        projects={this.props.projects} 
+                                        areas={this.props.areas} 
+                                        projects={this.props.projects.filter(byNotIntroList)} 
                                     />
                                 }
                             ], 

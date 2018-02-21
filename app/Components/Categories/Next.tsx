@@ -150,41 +150,41 @@ export class Next extends Component<NextProps, NextState>{
                         /> 
                     </div> 
                     <div>
-                            {
-                                groupTodos ? 
-                                <GroupsByProjectArea
-                                    dispatch={this.props.dispatch} 
-                                    selectedTodo={this.props.selectedTodo}
-                                    selectedAreaId={this.props.selectedAreaId}
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    groupTodos={this.props.groupTodos}
-                                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                                    selectedCategory={this.props.selectedCategory}  
-                                    selectedTag={this.props.selectedTag}  
-                                    rootRef={this.props.rootRef}
-                                    areas={this.props.areas}
-                                    projectsFilters={[byNotCompleted, byNotDeleted]}
-                                    areasFilters={[byNotDeleted]}
-                                    projects={this.props.projects} 
-                                    todos={todos} 
-                                />
-                                :
-                                <TodosList            
-                                    dispatch={this.props.dispatch}     
-                                    selectedTodo={this.props.selectedTodo}
-                                    sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
-                                    areas={this.props.areas}
-                                    groupTodos={this.props.groupTodos}
-                                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                                    projects={this.props.projects}
-                                    selectedCategory={this.props.selectedCategory} 
-                                    selectedAreaId={this.props.selectedAreaId}
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    selectedTag={this.props.selectedTag}  
-                                    rootRef={this.props.rootRef}
-                                    todos={todos}  
-                                />  
-                            } 
+                    {
+                        groupTodos ? 
+                        <GroupsByProjectArea
+                            dispatch={this.props.dispatch} 
+                            selectedTodo={this.props.selectedTodo}
+                            selectedAreaId={this.props.selectedAreaId}
+                            selectedProjectId={this.props.selectedProjectId}
+                            groupTodos={this.props.groupTodos}
+                            moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                            selectedCategory={this.props.selectedCategory}  
+                            selectedTag={this.props.selectedTag}  
+                            rootRef={this.props.rootRef}
+                            areas={this.props.areas}
+                            projectsFilters={[byNotCompleted, byNotDeleted]}
+                            areasFilters={[byNotDeleted]}
+                            projects={this.props.projects} 
+                            todos={todos} 
+                        />
+                        :
+                        <TodosList            
+                            dispatch={this.props.dispatch}     
+                            selectedTodo={this.props.selectedTodo}
+                            sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
+                            areas={this.props.areas}
+                            groupTodos={this.props.groupTodos}
+                            moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                            projects={this.props.projects}
+                            selectedCategory={this.props.selectedCategory} 
+                            selectedAreaId={this.props.selectedAreaId}
+                            selectedProjectId={this.props.selectedProjectId}
+                            selectedTag={this.props.selectedTag}  
+                            rootRef={this.props.rootRef}
+                            todos={todos}  
+                        />  
+                    } 
                     </div> 
                 </div> 
     }

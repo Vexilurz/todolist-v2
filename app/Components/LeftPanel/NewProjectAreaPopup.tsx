@@ -10,10 +10,9 @@ import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
 import CheckBox from 'material-ui/svg-icons/toggle/check-box'; 
-import BusinessCase from 'material-ui/svg-icons/places/business-center';
+import BusinessCase from 'material-ui/svg-icons/content/archive';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
-import Layers from 'material-ui/svg-icons/maps/layers';
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
@@ -25,7 +24,7 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books'; 
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
-import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
+import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import Popover from 'material-ui/Popover'; 
   
 
@@ -84,7 +83,7 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
                  <p style={{margin:"0px",paddingTop:"10px",color:"aliceblue",fontFamily:"sans-serif"}}>
                      Define a goal, 
                      then work towards it 
-                     one to-do at a time.  
+                     one task at a time.  
                  </p> 
              </div> 
          </div>
@@ -93,7 +92,7 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
          onClick = {this.props.onNewAreaClick}
          className="newprojectitem" 
          style={{display:"flex",alignItems: "flex-start",padding:"7px"}}> 
-             <NewAreaIcon style={{color:"lightblue", width:"54px"}}/> 
+             <NewAreaIcon style={{color:"lightblue", width:"40px", height:"25px"}}/> 
              <div style={{
                  display: "flex",
                  flexDirection: "column",
@@ -111,7 +110,7 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
                      fontFamily:"sans-serif",
                      width:"85%"  
                  }}>
-                     Group your projects and to-dos
+                     Group your projects and tasks
                      based on different responsibilities,
                      such as Family or Work. 
                  </p> 

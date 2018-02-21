@@ -76,7 +76,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
     closeMenu = () => this.props.dispatch({type:"showProjectMenuPopover", load:false})
       
     updateProject = (selectedProject:Project, updatedProps) : void => { 
-        this.props.dispatch({type:"updateProject", load:{ ...selectedProject, ...updatedProps }})
+        let {dispatch} = this.props;
+        dispatch({type:"updateProject", load:{ ...selectedProject, ...updatedProps }})
     }   
   
     onRepeat = (e) => { 
@@ -93,7 +94,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
 
     onAddDeadline = (e) => { 
         this.closeMenu(); 
-        this.props.openDeadlineCalendar();  
+        this.props.openDeadlineCalendar();   
     }   
 
     onDuplicate = (e) => {   
@@ -158,21 +159,21 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
     }
 
     onRestoreVisibility = (category:Category, project:Project) => {
+        let {dispatch} = this.props;
         let hide = [...project.hide];
         let idx = hide.indexOf(category);
         if(idx===-1){ return }
-        this.props.dispatch({
+        dispatch({
             type:"updateProject", 
-            load:{ 
-                ...project,
-                hide:remove(idx, 1, [...project.hide]) 
-            }
+            load:{ ...project, hide:remove(idx, 1, [...project.hide]) }
         }) 
     }
      
- 
-    render(){  
-        let {project,showProjectMenuPopover} = this.props;
+    render(){   
+        let {
+            project, showProjectMenuPopover, rootRef, 
+            anchorEl, showCompleted, showScheduled
+        } = this.props;
 
         return not(showProjectMenuPopover) ? null :
         <Popover   
@@ -183,35 +184,30 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                 background:"rgba(0,0,0,0)",
                 borderRadius:"10px" 
             }}   
-            open={this.props.showProjectMenuPopover}
-            scrollableContainer={this.props.rootRef}
+            open={showProjectMenuPopover}
+            scrollableContainer={rootRef}
             useLayerForClickAway={false} 
-            anchorEl={this.props.anchorEl}  
+            anchorEl={anchorEl}  
             onRequestClose={this.closeMenu}  
-            anchorOrigin={{vertical: "center", horizontal: "middle"}} 
-            targetOrigin={{vertical: "top", horizontal: "middle"}} 
+            anchorOrigin={{vertical:"center",horizontal:"middle"}} 
+            targetOrigin={{vertical:"top",horizontal:"middle"}} 
         >   
             <div  
                 className={"darkscroll"}
                 style={{  
-                    backgroundColor: "rgb(39, 43, 53)",
-                    paddingRight: "10px",
-                    paddingLeft: "10px",
-                    borderRadius: "10px",
-                    paddingTop: "5px",
-                    paddingBottom: "5px",
+                    backgroundColor:"rgb(39, 43, 53)",
+                    paddingRight:"10px",
+                    paddingLeft:"10px",
+                    borderRadius:"10px",
+                    paddingTop:"5px",
+                    paddingBottom:"5px",
                     cursor:"pointer" 
                 }} 
             >      
                     <div  
                         onClick={this.onComplete} 
                         className={"tagItem"} 
-                        style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
+                        style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}}
                     >  
                         <CheckCircle style={{color:"rgb(69, 95, 145)"}}/> 
                         <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
@@ -220,144 +216,96 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                     </div>
                     <div  
                         onClick={this.onAddDeadline} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
+                        className={"tagItem"} 
+                        style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}}
                     >  
                         <Flag style={{color:"rgb(69, 95, 145)"}}/> 
                         <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
                             Add deadline 
                         </div>     
                     </div>
-
                     <div  
                         onClick={this.onAddHeading} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }} 
+                        className={"tagItem"} 
+                        style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}} 
                     >  
                         <ThreeDots style={{color:"rgb(69, 95, 145)"}}/> 
                         <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
                             Add heading 
                         </div>     
                     </div>
- 
                     <div  
                         onClick={this.onMove} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
+                        className={"tagItem"} 
+                        style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}}
                     >   
                         <Arrow style={{color:"rgb(69, 95, 145)"}}/> 
                         <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
                             Move 
                         </div>     
                     </div>
-
+                    <div style={{border:"1px solid rgba(200,200,200,0.1)",marginTop: "5px",marginBottom: "5px"}}></div>
                     {
                         <div  
                             onClick={this.onToggleCompleted} 
-                            className={"tagItem"} style={{
-                                display:"flex", 
-                                height:"auto",
-                                alignItems:"center",
-                                padding:"5px"
-                            }}
+                            className={"tagItem"} 
+                            style={{display:"flex", height:"auto", alignItems:"center", padding:"5px"}}
                         >  
                             {
-                                !this.props.showCompleted ?
-                                <Show style={{color:"rgb(69, 95, 145)"}}/> :
-                                <Hide style={{color:"rgb(69, 95, 145)"}}/>
+                                not(showCompleted) ? 
+                                <div style={{display:"flex",alignItems:"center"}}>
+                                    <Show style={{color:"rgb(69, 95, 145)"}}/>
+                                </div> : 
+                                <div style={{display:"flex",alignItems:"center"}}>
+                                    <Hide style={{color:"rgb(69, 95, 145)"}}/>
+                                </div>
                             }
                             <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                                {`${this.props.showCompleted ? 'Hide' : 'Show'} completed to-dos`}
+                                {`${showCompleted ? 'Hide' : 'Show'} completed tasks`}
                             </div>     
                         </div>
                     }   
-     
                     {
                         isNil(project.hide) ? null :
                         isEmpty(project.hide) ? null :
-                        project.hide.map(
-                            (category:Category) => {
-                                return <div   
-                                    key={category}
-                                    onClick={() => this.onRestoreVisibility(category,project)}  
-                                    className={"tagItem"} 
-                                    style={{    
-                                      display:"flex", 
-                                      height:"auto", 
-                                      alignItems:"center",
-                                      padding:"5px"
-                                    }} 
-                                >   
+                        project.hide.map((category:Category) => 
+                            <div   
+                                key={category}
+                                onClick={() => this.onRestoreVisibility(category,project)}  
+                                className={"tagItem"} 
+                                style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}} 
+                            >   
+                                <div style={{display:"flex",alignItems:"center"}}>
                                     <Show style={{color:"rgb(69, 95, 145)"}}/>
-                                    <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                                        Show in {uppercase(category)} 
-                                    </div>       
                                 </div>
-                            }
+                                <div style={{color:"gainsboro",marginLeft:"5px",marginRight:"5px"}}>
+                                    Show in {uppercase(category)} 
+                                </div>       
+                            </div>
                         )
                     }
-
                     { 
                         <div  
                             onClick={this.onToggleScheduled} 
-                            className={"tagItem"} style={{
-                                display:"flex", 
-                                height:"auto",
-                                alignItems:"center",
-                                padding:"5px"
-                            }}
+                            className={"tagItem"} 
+                            style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}}
                         >  
                             { 
-                                !this.props.showScheduled ? 
-                                <Show style={{color:"rgb(69, 95, 145)"}}/> :
-                                <Hide style={{color:"rgb(69, 95, 145)"}}/>
+                                not(showScheduled) ? 
+                                <div style={{display:"flex",alignItems:"center"}}>
+                                    <Show style={{color:"rgb(69, 95, 145)"}}/>
+                                </div> 
+                                : 
+                                <div style={{display:"flex",alignItems:"center"}}>
+                                    <Hide style={{color:"rgb(69, 95, 145)"}}/>
+                                </div>
                             } 
-                            <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                               {`${this.props.showScheduled ? 'Hide' : 'Show'} later to-dos`}
+                            <div style={{color:"gainsboro",marginLeft:"5px",marginRight:"5px"}}>
+                               {`${showScheduled ? 'Hide' : 'Show'} later tasks`}
                             </div>     
                         </div>
                     }   
-
-
-                    <div style={{
-                        border:"1px solid rgba(200,200,200,0.1)",
-                        marginTop: "5px",
-                        marginBottom: "5px"
-                    }}>
-                    </div>
-
-                    {
-                        /*
-                        <div  
-                            onClick={this.onRepeat} 
-                            className={"tagItem"} 
-                            style={{
-                                display:"flex", 
-                                height:"auto",
-                                alignItems:"center",
-                                padding:"5px"
-                            }}
-                        >  
-                            <Repeat style={{color:"rgb(69, 95, 145)"}}/> 
-                            <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
-                                Repeat...  
-                            </div>     
-                        </div>
-                        */
-                    }
-
+                    <div style={{border:"1px solid rgba(200,200,200,0.1)",marginTop:"5px",marginBottom:"5px"}}></div>
                     <div  
                         onClick={this.onDuplicate} 
                         className={"tagItem"} 
@@ -368,16 +316,10 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                              Duplicate project 
                         </div>     
                     </div>
-                 
-
                     <div   
                         onClick={this.onDelete} 
-                        className={"tagItem"} style={{
-                            display:"flex", 
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
+                        className={"tagItem"} 
+                        style={{ display:"flex", height:"auto", alignItems:"center", padding:"5px"}}
                     >  
                         <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
                         <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
@@ -387,12 +329,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
 
                     <div  
                         onClick={this.onShare} 
-                        className={"tagItem"} style={{
-                            display:"flex",  
-                            height:"auto",
-                            alignItems:"center",
-                            padding:"5px"
-                        }}
+                        className={"tagItem"} 
+                        style={{display:"flex", height:"auto", alignItems:"center", padding:"5px"}}
                     >      
                         <ShareIcon style={{color:"rgb(69, 95, 145)"}}/> 
                         <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>

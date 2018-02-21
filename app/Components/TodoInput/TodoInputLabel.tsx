@@ -12,7 +12,7 @@ import Plus from 'material-ui/svg-icons/content/add';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import Chip from 'material-ui/Chip';
-import BusinessCase from 'material-ui/svg-icons/places/business-center';  
+import BusinessCase from 'material-ui/svg-icons/content/archive';  
 import Flag from 'material-ui/svg-icons/image/assistant-photo';  
 import { chooseIcon } from '../../utils/chooseIcon';
 let moment = require("moment"); 

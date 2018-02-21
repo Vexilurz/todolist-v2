@@ -6,7 +6,7 @@ import { Component } from "react";
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area, Todo } from '../../database';
-import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
+import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import { byNotCompleted, byNotDeleted } from '../../utils/utils';
 import PieChart from 'react-minimal-pie-chart';
 import { 
@@ -406,9 +406,10 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
     
     render(){      
         let {area, selectedAreaId, selectedCategory, index, dragged} = this.props;   
+        let {highlight} = this.state;
         let selected = area._id===selectedAreaId && selectedCategory==="area";
         
-        return <li  
+        return <li   
             ref={e => {this.ref=e;}} 
             style={{WebkitUserSelect:"none",width:"100%"}} 
             className={"area"}  
@@ -422,8 +423,8 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                 id = {this.props.area._id} 
                 className={selected ? "" : "leftpanelmenuitem"}  
                 style={{  
-                    borderRadius: this.state.highlight || selected ? "5px" : "0px", 
-                    backgroundColor: this.state.highlight ? "rgba(0,200,0,0.3)" :
+                    borderRadius: highlight || selected ? "5px" : "0px", 
+                    backgroundColor: highlight ? "rgba(0,200,0,0.3)" :
                                      selected ? "rgba(228,230,233,1)" : 
                                      "",  
                     height:"25px", 
@@ -433,8 +434,8 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
             >      
                 <IconButton  
                     style={{ 
-                        width:"26px", 
-                        height:"26px", 
+                        width:"20px", 
+                        height:"20px", 
                         padding:"0px",
                         display:"flex", 
                         alignItems:"center", 
@@ -442,22 +443,22 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                     }}    
                     iconStyle={{ 
                         color:"rgba(109,109,109,0.7)", 
-                        width:"26px", 
-                        height:"26px" 
+                        width:"20px", 
+                        height:"20px" 
                     }}   
                 >      
-                    <NewAreaIcon /> 
-                </IconButton> 
-                
-                <div style={{
+                    <NewAreaIcon style={{width:"20px", height:"20px"}}/> 
+                </IconButton>  
+                 
+                <div style={{ 
                     width:"100%",
-                    fontFamily: "sans-serif",
-                    fontSize: `15px`,    
-                    cursor: "default", 
-                    paddingLeft: "5px", 
-                    WebkitUserSelect: "none",
-                    fontWeight: "bolder", 
-                    color: "rgba(0, 0, 0, 0.8)" 
+                    fontFamily:"sans-serif",
+                    fontSize:"15px",    
+                    cursor:"default", 
+                    paddingLeft:"5px", 
+                    WebkitUserSelect:"none",
+                    fontWeight:"bolder", 
+                    color:"rgba(0, 0, 0, 0.8)" 
                 }}>  
                     <AutoresizableText
                         text={area.name}

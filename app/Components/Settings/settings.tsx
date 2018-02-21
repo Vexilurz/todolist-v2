@@ -315,7 +315,7 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
                     <div style={{paddingLeft:"10px"}}>Enable shortcut for Quick Entry</div>
                 </div> 
                 <div style={{fontSize:"13px", width:"80%", color:"rgba(100,100,100,0.9)", cursor:"default"}}>
-                    The Quick Entry window lets you enter new to-dos into Things from anywhere
+                    The Quick Entry window lets you enter new tasks into Things from anywhere
                     without having to switch applications. Use the keyboard shortcut to make 
                     the window appear.
                 </div>
@@ -943,7 +943,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
             <div style={{display:"flex",alignItems:"center",width:"80%"}}>
                 <Checkbox checked={groupTodos} onClick={this.shouldGroup}/>
-                <div style={{paddingLeft:"10px"}}>Group to-dos by project or area</div>
+                <div style={{paddingLeft:"10px"}}>Group tasks by project or area</div>
             </div> 
 
             <div style={{display:"flex", width:"100%"}}>

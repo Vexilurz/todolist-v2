@@ -3,7 +3,6 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react"; 
-import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
 import { Area, Project, Todo } from '../../database'; 
 import { AreaHeader } from './AreaHeader';
 import { AreaBody } from './AreaBody';
@@ -86,7 +85,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
 
 
 
-    render(){
+    render(){  
         let {area,selectedCategory} = this.props;
 
         return isNil(area) ? null : 

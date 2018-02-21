@@ -9,7 +9,7 @@ import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
 import CheckBox from 'material-ui/svg-icons/toggle/check-box'; 
-import BusinessCase from 'material-ui/svg-icons/places/business-center';
+import BusinessCase from 'material-ui/svg-icons/content/archive';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
 import Layers from 'material-ui/svg-icons/maps/layers';

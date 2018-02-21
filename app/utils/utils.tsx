@@ -15,15 +15,13 @@ import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
 import CheckBox from 'material-ui/svg-icons/toggle/check-box'; 
-import BusinessCase from 'material-ui/svg-icons/places/business-center';
+import BusinessCase from 'material-ui/svg-icons/content/archive';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
-import Layers from 'material-ui/svg-icons/maps/layers'; 
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Flag from 'material-ui/svg-icons/image/assistant-photo'; 
 import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
-import NewAreaIcon from 'material-ui/svg-icons/maps/layers'; 
 import Plus from 'material-ui/svg-icons/content/add';
 import Trash from 'material-ui/svg-icons/action/delete';
 import Search from 'material-ui/svg-icons/action/search'; 
@@ -1336,46 +1334,69 @@ export let downloadUpdates = () : Promise<string> => {
 };
 
 
-export let addIntroList = (dispatch:Function) => {
-
+export let getIntroList = () : Project => {
     let layout = introListLayout.map((item) => item.type==="todo" ? item._id : item);
 
-    dispatch({type:"addTodos",load:introListLayout.filter(isTodo)});
-
-    dispatch({
-        type:"addProject", 
-        load:{    
-            _id : generateId(),    
-            type : "project", 
-            name : "Intro List",  
-            priority : 1,
-            deleted : undefined,
-            description : `
-            This project shows you everything you need to know to hit the ground running.
-            Don't hesistate to play around in it - you can always create a new one from the help menu.
-            `, 
-            created : new Date(),
-            deadline : null,
-            completed : null,
-            layout,     
-            attachedTags : [] 
-        }
-    })
+    return {    
+        _id : "Intro List",    
+        type : "project", 
+        name : "Intro List",  
+        priority : 1,
+        deleted : undefined,
+        description : `
+        This project shows you everything you need to know to hit the ground running.
+        Don't hesistate to play around in it - you can always create a new one from the help menu.
+        `, 
+        created : new Date(),
+        deadline : null,
+        completed : null,
+        layout : layout as any,     
+        attachedTags : [] 
+    };
 };        
 
+
+export const introListIds : string[] = [
+    "Intro List",
+    "Learn the basics",
+    "Click this task",
+    "Create a new task",
+    "Plan this task for later",
+    "Create new heading",
+    "Create a project",
+    "You're done",
+    "Tune your setup",
+    "Show your calendar events",
+    "Enable the today widget",
+    "Sync your devices",
+    "Boost your productivity",
+    "Add task from anywhere",
+    "Link to emails, files, and web pages",
+    "Search and navigate with Quick Find",
+    "Tag your task",
+    "Go step by step with checklists",
+    "Add a reminder so you won't forget",
+    "Plan your evening",
+    "Hide the sidebar to focus on your work",
+    "Open multiple windows",
+    "Convert a task into a project",
+    "Make your task repeat",          
+    "Before you go...",
+    "Any questions ? We're here to help!"
+];
 
 export const introListLayout : (Todo | Heading)[] = [
     {
         type : "heading", 
         priority:1,
         title : "Learn the basics", 
-        _id : generateId(), 
-        key : generateId()
+        _id : "Learn the basics", 
+        key : "Learn the basics"
     }, 
     {
         type:"todo",
         category:"project",
-        title:"Click this to-do",
+        title:"Click this task",
         priority:2,
         note:"",
         checklist:[],
@@ -1387,12 +1408,12 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Click this task"
     },
     {
         type:"todo",
         category:"project",
-        title:"Create a new to-do",
+        title:"Create a new task",
         priority:3,
         note:"",
         checklist:[],
@@ -1404,12 +1425,12 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Create a new task"
     },
     {
         type:"todo",
         category:"project",
-        title:"Plan this to-do for later",
+        title:"Plan this task for later",
         priority:4,
         note:"",
         checklist:[],
@@ -1421,12 +1442,12 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Plan this task for later"
     },
     {
         type:"todo",
         category:"project",
-        title:"Create new heading ",
+        title:"Create new heading",
         priority:5,
         note:"",
         checklist:[],
@@ -1438,7 +1459,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Create new heading"
     },
     {
         type:"todo",
@@ -1455,7 +1476,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Create a project"
     },
     {
         type:"todo",
@@ -1472,14 +1493,14 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"You're done"
     },
     {
         type : "heading", 
         priority:8,
         title : "Tune your setup", 
-        _id : generateId(), 
-        key : generateId()
+        _id : "Tune your setup", 
+        key : "Tune your setup"
     }, 
     {
         type:"todo",
@@ -1496,7 +1517,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Show your calendar events"
     },
     {
         type:"todo",
@@ -1513,7 +1534,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Enable the today widget"
     },
     {
         type:"todo",
@@ -1530,19 +1551,19 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Sync your devices"
     },
     {
         type : "heading", 
         priority:12,
         title : "Boost your productivity", 
-        _id : generateId(), 
-        key : generateId()
+        _id : "Boost your productivity", 
+        key : "Boost your productivity"
     },
     {
         type:"todo",
         category:"project",
-        title:"Add to-dos from anywhere",
+        title:"Add task from anywhere",
         priority:13,
         note:"",
         checklist:[],
@@ -1554,7 +1575,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Add task from anywhere"
     }, 
     {
         type:"todo",
@@ -1571,7 +1592,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Link to emails, files, and web pages"
     }, 
     {
         type:"todo",
@@ -1588,12 +1609,12 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Search and navigate with Quick Find"
     },
     {
         type:"todo",
         category:"project",
-        title:"Tag your to-dos",
+        title:"Tag your task",
         priority:16,
         note:"",
         checklist:[],
@@ -1605,7 +1626,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Tag your task"
     },
     {
         type:"todo",
@@ -1622,7 +1643,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Go step by step with checklists"
     },
     {
         type:"todo",
@@ -1639,7 +1660,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Add a reminder so you won't forget"
     },
     {
         type:"todo",
@@ -1656,7 +1677,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Plan your evening"
     },
     {
         type:"todo",
@@ -1673,7 +1694,7 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Hide the sidebar to focus on your work"
     },
     {
         type:"todo",
@@ -1686,16 +1707,16 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedTags:[],
         deadline:null,
         created:new Date(),
-        deleted:null,
+        deleted:null, 
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Open multiple windows"
     },
     {
         type:"todo",
         category:"project",
-        title:"Convert a to-do into a project",
+        title:"Convert a task into a project",
         priority:22,
         note:"",
         checklist:[],
@@ -1707,12 +1728,12 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Convert a task into a project"
     },
     {
         type:"todo",
         category:"project",
-        title:"Make your to-dos repeat",
+        title:"Make your task repeat",
         priority:23,
         note:"",
         checklist:[],
@@ -1724,14 +1745,14 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Make your task repeat"
     },            
     {
         type : "heading", 
         priority:24,
         title : "Before you go...", 
-        _id : generateId(), 
-        key : generateId()
+        _id : "Before you go...", 
+        key : "Before you go..."
     },
     {
         type:"todo",
@@ -1748,6 +1769,6 @@ export const introListLayout : (Todo | Heading)[] = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:generateId()
+        _id:"Any questions ? We're here to help!"
     }
 ];

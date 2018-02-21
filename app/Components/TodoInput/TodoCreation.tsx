@@ -11,12 +11,11 @@ import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
 import CheckBox from 'material-ui/svg-icons/toggle/check-box'; 
-import BusinessCase from 'material-ui/svg-icons/places/business-center';
+import BusinessCase from 'material-ui/svg-icons/content/archive';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Checked from 'material-ui/svg-icons/navigation/check';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
-import Layers from 'material-ui/svg-icons/maps/layers';
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
@@ -154,11 +153,11 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         }       
     }
 
-    shouldComponentUpdate(nextProps:TodoCreationFormProps,nextState:TodoCreationFormState){
 
+    shouldComponentUpdate(nextProps:TodoCreationFormProps,nextState:TodoCreationFormState){
         let {todo,selectedCategory,selectedProjectId,selectedAreaId} = this.props;
 
-        if(!equals(this.state,nextState)){ 
+        if(not(equals(this.state,nextState))){ 
             return true;
         }
 
@@ -170,17 +169,17 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             return true; 
         }
 
-        if(selectedAreaId!==nextProps.selectedAreaId){
+        if(selectedAreaId!==nextProps.selectedAreaId){ 
             return true;
         }
-
+        
         return false;
     }
 
 
     onError = (error) => globalErrorHandler(error);
     
-
+    
     componentDidMount(){  
         let click = Observable.fromEvent(window,"click").subscribe(this.onOutsideClick); 
         this.subscriptions.push(click);
@@ -190,14 +189,13 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
  
 
     componentDidUpdate(prevProps:TodoCreationFormProps,prevState:TodoCreationFormState){
-        let { title, open } = this.state; 
-        if(this.inputRef && isEmpty(title) && open){ this.inputRef.focus() } 
-        this.preventDragOfThisItem(); 
+        let { open } = this.state; 
+        this.preventDragOfThisItem();
     }   
 
 
     resetCreationForm = (open) => {
-        let emptyTodo = generateEmptyTodo(generateId(), this.props.selectedCategory, 0);
+        let emptyTodo = generateEmptyTodo(generateId(), this.props.selectedCategory, 0); 
         let newState = {
             ...this.stateFromTodo(this.state,emptyTodo as any),
             open, 
@@ -207,29 +205,43 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             showChecklist:false,   
             showDeadlineCalendar:false 
         };
-        this.setState(newState);     
-    }   
+        this.setState(newState, () => {
+            if(this.inputRef && open){ 
+                let input : any = this.inputRef.querySelector("input");
+                if(input){ input.focus(); } 
+            } 
+        });     
+    };   
  
 
     onFieldsContainerClick = (e) => {    
         e.stopPropagation();     
         let {open} = this.state;
+        let {dispatch} = this.props;
         this.preventDragOfThisItem();
 
         if(not(open)){    
-            this.setState({open:true, showAdditionalTags:false});   
-            this.props.dispatch({type:"showRepeatPopup", load:false});
-            this.props.dispatch({type:"showRightClickMenu", load:false});
-        }   
-    }  
-     
+            this.setState(
+                {open:true, showAdditionalTags:false}, 
+                () => { 
+                    if(this.inputRef){ 
+                        let input : any = this.inputRef.querySelector("input");
+                        if(input){ input.focus(); }
+                        dispatch({type:"showRepeatPopup", load:false});
+                        dispatch({type:"showRightClickMenu", load:false});
+                    } 
+                }
+            );
+        }    
+    };   
+      
 
     onWindowEnterPress = (e) => {   
         if(e.keyCode===13 && this.state.open){
             this.addTodo();
             this.resetCreationForm(true);
         }
-    }        
+    };        
     
 
     onOutsideClick = (e) => {
@@ -253,7 +265,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                 }
             ); 
         }   
-    }    
+    };    
 
 
     addTodo = () => {
@@ -376,7 +388,9 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
    
     onRightClickMenu = (e) => {  
-        if(!this.state.open){
+        let {open} = this.state;
+
+        if(not(open)){ 
             this.props.dispatch({ 
                 type:"openRightClickMenu",  
                 load:{   

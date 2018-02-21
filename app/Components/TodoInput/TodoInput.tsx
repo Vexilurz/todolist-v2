@@ -11,12 +11,11 @@ import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
 import CheckBox from 'material-ui/svg-icons/toggle/check-box'; 
-import BusinessCase from 'material-ui/svg-icons/places/business-center';
+import BusinessCase from 'material-ui/svg-icons/content/archive';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Checked from 'material-ui/svg-icons/navigation/check';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
-import Layers from 'material-ui/svg-icons/maps/layers';
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
@@ -63,6 +62,55 @@ import { assert } from '../../utils/assert';
 import { setCallTimeout } from '../../utils/setCallTimeout';
 import { debounce } from 'lodash'; 
 let Promise = require('bluebird');
+
+
+interface AutosizeInputComponentProps{
+    title:string,
+    onTitleChange:Function
+}
+
+interface AutosizeInputComponentState{}
+
+class AutosizeInputComponent extends Component<AutosizeInputComponentProps,AutosizeInputComponentState>{  
+
+    
+    constructor(props){
+        super(props);    
+    };
+
+
+    shouldComponentUpdate(nextProps:AutosizeInputComponentProps){
+        return nextProps.title!==this.props.title
+    };
+
+
+    render(){
+        let {title,onTitleChange} = this.props;
+
+        return <div>
+            <AutosizeInput 
+                type="text"
+                name="form-field-name"   
+                style={{display:"flex", alignItems:"center", cursor:"default"}}            
+                inputStyle={{                
+                    color:"black",  
+                    fontSize:"16px",  
+                    cursor:"default", 
+                    boxSizing:"content-box", 
+                    backgroundColor:"rgba(0,0,0,0)",
+                    border:"none", 
+                    outline:"none"   
+                }} 
+                value={title} 
+                placeholder="New To-Do" 
+                onChange={onTitleChange} 
+            /> 
+        </div>
+    }
+}
+
+
+
 
 
 export interface TodoInputState{  
@@ -600,7 +648,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 style={{    
                     paddingLeft:"20px", 
                     paddingRight:"20px",   
-                    transition: "max-height 0.2s ease-in-out", 
+                    transition:"max-height 0.2s ease-in-out", 
                     paddingTop:padding,
                     paddingBottom:padding, 
                     caretColor:"cornflowerblue",   
@@ -890,23 +938,10 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
                             />
                         </div>
                     } 
-                    <div ref={this.props.setInputRef}>     
-                        <AutosizeInput   
-                            type="text"
-                            name="form-field-name"   
-                            style={{display:"flex", alignItems:"center", cursor:"default"}}            
-                            inputStyle={{                
-                                color:"black",  
-                                fontSize:"16px",  
-                                cursor:"default", 
-                                boxSizing:"content-box", 
-                                backgroundColor:"rgba(0,0,0,0)",
-                                border:"none", 
-                                outline:"none"   
-                            }} 
-                            value={todo.title} 
-                            placeholder="New To-Do" 
-                            onChange={this.props.onTitleChange} 
+                    <div key="form-field" ref={this.props.setInputRef}>  
+                        <AutosizeInputComponent   
+                            title={todo.title} 
+                            onTitleChange={this.props.onTitleChange} 
                         /> 
                     </div>
                 </div> 
@@ -948,12 +983,7 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
                                 }} 
                             > 
                                 <div style={{paddingRight:"5px", paddingTop:"5px"}}> 
-                                    <Flag style={{          
-                                        color:flagColor, 
-                                        cursor:"default",  
-                                        width:16, 
-                                        height:16
-                                    }}/>      
+                                    <Flag style={{color:flagColor,cursor:"default",width:16,height:16}}/>      
                                 </div>   
                                 {daysLeftMark(open, todo.deadline)}
                             </div>  
@@ -968,8 +998,8 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
                 <RelatedProjectLabel 
                     name={relatedProjectName} 
                     groupTodos={groupTodos} 
-                    selectedCategory={selectedCategory
-                }/>   
+                    selectedCategory={selectedCategory}
+                />   
             }   
     </div>  
   } 
@@ -994,7 +1024,6 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
     constructor(props){ super(props) }
 
     render(){
-
         let {open,showChecklist,todo,onAttachTag,onRemoveTag} = this.props;
 
         return <div style={{
@@ -1009,7 +1038,7 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
                 hintText="Notes"
                 onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
                 multiLine={true}   
-                rows={1}
+                rows={1} 
                 fullWidth={true} 
                 onChange={this.props.onNoteChange} 
                 inputStyle={{fontSize:"14px"}} 
@@ -1025,7 +1054,13 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
                     /> 
                 </div>
             }   
-            { <TodoTags attachTag={onAttachTag} removeTag={onRemoveTag} tags={todo.attachedTags}/> } 
+            {  
+                isEmpty(todo.attachedTags) ? null :
+                <TodoTags 
+                attachTag={onAttachTag} 
+                removeTag={onRemoveTag} 
+                tags={todo.attachedTags}/> 
+            } 
         </div>   
     } 
 }

@@ -1,5 +1,5 @@
 
-import NewAreaIcon from 'material-ui/svg-icons/maps/layers';
+import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import '../../assets/styles.css';  
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom';  
@@ -16,7 +16,6 @@ import CheckCircle from 'material-ui/svg-icons/action/check-circle';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Repeat from 'material-ui/svg-icons/av/repeat';
 import Inbox from 'material-ui/svg-icons/content/inbox';
-import Duplicate from 'material-ui/svg-icons/content/content-copy';
 import ShareIcon from 'material-ui/svg-icons/social/share';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
@@ -99,8 +98,8 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
      return <div>  
         <div style={{display:"flex", alignItems:"center"}}>
             <div style={{    
-                width:"30px",
-                height:"30px",
+                width:"35px",
+                height:"35px",
                 position:"relative",
                 display:"flex",
                 justifyContent:"center",
@@ -108,7 +107,7 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
                 boxSizing:"border-box",
                 marginRight:"10px" 
             }}> 
-                <NewAreaIcon style={{color:"lightblue", width:"30px", height:"30px"}}/>    
+                <NewAreaIcon style={{color:"lightblue", width:"35px", height:"35px"}}/>    
             </div>  
             <div style={{width:"100%", overflow:"hidden"}}>
                 <AutosizeInput 
