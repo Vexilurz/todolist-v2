@@ -533,19 +533,19 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             display:"flex", 
                             flexDirection:"column", 
                             width:"100%",
-                            paddingTop : "10px",
-                            paddingBottom : "10px"
+                            paddingTop:"10px",
+                            paddingBottom:"10px"
                         }}
                     >    
-                        { 
-                            scheduledProjects.map(
-                                (project:Project, index:number) : JSX.Element => {
-                                    return <div key={project._id}>
-                                        <ProjectLink {...{project,showMenu:false} as any}/>  
-                                    </div>  
-                                } 
-                            )     
-                        }      
+                    { 
+                        scheduledProjects.map(
+                            (project:Project, index:number) : JSX.Element => {
+                                return <div key={project._id}>
+                                    <ProjectLink {...{project,showMenu:false} as any}/>  
+                                </div>  
+                            } 
+                        )     
+                    }      
                     </div> 
                 } 
                 {   

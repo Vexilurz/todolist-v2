@@ -139,25 +139,25 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                 }}> 
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'QuickEntry'})} 
-                        icon={<QuickEntry style={{color:"rgba(100,100,100,0.8)", height:18, width:18}}/>}
+                        icon={<QuickEntry style={{color:"rgba(100,100,100,0.8)", height:20, width:20}}/>}
                         name={'Quick Entry'}
                         selected={selectedSettingsSection==='QuickEntry'}
                     />
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'CalendarEvents'})} 
-                        icon={<CalendarEvents style={{color:"rgba(150,10,10,0.8)", height:18, width:18}}/>}
+                        icon={<CalendarEvents style={{color:"rgba(150,10,10,0.8)", height:20, width:20}}/>}
                         name={'Calendars'}
                         selected={selectedSettingsSection==='CalendarEvents'}
                     />
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'Tags'})} 
-                        icon={<TriangleLabel style={{color:"rgba(10,10,10,0.8)", height:18, width:18}}/>}
+                        icon={<TriangleLabel style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>}
                         name={'Tags'} 
                         selected={selectedSettingsSection==='Tags'} 
                     /> 
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'Advanced'})} 
-                        icon={<Advanced style={{color:"rgba(10,10,10,0.8)", height:18, width:18}}/>}
+                        icon={<Advanced style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>}
                         name={'Advanced'} 
                         selected={selectedSettingsSection==='Advanced'}
                     />   
@@ -204,7 +204,6 @@ interface SectionProps{
 class Section extends Component<SectionProps,{}>{
 
     render(){
-
         let {icon, name, onClick, selected} = this.props;
           
         return <div  
@@ -227,8 +226,13 @@ class Section extends Component<SectionProps,{}>{
                 {icon}
             </div>
             <div style={{
-              color:"black", fontSize:"14px", whiteSpace:"nowrap", display:"flex", alignItems:"center", 
-              justifyContent:"center", textAlign:"center", paddingLeft:"2px"
+              color:"black", 
+              whiteSpace:"nowrap", 
+              display:"flex", 
+              alignItems:"center", 
+              justifyContent:"center",
+              textAlign:"center", 
+              paddingLeft:"2px"
             }}>   
                 {name}  
             </div>
@@ -436,33 +440,33 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
                 .map( 
                     (tag:string, index:number) => 
                         <div key={`${tag}-${index}`}>
-                        <div style={{ 
-                            borderRadius:"15px", 
-                            border:"1px solid rgb(100,100,100)",
-                            paddingLeft:"5px",
-                            paddingRight:"5px", 
-                            display:"flex",
-                            alignItems:"center",
-                            height:"20px",
-                            margin:"2px"
-                        }}>
-                            <div style={{  
-                              height:"15px",
-                              display:"flex",
-                              alignItems:"center",
-                              padding:"4px", 
-                              color:"black",
-                              fontWeight:500    
-                            }}> 
-                                {uppercase(tag)} 
-                            </div> 
-                            <div  
-                              style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
-                              onClick={this.onRemoveTag(tag)}
-                            >
-                                <Clear style={{color:"rgba(100,100,100,1)",height:20,width:20}}/>
+                            <div style={{ 
+                                borderRadius:"15px", 
+                                border:"1px solid rgba(100,100,100,0.9)",
+                                paddingLeft:"5px",
+                                paddingRight:"5px", 
+                                display:"flex",
+                                alignItems:"center",
+                                height:"20px",
+                                margin:"2px"
+                            }}>
+                                <div style={{  
+                                    height:"15px",
+                                    display:"flex",
+                                    alignItems:"center",
+                                    padding:"4px", 
+                                    color:"rgba(100,100,100,0.9)",
+                                    fontWeight:500    
+                                }}> 
+                                    {uppercase(tag)} 
+                                </div> 
+                                <div  
+                                    style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
+                                    onClick={this.onRemoveTag(tag)}
+                                >
+                                    <Clear style={{color:"rgba(100,100,100,0.9)",height:20,width:20}}/>
+                                </div>
                             </div>
-                        </div>
                         </div> 
                 )   
             } 
@@ -482,7 +486,7 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
               paddingRight:"25px",
               paddingTop:"5px", 
               paddingBottom:"5px",
-              backgroundColor:"rgba(100, 100, 100, 1)"  
+              backgroundColor:"rgba(100,100,100,0.9)"   
             }}  
         >   
             <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  

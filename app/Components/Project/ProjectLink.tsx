@@ -213,6 +213,36 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                     { isEmpty(project.name) ? "New Project" : project.name } 
                 </div> 
                 {
+                    isNil(project.deadline) ? null :
+                    selectedCategory!=="upcoming" ? null :
+                    <div   
+                        style={{
+                            width:"30px",  
+                            height:"30px",
+                            flexGrow:1 as number,
+                            paddingLeft:"5px",
+                            paddingRight:"10px",
+                            display:"flex", 
+                            justifyContent:"flex-end",
+                            cursor:"default"
+                        }} 
+                    >  
+                        <div 
+                            ref={(e) => { this.actionsAnchor=e; }}
+                            onClick={(e) => { e.stopPropagation(); }}  
+                        >   
+                            <Flag style={{
+                                paddingRight:"5px", 
+                                paddingTop:"5px", 
+                                color:"rgba(100,100,100,1)",
+                                width:"20px",
+                                height:"20px",
+                                cursor:"default"
+                            }}/>
+                        </div> 
+                    </div>  
+                }
+                {
                     not(showMenu) ? null :
                     <div   
                         style={{

@@ -69,6 +69,7 @@ import { arrayMove } from './utils/arrayMove';
 import { ChecklistItem, Checklist } from './Components/TodoInput/TodoChecklist';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { isString } from './utils/isSomething';
+import { isToday } from './utils/utils';
 injectTapEventPlugin();  
 
 
@@ -342,15 +343,19 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
     onRemoveSelectedCategoryLabel = () => {
-        let { category } = this.state;
-        let todayCategory = category==="today" || category==="evening";
+        let { category, attachedDate, deadline } = this.state; 
+
+        let attachedDateToday = isToday(attachedDate);
+        let deadlineToday = isToday(deadline);
+        let todayCategory : boolean = attachedDateToday || deadlineToday;
+
         let somedayCategory = category==="someday";
 
         if(todayCategory){
            this.setState({category:'inbox', attachedDate:null, deadline:null});  
         }else if(somedayCategory){                            
            this.setState({category:'inbox'}); 
-        }
+        }  
     };     
 
 

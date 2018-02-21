@@ -41,7 +41,7 @@ import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopup, TodoTags } from './TodoTags';
 import { TodoInputLabel } from './TodoInputLabel'; 
-import { uniq, isEmpty, contains, isNil, not, multiply, remove, cond, equals } from 'ramda';
+import { uniq, isEmpty, contains, isNil, not, multiply, remove, cond, equals, any } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
 let moment = require("moment"); 
 import AutosizeInput from 'react-input-autosize'; 
@@ -604,7 +604,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let { open, showChecklist, showDateCalendar, animatingSlideAway } = this.state;
         let { selectedCategory, id, todo, rootRef } = this.props; 
 
-        let todayCategory : boolean = todo.category==="evening" || todo.category==="today";   
+        let attachedDateToday = isToday(todo.attachedDate);
+        let deadlineToday = isToday(todo.deadline);
+        let todayCategory : boolean = attachedDateToday || deadlineToday;
+         
         let relatedProjectName = this.getRelatedProjectName();
         let removePadding = isNil(relatedProjectName) || selectedCategory==="project";
         let padding = open ? "20px" : removePadding ? "0px" : "5px";
@@ -1057,9 +1060,10 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
             {  
                 isEmpty(todo.attachedTags) ? null :
                 <TodoTags 
-                attachTag={onAttachTag} 
-                removeTag={onRemoveTag} 
-                tags={todo.attachedTags}/> 
+                    attachTag={onAttachTag} 
+                    removeTag={onRemoveTag} 
+                    tags={todo.attachedTags}
+                /> 
             } 
         </div>   
     } 

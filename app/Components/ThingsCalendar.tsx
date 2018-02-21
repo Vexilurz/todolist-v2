@@ -215,6 +215,13 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                         Someday
                     </div>
                 </div> 
+                <div style={{
+                    border:"1px solid rgba(200,200,200,0.1)",
+                    marginTop:"10px", 
+                    width:"100%",   
+                    marginBottom:"10px"
+                }}>
+                </div>  
                 {    
                     hideRepeatButton ? null :    
                     <div  
@@ -245,13 +252,6 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                         </div>
                     </div> 
                 }
-                <div style={{
-                    border:"1px solid rgba(200,200,200,0.1)",
-                    marginTop:"10px", 
-                    width:"100%",   
-                    marginBottom:"10px"
-                }}>
-                </div>  
                 <CalendarFooter 
                     onAddReminder={this.props.onAddReminderClick}
                     onRemoveReminder={this.props.onRemoveReminderClick}
@@ -330,12 +330,15 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                 }}>
                     <div style={{
                         display:"flex",
-                        width: "100%", 
-                        alignItems: "center",
-                        justifyContent: "space-around" 
+                        width:"95%",
+                        marginLeft:"22px",
+                        marginTop:"5px",
+                        marginRight:"15px",
+                        alignItems:"center",
+                        justifyContent:"space-around"
                     }}> 
-                        <div style={{display: "flex",alignItems: "center",justifyContent: "center"}}>
-                            <div style={{position:"relative"}}>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
+                            <div style={{zoom:"0.8",position:"relative"}}>
                                 <Alert style={{color:"rgb(192, 192, 192)", WebkitUserSelect:"none"}}/>
                                 <div style={{
                                     width:"8px",
@@ -349,22 +352,21 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                             </div>
                             <div style={{  
                                 color:"rgb(192, 192, 192)",
-                                WebkitUserSelect: "none", 
-                                cursor:"default", 
-                                paddingBottom: "5px",
-                                paddingLeft: "5px"   
+                                userSelect:"none",
+                                cursor:"default",
+                                paddingBottom:"5px",
+                                paddingLeft:"11px"
                             }}>  
                                 Reminder
                             </div>
                         </div> 
-    
                         <div style={{
-                            padding: "2px",
+                            padding:"2px",
                             position:"relative", 
                             display:"flex", 
                             alignItems:"center", 
-                            backgroundColor: "rgb(87, 87, 87)",
-                            borderRadius: "5px"   
+                            backgroundColor:"rgb(87, 87, 87)",
+                            borderRadius:"5px"   
                         }}>
                             <input  
                                 style={{    
@@ -385,10 +387,10 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                             <div  
                             onClick={() => this.setState({time:'', timeSet:false})}
                             style={{ 
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center", 
-                                justifyContent: "center"
+                              cursor:"pointer",
+                              display:"flex",
+                              alignItems:"center", 
+                              justifyContent:"center"
                             }}>
                                 <Clear style={{color:"rgb(192, 192, 192)"}}/>
                             </div> 
@@ -525,6 +527,7 @@ class AddReminderButton extends Component<AddReminderButtonProps,{}>{
                 height:"25px"     
             }}/>   
             <div style={{
+                paddingLeft:"10px",
                 fontFamily:"sans-serif",
                 fontWeight:600, 
                 color:disable ? "rgba(70,70,70,0.5)" : "white",  
@@ -572,6 +575,7 @@ class ClearReminderButton extends Component<ClearReminderButtonProps,{}>{
                 height:"25px"     
             }}/>   
             <div style={{
+                paddingLeft:"10px",
                 fontFamily:"sans-serif",
                 fontWeight:600, 
                 color:disable?"rgba(70,70,70,0.5)":"white",  

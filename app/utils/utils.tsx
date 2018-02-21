@@ -914,8 +914,19 @@ export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
  
 export let isToday = (date : Date) => {
     if(isNil(date)){ return false }; 
+
+    if(isDate(date)){ 
+       return daysRemaining(date)===0;
+    } 
+
+    if(isString(date)){
+       let maybeDate = new Date(date);
+       if(isDate(maybeDate)){
+          return daysRemaining(date)===0;
+       }
+    } 
   
-    return daysRemaining(date)===0;
+    return false;
 };    
 
 
