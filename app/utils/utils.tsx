@@ -53,7 +53,6 @@ let Promise = require('bluebird');
 let ical = require('ical.js');
 import axios from 'axios';
 import { Table } from '.././Components/Categories/Next';
-const storage = remote.require('electron-json-storage');
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 import { globalErrorHandler } from './globalErrorHandler';
 import {generateId} from './generateId';
@@ -73,16 +72,16 @@ var domtoimage = require('dom-to-image');
 
 
 
-export let printElement = (selectedCategory:Category, list:HTMLElement) => {
+export let printElement = (selectedCategory:Category, list:HTMLElement) : Promise<void> => 
     domtoimage
     .toPng(list, { filter:(node) => node.className!=='no-print' })
     .then((dataUrl) => {
         let img = document.createElement("img");
         img.src = dataUrl;
-        PHE.printElement( img );
+        return PHE.printElement( img );
     })
     .catch((error) => globalErrorHandler(error));
-};
+
 
 
 
@@ -1041,20 +1040,6 @@ export let timeDifferenceHours = (from:Date,to:Date) : number => {
     let second = isString(to) ? new Date(to).getTime() : to.getTime();
     let diff = (second - first)/(1000*60*60);
     return Math.abs(diff);  
-};    
-
-
-export let clearStorage = (onError:Function) : Promise<void> => {
-    return new Promise( 
-        (resolve) => { 
-            storage.clear(
-                (error) => {
-                    if(!isNil(error)){ onError(error) }
-                    resolve()
-                }
-            )
-        }
-    )
 };
 
 

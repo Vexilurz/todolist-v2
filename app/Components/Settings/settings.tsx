@@ -53,7 +53,6 @@ const fs = remote.require('fs');
 const path = require("path");
 const os = remote.require('os'); 
 const dialog = remote.dialog;
-const storage = remote.require('electron-json-storage');
 
 interface SettingsPopupProps extends Store{}
 interface SettingsPopupState{}
@@ -252,7 +251,7 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
     enableQuickEntry = debounce(() => {
         let {enableShortcutForQuickEntry,dispatch} = this.props;
 
-        updateConfig(storage,dispatch)({enableShortcutForQuickEntry:!enableShortcutForQuickEntry})
+        updateConfig(dispatch)({enableShortcutForQuickEntry:!enableShortcutForQuickEntry})
         .then(
             (config) => {
                 let registered = remote.globalShortcut.isRegistered('Ctrl+Alt+T');
@@ -286,7 +285,7 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
 
     quickEntrySavesTo = (event) => {
         let {dispatch} = this.props;
-        updateConfig(storage,dispatch)({quickEntrySavesTo:event.target.value})
+        updateConfig(dispatch)({quickEntrySavesTo:event.target.value})
         .then(
             (config) => {
                 let window = findWindowByTitle('Quick Entry');
@@ -397,7 +396,7 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
 
         if(contains(tag)(defaultTags)){
             compose(
-                updateConfig(storage,dispatch),
+                updateConfig(dispatch),
                 (idx:number) => ({defaultTags:remove(idx,1,defaultTags)}),
                 findIndex((item) => item===tag)
             )(defaultTags)
@@ -407,7 +406,7 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
     onReset = () => {
        let {todos,dispatch} = this.props;
 
-       updateConfig(storage,dispatch)({defaultTags})
+       updateConfig(dispatch)({defaultTags})
        .then(() => {
             let updatedTodos = todos.map(
                 (todo:Todo) => ({ 
@@ -538,7 +537,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
             (data:IcalData) => { 
                 let {calendar,events,error} = data;
                 
-                if(not(hideHint)){ updateConfig(storage,dispatch)({hideHint:true}) };  
+                if(not(hideHint)){ updateConfig(dispatch)({hideHint:true}) };  
                 
                 if(not(isNil(error))){  
                    this.setState({error:error.message}, () => this.onError(error));
@@ -890,19 +889,19 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
     shouldSendStatistics = debounce(() => {
         let {shouldSendStatistics,dispatch} = this.props;
-        updateConfig(storage,dispatch)({shouldSendStatistics:!shouldSendStatistics}); 
+        updateConfig(dispatch)({shouldSendStatistics:!shouldSendStatistics}); 
     },50);
 
 
     shouldGroup = debounce(() => {
         let {groupTodos,dispatch} = this.props;
-        updateConfig(storage,dispatch)({groupTodos:!groupTodos}); 
+        updateConfig(dispatch)({groupTodos:!groupTodos}); 
     },50);
 
 
     moveCompletedTo = (event) => {
         let {dispatch, todos} = this.props;
-        updateConfig(storage,dispatch)({moveCompletedItemsToLogbook:event.target.value})
+        updateConfig(dispatch)({moveCompletedItemsToLogbook:event.target.value})
         .then((config) => {
             let load = todos.map((todo:Todo) => {
                 if(isNil(todo.completedSet)){ return todo; }

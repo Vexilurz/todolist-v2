@@ -56,7 +56,6 @@ import { updateConfig } from '../../utils/config';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
 import { timeOfTheDay } from '../../utils/time';
-const storage = remote.require('electron-json-storage');
 
 
 export let indexToPriority = (items:any[]) : any[] => {
@@ -595,7 +594,7 @@ export class Hint extends Component<HintProps,HintState>{
      
     onLoad = (e) => { 
         let {dispatch} = this.props; 
-        updateConfig(storage,dispatch)({hideHint:true})
+        updateConfig(dispatch)({hideHint:true})
         .then(
             () => {
                 dispatch({type:"selectedSettingsSection",load:'CalendarEvents'});
@@ -606,7 +605,7 @@ export class Hint extends Component<HintProps,HintState>{
     
     onClose = (e) => {  
         let {dispatch} = this.props;
-        updateConfig(storage,dispatch)({hideHint:true});
+        updateConfig(dispatch)({hideHint:true});
     }; 
 
     render(){

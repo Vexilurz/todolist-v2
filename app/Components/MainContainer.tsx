@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, byTags, byCategory, selectNeverTodos, updateNeverTodos, oneDayBehind, 
-    convertTodoDates, convertProjectDates, convertAreaDates, clearStorage, oneDayAhead, measureTime, 
+    convertTodoDates, convertProjectDates, convertAreaDates, oneDayAhead, measureTime, 
     byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
     byCompleted, isToday, byNotSomeday, byScheduled, yearFromNow, timeDifferenceHours, 
     isNewVersion, addIntroList, printElement, inFuture
@@ -34,7 +34,6 @@ import { Upcoming } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
-const storage = remote.require('electron-json-storage');
 import { 
     isEmpty, last, isNil, contains, all, not, assoc, flatten, 
     toPairs, map, compose, allPass, cond, defaultTo, reject 
@@ -54,7 +53,7 @@ import {
 } from './Calendar';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 import { generateRandomDatabase } from '../utils/generateRandomObjects';
-import { updateConfig } from '../utils/config';
+import { updateConfig, clearStorage } from '../utils/config';
 import { isNotArray, isDate } from '../utils/isSomething';
 import { scheduleReminder } from '../utils/scheduleReminder';
 import { debounce } from 'lodash';
@@ -89,7 +88,7 @@ export let getDateUpperLimit = (areas:Area[], projects:Project[], todos:Todo[], 
         }   
 
         return futureLimit.getTime() > currentLimit.getTime() ? futureLimit : currentLimit;
-}
+};
 
 
 /**
@@ -117,7 +116,7 @@ export let selectTodos = (areas, projects, todos, limit) => {
     );
 
     return selected;
-}
+};
 
 
 
@@ -158,7 +157,7 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
             return calendars; 
         } 
     )
-} 
+}; 
 
 
 /**
@@ -180,20 +179,20 @@ export let activateReminders = (scheduledReminders:number[],todos:Todo[]) : numb
     console.log(`todosToBeRemindedOf ${JSON.stringify(todosToBeRemindedOf)}`)
 
     return todosToBeRemindedOf.map((todo) : number => scheduleReminder(todo)) 
-}; 
+};
+
 
 let isMainWindow = () => { 
     return remote.getCurrentWindow().id===1; 
-}
+};
+
  
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
                        "deadline" | "search" | "group" | "search" | "reminder";
- 
                   
                        
 interface MainContainerState{ fullWindowSize:boolean }
- 
 
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
@@ -201,11 +200,13 @@ export class MainContainer extends Component<Store,MainContainerState>{
     rootRef:HTMLElement;  
     limit:number;
     subscriptions:Subscription[]; 
+    disablePrintButton:boolean;
 
     constructor(props){ 
         super(props);  
         this.limit = 10000;
         this.subscriptions = [];
+        this.disablePrintButton=false;
         this.state = { fullWindowSize:true };
     }  
      
@@ -247,13 +248,13 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     clearStorage(this.onError)     
                 ])  
                 .then(() => fetchData(this.props,this.limit,this.onError))  
-                .then((calendars) => isEmpty(calendars) ? null : updateConfig(storage,dispatch)({hideHint:true})) 
+                .then((calendars) => isEmpty(calendars) ? null : updateConfig(dispatch)({hideHint:true})) 
                 .then(() => dispatch({type:"resetReminders"}))
             });
         }else{ 
 
             fetchData(this.props,this.limit,this.onError) 
-            .then((calendars) => isEmpty(calendars) ? null : updateConfig(storage,dispatch)({hideHint:true}))   
+            .then((calendars) => isEmpty(calendars) ? null : updateConfig(dispatch)({hideHint:true}))   
             .then(() => dispatch({type:"resetReminders"}))
         } 
     }
@@ -305,13 +306,21 @@ export class MainContainer extends Component<Store,MainContainerState>{
     }
       
 
-    printCurrentList = debounce(() => {
+    printCurrentList = () => {
         let {selectedCategory} = this.props;
+
+        if(this.disablePrintButton){ return }
+
         let list = document.getElementById(`${selectedCategory}-list`); 
         if(list){ 
+           this.disablePrintButton = true; 
+
            printElement(selectedCategory, list) 
+           .then(() => { 
+              this.disablePrintButton = false;
+           })
         }
-    },100);
+    };
 
     
     render(){   

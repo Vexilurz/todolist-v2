@@ -1416,91 +1416,61 @@ export class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLab
 
 
     render(){ 
+        let {todayCategory,open,category,attachedDate,deadline} = this.props;
 
-        let {
-            todayCategory,
-            open,
-            category,
-            attachedDate,
-            deadline
-        } = this.props;
-
-        return <div style={{
-                display:"flex", 
-                flexDirection:"column", 
-                paddingLeft:"10px", 
-                paddingRight:"10px"
-            }}>   
-                {    
-                    not(todayCategory) ? null :
-                    <div style={{ 
-                        transition:"opacity 0.4s ease-in-out",
-                        opacity:open ? 1 : 0,
-                        paddingLeft:"5px"  
-                    }}>      
-                        <TodoInputLabel 
-                            onRemove={this.props.onRemoveSelectedCategoryLabel}
-                            category={category==="evening" ? "evening" : "today"}
-                            content={ 
-                             <div style={{marginLeft:"15px"}}>
-                                 { category==="evening" ? "This Evening" : "Today" }   
-                             </div>   
-                            }  
-                        />   
-                    </div>  
-                }  
-                {   
-                    category!=="someday" ? null :
-                    <div style={{ 
-                        transition:"opacity 0.4s ease-in-out",
-                        opacity:open ? 1 : 0,
-                        paddingLeft:"5px"  
-                    }}>      
-                        <TodoInputLabel 
-                            onRemove={this.props.onRemoveSelectedCategoryLabel}
-                            category={category}
-                            content={ 
-                                <div style={{marginLeft:"15px"}}>
-                                    {"Someday"}   
-                                </div>   
-                            }  
-                        />   
-                    </div>  
-                }   
-                { 
-                    isNil(attachedDate) || todayCategory ? null :
-                    <div style={{
-                        transition: "opacity 0.4s ease-in-out",
-                        opacity:open ? 1 : 0
-                    }}>    
-                        <TodoInputLabel 
-                            onRemove={this.props.onRemoveAttachedDateLabel}
-                            category={"upcoming"}
-                            content={ 
-                                <div style={{marginLeft:"15px", color:"black"}}>
-                                    When : {moment(attachedDate).format('MMMM D')} 
-                                </div>    
-                            }  
-                        />    
-                    </div>   
-                } 
-                { 
-                    isNil(deadline) ? null : 
-                    <div style={{
-                        transition : "opacity 0.4s ease-in-out",
-                        opacity : open ? 1 : 0
-                    }}>
-                        <TodoInputLabel  
-                            onRemove={this.props.onRemoveDeadlineLabel}
-                            category={"deadline"} 
-                            content={ 
-                                <div style={{marginLeft:"15px", color:"black"}}>
-                                    Deadline: {moment(deadline).format('MMMM D')}
-                                </div>
-                            }
-                        />     
-                    </div>  
-                } 
-            </div>
+        return <div style={{display:"flex",flexDirection:"column",paddingLeft:"10px",paddingRight:"10px"}}>   
+            {    
+                not(todayCategory) ? null :
+                <div style={{transition:"opacity 0.4s ease-in-out",opacity:open ? 1 : 0,paddingLeft:"5px"}}>      
+                    <TodoInputLabel 
+                        onRemove={this.props.onRemoveSelectedCategoryLabel}
+                        category={category==="evening" ? "evening" : "today"}
+                        content={ 
+                            <div style={{marginLeft:"15px"}}>
+                                {category==="evening" ? "This Evening" : "Today"}   
+                            </div>   
+                        }  
+                    />   
+                </div>  
+            }  
+            {   
+                category!=="someday" ? null :
+                <div style={{transition:"opacity 0.4s ease-in-out",opacity:open ? 1 : 0,paddingLeft:"5px"}}>      
+                    <TodoInputLabel 
+                        onRemove={this.props.onRemoveSelectedCategoryLabel}
+                        category={"someday"}
+                        content={<div style={{marginLeft:"15px"}}>Someday</div>}  
+                    />   
+                </div>  
+            }   
+            { 
+                isNil(attachedDate) || todayCategory ? null :
+                <div style={{transition: "opacity 0.4s ease-in-out",opacity:open ? 1 : 0}}>    
+                    <TodoInputLabel 
+                        onRemove={this.props.onRemoveAttachedDateLabel}
+                        category={"upcoming"}
+                        content={
+                            <div style={{marginLeft:"15px", color:"black"}}>
+                                When : {moment(attachedDate).format('MMMM D')} 
+                            </div>    
+                        }  
+                    />    
+                </div>   
+            } 
+            { 
+                isNil(deadline) ? null : 
+                <div style={{transition : "opacity 0.4s ease-in-out",opacity : open ? 1 : 0}}>
+                    <TodoInputLabel  
+                        onRemove={this.props.onRemoveDeadlineLabel}
+                        category={"deadline"} 
+                        content={ 
+                            <div style={{marginLeft:"15px", color:"black"}}>
+                                Deadline: {moment(deadline).format('MMMM D')}
+                            </div>
+                        }
+                    />     
+                </div>  
+            } 
+        </div>
     }
 }

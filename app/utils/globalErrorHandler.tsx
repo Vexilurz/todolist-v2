@@ -2,6 +2,7 @@ import { stringToLength } from './stringToLength';
 import { googleAnalytics } from './../analytics';
 import { isNil } from 'ramda';
 import { isString } from './isSomething';
+import { getMachineIdSync } from './userid';
 
 
 export let globalErrorHandler = (error:any) : Promise<void> => {
@@ -31,15 +32,17 @@ export let globalErrorHandler = (error:any) : Promise<void> => {
     
     console.log(message);
 
+    let machineId = getMachineIdSync();
+
     return Promise.all(
         [
             googleAnalytics.send(
                 'event',  
-                { ec:'Error', ea:stringToLength(message, 400), el:'Error occured', ev:value }
+                { ec:'Error', ea:stringToLength(`${machineId} : ${message}`, 400), el:'Error occured', ev:value }
             ),
             googleAnalytics.send(
                 'exception',  
-                { exd:stringToLength(message, 120), exf:1 } 
+                { exd:stringToLength(`${machineId} : ${message}`, 120), exf:1 } 
             )  
         ]
     )

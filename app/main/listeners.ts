@@ -1,17 +1,13 @@
 import { isDev } from './../utils/isDev';
 import { mainWindow, getClonedWindows } from './main';
 import { loadApp } from './loadApp'; 
-import { ipcMain,app,BrowserWindow, screen } from 'electron';
+import { ipcMain,app,BrowserWindow,screen } from 'electron';
 import { initWindow } from './initWindow';
 import { isEmpty, when } from 'ramda';
 import { autoUpdater } from "electron-updater";
 
 const log = require("electron-log");
 const os = require('os'); 
-const storage = require('electron-json-storage'); 
-
-
-storage.setDataPath(os.tmpdir());
 
 
 let initAutoUpdater = () => {
@@ -118,7 +114,7 @@ export class Listeners{
             },  
             {
                 name:"quick-entry",
-                callback : (event, todo) => {
+                callback : (event, todo, config) => {
                     type kind="quick-entry";
                     let kind:kind="quick-entry";
                     let action={type:"addTodo",load:todo}; 

@@ -19,7 +19,6 @@ import { attachDispatchToProps, downloadUpdates, threeDaysLater } from '../utils
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 import { googleAnalytics } from '../analytics';
 import { updateConfig } from '../utils/config';
-const storage = remote.require('electron-json-storage');
  
 
 
@@ -74,7 +73,7 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
               this.downloading = false; 
               this.setState({downloading:false});
             })
-            .then( () => updateConfig(storage,dispatch)({nextUpdateCheck:threeDaysLater(new Date())}) )
+            .then( () => updateConfig(dispatch)({nextUpdateCheck:threeDaysLater(new Date())}) )
             .then( () => this.setState({canRestart:true}) )
         } 
     } 

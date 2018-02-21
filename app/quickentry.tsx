@@ -58,7 +58,7 @@ import { Provider, connect } from "react-redux";
 import Chip from 'material-ui/Chip';
 import DayPicker from 'react-day-picker'; 
 import RaisedButton from 'material-ui/RaisedButton';
-import { Config } from './utils/config';
+import { Config, getConfig } from './utils/config';
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight';
 import { generateId } from './utils/generateId';
 import { generateEmptyTodo } from './utils/generateEmptyTodo';
@@ -96,11 +96,12 @@ ipcRenderer.once(
         app.style.height="100%";
         app.id='application';      
         document.body.appendChild(app);    
-
-        ReactDOM.render(   
-            wrapMuiThemeLight(<QuickEntry config={config}/>),
-            document.getElementById('application')
-        )     
+        getConfig().then(
+            (config:Config) => ReactDOM.render(   
+                wrapMuiThemeLight(<QuickEntry config={config}/>),
+                document.getElementById('application')
+            )     
+        )
     }
 );   
 
@@ -247,7 +248,13 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     };
 
 
-    addTodo = () => isEmpty(this.state.title) ? null : ipcRenderer.send("quick-entry",this.todoFromState()); 
+    addTodo = () => isEmpty(this.state.title) ? 
+                    null : 
+                    ipcRenderer.send(
+                        "quick-entry",
+                        this.todoFromState(),
+                        this.props.config
+                    ); 
     
 
     onSave = () => {

@@ -55,7 +55,6 @@ import { setCallTimeout } from './utils/setCallTimeout';
 const MockDate = require('mockdate'); 
 const os = remote.require('os'); 
 const path = require('path');
-const storage = remote.require('electron-json-storage');
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
 
@@ -216,7 +215,7 @@ export class App extends Component<AppProps,{}>{
                                 if(canUpdate){ 
                                     dispatch({type:"showUpdatesNotification", load:true}) 
                                 }else{ 
-                                    updateConfig(storage,dispatch)({
+                                    updateConfig(dispatch)({
                                         nextUpdateCheck:threeDaysLater(new Date())
                                     }) 
                                 }
@@ -365,7 +364,7 @@ ipcRenderer.once(
         app.id='application';     
         document.body.appendChild(app);     
    
-        getConfig(storage) 
+        getConfig() 
         .then((config) => 
             ReactDOM.render(   
                 <Provider store={createStore(applicationReducer, {...defaultStore, ...config})}>   

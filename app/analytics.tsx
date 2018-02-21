@@ -3,11 +3,11 @@ import { getConfig, Config } from './utils/config';
 import Analytics from 'electron-ga';
 import { ipcRenderer, remote } from 'electron';
 import { getMachineIdSync } from './utils/userid';
-const storage = remote.require('electron-json-storage');
+const os = remote.require('os');
 
 export const googleAnalytics = ({
     send:(type:string,load:any) =>
-    getConfig(storage)
+    getConfig()
     .then(
         (config:Config) => {
             if(config.shouldSendStatistics){ analytics.send(type,load) }
@@ -30,4 +30,4 @@ const analytics = (() => {
             screenResolution:`${sysInfo.screenResolution.width}x${sysInfo.screenResolution.height}`
         }
     );
-})()
+})();

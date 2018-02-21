@@ -226,16 +226,23 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
     onToggle = () => this.setState({expanded:!this.state.expanded})
 
     render(){ 
-        let { project } = this.props; 
+        let { project, sortBy, todos } = this.props;
+
+        let { expanded } = this.state;
+
         let expand = isNil(project) ? 3 :  
                      isNil(project.expand) ? 3 : 
                      project.expand; 
 
-        let idx = this.state.expanded ? this.props.todos.length : expand; 
-        let showExpandButton = this.props.todos.length > expand; 
-          
+        let idx = expanded ? todos.length : expand; 
+        let showExpandButton = todos.length > expand;
+        let sortedSliced = todos.sort(sortBy).slice(0,idx);
+        
+
         return <div>          
-                <TodosList        
+                <TodosList  
+                    todos={sortedSliced}
+
                     dispatch={this.props.dispatch}     
                     sortBy={this.props.sortBy}
                     selectedCategory={this.props.selectedCategory} 
@@ -248,10 +255,9 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                     projects={this.props.projects}
                     selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}
-                    todos={this.props.todos.slice(0,idx)}  
                 />  
                 {   
-                    !showExpandButton ? null :
+                    not(showExpandButton) ? null :
                     <div style={{cursor: "pointer", height: "30px"}}>
                         {   
                             <div     
@@ -268,8 +274,8 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                                 }}
                             >     
                                 { 
-                                    !this.state.expanded ? 
-                                    `Show ${ this.props.todos.length-expand } more items` :
+                                    not(expanded) ? 
+                                    `Show ${ todos.length-expand } more items` :
                                     `Hide` 
                                 } 
                             </div>

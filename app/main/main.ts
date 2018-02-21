@@ -1,4 +1,3 @@
-import { Config, getConfig } from './../utils/config';
 import { loadApp, loadQuickEntry, loadNotification } from './loadApp'; 
 import fs = require('fs');     
 import {dialog,app,BrowserWindow,Menu,screen,globalShortcut,Tray,nativeImage} from 'electron';
@@ -8,7 +7,6 @@ import { isNil, not, forEachObjIndexed, when, contains, compose, equals, ifElse,
 import { isDev } from './../utils/isDev';
 const os = require('os');
 const path = require("path");
-const storage = require('electron-json-storage'); 
 let AutoLaunch = require('auto-launch');
 
 
@@ -20,7 +18,6 @@ export let listeners : Listeners;
 export let dateCalendar : BrowserWindow; 
 export let tray : Tray;
 
-storage.setDataPath(os.tmpdir());
 
 let appAutoLauncher = new AutoLaunch({name: AppName, isHidden: true});
 
@@ -219,9 +216,8 @@ let onReady = () => {
     
 
     loadQuickEntry(quickEntry) 
-    .then(() => getConfig(storage))
-    .then((config:Config) => {
-        quickEntry.webContents.send("loaded",config);
+    .then(() => {
+        quickEntry.webContents.send("loaded");
         quickEntry.on('blur', () => quickEntry.hide());  
     });  
 
