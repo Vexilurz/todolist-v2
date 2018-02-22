@@ -546,7 +546,7 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                 wholeDay
                 .map(  
                     (event) => 
-                    <div   key={`event-${event.name}`} style={{padding:"10px"}}>
+                    <div   key={`event-${event.name}`} style={{padding:"1px"}}>
                     <div style={{display:"flex",height:"20px",alignItems:"center"}}>
                         <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
                         <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
@@ -560,7 +560,7 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                 timed
                 .map(  
                     (event) => 
-                    <div  key={`event-${event.name}`} style={{padding:"10px"}}>
+                    <div  key={`event-${event.name}`} style={{padding:"1px"}}>
                         <div style={{display:"flex",height:"20px",alignItems:"center"}}>
                         <div style={{paddingLeft:"5px", fontSize:"14px", fontWeight:500}}>
                             {timeOfTheDay(event.start)}

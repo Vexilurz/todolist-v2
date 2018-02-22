@@ -171,19 +171,15 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
  * 3)Set timeouts for invocation in current session for each of the reminders. 
  */
 export let activateReminders = (scheduledReminders:number[],todos:Todo[]) : number[] => {
-    let todosToBeRemindedOf : Todo[] = filter( 
-        todos, 
-        allPass([
-            (todo:Todo) => isDate(todo.reminder),
-            (todo:Todo) => isNil(todo.reminder) ? false : inFuture(todo.reminder)
-        ])
-    );
-
+    let todosToBeRemindedOf : Todo[] = filter(todos,(todo:Todo) => isDate(todo.reminder));
+ 
     scheduledReminders.map(t => clearTimeout(t)); 
-
+    
     console.log(`todosToBeRemindedOf ${JSON.stringify(todosToBeRemindedOf)}`)
 
-    return todosToBeRemindedOf.map((todo) : number => scheduleReminder(todo)) 
+    return todosToBeRemindedOf.map(
+        (todo) : number => scheduleReminder(todo)
+    ); 
 };
 
 
@@ -269,7 +265,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
     initObservables = () => {  
         let {dispatch,showRightClickMenu} = this.props; 
         let minute = 1000 * 60;  
-     
+
+        
         let calendars = Observable.interval(2 * minute)
                         .flatMap( () =>  updateCalendars(this.props.calendars, this.onError))
                         .subscribe((calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars}));   

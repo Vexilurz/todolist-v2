@@ -431,10 +431,9 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
         let events = uniqBy(prop("name"), selectedEvents) as CalendarEvent[];
         let wholeDay : CalendarEvent[] = events.filter((event) => not(sameDay(event.start,event.end)));
         let timed : CalendarEvent[] = events.filter((event) => sameDay(event.start,event.end));
-               
-
+    
         return <div style={{
-            display:"flex",flexDirection:"column",paddingTop:"5px",paddingBottom:"5px",WebkitUserSelect: "none" 
+            display:"flex",flexDirection:"column",paddingTop:"5px",paddingBottom:"5px",WebkitUserSelect:"none" 
         }}> 
                 <div style={{width:"100%",display:"flex",alignItems:"center",WebkitUserSelect:"none"}}>  
                     <div style={{width:"50px",fontWeight:900,fontSize:"35px",userSelect:"none"}}>
@@ -469,7 +468,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             wholeDay
                             .map(  
                                 (event) => 
-                                <div  key={`event-${event.name}`} style={{padding:"10px"}}>
+                                <div  key={`event-${event.name}`} style={{padding:"1px"}}>
                                 <div style={{display:"flex",height:"20px",alignItems:"center"}}>
                                     <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
                                     <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
@@ -479,26 +478,24 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                 { 
                                     isNil(event.description) ? null :
                                     isEmpty(event.description) ? null :
-                                    <div 
-                                        style={{
-                                            paddingLeft:"10px",
-                                            textAlign:"left",
-                                            fontSize:"14px",
-                                            cursor:"default",
-                                            userSelect:"none" 
-                                        }}
-                                    > 
+                                    <div style={{
+                                        paddingLeft:"10px",
+                                        textAlign:"left",
+                                        fontSize:"14px",
+                                        cursor:"default",
+                                        userSelect:"none" 
+                                    }}> 
                                         {event.description} 
                                     </div>
                                 }
-                                </div> 
+                                </div>  
                             )  
                         }
                         {
                             timed
                             .map(  
                                 (event) => 
-                                <div  key={`event-${event.name}`} style={{padding:"10px"}}>
+                                <div  key={`event-${event.name}`} style={{padding:"1px"}}>
                                     <div style={{display:"flex",height:"20px",alignItems:"center"}}>
                                     <div style={{paddingLeft:"5px", fontSize:"14px", fontWeight:500}}>
                                         {timeOfTheDay(event.start)}
@@ -510,15 +507,13 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                     { 
                                         isNil(event.description) ? null :
                                         isEmpty(event.description) ? null :
-                                        <div 
-                                            style={{
-                                                paddingLeft:"10px",
-                                                textAlign:"left",
-                                                fontSize:"14px",
-                                                cursor:"default",
-                                                userSelect:"none" 
-                                            }}
-                                        > 
+                                        <div style={{
+                                            paddingLeft:"10px",
+                                            textAlign:"left",
+                                            fontSize:"14px",
+                                            cursor:"default",
+                                            userSelect:"none" 
+                                        }}> 
                                             {event.description} 
                                         </div>
                                     }
@@ -528,15 +523,13 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                 </div>
                 {
                     isEmpty(scheduledProjects) ? null :
-                    <div 
-                        style={{
-                            display:"flex", 
-                            flexDirection:"column", 
-                            width:"100%",
-                            paddingTop:"10px",
-                            paddingBottom:"10px"
-                        }}
-                    >    
+                    <div style={{
+                        display:"flex", 
+                        flexDirection:"column", 
+                        width:"100%",
+                        paddingTop:"10px",
+                        paddingBottom:"10px"
+                    }}>    
                     { 
                         scheduledProjects.map(
                             (project:Project, index:number) : JSX.Element => {

@@ -642,7 +642,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
                         <input 
                             type="url"     
                             value={this.state.url}
-                            placeholder="Input Calendar URL" 
+                            placeholder="Input Calendar URL (ics)" 
                             style={{
                                 backgroundColor:"white",
                                 color:"rgba(100, 100, 100, 0.9)",   

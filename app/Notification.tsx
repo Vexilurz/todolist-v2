@@ -205,13 +205,18 @@ class Notification extends Component<NotificationProps,NotificationState>{
         } 
     );
     
-    
+     
     close = () => {
+        let {todo} = this.state;
         const window = remote.getCurrentWindow();
         let {initialX, initialY} = this.getInitialPosition();
         window.setPosition(initialX, initialY);
+        let mainWindow = remote.BrowserWindow.getAllWindows().find( w => w.id===1 );
+        if(mainWindow && todo){ 
+           mainWindow.webContents.send('removeReminder', todo);
+        } 
         this.queue.shift(); 
-        this.notify();
+        this.notify(); 
     };
 
     
@@ -221,12 +226,13 @@ class Notification extends Component<NotificationProps,NotificationState>{
             let mainWindow = remote.BrowserWindow.getAllWindows().find( w => w.id===1 );
             if(mainWindow){
                mainWindow.webContents.send('openTodo', todo);
+               mainWindow.webContents.send('removeReminder', todo);
             }
             this.close();
         }
     };
 
-
+      
     render(){  
         let {todo} = this.state;
         let title = isNil(todo) ? '' : todo.title;

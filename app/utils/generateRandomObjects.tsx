@@ -58,7 +58,7 @@ let fakeCheckListItem = (idx) : ChecklistItem => {
     return {  
         text : words.join(' '), 
         checked : Math.random() > 0.5 ? true : false,
-        idx : idx,
+        idx : idx, 
         key : generateId(),
         _id : generateId()  
     } 
@@ -90,7 +90,7 @@ export let fakeTodo = (tags:string[], remind = null) : Todo => {
     }
 
     let attachedDate = Math.random() < 0.3 ? null :
-                       Math.random() > 0.5 ?
+                       Math.random() > 0.5 ? 
                        randomDate(new Date(), new Date()["addDays"](50)) : 
                        new Date();
 
@@ -103,6 +103,8 @@ export let fakeTodo = (tags:string[], remind = null) : Todo => {
                    randomDate(new Date(), fiveMinutesLater(new Date())) : 
                    null; //onHourLater(date) //fiveMinutesLater(date);
     
+    //reminder = randomDate(new Date(), new Date()["addDays"](-50)); 
+
     return ({  
         _id:generateId(),    
         type:"todo",
@@ -111,7 +113,7 @@ export let fakeTodo = (tags:string[], remind = null) : Todo => {
         priority:Math.random()*999999999,
         note:note.join(' '),
         checklist:checklist,   
-        reminder:null,//:remind,  
+        reminder,//:null,//:remind,  
         attachedTags:tags,   
         deadline:Math.random() < 0.3 ? null :
                  Math.random() > 0.5 ?

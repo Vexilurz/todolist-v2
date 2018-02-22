@@ -288,6 +288,18 @@ export class App extends Component<AppProps,{}>{
             }))
             .subscribe((action) => action.type==="@@redux/INIT" ? null : dispatch(action)),  
 
+            Observable 
+            .fromEvent(ipcRenderer, 'removeReminder', (event,todo) => todo)    
+            .subscribe((todo:Todo) => {
+                assert(isTodo(todo), `todo is not of type todo. removeReminder. ${todo}`);
+                let {todos,dispatch} = this.props; 
+                let target = todos.find((t:Todo) => t._id===todo._id);
+                if(target){ 
+                   let updated:Todo = {...target,reminder:null};
+                   dispatch({type:"updateTodo",load:updated}); 
+                }  
+            }),
+
 
             Observable 
             .fromEvent(ipcRenderer, "error", (event,error) => error)    

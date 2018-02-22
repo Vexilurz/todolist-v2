@@ -60,8 +60,10 @@ import { daysRemaining } from '../../utils/daysRemaining';
 import { stringToLength } from '../../utils/stringToLength';
 import { assert } from '../../utils/assert';
 import { setCallTimeout } from '../../utils/setCallTimeout';
-import { debounce } from 'lodash'; 
-let Promise = require('bluebird');
+import { debounce } from 'lodash';    
+let Promise = require('bluebird'); 
+import Linkify from 'react-linkify'; 
+let ContentEditable = require('react-contenteditable');
 
 
 interface AutosizeInputComponentProps{
@@ -1035,9 +1037,18 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
           paddingLeft:"25px", 
           paddingRight:"25px"  
         }}>    
+            {
+                /*
+                    <ContentEditable
+                        html={<Linkify>Examples are available at tasti.github.io/react-linkify/.</Linkify>} 
+                        disabled={false}      
+                        onChange={evt => console.log(evt.target.value)}
+                    />
+                */ 
+            }
             <TextField   
                 id={`${todo._id}note`}  
-                value={todo.note} 
+                value={todo.note}  
                 hintText="Notes"
                 onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
                 multiLine={true}   
@@ -1047,7 +1058,7 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
                 inputStyle={{fontSize:"14px"}} 
                 underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}} 
                 underlineStyle={{borderColor:"rgba(0,0,0,0)"}}
-            />    
+            />  
             {    
                 not(showChecklist) ? null : 
                 <div> 

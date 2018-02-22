@@ -3,7 +3,7 @@ import {isDate} from './isSomething';
 import { setCallTimeout } from './setCallTimeout';
 import { findWindowByTitle } from './utils';
 
-export let scheduleReminder = (todo) : number => { 
+export let scheduleReminder = (todo) : number => {
     
     assert(isDate(todo.reminder),`reminder is not of type Date. scheduleReminder. ${todo.reminder}.`);
 
