@@ -2,40 +2,20 @@ import '../../assets/styles.css';
 import '../../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
-import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, byNotCompleted, byNotDeleted, getTagsFromItems, attachEmptyTodo,  isToday,  makeChildrensVisible, 
-    hideChildrens, generateDropStyle,  keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, sameDay, byTags, 
-    byCategory
+    attachDispatchToProps, byNotCompleted, byNotDeleted, getTagsFromItems, 
+    generateDropStyle,  keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, 
+    sameDay, byTags, byCategory
 } from "../../utils/utils";  
 import { connect } from "react-redux";
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { 
-    queryToTodos, getTodos, updateTodo, Todo, 
-    removeTodo, addTodo, Project, Area, Calendar
-} from '../../database'; 
-import Popover from 'material-ui/Popover';
+import { Todo, Project, Area, Calendar } from '../../database'; 
 import { Tags } from '../../Components/Tags';
-import TrashIcon from 'material-ui/svg-icons/action/delete';
-import CheckCircle from 'material-ui/svg-icons/action/check-circle';
-import CalendarIco from 'material-ui/svg-icons/action/date-range';
-import Repeat from 'material-ui/svg-icons/av/repeat';
 import { Store } from '../../app';
-import Inbox from 'material-ui/svg-icons/content/inbox';
-import Duplicate from 'material-ui/svg-icons/content/content-copy';
-import ShareIcon from 'material-ui/svg-icons/social/share';
-import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import Flag from 'material-ui/svg-icons/image/assistant-photo';
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import { TextField } from 'material-ui';
-import AutosizeInput from 'react-input-autosize';
-import { ContainerHeader } from '.././ContainerHeader';
 import { onDrop } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { compose, allPass, isEmpty, not, assoc, isNil, flatten, contains, intersection, defaultTo } from 'ramda';
+import { allPass, isEmpty, not, assoc, isNil, flatten, contains, intersection } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { Category, filter } from '../MainContainer';
 import { isDate } from 'util';
@@ -50,7 +30,6 @@ import { insideTargetArea } from '../../utils/insideTargetArea';
 import { generateId } from '../../utils/generateId';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { chooseIcon } from '../../utils/chooseIcon';
-import { uppercase } from '../../utils/uppercase';
 import { SortableContainer } from '../CustomSortableContainer';
 import { updateConfig } from '../../utils/config';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';

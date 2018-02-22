@@ -7,7 +7,7 @@ import { isNil, not, forEachObjIndexed, when, contains, compose, equals, ifElse,
 import { isDev } from './../utils/isDev';
 const os = require('os');
 const path = require("path");
-let AutoLaunch = require('auto-launch');
+const AutoLaunch = require('auto-launch');
 
 
 export const AppName = 'Tasklist';
@@ -178,7 +178,7 @@ let onReady = () => {
     tray = createTray();
     listeners = new Listeners(mainWindow); 
     
-    
+
     mainWindow = initWindow(
         getWindowSize(), 
         {  
@@ -204,14 +204,16 @@ let onReady = () => {
     mainWindow.on('show', ()=>tray.setToolTip(`Hide ${AppName}`));
     mainWindow.on('hide', ()=>tray.setToolTip(`Show ${AppName}`));
       
-    
+     
     loadApp(mainWindow)  
     .then(() => {    
         mainWindow.webContents.send("loaded");
         mainWindow.setMaximizable(true);
         mainWindow.minimize();  
         
-        if(isDev()){ mainWindow.webContents.openDevTools(); }  
+        if(isDev()){ 
+            mainWindow.webContents.openDevTools(); 
+        }  
     });    
     
 

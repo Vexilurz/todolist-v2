@@ -211,7 +211,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
         const window = remote.getCurrentWindow();
         let {initialX, initialY} = this.getInitialPosition();
         window.setPosition(initialX, initialY);
-        let mainWindow = remote.BrowserWindow.getAllWindows().find( w => w.id===1 );
+        let mainWindow = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
         if(mainWindow && todo){ 
            mainWindow.webContents.send('removeReminder', todo);
         } 

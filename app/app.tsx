@@ -233,7 +233,9 @@ export class App extends Component<AppProps,{}>{
     componentDidMount(){    
         const sysInfo = collectSystemInfo();
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
-
+        console.log("SYSTEM UPTIME", os.uptime()); 
+        console.log("SYSTEM UPTIME", os.uptime()); 
+        
         this.initObservables();  
         this.initUpdateTimeout(); 
         this.reportStart({...sysInfo, timeSeconds} as any);

@@ -3,18 +3,14 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { Provider, connect } from "react-redux";
-import Popover from 'material-ui/Popover';
-import { Tags } from '../../Components/Tags';
-import { Transition } from 'react-transition-group';
+import { connect } from "react-redux";
 import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '../ContainerHeader';
 import { byTags, getTagsFromItems, byDeleted, attachDispatchToProps } from '../../utils/utils';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { uniq, compose, contains, allPass, not, isEmpty, cond } from 'ramda';
-import { isString } from 'util';
+import { allPass, isEmpty, cond } from 'ramda';
 import { Category, filter } from '../MainContainer';
 import { SimplePopup } from '../SimplePopup';
 import { Store } from '../../app';
@@ -22,7 +18,6 @@ import { ProjectLinkTrash } from '../Project/ProjectLink';
 import { AreaTrashLink } from '../Area/AreaLink';
 import { chooseIcon } from '../../utils/chooseIcon';
 import { isDate, isTodo, isProject, isArea } from '../../utils/isSomething';
-
 
 
 let sortByDeleted = (a:(Todo & Project & Area),b:(Todo & Project & Area)) => {

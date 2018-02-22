@@ -3,12 +3,9 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react';   
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { Provider, connect } from "react-redux"; 
-import Popover from 'material-ui/Popover';
-import { Tags } from '../../Components/Tags';
+import { connect } from "react-redux"; 
 import { TodosList } from '../../Components/TodosList';
 import { Todo,Project, Area, Calendar, getTodos } from '../../database';
-let moment = require("moment");
 import * as Waypoint from 'react-waypoint';
 import { ContainerHeader } from '.././ContainerHeader';
 import {  
@@ -16,7 +13,6 @@ import {
     getDayName, 
     getDatesRange, 
     keyFromDate, 
-    daysLeftMark,
     byNotCompleted,
     byNotDeleted,
     getTagsFromItems,
@@ -29,11 +25,10 @@ import {
     getRangeDays,
 } from '../../utils/utils';  
 import {
-    allPass, uniq, isNil, compose, not, last, isEmpty, toPairs, map, flatten, prop, uniqBy, groupBy, defaultTo 
+    allPass, uniq, isNil, compose, not, last, isEmpty, map, flatten, prop, uniqBy, groupBy, defaultTo 
 } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category, filter, selectTodos } from '../MainContainer';
-import { repeat, setRepeatedTodos } from '../RepeatPopup';
 import { Hint } from './Today'; 
 import { CalendarEvent } from '../Calendar';
 import { isDate } from '../../utils/isSomething';
@@ -46,7 +41,6 @@ type Item = Project | Todo | CalendarEvent
  
 interface objectsByDate{ [key:string]:Item[] }  
 
-
  
 let haveDate = (item : Project | Todo) : boolean => {  
     if(item.type==="project"){  
@@ -55,7 +49,6 @@ let haveDate = (item : Project | Todo) : boolean => {
        return not(isNil(item["attachedDate"])) || not(isNil(item.deadline));
     }
 }
-
 
 
 let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
