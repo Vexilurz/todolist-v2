@@ -16,7 +16,7 @@ import { allPass, compose, or, assoc, isNil, isEmpty } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink, ProjectLinkLogbook } from '../Project/ProjectLink';
 import { Category, filter } from '../MainContainer';
-import { isTodo, isProject } from '../../utils/isSomething';
+import { isTodo, isProject, isDate } from '../../utils/isSomething';
 
 
 

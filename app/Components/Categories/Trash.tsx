@@ -13,7 +13,7 @@ import { byTags, getTagsFromItems, byDeleted, attachDispatchToProps } from '../.
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { uniq, compose, contains, allPass, not, isEmpty } from 'ramda';
+import { uniq, compose, contains, allPass, not, isEmpty, cond } from 'ramda';
 import { isString } from 'util';
 import { Category, filter } from '../MainContainer';
 import { SimplePopup } from '../SimplePopup';
@@ -21,6 +21,24 @@ import { Store } from '../../app';
 import { ProjectLinkTrash } from '../Project/ProjectLink';
 import { AreaTrashLink } from '../Area/AreaLink';
 import { chooseIcon } from '../../utils/chooseIcon';
+import { isDate, isTodo, isProject, isArea } from '../../utils/isSomething';
+
+
+
+let sortByDeleted = (a:(Todo & Project & Area),b:(Todo & Project & Area)) => {
+    let aTime = 0;
+    let bTime = 0;
+
+    if(isDate(b.deleted)){ 
+       bTime = b.deleted.getTime(); 
+    }
+
+    if(isDate(a.deleted)){
+       aTime = a.deleted.getTime(); 
+    }
+
+    return bTime-aTime; 
+};
 
 
 interface TrashProps{ 
@@ -45,29 +63,7 @@ interface TrashState{}
 export class Trash extends Component<TrashProps,TrashState>{ 
      
     constructor(props){ super(props) }  
-
-    getDeletedProjectElement = (value:Project, index:number) : JSX.Element => {
-        return <div 
-            key={`deletedProject-${index}`}  
-            style={{position:"relative",display:"flex",alignItems:"center"}}
-        >   
-            <div style={{width:"100%"}}>
-                <ProjectLinkTrash { ...{project:value} as any }/>  
-            </div>   
-        </div>    
-    };
    
-
-    getDeletedAreaElement = (value:Area, index:number) : JSX.Element => { 
-        return <div 
-            key={`deletedArea-${index}`} 
-            style={{position:"relative",display:"flex",alignItems:"center"}}
-        >   
-            <div style={{width:"100%"}}>
-                <AreaTrashLink {...{area:value} as any}/>
-            </div>  
-        </div>    
-    }; 
  
 
     getDeletedTodoElement = (value:Todo, index:number) : JSX.Element => {  
@@ -117,6 +113,12 @@ export class Trash extends Component<TrashProps,TrashState>{
         let tags = getTagsFromItems([...todos,...deletedProjects,...deletedAreas]); 
         let empty = isEmpty(todos) && isEmpty(deletedProjects) && isEmpty(deletedAreas);
  
+        let items = [
+            ...deltedTodos,
+            ...deletedProjects,
+            ...deletedAreas
+        ].sort(sortByDeleted); 
+
 
         return <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}> 
             <ContainerHeader  
@@ -154,40 +156,64 @@ export class Trash extends Component<TrashProps,TrashState>{
                     </div>  
                 </div>  
             </div>  
-            <div style={{paddingTop:"20px", paddingBottom:"20px", position:"relative",  width:"100%"}}>
-                {   
-                    deltedTodos.map( 
-                        (value:Todo,index) => <div
-                            key={value._id}
-                            style={{position:"relative", marginTop:"5px", marginBottom:"5px"}}
-                        >
-                            <TodoInput   
-                                id={value._id}
-                                key={value._id}
-                                projects={projects}  
-                                selectedTodo={selectedTodo}
-                                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                                dispatch={dispatch}  
-                                selectedProjectId={selectedProjectId}
-                                groupTodos={this.props.groupTodos}
-                                selectedAreaId={selectedAreaId} 
-                                todos={this.props.todos}
-                                selectedCategory={selectedCategory}
-                                rootRef={rootRef}  
-                                todo={value}
-                            />     
-                        </div>
-                    )
-                }
-            </div>    
 
-            <div style={{paddingTop:"10px", paddingBottom:"10px"}}>
-                {deletedProjects.map(this.getDeletedProjectElement)}  
-            </div>  
- 
-            <div style={{paddingTop:"10px", paddingBottom:"10px"}}>
-                {deletedAreas.map(this.getDeletedAreaElement)} 
-            </div>  
+           <div style={{paddingTop:"20px", paddingBottom:"20px", position:"relative",  width:"100%"}}>
+            {   
+                items.map((value:any,index:number) => 
+                    cond([
+                        [
+                            isTodo, 
+                            (todo:Todo) => <div
+                                key={todo._id}
+                                style={{position:"relative",marginTop:"5px",marginBottom:"5px"}}
+                            >
+                                <TodoInput   
+                                    id={todo._id}
+                                    key={todo._id}
+                                    projects={projects}  
+                                    selectedTodo={selectedTodo}
+                                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                                    dispatch={dispatch}  
+                                    selectedProjectId={selectedProjectId}
+                                    groupTodos={this.props.groupTodos}
+                                    selectedAreaId={selectedAreaId} 
+                                    todos={this.props.todos}
+                                    selectedCategory={selectedCategory}
+                                    rootRef={rootRef}  
+                                    todo={todo}
+                                />     
+                            </div>
+                        ],
+                        [
+                            isProject, 
+                            (project:Project) : JSX.Element => <div 
+                                key={`deletedProject-${index}`}  
+                                style={{position:"relative",display:"flex",alignItems:"center"}}
+                            >   
+                                <div style={{width:"100%"}}>
+                                    <ProjectLinkTrash { ...{project} as any }/>  
+                                </div>   
+                            </div>   
+                        ],
+                        [
+                            isArea,
+                            (area:Area) : JSX.Element => <div 
+                                key={`deletedArea-${index}`} 
+                                style={{position:"relative",display:"flex",alignItems:"center"}}
+                            >   
+                                <div style={{width:"100%"}}>
+                                    <AreaTrashLink {...{area} as any}/>
+                                </div>  
+                            </div>   
+                        ],
+                        [
+                            () => true, 
+                            () => null
+                        ]
+                    ])(value)
+                )
+            }
+            </div>   
         </div> 
     }
 } 

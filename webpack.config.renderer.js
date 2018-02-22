@@ -3,7 +3,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer');   
 const CopyWebpackPlugin = require('copy-webpack-plugin');    
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 module.exports = {     
     context: __dirname + "/app",
     
@@ -58,9 +57,6 @@ module.exports = {
     devtool: 'sourcemap', 
         
     plugins :[
-        new BundleAnalyzerPlugin({
-            generateStatsFile:true
-        }),
         new CopyWebpackPlugin([{from : './assets'}]),   
         new HtmlWebpackPlugin({
             inject:true, 

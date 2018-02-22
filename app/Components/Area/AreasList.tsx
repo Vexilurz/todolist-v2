@@ -3,27 +3,21 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react"; 
-import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area, Todo } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import { byNotCompleted, byNotDeleted } from '../../utils/utils';
 import PieChart from 'react-minimal-pie-chart';
 import { 
-    uniq, allPass, remove, toPairs, intersection, when, reject, slice,
-    isEmpty, contains, assoc, isNil, not, all, merge, map, concat,
-    addIndex, compose, cond, defaultTo, groupBy, last, insertAll  
+    uniq, allPass, remove, intersection, reject, slice, prop, flatten,
+    isEmpty, contains, assoc, isNil, not, merge, map, concat, ifElse, 
+    addIndex, compose, cond, defaultTo, last, insertAll, prepend  
 } from 'ramda'; 
 import { Category } from '../MainContainer';
-import { Observable } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx'; 
-import { Subscriber } from "rxjs/Subscriber";
-import { Subscription } from 'rxjs/Rx';
-import ResizeObserver from 'resize-observer-polyfill';
 import { AutoresizableText } from '../AutoresizableText';
 import { getProgressStatus } from '../Project/ProjectLink';
 import { assert } from '../../utils/assert';
-import { isArrayOfProjects, isArrayOfStrings, isArea, isProject, isNotArray } from '../../utils/isSomething';
+import { isArea, isProject, isNotArray } from '../../utils/isSomething';
 import { arrayMove } from '../../utils/arrayMove';
 import { SortableContainer } from '../CustomSortableContainer';
 const mapIndexed = addIndex(map);
@@ -80,39 +74,27 @@ export let groupProjectsByArea = (projects:Project[],areas:Area[]) : {
 
 
 export let generateLayout = (  
-    Areas : Area[],
+    areas : Area[],
     { table, detached } : { table : { [key: string]: Project[]; }, detached:Project[] } 
-) : LayoutItem[] => { 
+) : LayoutItem[] => 
+    compose(
+        insertAll(0,detached.sort((a:Project, b:Project) => a.priority-b.priority)),
+        prepend({type:"separator", _id:"separator"}),
+        flatten,
+        (areas) => areas.map(
+            (area:Area) => compose(
+                prepend(area),
+                (projects:Project[]) => projects.sort((a:Project,b:Project) => a.priority-b.priority),
+                defaultTo([]),
+                (key) => table[key],
+                prop('_id')
+            )(area)
+        ),
+        (areas) => areas.filter(byNotDeleted),
+        (areas) => areas.sort((a:Area,b:Area) => a.priority-b.priority)
+    )(areas);
 
-    let areas : Area[] = Areas
-                          .filter(byNotDeleted)
-                          .sort((a:Area,b:Area) => a.priority-b.priority);
-                         
-    let layout : LayoutItem[] = [];
-
-    for(let i = 0; i<areas.length; i++){
-        let key : string = areas[i]._id;  
-
-        let attachedProjects : Project[] = table[key].sort((a:Project,b:Project) => a.priority-b.priority);
-
-        layout.push(areas[i]);
-         
-        for(let j=0; j<attachedProjects.length; j++){
-            layout.push(attachedProjects[j]);
-        }
-    }
-
-    layout.push({type:"separator", _id:"separator"});
-     
-    detached = detached.sort((a:Project, b:Project) => a.priority-b.priority);
-
-    for(let i=0; i<detached.length; i++){
-        layout.push(detached[i])
-    }
-
-    return layout; 
-} 
-
+ 
 
 interface AreasListProps{   
     dispatch:Function,
@@ -141,14 +123,16 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 
     selectArea = (a:Area) => {
-        this.props.dispatch({type:"selectedAreaId",load:a._id}); 
-        this.props.dispatch({type:"searchQuery", load:""});
+        let {dispatch} = this.props;
+        dispatch({type:"selectedAreaId",load:a._id}); 
+        dispatch({type:"searchQuery", load:""});
     }
  
 
     selectProject = (p:Project) => {
-        this.props.dispatch({type:"selectedProjectId",load:p._id});
-        this.props.dispatch({type:"searchQuery", load:""});
+        let {dispatch} = this.props;
+        dispatch({type:"selectedProjectId",load:p._id});
+        dispatch({type:"searchQuery", load:""});
     }
 
 
@@ -194,8 +178,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 >
                 </div>
             default:  
-                return null  
-        }   
+                return null;   
+        }     
     } 
 
 
@@ -208,7 +192,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             }
         } 
    
-        return false 
+        return false; 
     } 
     
 
@@ -225,17 +209,21 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             projects.filter( allPass([byNotDeleted,byNotCompleted]) ),
             areas.filter( byNotDeleted )
         );
-        let layout = generateLayout(this.props.areas,{table,detached}); 
+
+        let layout = generateLayout(areas,{table,detached}); 
 
         if(isEmpty(layout)){ return }
 
         //projects ids contained in current layout
         let layoutProjectsIds : string[] = layout.filter(isProject).map(p => p._id); 
+
+        //indices
+        let indices = this.selectElements(oldIndex,layout);
     
-        //1) change projects order, detach projects from areas 
+        //1) change projects & areas order, detach projects from areas 
         let layoutAfterSort = compose(
             mapIndexed( 
-                (item,index:number) => cond(
+                (item,index:number) => cond( 
                     [
                         [
                             isArea, //if area, remove attached projects ids (contained in current layout)
@@ -255,23 +243,30 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                             (separator) => separator
                         ]
                     ]
-                )(item)
+                )(item) 
             ),
-            (layout) => {
-                let item = layout[oldIndex];
-                if(isArea(item)){
-                    let indices = this.selectElements(oldIndex,layout);
-                    let lastIndex = last(indices) + 1; 
-                    let collection = slice(oldIndex,lastIndex,layout);
-                    let without = remove(oldIndex,indices.length,layout);
-                    let updated = insertAll(newIndex,collection,without);
-                    return updated; 
-                }else if(isProject(item)){ 
-                    return arrayMove([...layout], oldIndex, newIndex); //move dragged project from oldIndex to newIndex
-                }
-            }
+            compose( 
+                ifElse(
+                    isArea, 
+                    compose(
+                        (collection) => compose(
+                            insertAll(newIndex,collection), // insert (area + project[]) at new position
+                            remove(oldIndex,indices.length) // remove (area + project[]) from initial layout
+                        )(layout),
+                        (lastIndex:number) => slice(oldIndex,lastIndex,layout), // preserve (area + project[])
+                        () => last(indices) + 1, //move one forward
+                    ),
+                    (item) => arrayMove([...layout], oldIndex, newIndex)
+                ), 
+                prop(oldIndex) //get dragged item
+            )
         )(layout);
-       
+        
+ 
+        assert(layout.length===layoutAfterSort.length, `incorrect logic. Areas List.`);
+        assert(layout[oldIndex]._id===layoutAfterSort[newIndex]._id, `incorrect order. Areas List.`);
+    
+
         //2) Based on new order, generate hash table of form { areaId : projectId[] }
         let target = undefined;
         let byArea = {}; 
@@ -288,7 +283,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                        byArea[target].push(item._id); 
                     }
                 }
-            }else if(isSeparator(item)){ break }
+            }
         };
 
 

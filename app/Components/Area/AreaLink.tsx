@@ -3,8 +3,6 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react";  
-import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
-import IconButton from 'material-ui/IconButton'; 
 import { Project, Area, Todo } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import { attachDispatchToProps } from '../../utils/utils'; 

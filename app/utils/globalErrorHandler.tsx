@@ -38,11 +38,11 @@ export let globalErrorHandler = (error:any) : Promise<void> => {
         [
             googleAnalytics.send(
                 'event',  
-                { ec:'Error', ea:stringToLength(`${machineId} : ${message}`, 400), el:'Error occured', ev:value }
+                { ec:'Error', ea:stringToLength(`Error : ${message}`, 400), el:`Error occured : ${machineId}`, ev:value }
             ),
-            googleAnalytics.send(
+            googleAnalytics.send(  
                 'exception',  
-                { exd:stringToLength(`${machineId} : ${message}`, 120), exf:1 } 
+                { exd:stringToLength(`Error : ${message}`, 120), exf:1 } 
             )  
         ]
     )

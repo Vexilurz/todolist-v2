@@ -94,10 +94,10 @@ export let fakeTodo = (tags:string[], remind = null) : Todo => {
                        randomDate(new Date(), new Date()["addDays"](50)) : 
                        new Date();
 
-    let deleted = Math.random() < 0.2 ? new Date() : undefined; 
+    let deleted = Math.random() < 0.2 ? randomDate(new Date(), new Date()["addDays"](-50)) : undefined; 
     
     let completedSet = checked ? new Date() : null;
-    let completedWhen = checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null;               
+    let completedWhen = checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null;                
 
     let reminder = isToday(attachedDate) && isNil(deleted) && not(checked) ?  
                    randomDate(new Date(), fiveMinutesLater(new Date())) : 
@@ -170,7 +170,7 @@ let fakeProject = (attachedTags:string[], layout:LayoutItem[]) : Project => {
         type : "project", 
         name : name.join(' '),  
         priority : Math.random()*999999999,
-        deleted : Math.random() < 0.5 ? new Date() : undefined,
+        deleted : Math.random() < 0.2 ? randomDate(new Date(), new Date()["addDays"](-50)) : undefined,
         description : description.join(' '), 
         created : randomDate(new Date()["addDays"](-50), new Date()),
         deadline : randomDate(new Date(), new Date()["addDays"](50)),
@@ -205,19 +205,18 @@ let fakeArea = (
         description.push(randomWord());  
 
     
-    return { 
+    return {  
         _id : generateId(),   
         type : "area", 
-        deleted : Math.random() < 0.5 ? new Date() : undefined,
+        deleted : Math.random() < 0.2 ? randomDate(new Date(), new Date()["addDays"](-50)) : undefined,
         priority : Math.random()*999999999,
         name : name.join(' '),    
         description : description.join(' '),  
         attachedTags, 
         created : randomDate(new Date()["addDays"](-50), new Date()),
-        attachedTodosIds:uniq(attachedTodosIds), 
+        attachedTodosIds:uniq(attachedTodosIds),   
         attachedProjectsIds:uniq(attachedProjectsIds)
-    }  
-    
+    }
 }
     
     

@@ -33,7 +33,7 @@ import { isDev } from '../utils/isDev';
 export let removeTodoFromAreas = (areas:Area[], todo:Todo) : Area[] => {
     let load = [];
 
-    if(isNil(todo)){ return load }
+    if(isNil(todo)){ return areas }
 
     for(let i=0; i<areas.length; i++){
         let area = areas[i];
@@ -47,10 +47,17 @@ export let removeTodoFromAreas = (areas:Area[], todo:Todo) : Area[] => {
               ...area,
               attachedTodosIds:remove(idx, 1, attachedTodosIds)
             });
+        }else{
+            load.push(area);
         }
     }  
-    
+
     assert(all((a:Area) => not(contains(todo._id)(a.attachedTodosIds)), load), 'removeTodoFromAreas. incorrect logic.'); 
+    assert(
+        areas.length===load.length, 
+        'removeTodoFromAreas. areas.length should be equal to load.length.'
+    );
+
     return load;
 };      
 
@@ -65,17 +72,22 @@ export let removeTodoFromProjects = (projects:Project[], todo:Todo) : Project[] 
         if(isNil(project)){ continue }
 
         let layout = project.layout;
-        if(isNil(layout) || isEmpty(layout)){ continue }
-
         if(contains(todo._id)(layout)){  
             load.push({
               ...project,
               layout:layout.filter((item) => item!==todo._id) 
-            });
+            });  
+        }else{
+            load.push(project);
         } 
-    } 
+    }  
     
-    assert(all((p:Project) => not(contains(todo._id)(p.layout)), load), 'removeTodoFromProjects. incorrect logic.');
+    assert(all((p:Project) => not(contains(todo._id)(p.layout)), load), 'removeTodoFromProjects. incorrect logic.'); 
+    assert(
+        projects.length===load.length, 
+        'removeTodoFromProjects. projects.length should be equal to load.length.'
+    );
+   
     return load;
 }; 
 
@@ -287,6 +299,8 @@ export let onDrop = ({
             ),
             todo:null
         };
+    }else{
+        return {} as any;
     }
 };
 
@@ -343,7 +357,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 todo={value}
             />     
         </div> 
-    }
+    };
        
 
     shouldCancelStart = (e) => {
@@ -357,16 +371,16 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         }
           
         return false
-    }  
+    };  
      
 
     onSortStart = (oldIndex:number,event:any) : void => { 
         let {dispatch} = this.props;
         dispatch({type:"dragged",load:"todo"}); 
-    }
+    };
 
 
-    onSortMove = (oldIndex:number,event:any) => {}
+    onSortMove = (oldIndex:number,event:any) => {};
 
     
     onSortEnd = (oldIndex:number,newIndex:number,event:any,item?:any) => { 
@@ -412,18 +426,18 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             if(updated.todo){
                dispatch({type:"updateTodo", load:updated.todo});
             }
-
+ 
         }else{     
             if(oldIndex===newIndex){ return }
             this.changeOrder(oldIndex,newIndex,selected) 
-        }    
-    }   
-    
+        }      
+    };   
+     
     
     changeOrder = (oldIndex,newIndex,selected) => {
         let load = arrayMove(selected,oldIndex,newIndex); 
         this.props.dispatch({type:"updateTodos", load:indexToPriority(load).filter(isTodo)});
-    }
+    };  
  
         
     render(){    

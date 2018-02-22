@@ -44,7 +44,6 @@ module.exports = {
             test:/\.js$/,       
             exclude: path.resolve(__dirname,'node_modules'), 
             loader: 'babel',
-            
             query: {
                 presets: [["es2015", { "modules": false }], "react"]
             }  

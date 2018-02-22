@@ -6,12 +6,8 @@ import { Component } from "react";
 import { Todo, Project, Area } from '../../database';
 import { TodosList } from '.././TodosList';
 import { ContainerHeader } from '.././ContainerHeader';
-import { 
-    byTags, byCategory, byNotCompleted, byNotDeleted, attachEmptyTodo, byAttachedToProject, byAttachedToArea 
-} from '../../utils/utils'; 
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { compose, filter, allPass, prepend, contains, not, isNil, isEmpty } from 'ramda';
-import { TodoInput } from '../TodoInput/TodoInput';
+import { isEmpty } from 'ramda';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { Category } from '../MainContainer';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';

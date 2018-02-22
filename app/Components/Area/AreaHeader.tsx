@@ -1,36 +1,15 @@
 
-import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import '../../assets/styles.css';  
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom';  
-import { Provider } from "react-redux";
-import { Transition } from 'react-transition-group';
+import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { connect } from "react-redux";
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Popover from 'material-ui/Popover';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
-import CheckCircle from 'material-ui/svg-icons/action/check-circle';
-import CalendarIco from 'material-ui/svg-icons/action/date-range';
-import Repeat from 'material-ui/svg-icons/av/repeat';
-import Inbox from 'material-ui/svg-icons/content/inbox';
-import ShareIcon from 'material-ui/svg-icons/social/share';
-import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import Flag from 'material-ui/svg-icons/image/assistant-photo';
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import { TextField } from 'material-ui';
 import AutosizeInput from 'react-input-autosize'; 
-import { Todo, Project, Heading, Area } from '../../database';
-import PieChart from 'react-minimal-pie-chart';
-import Checked from 'material-ui/svg-icons/navigation/check';
-import { ProjectMenuPopover } from '../Project/ProjectMenu';
-import { contains, isEmpty, isNil } from 'ramda';
-import { TagsPopup } from '../TodoInput/TodoTags';
-import { filter } from '../MainContainer';
-import { isArrayOfTodos, isArrayOfProjects, isArea } from '../../utils/isSomething';
-import { assert } from '../../utils/assert';
+import { isEmpty } from 'ramda';
 
 
 interface AreaHeaderProps{

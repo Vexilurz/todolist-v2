@@ -8,7 +8,7 @@ import { AreaHeader } from './AreaHeader';
 import { AreaBody } from './AreaBody';
 import { debounce } from 'lodash';
 import { Category, filter } from '../MainContainer';
-import { uniq, isNil, contains } from 'ramda'; 
+import { isNil, contains } from 'ramda'; 
 import { isArea, isArrayOfTodos, isArrayOfProjects } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
    

@@ -10,7 +10,7 @@ import {
     convertTodoDates, convertProjectDates, convertAreaDates, oneDayAhead, measureTime, 
     byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
     byCompleted, isToday, byNotSomeday, byScheduled, yearFromNow, timeDifferenceHours, 
-    isNewVersion, getIntroList, printElement, inFuture, introListIds
+    isNewVersion, getIntroList, printElement, inFuture, introListIds, introListLayout
 } from "../utils/utils";  
 import {isDev} from "../utils/isDev"; 
 import { connect } from "react-redux"; 
@@ -148,12 +148,11 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
             dispatch({type:"setTodos", load:selected});
 
             if(firstLaunch){  
-                console.log(`first launch`);
-                let introList = getIntroList();
-                let { layout } = introList;
-                dispatch({type:"addTodos",load:layout.filter(isTodo)});
-                dispatch({type:"addProject",load:introList}) 
-            }; 
+               console.log(`first launch`);
+               dispatch({type:"addTodos", load:introListLayout.filter(isTodo)});
+               dispatch({type:"addProject", load:getIntroList()}) 
+            };
+
             return updateCalendars(calendars,onError);
         }
     )
