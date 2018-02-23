@@ -8,34 +8,12 @@ import {
     attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
     byDeleted, byAttachedToProject, byAttachedToArea, 
-    isToday, isTodayOrPast, isDeadlineTodayOrPast, 
+    isTodayOrPast, isDeadlineTodayOrPast, 
 } from "../../utils/utils";  
-import { Provider, connect } from "react-redux";
-import Menu from 'material-ui/Menu';
-import Star from 'material-ui/svg-icons/toggle/star';
-import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
-import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
-import CheckBox from 'material-ui/svg-icons/toggle/check-box'; 
-import BusinessCase from 'material-ui/svg-icons/content/archive';
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
+import { connect } from "react-redux";
 import Adjustments from 'material-ui/svg-icons/image/tune';
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Plus from 'material-ui/svg-icons/content/add';  
-import Inbox from 'material-ui/svg-icons/content/inbox';
-import Trash from 'material-ui/svg-icons/action/delete';
-import Search from 'material-ui/svg-icons/action/search'; 
-import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import Calendar from 'material-ui/svg-icons/action/date-range';
-import Logbook from 'material-ui/svg-icons/av/library-books'; 
-import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
-import Popover from 'material-ui/Popover';
-import { addProject, Project, Area, addArea, Todo } from '../../database';
-import Clear from 'material-ui/svg-icons/content/clear';
-import Remove from 'material-ui/svg-icons/content/remove'; 
-import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
-import FullScreen from 'material-ui/svg-icons/image/crop-square';
+import { Todo } from '../../database';
 import { Store } from '../../app'; 
 import { AreasList } from './../Area/AreasList';
 import { ResizableHandle } from './../ResizableHandle';

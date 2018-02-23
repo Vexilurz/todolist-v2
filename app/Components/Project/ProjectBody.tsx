@@ -2,35 +2,12 @@
 import '../../assets/styles.css';  
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
-import { Provider } from "react-redux";
-import { Transition } from 'react-transition-group';
-import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
-import { ipcRenderer } from 'electron'; 
-import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { connect } from "react-redux";
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import Popover from 'material-ui/Popover';
-import TrashIcon from 'material-ui/svg-icons/action/delete';
-import CheckCircle from 'material-ui/svg-icons/action/check-circle';
-import CalendarIco from 'material-ui/svg-icons/action/date-range';
-import Repeat from 'material-ui/svg-icons/av/repeat';
-import Inbox from 'material-ui/svg-icons/content/inbox';
-import Duplicate from 'material-ui/svg-icons/content/content-copy';
-import ShareIcon from 'material-ui/svg-icons/social/share';
-import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import Flag from 'material-ui/svg-icons/image/assistant-photo';
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import { TextField } from 'material-ui';
-import AutosizeInput from 'react-input-autosize';
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
-import { 
-    byNotDeleted, byNotCompleted, generateDropStyle, hideChildrens, makeChildrensVisible, layoutOrderChanged, removeHeading 
-} from '../../utils/utils'; 
+import { generateDropStyle, hideChildrens, removeHeading } from '../../utils/utils'; 
 import { ProjectHeading } from './ProjectHeading';  
-import { TodoInput } from '../TodoInput/TodoInput';
-import { RightClickMenu } from '../RightClickMenu';
-import { equals, allPass, isEmpty, isNil, not, uniq, contains, drop, map, compose, adjust, findIndex, when } from 'ramda';
+import { TodoInput } from '../TodoInput/TodoInput'; 
+import { isEmpty, isNil, not, uniq, contains, drop, map, compose, adjust, findIndex } from 'ramda';
 import { onDrop, removeTodosFromProjects, removeTodosFromAreas, dropTodoOnCategory, findDropTarget } from '../TodosList';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { arrayMove } from '../../utils/arrayMove';
@@ -227,21 +204,18 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
 
     onDropMany = (event:any,heading:Heading,todos:Todo[]) => {
-
         assert(isArrayOfTodos(todos), `onDropMany. todos is not of type array of todos.`);
         assert(isHeading(heading), `onDropMany. heading is not of type Heading.`);
 
-        let { projects, areas, selectedProjectId, dispatch, moveCompletedItemsToLogbook } = this.props;
+        let { projects, selectedProjectId, dispatch, moveCompletedItemsToLogbook } = this.props;
         let selectedProjectIdx = findIndex((p:Project) => p._id===selectedProjectId, projects);
-        let { project, area, category } = findDropTarget(event,projects,areas);
+        let { project, category } = findDropTarget(event,projects);
 
         let updatedProjects = adjust(  
             (p:Project) => removeHeading(heading._id,p),
             selectedProjectIdx,
             removeTodosFromProjects(projects,todos)
         );
-        let updatedAreas = removeTodosFromAreas(areas,todos);
-
 
         if(isCategory(category)){ 
 
@@ -249,22 +223,16 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 (todo:Todo) => dropTodoOnCategory({
                     draggedTodo:todo, 
                     projects:updatedProjects,
-                    areas:updatedAreas, 
                     category, 
                     moveCompletedItemsToLogbook
                 })
             );
-
-           
-            dispatch({type:"updateAreas",load:updatedAreas});
             dispatch({type:"updateProjects",load:updatedProjects});
             dispatch({type:"updateTodos",load:updatedTodos});
 
         }else if(isProject(project)){
 
             let idx = findIndex((p:Project) => project._id===p._id, updatedProjects);
-            
-            dispatch({type:"updateAreas",load:updatedAreas});
             dispatch({ 
                 type:"updateProjects", 
                 load:adjust(
@@ -279,27 +247,8 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     idx, 
                     updatedProjects
                 )
-            }); 
-        }else if(isArea(area)){  
-
-            let idx = findIndex((a:Area) => area._id===a._id, updatedAreas);
-
-            dispatch({
-                type:"updateAreas", 
-                load:adjust(
-                    (a:Area) => ({ 
-                        ...a, 
-                        attachedTodosIds:uniq([
-                            ...todos.map((todo:Todo) => todo._id),
-                            ...area.attachedTodosIds
-                        ])
-                    }), 
-                    idx, 
-                    updatedAreas
-                )
-            }); 
-            dispatch({type:"updateProjects", load:updatedProjects});  
-        } 
+            });
+        }
     };
     
  
@@ -318,20 +267,15 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         if(insideTargetArea(null,leftpanel,x,y)){
             if(isTodo(draggedTodo)){
-                let updated : { projects:Project[], areas:Area[], todo:Todo } = onDrop({
+                let updated : { projects:Project[], todo:Todo } = onDrop({
                     event, 
                     draggedTodo, 
-                    areas, 
                     projects, 
                     config:{moveCompletedItemsToLogbook}
                 }); 
 
                 if(updated.projects){
                     dispatch({type:"updateProjects", load:updated.projects});
-                }
-
-                if(updated.areas){
-                    dispatch({type:"updateAreas", load:updated.areas});
                 }
                 
                 if(updated.todo){

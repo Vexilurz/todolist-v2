@@ -70,6 +70,7 @@ import { ChecklistItem, Checklist } from './Components/TodoInput/TodoChecklist';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { isString } from './utils/isSomething';
 import { isToday } from './utils/utils';
+import { isDev } from './utils/isDev';
 injectTapEventPlugin();  
 
 
@@ -82,8 +83,9 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
         'Column: ' + columnNo,
         'Error object: ' + JSON.stringify(error)
     ].join(' - ');
-    globalErrorHandler(message);
-    return false;
+    globalErrorHandler(message); 
+    if(isDev()){ return false }
+    return true;
 };
 
 

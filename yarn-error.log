@@ -1,5 +1,5 @@
 Arguments: 
-  C:\Program Files\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js add react-contenteditable
+  C:\Program Files\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js add winreg --production
 
 PATH: 
   C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files\Git\cmd;C:\Program Files (x86)\Yarn\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\Java\jdk1.8.0_141\bin;C:\Android\android-sdk\tools;C:\Android\android-sdk\platform-tools;C:\Program Files\MATLAB\R2014b\runtime\win64;C:\Program Files\MATLAB\R2014b\bin;C:\Program Files\MATLAB\R2014b\polyspace\bin;C:\Program Files (x86)\Skype\Phone\;C:\Program Files (x86)\Windows Kits\8.1\Windows Performance Toolkit\;C:\Program Files\nodejs\;C:\Users\Anatoly\AppData\Local\Programs\Python\Python36\Scripts\;C:\Users\Anatoly\AppData\Local\Programs\Python\Python36\;C:\Program Files (x86)\Microsoft VS Code\bin;C:\Users\Anatoly\AppData\Local\Yarn\bin;C:\Program Files\Docker Toolbox;C:\Users\Anatoly\AppData\Roaming\npm
@@ -97,7 +97,6 @@ npm manifest:
       "react-dom": "^15.6.1",
       "react-draggable": "^3.0.4",
       "react-input-autosize": "^2.1.2",
-      "react-linkify": "^0.2.2",
       "react-minimal-pie-chart": "^3.0.1",
       "react-redux": "^5.0.6",
       "react-tap-event-plugin": "^2.0.1",
@@ -3727,12 +3726,6 @@ Lockfile:
     dependencies:
       immediate "~3.0.5"
   
-  linkify-it@^2.0.3:
-    version "2.0.3"
-    resolved "https://registry.yarnpkg.com/linkify-it/-/linkify-it-2.0.3.tgz#d94a4648f9b1c179d64fa97291268bdb6ce9434f"
-    dependencies:
-      uc.micro "^1.0.1"
-  
   load-json-file@^1.0.0:
     version "1.1.0"
     resolved "https://registry.yarnpkg.com/load-json-file/-/load-json-file-1.1.0.tgz#956905708d58b4bab4c2261b04f59f31c99374c0"
@@ -5183,14 +5176,6 @@ Lockfile:
     dependencies:
       prop-types "^15.5.8"
   
-  react-linkify@^0.2.2:
-    version "0.2.2"
-    resolved "https://registry.yarnpkg.com/react-linkify/-/react-linkify-0.2.2.tgz#55b99b1cc7244446a0f9bdebbe13b2c30f789e65"
-    dependencies:
-      linkify-it "^2.0.3"
-      prop-types "^15.5.8"
-      tlds "^1.57.0"
-  
   react-minimal-pie-chart@^3.0.1:
     version "3.0.1"
     resolved "https://registry.yarnpkg.com/react-minimal-pie-chart/-/react-minimal-pie-chart-3.0.1.tgz#9ccaa94edf9e457bedb1613e6189e833fec0bbe8"
@@ -6191,10 +6176,6 @@ Lockfile:
     version "1.4.1"
     resolved "https://registry.yarnpkg.com/tinycolor2/-/tinycolor2-1.4.1.tgz#f4fad333447bc0b07d4dc8e9209d8f39a8ac77e8"
   
-  tlds@^1.57.0:
-    version "1.199.0"
-    resolved "https://registry.yarnpkg.com/tlds/-/tlds-1.199.0.tgz#a4fc8c3058216488a80aaaebb427925007e55217"
-  
   to-arraybuffer@^1.0.0:
     version "1.0.1"
     resolved "https://registry.yarnpkg.com/to-arraybuffer/-/to-arraybuffer-1.0.1.tgz#7d229b1fcc637e466ca081180836a7aabff83f43"
@@ -6300,10 +6281,6 @@ Lockfile:
   ua-parser-js@^0.7.9:
     version "0.7.17"
     resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-0.7.17.tgz#e9ec5f9498b9ec910e7ae3ac626a805c4d09ecac"
-  
-  uc.micro@^1.0.1:
-    version "1.0.5"
-    resolved "https://registry.yarnpkg.com/uc.micro/-/uc.micro-1.0.5.tgz#0c65f15f815aa08b560a61ce8b4db7ffc3f45376"
   
   uglify-es@3.3.7, uglify-es@^3.3.4:
     version "3.3.7"
@@ -6886,4 +6863,4 @@ Lockfile:
       fd-slicer "~1.0.1"
 
 Trace: 
-  Error: ENOENT: no such file or directory, chmod 'C:\Users\Anatoly\Desktop\lutzkeller\node_modules\.bin\electron.cmd'
+  Error: EPERM: operation not permitted, unlink 'C:\Users\Anatoly\Desktop\lutzkeller\node_modules\typescript\lib'

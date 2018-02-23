@@ -29,7 +29,7 @@
     "compression-webpack-plugin": "^1.1.7",
     "copy-webpack-plugin": "^4.0.1",
     "css-loader": "^0.28.4",
-    "electron": "1.8.2",
+    "electron": "1.8.1",
     "electron-builder": "19.54.0",
     "electron-prebuilt": "^1.4.13",
     "electron-publisher-s3": "^20.0.0",
@@ -77,12 +77,10 @@
     "react-addons-test-utils": "^15.6.0",
     "react-audio-player": "^0.9.0",
     "react-color": "^2.13.8",
-    "react-contenteditable": "^2.0.7",
     "react-day-picker": "^7.0.4",
     "react-dom": "^15.6.1",
     "react-draggable": "^3.0.4",
     "react-input-autosize": "^2.1.2",
-    "react-linkify": "^0.2.2",
     "react-minimal-pie-chart": "^3.0.1",
     "react-redux": "^5.0.6",
     "react-tap-event-plugin": "^2.0.1",
@@ -98,7 +96,8 @@
     "rxjs": "^5.5.6",
     "typeface-roboto": "^0.0.45",
     "uniqid": "^4.1.1",
-    "url": "^0.11.0"
+    "url": "^0.11.0",
+    "winreg": "^1.2.4"
   },
   "build": {
     "asar": true,

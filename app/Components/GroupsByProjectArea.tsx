@@ -61,7 +61,8 @@ interface GroupsByProjectAreaProps{
     projects:Project[],
     projectsFilters: ((p:Project) => boolean)[],
     areasFilters: ((a:Area) => boolean)[],
-    todos:Todo[]
+    todos:Todo[],
+    hideDetached?:boolean
 }
 
 interface GroupsByProjectAreaState{}
@@ -91,7 +92,9 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
 
 
     render(){
-        let {projects, projectsFilters, areasFilters, areas, todos, selectedTag, selectedCategory} = this.props;
+        let {
+            projects, projectsFilters, areasFilters, hideDetached, areas, todos, selectedTag, selectedCategory
+        } = this.props;
  
         let selectedProjects = projects.filter(allPass(projectsFilters));
         let selectedAreas = areas.filter(allPass(areasFilters));
@@ -129,6 +132,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         return <div> 
         {
             isEmpty(detached) ? null :
+            hideDetached ? null :
             <TodosList            
                 dispatch={this.props.dispatch}     
                 areas={this.props.areas}

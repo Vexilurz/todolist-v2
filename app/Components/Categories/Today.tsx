@@ -302,10 +302,9 @@ export class Today extends Component<TodayProps,TodayState>{
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
 
-            let updated : { projects:Project[], areas:Area[], todo:Todo } = onDrop({
+            let updated : { projects:Project[], todo:Todo } = onDrop({
                 event, 
                 draggedTodo, 
-                areas, 
                 projects, 
                 config:{moveCompletedItemsToLogbook}
             }); 
@@ -314,10 +313,6 @@ export class Today extends Component<TodayProps,TodayState>{
                dispatch({type:"updateProjects", load:updated.projects});
             }
 
-            if(updated.areas){
-               dispatch({type:"updateAreas", load:updated.areas});
-            }
-            
             if(updated.todo){
                dispatch({type:"updateTodo", load:updated.todo});
             }

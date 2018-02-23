@@ -68,6 +68,53 @@ var domtoimage = require('dom-to-image');
 
 
 
+export let getTime = (date:Date) : {
+    minutes : number,
+    hours : number
+} => {
+    let defaultValue = {minutes:0,hours:0};
+
+    if(isDate(date)){
+        return {
+            minutes:date.getMinutes(),
+            hours:date.getHours()
+        };
+    }else if(isString(date)){
+        let target = new Date(date);
+
+        if(isDate(target)){
+            return {
+                minutes:target.getMinutes(),
+                hours:target.getHours()
+            };     
+        }
+    }
+
+    return defaultValue;
+};
+
+
+export let setTime = (date:Date, time:{minutes:number,hours:number}) : Date => {
+    let {minutes,hours} = time;
+
+    if(isDate(date)){
+        let updated = new Date(date.getTime());
+        updated.setHours(hours);
+        updated.setMinutes(minutes);
+        return updated;
+    }else if(isString(date)){
+        let target = new Date(date);
+        if(isDate(target)){
+            target.setHours(hours);
+            target.setMinutes(minutes);
+            return target;
+        }
+    }
+
+    return date;
+};
+
+
 
 export let printElement = (selectedCategory:Category, list:HTMLElement) : Promise<void> => 
     domtoimage

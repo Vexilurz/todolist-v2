@@ -2214,9 +2214,17 @@ electron-winstaller@^2.6.3:
     lodash.template "^4.2.2"
     temp "^0.8.3"
 
-electron@*, electron@1.8.2:
+electron@*:
   version "1.8.2"
   resolved "https://registry.yarnpkg.com/electron/-/electron-1.8.2.tgz#a817cd733c2972b3c7cc4f777caf6e424b88014d"
+  dependencies:
+    "@types/node" "^8.0.24"
+    electron-download "^3.0.1"
+    extract-zip "^1.0.3"
+
+electron@1.8.1:
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-1.8.1.tgz#19b6f39f2013e204a91a60bc3086dc7a4a07ed88"
   dependencies:
     "@types/node" "^8.0.24"
     electron-download "^3.0.1"
@@ -3566,12 +3574,6 @@ lie@3.1.1:
   resolved "https://registry.yarnpkg.com/lie/-/lie-3.1.1.tgz#9a436b2cc7746ca59de7a41fa469b3efb76bd87e"
   dependencies:
     immediate "~3.0.5"
-
-linkify-it@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/linkify-it/-/linkify-it-2.0.3.tgz#d94a4648f9b1c179d64fa97291268bdb6ce9434f"
-  dependencies:
-    uc.micro "^1.0.1"
 
 load-json-file@^1.0.0:
   version "1.1.0"
@@ -4985,10 +4987,6 @@ react-color@^2.13.8:
     reactcss "^1.2.0"
     tinycolor2 "^1.4.1"
 
-react-contenteditable@^2.0.7:
-  version "2.0.7"
-  resolved "https://registry.yarnpkg.com/react-contenteditable/-/react-contenteditable-2.0.7.tgz#a8d1c1d7b9a393f336c5ecdb74e5e336d786676b"
-
 react-day-picker@^7.0.4:
   version "7.0.4"
   resolved "https://registry.yarnpkg.com/react-day-picker/-/react-day-picker-7.0.4.tgz#5d5d2a9e052890b671304b2d33c156792c626181"
@@ -5026,14 +5024,6 @@ react-input-autosize@^2.1.2:
   resolved "https://registry.yarnpkg.com/react-input-autosize/-/react-input-autosize-2.1.2.tgz#a3dc11a5517c434db25229925541309de3f7a8f5"
   dependencies:
     prop-types "^15.5.8"
-
-react-linkify@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/react-linkify/-/react-linkify-0.2.2.tgz#55b99b1cc7244446a0f9bdebbe13b2c30f789e65"
-  dependencies:
-    linkify-it "^2.0.3"
-    prop-types "^15.5.8"
-    tlds "^1.57.0"
 
 react-minimal-pie-chart@^3.0.1:
   version "3.0.1"
@@ -6035,10 +6025,6 @@ tinycolor2@^1.4.1:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/tinycolor2/-/tinycolor2-1.4.1.tgz#f4fad333447bc0b07d4dc8e9209d8f39a8ac77e8"
 
-tlds@^1.57.0:
-  version "1.199.0"
-  resolved "https://registry.yarnpkg.com/tlds/-/tlds-1.199.0.tgz#a4fc8c3058216488a80aaaebb427925007e55217"
-
 to-arraybuffer@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/to-arraybuffer/-/to-arraybuffer-1.0.1.tgz#7d229b1fcc637e466ca081180836a7aabff83f43"
@@ -6144,10 +6130,6 @@ typescript@^2.4.2:
 ua-parser-js@^0.7.9:
   version "0.7.17"
   resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-0.7.17.tgz#e9ec5f9498b9ec910e7ae3ac626a805c4d09ecac"
-
-uc.micro@^1.0.1:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/uc.micro/-/uc.micro-1.0.5.tgz#0c65f15f815aa08b560a61ce8b4db7ffc3f45376"
 
 uglify-es@3.3.7, uglify-es@^3.3.4:
   version "3.3.7"
@@ -6550,7 +6532,7 @@ window-size@0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/window-size/-/window-size-0.1.0.tgz#5438cd2ea93b202efa3a19fe8887aee7c94f9c9d"
 
-winreg@1.2.4:
+winreg@1.2.4, winreg@^1.2.4:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/winreg/-/winreg-1.2.4.tgz#ba065629b7a925130e15779108cf540990e98d1b"
 

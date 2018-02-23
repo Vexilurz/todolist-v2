@@ -145,7 +145,6 @@ export let removeTodosFromAreas =  (areas:Area[], todos:Todo[]) : Area[] => {
 export let dropTodoOnCategory = ({
     draggedTodo,
     projects,
-    areas, 
     category,
     moveCompletedItemsToLogbook
 }) : Todo => cond([
@@ -221,51 +220,42 @@ export let dropTodoOnCategory = ({
 
 export let findDropTarget = (
     event,
-    projects:Project[],
-    areas:Area[]
+    projects:Project[]
 ) : {
     project:Project,
-    area:Area,
     category:Category
 } => {
     let element = document.elementFromPoint(event.clientX, event.clientY);
     let id = path(['id'], element) || path(['parentElement', 'id'],element);
     let nodes = [].slice.call(event.path);
     let project = find((p:Project) => p._id===id, projects);
-    let area = find((a:Area) => a._id===id, areas);
     let category : Category = compose(find(isCategory),map(prop('id')))(nodes);
 
-    return {project,area,category};
+    return {project,category};
 }
 
 
 export let onDrop = ({
     event,
     draggedTodo,
-    config,
-    areas,    
+    config,  
     projects 
-}) : { projects:Project[], areas:Area[], todo:Todo } => { 
-
+}) : { projects:Project[], todo:Todo } => { 
     let {moveCompletedItemsToLogbook} = config;
-    let { project, area, category } = findDropTarget(event,projects,areas);
+    let { project, category } = findDropTarget(event,projects);
     let updatedProjects = removeTodoFromProjects(projects,draggedTodo);
-    let updatedAreas = removeTodoFromAreas(areas,draggedTodo);
 
     if(isCategory(category)){
 
         return {
             projects:updatedProjects,
-            areas:updatedAreas,
             todo:dropTodoOnCategory({
                 draggedTodo, 
                 projects:updatedProjects,
-                areas:updatedAreas, 
                 category, 
                 moveCompletedItemsToLogbook
             })
         };
-
     }else if(isProject(project)){
 
         let idx = findIndex((p:Project) => project._id===p._id, updatedProjects);
@@ -275,27 +265,6 @@ export let onDrop = ({
                 (p:Project) => ({ ...p, layout:[draggedTodo._id,...p.layout] }),
                 idx, 
                 updatedProjects
-            ),
-            areas:updatedAreas,
-            todo:null
-        };
-
-    }else if(isArea(area)){
-
-        let idx = findIndex((a:Area) => area._id===a._id, updatedAreas);
-
-        return {
-            projects:updatedProjects,
-            areas:adjust(
-                (area:Area) => ({
-                    ...area,
-                    attachedTodosIds:uniq([
-                        draggedTodo._id,
-                        ...area.attachedTodosIds, 
-                    ])
-                }),
-                idx,
-                updatedAreas
             ),
             todo:null
         };
@@ -407,10 +376,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){  
  
-            let updated : { projects:Project[], areas:Area[], todo:Todo } = onDrop({
+            let updated : { projects:Project[],todo:Todo } = onDrop({
                 event, 
                 draggedTodo, 
-                areas, 
                 projects, 
                 config:{moveCompletedItemsToLogbook}
             }); 
@@ -419,10 +387,6 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                dispatch({type:"updateProjects", load:updated.projects});
             }
 
-            if(updated.areas){
-               dispatch({type:"updateAreas", load:updated.areas});
-            }
-            
             if(updated.todo){
                dispatch({type:"updateTodo", load:updated.todo});
             }

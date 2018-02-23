@@ -7,8 +7,7 @@ import { isNil, not, forEachObjIndexed, when, contains, compose, equals, ifElse,
 import { isDev } from './../utils/isDev';
 const os = require('os');
 const path = require("path");
-const AutoLaunch = require('auto-launch');
-
+const Registry = require('winreg'); 
 
 export const AppName = 'Tasklist';
 export let mainWindow : BrowserWindow;   
@@ -18,12 +17,13 @@ export let listeners : Listeners;
 export let dateCalendar : BrowserWindow; 
 export let tray : Tray;
 
-
+/* 
+const AutoLaunch = require('auto-launch');
 let appAutoLauncher = new AutoLaunch({name: AppName, isHidden: false});
 appAutoLauncher.disable()
 .then(() => appAutoLauncher.enable())
 .catch((err) => console.log(err));
-
+*/
 
 const shouldQuit = app.makeSingleInstance(
     (commandLine, workingDirectory) => {

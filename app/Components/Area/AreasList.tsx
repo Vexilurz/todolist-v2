@@ -389,7 +389,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
   
         if(e.buttons == 1 || e.buttons == 3){
             if(dragged==="project" || dragged==="todo" || dragged==="heading"){  
-                this.setState({highlight:true}) 
+                this.setState({highlight:false})  
             } 
         } 
     }  

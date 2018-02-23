@@ -34,7 +34,7 @@ import { TextField } from 'material-ui';
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
  todoChanged, daysLeftMark, generateTagElement, isToday, getMonthName, fiveMinutesLater, 
- onHourLater, oneDayAhead, getCompletedWhen, findWindowByTitle
+ onHourLater, oneDayAhead, getCompletedWhen, findWindowByTitle, getTime, setTime
 } from '../../utils/utils'; 
 import { Todo, removeTodo, updateTodo, Project} from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
@@ -62,8 +62,6 @@ import { assert } from '../../utils/assert';
 import { setCallTimeout } from '../../utils/setCallTimeout';
 import { debounce } from 'lodash';    
 let Promise = require('bluebird'); 
-import Linkify from 'react-linkify'; 
-let ContentEditable = require('react-contenteditable');
 
 
 interface AutosizeInputComponentProps{
@@ -338,8 +336,18 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         e.stopPropagation(); 
         let {todo} = this.props;
-        this.update({attachedDate:day, category:isToday(day) ? "today" : todo.category}); 
+
+        let attachedDate = new Date(day.getTime());
+        let reminder = todo.reminder;
+        if(isDate(reminder)){
+           let time = getTime(reminder);
+           attachedDate = setTime(attachedDate,time); 
+           reminder = new Date(attachedDate.getTime());
+        }
+
+        this.update({attachedDate, reminder, category:isToday(attachedDate) ? "today" : todo.category}); 
         this.closeDateCalendar();
+        this.props.dispatch({type:"resetReminders"});
     };
 
 
@@ -461,7 +469,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             selectedCategory!==todo.category &&
             (todo.category==="today" || todo.category==="evening")
         ){
-            this.update({category:selectedCategory,attachedDate:null}); 
+            this.update({category:selectedCategory, attachedDate:null, reminder:null}); 
+            this.props.dispatch({type:"resetReminders"});
         }else if( 
             selectedCategory!==todo.category &&
             todo.category==="someday"
@@ -520,7 +529,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onRemoveAttachedDateLabel = () => {
         let {selectedCategory} = this.props;
         let today = selectedCategory==="today" || selectedCategory==="evening";
-        this.update({attachedDate:null, category:today ? "next" : selectedCategory});  
+        this.update({attachedDate:null, reminder:null, category:today ? "next" : selectedCategory});  
+        this.props.dispatch({type:"resetReminders"});
     };  
     
 
@@ -533,23 +543,46 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     onCalendarTodayClick = (e) => {
         e.stopPropagation();
-        this.update({category:"today", attachedDate:new Date()});
+        let {todo} = this.props;
+
+        let attachedDate = new Date();
+        let reminder = todo.reminder;
+        if(isDate(reminder)){
+           let time = getTime(reminder);
+           attachedDate = setTime(attachedDate,time); 
+           reminder = new Date(attachedDate.getTime());
+        }
+
+        this.update({category:"today", attachedDate, reminder});
         this.closeDateCalendar();
+        this.props.dispatch({type:"resetReminders"});
     }; 
 
 
     onCalendarThisEveningClick = (e) => {
         e.stopPropagation();
-        this.update({category:"evening", attachedDate:new Date()});
+
+        let {todo} = this.props;
+
+        let attachedDate = new Date();
+        let reminder = todo.reminder;
+        if(isDate(reminder)){
+           let time = getTime(reminder);
+           attachedDate = setTime(attachedDate,time); 
+           reminder = new Date(attachedDate.getTime());
+        }
+        
+        this.update({category:"evening", attachedDate, reminder});
         this.closeDateCalendar();
+        this.props.dispatch({type:"resetReminders"});
     }; 
 
 
     onCalendarAddReminderClick = (reminder:Date) : void => {
         let {dispatch} = this.props;
         this.update({reminder, attachedDate:reminder}); 
-        dispatch({type:"resetReminders"});
         this.closeDateCalendar();
+        dispatch({type:"resetReminders"});
     };
 
     
@@ -565,6 +598,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let {todo} = this.props;
         this.update({category:todo.category,attachedDate:null,reminder:null}); 
         this.closeDateCalendar();
+        this.props.dispatch({type:"resetReminders"});
     };
   
 
@@ -596,11 +630,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         if(related){
            return related.name; 
-        }else{ 
+        }else{  
            return undefined;  
         }; 
     }; 
-
+    
   
     render(){   
         let { open, showChecklist, showDateCalendar, animatingSlideAway } = this.state;

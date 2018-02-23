@@ -52,6 +52,7 @@ import { writeJsonFile } from './utils/jsonFile';
 import { getMachineIdSync } from './utils/userid';
 import { assert } from './utils/assert';
 import { setCallTimeout } from './utils/setCallTimeout';
+import { isDev } from './utils/isDev';
 const MockDate = require('mockdate'); 
 const os = remote.require('os'); 
 const path = require('path');
@@ -70,8 +71,9 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
         'Error object: ' + JSON.stringify(error)
     ].join(' - ');
     globalErrorHandler(message);
-    return false;
-};
+    if(isDev()){ return false }
+    return true;
+}; 
 
  
 
@@ -229,12 +231,9 @@ export class App extends Component<AppProps,{}>{
     }
 
 
-
     componentDidMount(){    
         const sysInfo = collectSystemInfo();
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
-        console.log("SYSTEM UPTIME", os.uptime()); 
-        console.log("SYSTEM UPTIME", os.uptime()); 
         
         this.initObservables();  
         this.initUpdateTimeout(); 

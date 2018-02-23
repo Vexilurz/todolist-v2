@@ -4,44 +4,13 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import * as injectTapEventPlugin from 'react-tap-event-plugin';
-import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react";  
-import spacing from 'material-ui/styles/spacing';  
-import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
-import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
-import Moon from 'material-ui/svg-icons/image/brightness-3';
-import Star from 'material-ui/svg-icons/toggle/star'; 
-import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
-import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
-import CheckBox from 'material-ui/svg-icons/toggle/check-box';  
-import BusinessCase from 'material-ui/svg-icons/content/archive';
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
-import Adjustments from 'material-ui/svg-icons/image/tune';
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none'; 
-import Flag from 'material-ui/svg-icons/image/assistant-photo'; 
-import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
-import Plus from 'material-ui/svg-icons/content/add';
-import Trash from 'material-ui/svg-icons/action/delete';
-import Search from 'material-ui/svg-icons/action/search'; 
-import CalendarIco from 'material-ui/svg-icons/action/date-range';
-import Logbook from 'material-ui/svg-icons/av/library-books';
-import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
-import Calendar from 'material-ui/svg-icons/action/date-range';
-import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import { ipcRenderer, remote } from 'electron'; 
-import TextField from 'material-ui/TextField';  
-import List from 'material-ui/svg-icons/action/list';
 import { 
     cond, assoc, isNil, not, defaultTo, map, isEmpty, 
     uniq, remove, contains, append, adjust, compose, 
     flatten, concat, prop, ifElse, last
 } from 'ramda';
-let moment = require("moment");
-import Popover from 'material-ui/Popover';
-import Alert from 'material-ui/svg-icons/alert/add-alert';
-import Checked from 'material-ui/svg-icons/navigation/check';
-import Inbox from 'material-ui/svg-icons/content/inbox';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import Clear from 'material-ui/svg-icons/content/clear';
@@ -49,19 +18,15 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { Provider, connect } from "react-redux";
-import RaisedButton from 'material-ui/RaisedButton';
-import { Config } from './utils/config';
-import { generateId } from './utils/generateId';
-import { daysRemaining } from './utils/daysRemaining';
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight';
 import { chooseIcon } from './utils/chooseIcon';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 const path = require("path");
 import ReactAudioPlayer from 'react-audio-player';
+import { isDev } from './utils/isDev';
 injectTapEventPlugin();  
 
-
+ 
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
     var message = [ 
@@ -72,7 +37,8 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
         'Error object: ' + JSON.stringify(error)
     ].join(' - ');
     globalErrorHandler(message);
-    return false;
+    if(isDev()){ return false } 
+    return true;
 };
 
 
@@ -107,7 +73,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
 
     constructor(props){
         super(props);  
-        this.subscriptions=[];
+        this.subscriptions=[]; 
         let defaultState={ todo:null };
         this.state={...defaultState};   
         this.queue=[];
@@ -119,20 +85,20 @@ class Notification extends Component<NotificationProps,NotificationState>{
 
 
     componentDidMount(){
-        let update = Observable 
-                     .fromEvent(ipcRenderer, 'remind', (event,todo) => todo)
-                     .subscribe((todo) => {
-                        if(isNil(todo) || isNil(todo.reminder)){ return } 
+        this.subscriptions.push(
+            Observable 
+                .fromEvent(ipcRenderer, 'remind', (event,todo) => todo)
+                .subscribe((todo) => {
+                    if(isNil(todo) || isNil(todo.reminder)){ return } 
 
-                        if(isEmpty(this.queue)){
-                           this.queue.push({todo});
-                           this.notify();
-                        }else{ 
-                           this.queue.push({todo});
-                        }
-                     });
-
-        this.subscriptions.push(update);
+                    if(isEmpty(this.queue)){
+                        this.queue.push({todo});
+                        this.notify();
+                    }else{ 
+                        this.queue.push({todo});
+                    }
+                })
+        )
     };
 
 
@@ -168,12 +134,8 @@ class Notification extends Component<NotificationProps,NotificationState>{
         if(isEmpty(this.queue)){ return }
         let next = this.queue[0];
         this.updateState(next)
+        .then(() => { if(this.beep){ this.beep.audioEl.play(); } }) 
         .then(() => this.open())
-        .then(() => {
-            if(this.beep){
-               this.beep.audioEl.play();
-            }   
-        })
     };
 
 
@@ -183,7 +145,6 @@ class Notification extends Component<NotificationProps,NotificationState>{
             let {initialX, initialY} = this.getInitialPosition();
             let {finalX, finalY} = this.getFinalPosition();
 
-             
             let move = () => {
                 let currentPosition = window.getPosition();
                 let [x,y] = currentPosition;
@@ -197,7 +158,6 @@ class Notification extends Component<NotificationProps,NotificationState>{
                    requestAnimationFrame(move);   
                 }
             };
-
 
             window.setPosition(initialX, initialY);
             window.show();

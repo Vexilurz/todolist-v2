@@ -1,44 +1,20 @@
 import '../../assets/styles.css';  
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
-import { Provider } from "react-redux";
-import { Transition } from 'react-transition-group';
-import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
-import { ipcRenderer } from 'electron';
-import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { connect } from "react-redux";
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import Popover from 'material-ui/Popover';
-import TrashIcon from 'material-ui/svg-icons/action/delete';
-import CheckCircle from 'material-ui/svg-icons/action/check-circle';
-import CalendarIco from 'material-ui/svg-icons/action/date-range';
-import Repeat from 'material-ui/svg-icons/av/repeat';
-import Inbox from 'material-ui/svg-icons/content/inbox';
-import Duplicate from 'material-ui/svg-icons/content/content-copy';
-import ShareIcon from 'material-ui/svg-icons/social/share';
-import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import Flag from 'material-ui/svg-icons/image/assistant-photo';
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import { TextField } from 'material-ui';
-import AutosizeInput from 'react-input-autosize';
-import { Todo, Project, Heading, LayoutItem, Area, getTodoById, todos_db, queryToTodos } from '../../database'; 
+import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
 import { 
-    byNotDeleted, byNotCompleted, byTags, byHaveAttachedDate, byNotSomeday, byScheduled, convertTodoDates, removeHeading 
+ byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading 
 } from '../../utils/utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
-import { 
-    adjust, remove, allPass, uniq, contains, 
-    isEmpty, map, compose, not, isNil 
-} from 'ramda';
+import { adjust, allPass, uniq, isEmpty, not, isNil } from 'ramda';
 import { getProgressStatus } from './ProjectLink';
 import { filter } from '../MainContainer';
 import { bySomeday, isProject, isTodo, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { daysRemaining } from '../../utils/daysRemaining';
 import {debounce} from 'lodash'; 
-let Promise = require('bluebird'); 
 
 
 let haveScheduledTodos = (todos:Todo[]) : boolean => {

@@ -35,7 +35,7 @@ import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import {  
     todoChanged, daysLeftMark, generateTagElement,  
     isToday, getMonthName, fiveMinutesLater, 
-    onHourLater, oneDayAhead 
+    onHourLater, oneDayAhead, getTime, setTime 
 } from '../../utils/utils'; 
 import { Todo, removeTodo, updateTodo, Project } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
@@ -59,6 +59,7 @@ import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { googleAnalytics } from '../../analytics';
+import { isDate } from '../../utils/isSomething';
   
 
 export interface TodoCreationFormState{  
@@ -407,16 +408,16 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
     
     onRemoveSelectedCategoryLabel = () => {
-        if(
-            this.props.selectedCategory!==this.state.category &&
-            (this.state.category==="today" || this.state.category==="evening")
-        ){
-            this.setState({category:this.props.selectedCategory,attachedDate:null});   
-        }else if( 
-            this.props.selectedCategory!==this.state.category &&
-            this.state.category==="someday"
-        ){
-            this.setState({category:this.props.selectedCategory});    
+        let {selectedCategory, dispatch} = this.props;
+        let {category} = this.state;
+
+        if(selectedCategory!==category && (category==="today" || category==="evening")){
+            this.setState(
+                {category:selectedCategory,attachedDate:null,reminder:null},
+                () => dispatch({type:"resetReminders"})
+            );   
+        }else if(selectedCategory!==category && category==="someday"){
+            this.setState({category:selectedCategory});    
         }
     };   
 
@@ -474,21 +475,34 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         e.stopPropagation(); 
+
+        let attachedDate = new Date(day.getTime());
+        let reminder = this.state.reminder;
+
+        if(isDate(reminder)){
+           let time = getTime(reminder);
+           attachedDate = setTime(attachedDate,time); 
+           reminder = new Date(attachedDate.getTime());
+        }
+
         this.setState(
-            {attachedDate:day, category:isToday(day) ? "today" : "next"},
-            () => this.closeDateCalendar()
+            {attachedDate,reminder,category:isToday(attachedDate) ? "today" : "next"},
+            () => {
+                this.closeDateCalendar();
+                this.props.dispatch({type:"resetReminders"}); 
+            }
         );   
     };
     
 
     onRemoveAttachedDateLabel = () => {
-        let today = this.props.selectedCategory==="today" || 
-                    this.props.selectedCategory==="evening";
+        let {selectedCategory} = this.props;
+        let today = selectedCategory==="today" || selectedCategory==="evening";
 
-        this.setState({ 
-          attachedDate:null,  
-          category:today ? "next" : this.props.selectedCategory
-        });  
+        this.setState(
+            {attachedDate:null, reminder:null, category:today ? "next" : selectedCategory},
+            () => this.props.dispatch({type:"resetReminders"})
+        );  
     };  
     
 
@@ -500,19 +514,54 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
     onCalendarTodayClick = (e) => {
         e.stopPropagation();
-        this.setState({category:"today", attachedDate:new Date()}, () => this.closeDateCalendar());
+
+        let attachedDate = new Date();
+        let reminder = this.state.reminder;
+
+        if(isDate(reminder)){
+           let time = getTime(reminder);
+           attachedDate = setTime(attachedDate,time); 
+           reminder = new Date(attachedDate.getTime());
+        }
+
+        this.setState(
+            {category:"today", attachedDate, reminder}, 
+            () => {
+                this.closeDateCalendar();
+                this.props.dispatch({type:"resetReminders"}); 
+            }
+        );
     }; 
 
 
     onCalendarThisEveningClick = (e) => {
         e.stopPropagation();
-        this.setState({category:"evening", attachedDate:new Date()}, () => this.closeDateCalendar());
+
+        let attachedDate = new Date();
+        let reminder = this.state.reminder;
+
+        if(isDate(reminder)){
+           let time = getTime(reminder);
+           attachedDate = setTime(attachedDate,time); 
+           reminder = new Date(attachedDate.getTime());
+        }
+
+        this.setState(
+            {category:"evening", attachedDate, reminder}, 
+            () => {
+                this.closeDateCalendar();
+                this.props.dispatch({type:"resetReminders"});
+            }
+        );
     }; 
 
 
     onCalendarAddReminderClick = (reminder:Date) : void => this.setState(
         {reminder, attachedDate:reminder}, 
-        () => this.closeDateCalendar()
+        () => {
+            this.closeDateCalendar();
+            this.props.dispatch({type:"resetReminders"});
+        }
     );
 
 
@@ -521,28 +570,32 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
     onCalendarClear = (e) => {
         e.stopPropagation();
+        let {todo} = this.props;
         this.setState(
             {  
                 category:this.props.todo.category as Category,
                 attachedDate:null, 
                 reminder:null  
             }, 
-            () => this.closeDateCalendar()
+            () => {
+                this.closeDateCalendar();
+                this.props.dispatch({type:"resetReminders"});
+            }
         )  
-    };
+    }; 
   
   
-    render(){  
+    render(){   
         let {
             open, deleted, attachedDate, title, showAdditionalTags, 
             attachedTags, note, deadline, showChecklist, completedWhen,
             checklist, category, completedSet, showDateCalendar   
         } = this.state;
 
-        let {selectedCategory, todo} = this.props; 
+        let {selectedCategory} = this.props; 
 
-        let attachedDateToday = isToday(todo.attachedDate);
-        let deadlineToday = isToday(todo.deadline); 
+        let attachedDateToday = isToday(attachedDate);
+        let deadlineToday = isToday(deadline); 
         let todayCategory : boolean = attachedDateToday || deadlineToday;
       
         let daysLeft = 0;

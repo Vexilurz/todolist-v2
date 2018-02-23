@@ -80,6 +80,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 areas={[]}
                 projects={projects} 
                 todos={selectedTodos}
+                hideDetached={true}
             />
         </div> 
     }
