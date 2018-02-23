@@ -19,12 +19,10 @@ export let dateCalendar : BrowserWindow;
 export let tray : Tray;
 
 
-let appAutoLauncher = new AutoLaunch({name: AppName, isHidden: true});
-
-appAutoLauncher
-    .isEnabled()
-    .then((enabled:boolean) => not(enabled) ? appAutoLauncher.enable() : null) //appAutoLauncher.disable();
-    .catch((err) => console.log(err));
+let appAutoLauncher = new AutoLaunch({name: AppName, isHidden: false});
+appAutoLauncher.disable()
+.then(() => appAutoLauncher.enable())
+.catch((err) => console.log(err));
 
 
 const shouldQuit = app.makeSingleInstance(
@@ -207,7 +205,7 @@ let onReady = () => {
      
     loadApp(mainWindow)  
     .then(() => {    
-        mainWindow.webContents.send("loaded");
+        mainWindow.webContents.send("loaded", null, process);
         mainWindow.setMaximizable(true);
         mainWindow.minimize();  
         

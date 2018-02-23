@@ -390,7 +390,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
                                         (todo:Todo) => isNil(todo.attachedDate), 
                                         (todo:Todo) => isNil(todo.deadline), 
-                                        byCategory("inbox"), 
+                                        //byCategory("inbox"), 
                                         byNotCompleted,  
                                         byNotDeleted   
                                     ];     
@@ -487,9 +487,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     let byIntroList = (item : (Project | Todo)) : boolean => contains(item._id)(introListIds);
                                     let byNotIntroList = compose(not, byIntroList);
                                     let nextFilters = [
-                                        (t:Todo) => not(isToday(t.attachedDate)) && not(isToday(t.deadline)),
-                                        (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
-                                        (t:Todo) => t.category!=="inbox",  
+                                        (t:Todo) => inFuture(t.attachedDate) || inFuture(t.deadline),
+                                        //(t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
+                                        //(t:Todo) => t.category!=="inbox",  
                                         (t:Todo) => t.category!=="someday",  
                                         byNotIntroList,
                                         byNotCompleted,   
@@ -570,9 +570,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
                             [ 
                                 (selectedCategory:Category) : boolean => 'upcoming'===selectedCategory,  
                                 () => {
-
+ 
                                     let upcomingFilters = [
-                                        (t:Todo) => t.category!=="inbox",  
+                                        //(t:Todo) => t.category!=="inbox",  
                                         byScheduled,
                                         byNotCompleted,  
                                         byNotDeleted   

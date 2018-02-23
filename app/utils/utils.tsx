@@ -530,8 +530,10 @@ export let inPast = (date:Date) : boolean => {
     return new Date().getTime()>date.getTime();
 };
 
-
+  
 export let inFuture =  (date:Date) : boolean => {
+    if(isNil(date)){ return false }
+
     assert(isDate(date),'inFuture');
     return new Date().getTime()<date.getTime();
 };

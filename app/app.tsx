@@ -248,7 +248,6 @@ export class App extends Component<AppProps,{}>{
         this.subscriptions.push(
             Observable.interval(15000).subscribe((v) => dispatch({type:'update'})), 
 
-
             Observable.interval(60000).subscribe(() => {
                 let id = getMachineIdSync();   
                 let to = path.resolve(os.homedir(), `${id}.json`);
@@ -263,7 +262,6 @@ export class App extends Component<AppProps,{}>{
                 )
             }),  
 
-            
             Observable
             .fromEvent(ipcRenderer,'openTodo', (event,todo) => todo)
             .do((todo) => dispatch({type:"selectedCategory",load:"inbox"}))
@@ -276,7 +274,6 @@ export class App extends Component<AppProps,{}>{
                     window.focus();
                 }
             }),
-
 
             Observable 
             .fromEvent(ipcRenderer, "action", (event,action) => action)
@@ -302,17 +299,14 @@ export class App extends Component<AppProps,{}>{
                 }  
             }),
 
-
             Observable 
             .fromEvent(ipcRenderer, "error", (event,error) => error)    
             .subscribe((error) => this.onError(error)),
-
 
             Observable
             .fromEvent(ipcRenderer, "progress", (event,progress) => progress)
             .subscribe((progress) => dispatch({type:"progress",load:progress})),  
 
-            
             Observable  
             .fromEvent(ipcRenderer, "Ctrl+Alt+T", (event) => event)
             .subscribe((event) => {
@@ -360,9 +354,9 @@ export class App extends Component<AppProps,{}>{
 //render application
 ipcRenderer.once(
     'loaded',     
-    (event, clonedStore:Store) => { 
+    (event, clonedStore:Store, p) => { 
         let defaultStore = defaultStoreItems;
-
+        console.log("process",p);
         if(not(isNil(clonedStore))){ 
             let {todos,projects,areas} = clonedStore;
             defaultStore={
