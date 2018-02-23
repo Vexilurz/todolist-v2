@@ -348,17 +348,18 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         dispatch({type:"dragged",load:"todo"}); 
     };
 
-
+    
     onSortMove = (oldIndex:number,event:any) => {};
-
+    
     
     onSortEnd = (oldIndex:number,newIndex:number,event:any,item?:any) => { 
 
-        let {todos, dispatch, areas, projects,moveCompletedItemsToLogbook} = this.props;
+        let {todos, dispatch, areas, sortBy, projects,moveCompletedItemsToLogbook} = this.props;
         let x = event.clientX; 
         let y = event.clientY;   
-        let selected = todos.sort((a:Todo,b:Todo) => a.priority-b.priority); 
- 
+        let selected = todos.sort(sortBy);
+
+
         dispatch({type:"dragged",load:null}); 
 
         let draggedTodo = item;

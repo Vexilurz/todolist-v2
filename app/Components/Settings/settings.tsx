@@ -377,8 +377,9 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
           flatten,
           concat(defaultTags),
           () => todos.map((t:Todo) => t.attachedTags)
-        )() as string[]
-    } 
+        )() as string[];
+    }; 
+
 
     onRemoveTag = (tag:string) => () => {
         let {dispatch, todos, defaultTags} = this.props;
@@ -405,13 +406,14 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
                 findIndex((item) => item===tag)
             )(defaultTags)
         }
-    }
+    };
+
 
     onReset = () => {
-       let {todos,dispatch} = this.props;
+        let {todos,dispatch} = this.props;
 
-       updateConfig(dispatch)({defaultTags})
-       .then(() => {
+        updateConfig(dispatch)({defaultTags})
+        .then(() => {
             let updatedTodos = todos.map(
                 (todo:Todo) => ({ 
                     ...todo, 
@@ -421,7 +423,8 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
 
             dispatch({type:"updateTodos", load:updatedTodos});
         }) 
-    }
+    };
+
      
     render(){
         let tags = this.getTags(); 
@@ -911,16 +914,32 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 if(isNil(todo.completedSet)){ return todo; }
                 let completedWhen = getCompletedWhen(config.moveCompletedItemsToLogbook,todo.completedSet);
                 return {...todo, completedWhen};
-            });
+            }); 
 
             dispatch({type:"updateTodos",load});
         }); 
     }; 
 
 
+    enableReminder = (event) => {
+        let {enableReminder,dispatch} = this.props;
+
+        updateConfig(dispatch)({enableReminder:!enableReminder})
+        .then(
+            (config) => {
+                let {enableReminder} = config;
+                let window = findWindowByTitle('Notification');
+                if(window){
+                   window.webContents.send('config',config);
+                } 
+            } 
+        )
+    };
+    
+
     render(){   
         let {importPath, exportPath, updateStatus, exportMessage, importMessage} = this.state;
-        let {shouldSendStatistics,moveCompletedItemsToLogbook,groupTodos} = this.props;
+        let {shouldSendStatistics,moveCompletedItemsToLogbook,groupTodos,enableReminder} = this.props;
         let buttonStyle = {      
             display:"flex",
             alignItems:"center",
@@ -945,6 +964,11 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 <div style={{paddingLeft:"10px"}}>Send anonymous usage statistics</div>
             </div> 
 
+            <div style={{display:"flex", alignItems:"center"}}>
+                <Checkbox checked={enableReminder} onClick={this.enableReminder}/>
+                <div style={{paddingLeft:"10px"}}>Enable reminder</div>
+            </div> 
+
             <div style={{display:"flex",alignItems:"center",width:"80%"}}>
                 <Checkbox checked={groupTodos} onClick={this.shouldGroup}/>
                 <div style={{paddingLeft:"10px"}}>Group tasks by project or area</div>
@@ -958,10 +982,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 }}>      
                     <div>Move completed items to Logbook:</div>
                 </div>  
-                <div style={{  
-                    display:"flex", alignItems:"flex-start", 
-                    flexDirection:"column",justifyContent:"space-around" 
-                }}> 
+                <div style={{display:"flex",alignItems:"flex-start",flexDirection:"column",justifyContent:"space-around"}}> 
                     <div style={{paddingLeft:"20px"}}>     
                         <select 
                             style={{backgroundColor:"white",outline:"none",borderRadius:"4px"}}  
@@ -977,16 +998,8 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                     </div>
                 </div>
             </div>
-
             <div style={{height:"1px",width:"100%",borderBottom:"1px solid rgb(200,200,200)"}}></div>   
-            <div style={{ 
-                display:"flex",
-                fontSize:"15px",
-                alignItems:"center",
-                fontWeight:500,
-                color:"black",
-                userSelect:"none"
-            }}>       
+            <div style={{display:"flex",fontSize:"15px",alignItems:"center",fontWeight:500,color:"black",userSelect:"none"}}>       
                 Database Backup  
             </div> 
             { 

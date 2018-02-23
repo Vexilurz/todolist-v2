@@ -104,16 +104,16 @@ export let fakeTodo = (tags:string[], remind = null) : Todo => {
                    null; //onHourLater(date) //fiveMinutesLater(date);
     
     //reminder = randomDate(new Date(), new Date()["addDays"](-50)); 
-
+    
     return ({  
-        _id:generateId(),    
+        _id:generateId(),     
         type:"todo",
         category:randomCategory(), 
         title:title.join(' '), 
         priority:Math.random()*999999999,
         note:note.join(' '),
         checklist:checklist,   
-        reminder:null,//:remind,  
+        reminder,//:null,//:remind,  
         attachedTags:tags,   
         deadline:Math.random() < 0.3 ? null :
                  Math.random() > 0.5 ?

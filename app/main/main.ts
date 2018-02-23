@@ -5,26 +5,38 @@ import { Listeners } from "./listeners";
 import { initWindow, initQuickEntry, initNotification } from "./initWindow";
 import { isNil, not, forEachObjIndexed, when, contains, compose, equals, ifElse, reject, isEmpty } from 'ramda';  
 import { isDev } from './../utils/isDev';
+import { defaultTags } from '../utils/defaultTags';
 const os = require('os');
 const path = require("path");
 const storage = require('electron-json-storage');
 storage.setDataPath(os.tmpdir());
 
-
-let getConfigMain = () : Promise<any> => {
+ 
+let getConfigMain = () : Promise<any> => {  
     return new Promise( 
-        resolve => 
-            storage.get( 
-                "config", 
-                (error, data) => {  
-                    if(isNil(data) || isEmpty(data)){
-                        resolve({firstLaunch:true});
-                    }
-                    else{ 
-                        resolve({...data,firstLaunch:false}); 
-                    } 
-                }
-            )  
+        resolve => storage.get(   
+            "config",  
+            (error, data) => {  
+                if(isNil(data) || isEmpty(data)){
+                    resolve({ 
+                        nextUpdateCheck:new Date(),
+                        firstLaunch:true,
+                        hideHint:false, 
+                        defaultTags:defaultTags,  
+                        shouldSendStatistics:true,
+                        showCalendarEvents:true,
+                        groupTodos:false,
+                        preserveWindowWidth:true, //when resizing sidebar
+                        enableShortcutForQuickEntry:true,
+                        enableReminder:true,
+                        quickEntrySavesTo:"inbox", //inbox today next someday
+                        moveCompletedItemsToLogbook:"immediately"
+                    });
+                }else{  
+                    resolve({...data,firstLaunch:false}); 
+                } 
+            }
+        )  
     )
 }; 
 
@@ -196,13 +208,15 @@ let initAutoLaunch = () : Promise<void> => {
 
 
 let onReady = (showTray:boolean, config:any) => {  
+    let {enableReminder, enableShortcutForQuickEntry} = config;
+
     if(shouldQuit){ 
        app.exit(); 
        return; 
     }  
 
     let shouldHideApp : boolean = contains("--hidden")(process.argv); 
-    
+
     registerAllShortcuts(); 
     initAutoLaunch();   
 
@@ -223,8 +237,12 @@ let onReady = (showTray:boolean, config:any) => {
 
     quickEntry = initQuickEntry({width:500,height:300}); 
     
-    notification = initNotification({width:250,height:300}); 
-    
+    notification = initNotification({
+        width:250, 
+        height:300
+    });   
+    //notification.webContents.openDevTools();  
+ 
     if(showTray){ 
         tray = createTray();
         mainWindow.on('show', () => tray.setToolTip(`Hide ${AppName}`));
@@ -233,7 +251,7 @@ let onReady = (showTray:boolean, config:any) => {
        
     loadApp(mainWindow)  
     .then(() => {    
-        mainWindow.webContents.send("loaded", null, process);
+        mainWindow.webContents.send("loaded");
 
         if(not(shouldHideApp)){
            mainWindow.focus(); 

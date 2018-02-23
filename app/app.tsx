@@ -59,7 +59,6 @@ const path = require('path');
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
 
- 
 
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
@@ -75,7 +74,6 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
     return true;
 }; 
 
- 
 
 export interface Store extends Config{
     progress : any,
@@ -169,7 +167,6 @@ export let defaultStoreItems : Store = {
 
 
 interface AppProps extends Store{};  
-
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)  
 export class App extends Component<AppProps,{}>{  
     subscriptions:Subscription[]; 
@@ -182,7 +179,7 @@ export class App extends Component<AppProps,{}>{
     }
 
 
-    onError = (error) => globalErrorHandler(error)
+    onError = (error) => globalErrorHandler(error);
 
 
     reportStart = ({ arch, cpus, platform, release, type, timeSeconds }) => googleAnalytics.send(   
@@ -228,7 +225,7 @@ export class App extends Component<AppProps,{}>{
             let next = isString(nextUpdateCheck) ? new Date(nextUpdateCheck) : nextUpdateCheck;
             this.timeouts.push(setCallTimeout(() => check(), next ));
         }
-    }
+    };
 
 
     componentDidMount(){    
@@ -314,7 +311,7 @@ export class App extends Component<AppProps,{}>{
                 dispatch({type:"openTodoInputPopup", load:true});
             })
         );
-    }
+    };
 
 
     componentWillUnmount(){

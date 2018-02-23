@@ -486,10 +486,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     let {groupTodos} = this.props;
                                     let byIntroList = (item : (Project | Todo)) : boolean => contains(item._id)(introListIds);
                                     let byNotIntroList = compose(not, byIntroList);
-                                    let nextFilters = [
-                                        (t:Todo) => inFuture(t.attachedDate) || inFuture(t.deadline),
-                                        //(t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
-                                        //(t:Todo) => t.category!=="inbox",  
+                                    let nextFilters = [ 
+                                        //(t:Todo) => inFuture(t.attachedDate) || inFuture(t.deadline),
+                                        (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
+                                        (t:Todo) => t.category!=="inbox",  
                                         (t:Todo) => t.category!=="someday",  
                                         byNotIntroList,
                                         byNotCompleted,   

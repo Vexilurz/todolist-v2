@@ -81,7 +81,7 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
         'URL: ' + url,
         'Line: ' + lineNo, 
         'Column: ' + columnNo,
-        'Error object: ' + JSON.stringify(error)
+        'Error object: ' + JSON.stringify(error) 
     ].join(' - ');
     globalErrorHandler(message); 
     if(isDev()){ return false }
@@ -91,7 +91,7 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 
 ipcRenderer.once( 
     'loaded',     
-    (event,config:Config) => { 
+    (event) => {  
         let app=document.createElement('div'); 
         app.style.width="100%"; 
         app.style.height="100%";

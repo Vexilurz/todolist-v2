@@ -6,6 +6,7 @@ const os = remote.require('os');
 storage.setDataPath(os.tmpdir());
 
 
+
 export const defaultConfig : Config = { 
     nextUpdateCheck:new Date(),
     firstLaunch:true,
@@ -20,6 +21,7 @@ export const defaultConfig : Config = {
     quickEntrySavesTo:"inbox", //inbox today next someday
     moveCompletedItemsToLogbook:"immediately"
 };
+
 
 
 export interface Config{
@@ -39,17 +41,19 @@ export interface Config{
 
 
 
-
 export let getConfig = () : Promise<Config> => {
     return new Promise( 
-        resolve => 
-            storage.get( 
-                "config", 
-                (error, data:Config) => {  
-                    if(isNil(data) || isEmpty(data)){resolve(defaultConfig)}
-                    else{ resolve({...data,firstLaunch:false} ) } 
+        resolve => storage.get( 
+            "config", 
+            (error, data:Config) => {  
+                if(isNil(data) || isEmpty(data)){
+                   resolve(defaultConfig);
                 }
-            )  
+                else{ 
+                   resolve({...data,firstLaunch:false}); 
+                } 
+            }
+        )  
     ) 
 }; 
 
@@ -62,22 +66,22 @@ export let updateConfig = (dispatch:Function) =>
                       (config:Config) => {
                         let updated = { ...config, ...load } as Config;
                         return new Promise(
-                            resolve => 
-                                storage.set(  
-                                    "config", 
-                                    updated, 
-                                    (error) => {
-                                        if(!isNil(error)){ resolve(defaultConfig) }
-                                        dispatch({type:"updateConfig",load:updated}) 
-                                        resolve(updated as Config); 
-                                    }
-                                )
+                            resolve => storage.set(  
+                                "config", 
+                                updated, 
+                                (error) => {
+                                    if(!isNil(error)){ resolve(defaultConfig) }
+                                    dispatch({type:"updateConfig",load:updated}) 
+                                    resolve(updated as Config); 
+                                }
+                            )
                         )
                       }
                     )
-        }
+        };
 
 
+        
 export let clearStorage = (onError:Function) : Promise<void> => {
     return new Promise( 
         (resolve) => { 

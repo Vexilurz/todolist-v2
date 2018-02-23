@@ -24,6 +24,7 @@ import { globalErrorHandler } from './utils/globalErrorHandler';
 const path = require("path");
 import ReactAudioPlayer from 'react-audio-player';
 import { isDev } from './utils/isDev';
+import { Config, getConfig } from './utils/config';
 injectTapEventPlugin();  
 
  
@@ -43,41 +44,51 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 
 
 ipcRenderer.once( 
-    'loaded',     
+    'loaded',      
     (event) => { 
         let app=document.createElement('div'); 
         app.style.width="100%"; 
         app.style.height="100%";
         app.id='application';      
         document.body.appendChild(app);    
-
-        ReactDOM.render(   
-            wrapMuiThemeLight(<Notification/>),
-            document.getElementById('application')
-        )     
+        getConfig().then(
+            (config:Config) => ReactDOM.render(   
+                wrapMuiThemeLight(<Notification config={config}/>),
+                document.getElementById('application')
+            )     
+        ) 
     }
 );   
 
 
-interface NotificationProps{}   
+interface NotificationProps{
+    config:any
+}   
 
 interface  NotificationState{
-    todo:any 
+    todo:any
 }    
 
 class Notification extends Component<NotificationProps,NotificationState>{
     subscriptions:Subscription[];
     queue:NotificationState[];
     beep:any;
+    disable:boolean;
     soundPath:string;
+    timeout:any;
+
 
     constructor(props){
         super(props);  
         this.subscriptions=[]; 
+        let {enableReminder} = this.props.config;
+        this.disable = not(enableReminder);
+        //console.log(`initial this.disable:${this.disable}`,this.props.config)
         let defaultState={ todo:null };
+        this.timeout=null;
         this.state={...defaultState};   
-        this.queue=[];
-        this.soundPath=path.resolve(__dirname,"sound.wav");
+        this.queue=[]; 
+        this.soundPath=path.resolve(__dirname,"sound.wav"); 
     };
 
 
@@ -97,14 +108,27 @@ class Notification extends Component<NotificationProps,NotificationState>{
                     }else{ 
                         this.queue.push({todo});
                     }
-                })
+                }),
+
+            Observable
+                .fromEvent(ipcRenderer,"config",(event,config) => config)
+                .subscribe((config) => { 
+                    let {enableReminder} = config;
+                    this.disable = not(enableReminder);
+                    const window = remote.getCurrentWindow();
+                    if(this.disable){
+                        window.hide(); 
+                    }else{
+                        window.show();  
+                    }
+                })     
         )
     };
 
 
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
-        this.subscriptions=[];
+        this.subscriptions = [];
     };
 
 
@@ -130,12 +154,18 @@ class Notification extends Component<NotificationProps,NotificationState>{
     };
 
 
-    notify = () => { 
-        if(isEmpty(this.queue)){ return }
+    notify = () => {  
+        if(isEmpty(this.queue)){return}
         let next = this.queue[0];
         this.updateState(next)
-        .then(() => { if(this.beep){ this.beep.audioEl.play(); } }) 
-        .then(() => this.open())
+        .then(() => { 
+            if(this.beep){ 
+                if(not(this.disable)){
+                    this.beep.audioEl.play();
+                } 
+            }   
+        }) 
+        .then(() => this.open()) 
     };
 
 
@@ -160,7 +190,9 @@ class Notification extends Component<NotificationProps,NotificationState>{
             };
 
             window.setPosition(initialX, initialY);
-            window.show();
+
+            if(not(this.disable)){ window.show() };
+
             move();
         } 
     );
