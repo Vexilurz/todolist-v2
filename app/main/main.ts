@@ -3,11 +3,31 @@ import fs = require('fs');
 import {dialog,app,BrowserWindow,Menu,screen,globalShortcut,Tray,nativeImage} from 'electron';
 import { Listeners } from "./listeners";
 import { initWindow, initQuickEntry, initNotification } from "./initWindow";
-import { isNil, not, forEachObjIndexed, when, contains, compose, equals, ifElse, reject } from 'ramda';  
+import { isNil, not, forEachObjIndexed, when, contains, compose, equals, ifElse, reject, isEmpty } from 'ramda';  
 import { isDev } from './../utils/isDev';
 const os = require('os');
 const path = require("path");
-const Registry = require('winreg'); 
+const storage = require('electron-json-storage');
+storage.setDataPath(os.tmpdir());
+
+
+let getConfigMain = () : Promise<any> => {
+    return new Promise( 
+        resolve => 
+            storage.get( 
+                "config", 
+                (error, data) => {  
+                    if(isNil(data) || isEmpty(data)){
+                        resolve({firstLaunch:true});
+                    }
+                    else{ 
+                        resolve({...data,firstLaunch:false}); 
+                    } 
+                }
+            )  
+    )
+}; 
+
 
 export const AppName = 'Tasklist';
 export let mainWindow : BrowserWindow;   
@@ -17,13 +37,9 @@ export let listeners : Listeners;
 export let dateCalendar : BrowserWindow; 
 export let tray : Tray;
 
-/* 
+
 const AutoLaunch = require('auto-launch');
-let appAutoLauncher = new AutoLaunch({name: AppName, isHidden: false});
-appAutoLauncher.disable()
-.then(() => appAutoLauncher.enable())
-.catch((err) => console.log(err));
-*/
+
 
 const shouldQuit = app.makeSingleInstance(
     (commandLine, workingDirectory) => {
@@ -167,50 +183,64 @@ let getWindowSize = () : {width:number,height:number} => {
 };  
 
 
-let onReady = () => {  
-    if(shouldQuit){ app.exit(); return; }  
-    
-    registerAllShortcuts();
 
-    dialog.showErrorBox = (title, content) => {};
-    tray = createTray();
+let initAutoLaunch = () : Promise<void> => {
+    let appAutoLauncher = new AutoLaunch({name: AppName, isHidden: true});
+
+    return appAutoLauncher.isEnabled()
+    .then((enabled:boolean) => enabled ? appAutoLauncher.disable() : null)
+    .then(() => appAutoLauncher.enable())
+    .catch((err) => console.log(err));
+};
+
+
+
+let onReady = (showTray:boolean, config:any) => {  
+    if(shouldQuit){ 
+       app.exit(); 
+       return; 
+    }  
+
+    let shouldHideApp : boolean = contains("--hidden")(process.argv); 
+    
+    registerAllShortcuts(); 
+    initAutoLaunch();   
+
+    dialog.showErrorBox = (title, content) => {}; 
+    
     listeners = new Listeners(mainWindow); 
     
-
     mainWindow = initWindow(
         getWindowSize(), 
         {  
-            maximizable:false,
+            maximizable:true,
             show:false
         },
-        (handler) => {} 
-    );   
+        (handler:BrowserWindow) => shouldHideApp ? 
+                                    handler.hide() : 
+                                    handler.show() 
+    );    
+
+    quickEntry = initQuickEntry({width:500,height:300}); 
     
-
-    quickEntry = initQuickEntry({
-        width:500,
-        height:300
-    }); 
-
-
-    notification = initNotification({
-        width:250, 
-        height:300,
-    }); 
-
-
-    mainWindow.on('show', ()=>tray.setToolTip(`Hide ${AppName}`));
-    mainWindow.on('hide', ()=>tray.setToolTip(`Show ${AppName}`));
-      
-     
+    notification = initNotification({width:250,height:300}); 
+    
+    if(showTray){ 
+        tray = createTray();
+        mainWindow.on('show', () => tray.setToolTip(`Hide ${AppName}`));
+        mainWindow.on('hide', () => tray.setToolTip(`Show ${AppName}`));
+    }
+       
     loadApp(mainWindow)  
     .then(() => {    
         mainWindow.webContents.send("loaded", null, process);
-        mainWindow.setMaximizable(true);
-        mainWindow.minimize();  
-        
+
+        if(not(shouldHideApp)){
+           mainWindow.focus(); 
+        }
+
         if(isDev()){ 
-            mainWindow.webContents.openDevTools(); 
+           mainWindow.webContents.openDevTools(); 
         }  
     });    
     
@@ -227,9 +257,12 @@ let onReady = () => {
         () => notification.webContents.send("loaded")
     );
 };               
-  
 
-app.on('ready', onReady);    
+
+app.on(
+    'ready', 
+    () =>  getConfigMain().then((config) => onReady(true,config))
+);    
  
 
 process.on( 

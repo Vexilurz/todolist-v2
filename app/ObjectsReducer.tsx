@@ -8,10 +8,8 @@ import {
 } from './database';
 import { isDev } from './utils/isDev';
 import { ipcRenderer, remote } from 'electron';
-import { 
-    getTagsFromItems, removeDeletedProjects, removeDeletedAreas, removeDeletedTodos, ItemWithPriority, byNotDeleted 
-} from './utils/utils';
-import { adjust, cond, equals, all, clone, isEmpty, contains, not, remove, uniq, isNil } from 'ramda';
+import { removeDeletedProjects, removeDeletedAreas, removeDeletedTodos, byNotDeleted } from './utils/utils';
+import { adjust, cond, all, isEmpty, contains, not, remove, uniq, isNil } from 'ramda';
 import { filter, activateReminders } from './Components/MainContainer';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { Config } from './utils/config';

@@ -59,16 +59,16 @@ const path = require('path');
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
 
-
+ 
 
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
     var message = [ 
-        'Message: ' + msg,
-        'URL: ' + url,
-        'Line: ' + lineNo,
-        'Column: ' + columnNo,
-        'Error object: ' + JSON.stringify(error)
+        'Message:' + msg, 
+        'URL:' + url,
+        'Line:' + lineNo,
+        'Column:' + columnNo,
+        'Error object:' + JSON.stringify(error)
     ].join(' - ');
     globalErrorHandler(message);
     if(isDev()){ return false }

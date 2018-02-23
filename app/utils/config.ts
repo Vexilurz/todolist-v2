@@ -6,7 +6,7 @@ const os = remote.require('os');
 storage.setDataPath(os.tmpdir());
 
 
-export const defaultConfig = { 
+export const defaultConfig : Config = { 
     nextUpdateCheck:new Date(),
     firstLaunch:true,
     hideHint:false,
@@ -16,9 +16,10 @@ export const defaultConfig = {
     groupTodos:false,
     preserveWindowWidth:true, //when resizing sidebar
     enableShortcutForQuickEntry:true,
+    enableReminder:true,
     quickEntrySavesTo:"inbox", //inbox today next someday
     moveCompletedItemsToLogbook:"immediately"
-}
+};
 
 
 export interface Config{
@@ -28,12 +29,13 @@ export interface Config{
     hideHint:boolean,
     shouldSendStatistics:boolean,
     showCalendarEvents:boolean,
+    enableReminder:boolean,
     groupTodos:boolean,
     preserveWindowWidth:boolean, //when resizing sidebar
     enableShortcutForQuickEntry:boolean,
     quickEntrySavesTo:string, //inbox today next someday
     moveCompletedItemsToLogbook, //immediatelly
-}
+};
 
 
 
@@ -48,7 +50,7 @@ export let getConfig = () : Promise<Config> => {
                     else{ resolve({...data,firstLaunch:false} ) } 
                 }
             )  
-    )
+    ) 
 }; 
 
 

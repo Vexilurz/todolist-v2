@@ -5,52 +5,16 @@ import {
     cyan500, cyan700, pinkA200, grey100, grey300, grey400, grey500, white, darkBlack, fullBlack
 } from 'material-ui/styles/colors'; 
 import {fade} from 'material-ui/utils/colorManipulator';
-import spacing from 'material-ui/styles/spacing'; 
-import getMuiTheme from 'material-ui/styles/getMuiTheme';
-import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
-import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
-import Refresh from 'material-ui/svg-icons/navigation/refresh';  
-import Inbox from 'material-ui/svg-icons/content/inbox';
-import Star from 'material-ui/svg-icons/toggle/star';
-import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
-import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
-import CheckBox from 'material-ui/svg-icons/toggle/check-box'; 
-import BusinessCase from 'material-ui/svg-icons/content/archive';
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
-import Adjustments from 'material-ui/svg-icons/image/tune';
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import Flag from 'material-ui/svg-icons/image/assistant-photo'; 
-import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
-import Plus from 'material-ui/svg-icons/content/add';
-import Trash from 'material-ui/svg-icons/action/delete';
-import Search from 'material-ui/svg-icons/action/search'; 
-import List from 'material-ui/svg-icons/action/list'; 
-import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import CalendarIco from 'material-ui/svg-icons/action/date-range';
-import Logbook from 'material-ui/svg-icons/av/library-books';
-import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
-import { 
-    getTodos, queryToTodos, Todo, updateTodo, Project, Area, 
-    removeTodos, removeProjects, removeAreas, updateProjects, 
-    updateTodos, updateAreas, Heading, LayoutItem, Calendar 
-} from './../database';
+import {Todo, Project, Area, removeTodos, removeProjects, removeAreas, Heading, LayoutItem} from './../database';
 import { Category } from '.././Components/MainContainer';
 import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist';
-let moment = require("moment");
-import Moon from 'material-ui/svg-icons/image/brightness-3';
-import { 
-    contains, isNil, all, prepend, isEmpty, last, not, assoc, when,
-    flatten, toPairs, map, compose, allPass, uniq, cond, remove 
-} from 'ramda'; 
+import { contains, isNil, prepend, isEmpty, last, not, when, flatten, map, compose, cond, remove } from 'ramda'; 
 import { Store } from '.././app';
 import { isDev } from './isDev';
 import { setRepeatedTodos, repeat } from '.././Components/RepeatPopup';
 import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
-let ical = require('ical.js');
-import axios from 'axios';
-import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
+import { UpdateCheckResult } from 'electron-updater';
 import { globalErrorHandler } from './globalErrorHandler';
 import {generateId} from './generateId';
 import {assert}  from './assert';
@@ -66,7 +30,7 @@ import {generateEmptyTodo} from './generateEmptyTodo';
 let PHE = require("print-html-element");
 var domtoimage = require('dom-to-image');
 
-
+ 
 
 export let getTime = (date:Date) : {
     minutes : number,

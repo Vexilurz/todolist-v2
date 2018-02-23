@@ -160,21 +160,21 @@ export let updateProjects = debounce((projects : Project[], onError : Function) 
 export let updateArea = debounce((_id:string, replacement:Area, onError:Function) : Promise<Area> => {
     assert(isArea(replacement),`Input value is not of type area. ${replacement}. updateArea.`);
     return updateItemInDatabase(onError, areas_db)(_id, replacement);  
-},200);
+},100);
 
 
 
 export let updateAreas = debounce((areas : Area[], onError : Function) : Promise<any[]> => {
     assert(all(isArea,areas),`Not all input values are of type Area ${areas}. updateAreas.`);
     return updateItemsInDatabase<Area>(onError,areas_db)(areas);
-},200);
+},100);
 
 
 
 export let updateProject = debounce((_id : string, replacement : Project, onError:Function) : Promise<Project> => {
     assert(isProject(replacement),`Input value is not of type Project ${replacement}. updateProject.`);
     return updateItemInDatabase(onError, projects_db)(_id, replacement); 
-},200);
+},100);
 
 
 
@@ -184,14 +184,14 @@ export let updateTodo = debounce((_id:string, replacement:Todo, onError:Function
       `Input value is not of type Todo ${replacement}. updateTodo.`
     );
     return updateItemInDatabase(onError, todos_db)(_id, replacement);    
-},200); 
+},100); 
 
 
 
 export let updateTodos = debounce((todos : Todo[], onError : Function) : Promise<any[]> => {
     assert(all(isTodo,todos),`Not all input values are of type Todo ${todos}. updateTodos.`);
     return updateItemsInDatabase<Todo>(onError, todos_db)(todos);
-},200);
+},100);
 
 
 
