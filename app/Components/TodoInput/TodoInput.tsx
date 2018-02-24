@@ -2,87 +2,55 @@ import '../../assets/styles.css';
 import '../../assets/calendarStyle.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
-import { ipcRenderer } from 'electron'; 
 import IconButton from 'material-ui/IconButton';   
 import { Component } from "react";  
-import { Provider, connect } from "react-redux";
-import Chip from 'material-ui/Chip';  
 import Star from 'material-ui/svg-icons/toggle/star';
-import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
-import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
-import CheckBox from 'material-ui/svg-icons/toggle/check-box'; 
 import BusinessCase from 'material-ui/svg-icons/content/archive';
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Checked from 'material-ui/svg-icons/navigation/check';
-import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
-import Adjustments from 'material-ui/svg-icons/image/tune';
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
-import Plus from 'material-ui/svg-icons/content/add';
-import Trash from 'material-ui/svg-icons/action/delete';
-import Search from 'material-ui/svg-icons/action/search'; 
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
-import Logbook from 'material-ui/svg-icons/av/library-books';
-import Clear from 'material-ui/svg-icons/content/clear';
-import List from 'material-ui/svg-icons/action/list';
-import Reorder from 'material-ui/svg-icons/action/reorder';  
-let uniqid = require("uniqid");  
-import Popover from 'material-ui/Popover';
+import List from 'material-ui/svg-icons/device/storage';
+import ChecklistIcon from 'material-ui/svg-icons/action/assignment-turned-in';
+import NotesIcon from 'material-ui/svg-icons/action/subject'; 
 import { TextField } from 'material-ui';  
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
-import {  
- todoChanged, daysLeftMark, generateTagElement, isToday, getMonthName, fiveMinutesLater, 
- onHourLater, oneDayAhead, getCompletedWhen, findWindowByTitle, getTime, setTime
-} from '../../utils/utils'; 
-import { Todo, removeTodo, updateTodo, Project} from '../../database';
+import { daysLeftMark, isToday, getMonthName, getCompletedWhen, getTime, setTime } from '../../utils/utils'; 
+import { Todo, Project } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopup, TodoTags } from './TodoTags';
 import { TodoInputLabel } from './TodoInputLabel'; 
 import { uniq, isEmpty, contains, isNil, not, multiply, remove, cond, equals, any } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
-let moment = require("moment"); 
 import AutosizeInput from 'react-input-autosize'; 
-import { isString } from 'util';
-import { AutoresizableText } from '../AutoresizableText';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import ResizeObserver from 'resize-observer-polyfill';
 import { Observable } from 'rxjs/Rx';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { googleAnalytics } from '../../analytics';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
-import { isFunction, isDate } from '../../utils/isSomething';
+import { isFunction, isDate, isString } from '../../utils/isSomething';
 import { daysRemaining } from '../../utils/daysRemaining';
 import { stringToLength } from '../../utils/stringToLength';
 import { assert } from '../../utils/assert';
-import { setCallTimeout } from '../../utils/setCallTimeout';
 import { debounce } from 'lodash';    
+let moment = require("moment"); 
 let Promise = require('bluebird'); 
 
 
-interface AutosizeInputComponentProps{
-    title:string,
-    onTitleChange:Function
-}
 
+interface AutosizeInputComponentProps{title:string,onTitleChange:Function}
 interface AutosizeInputComponentState{}
-
 class AutosizeInputComponent extends Component<AutosizeInputComponentProps,AutosizeInputComponentState>{  
 
-    
-    constructor(props){
-        super(props);    
-    };
-
+    constructor(props){ super(props); };
 
     shouldComponentUpdate(nextProps:AutosizeInputComponentProps){
         return nextProps.title!==this.props.title
     };
-
 
     render(){
         let {title,onTitleChange} = this.props;
@@ -111,22 +79,6 @@ class AutosizeInputComponent extends Component<AutosizeInputComponentProps,Autos
 
 
 
-
-
-export interface TodoInputState{  
-    open : boolean,
-    tag : string, 
-    translateX : number,
-    display : string,
-    animatingSlideAway : boolean,
-    showAdditionalTags : boolean, 
-    showDateCalendar : boolean,  
-    showTagsSelection : boolean,
-    showChecklist : boolean,   
-    showDeadlineCalendar : boolean
-}   
-   
-    
 export interface TodoInputProps{ 
     dispatch : Function,  
     groupTodos : boolean,  
@@ -144,10 +96,28 @@ export interface TodoInputProps{
     onClose? : Function,
     showCompleted? : boolean
 }    
- 
-   
+
+
+
+export interface TodoInputState{  
+    open : boolean,
+    tag : string, 
+    translateX : number,
+    display : string,
+    animatingSlideAway : boolean,
+    showAdditionalTags : boolean, 
+    showDateCalendar : boolean,  
+    showTagsSelection : boolean,
+    showChecklist : boolean,   
+    showDeadlineCalendar : boolean,
+    attachedDate : Date,
+    deadline : Date,
+    category : Category
+}   
+
+
+
 export class TodoInput extends Component<TodoInputProps,TodoInputState>{
-    
     calendar:HTMLElement; 
     deadline:HTMLElement;
     tags:HTMLElement;
@@ -156,12 +126,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     subscriptions:Subscription[]; 
  
     constructor(props){
-
         super(props);  
 
         this.subscriptions = [];
          
-        let {checklist} = this.props.todo;
+        let {checklist,attachedDate,deadline,category,reminder} = this.props.todo;
 
         this.state={   
             open:false,
@@ -173,36 +142,220 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             showDateCalendar:false,  
             showTagsSelection:false, 
             showChecklist:checklist.length>0,  
-            showDeadlineCalendar:false
-        };       
+            showDeadlineCalendar:false,
+            attachedDate,
+            deadline,
+            category
+        };        
+    };
+ 
+    onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
+        e.stopPropagation(); 
+        let {todo,dispatch} = this.props;
+
+        let attachedDate = new Date(day.getTime());
+        let reminder = todo.reminder;
+
+        if(isDate(reminder)){
+           let time = getTime(reminder);
+           attachedDate = setTime(attachedDate,time); 
+           reminder = new Date(attachedDate.getTime());
+        }
+
+        this.updateState({attachedDate, category:isToday(attachedDate) ? "today" : todo.category})
+        .then(() => {
+            this.update({reminder});
+            dispatch({type:"resetReminders"});
+            this.closeDateCalendar();
+        })
     };
 
+    onRemoveSelectedCategoryLabel = () => {
+        let {selectedCategory, todo, dispatch} = this.props;
+
+        if(selectedCategory!==todo.category && (todo.category==="today" || todo.category==="evening")){
+            this.updateState({category:selectedCategory, attachedDate:null})
+            .then(() => {
+                this.update({reminder:null});
+                dispatch({type:"resetReminders"});
+            }); 
+        }else if(selectedCategory!==todo.category && todo.category==="someday"){
+            this.updateState({category:selectedCategory});    
+        }
+    };   
+
+    onRemoveAttachedDateLabel = () => {
+        let {selectedCategory,dispatch} = this.props;
+        let today = selectedCategory==="today" || selectedCategory==="evening";
+
+        this.updateState({attachedDate:null, category:today ? "next" : selectedCategory})  
+        .then(() => {
+            this.update({reminder:null});
+            dispatch({type:"resetReminders"});
+        }); 
+    };  
+   
+    onCalendarSomedayClick = (e) => {
+        e.stopPropagation();
+
+        this.updateState({category:"someday"})
+        .then(
+            () => this.closeDateCalendar()
+        );
+    };
+
+    onCalendarTodayClick = (e) => {
+        e.stopPropagation();
+        let {todo,dispatch} = this.props;
+
+        let attachedDate = new Date();
+        let reminder = todo.reminder;
+
+        if(isDate(reminder)){
+           let time = getTime(reminder);
+           attachedDate = setTime(attachedDate,time); 
+           reminder = new Date(attachedDate.getTime());
+        }
+
+        this.updateState({category:"today", attachedDate})
+        .then(() => {
+            this.update({reminder});
+            dispatch({type:"resetReminders"});
+            this.closeDateCalendar();
+        }); 
+    }; 
+
+    onCalendarThisEveningClick = (e) => {
+        e.stopPropagation();
+        let {todo,dispatch} = this.props;
+
+        let attachedDate = new Date();
+        let reminder = todo.reminder;
+
+        if(isDate(reminder)){
+           let time = getTime(reminder);
+           attachedDate = setTime(attachedDate,time); 
+           reminder = new Date(attachedDate.getTime());
+        }
+        
+        this.updateState({category:"evening", attachedDate})
+        .then(() => {
+            this.update({reminder});
+            dispatch({type:"resetReminders"});
+            this.closeDateCalendar();
+        });
+    }; 
+
+    onCalendarAddReminderClick = (reminder:Date) : void => {
+        let {dispatch} = this.props;
+
+        this.updateState({attachedDate:reminder}) 
+        .then(() => {
+            this.update({reminder});
+            this.closeDateCalendar();
+            dispatch({type:"resetReminders"});
+        });
+    };
+
+    onCalendarClear = (e) => {
+        e.stopPropagation();
+        let {todo,dispatch} = this.props;
+        this.updateState({category:todo.category,attachedDate:null})
+        .then(() => {
+            this.update({reminder:null});
+            this.closeDateCalendar();
+            dispatch({type:"resetReminders"});
+        }); 
+    };
+
+    onRemoveReminderClick = () : void => {
+        let {dispatch} = this.props;
+        this.update({reminder:null}); 
+        dispatch({type:"resetReminders"});
+    };
+  
+    onClose = () => {
+        let {dispatch,onClose,todo} = this.props;
+        let {attachedDate,deadline,category} = this.state;
+        this.update({attachedDate,deadline,category});
+
+        if(isFunction(onClose)){ onClose() } 
+    };
+       
+    onWindowEnterPress = (e) => {  
+        if(e.keyCode!==13){ return }
+        let {open} = this.state;
+        let {onClose} = this.props;
+
+        if(open){ 
+           this.setState({open:false},() => this.onClose()); 
+        } 
+    };      
+
+    onOutsideClick = (e) => {
+        let { rootRef, dispatch, onClose } = this.props;
+        let { open } = this.state;
+
+        if(isNil(this.ref) || not(open)){ return }
+
+        let x = e.pageX;
+        let y = e.pageY; 
+
+        let inside = insideTargetArea(rootRef,this.ref,x,y);
+     
+        if(not(inside)){ 
+           this.setState({open:false},() => this.onClose()); 
+        }   
+    };
+
+    onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
+        e.stopPropagation();
+        this.updateState({deadline:day}).then(() => this.closeDeadlineCalendar());
+    };
+
+    onDeadlineCalendarClear = (e:any) : void => {
+        e.stopPropagation();
+        this.updateState({deadline:null}).then(() => this.closeDeadlineCalendar());
+    };
 
     shouldComponentUpdate(nextProps:TodoInputProps,nextState:TodoInputState){
-        if(
-            not(equals(this.state,nextState)) ||
-            not(equals(this.props.todo,nextProps.todo)) ||
-            this.props.groupTodos!==nextProps.groupTodos || 
-            this.props.showCompleted!==nextProps.showCompleted ||
-            this.props.moveCompletedItemsToLogbook!==nextProps.moveCompletedItemsToLogbook ||
-            this.props.selectedCategory!==nextProps.selectedCategory ||
-            this.props.selectedProjectId!==nextProps.selectedProjectId ||
-            this.props.selectedAreaId!==nextProps.selectedAreaId ||
-            this.props.projects!==nextProps.projects ||
-            this.props.selectedTodo!==nextProps.selectedTodo
-        ){
+        if( not(equals(this.state,nextState)) ){
+            return true;
+        }
+        if( not(equals(this.props.todo,nextProps.todo)) ){
+            return true;
+        }
+        if( this.props.groupTodos!==nextProps.groupTodos ){
+            return true;
+        }
+        if( this.props.showCompleted!==nextProps.showCompleted ){
+            return true;
+        }
+        if( this.props.moveCompletedItemsToLogbook!==nextProps.moveCompletedItemsToLogbook ){
+            return true;
+        }
+        if( this.props.selectedCategory!==nextProps.selectedCategory ){
+            return true;
+        }
+        if( this.props.selectedProjectId!==nextProps.selectedProjectId ){
+            return true;
+        }
+        if( this.props.selectedAreaId!==nextProps.selectedAreaId ){
+            return true;
+        }
+        if( this.props.projects!==nextProps.projects ){
+            return true;
+        }
+        if( this.props.selectedTodo!==nextProps.selectedTodo ){
             return true;
         }
 
         return false;
     }; 
 
-
     updateState = (props) => new Promise(resolve => this.setState(props, () => resolve()));
 
-
     timeout = (ms:number) => new Promise(resolve => setTimeout(() => resolve(),ms));
-
 
     submitCompletedEvent = (timeSeconds:number) => {
         googleAnalytics.send(    
@@ -218,33 +371,29 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         .catch(err => this.onError(err));
     };
 
-
     onError = (error) => globalErrorHandler(error);
-
 
     componentDidMount(){   
         let { todo, selectedTodo } = this.props;
 
-        if(
-            not(isNil(selectedTodo)) && 
-            selectedTodo._id===todo._id
-        ){ 
+        if(not(isNil(selectedTodo)) && selectedTodo._id===todo._id){ 
             this.updateState({open:true})
             .then(
                 () => isNil(this.ref) ? null : this.ref.scrollIntoView()
             )
         };
 
-        let click = Observable.fromEvent(window,"click").subscribe(this.onOutsideClick);
-        this.subscriptions.push(click);
+        this.subscriptions.push(
+            Observable
+            .fromEvent(window,"click")
+            .subscribe(this.onOutsideClick)
+        );
     };        
 
- 
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = []; 
     }; 
-
 
     componentDidUpdate(prevProps:TodoInputProps,prevState:TodoInputState){
         let { open } = this.state; 
@@ -255,12 +404,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         }; 
 
         if(isEmpty(todo.title) || open){ 
-            this.preventDragOfThisItem(); 
+           this.preventDragOfThisItem(); 
         }else{ 
-            this.enableDragOfThisItem(); 
+           this.enableDragOfThisItem(); 
         }  
     };   
-
 
     onFieldsContainerClick = (e) => {    
         e.stopPropagation();     
@@ -269,94 +417,28 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let {dispatch, onOpen} = this.props;
 
         if(not(open)){    
-            this.setState(
-                {open:true, showAdditionalTags:false}, 
-                () => isFunction(onOpen) ? onOpen() : null
-            );   
-            dispatch({type:"showRepeatPopup", load:false});
-            dispatch({type:"showRightClickMenu", load:false});
+           this.setState({open:true, showAdditionalTags:false}, () => isFunction(onOpen) ? onOpen() : null);   
+           dispatch({type:"showRepeatPopup", load:false});
+           dispatch({type:"showRightClickMenu", load:false});
         };   
     };  
-    
-
-    onWindowEnterPress = (e) => {  
-        if(e.keyCode!==13){ return }
-        let {open} = this.state;
-        let {onClose} = this.props;
-        if(open){ 
-            this.setState({open:false}, () => isFunction(onClose) ? onClose() : null); 
-        } 
-    };      
-
-
-    onOutsideClick = (e) => {
-        let { rootRef, dispatch, onClose } = this.props;
-        let { open } = this.state;
-
-        if(isNil(this.ref) || not(open)){ return }
-
-        let x = e.pageX;
-        let y = e.pageY; 
-
-        let inside = insideTargetArea(rootRef,this.ref,x,y);
-     
-        if(not(inside)){ 
-           this.setState({open:false}, () => isFunction(onClose) ? onClose() : null); 
-        }   
-    };
-
 
     update = (props) : void => {
         let {todo,dispatch} = this.props;
         dispatch({type:"updateTodo",load:{...todo,...props}});
     };
 
-
     onTitleChange = (event) : void => this.update({title:event.target.value});
     
-
     onNoteChange = (event,newValue:string) : void => this.update({note:newValue});
-
 
     updateChecklist = (checklist:ChecklistItem[]) : void => this.update({checklist});
 
-
     onAttachTag = (tag:string) : void => {
         if(isEmpty(tag)){ return };
-
         let {todo} = this.props;
-
-        this.setState(
-            {tag:''}, 
-            () => this.update({attachedTags:uniq([...todo.attachedTags, tag])})
-        );
+        this.setState({tag:''},() => this.update({attachedTags:uniq([...todo.attachedTags, tag])}));
     }; 
-
-
-    onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
-        e.stopPropagation(); 
-        let {todo} = this.props;
-
-        let attachedDate = new Date(day.getTime());
-        let reminder = todo.reminder;
-        if(isDate(reminder)){
-           let time = getTime(reminder);
-           attachedDate = setTime(attachedDate,time); 
-           reminder = new Date(attachedDate.getTime());
-        }
-
-        this.update({attachedDate, reminder, category:isToday(attachedDate) ? "today" : todo.category}); 
-        this.closeDateCalendar();
-        this.props.dispatch({type:"resetReminders"});
-    };
-
-
-    onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
-        e.stopPropagation();
-        this.update({deadline:day});
-        this.closeDeadlineCalendar();
-    };
-
 
     onCheckBoxClick = () => {  
         let {todo, selectedCategory, showCompleted, moveCompletedItemsToLogbook} = this.props;
@@ -394,20 +476,17 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         }
     };
 
-
     enableDragOfThisItem = () => {
         if(this.ref){
            this.ref["preventDrag"] = false;  
         }
     };
 
-    
     preventDragOfThisItem = () => {
         if(this.ref){
            this.ref["preventDrag"] = true; 
         }
     }; 
-
 
     onRemoveTag = (tag:string) => {
         if(isEmpty(tag)){ return } 
@@ -419,7 +498,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            this.update({attachedTags:remove(idx,1,todo.attachedTags)});
         }
     }; 
-
 
     animateSlideAway = () : Promise<void> => new Promise(resolve => {
         let {rootRef} = this.props;
@@ -439,9 +517,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         };    
              
         step();  
-    }) 
+    }); 
       
-    
     onRightClickMenu = (e) => {  
         let {open} = this.state;
         let {dispatch,todo,rootRef} = this.props;
@@ -461,149 +538,39 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         }     
     };  
 
-    
-    onRemoveSelectedCategoryLabel = () => {
-        let {selectedCategory, todo} = this.props;
-
-        if(
-            selectedCategory!==todo.category &&
-            (todo.category==="today" || todo.category==="evening")
-        ){
-            this.update({category:selectedCategory, attachedDate:null, reminder:null}); 
-            this.props.dispatch({type:"resetReminders"});
-        }else if( 
-            selectedCategory!==todo.category &&
-            todo.category==="someday"
-        ){
-            this.update({category:selectedCategory});    
-        }
-    };   
-
- 
     onChecklistButtonClick = (e) => {
         e.stopPropagation();
         this.setState({showChecklist:true});
     }; 
       
-
     onFlagButtonClick = (e) => {
         e.stopPropagation();
         this.setState({showDeadlineCalendar:true});
     };
 
-
     closeDeadlineCalendar = () => {
         this.setState({showDeadlineCalendar:false});
     };
  
-
     onCalendarButtonClick = (e) => {
         e.stopPropagation();
         this.setState({showDateCalendar:true});
     };
     
-
     closeDateCalendar = () => {
         this.setState({showDateCalendar:false});
     };
     
-
     onTagsButtonClick = (e) => { 
         e.stopPropagation();
         this.setState({showTagsSelection:true});
     };   
 
-
     closeTagsSelection = (e) => {
         this.setState({showTagsSelection:false});
     };
 
-
-    onDeadlineCalendarClear = (e:any) : void => {
-        e.stopPropagation();
-        this.update({deadline:null});
-        this.closeDeadlineCalendar(); 
-    }
-    
-
-    onRemoveAttachedDateLabel = () => {
-        let {selectedCategory} = this.props;
-        let today = selectedCategory==="today" || selectedCategory==="evening";
-        this.update({attachedDate:null, reminder:null, category:today ? "next" : selectedCategory});  
-        this.props.dispatch({type:"resetReminders"});
-    };  
-    
-
-    onCalendarSomedayClick = (e) => {
-        e.stopPropagation();
-        this.update({category:"someday"});
-        this.closeDateCalendar();
-    };
-
-
-    onCalendarTodayClick = (e) => {
-        e.stopPropagation();
-        let {todo} = this.props;
-
-        let attachedDate = new Date();
-        let reminder = todo.reminder;
-        if(isDate(reminder)){
-           let time = getTime(reminder);
-           attachedDate = setTime(attachedDate,time); 
-           reminder = new Date(attachedDate.getTime());
-        }
-
-        this.update({category:"today", attachedDate, reminder});
-        this.closeDateCalendar();
-        this.props.dispatch({type:"resetReminders"});
-    }; 
-
-
-    onCalendarThisEveningClick = (e) => {
-        e.stopPropagation();
-
-        let {todo} = this.props;
-
-        let attachedDate = new Date();
-        let reminder = todo.reminder;
-        if(isDate(reminder)){
-           let time = getTime(reminder);
-           attachedDate = setTime(attachedDate,time); 
-           reminder = new Date(attachedDate.getTime());
-        }
-        
-        this.update({category:"evening", attachedDate, reminder});
-        this.closeDateCalendar();
-        this.props.dispatch({type:"resetReminders"});
-    }; 
-
-
-    onCalendarAddReminderClick = (reminder:Date) : void => {
-        let {dispatch} = this.props;
-        this.update({reminder, attachedDate:reminder}); 
-        this.closeDateCalendar();
-        dispatch({type:"resetReminders"});
-    };
-
-    
-    onRemoveReminderClick = () : void => {
-        let {dispatch} = this.props;
-        this.update({reminder:null}); 
-        dispatch({type:"resetReminders"});
-    };
- 
-
-    onCalendarClear = (e) => {
-        e.stopPropagation();
-        let {todo} = this.props;
-        this.update({category:todo.category,attachedDate:null,reminder:null}); 
-        this.closeDateCalendar();
-        this.props.dispatch({type:"resetReminders"});
-    };
-  
-
     onRestoreButtonClick = debounce(() => this.update({deleted:undefined}), 50);
-     
 
     onRepeatTodo = (top:number, left:number) => {   
         let {rootRef,todo} = this.props;
@@ -620,7 +587,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         });  
     };
 
-    
     getRelatedProjectName = () : string => { 
         let {todo, projects} = this.props;
 
@@ -634,16 +600,16 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            return undefined;  
         }; 
     }; 
-    
+
   
     render(){   
-        let { open, showChecklist, showDateCalendar, animatingSlideAway } = this.state;
-        let { selectedCategory, id, todo, rootRef } = this.props; 
+        let {open, showChecklist, showDateCalendar, animatingSlideAway, category, deadline, attachedDate} = this.state;
+        let {selectedCategory, id, rootRef, todo} = this.props; 
 
-        let attachedDateToday = isToday(todo.attachedDate);
-        let deadlineToday = isToday(todo.deadline);
+        let attachedDateToday = isToday(attachedDate);
+        let deadlineToday = isToday(deadline);
         let todayCategory : boolean = attachedDateToday || deadlineToday;
-         
+
         let relatedProjectName = this.getRelatedProjectName();
         let removePadding = isNil(relatedProjectName) || selectedCategory==="project";
         let padding = open ? "20px" : removePadding ? "0px" : "5px";
@@ -651,9 +617,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let flagColor = "rgba(100,100,100,0.7)";
         let daysLeft = 0;
 
-        if(!isNil(todo.deadline)){      
-            daysLeft = daysRemaining(todo.deadline);        
-            flagColor = daysLeft <= 1 ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
+        if(isDate(deadline)){      
+           daysLeft = daysRemaining(deadline);        
+           flagColor = daysLeft <= 1 ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
         }    
 
         return <div       
@@ -677,7 +643,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 width:"100%",   
                 display:"inline-block", 
                 transition:"box-shadow 0.2s ease-in-out, max-height 0.2s ease-in-out", 
-                maxHeight:open ? "1000px" : "70px",
+                maxHeight:open ? "1000px" : "200px",
                 boxShadow:open ? "rgba(156, 156, 156, 0.3) 0px 0px 20px" : "", 
                 borderRadius:"5px", 
             }}     
@@ -733,12 +699,12 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             <TodoInputLabels 
                 onRemoveSelectedCategoryLabel={this.onRemoveSelectedCategoryLabel}
                 onRemoveAttachedDateLabel={this.onRemoveAttachedDateLabel}
-                onRemoveDeadlineLabel={() => this.update({deadline:null})}
+                onRemoveDeadlineLabel={() => this.updateState({deadline:null})}
                 todayCategory={todayCategory}
                 open={open} 
-                category={todo.category}
-                attachedDate={todo.attachedDate}
-                deadline={todo.deadline}
+                category={category}
+                attachedDate={attachedDate}
+                deadline={deadline}
             />
         }
         {        
@@ -753,12 +719,12 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 zIndex:30001    
             }}>  
             {     
-                <div ref={(e) => { this.calendar=e; }}>  
+                <div ref={(e) => {this.calendar=e;}}>  
                     <IconButton 
-                        onClick = {this.onCalendarButtonClick} 
+                        onClick={this.onCalendarButtonClick} 
                         iconStyle={{   
-                            transition: "opacity 0.2s ease-in-out",
-                            opacity: this.state.open ? 1 : 0,
+                            transition:"opacity 0.2s ease-in-out",
+                            opacity:this.state.open ? 1 : 0,
                             color:"rgb(207,206,207)",
                             width:25,   
                             height:25 
@@ -787,18 +753,19 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             {   
                 this.state.showChecklist ? null :     
                 <IconButton      
-                    onClick = {this.onChecklistButtonClick}
+                    onClick={this.onChecklistButtonClick}
                     iconStyle={{ 
                        transition:"opacity 0.2s ease-in-out",
-                       opacity:open ? 1 : 0,
+                       opacity:open ? 1 : 0, 
                        color:"rgb(207,206,207)",
                        width:25, 
-                       height:25
+                       height:25 
                     }} 
                 >       
-                    <List />
+                    {<ChecklistIcon />} 
+                    {/*<List />*/}
                 </IconButton>  
-            } 
+            }  
             {     
                 <div ref={(e) => {this.deadline=e;}}>  
                     <IconButton 
@@ -823,7 +790,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 anchorEl = {this.calendar}
                 rootRef = {this.props.rootRef}
                 reminder = {todo.reminder} 
-                attachedDate = {todo.attachedDate}
+                attachedDate = {attachedDate}
                 onDayClick = {this.onCalendarDayClick}
                 onSomedayClick = {this.onCalendarSomedayClick}
                 onTodayClick = {this.onCalendarTodayClick} 
@@ -840,8 +807,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     close:this.closeTagsSelection,
                     open:this.state.showTagsSelection,   
                     anchorEl:this.tags,
-                    origin:{vertical: "center", horizontal: "right"},
-                    point:{vertical: "center", horizontal: "right"},
+                    origin:{vertical:"center",horizontal:"right"},
+                    point:{vertical:"center",horizontal:"right"},
                     rootRef:rootRef
                 } as any
                 } 
@@ -850,8 +817,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 close={this.closeDeadlineCalendar}
                 onDayClick={this.onDeadlineCalendarDayClick}
                 open={this.state.showDeadlineCalendar}
-                origin={{vertical:"center", horizontal:"right"}} 
-                point={{vertical:"center", horizontal:"right"}} 
+                origin={{vertical:"center",horizontal:"right"}} 
+                point={{vertical:"center",horizontal:"right"}} 
                 anchorEl={this.deadline}
                 onClear={this.onDeadlineCalendarClear}
                 rootRef={this.props.rootRef}
@@ -862,7 +829,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     </div> 
   } 
 }   
-  
 
 
 interface TodoInputTopLevelProps{
@@ -891,7 +857,6 @@ interface TodoInputTopLevelState{}
 export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInputTopLevelState>{
 
     ref:HTMLElement; 
-    inputRef:HTMLElement;
     labelRef:HTMLElement;
 
     constructor(props){
@@ -899,7 +864,6 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
     } 
  
     render(){
-
         let {
             open,
             selectedCategory,
@@ -912,102 +876,145 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
             animatingSlideAway
         } = this.props;
 
- 
-        return <div  
-            ref={(e) => {this.ref=e;}} 
-            style={{display:"flex", flexDirection:"column"}}  
-        >  
-            <div style={{
-              display:"flex",    
-              alignItems:"flex-start", 
-              flexDirection:"column",
-              overflow:"hidden"
-            }}>    
-                <div  
-                  ref={(e) => {this.inputRef=e;}}
-                  style={{display:"flex", alignItems:"center"}}  
-                >
-                    {
-                        isNil(todo.deleted) ? null :      
-                        <div
-                            onClick={(e) => {e.stopPropagation();}} 
-                            onMouseUp={(e) => {e.stopPropagation();}} 
-                            onMouseDown={(e) => {e.stopPropagation();}} 
-                        > 
-                            <RestoreButton  
-                                deleted={not(isNil(todo.deleted))}
-                                open={open}   
-                                onClick={this.props.onRestoreButtonClick}  
-                            />    
-                        </div>   
-                    }   
-                    <div   
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            e.nativeEvent.stopImmediatePropagation();
-                        }} 
-                        style={{paddingLeft:"5px", paddingRight:"5px"}}
-                    > 
-                        <Checkbox  
-                          checked={animatingSlideAway ? true : !!todo.completedSet}  
-                          onClick={this.props.onCheckBoxClick}
-                        />
-                    </div>   
-                    {
-                        open ? null :       
-                        <DueDate  
-                            category={todo.category} 
-                            date={todo.attachedDate} 
-                            completed={todo.completedWhen} 
-                            selectedCategory={selectedCategory}
-                        />
-                    } 
-                    {   
-                        isNil(todo.group) ? null :
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}> 
-                            <Refresh 
-                              style={{     
-                                width:18,   
-                                height:18, 
-                                marginLeft:"3px", 
-                                color:"black", 
-                                cursor:"default", 
-                                marginRight:"5px"  
-                              }} 
-                            />
-                        </div>
-                    } 
-                    <div key="form-field" ref={this.props.setInputRef}>  
-                        <AutosizeInputComponent   
-                            title={todo.title} 
-                            onTitleChange={this.props.onTitleChange} 
-                        /> 
-                    </div>
-                </div> 
-                {   
-                    open ? null :
-                    isEmpty(todo.attachedTags) && isNil(todo.deadline) ? null :
-                    <div style={{
-                        height:"25px",
-                        display:"flex",
-                        alignItems:"center",
-                        zIndex:1001,   
-                        justifyContent:"flex-start",
-                        zoom:0.8, 
-                        flexGrow:1   
-                    }}>        
+        return <div ref={(e) => {this.ref=e;}} style={{display:"flex",flexDirection:"column"}}>  
+            <div style={{display:"flex",alignItems:"flex-start",flexDirection:"column",overflow:"hidden"}}>  
+                <div style={{display:"flex",width:"100%",justifyContent:"space-between"}}> 
+                    <div style={{display:"flex"}}>
                         {  
-                            isEmpty(todo.attachedTags) ? null :
-                            <AdditionalTags   
-                                attachedTags={todo.attachedTags}      
-                                showAdditionalTags={showAdditionalTags}
-                                open={open}  
-                                onMouseOver={this.props.onAdditionalTagsHover as any}
-                                onMouseOut={this.props.onAdditionalTagsOut as any} 
-                                onMouseDown={this.props.onAdditionalTagsPress as any}  
-                            />   
+                            isNil(todo.deleted) ? null :      
+                            <div
+                                onClick={(e) => {e.stopPropagation();}} 
+                                onMouseUp={(e) => {e.stopPropagation();}} 
+                                onMouseDown={(e) => {e.stopPropagation();}}  
+                            > 
+                                <RestoreButton  
+                                    deleted={not(isNil(todo.deleted))}
+                                    open={open}   
+                                    onClick={this.props.onRestoreButtonClick}  
+                                />    
+                            </div>   
+                        }   
+                        <div 
+                            onClick={(e) => {e.stopPropagation(); e.nativeEvent.stopImmediatePropagation();}} 
+                            style={{paddingLeft:"5px", paddingRight:"5px"}}
+                        > 
+                            <Checkbox  
+                                checked={animatingSlideAway ? true : !!todo.completedSet}  
+                                onClick={this.props.onCheckBoxClick}
+                            />
+                        </div>   
+                        {
+                            open ? null :       
+                            <DueDate  
+                                category={todo.category} 
+                                date={todo.attachedDate} 
+                                completed={todo.completedWhen} 
+                                selectedCategory={selectedCategory}
+                            />
                         } 
-                        {    
+                        {   
+                            isNil(todo.group) ? null :
+                            <div style={{display:"flex",justifyContent:"center"}}> 
+                                <Refresh style={{     
+                                    width:18,   
+                                    height:18, 
+                                    marginTop:"-2px",
+                                    marginLeft:"3px", 
+                                    color:"black", 
+                                    cursor:"default", 
+                                    marginRight:"5px"  
+                                }}/>
+                            </div>
+                        }  
+
+                        <div key="form-field" ref={this.props.setInputRef}>  
+                            {
+                                open ?    
+                                <div style={{marginTop:"-18px"}}>
+                                <TextField
+                                    hintText="New Task"
+                                    multiLine={true}
+                                    rows={1}
+                                    underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}} 
+                                    underlineStyle={{borderColor:"rgba(0,0,0,0)"}}
+                                    rowsMax={4}
+                                    value={todo.title}   
+                                    onChange={this.props.onTitleChange}
+                                />
+                                </div>
+                                :
+                                <div style={{marginTop:'-5px'}}> 
+                                    <span style={{display:'flex',flexWrap:`wrap`,minWidth:`150px`}}>  
+                                        {
+                                            isEmpty(todo.title) ? 
+                                            <div style={{color:"rgba(100,100,100,0.4)"}}>New Task</div> : 
+                                            todo
+                                            .title
+                                            .split('')
+                                            .map((c,index) => <div key={`letter-${index}`}>{c}</div>)
+                                        }
+                                        { 
+                                            isNil(todo.checklist) ? null :
+                                            isEmpty(todo.checklist) ? null : 
+                                            <div style={{paddingLeft:"4px",paddingTop:"1px",height:"18px"}}>
+                                                <ChecklistIcon style={{
+                                                    width:15,//18,
+                                                    height:15,//18, 
+                                                    color:"rgba(100,100,100,0.3)"
+                                                }}/>
+                                            </div>
+                                        } 
+                                        {
+                                            isNil(todo.note) ? null :
+                                            isEmpty(todo.note) ? null :
+                                            <div style={{paddingLeft:"4px",height:"18px"}}>
+                                                <NotesIcon style={{
+                                                    width:18,height:18,paddingTop:"2px",color:"rgba(100,100,100,0.3)"
+                                                }}/> 
+                                            </div>
+                                        }
+                                    </span>  
+                                    <div style={{display:"flex"}}>
+                                        {
+                                            isNil(relatedProjectName) ? null :
+                                            isEmpty(relatedProjectName) ? null :
+                                            <RelatedProjectLabel 
+                                                name={relatedProjectName} 
+                                                groupTodos={groupTodos} 
+                                                selectedCategory={selectedCategory}
+                                            />   
+                                        } 
+                                        {   
+                                            isEmpty(todo.attachedTags) && isNil(todo.deadline) ? null :
+                                            <div style={{
+                                                height:"25px",
+                                                display:"flex",
+                                                alignItems:"center",
+                                                zIndex:1001,   
+                                                justifyContent:"flex-start",
+                                                zoom:0.8, 
+                                                flexGrow:1   
+                                            }}>        
+                                                {  
+                                                isEmpty(todo.attachedTags) ? null :
+                                                <AdditionalTags   
+                                                    attachedTags={todo.attachedTags}      
+                                                    showAdditionalTags={showAdditionalTags}
+                                                    open={open}  
+                                                    onMouseOver={this.props.onAdditionalTagsHover as any}
+                                                    onMouseOut={this.props.onAdditionalTagsOut as any} 
+                                                    onMouseDown={this.props.onAdditionalTagsPress as any}  
+                                                />   
+                                                } 
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div style={{marginTop:"-4px"}}>
+                        {        
                             isNil(todo.deadline) ? null :   
                             <div 
                                 ref = {e => {this.labelRef=e;}}
@@ -1015,34 +1022,27 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
                                     display:"flex", 
                                     cursor:"default",    
                                     pointerEvents:"none", 
-                                    alignItems:"center",   
-                                    height:"100%",
-                                    flexGrow:1,  
-                                    justifyContent:"flex-end" 
+                                    alignItems:"flex-start",    
+                                    height:"100%"
                                 }} 
                             > 
-                                <div style={{paddingRight:"5px", paddingTop:"5px"}}> 
+                                <div style={{paddingRight:"5px"}}> 
                                     <Flag style={{color:flagColor,cursor:"default",width:16,height:16}}/>      
                                 </div>   
-                                {daysLeftMark(open, todo.deadline)}
+                                    {daysLeftMark(open, todo.deadline)}
                             </div>  
                         } 
-                    </div>
-                }
+                    </div>    
+                </div> 
             </div>
-            {
-                open ? null :  
-                isNil(relatedProjectName) ? null :
-                isEmpty(relatedProjectName) ? null :
-                <RelatedProjectLabel 
-                    name={relatedProjectName} 
-                    groupTodos={groupTodos} 
-                    selectedCategory={selectedCategory}
-                />   
-            }   
     </div>  
   } 
 }
+
+
+
+
+
 
 
 
@@ -1071,15 +1071,6 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
           paddingLeft:"25px", 
           paddingRight:"25px"  
         }}>    
-            {
-                /*
-                    <ContentEditable
-                        html={<Linkify>Examples are available at tasti.github.io/react-linkify/.</Linkify>} 
-                        disabled={false}      
-                        onChange={evt => console.log(evt.target.value)}
-                    />
-                */ 
-            }
             <TextField   
                 id={`${todo._id}note`}  
                 value={todo.note}  
@@ -1296,7 +1287,6 @@ class RelatedProjectLabel extends Component<RelatedProjectLabelProps,RelatedProj
         return <div 
             style={{ 
                 fontSize:"12px",   
-                paddingLeft:"5px", 
                 cursor:"default", 
                 WebkitUserSelect:"none", 
                 color:"rgba(0,0,0,0.6)"
@@ -1398,8 +1388,6 @@ class RestoreButton extends Component<RestoreButtonProps,{}>{
 }
 
 
-
-
 interface AdditionalTagsProps{
     attachedTags:string[],
     showAdditionalTags:boolean, 
@@ -1417,59 +1405,20 @@ class AdditionalTags extends Component<AdditionalTagsProps,{}>{
     }   
     
     render(){
-        return isEmpty(this.props.attachedTags) ? null :  
-        this.props.open ? null : 
-        <div   
-            onMouseOver={this.props.onMouseOver}
-            onMouseOut={this.props.onMouseOut} 
-            onMouseDown={this.props.onMouseDown} 
+        return <div   
             style={{ 
-                paddingLeft:"5px",   
                 paddingRight:"5px", 
                 display: "flex",   
                 position:"relative", 
                 alignItems: "center"
             }} 
             key={this.props.attachedTags[0]}
-        >
-            {   
-                this.props.attachedTags.length<=1 ? null : 
-                <div style={{ 
-                    position: "absolute",
-                    right: "40px",
-                    display: "flex",
-                    zIndex:50000,
-                    bottom: "30px",  
-                    pointerEvents:"none",  
-                    background:"white",  
-                    flexWrap: "wrap",
-                    padding: "10px",   
-                    width: "200px",
-                    border: "1px solid rgba(100,100,100,0.2)",
-                    borderRadius: "10px",
-                    transition: "opacity 0.2s ease-in-out",
-                    opacity: this.props.showAdditionalTags ? 1 : 0
-                }}>      
-                    {    
-                        this.props.attachedTags
-                        .slice(1,this.props.attachedTags.length)
-                        .map((tag:string) => <div 
-                                key={tag} 
-                                style={{padding:"5px"}}
-                            > 
-                                <TransparentTag tag={tag}/>
-                            </div>
-                        ) 
-                    }             
-                </div> 
-            }
-            <TransparentTag 
-                tag={
-                    this.props.attachedTags.length>1 ? 
-                    `${this.props.attachedTags[0]}...` :
-                    this.props.attachedTags[0]
-                } 
-            /> 
+        >    
+        {
+             this.props.attachedTags
+            .slice(0,3)
+            .map((tag:string) => <div key={tag}> <TransparentTag tag={tag}/> </div>) 
+        } 
         </div>   
     }
 }

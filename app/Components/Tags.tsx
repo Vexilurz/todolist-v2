@@ -39,7 +39,8 @@ export class Tags extends Component<TagsProps,{}>{
                 style={{  
                     display:'flex', 
                     flexWrap:'wrap',
-                    WebkitUserSelect:"none" 
+                    WebkitUserSelect:"none",
+                    paddingBottom:"40px" 
                 }}>  
                     {    
                         ["All",...tags.sort((a:string,b:string) : number => a.localeCompare(b))]
@@ -61,7 +62,7 @@ export class Tags extends Component<TagsProps,{}>{
                                         fontWeight:700 
                                     }}     
                                 >   
-                                    <div style={{padding:"4px"}}>{tag}</div> 
+                                    <div style={{padding:"4px"}}>{tag}</div>  
                                 </div> 
                             </div>   
                         )

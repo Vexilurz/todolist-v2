@@ -184,37 +184,41 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
             ) 
         } 
         </div>
-        <div style={{paddingTop:"10px", paddingBottom:"10px", WebkitUserSelect:"none"}}> 
-            {  
-                selectedAreas 
-                .sort((a:Area, b:Area) => a.priority-b.priority)
-                .map(
-                    (a:Area, index:number) : JSX.Element => {
-                        let todos = defaultTo([])(result[a._id]) as Todo[]; 
+            {
+                /*
+                <div style={{paddingTop:"10px", paddingBottom:"10px", WebkitUserSelect:"none"}}> 
+                    {  
+                        selectedAreas 
+                        .sort((a:Area, b:Area) => a.priority-b.priority)
+                        .map(
+                            (a:Area, index:number) : JSX.Element => {
+                                let todos = defaultTo([])(result[a._id]) as Todo[]; 
 
-                        return isEmpty(todos) ? null : 
-                        <div key={`area${index}`}>
-                            <AreaLink {...{area:a} as any}/> 
-                            <ExpandableTodosList
-                                dispatch={this.props.dispatch}   
-                                sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
-                                selectedTag={this.props.selectedTag}  
-                                selectedTodo={this.props.selectedTodo}
-                                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook} 
-                                rootRef={this.props.rootRef}
-                                groupTodos={this.props.groupTodos}
-                                selectedCategory={this.props.selectedCategory}
-                                selectedAreaId={this.props.selectedAreaId}
-                                selectedProjectId={this.props.selectedProjectId}
-                                todos={todos} 
-                                areas={this.props.areas}
-                                projects={this.props.projects}
-                            />
-                        </div>
-                    }
-                )  
-            }   
-        </div> 
+                                return isEmpty(todos) ? null : 
+                                <div key={`area${index}`}>
+                                    <AreaLink {...{area:a} as any}/> 
+                                    <ExpandableTodosList
+                                        dispatch={this.props.dispatch}   
+                                        sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
+                                        selectedTag={this.props.selectedTag}  
+                                        selectedTodo={this.props.selectedTodo}
+                                        moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook} 
+                                        rootRef={this.props.rootRef}
+                                        groupTodos={this.props.groupTodos}
+                                        selectedCategory={this.props.selectedCategory}
+                                        selectedAreaId={this.props.selectedAreaId}
+                                        selectedProjectId={this.props.selectedProjectId}
+                                        todos={todos} 
+                                        areas={this.props.areas}
+                                        projects={this.props.projects}
+                                    />
+                                </div>
+                            }
+                        )  
+                    }   
+                </div> 
+                */
+            }
         </div> 
     }
 }
@@ -281,6 +285,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                     projects={this.props.projects}
                     selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}
+                    reorderLayout={true}
                 />  
                 {   
                     not(showExpandButton) ? null :

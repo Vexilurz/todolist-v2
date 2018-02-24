@@ -905,6 +905,7 @@ export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
         display: "flex",
         alignItems: "center",
         color:flagColor,
+        margin:"0px",
         fontSize:`${fontSize}px`, 
         whiteSpace:"nowrap", 
         fontWeight:"600",  

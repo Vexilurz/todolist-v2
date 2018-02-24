@@ -4,27 +4,19 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Todo, Project, Area } from '../database';
 import { Component } from 'react';
-import { 
-    hideChildrens, 
-    makeChildrensVisible, 
-    generateDropStyle, 
-    getTagsFromItems,
-    getCompletedWhen,
-    removeHeading
-} from '../utils/utils';  
+import { getCompletedWhen, generateDropStyle } from '../utils/utils';  
 import { insideTargetArea } from '../utils/insideTargetArea';
-import { RightClickMenu } from './RightClickMenu'; 
-import { byTags, byCategory } from '../utils/utils'; 
 import { TodoInput } from './TodoInput/TodoInput';
-import { 
-    allPass, isNil, prepend, isEmpty, findIndex, when, cond, find, any,
-    compose, map, assoc, contains, remove, not, equals, all, propEq, update,
-    ifElse, uniq, flatten, intersection, path, pathOr, defaultTo, prop, adjust, reject
+import { isNil, isEmpty, findIndex, cond, find,
+    compose, map, contains, remove, not, equals, all, 
+    intersection, path, prop, adjust, reject
 } from 'ramda';
-import { Category, filter } from './MainContainer';
+import { Category } from './MainContainer';
 import { indexToPriority } from './Categories/Today'; 
 import { SortableContainer } from './CustomSortableContainer';
-import { isString, isCategory, isTodo, isArrayOfTodos, isArrayOfProjects, isArrayOfAreas, isProject, isArea } from '../utils/isSomething';
+import { 
+    isString, isCategory, isTodo, isArrayOfTodos, isArrayOfProjects, isArrayOfAreas, isProject, isArea 
+} from '../utils/isSomething';
 import { assert } from '../utils/assert';
 import { arrayMove } from '../utils/arrayMove';
 import { isDev } from '../utils/isDev';
@@ -176,6 +168,7 @@ export let dropTodoOnCategory = ({
         () : Todo => ({
             ...draggedTodo, 
             category:"next",
+            deadline:undefined,
             attachedDate:undefined,
             deleted:undefined,
             completedSet:null,
@@ -217,14 +210,7 @@ export let dropTodoOnCategory = ({
 ])(category);
 
 
-
-export let findDropTarget = (
-    event,
-    projects:Project[]
-) : {
-    project:Project,
-    category:Category
-} => {
+export let findDropTarget = (event,projects:Project[]) : {project:Project,category:Category} => {
     let element = document.elementFromPoint(event.clientX, event.clientY);
     let id = path(['id'], element) || path(['parentElement', 'id'],element);
     let nodes = [].slice.call(event.path);
@@ -232,15 +218,11 @@ export let findDropTarget = (
     let category : Category = compose(find(isCategory),map(prop('id')))(nodes);
 
     return {project,category};
-}
+};
 
 
-export let onDrop = ({
-    event,
-    draggedTodo,
-    config,  
-    projects 
-}) : { projects:Project[], todo:Todo } => { 
+export let onDrop = ({event,draggedTodo,config,projects}) : { projects:Project[], todo:Todo } => { 
+
     let {moveCompletedItemsToLogbook} = config;
     let { project, category } = findDropTarget(event,projects);
     let updatedProjects = removeTodoFromProjects(projects,draggedTodo);
@@ -288,14 +270,13 @@ interface TodosListProps{
     selectedAreaId:string,  
     rootRef:HTMLElement,   
     todos:Todo[],  
-    disabled?:boolean     
+    disabled?:boolean,
+    reorderLayout?:boolean     
 }    
-
 
   
 interface TodosListState{}
-  
- 
+
    
 export class TodosList extends Component<TodosListProps, TodosListState>{
 
@@ -336,7 +317,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         let nodes = [].slice.call(e.path);
 
         for(let i=0; i<nodes.length; i++){
-            if(nodes[i].preventDrag){ return true }
+            if(nodes[i].preventDrag){ 
+                return true 
+            }
         }
           
         return false
@@ -400,8 +383,41 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
      
     
     changeOrder = (oldIndex,newIndex,selected) => {
-        let load = arrayMove(selected,oldIndex,newIndex); 
-        this.props.dispatch({type:"updateTodos", load:indexToPriority(load).filter(isTodo)});
+        let {reorderLayout,projects,dispatch} = this.props;
+
+        if(reorderLayout){
+            let target = projects.find((p:Project) => all((t) => contains(t._id)(p.layout),selected));
+            if(isProject(target)){
+               let layout = [...target.layout]; 
+               let from : Todo = selected[oldIndex];
+               let to : Todo = selected[newIndex]; 
+
+               let fromIndex = layout.findIndex( i => i===from._id);  
+               let toIndex = layout.findIndex( i => i===to._id);
+
+               if(fromIndex!==-1 && toIndex!==-1){
+                   dispatch({
+                       type:"updateProject",
+                       load:{ 
+                           ...target,
+                           layout:arrayMove(layout,fromIndex,toIndex)
+                       }
+                   })
+               } 
+            }
+
+        }else{
+
+            dispatch({
+                type:"updateTodos", 
+                load:compose(
+                    (load) => load.filter(isTodo),
+                    indexToPriority,
+                    (selected) => arrayMove(selected,oldIndex,newIndex),
+                    (selected) => [...selected] 
+                )(selected)
+            });
+        }
     };  
  
         
