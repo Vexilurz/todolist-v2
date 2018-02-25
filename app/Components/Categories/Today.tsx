@@ -503,10 +503,9 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
         let wholeDay : CalendarEvent[] = events.filter((event) => not(sameDay(event.start,event.end)));
         let timed : CalendarEvent[] = events.filter((event) => sameDay(event.start,event.end));
         let empty : boolean = isEmpty(wholeDay) && isEmpty(timed);
-
-        return not(show) ? null :
-               empty ? null : 
-        <div style={{paddingTop:"20px"}}>    
+        
+        return not(show) ? null : empty ? null :  
+        <div style={{paddingTop:"20px",paddingLeft:"25px"}}>    
             <div style={{          
                 display:"flex",
                 flexDirection:"column",

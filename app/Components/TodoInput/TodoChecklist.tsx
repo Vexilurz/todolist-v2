@@ -40,7 +40,6 @@ let shouldUpdateChecklist = (
     
     return should;
 }
-
  
 
 export interface ChecklistItem{
@@ -54,13 +53,14 @@ export interface ChecklistItem{
 
 interface ChecklistProps{
     checklist : ChecklistItem[],
-    updateChecklist : (checklist:ChecklistItem[]) => void   
+    updateChecklist : (checklist:ChecklistItem[]) => void,
+    closeChecklist : () => void   
 }
+
 
 interface ChecklistState{} 
 
-  
- 
+
 export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
     ref:HTMLElement; 
@@ -71,12 +71,10 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
     }
 
   
-    shouldComponentUpdate(nextProps:ChecklistProps, nextState:ChecklistState){
-         
+    shouldComponentUpdate(nextProps:ChecklistProps, nextState:ChecklistState){    
         let checklistChanged = shouldUpdateChecklist(nextProps.checklist, this.props.checklist);
-
         return checklistChanged;  
-    } 
+    }; 
  
 
     onChecklistItemChange = (key:string, event, newText:string) => {  
@@ -88,11 +86,15 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                 
             updatedItem.text = newText; 
 
-            let checklist = adjust(() => updatedItem, idx, this.props.checklist);
+            let checklist = adjust(
+                () => isEmpty(updatedItem.text) ? undefined : updatedItem, 
+                idx, 
+                this.props.checklist
+            );
 
-            this.props.updateChecklist(checklist);  
+            this.props.updateChecklist(checklist.filter( v => v ));  
         } 
-    }    
+    };    
    
 
     onChecklistItemCheck = (e, key:string) => {
@@ -108,20 +110,19 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
             this.props.updateChecklist(checklist);  
         }
-    } 
+    }; 
 
 
     selectElements = (index:number,items:any[]) => [index];
 
 
-    onSortMove = (oldIndex:number, event) : void => {} 
+    onSortMove = (oldIndex:number, event) : void => {}; 
 
     
-    onSortStart = (oldIndex:number, event:any) : void => {}
+    onSortStart = (oldIndex:number, event:any) : void => {};
 
 
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
-
         if(oldIndex===newIndex){ return }
              
         let updateIndex = (el:ChecklistItem,idx:number) => {
@@ -134,14 +135,12 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         let checklist = moved.map(updateIndex).filter((el:ChecklistItem) => !isEmpty(el.text));  
 
         this.props.updateChecklist(checklist); 
-    }  
+    };  
       
     
     getCheckListItem = (value:ChecklistItem, index:number) => { 
 
-        let style = {
-            display:"flex",alignItems:"center"
-        } as any;
+        let style = {display:"flex",alignItems:"center"} as any;
 
         let checkedStyle = {
             display: "flex",
@@ -174,22 +173,21 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                     onClick={(e) => this.onChecklistItemCheck(e, value.key)}   
                 > 
                     {
-                        value.checked ? <Checked style={{width:18, height:18, color:"rgba(100,100,100,0.7)"}}/> :
-                        <div
-                            style={{
-                                backgroundColor:value.checked ? 'rgb(10, 100, 240)' : '',
-                                width:"15px",  
-                                height:"15px", 
-                                borderRadius:"50px",
-                                display:"flex",
-                                justifyContent:"center",
-                                position:"relative", 
-                                border:value.checked ? '' : "2px solid rgb(10, 100, 240)",
-                                boxSizing:"border-box",
-                                marginRight:"5px",
-                                marginLeft:"5px" 
-                            }}    
-                        >        
+                        value.checked ? 
+                        <Checked style={{width:18, height:18, color:"rgba(100,100,100,0.7)"}}/> :
+                        <div style={{ 
+                            backgroundColor:value.checked ? 'rgb(10, 100, 240)' : '',
+                            width:"15px",  
+                            height:"15px", 
+                            borderRadius:"50px",
+                            display:"flex",
+                            justifyContent:"center",
+                            position:"relative", 
+                            border:value.checked ? '' : "2px solid rgb(10, 100, 240)",
+                            boxSizing:"border-box",
+                            marginRight:"5px",
+                            marginLeft:"5px" 
+                        }}>        
                         </div>  
                     }    
                 </div> 
@@ -219,13 +217,13 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                         onKeyDown={(event) => { 
                             if(event.which == 13 || event.keyCode == 13){
                                 event.stopPropagation(); 
-                            }      
+                            }     
                         }} 
                     />  
                 </div>  
             </div>  
         </li>     
-    } 
+    }; 
 
 
     onBlankBlur = (event) => {
@@ -242,15 +240,15 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
  
         let checklist = append(newItem)(this.props.checklist);
         this.props.updateChecklist(checklist); 
-    }
+    };
 
 
     onBlankEnterPress = (event) => { 
+        event.stopPropagation(); 
+
         if(event.which == 13 || event.keyCode == 13){
-            event.stopPropagation();
- 
-            if(event.target.value==='')
-               return;  
+
+            if(event.target.value===''){ return };  
                  
             let newItem = { 
                 checked:false,  
@@ -262,8 +260,14 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
             let checklist = append(newItem)(this.props.checklist);
             this.props.updateChecklist(checklist); 
+
+        }else if(event.which == 8 || event.keyCode == 8){
+
+            if(event.target.value==='' && isEmpty(this.props.checklist)){
+               this.props.closeChecklist(); 
+            } 
         }     
-    } 
+    }; 
 
 
     componentDidMount(){
@@ -281,7 +285,6 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
 
     render(){  
- 
         return <div  
             ref={e => {this.ref=e;}}
             style={{

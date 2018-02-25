@@ -525,6 +525,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                         !this.state.showChecklist ? null :  
                         <Checklist  
                             checklist={this.state.checklist}   
+                            closeChecklist={() => this.setState({showChecklist:false})}
                             updateChecklist={
                                 (checklist:ChecklistItem[]) => { 
                                     this.setState(

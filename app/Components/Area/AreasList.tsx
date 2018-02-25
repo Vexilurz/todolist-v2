@@ -126,14 +126,14 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let {dispatch} = this.props;
         dispatch({type:"selectedAreaId",load:a._id}); 
         dispatch({type:"searchQuery", load:""});
-    }
+    };
  
 
     selectProject = (p:Project) => {
         let {dispatch} = this.props;
         dispatch({type:"selectedProjectId",load:p._id});
         dispatch({type:"searchQuery", load:""});
-    }
+    };
 
 
     getAreaElement = (a : Area, index : number) : JSX.Element => {
@@ -147,7 +147,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             selectedAreaId={this.props.selectedAreaId}
             selectedCategory={this.props.selectedCategory}
         />
-    }
+    };
  
 
     getProjectElement = (p:Project, index:number) : JSX.Element => {
@@ -160,27 +160,26 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             selectedProjectId={this.props.selectedProjectId}
             selectedCategory={this.props.selectedCategory}
         />
-    }
+    };
      
 
     getElement = (value : LayoutItem, index : number) : JSX.Element => { 
-
         switch(value.type){
             case "area":
-                return <div key={`key-${value._id}`} id={value._id}>{this.getAreaElement(value as any,index)}</div>
+                return <div key={`key-${value._id}`} id={value._id}>{this.getAreaElement(value as any,index)}</div>;
             case "project":
-                return <div key={`key-${value._id}`} id={value._id}>{this.getProjectElement(value as any,index)}</div>
+                return <div key={`key-${value._id}`} id={value._id}>{this.getProjectElement(value as any,index)}</div>;
             case "separator":
                 return <div 
                     key={`key-${value._id}`} 
                     id={value._id} 
-                    style={{outline: "none", width:"100%",height:"30px"}}
+                    style={{outline:"none",width:"100%",height:"1px"}}
                 >
-                </div>
+                </div>;
             default:  
                 return null;   
         }     
-    } 
+    }; 
 
 
     shouldCancelStart = (e) => {
@@ -193,7 +192,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         } 
    
         return false; 
-    } 
+    }; 
     
 
     onSortMove = (oldIndex:number, event) : void => {} 
@@ -338,7 +337,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
         return <div   
             id="areas"
-            style={{userSelect:"none",paddingRight:"15px",paddingLeft:"15px",paddingBottom:"80px"}}   
+            style={{userSelect:"none",paddingRight:"15px",paddingLeft:"15px",paddingTop:"15px",paddingBottom:"80px"}}   
         >     
             <SortableContainer
                 items={layout}

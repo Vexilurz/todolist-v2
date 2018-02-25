@@ -29,6 +29,7 @@ import { googleAnalytics } from '../../analytics';
 import { isDate } from '../../utils/isSomething';
   
 
+
 export interface TodoCreationFormState{  
     open : boolean,
     category : Category,
@@ -52,7 +53,7 @@ export interface TodoCreationFormState{
     showChecklist : boolean,   
     showDeadlineCalendar : boolean
 }   
-  
+
     
 export interface TodoCreationFormProps{ 
     dispatch:Function,  
@@ -64,7 +65,7 @@ export interface TodoCreationFormProps{
     todo:Todo,  
     rootRef:HTMLElement
 }    
-  
+ 
   
 export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreationFormState>{
     
@@ -75,13 +76,9 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     inputRef:HTMLElement; 
     subscriptions:Subscription[]; 
  
-
     constructor(props){
-
         super(props);  
-
         this.subscriptions = [];
-         
         let {
             category, 
             title,  
@@ -113,15 +110,16 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             attachedDate, 
             attachedTags, 
             checklist, 
-            showAdditionalTags : false, 
-            showDateCalendar : false,  
-            showTagsSelection : false, 
-            showChecklist : checklist.length>0,  
-            showDeadlineCalendar : false
-        }       
+            showAdditionalTags:false, 
+            showDateCalendar:false,  
+            showTagsSelection:false, 
+            showChecklist:checklist.length>0,  
+            showDeadlineCalendar:false
+        };       
     }
 
 
+/*    
     shouldComponentUpdate(nextProps:TodoCreationFormProps,nextState:TodoCreationFormState){
         let {todo,selectedCategory,selectedProjectId,selectedAreaId} = this.props;
 
@@ -143,6 +141,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         
         return false;
     }
+*/
 
 
     onError = (error) => globalErrorHandler(error);
@@ -173,12 +172,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             showChecklist:false,   
             showDeadlineCalendar:false 
         };
-        this.setState(newState, () => {
-            if(this.inputRef && open){ 
-                let input : any = this.inputRef.querySelector("input");
-                if(input){ input.focus(); } 
-            } 
-        });     
+        this.setState(newState, () => { if(this.inputRef && open){ this.inputRef.focus(); }});     
     };   
  
 
@@ -189,13 +183,12 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         this.preventDragOfThisItem();
 
         if(not(open)){    
-            this.setState(
+            this.setState( 
                 {open:true, showAdditionalTags:false}, 
                 () => { 
-                    if(this.inputRef){ 
-                        let input : any = this.inputRef.querySelector("input");
-                        if(input){ input.focus(); }
-                        dispatch({type:"showRepeatPopup", load:false});
+                    if(this.inputRef){
+                        this.inputRef.focus(); 
+                        dispatch({type:"showRepeatPopup", load:false}); 
                         dispatch({type:"showRightClickMenu", load:false});
                     } 
                 }
@@ -203,9 +196,11 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         }    
     };   
       
-
+    
     onWindowEnterPress = (e) => {   
-        if(e.keyCode===13 && this.state.open){
+        if(e){ if(e.keyCode!==13){ return } }
+
+        if(this.state.open){
             this.addTodo();
             this.resetCreationForm(true);
         }
@@ -600,15 +595,18 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                 style={{    
                     paddingLeft:"20px", 
                     paddingRight:"20px",   
+                    alignItems:"center", 
+                    minHeight:"30px",
                     transition: "max-height 0.2s ease-in-out", 
                     caretColor:"cornflowerblue",   
                     display:"flex"
                 }}        
                 onClick={this.onFieldsContainerClick}  
             >          
-                <div style={{display:"flex", flexDirection:"column",  padding:"2px", width:"100%"}}>
+                <div style={{display:"flex",flexDirection:"column",padding:"2px",width:"100%"}}>
                     <div style={{paddingTop:open ? "20px" : "0px"}}>
                         <TodoInputTopLevel 
+                            onWindowEnterPress={this.onWindowEnterPress}
                             onAdditionalTagsHover={(e) => this.setState({showAdditionalTags:true})}
                             onAdditionalTagsOut={(e) => this.setState({showAdditionalTags:false})}
                             onAdditionalTagsPress={(e) => this.setState({showAdditionalTags:false})} 
@@ -617,7 +615,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                             onRestoreButtonClick={() => {}}
                             onCheckBoxClick={() => {}}
                             onTitleChange={this.onTitleChange} 
-                            open={open}
+                            open={open}  
                             rootRef={this.props.rootRef} 
                             selectedCategory={selectedCategory}
                             todo={this.todoFromState()}
@@ -633,10 +631,11 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                             onAttachTag={this.onAttachTag}
                             onRemoveTag={this.onRemoveTag}
                             updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})}
+                            closeChecklist={() => this.setState({showChecklist:false})}
                             open={open} 
                             showChecklist={showChecklist}
                             todo={this.todoFromState()}
-                        /> 
+                        />  
                     }
                 </div>    
             </div>   

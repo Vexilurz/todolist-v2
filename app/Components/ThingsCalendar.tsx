@@ -309,17 +309,18 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
     } 
 
     onTimeInput = (e) => { 
-        let time : string = e.target.value.replace(/[a-z]/ig, "").trim();
+        let time : string = e.target.value.replace(/[a-z]/ig, "").trim(); //e.target.value.replace(/[a-z]/ig, "").trim();
+        console.log(e.target.valueAsDate)
         this.setState({time, timeSet:true});
-    }
-  
+    }; 
+    
 
     render(){
         let {openReminderInput} = this.state;
         let {reminder,attachedDate} = this.props;
         
         return <div>
-            { 
+            {  
             not(openReminderInput) ? null :
             <div>
                 <div style={{  
@@ -370,13 +371,13 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                         }}>
                             <input  
                                 style={{    
-                                    outline:"none",
-                                    border:"none",
-                                    width:"100%",
-                                    color:"aliceblue",
-                                    fontSize:"18px",
-                                    backgroundColor:"rgb(87, 87, 87)",
-                                    caretColor:"cornflowerblue"  
+                                   outline:"none",
+                                   border:"none",
+                                   width:"100%",
+                                   color:"aliceblue",
+                                   fontSize:"18px",
+                                   backgroundColor:"rgb(87, 87, 87)",
+                                   caretColor:"cornflowerblue"  
                                 }}     
                                 placeholder=""
                                 type="time"  
