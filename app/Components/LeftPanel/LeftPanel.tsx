@@ -56,7 +56,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         ];
         
 
-        let inboxFilters = [
+        this.inboxFilters = [
             //(todo:Todo) => not(byAttachedToArea(this.props.areas)(todo)), 
             (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
             (todo:Todo) => isNil(todo.attachedDate), 
@@ -67,7 +67,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         ];    
  
 
-        let todayFilters = [   
+        this.todayFilters = [   
             (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
             byNotCompleted,  
             byNotDeleted   
@@ -76,7 +76,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
         this.subscriptions = [];    
         this.state = { collapsed:false };      
-    }
+    } 
 
 
     onError = (error) => globalErrorHandler(error);

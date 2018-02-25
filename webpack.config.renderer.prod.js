@@ -60,7 +60,7 @@ module.exports = {
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': '"production"'
         }),
-        new UglifyJsPlugin({
+        /*new UglifyJsPlugin({
             uglifyOptions:{
                 mangle: true,
                 compress: {
@@ -80,7 +80,7 @@ module.exports = {
             test: /\.js$|\.css$|\.html$/,
             threshold: 10240,
             minRatio: 0
-        }),
+        }),*/
         new CopyWebpackPlugin([{from : './assets'}]), 
         new HtmlWebpackPlugin({
             inject:true, 

@@ -932,7 +932,7 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
 
         return <div 
             ref={(e) => {this.ref=e;}}  
-            style={{display:"flex",alignItems:"flex-start",width:"100%",overflow:"hidden"}}
+            style={{display:"flex", alignItems:"flex-start", width:"100%"}} //overflow:"hidden"
         >  
                         {  
                             isNil(todo.deleted) ? null :      
@@ -942,7 +942,7 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
                                 onMouseDown={(e) => {e.stopPropagation();}}  
                             > 
                                 <RestoreButton  
-                                    deleted={not(isNil(todo.deleted))}
+                                    deleted={!isNil(todo.deleted)}
                                     open={open}   
                                     onClick={this.props.onRestoreButtonClick}  
                                 />    
@@ -964,22 +964,24 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
                             />
                         }
                         <div style={open ? {width:"100%"} : {minWidth:0}} key="form-field">  
-                            {
-                                open ?     
+                            {   
+                                open ?      
                                 <div style={{marginTop:"-18px"}}> 
                                     <TextField
                                         hintText="New Task"
-                                        ref={this.props.setInputRef}
+                                        ref={this.props.setInputRef} 
                                         multiLine={true}
                                         rows={1}
                                         style={{width:"100%"}}
                                         underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}} 
                                         underlineStyle={{borderColor:"rgba(0,0,0,0)"}}
                                         rowsMax={4}
+                                        inputStyle={{height:"100%"}}
+                                        textareaStyle={{height:"100%"}}
                                         value={todo.title}    
                                         onChange={this.props.onTitleChange} 
                                         onKeyDown={(event) => { 
-                                            if(event.which == 13 || event.keyCode == 13){
+                                            if(event.which===13 || event.keyCode===13){
                                                 event.stopPropagation(); 
                                                 event.preventDefault();
                                                 this.props.onWindowEnterPress();
@@ -1029,8 +1031,8 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
                                         {
                                             isNil(todo.note) ? null :
                                             isEmpty(todo.note) ? null :
-                                            <div style={{paddingLeft:"4px",height:"18px"}}>
-                                                <NotesIcon style={{
+                                            <div style={{paddingLeft:"4px",height:"18px"}}> 
+                                                <NotesIcon style={{ 
                                                     width:18,
                                                     height:18,
                                                     paddingTop:"2px", 
@@ -1102,7 +1104,7 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
                             </div>  
                         } 
                     </div>
-  } 
+    } 
 }
 
 
