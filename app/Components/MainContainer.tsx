@@ -126,6 +126,7 @@ export let selectTodos = (areas, projects, todos, limit) => {
  */
 export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calendar[]> => { 
     let {clone,dispatch} = props;
+    console.log(`fetching...`);
     
     if(clone){ return } 
 
@@ -140,6 +141,8 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
     )
     .then( 
         ([calendars,projects,areas,todos]) => {
+            console.log([calendars,projects,areas,todos]);
+            
             let {limit,firstLaunch} = props; 
             let selected = selectTodos(areas, projects, todos, limit);
 
@@ -228,13 +231,20 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
 
     initData = () => {
-        if(not(isMainWindow())){ return }  
+        console.log(`initData`);
+        
+        if(not(isMainWindow())){ 
+            console.log(`this is not main window`);
+            return; 
+        }  
         let {dispatch} = this.props;
 
         if(isDev()){ 
+            console.log(`destroyEverything`);
 
             destroyEverything()    
             .then(() => {  
+                
                 initDB(); 
                 let fakeData = generateRandomDatabase({todos:215, projects:38, areas:15});      
                     
@@ -253,6 +263,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 .then(() => dispatch({type:"resetReminders"}))
             });
         }else{ 
+            console.log(`ready to fetch`);
 
             fetchData(this.props,this.limit,this.onError) 
             .then((calendars) => isEmpty(calendars) ? null : updateConfig(dispatch)({hideHint:true}))   
@@ -308,7 +319,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
     }
       
 
-    printCurrentList = () => {
+    printCurrentList = () => {  
         let {selectedCategory} = this.props;
 
         if(this.disablePrintButton){ return }

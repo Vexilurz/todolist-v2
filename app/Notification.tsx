@@ -96,6 +96,8 @@ class Notification extends Component<NotificationProps,NotificationState>{
 
 
     componentDidMount(){
+        this.hide();
+
         this.subscriptions.push(
             Observable 
                 .fromEvent(ipcRenderer, 'remind', (event,todo) => todo)
@@ -197,12 +199,18 @@ class Notification extends Component<NotificationProps,NotificationState>{
         } 
     );
     
-     
-    close = () => {
-        let {todo} = this.state;
+    
+    hide = () => {
         const window = remote.getCurrentWindow();
         let {initialX, initialY} = this.getInitialPosition();
         window.setPosition(initialX, initialY);
+        window.hide();
+    };
+     
+
+    close = () => {
+        let {todo} = this.state;
+        this.hide();
         let mainWindow = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
         if(mainWindow && todo){ 
            mainWindow.webContents.send('removeReminder', todo);

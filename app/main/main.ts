@@ -257,9 +257,9 @@ let onReady = (showTray:boolean, config:any) => {
            mainWindow.focus(); 
         }
 
-        if(isDev()){ 
+        //if(isDev()){ 
            mainWindow.webContents.openDevTools(); 
-        }  
+        //}  
     });    
     
 

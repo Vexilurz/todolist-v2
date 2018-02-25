@@ -64,7 +64,6 @@
     "material-ui": "^0.19.4",
     "mockdate": "^2.0.2",
     "moment": "^2.19.3",
-    "node-machine-id": "^1.1.10",
     "path": "^0.12.7",
     "pouchdb-browser": "^6.4.2",
     "print-html-element": "^0.5.1",

@@ -930,7 +930,7 @@ export class TodoInputTopLevel extends Component <TodoInputTopLevelProps,TodoInp
                         <div key="form-field" ref={this.props.setInputRef}>  
                             {
                                 open ?    
-                                <div style={{marginTop:"-18px"}}>
+                                <div style={{marginTop:"-18px",minWidth:`150px`}}>
                                 <TextField
                                     hintText="New Task"
                                     multiLine={true}
