@@ -224,7 +224,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     .filter((todo:Todo) => todo.attachedDate.getTime() <= tomorrow.getTime());   
   
         if(!isEmpty(never)){ updateNeverTodos(dispatch,never,limit) }
-    }
+    };
 
 
     onError = (e) => globalErrorHandler(e); 
@@ -397,7 +397,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 (selectedCategory:Category) : boolean => 'inbox'===selectedCategory,  
                                 () => {
                                     let inboxFilters = [
-                                        (todo:Todo) => not(byAttachedToArea(this.props.areas)(todo)), 
+                                        //(todo:Todo) => not(byAttachedToArea(this.props.areas)(todo)), 
                                         (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
                                         (todo:Todo) => isNil(todo.attachedDate), 
                                         (todo:Todo) => isNil(todo.deadline), 

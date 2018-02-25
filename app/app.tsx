@@ -49,12 +49,15 @@ import { globalErrorHandler } from './utils/globalErrorHandler';
 import { Config, defaultConfig, updateConfig, getConfig } from './utils/config';
 import { collectSystemInfo } from './utils/collectSystemInfo';
 import { writeJsonFile } from './utils/jsonFile';
+import Clear from 'material-ui/svg-icons/content/clear';
 import { getMachineIdSync } from './utils/userid';
 import { assert } from './utils/assert';
+import {value,text} from './utils/text';
 import { setCallTimeout } from './utils/setCallTimeout';
 import { isDev } from './utils/isDev';
-const MockDate = require('mockdate'); 
+const MockDate = require('mockdate');  
 const os = remote.require('os'); 
+const fs = remote.require('fs'); 
 const path = require('path');
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
@@ -68,16 +71,17 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
         'Line:' + lineNo,
         'Column:' + columnNo,
         'Error object:' + JSON.stringify(error)
-    ].join(' - ');
+    ].join(' - ');  
     globalErrorHandler(message);
     if(isDev()){ return false }
     return true;
 }; 
 
-
+ 
 export interface Store extends Config{
+    showLicense : boolean,
     progress : any,
-    selectedTodo : Todo,
+    selectedTodo : Todo, 
     showUpdatesNotification : boolean, 
     scheduledReminders : number[],
     resetReminders : any,
@@ -121,6 +125,7 @@ export interface Store extends Config{
 
 export let defaultStoreItems : Store = {
     ...defaultConfig,
+    showLicense : false, 
     selectedTodo : null, 
     shouldSendStatistics : true, 
     hideHint : true,  
@@ -244,19 +249,22 @@ export class App extends Component<AppProps,{}>{
         this.subscriptions.push(
             Observable.interval(15000).subscribe((v) => dispatch({type:'update'})), 
 
-            Observable.interval(60000).subscribe(() => {
-                let id = getMachineIdSync();   
-                let to = path.resolve(os.homedir(), `${id}.json`);
-                
+            Observable.interval(60000).subscribe(() => { 
+                let target = path.resolve(__dirname, "db_backup");
+
+                if(!fs.existsSync(target)){ fs.mkdirSync(target); }
+                let to = path.resolve(target, `db_backup.json`);
+                 
                 getDatabaseObjects(this.onError,1000000)
                 .then(([calendars,projects,areas,todos]) => 
                     writeJsonFile(
                         { database : { todos, projects, areas, calendars } },
                         to 
-                    )
+                    ) 
                     .then((err) => ({err,to}))
                 )
             }),  
+
 
             Observable
             .fromEvent(ipcRenderer,'openTodo', (event,todo) => todo)
@@ -341,6 +349,45 @@ export class App extends Component<AppProps,{}>{
                 <SettingsPopup {...{} as any} />   
                 <ChangeGroupPopup {...{} as any} /> 
                 <TrashPopup {...{} as any} />
+                <SimplePopup      
+                    show={this.props.showLicense}
+                    onOutsideClick={() => this.props.dispatch({type:"showLicense",load:false})}
+                > 
+                    <div 
+                    className="scroll"  
+                    style={{
+                        display:"flex", 
+                        flexDirection:"column",
+                        maxWidth:"650px", 
+                        maxHeight:"500px",
+                        minHeight:"400px",
+                        borderRadius:"5px",
+                        position:"relative", 
+                        backgroundColor:"rgba(254, 254, 254, 1)"
+                    }}>  
+                        <div style={{
+                            width:"100%",
+                            display:"flex",  
+                            justifyContent:"center",
+                            alignItems:"center",
+                            flexDirection:"column",
+                            backgroundColor:"rgb(234, 235, 239)",
+                        }}>   
+                            <div style={{width:"100%",alignItems:"center",position:"relative",justifyContent:"center",display:"flex"}}>
+                                <div style={{position:"absolute", top:0, right:5, cursor:"pointer", zIndex:200}}>   
+                                    <div   
+                                        style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
+                                        onClick={() => this.setState({showPopup:false})}
+                                    >
+                                        <Clear style={{color:"rgba(100,100,100,0.5)",height:25,width:25}}/>
+                                    </div>
+                                </div>
+                            </div>  
+                        </div> 
+                        <div style={{whiteSpace:"pre", padding:"10px"}}>{value}</div>
+                        <div style={{padding:"10px"}}>{text}</div>
+                    </div>
+                </SimplePopup> 
             </div>            
         );    
     }           

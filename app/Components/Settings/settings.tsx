@@ -35,6 +35,7 @@ import {
     Todo, destroyEverything, initDB, addTodos, addProjects, addAreas, 
     addCalendars, getDatabaseObjects 
 } from '../../database';
+import {text,value} from '../../utils/text'; 
 import { SimplePopup } from '../SimplePopup';
 import { getIcalData, IcalData, AxiosError } from '../Calendar';
 import { fetchData, filter } from '../MainContainer';
@@ -758,6 +759,7 @@ let removeRev = (item) => {
 interface AdvancedProps extends Store{}
 
 interface AdvancedState{ 
+    showPopup:boolean,
     importMessage:string,
     exportMessage:string,
     updateStatus:string 
@@ -771,6 +773,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     backupFilename:string;
     limit:number;
      
+
     constructor(props){
         super(props);  
         this.backupFolder = path.resolve(os.homedir(), "Documents");
@@ -778,6 +781,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         this.limit = 1000000;
 
         this.state = {   
+           showPopup:false,
            importMessage:'',
            exportMessage:'', 
            importPath:'',   
@@ -786,7 +790,9 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         };       
     };
 
+
     updateState = (state) => new Promise( resolve => this.setState(state, () => resolve()) );
+
 
     replaceDatabaseObjects = (json) : Promise<void> => {
         let { todos, projects, areas, calendars } = json.database;
@@ -803,9 +809,11 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                     ])   
                 }) 
                 .then(() => fetchData(this.props,this.limit,this.onError)) 
-    };   
+    };  
+
     
     onError = (error) => globalErrorHandler(error);
+
 
     export = (folder:string) => {   
         if(isNil(folder)){ return }
@@ -820,6 +828,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 .then((err) => ({err,to}))
         )       
     };    
+
 
     import = (pathToFile:string) => {  
         if(isNil(pathToFile)){ return }
@@ -843,6 +852,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                     } 
                })   
     };
+
     
     onSelectExportFolder = () => { 
         selectFolder()
@@ -862,6 +872,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         )
     }; 
 
+
     onSelectImportFile = () => {  
         selectJsonDatabase()
         .then(
@@ -873,6 +884,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         )
     };
       
+
     checkUpdates = debounce(() => { 
         let {dispatch} = this.props;
         this.setState({updateStatus:"Loading..."});
@@ -1078,6 +1090,29 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                         </div>    
                     </div>    
                 </div> 
+
+                <div style={{cursor: "pointer", height: "30px"}}>
+                    {   
+                        <div     
+                            onClick={(e) => {
+                                this.props.dispatch({type:"openSettings",load:false});
+                                this.props.dispatch({type:"showLicense",load:true});
+                            }}
+                            style={{
+                                width:"100%",
+                                height:"30px",
+                                fontSize:"14px",
+                                display:"flex",
+                                alignItems:"center",
+                                cursor:"pointer",  
+                                paddingLeft:"30px",
+                                color:"rgba(100, 100, 100, 0.6)"
+                            }}
+                        >     
+                            Open Source libraries used at tasklist
+                        </div>
+                    }
+                </div>
             </div>
         </div>    
     }   

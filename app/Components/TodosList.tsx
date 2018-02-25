@@ -134,7 +134,7 @@ export let removeTodosFromAreas =  (areas:Area[], todos:Todo[]) : Area[] => {
 };
 
 
-export let dropTodoOnCategory = ({
+export let dropTodoOnCategory = ({  
     draggedTodo,
     projects,
     category,

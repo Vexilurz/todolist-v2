@@ -15,6 +15,13 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                 };  
                 break; 
 
+            case "showLicense":
+                newState = {  
+                    ...state,
+                    showLicense : action.load,
+                };  
+                break; 
+
             case "progress":
                 newState = {  
                     ...state,

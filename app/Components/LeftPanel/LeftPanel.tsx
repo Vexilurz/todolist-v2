@@ -55,17 +55,19 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
             byNotDeleted  
         ];
         
-        this.inboxFilters = [
-            (todo:Todo) => not(byAttachedToArea(this.props.areas)(todo)), 
+
+        let inboxFilters = [
+            //(todo:Todo) => not(byAttachedToArea(this.props.areas)(todo)), 
             (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
             (todo:Todo) => isNil(todo.attachedDate), 
             (todo:Todo) => isNil(todo.deadline), 
-            byCategory("inbox"), 
+            //byCategory("inbox"), 
             byNotCompleted,  
-            byNotDeleted 
-        ];  
+            byNotDeleted   
+        ];    
  
-        this.todayFilters = [   
+
+        let todayFilters = [   
             (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
             byNotCompleted,  
             byNotDeleted   
@@ -99,7 +101,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                          );
         
         this.subscriptions.push(ctrlBPress); 
-    }
+    };
     
     
     componentDidMount(){
@@ -129,11 +131,12 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         .catch(err => this.onError(err)) 
 
         let project = generateEmptyProject();
+
         this.props.dispatch({type:"addProject", load:project});
         this.props.dispatch({type:"selectedProjectId", load:project._id});
         this.props.dispatch({type:"openNewProjectAreaPopup", load:false});
         this.props.dispatch({type:"selectedCategory", load:"project"});
-    }   
+    };   
  
          
     onNewAreaClick = (e:any) => {    
@@ -156,26 +159,24 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         this.props.dispatch({type:"selectedAreaId", load:area._id});
         this.props.dispatch({type:"openNewProjectAreaPopup", load:false}); 
         this.props.dispatch({type:"selectedCategory", load:"area"});
-    }
+    };
 
 
     onResizableHandleDrag = (e,d) => {
-        this.props.dispatch({
-            type:"leftPanelWidth",
-            load:this.props.leftPanelWidth+d.deltaX
-        })
-    }
+        this.props.dispatch({type:"leftPanelWidth",load:this.props.leftPanelWidth+d.deltaX})
+    };
       
 
     openNewProjectAreaPopup = () => {
         if(!this.props.openNewProjectAreaPopup){
             this.props.dispatch({type:"openNewProjectAreaPopup",load:true})
         } 
-    } 
+    };
 
   
     render(){      
         let {collapsed} = this.state; 
+        
         let {
             areas, projects, todos, 
             leftPanelWidth, dispatch, 
@@ -183,7 +184,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         } = this.props; 
         
         let inbox = filter(todos, allPass(this.inboxFilters), "inbox");
-        let today = filter(todos, allPass(this.todayFilters), "today");
+        let today = filter(todos, allPass(this.todayFilters), "today"); 
         let hot = filter(today, allPass(this.hotFilters), "hot"); 
         let trash = filter(todos, allPass([byDeleted]), "trash");  
         let logbook = filter(todos, allPass([byCompleted, byNotDeleted]), "logbook"); 
@@ -193,7 +194,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
             projects.map((p) => p.layout.filter(isString) as string[]) 
         ]) as any;
           
-        assert(isArrayOfStrings(ids),`ids is not an array of strings. AreasList.`);
+        assert(isArrayOfStrings(ids),`ids is not an array of strings. AreasList.`); 
    
         let areasFilters = [(todo:Todo) => contains(todo._id)(ids), byNotDeleted]; 
 
