@@ -6,7 +6,7 @@ import { Component } from "react";
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area, Todo } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
-import { byNotCompleted, byNotDeleted } from '../../utils/utils';
+import { byNotCompleted, byNotDeleted, typeEquals } from '../../utils/utils';
 import PieChart from 'react-minimal-pie-chart';
 import { 
     uniq, allPass, remove, intersection, reject, slice, prop, flatten,
@@ -161,25 +161,40 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             selectedCategory={this.props.selectedCategory}
         />
     };
+    
      
 
-    getElement = (value : LayoutItem, index : number) : JSX.Element => { 
-        switch(value.type){
-            case "area":
-                return <div key={`key-${value._id}`} id={value._id}>{this.getAreaElement(value as any,index)}</div>;
-            case "project":
-                return <div key={`key-${value._id}`} id={value._id}>{this.getProjectElement(value as any,index)}</div>;
-            case "separator":
-                return <div 
-                    key={`key-${value._id}`} 
-                    id={value._id} 
-                    style={{outline:"none",width:"100%",height:"1px"}}
-                >
-                </div>;
-            default:  
-                return null;   
-        }     
-    }; 
+    getElement = (value : LayoutItem, index : number) : JSX.Element => 
+        cond([
+            [
+                typeEquals("area"),
+                (value) => {
+                    return <div key={`key-${value._id}`} id={value._id}>{this.getAreaElement(value as any,index)}</div>
+                }
+            ],
+            [
+                typeEquals("project"),
+                (value) => {
+                    return <div key={`key-${value._id}`} id={value._id}>{this.getProjectElement(value as any,index)}</div>
+                }
+            ],
+            [
+                typeEquals("separator"),
+                (value) => {
+                    return <div 
+                        key={`key-${value._id}`} 
+                        id={value._id} 
+                        style={{outline:"none",width:"100%",height:"1px"}}
+                    >
+                    </div>
+                }
+            ],
+            [
+                () => true,
+                () => null
+            ]
+        ])(value); 
+
 
 
     shouldCancelStart = (e) => {

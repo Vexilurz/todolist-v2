@@ -8,7 +8,7 @@ import { connect } from "react-redux";
 import Popover from 'material-ui/Popover';
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import { Todo, Project } from '../../database';
-import { byNotDeleted, byCompleted, attachDispatchToProps } from '../../utils/utils'; 
+import { byNotDeleted, byCompleted, attachDispatchToProps, daysLeftMark } from '../../utils/utils'; 
 import { Checkbox, DueDate } from '../TodoInput/TodoInput';
 import PieChart from 'react-minimal-pie-chart';
 import Restore from 'material-ui/svg-icons/content/undo';
@@ -45,7 +45,8 @@ export let getProgressStatus = (
 
 interface ProjectLinkProps extends Store{
     project:Project,
-    showMenu:boolean
+    showMenu:boolean,
+    removeUnderline?:boolean
 }
  
 
@@ -119,7 +120,7 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
 
     
     render(){ 
-        let { dispatch,project,todos,selectedCategory,showMenu } = this.props;
+        let { dispatch,project,todos,selectedCategory,showMenu,removeUnderline } = this.props;
         let { done,left } = getProgressStatus(project, todos, false); 
         let totalValue = (done+left)===0 ? 1 : (done+left);
         let currentValue = done;
@@ -127,21 +128,21 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
         return <li  
             onClick={this.openProject}    
             style={{width:"100%", overflow:"hidden"}}   
-            className={"listHeading"}
+            className={removeUnderline ? "" : "listHeading"}
         >      
         <div   
             id = {project._id}        
             style={{    
                 height:"30px",   
-                paddingLeft:"6px", 
                 paddingRight:"6px",  
                 cursor:"default",
                 width:"100%",
                 display:"flex",  
-                alignItems:"center" 
+                alignItems:"center",
+                paddingLeft:"22px" 
             }}
         >     
-                <div style={{    
+                <div style={{     
                     width:"18px",
                     height:"18px",
                     position:"relative",
@@ -219,12 +220,13 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                                 color:"rgba(100,100,100,1)",
                                 width:"20px",
                                 height:"20px",
-                                cursor:"default"
+                                cursor:"default" 
                             }}/>
                         </div> 
+                        {daysLeftMark(false, project.deadline)}
                     </div>  
                 }
-                {
+                { 
                     not(showMenu) ? null :
                     <div   
                         style={{

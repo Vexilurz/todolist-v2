@@ -123,7 +123,6 @@ export let selectTodos = (areas, projects, todos, limit) => {
  */
 export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calendar[]> => { 
     let {clone,dispatch} = props;
-    console.log(`fetching...`);
     
     if(clone){ return } 
 
@@ -138,8 +137,6 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
     )
     .then( 
         ([calendars,projects,areas,todos]) => {
-            console.log([calendars,projects,areas,todos]);
-            
             let {limit,firstLaunch} = props; 
             let selected = selectTodos(areas, projects, todos, limit);
 
@@ -148,7 +145,6 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
             dispatch({type:"setTodos", load:selected});
 
             if(firstLaunch){  
-               console.log(`first launch`);
                dispatch({type:"addTodos", load:introListLayout.filter(isTodo)});
                dispatch({type:"addProject", load:getIntroList()}) 
             };
@@ -175,8 +171,6 @@ export let activateReminders = (scheduledReminders:number[],todos:Todo[]) : numb
  
     scheduledReminders.map(t => clearTimeout(t)); 
     
-    console.log(`todosToBeRemindedOf ${JSON.stringify(todosToBeRemindedOf)}`)
-
     return todosToBeRemindedOf.map(
         (todo) : number => scheduleReminder(todo)
     ); 
@@ -186,7 +180,7 @@ export let activateReminders = (scheduledReminders:number[],todos:Todo[]) : numb
 let isMainWindow = () => { 
     return remote.getCurrentWindow().id===1; 
 };
-
+ 
  
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
@@ -228,17 +222,11 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
 
     initData = () => {
-        console.log(`initData`);
         
-        if(not(isMainWindow())){ 
-            console.log(`this is not main window`);
-            return; 
-        }  
+        if(not(isMainWindow())){ return }  
         let {dispatch} = this.props;
 
         if(isDev()){ 
-            console.log(`destroyEverything`);
-
             destroyEverything()    
             .then(() => {  
                 
@@ -260,8 +248,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 .then(() => dispatch({type:"resetReminders"}))
             });
         }else{ 
-            console.log(`ready to fetch`);
-
             fetchData(this.props,this.limit,this.onError) 
             .then((calendars) => isEmpty(calendars) ? null : updateConfig(dispatch)({hideHint:true}))   
             .then(() => dispatch({type:"resetReminders"}))

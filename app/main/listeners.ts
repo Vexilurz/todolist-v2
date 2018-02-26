@@ -108,7 +108,10 @@ export class Listeners{
                     let newWindow = initWindow(getClonedWindowDimensions()); 
                     loadApp(newWindow)
                     .then(
-                        () => newWindow.webContents.send("loaded", store)
+                        () => {
+                            newWindow.webContents.send("loaded", store);
+                            newWindow.webContents.openDevTools(); 
+                        }
                     );  
                 }
             },  

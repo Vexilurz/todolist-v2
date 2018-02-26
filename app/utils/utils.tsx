@@ -906,6 +906,7 @@ export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
     let style : any = { 
         display: "flex",
         alignItems: "center",
+        paddingBottom: "5px", 
         color:flagColor,
         margin:"0px",
         fontSize:`${fontSize}px`, 
@@ -1250,19 +1251,30 @@ export let todoToKeywords = (t:Todo) : string[] => {
 
 
 
-export let convertDates = (object) => {
-    if(isNil(object)){ return object; }
-    switch(object.type){
-        case "todo":
-            return convertTodoDates(object as Todo);
-        case "project":
-            return convertProjectDates(object as Project);
-        case "area":
-            return convertAreaDates(object as Area);  
-    };
-    return object;    
-}; 
-
+export let convertDates = (object) => 
+    cond([
+        [
+            isNil,
+            () => object
+        ],
+        [
+            typeEquals("todo"),
+            (object:Todo) => convertTodoDates(object)
+        ],
+        [
+            typeEquals("project"),
+            (object:Project) => convertProjectDates(object)
+        ],
+        [
+            typeEquals("area"),
+            (object:Area) => convertAreaDates(object)
+        ],
+        [
+            () => true,
+            () => object
+        ]
+    ])(object);
+ 
 
 
 export let checkForUpdates = () : Promise<UpdateCheckResult> => {

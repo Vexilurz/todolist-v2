@@ -204,7 +204,6 @@ export class App extends Component<AppProps,{}>{
            ev:timeSeconds 
         }
     ) 
-    .then(() => console.log('Application launched'))
     .catch(err => this.onError(err));
 
 
@@ -397,9 +396,8 @@ export class App extends Component<AppProps,{}>{
 //render application
 ipcRenderer.once(
     'loaded',     
-    (event, clonedStore:Store, p) => { 
+    (event, clonedStore:Store) => { 
         let defaultStore = defaultStoreItems;
-        console.log("process",p);
         if(not(isNil(clonedStore))){ 
             let {todos,projects,areas} = clonedStore;
             defaultStore={

@@ -4,6 +4,7 @@ import Refresh from 'material-ui/svg-icons/navigation/refresh';
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
+import {cond,equals} from 'ramda';
 import Star from 'material-ui/svg-icons/toggle/star';
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
@@ -29,105 +30,121 @@ import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
 import { Category } from '../Components/MainContainer';
 import Alert from 'material-ui/svg-icons/alert/add-alert';
 
-export let chooseIcon = (
-    size : { width:string, height:string }, 
-    selectedCategory : Category
-) => {
-    
-    switch(selectedCategory){  
-
-        case "inbox":
-            return <Inbox style={{
+export let chooseIcon = (size : { width:string, height:string }, selectedCategory : Category) => 
+    cond([
+        [
+            equals("inbox"),
+            () => <Inbox style={{
                 ...size,
                 ...{ 
                     color:"dodgerblue", 
                     cursor:"default" 
                 }
-            }} /> 
+            }}/> 
+        ],
 
-        case "today":
-            return <Star style={{
+        [
+            equals("today"),
+            () => <Star style={{
                 ...size,
                 ...{
                     color:"gold", 
                     cursor:"default" 
                 }
             }}/>
+        ],
 
-        case "upcoming":
-            return <CalendarIco style={{
+        [
+            equals("upcoming"),
+            () => <CalendarIco style={{
                 ...size,
                 ...{  
                     color:"crimson", 
                     cursor:"default"
                 }
             }}/>
+        ],
 
-        case "next":
-            return <Layers style={{
+        [
+            equals("next"),
+            () => <Layers style={{
                 ...size,
                 ...{
                     color:"darkgreen", 
                     cursor:"default"
                 } 
             }}/>
+        ],
 
-        case "someday":
-            return <BusinessCase  style={{
+        [
+            equals("someday"),
+            () => <BusinessCase style={{
                 ...size,
                 ...{
                     color:"burlywood", 
                     cursor:"default"
                 }
-            }}/>  
- 
-        case "logbook":
-            return <Logbook style={{
+            }}/> 
+        ],
+
+        [
+            equals("logbook"),
+            () => <Logbook style={{
                 ...size,    
                 ...{
                     color:"limegreen", 
                     cursor:"default"
                 }
             }}/>  
+        ],
 
-        case "trash":
-            return <Trash style={{
+        [
+            equals("trash"),
+            () => <Trash style={{
                 ...size,
                 ...{
                     color:"darkgray", 
                     cursor:"default" 
                 }
             }}/>
+        ],
 
-        case "evening":
-            return <Moon style={{
+        [
+            equals("evening"),
+            () => <Moon style={{
                 ...size,
                 ...{  
                     transform:"rotate(145deg)", 
                     color:"cornflowerblue", 
                     cursor:"default" 
                 }
-            }}/>;    
- 
-        case "deadline":
-            return <Flag style={{
+            }}/>
+        ],
+
+        [
+            equals("deadline"),
+            () => <Flag style={{
                 ...size,
                 ...{   
                     color:"black",  
                     cursor:"default"  
                 }
             }}/>
-            
-        case "area":
-            return <NewAreaIcon style={{
+        ],
+
+        [
+            equals("area"),
+            () => <NewAreaIcon style={{
                 ...size,
                 ...{
                     color:"lightblue"
                 }
-            }}/>       
- 
-        case "project":
-            return <div>          
+            }}/> 
+        ],
+
+        [
+            equals("project"),
+            () => <div>          
                 <div style={{
                     ...size,
                     ...{ 
@@ -139,24 +156,28 @@ export let chooseIcon = (
                     }  
                 }}>   
                 </div>
-            </div>    
+            </div>   
+        ],
 
-        case "group":
-            return <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}> 
+        [
+            equals("group"),
+            () => <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}> 
                 <Refresh  
                     style={{     
-                       width:18,   
-                       height:18, 
-                       marginLeft:"3px", 
-                       color:"black", 
-                       cursor:"default", 
-                       marginRight:"5px"  
+                        width:18,   
+                        height:18, 
+                        marginLeft:"3px", 
+                        color:"black", 
+                        cursor:"default", 
+                        marginRight:"5px"  
                     }} 
                 /> 
-            </div> 
-             
-        case "reminder":
-            return <div style={{display:"flex", alignItems:"center", position:"relative"}}>
+            </div>   
+        ],
+
+        [
+            equals("reminder"),
+            () => <div style={{display:"flex", alignItems:"center", position:"relative"}}>
                 <Alert style={{
                     display:"flex", 
                     alignItems:"center",
@@ -175,16 +196,14 @@ export let chooseIcon = (
                 }}> 
                 </div>
             </div>
+        ],
+        [
+            () => true,
+            () => null
+        ]
+    ])(selectedCategory);
 
-        default:
-            return <Inbox style={{  
-                ...size,
-                ...{  
-                    color:"dodgerblue", 
-                    cursor:"default"
-                }   
-            }}/> 
-    }
-}
+    
+
 
 

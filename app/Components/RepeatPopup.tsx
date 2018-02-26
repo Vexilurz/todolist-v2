@@ -18,7 +18,7 @@ import { Todo, removeTodo, addTodo,  Project, Area, LayoutItem, Group } from '..
 import { Store } from '../app'; 
 import { ChecklistItem } from './TodoInput/TodoChecklist'; 
 import { Category, filter } from './MainContainer';
-import { remove, isNil, not, isEmpty, last, compose, map } from 'ramda';
+import { remove, isNil, not, isEmpty, last, compose, map, cond, equals } from 'ramda';
 let uniqid = require("uniqid");    
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -206,17 +206,31 @@ export let repeat = (options:RepeatPopupState, todo:Todo) : Todo[] => {
     
     let { repeatEveryInterval } = options;     
 
-    switch(repeatEveryInterval){
-        case "day":
-            return selectedDatesToTodos(todo, handleDay(options, todo));
-        case "week":
-            return selectedDatesToTodos(todo, handleWeek(options,todo));
-        case "month":
-            return selectedDatesToTodos(todo, handleMonth(options,todo));
-        case "year":
-            return selectedDatesToTodos(todo, handleYear(options,todo));
-    }
-} 
+    return cond(
+        [
+            [
+                equals("day"),
+                () => selectedDatesToTodos(todo, handleDay(options, todo))
+            ],
+            [
+                equals("week"),
+                () => selectedDatesToTodos(todo, handleWeek(options,todo))
+            ],
+            [
+                equals("month"),
+                () => selectedDatesToTodos(todo, handleMonth(options,todo))
+            ],
+            [
+                equals("year"),
+                () => selectedDatesToTodos(todo, handleYear(options,todo))
+            ],
+            [
+                () => true,
+                () => []
+            ],
+        ]
+    )(repeatEveryInterval);
+}; 
 
 
 export let setRepeatedTodos = ({

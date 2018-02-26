@@ -183,7 +183,7 @@ export class Trash extends Component<TrashProps,TrashState>{
                             isProject, 
                             (project:Project) : JSX.Element => <div 
                                 key={`deletedProject-${index}`}  
-                                style={{position:"relative",display:"flex",alignItems:"center"}}
+                                style={{position:"relative",display:"flex",alignItems:"center",marginLeft:"-5px"}}
                             >   
                                 <div style={{width:"100%"}}>
                                     <ProjectLinkTrash { ...{project} as any }/>  
@@ -194,12 +194,12 @@ export class Trash extends Component<TrashProps,TrashState>{
                             isArea,
                             (area:Area) : JSX.Element => <div 
                                 key={`deletedArea-${index}`} 
-                                style={{position:"relative",display:"flex",alignItems:"center"}}
+                                style={{position:"relative",display:"flex",alignItems:"center",marginLeft:"-5px"}}
                             >   
                                 <div style={{width:"100%"}}>
                                     <AreaTrashLink {...{area} as any}/>
                                 </div>  
-                            </div>   
+                            </div>    
                         ],
                         [
                             () => true, 

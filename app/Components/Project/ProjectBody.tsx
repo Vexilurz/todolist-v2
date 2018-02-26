@@ -4,10 +4,10 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
-import { generateDropStyle, hideChildrens, removeHeading } from '../../utils/utils'; 
+import { generateDropStyle, hideChildrens, removeHeading, typeEquals } from '../../utils/utils'; 
 import { ProjectHeading } from './ProjectHeading';  
 import { TodoInput } from '../TodoInput/TodoInput'; 
-import { isEmpty, isNil, not, uniq, contains, drop, map, compose, adjust, findIndex } from 'ramda';
+import { isEmpty, isNil, not, uniq, contains, drop, map, compose, adjust, findIndex, cond } from 'ramda';
 import { onDrop, removeTodosFromProjects, dropTodoOnCategory, findDropTarget } from '../TodosList';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { arrayMove } from '../../utils/arrayMove';
@@ -57,57 +57,62 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     }  
     
 
-    getElement = (value:Heading | Todo, index:number) : JSX.Element => { 
-        
-        switch(value.type){ 
-            case "todo":
-                    return  <div   
-                        id = {value["_id"]}
-                        key = {`${value["_id"]}-todo`}  
-                        style = {{position:"relative",UserSelect:"none",WebkitUserSelect:"none"}}
-                    >  
-                        <TodoInput    
-                            id={value["_id"]} 
-                            key={value["_id"]} 
-                            showCompleted={this.props.showCompleted}
-                            selectedTodo={this.props.selectedTodo}
-                            groupTodos={this.props.groupTodos}
-                            moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                            projects={this.props.projects}
-                            dispatch={this.props.dispatch}   
-                            selectedProjectId={this.props.selectedProjectId}
-                            selectedAreaId={this.props.selectedAreaId} 
-                            todos={this.props.todos}
-                            selectedCategory={this.props.selectedCategory as Category}
-                            rootRef={this.props.rootRef}  
-                            todo={value as Todo}
-                        />     
-                    </div> 
-            case "heading":  
-                    return  <div   
-                        key={`${value["_id"]}-heading`} 
+    getElement = (value:Heading | Todo, index:number) : JSX.Element =>  
+        cond([
+            [
+                typeEquals("todo"),
+                (value:Todo) => <div   
+                    id = {value["_id"]}
+                    key = {`${value["_id"]}-todo`}  
+                    style = {{position:"relative",UserSelect:"none",WebkitUserSelect:"none"}}
+                >  
+                    <TodoInput    
                         id={value["_id"]} 
-                        style={{
-                            position:"relative", 
-                            paddingBottom:"10px", 
-                            paddingTop:"5px",    
-                            UserSelect:"none",  
-                            WebkitUserSelect:"none"    
-                        }}               
-                    > 
-                        <ProjectHeading  
-                            heading={value as Heading}
-                            rootRef={this.props.rootRef} 
-                            onChange={this.props.updateHeading}
-                            onArchive={this.props.archiveHeading}
-                            onMove={this.props.moveHeading} 
-                            onRemove={this.props.removeHeading}
-                        /> 
-                    </div> 
-            default:  
-                return null;
-        }
-    };
+                        key={value["_id"]} 
+                        showCompleted={this.props.showCompleted}
+                        selectedTodo={this.props.selectedTodo}
+                        groupTodos={this.props.groupTodos}
+                        moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                        projects={this.props.projects}
+                        dispatch={this.props.dispatch}   
+                        selectedProjectId={this.props.selectedProjectId}
+                        selectedAreaId={this.props.selectedAreaId} 
+                        todos={this.props.todos}
+                        selectedCategory={this.props.selectedCategory as Category}
+                        rootRef={this.props.rootRef}  
+                        todo={value as Todo}
+                    />     
+                </div> 
+            ],
+            [
+                typeEquals("heading"),
+                (value:Heading) => <div   
+                    key={`${value["_id"]}-heading`} 
+                    id={value["_id"]} 
+                    style={{
+                        position:"relative", 
+                        paddingBottom:"10px", 
+                        paddingTop:"5px",    
+                        UserSelect:"none",  
+                        WebkitUserSelect:"none"    
+                    }}               
+                > 
+                    <ProjectHeading  
+                        heading={value as Heading}
+                        rootRef={this.props.rootRef} 
+                        onChange={this.props.updateHeading}
+                        onArchive={this.props.archiveHeading}
+                        onMove={this.props.moveHeading} 
+                        onRemove={this.props.removeHeading}
+                    /> 
+                </div> 
+            ],
+            [
+                () => true,
+                () => null
+            ]
+        ])(value);
+    
 
 
     shouldCancelStart = (e) => {
@@ -121,6 +126,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     };
 
 
+
     changeOrder = (oldIndex:number,newIndex:number) => { 
         let items = this.props.items;  
         items = items.map(i => i.type==="todo" ? i._id : i) as any; 
@@ -128,6 +134,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         this.props.updateLayoutOrder(changed);    
     };  
 
+    
 
     changeHeadingsOrder = (oldIndex:number,newIndex:number) => {
 

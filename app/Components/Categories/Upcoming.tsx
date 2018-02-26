@@ -521,13 +521,14 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         flexDirection:"column", 
                         width:"100%",
                         paddingTop:"10px",
-                        paddingBottom:"10px"
+                        paddingBottom:"10px",
+                        paddingLeft:"25px"
                     }}>    
                     { 
                         scheduledProjects.map(
                             (project:Project, index:number) : JSX.Element => {
                                 return <div key={project._id}>
-                                    <ProjectLink {...{project,showMenu:false} as any}/>  
+                                    <ProjectLink {...{project,showMenu:false,removeUnderline:true} as any}/>  
                                 </div>  
                             } 
                         )     
@@ -537,7 +538,12 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                 {   
                     isEmpty(selectedTodos) ? null :
                     <div style={{
-                        display:"flex",flexDirection:"column",width:"100%",paddingTop:"10px",paddingBottom:"10px"
+                        display:"flex",
+                        flexDirection:"column",
+                        width:"100%",
+                        paddingTop:"10px",
+                        paddingBottom:"10px",
+                        paddingLeft:"25px"
                     }}>   
                         <TodosList    
                             dispatch={this.props.dispatch}  

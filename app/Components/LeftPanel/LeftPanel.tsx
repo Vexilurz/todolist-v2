@@ -175,12 +175,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
   
     render(){      
         let {collapsed} = this.state; 
-        
-        let {
-            areas, projects, todos, 
-            leftPanelWidth, dispatch, 
-            searchQuery
-        } = this.props; 
+        let {areas, projects, todos, leftPanelWidth, dispatch, searchQuery} = this.props; 
         
         let inbox = filter(todos, allPass(this.inboxFilters), "inbox");
         let today = filter(todos, allPass(this.todayFilters), "today"); 
@@ -193,6 +188,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         assert(isArrayOfStrings(ids),`ids is not an array of strings. AreasList.`); 
    
         let areasFilters = [(todo:Todo) => contains(todo._id)(ids), byNotDeleted]; 
+
 
         return  <div style={{display:"flex",flexDirection:"row-reverse",height:window.innerHeight}}> 
             {    

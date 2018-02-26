@@ -151,7 +151,6 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
             [
               typeEquals("dragged"),
               (action:{type:string,load:string}) : Store => {
-                assert(isString(action.load), `Error: dragged. applicationStateReducer. ${action.load}`);
                 return ({...state,dragged:action.load}); 
               }
             ],
@@ -220,11 +219,11 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                   assert(isNumber(action.load.rightClickMenuY), `Error: rightClickMenuY. applicationStateReducer. ${action.load}`);            
           
                   return ({
-                      ...state,
-                      showRightClickMenu:action.load.showRightClickMenu,
-                      rightClickedTodoId:action.load.rightClickedTodoId,
-                      rightClickMenuX:action.load.rightClickMenuX,
-                      rightClickMenuY:action.load.rightClickMenuY
+                    ...state,
+                    showRightClickMenu:action.load.showRightClickMenu,
+                    rightClickedTodoId:action.load.rightClickedTodoId,
+                    rightClickMenuX:action.load.rightClickMenuX,
+                    rightClickMenuY:action.load.rightClickMenuY
                   }); 
               }
             ],
@@ -239,7 +238,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                   openNewProjectAreaPopup:false,
                   showRightClickMenu:false, 
               }) 
-            ],
+            ], 
 
             [
               typeEquals("selectedProjectId"),
@@ -247,7 +246,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                   let project = state.projects.find((p) => p._id===action.load);
                   assert(isProject(project), `Error: selectedProjectId. applicationStateReducer. ${action.load}`);
                   return ({...state,selectedCategory:"project",selectedProjectId:action.load});
-              }
+              }   
             ],
 
             [
@@ -259,7 +258,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
               }
             ], 
 
-            [ () => true, () : Store => ({...state}) ]
+            [ () => true, () : Store => undefined ]
 
         ])(action);
 

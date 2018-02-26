@@ -7,6 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { attachDispatchToProps, byCategory, byTags } from "../utils/utils"; 
 import { connect } from "react-redux";
+import { compose, equals, cond } from 'ramda';
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { 
     queryToTodos, getTodos, updateTodo, Todo, 
@@ -36,7 +37,7 @@ import { Category } from './MainContainer';
 
 
 
-export let chooseFadeIcon = (container:HTMLElement, selectedCategory:Category) => {
+export let chooseFadeIcon = (container:HTMLElement, selectedCategory:Category) : JSX.Element => {
     
     let rect = container.getBoundingClientRect();
 
@@ -55,32 +56,40 @@ export let chooseFadeIcon = (container:HTMLElement, selectedCategory:Category) =
         WebkitUserSelect:"none"
     };
 
-
-    switch(selectedCategory){  
-        case "inbox":
-            return <Inbox style={style} /> 
-
-        case "today":
-            return <Star style={style}/>
-
-        case "upcoming":
-            return <CalendarIco style={style}/>
-
-        case "next":
-            return <Layers style={style}/>
-
-        case "someday":
-            return <BusinessCase  style={style}/> 
-
-        case "logbook":
-            return <Logbook style={style}/>  
-
-        case "trash":
-            return <Trash style={style}/>
-
-        default:
-            return null 
-    }
+    return cond([
+        [
+            equals("inbox"),
+            () => <Inbox style={style} /> 
+        ],
+        [
+            equals("today"),
+            () => <Star style={style}/>
+        ],
+        [
+            equals("upcoming"),
+            () => <CalendarIco style={style}/>
+        ],
+        [
+            equals("next"),
+            () => <Layers style={style}/>
+        ],
+        [
+            equals("someday"),
+            () => <BusinessCase style={style}/> 
+        ],
+        [
+            equals("logbook"),
+            () => <Logbook style={style}/> 
+        ],
+        [
+            equals("trash"),
+            () => <Trash style={style}/>
+        ],
+        [
+            () => true,
+            () => null
+        ]
+    ])(selectedCategory);
 } 
 
 
