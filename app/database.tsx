@@ -97,7 +97,6 @@ export interface Area{
   deleted : Date, 
   description : string,
   attachedTags : string[], 
-  attachedTodosIds : string[], 
   attachedProjectsIds : string[], 
 };  
 

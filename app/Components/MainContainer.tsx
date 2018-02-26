@@ -8,7 +8,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, byTags, byCategory, selectNeverTodos, updateNeverTodos, oneDayBehind, 
     convertTodoDates, convertProjectDates, convertAreaDates, oneDayAhead, measureTime, 
-    byAttachedToArea, byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
+    byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
     byCompleted, isToday, byNotSomeday, byScheduled, yearFromNow, timeDifferenceHours, 
     isNewVersion, getIntroList, printElement, inFuture, introListIds, introListLayout
 } from "../utils/utils";  
@@ -34,10 +34,7 @@ import { Upcoming } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
-import { 
-    isEmpty, last, isNil, contains, all, not, assoc, flatten, 
-    toPairs, map, compose, allPass, cond, defaultTo, reject 
-} from 'ramda';
+import { isEmpty, last, isNil, contains, all, not, assoc, flatten, toPairs, map, compose, allPass, cond, defaultTo, reject } from 'ramda';
 import { isString } from 'util';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -47,10 +44,7 @@ import { RightClickMenu } from './RightClickMenu';
 import { RepeatPopup } from './RepeatPopup';
 import { Search } from './Search';
 import { filter as lodashFilter } from 'lodash';
-import { 
-    CalendarProps, CalendarEvent, getIcalData, 
-    IcalData, AxiosError, updateCalendars 
-} from './Calendar';
+import { CalendarProps, CalendarEvent, getIcalData, IcalData, AxiosError, updateCalendars } from './Calendar';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 import { generateRandomDatabase } from '../utils/generateRandomObjects';
 import { updateConfig, clearStorage } from '../utils/config';
@@ -60,9 +54,12 @@ import { debounce } from 'lodash';
 const Promise = require('bluebird');   
 const moment = require("moment"); 
 
+
+
 export let filter = (array:any[],f:Function,caller?:string) : any[] => {
     return lodashFilter(array,f); 
 } 
+
 
 
 /**
@@ -70,10 +67,10 @@ export let filter = (array:any[],f:Function,caller?:string) : any[] => {
  */
 export let getDateUpperLimit = (areas:Area[], projects:Project[], todos:Todo[], currentLimit:Date) => {
         let pIds = flatten( projects.map( (p:Project) => p.layout.filter(isString) ) );
-        let aIds = flatten( areas.map( (a:Area) => a.attachedTodosIds ) );
+        
         let attached : Todo[] = filter( 
            todos,
-          (todo:Todo) => contains(todo._id)(pIds) || contains(todo._id)(aIds), 
+          (todo:Todo) => contains(todo._id)(pIds), 
           "getDateUpperLimit"
         );
 

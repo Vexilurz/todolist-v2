@@ -8,7 +8,7 @@ import { generateDropStyle, hideChildrens, removeHeading } from '../../utils/uti
 import { ProjectHeading } from './ProjectHeading';  
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { isEmpty, isNil, not, uniq, contains, drop, map, compose, adjust, findIndex } from 'ramda';
-import { onDrop, removeTodosFromProjects, removeTodosFromAreas, dropTodoOnCategory, findDropTarget } from '../TodosList';
+import { onDrop, removeTodosFromProjects, dropTodoOnCategory, findDropTarget } from '../TodosList';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { arrayMove } from '../../utils/arrayMove';
 import { assert } from '../../utils/assert';

@@ -35,7 +35,6 @@ import {
     generateTagElement, 
     attachDispatchToProps, 
     byNotDeleted, 
-    findAttachedArea,
     findAttachedProject, 
     todoToKeywords,
     getTagsFromItems,

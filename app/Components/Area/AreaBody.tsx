@@ -57,7 +57,9 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         ];
 
         let selectedProjects = filter(projects, allPass(projectsFilters), "");
-        let ids = flatten([area.attachedTodosIds,selectedProjects.map((p) => p.layout.filter(isString))]); 
+
+        let ids = flatten( selectedProjects.map((p) => p.layout.filter(isString)) ); 
+
         let selectedTodos = filter(
             todos, 
             allPass([byNotDeleted, byNotCompleted, (todo:Todo) => contains(todo._id)(ids)]), 

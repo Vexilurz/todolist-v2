@@ -7,8 +7,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
-    byDeleted, byAttachedToProject, byAttachedToArea, 
-    isTodayOrPast, isDeadlineTodayOrPast, 
+    byDeleted, byAttachedToProject, isTodayOrPast, isDeadlineTodayOrPast
 } from "../../utils/utils";  
 import { connect } from "react-redux";
 import Adjustments from 'material-ui/svg-icons/image/tune';
@@ -189,10 +188,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         let trash = filter(todos, allPass([byDeleted]), "trash");  
         let logbook = filter(todos, allPass([byCompleted, byNotDeleted]), "logbook"); 
          
-        let ids = flatten([
-            areas.map((a) => a.attachedTodosIds),
-            projects.map((p) => p.layout.filter(isString) as string[]) 
-        ]) as any;
+        let ids = flatten(projects.map((p) => p.layout.filter(isString) as string[])) as any;
           
         assert(isArrayOfStrings(ids),`ids is not an array of strings. AreasList.`); 
    

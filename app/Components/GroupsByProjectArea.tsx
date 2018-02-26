@@ -46,7 +46,6 @@ import { groupProjectsByArea, generateLayout } from './Area/AreasList';
 
 
 
-
 interface GroupsByProjectAreaProps{
     dispatch:Function, 
     selectedProjectId:string, 
@@ -66,7 +65,6 @@ interface GroupsByProjectAreaProps{
 }
 
 interface GroupsByProjectAreaState{}
-
 export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,GroupsByProjectAreaState>{
 
     constructor(props){
@@ -106,12 +104,6 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                    (todo:Todo) : string => project._id
                 ]
             ),
-            ...selectedAreas.map(
-                (area:Area) : [(todo:Todo) => boolean,(todo:Todo) => string] => [
-                   (todo:Todo) : boolean => contains(todo._id)(area.attachedTodosIds),
-                   (todo:Todo) : string => area._id
-                ]
-            ), 
             [() => true, () => `detached`]
         ];  
 
@@ -130,95 +122,60 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         let detached = defaultTo([])(result.detached); 
 
         return <div> 
-        {
-            isEmpty(detached) ? null :
-            hideDetached ? null :
-            <TodosList            
-                dispatch={this.props.dispatch}     
-                areas={this.props.areas}
-                sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
-                groupTodos={this.props.groupTodos}
-                selectedTodo={this.props.selectedTodo}
-                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                projects={this.props.projects}
-                selectedCategory={this.props.selectedCategory} 
-                selectedAreaId={this.props.selectedAreaId}
-                selectedProjectId={this.props.selectedProjectId}
-                selectedTag={this.props.selectedTag}  
-                rootRef={this.props.rootRef}
-                todos={detached}  
-            /> 
-        } 
-        <div style={{paddingTop:"10px", paddingBottom:"10px", WebkitUserSelect:"none"}}> 
-        {     
-            sortedProjects
-            .map( 
-                (project:Project, index:number) : JSX.Element => {
-                    let category = this.props.selectedCategory;
-                    let todos = defaultTo([])(result[project._id]) as Todo[];
-                    let hide = isNil(project.hide) ? false : contains(category)(project.hide); 
-                    let allCompleted = all((todo:Todo) => isDate(todo.completedWhen), todos);
-                    let dontShow : boolean = isEmpty(todos) || hide || allCompleted;
- 
-                    return dontShow ? null : 
-                    <div key={`project-link-${project._id}`}>  
-                        <ProjectLink {...{project,showMenu:true} as any}/> 
-                        <ExpandableTodosList
-                            dispatch={this.props.dispatch}    
-                            sortBy={this.sortByLayoutOrder(project)}
-                            selectedTag={this.props.selectedTag} 
-                            selectedTodo={this.props.selectedTodo}
-                            selectedAreaId={this.props.selectedAreaId}
-                            moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                            selectedProjectId={this.props.selectedProjectId}
-                            rootRef={this.props.rootRef}
-                            groupTodos={this.props.groupTodos}
-                            selectedCategory={this.props.selectedCategory}
-                            todos={todos} 
-                            areas={this.props.areas}
-                            projects={this.props.projects}
-                            project={project}
-                        />
-                    </div>
-                } 
-            ) 
-        } 
-        </div>
             {
-                /*
-                <div style={{paddingTop:"10px", paddingBottom:"10px", WebkitUserSelect:"none"}}> 
-                    {  
-                        selectedAreas 
-                        .sort((a:Area, b:Area) => a.priority-b.priority)
-                        .map(
-                            (a:Area, index:number) : JSX.Element => {
-                                let todos = defaultTo([])(result[a._id]) as Todo[]; 
-
-                                return isEmpty(todos) ? null : 
-                                <div key={`area${index}`}>
-                                    <AreaLink {...{area:a} as any}/> 
-                                    <ExpandableTodosList
-                                        dispatch={this.props.dispatch}   
-                                        sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
-                                        selectedTag={this.props.selectedTag}  
-                                        selectedTodo={this.props.selectedTodo}
-                                        moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook} 
-                                        rootRef={this.props.rootRef}
-                                        groupTodos={this.props.groupTodos}
-                                        selectedCategory={this.props.selectedCategory}
-                                        selectedAreaId={this.props.selectedAreaId}
-                                        selectedProjectId={this.props.selectedProjectId}
-                                        todos={todos} 
-                                        areas={this.props.areas}
-                                        projects={this.props.projects}
-                                    />
-                                </div>
-                            }
-                        )  
-                    }   
-                </div> 
-                */
-            }
+                isEmpty(detached) ? null :
+                hideDetached ? null :
+                <TodosList            
+                    dispatch={this.props.dispatch}     
+                    areas={this.props.areas}
+                    sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
+                    groupTodos={this.props.groupTodos}
+                    selectedTodo={this.props.selectedTodo}
+                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                    projects={this.props.projects}
+                    selectedCategory={this.props.selectedCategory} 
+                    selectedAreaId={this.props.selectedAreaId}
+                    selectedProjectId={this.props.selectedProjectId}
+                    selectedTag={this.props.selectedTag}  
+                    rootRef={this.props.rootRef}
+                    todos={detached}  
+                /> 
+            } 
+            <div style={{paddingTop:"10px", paddingBottom:"10px", WebkitUserSelect:"none"}}> 
+                {     
+                    sortedProjects
+                    .map( 
+                        (project:Project, index:number) : JSX.Element => {
+                            let category = this.props.selectedCategory;
+                            let todos = defaultTo([])(result[project._id]) as Todo[];
+                            let hide = isNil(project.hide) ? false : contains(category)(project.hide); 
+                            let allCompleted = all((todo:Todo) => isDate(todo.completedWhen), todos);
+                            let dontShow : boolean = isEmpty(todos) || hide || allCompleted;
+        
+                            return dontShow ? null : 
+                            <div key={`project-link-${project._id}`}>  
+                                <ProjectLink {...{project,showMenu:true} as any}/> 
+                                <ExpandableTodosList
+                                    dispatch={this.props.dispatch}    
+                                    sortBy={this.sortByLayoutOrder(project)}
+                                    selectedTag={this.props.selectedTag} 
+                                    selectedTodo={this.props.selectedTodo}
+                                    selectedAreaId={this.props.selectedAreaId}
+                                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                                    selectedProjectId={this.props.selectedProjectId}
+                                    rootRef={this.props.rootRef}
+                                    groupTodos={this.props.groupTodos}
+                                    selectedCategory={this.props.selectedCategory}
+                                    todos={todos} 
+                                    areas={this.props.areas}
+                                    projects={this.props.projects}
+                                    project={project}
+                                />
+                            </div>
+                        } 
+                    ) 
+                } 
+            </div>
         </div> 
     }
 }

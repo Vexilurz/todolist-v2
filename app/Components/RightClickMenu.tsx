@@ -206,27 +206,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         }
     };
 
-
-    removeFromArea = () => {
-        let {areas, dispatch, selectedAreaId, rightClickedTodoId} = this.props;
-        let area : Area = areas.find((a:Area) => a._id===selectedAreaId);
-      
-        if(isNil(area)){ return }
-
-        let idx : number = area.attachedTodosIds.indexOf(rightClickedTodoId);
-
-        if(idx!==-1){
-            dispatch({
-                type:"updateArea",
-                load:{
-                   ...area,
-                   attachedTodosIds:remove(idx,1,area.attachedTodosIds)
-                }
-            });
-        }
-    };
  
-
     onRemoveFromProjectArea = (e) => {
         let {selectedCategory, selectedProjectId, selectedAreaId} = this.props;
 
@@ -234,17 +214,10 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
             equals(selectedCategory,"project"),
             not(isNil(selectedProjectId))
         );
-
-        let areaSelected : boolean = and(
-            equals(selectedCategory,"area"),
-            not(isNil(selectedAreaId))
-        );
-                        
+           
         if(projectSelected){
            this.removeFromProject();
-        }else if(areaSelected){
-           this.removeFromArea();
-        }   
+        }
     };  
 
 

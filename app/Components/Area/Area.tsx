@@ -8,8 +8,8 @@ import { AreaHeader } from './AreaHeader';
 import { AreaBody } from './AreaBody';
 import { debounce } from 'lodash';
 import { Category, filter } from '../MainContainer';
-import { isNil, contains } from 'ramda'; 
-import { isArea, isArrayOfTodos, isArrayOfProjects } from '../../utils/isSomething';
+import { isNil, contains, flatten, compose, map } from 'ramda'; 
+import { isArea, isArrayOfTodos, isArrayOfProjects, isTodo, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
    
   
@@ -47,7 +47,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
         assert(isArea(load), `Load is not an Area. ${load}`);
 
         dispatch({type:"updateArea", load});
-    }
+    };
 
 
     updateAreaName = debounce((value:string) : void => this.updateArea({name:value}),150); 
@@ -55,33 +55,46 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
 
     deleteArea = () => {
         let {area, projects, todos, dispatch} = this.props;
-        
-        
-        let relatedTodosIds : string[] = area.attachedTodosIds;
-        let relatedProjectsIds : string[] = area.attachedProjectsIds;
-        let selectedProjects : Project[] = filter(projects, (p) => contains(p._id)(relatedProjectsIds), "");   
-        let selectedTodos : Todo[] = filter(todos, (t) => contains(t._id)(relatedTodosIds), "");  
-        
 
         assert(isArea(area),`area is not of type Area. onDeleteArea. ${area}`);
+        
+        if(isNil(area)){ return }
 
-        assert(
-            isArrayOfTodos(selectedTodos),
-            `selectedTodos is not of type Todo[]. onDeleteArea. ${selectedTodos}`
-        );
+        //projects attached to area
+        let selectedProjects : Project[] = filter(projects,(p) => contains(p._id)(area.attachedProjectsIds),""); 
 
-        assert(
-            isArrayOfProjects(selectedProjects), 
-            `selectedProjects is not of type Project[]. onDeleteArea. ${selectedProjects}`
-        );
+        //todos attached to projects which attached to area to be removed
+        let selectedTodos : Todo[] = compose(
+            (ids:string[]) => filter(todos, (t) => contains(t._id)(ids), ""),
+            flatten,
+            map((p:Project) => p.layout.filter(isString))
+        )(selectedProjects);
+        
+          
+        assert(isArrayOfTodos(selectedTodos),`selectedTodos is not of type Todo[]. onDeleteArea. ${selectedTodos}`);
+        assert(isArrayOfProjects(selectedProjects),`selectedProjects is not of type Project[]. onDeleteArea. ${selectedProjects}`);
         
         
-        dispatch({ type:"updateTodos", load:selectedTodos.map((t:Todo) : Todo => ({...t,reminder:null,deleted:new Date()})) });
-        dispatch({ type:"updateProjects", load:selectedProjects.map((p:Project) => ({...p,deleted:new Date()})) });
-        dispatch({ type:"updateArea", load:{...area,deleted:new Date()} });     
+        dispatch({ 
+            type:"updateTodos", 
+            load:selectedTodos.map(
+                (t:Todo) : Todo => ({...t,reminder:null,deleted:new Date()})
+            ) 
+        });
+
+        dispatch({ 
+            type:"updateProjects", 
+            load:selectedProjects.map(
+                (p:Project) => ({...p,deleted:new Date()})
+            ) 
+        });
+
+        dispatch({ type:"updateArea", load:{...area,deleted:new Date()} });
+
         dispatch({ type:"selectedCategory", load:"inbox" });
-        dispatch({type:"resetReminders"}); 
-    }
+
+        dispatch({ type:"resetReminders" }); 
+    };
 
 
 

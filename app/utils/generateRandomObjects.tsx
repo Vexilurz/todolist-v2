@@ -97,6 +97,7 @@ export let fakeTodo = (tags:string[], remind = null) : Todo => {
     let deleted = Math.random() < 0.2 ? randomDate(new Date(), new Date()["addDays"](-50)) : undefined; 
     
     let completedSet = checked ? new Date() : null;
+    
     let completedWhen = checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null;                
 
     let reminder = isToday(attachedDate) && isNil(deleted) && not(checked) ?  
@@ -134,8 +135,9 @@ let fakeHeading = () : Heading => {
 
     let k = randomInteger(3) + 2;
     
-    for(let i=0; i<k; i++)
+    for(let i=0; i<k; i++){
         title.push(randomWord());  
+    }
 
     return {
         type : "heading", 
@@ -144,7 +146,6 @@ let fakeHeading = () : Heading => {
         _id : generateId(), 
         key : generateId()
     };  
-
 } 
        
      
@@ -184,29 +185,24 @@ let fakeProject = (attachedTags:string[], layout:LayoutItem[]) : Project => {
     
     
     
-let fakeArea = ( 
-    attachedTodosIds, 
-    attachedProjectsIds,
-    attachedEventsIds, 
-    attachedTags 
-) : Area => {
+let fakeArea = (attachedTodosIds,attachedProjectsIds,attachedEventsIds,attachedTags) : Area => {
     
     let name : string[] = [];
     
     let k = randomInteger(3) + 2;
     
-    for(let i=0; i<k; i++)
-        name.push(randomWord()); 
-        
-
+    for(let i=0; i<k; i++){
+        name.push(randomWord());
+    } 
+    
     let description : string[] = [];
             
     let l = randomInteger(3) + 2;
     
-    for(let i=0; i<l; i++)
+    for(let i=0; i<l; i++){
         description.push(randomWord());  
+    }
 
-    
     return {  
         _id : generateId(),   
         type : "area", 
@@ -216,9 +212,8 @@ let fakeArea = (
         description : description.join(' '),  
         attachedTags, 
         created : randomDate(new Date()["addDays"](-50), new Date()),
-        attachedTodosIds:uniq(attachedTodosIds),   
         attachedProjectsIds:uniq(attachedProjectsIds)
-    }
+    };
 }
     
     

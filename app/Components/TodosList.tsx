@@ -22,38 +22,6 @@ import { arrayMove } from '../utils/arrayMove';
 import { isDev } from '../utils/isDev';
 
 
-export let removeTodoFromAreas = (areas:Area[], todo:Todo) : Area[] => {
-    let load = [];
-
-    if(isNil(todo)){ return areas }
-
-    for(let i=0; i<areas.length; i++){
-        let area = areas[i];
-        if(isNil(area)){ continue }
-
-        let attachedTodosIds = area.attachedTodosIds;
-        let idx = attachedTodosIds.findIndex((id:string) => id===todo._id);
-
-        if(idx!==-1){  
-            load.push({
-              ...area,
-              attachedTodosIds:remove(idx, 1, attachedTodosIds)
-            });
-        }else{
-            load.push(area);
-        }
-    }  
-
-    assert(all((a:Area) => not(contains(todo._id)(a.attachedTodosIds)), load), 'removeTodoFromAreas. incorrect logic.'); 
-    assert(
-        areas.length===load.length, 
-        'removeTodoFromAreas. areas.length should be equal to load.length.'
-    );
-
-    return load;
-};      
-
-
 export let removeTodoFromProjects = (projects:Project[], todo:Todo) : Project[] => {
     let load = [];
 
@@ -109,105 +77,78 @@ export let removeTodosFromProjects =  (projects:Project[], todos:Todo[]) : Proje
 };
 
 
-export let removeTodosFromAreas =  (areas:Area[], todos:Todo[]) : Area[] => {
-    let ids = todos.map( t => t._id );
 
-    let updated = areas.map( 
-        (a:Area) => ({ 
-            ...a, 
-            attachedTodosIds:reject(
-                (item) => contains(item)(ids),
-                a.attachedTodosIds
-            ) 
-        }) 
-    );
+export let dropTodoOnCategory = ({draggedTodo,projects,category,moveCompletedItemsToLogbook}) : Todo => 
+        cond([
+            [
+                equals("inbox"),
+                () : Todo => ({
+                    ...draggedTodo, 
+                    category:"inbox", 
+                    attachedDate:undefined,
+                    deadline:undefined, 
+                    deleted:undefined,
+                    completedSet:null,
+                    completedWhen:null
+                }) 
+            ],
+            [
+                equals("today"),
+                () : Todo => ({
+                    ...draggedTodo, 
+                    category:"today",
+                    attachedDate:new Date(),
+                    deleted:undefined,
+                    completedSet:null,
+                    completedWhen:null
+                })
+            ],
+            [
+                equals("next"),
+                () : Todo => ({
+                    ...draggedTodo, 
+                    category:"next",
+                    deadline:undefined,
+                    attachedDate:undefined,
+                    deleted:undefined,
+                    completedSet:null,
+                    completedWhen:null
+                })
+            ],
+            [
+                equals("someday"),
+                () : Todo => ({
+                    ...draggedTodo, 
+                    category:"someday",
+                    deadline:undefined, 
+                    deleted:undefined,
+                    completedSet:null,
+                    completedWhen:null
+                })
+            ],
+            [
+                equals("trash"),
+                () : Todo => ({
+                    ...draggedTodo, 
+                    reminder:null,
+                    deleted:new Date()
+                })
+            ],
+            [
+                equals("logbook"),
+                () : Todo => ({
+                    ...draggedTodo,
+                    completedSet:new Date(),
+                    completedWhen:getCompletedWhen(moveCompletedItemsToLogbook,new Date()),
+                    deleted:undefined
+                })
+            ],
+            [   
+                () => true, 
+                () : Todo => ({...draggedTodo}) 
+            ]
+        ])(category);
 
-    assert(
-        all(
-            (a:Area) => intersection(a.attachedTodosIds,ids).length===0 , 
-            updated
-        ), 
-        'removeTodosFromAreas. incorrect logic.'
-    ); 
-
-    return updated;
-};
-
-
-export let dropTodoOnCategory = ({  
-    draggedTodo,
-    projects,
-    category,
-    moveCompletedItemsToLogbook
-}) : Todo => cond([
-    [
-        equals("inbox"),
-        () : Todo => ({
-            ...draggedTodo, 
-            category:"inbox", 
-            attachedDate:undefined,
-            deadline:undefined, 
-            deleted:undefined,
-            completedSet:null,
-            completedWhen:null
-        }) 
-    ],
-    [
-        equals("today"),
-        () : Todo => ({
-            ...draggedTodo, 
-            category:"today",
-            attachedDate:new Date(),
-            deleted:undefined,
-            completedSet:null,
-            completedWhen:null
-        })
-    ],
-    [
-        equals("next"),
-        () : Todo => ({
-            ...draggedTodo, 
-            category:"next",
-            deadline:undefined,
-            attachedDate:undefined,
-            deleted:undefined,
-            completedSet:null,
-            completedWhen:null
-        })
-    ],
-    [
-        equals("someday"),
-        () : Todo => ({
-            ...draggedTodo, 
-            category:"someday",
-            deadline:undefined, 
-            deleted:undefined,
-            completedSet:null,
-            completedWhen:null
-        })
-    ],
-    [
-        equals("trash"),
-        () : Todo => ({
-            ...draggedTodo, 
-            reminder:null,
-            deleted:new Date()
-        })
-    ],
-    [
-        equals("logbook"),
-        () : Todo => ({
-            ...draggedTodo,
-            completedSet:new Date(),
-            completedWhen:getCompletedWhen(moveCompletedItemsToLogbook,new Date()),
-            deleted:undefined
-        })
-    ],
-    [   
-        () => true, 
-        () : Todo => ({...draggedTodo}) 
-    ]
-])(category);
 
 
 export let findDropTarget = (event,projects:Project[]) : {project:Project,category:Category} => {
@@ -221,14 +162,13 @@ export let findDropTarget = (event,projects:Project[]) : {project:Project,catego
 };
 
 
-export let onDrop = ({event,draggedTodo,config,projects}) : { projects:Project[], todo:Todo } => { 
 
+export let onDrop = ({event,draggedTodo,config,projects}) : { projects:Project[], todo:Todo } => { 
     let {moveCompletedItemsToLogbook} = config;
     let { project, category } = findDropTarget(event,projects);
     let updatedProjects = removeTodoFromProjects(projects,draggedTodo);
 
     if(isCategory(category)){
-
         return {
             projects:updatedProjects,
             todo:dropTodoOnCategory({
@@ -239,7 +179,6 @@ export let onDrop = ({event,draggedTodo,config,projects}) : { projects:Project[]
             })
         };
     }else if(isProject(project)){
-
         let idx = findIndex((p:Project) => project._id===p._id, updatedProjects);
 
         return {
@@ -254,6 +193,7 @@ export let onDrop = ({event,draggedTodo,config,projects}) : { projects:Project[]
         return {} as any;
     }
 };
+
 
 
 interface TodosListProps{ 
@@ -274,10 +214,9 @@ interface TodosListProps{
     reorderLayout?:boolean     
 }    
 
+
   
 interface TodosListState{}
-
-   
 export class TodosList extends Component<TodosListProps, TodosListState>{
 
     constructor(props){ 

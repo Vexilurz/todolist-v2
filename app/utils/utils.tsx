@@ -1,14 +1,16 @@
 import './../assets/styles.css';     
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
-import {
-    cyan500, cyan700, pinkA200, grey100, grey300, grey400, grey500, white, darkBlack, fullBlack
-} from 'material-ui/styles/colors'; 
-import {fade} from 'material-ui/utils/colorManipulator';
-import {Todo, Project, Area, removeTodos, removeProjects, removeAreas, Heading, LayoutItem} from './../database';
+import { cyan500, cyan700, pinkA200, grey100, grey300, grey400, grey500, white, darkBlack, fullBlack } from 'material-ui/styles/colors'; 
+import { fade } from 'material-ui/utils/colorManipulator';
+import { Todo, Project, Area, removeTodos, removeProjects, removeAreas, Heading, LayoutItem } from './../database';
 import { Category } from '.././Components/MainContainer';
 import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist';
-import { contains, isNil, prepend, isEmpty, last, not, when, flatten, map, compose, cond, remove } from 'ramda'; 
+import { 
+    contains, isNil, prepend, isEmpty, last, not, 
+    when, flatten, map, compose, cond, remove, 
+    complement, equals, prop 
+} from 'ramda'; 
 import { Store } from '.././app';
 import { isDev } from './isDev';
 import { setRepeatedTodos, repeat } from '.././Components/RepeatPopup';
@@ -16,26 +18,38 @@ import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
 import { UpdateCheckResult } from 'electron-updater';
 import { globalErrorHandler } from './globalErrorHandler';
-import {generateId} from './generateId';
-import {assert}  from './assert';
-import {daysRemaining} from './daysRemaining'; 
-import {stringToLength} from './stringToLength';
+import { generateId } from './generateId';
+import { assert }  from './assert';
+import { daysRemaining } from './daysRemaining'; 
+import { stringToLength } from './stringToLength';
 import {
     isItem,isArray,isDate,isFunction,isString,  
     isCategory,bySomeday,isTodo,isArrayOfTodos, 
     isProject,isArrayOfProjects,isArea, 
     isArrayOfAreas,isArrayOfStrings,Item
 } from './isSomething';
-import {generateEmptyTodo} from './generateEmptyTodo';
-let PHE = require("print-html-element");
-var domtoimage = require('dom-to-image');
+import { generateEmptyTodo } from './generateEmptyTodo';
+const PHE = require("print-html-element");
+const domtoimage = require('dom-to-image');
 
+
+
+export let isNotNil = complement(isNil);
+
+
+
+export let isMainWindow = () => {  
+    return remote.getCurrentWindow().id===1; 
+};
+
+
+
+export let typeEquals = (type:string) => compose(equals(type), prop(`type`))
  
 
-export let getTime = (date:Date) : {
-    minutes : number,
-    hours : number
-} => {
+
+export let getTime = (date:Date) : {minutes : number,hours : number} => {
+
     let defaultValue = {minutes:0,hours:0};
 
     if(isDate(date)){
@@ -59,6 +73,7 @@ export let getTime = (date:Date) : {
 
 
 export let setTime = (date:Date, time:{minutes:number,hours:number}) : Date => {
+
     let {minutes,hours} = time;
 
     if(isDate(date)){
@@ -68,6 +83,7 @@ export let setTime = (date:Date, time:{minutes:number,hours:number}) : Date => {
         return updated;
     }else if(isString(date)){
         let target = new Date(date);
+
         if(isDate(target)){
             target.setHours(hours);
             target.setMinutes(minutes);
@@ -324,7 +340,7 @@ export let dateToYearMonthDay = (date:Date) => new Date(date.getFullYear(), date
 
 
 
-export let yearFromDate = (date:Date) => {
+export let yearFromDate = (date:Date) : Date => {
     Date.prototype["addDays"] = function(days) {
         let date = new Date(this.valueOf());
         date.setDate(date.getDate() + days);
@@ -789,13 +805,6 @@ export let attachEmptyTodo = (selectedCategory:Category) => (todos:Todo[]) => {
 };
 
 
-export let findAttachedArea = (areas:Area[]) => (t:Todo) : Area => {
-    for(let i=0; i<areas.length; i++){
-        if(contains(t._id)(areas[i].attachedTodosIds)){ return areas[i] }
-    }
-    return undefined;             
-}; 
- 
 
 export let findAttachedProject = (projects:Project[]) => (t:Todo) : Project => {
     for(let i=0; i<projects.length; i++){
@@ -805,13 +814,6 @@ export let findAttachedProject = (projects:Project[]) => (t:Todo) : Project => {
     return undefined;     
 };  
 
-
-export let byAttachedToArea = (areas:Area[]) => (t:Todo) : boolean => {
-    for(let i=0; i<areas.length; i++){
-        if(contains(t._id)(areas[i].attachedTodosIds)){ return true }
-    }
-    return false;             
-}; 
 
 
 export let byAttachedToProject = (projects:Project[]) => (t:Todo) : boolean => {
@@ -1052,7 +1054,6 @@ export let generateEmptyArea = () : Area => ({
     created : new Date(), 
     description : "",
     attachedTags : [], 
-    attachedTodosIds : [],  
     attachedProjectsIds : [],
 });
 
