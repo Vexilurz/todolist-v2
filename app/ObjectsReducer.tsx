@@ -53,7 +53,6 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
             return newState;
         },  
         cond([  
-
             [
                 typeEquals("updateTodoById"),  
                 (action:{ type:string, load: {id:string,props:any} }) : Store => {
@@ -87,12 +86,8 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
                         return{ ...state, todos:adjust(() => todo, idx, state.todos) }; 
                     }
-
                 }
             ],
-
-           
-
 
             [
                 typeEquals('updateConfig'),  

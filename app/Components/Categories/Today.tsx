@@ -519,7 +519,7 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                 wholeDay
                 .map(  
                     (event) => 
-                    <div   key={`event-${event.name}`} style={{padding:"1px"}}>
+                    <div key={`event-${event.name}`} style={{padding:"1px"}}>
                     <div style={{display:"flex",height:"20px",alignItems:"center"}}>
                         <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
                         <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
@@ -527,13 +527,27 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                         </div>
                     </div>
                     </div> 
-                )  
+                )   
             }
             {
                 timed
-                .map(  
+                .sort((a:CalendarEvent,b:CalendarEvent) => { 
+                    let aTime = 0;
+                    let bTime = 0;
+                
+                    if(isDate(a.start)){
+                        aTime = a.start.getTime(); 
+                    }
+
+                    if(isDate(b.start)){
+                        bTime = b.start.getTime(); 
+                    }
+                    
+                    return aTime-bTime;
+                })
+                .map(   
                     (event) => 
-                    <div  key={`event-${event.name}`} style={{padding:"1px"}}>
+                    <div key={`event-${event.name}`} style={{padding:"1px"}}>
                         <div style={{display:"flex",height:"20px",alignItems:"center"}}>
                         <div style={{paddingLeft:"5px", fontSize:"14px", fontWeight:500}}>
                             {timeOfTheDay(event.start)}

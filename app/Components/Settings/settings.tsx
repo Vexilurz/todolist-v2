@@ -1105,7 +1105,6 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                                 display:"flex",
                                 alignItems:"center",
                                 cursor:"pointer",  
-                                paddingLeft:"30px",
                                 color:"rgba(100, 100, 100, 0.6)"
                             }}
                         >     

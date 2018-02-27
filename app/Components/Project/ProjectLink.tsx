@@ -243,6 +243,7 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                     > 
                         <div 
                             ref={ (e) => { this.actionsAnchor=e; } }
+                            style={{paddingRight:"27px"}}
                             onClick = {(e) => { 
                                 e.stopPropagation();
                                 this.setState({openMenu:true}); 
@@ -273,13 +274,13 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                     <div    
                         className={"darkscroll"}
                         style={{  
-                            backgroundColor: "rgb(39, 43, 53)",
-                            paddingRight: "10px",
-                            paddingLeft: "10px",
-                            borderRadius: "10px",
-                            paddingTop: "5px",
-                            paddingBottom: "5px",
-                            cursor:"pointer" 
+                          backgroundColor:"rgb(39, 43, 53)",
+                          paddingRight:"10px",
+                          paddingLeft:"10px",
+                          borderRadius:"10px", 
+                          paddingTop:"5px",
+                          paddingBottom:"5px",
+                          cursor:"pointer" 
                         }} 
                     >    
                         <div  

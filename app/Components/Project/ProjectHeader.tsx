@@ -233,7 +233,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                 </div>   
             </div> 
             {      
-                isNil(project.deadline) ? null :        
+                isNil(project.deadline) ? null :         
                 <div  
                     className="unselectable"
                     style={{ 

@@ -7,12 +7,12 @@ import { Project, Area, Todo } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import { attachDispatchToProps } from '../../utils/utils'; 
 import Restore from 'material-ui/svg-icons/content/undo';
-import { contains, isEmpty, compose, map, flatten, isString } from 'ramda';
+import { contains, isEmpty, compose, map, flatten } from 'ramda';
 import { Store } from '../../app';
 import { connect } from "react-redux";
 import { filter } from '../MainContainer';
 import { assert } from '../../utils/assert';
-import { isArrayOfTodos, isArrayOfProjects } from '../../utils/isSomething';
+import { isArrayOfTodos, isArrayOfProjects, isString } from '../../utils/isSomething';
 
 interface AreaLinkProps extends Store{area : Area}
 interface AreaLinkState{} 
@@ -86,9 +86,9 @@ export class AreaTrashLink extends Component<AreaTrashLinkProps,AreaTrashLinkSta
         let selectedTodos : Todo[] = compose(
             (ids:string[]) => filter(todos, (t) => contains(t._id)(ids), ""),
             flatten,
-            map((p:Project) => p.layout.filter(isString))
+            (selectedProjects) => selectedProjects.map((p:Project) => p.layout.filter(isString))
         )(selectedProjects);
-        
+         
 
         assert(isArrayOfTodos(selectedTodos),`selectedTodos is not of type Todo[]. restoreArea. ${selectedTodos}`);
         assert(isArrayOfProjects(selectedProjects),`selectedProjects is not of type Project[]. restoreArea. ${selectedProjects}`);

@@ -13,7 +13,7 @@ import {
     attachDispatchToProps, transformLoadDates, yearFromNow, convertTodoDates, 
     convertProjectDates, convertAreaDates, timeDifferenceHours, 
     convertDates, checkForUpdates, isNewVersion, nextMidnight,
-    oneMinuteBefore, threeDaysLater, findWindowByTitle 
+    oneMinuteBefore, threeDaysLater, findWindowByTitle, keyFromDate 
 } from "./utils/utils";  
 import {wrapMuiThemeLight} from './utils/wrapMuiThemeLight'; 
 import {
@@ -249,17 +249,18 @@ export class App extends Component<AppProps,{}>{
             Observable.interval(15000).subscribe((v) => dispatch({type:'update'})), 
 
             Observable.interval(60000).subscribe(() => { 
-                let target = path.resolve(__dirname, "db_backup");
+                let target = path.resolve(os.homedir(), "tasklist");
 
-                if(!fs.existsSync(target)){ fs.mkdirSync(target); }
-                let to = path.resolve(target, `db_backup.json`);
+                if(not(fs.existsSync(target))){ fs.mkdirSync(target); }
+
+                let to = path.resolve(target, `db_backup_${keyFromDate(new Date())}.json`);
                  
                 getDatabaseObjects(this.onError,1000000)
                 .then(([calendars,projects,areas,todos]) => 
                     writeJsonFile(
                         { database : { todos, projects, areas, calendars } },
                         to 
-                    ) 
+                    )  
                     .then((err) => ({err,to}))
                 )
             }),  
@@ -376,7 +377,7 @@ export class App extends Component<AppProps,{}>{
                                 <div style={{position:"absolute", top:0, right:5, cursor:"pointer", zIndex:200}}>   
                                     <div   
                                         style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
-                                        onClick={() => this.setState({showPopup:false})}
+                                        onClick={() => this.props.dispatch({type:"showLicense",load:false})}
                                     >
                                         <Clear style={{color:"rgba(100,100,100,0.5)",height:25,width:25}}/>
                                     </div>
