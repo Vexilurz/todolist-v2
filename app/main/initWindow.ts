@@ -38,20 +38,23 @@ export let initWindow = (
 
 export let initQuickEntry = ({width,height}:{width:number,height:number}):BrowserWindow => { 
     Menu.setApplicationMenu(null);   
+
+    let icon = path.resolve(__dirname,'icon.ico');
     let handler = new BrowserWindow({   
         width,          
+        icon,
         height,      
         show:false, 
-        useContentSize:true, 
+        useContentSize:true,  
         title:'Quick Entry',    
         center:true,       
-        frame:false    
-    } as any);               
+        minimizable:false,
+        frame:true    
+    } as any);                
   
-    handler.setResizable(false); 
+    handler.setResizable(true); 
     handler.setMovable(true); 
     handler.setSkipTaskbar(true);
-    handler.on('closed', () => {handler = null;}); 
     handler.hide(); 
     return handler;  
 };        

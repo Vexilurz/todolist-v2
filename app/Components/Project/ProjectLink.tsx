@@ -20,6 +20,8 @@ import Hide from 'material-ui/svg-icons/action/visibility-off';
 import Count from 'material-ui/svg-icons/editor/format-list-numbered';
 import { assert } from '../../utils/assert';
 import { uppercase } from '../../utils/uppercase';
+import { isDate } from '../../utils/isSomething';
+import { daysRemaining } from '../../utils/daysRemaining';
 
 
 export let getProgressStatus = (
@@ -45,8 +47,7 @@ export let getProgressStatus = (
 
 interface ProjectLinkProps extends Store{
     project:Project,
-    showMenu:boolean,
-    removeUnderline?:boolean
+    showMenu:boolean
 }
  
 
@@ -120,26 +121,35 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
 
     
     render(){ 
-        let { dispatch,project,todos,selectedCategory,showMenu,removeUnderline } = this.props;
+        let { dispatch,project,todos,selectedCategory,showMenu } = this.props;
         let { done,left } = getProgressStatus(project, todos, false); 
         let totalValue = (done+left)===0 ? 1 : (done+left);
         let currentValue = done;
 
+        let flagColor = "rgba(100,100,100,0.7)";
+        let daysLeft = 0;  
+
+        if(isDate(project.deadline)){      
+           daysLeft = daysRemaining(project.deadline);        
+           flagColor = daysLeft <= 1 ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
+        }     
+
+
         return <li  
             onClick={this.openProject}    
-            style={{width:"100%", overflow:"hidden"}}   
-            className={removeUnderline ? "" : "listHeading"}
+            style={{width:"100%"}}   
+            className={"upcomingListHeading"}
         >      
         <div   
             id = {project._id}        
             style={{    
                 height:"30px",   
                 paddingRight:"6px",  
+                paddingLeft:"19px",
                 cursor:"default",
                 width:"100%",
                 display:"flex",  
-                alignItems:"center",
-                paddingLeft:"22px" 
+                alignItems:"center"
             }}
         >     
                 <div style={{     
@@ -182,10 +192,8 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                     </div>
                 </div> 
                 <div   
-                    id = {project._id}   
+                    id={project._id}   
                     style={{   
-                        width:"80%", 
-                        overflowX:"hidden", 
                         fontSize:"15px",    
                         paddingLeft:"5px", 
                         WebkitUserSelect:"none",
@@ -198,32 +206,25 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                 {
                     isNil(project.deadline) ? null :
                     selectedCategory!=="upcoming" ? null :
-                    <div   
-                        style={{
-                            width:"30px",  
-                            height:"30px",
-                            flexGrow:1 as number,
-                            paddingLeft:"5px",
-                            paddingRight:"10px",
-                            display:"flex", 
-                            justifyContent:"flex-end",
-                            cursor:"default"
-                        }} 
-                    >  
-                        <div 
-                            ref={(e) => { this.actionsAnchor=e; }}
-                            onClick={(e) => { e.stopPropagation(); }}  
-                        >   
+                    <div style={{
+                        height: "30px",
+                        paddingRight:"45px",
+                        display:"flex",
+                        flexGrow:1,
+                        cursor:"default",
+                        justifyContent:"flex-end"
+                    }}>  
+                        <div ref={(e) => { this.actionsAnchor=e; }} onClick={(e) => { e.stopPropagation(); }}>   
                             <Flag style={{
                                 paddingRight:"5px", 
                                 paddingTop:"5px", 
-                                color:"rgba(100,100,100,1)",
+                                color:flagColor,
                                 width:"20px",
-                                height:"20px",
+                                height:"20px", 
                                 cursor:"default" 
                             }}/>
                         </div> 
-                        {daysLeftMark(false, project.deadline)}
+                        {daysLeftMark(false,project.deadline)}
                     </div>  
                 }
                 { 

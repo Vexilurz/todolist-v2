@@ -31,7 +31,7 @@ import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import { ipcRenderer, remote } from 'electron'; 
-import TextField from 'material-ui/TextField';  
+import AutosizeInput from 'react-input-autosize';
 import List from 'material-ui/svg-icons/action/list';
 import { 
     cond, assoc, isNil, not, defaultTo, map,  isEmpty, 
@@ -46,7 +46,6 @@ import Inbox from 'material-ui/svg-icons/content/inbox';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 let uniqid = require("uniqid"); 
-import AutosizeInput from 'react-input-autosize';
 import Clear from 'material-ui/svg-icons/content/clear';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -68,9 +67,10 @@ import { SortableContainer } from './Components/CustomSortableContainer';
 import { arrayMove } from './utils/arrayMove';
 import { ChecklistItem, Checklist } from './Components/TodoInput/TodoChecklist';
 import { globalErrorHandler } from './utils/globalErrorHandler';
-import { isString } from './utils/isSomething';
+import { isString, isDate } from './utils/isSomething';
 import { isToday } from './utils/utils';
 import { isDev } from './utils/isDev';
+import TextareaAutosize from 'react-autosize-textarea';
 injectTapEventPlugin();  
 
 
@@ -264,9 +264,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     };
     
 
-    onWindowEnterPress = (e) => e.keyCode===13 ? this.onSave() : null;   
-
-
     clear = () => {
         let window = remote.getCurrentWindow();
         if(window){ window.blur(); }
@@ -299,13 +296,13 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     }; 
 
 
-    onNoteChange = (event,newValue:string) : void => {
-        this.setState({note:newValue})
+    onNoteChange = (event) : void => {
+        this.setState({note:event.target.value})
     };
 
 
-    onTitleChange = (event,newValue:string) : void => {
-        this.setState({title:newValue})
+    onTitleChange = (event:any) : void => {
+        this.setState({title:event.target.value})
     };  
 
 
@@ -345,19 +342,8 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
     onRemoveSelectedCategoryLabel = () => {
-        let { category, attachedDate, deadline } = this.state; 
-
-        let attachedDateToday = isToday(attachedDate);
-        let deadlineToday = isToday(deadline);
-        let todayCategory : boolean = attachedDateToday || deadlineToday;
-
-        let somedayCategory = category==="someday";
-
-        if(todayCategory){
-           this.setState({category:'inbox', attachedDate:null, deadline:null});  
-        }else if(somedayCategory){                            
-           this.setState({category:'inbox'}); 
-        }  
+        let { category, attachedDate, deadline } = this.state;   
+        this.setState({category:'inbox', attachedDate:null}); 
     };     
 
 
@@ -373,21 +359,18 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
  
     onRemoveAttachedDateLabel = () => {
         let {category,deadline} = this.state;
-        this.setState({attachedDate:null,category:isNil(deadline) ? "inbox" : category});
+        this.setState({category:isNil(deadline) ? "inbox" : category, attachedDate:null}); 
     };
 
 
     onCalendarClear = (e) => {
         let {category,deadline} = this.state;
-        this.setState(
-            {category:isNil(deadline) ? "inbox" : category,attachedDate:null}, 
-            () => this.closeDateCalendar()
-        );
+        this.setState({category:isNil(deadline) ? "inbox" : category, attachedDate:null}); 
     }; 
 
 
     onDeadlineCalendarClear = (e:any) : void => {
-        let { category, attachedDate } = this.state;
+        let {category, attachedDate} = this.state;
         this.setState(
             {deadline:null, category:isNil(attachedDate) ? "inbox" : category},
             () => this.closeDeadlineCalendar()
@@ -418,40 +401,17 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         this.setState({category:"evening", attachedDate:new Date()}, () => this.closeDateCalendar()); 
     };
 
+
     render(){  
         let {category,attachedDate} = this.state;
         let todayCategory : boolean = category==="evening" || category==="today"; 
 
         return <div style={{display:"flex",flexDirection:"column",width:"100%",height:"100%"}}>
-            <div 
-                className="dragItem" 
-                style={{
-                    width:"100%",
-                    position:"relative",
-                    height:"40px",
-                    backgroundColor:"rgba(10,80,255,0.8)",
-                    display:"flex",
-                    alignItems:"center",
-                    justifyContent:"center"
-                }}
-            >
-                <div style={{fontWeight:500,color:"white"}}>Quick Entry</div>
-                <div style={{position:"absolute",right:10,cursor:"pointer",zIndex:200}}>   
-                    <div    
-                        className="noDragItem" 
-                        style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
-                        onClick={() => this.clear()}
-                    >
-                        <Clear style={{color:"rgba(255,255,255,1)",height:25,width:25}}/>
-                    </div>
-                </div>
-            </div>
-        
         <div  
             ref={(e) => { this.ref=e; }}  
             style={{                    
                 display:"flex",
-                overflowX:"hidden", 
+                overflow:"hidden", 
                 justifyContent:"flex-start",
                 height:"100%",
                 position:"relative", 
@@ -461,30 +421,44 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         >     
             <div style={{width:"100%"}}>    
             <div style={{
-                display:"flex", height:"25px", alignItems:"center", 
-                width:"100%", marginLeft:"10px", paddingLeft:"20px" ,
-                marginRight:"10px", marginTop:"5px", marginBottom:"5px" 
+                display:"flex", 
+                height:"25px", 
+                alignItems:"center", 
+                width:"100%", 
+                marginLeft:"10px", 
+                paddingLeft:"20px" , 
+                marginRight:"10px", 
+                marginTop:"5px", 
+                marginBottom:"5px",
+                paddingTop:"10px",
+                paddingBottom:"10px" 
             }}>
-                <TextField   
-                    ref={e => {this.inputRef=e;}}
-                    onKeyDown={this.onWindowEnterPress}
-                    id={`todo-input-shortcut`}
-                    value={this.state.title} 
-                    hintText="New To-Do" 
-                    fullWidth={true}  
-                    hintStyle={{top:"3px", left:0, height:"25px", color:"rgba(0,0,0,0.7)"}}      
-                    onChange={this.onTitleChange} 
-                    style={{display:"flex", alignItems:"center", width:"100%", height:"25px", cursor:"default"}}       
-                    inputStyle={{        
-                        height:"25px",
-                        color:"black", fontSize:"16px", 
-                        cursor:"default", boxSizing:"content-box", 
-                        backgroundColor:"rgba(0,0,0,0)",
-                        border:"none", outline:"none"  
+                <TextareaAutosize 
+                    placeholder="New Task"
+                    innerRef={e => {this.inputRef=e;}}
+                    onKeyDown={(event) => { 
+                        if(event.which===13 || event.keyCode===13){
+                           event.stopPropagation(); 
+                           event.preventDefault();
+                           this.onSave();
+                        }      
                     }} 
-                    underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}} 
-                    underlineStyle={{borderColor:"rgba(0,0,0,0)"}}   
-                />  
+                    value={this.state.title}
+                    onChange={this.onTitleChange as any} 
+                    style={{
+                        resize:"none",
+                        marginTop:"-4px",
+                        width:"100%",
+                        fontSize:"inherit",
+                        padding:"0px",
+                        cursor:"default",
+                        position:"relative",
+                        border:"none",  
+                        outline:"none",
+                        backgroundColor:"rgba(0, 0, 0, 0)",
+                        color:"rgba(0, 0, 0, 0.87)" 
+                    }}
+                /> 
             </div> 
             <div style={{
                 transition:"opacity 0.2s ease-in-out",
@@ -493,21 +467,27 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                 width:"100%",
                 marginLeft:"30px",
                 paddingRight:"25px"  
-            } as any}>        
-                <TextField   
-                    id={`always-note`}  
-                    value={this.state.note} 
-                    hintText="Notes"
-                    multiLine={true}    
-                    rows={1}
-                    fullWidth={true}  
-                    onChange={this.onNoteChange}  
-                    onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
-                    hintStyle={{color:"rgba(0,0,0,0.7)"}}
-                    inputStyle={{fontSize:"14px"}} 
-                    underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}} 
-                    underlineStyle={{borderColor:"rgba(0,0,0,0)"}}  
-                />  
+            } as any}>    
+                <TextareaAutosize
+                id={`always-note`}  
+                value={this.state.note} 
+                placeholder="Notes"
+                onChange={this.onNoteChange}
+                style={{
+                    resize:"none",
+                    marginTop:"-4px",
+                    width:"100%",
+                    fontSize:"14px",
+                    padding:"0px",
+                    cursor:"default", 
+                    position:"relative", 
+                    border:"none",
+                    outline:"none",
+                    backgroundColor:"rgba(0, 0, 0, 0)",
+                    color:"rgba(0, 0, 0, 0.87)" 
+                }}
+                onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); }}}
+                /> 
             </div>
             </div> 
                 <div 
@@ -517,17 +497,17 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                         width:"85%",
                         height:"50%", 
                         paddingBottom:"80px",
-                        paddingRight:"30px",
-                        paddingLeft:"20px"
+                        paddingRight:"30px"
                     }}
                 > 
                     {    
-                        !this.state.showChecklist ? null :  
+                        not(this.state.showChecklist) ? null : 
+                        <div> 
                         <Checklist  
                             checklist={this.state.checklist}   
                             closeChecklist={() => this.setState({showChecklist:false})}
                             updateChecklist={
-                                (checklist:ChecklistItem[]) => { 
+                                (checklist:ChecklistItem[]) => {  
                                     this.setState(
                                         {checklist}, 
                                         () => {
@@ -537,6 +517,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                                 }
                             } 
                         />  
+                        </div>
                     } 
                     {  
                         <TodoTags   
@@ -672,13 +653,43 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                 <TodoInputPopupFooter
                     onCancel={this.clear}
                     onSave={this.onSave}
-                    onRemoveSelectedCategoryLabel={this.onRemoveSelectedCategoryLabel}
-                    onRemoveAttachedDateLabel={this.onRemoveAttachedDateLabel}
-                    onRemoveDeadlineLabel={this.onDeadlineCalendarClear}
                     todayCategory={todayCategory}
                     category={this.state.category}
                     attachedDate={this.state.attachedDate}
                     deadline={this.state.deadline}
+
+                    onRemoveTodayLabel={() => {
+                        let {deadline,attachedDate} = this.state;
+                        
+                        if(isToday(deadline) && isToday(attachedDate)){
+                            this.setState({category:"inbox", attachedDate:null, deadline:null});
+                        }else if(isToday(deadline)){
+                            this.setState({category:"inbox", deadline:null});
+                        }else if(isToday(attachedDate)){
+                            this.setState({category:"inbox", attachedDate:null});
+                        }
+                    }}
+                    onRemoveUpcomingLabel={() => {
+                        let {deadline,attachedDate} = this.state;
+                        
+                        if(isDate(deadline)){
+                           this.setState({attachedDate:null});
+                        }else{
+                           this.setState({category:"inbox", attachedDate:null});
+                        }
+                    }}
+                    onRemoveSomedayLabel={() => {
+                        this.setState({category:"inbox", attachedDate:null});
+                    }}
+                    onRemoveDeadlineLabel={() => {
+                        let {deadline,attachedDate} = this.state;
+                        
+                        if(isDate(attachedDate)){ 
+                           this.setState({deadline:null});
+                        }else{
+                           this.setState({category:"inbox", deadline:null});
+                        }
+                    }}
                 /> 
             </div> 
     </div> 
@@ -690,8 +701,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 interface TodoInputPopupFooterProps{  
     onCancel:Function,
     onSave:Function,
-    onRemoveSelectedCategoryLabel:Function,
-    onRemoveAttachedDateLabel:Function,
+    onRemoveTodayLabel:Function,
+    onRemoveUpcomingLabel:Function,
+    onRemoveSomedayLabel:Function,
     onRemoveDeadlineLabel:Function,
     todayCategory:boolean,
     category:string,
@@ -710,18 +722,18 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
     ref:HTMLElement;
 
     constructor(props){
-        super(props);
+        super(props); 
         this.state={selectorPopupOpened:false}
     }
 
 
     closeSelectorPopup = () => {
-        this.setState({selectorPopupOpened:false})
+        this.setState({selectorPopupOpened:false});
     }
 
 
     render(){
-        let { selectorPopupOpened } = this.state;
+        let {selectorPopupOpened} = this.state;
 
         return <div style={{
             backgroundColor:"rgb(234, 235, 239)",
@@ -731,7 +743,7 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
             width:"100%"
         }}>     
                 <div 
-                    ref = {e => {this.ref=e;}}
+                    ref={e => {this.ref=e;}}
                     style={{
                         display:"flex", 
                         alignItems:"center",
@@ -743,9 +755,10 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
                     }}  
                 >  
                     <TodoInputLabels 
-                        onRemoveSelectedCategoryLabel={this.props.onRemoveSelectedCategoryLabel}
-                        onRemoveAttachedDateLabel={this.props.onRemoveAttachedDateLabel}
-                        onRemoveDeadlineLabel={this.props.onRemoveDeadlineLabel} 
+                        onRemoveTodayLabel={this.props.onRemoveTodayLabel}
+                        onRemoveUpcomingLabel={this.props.onRemoveUpcomingLabel}
+                        onRemoveSomedayLabel={this.props.onRemoveSomedayLabel}
+                        onRemoveDeadlineLabel={this.props.onRemoveDeadlineLabel}
                         todayCategory={this.props.todayCategory}
                         open={true} 
                         category={this.props.category}
@@ -947,134 +960,122 @@ class TagsPopup extends Component<TagsPopupProps,{}>{
 
 
 
-interface TodoTagsProps{
-    tags:string[],
-    attachTag:(tag:string) => void,
-    removeTag:(tag:string) => void,
-}    
-
-interface TodoTagsState{
-    tag:string
-}
- 
-class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
-
-    constructor(props){
-        super(props);
-        this.state={ tag:'' };  
-    } 
+    interface TodoTagsProps{
+        tags:string[],
+        attachTag:(tag:string) => void,
+        removeTag:(tag:string) => void,
+    }    
     
+    interface TodoTagsState{tag:string}
+     
+    export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
     
-    onEnterPress = (e) => { 
-
-        if(e.keyCode!==13){ return }
+        constructor(props){
+            super(props);
+            this.state={ tag:'' };  
+        } 
         
-        e.stopPropagation(); 
-
-        let {attachTag} = this.props;
-        let {tag} = this.state;
-        attachTag(tag);
-        this.setState({tag:''}); 
-    }
+        
+        onEnterPress = (e) => { 
+            if(e.keyCode!==13){ return }
+            e.stopPropagation(); 
     
-
-    onRemoveTag = (tag:string) => () => {
-        let {removeTag} = this.props;
-        removeTag(tag);
-    }
+            let {attachTag} = this.props;
+            let {tag} = this.state;
+            attachTag(tag);
+            this.setState({tag:''}); 
+        };
+        
     
+        onRemoveTag = (tag:string) => () => {
+            let {removeTag} = this.props;
+            removeTag(tag);
+        };
+        
+        
+        render(){
+            let {attachTag} = this.props;
+            let {tag} = this.state;
     
-    render(){
-        let {attachTag} = this.props;
-        let {tag} = this.state;
-
-        return <div
-            onClick={(e) => {e.stopPropagation();}} 
-            style={{
-                display:"flex", 
-                paddingTop:"5px",
-                paddingBottom:"5px",
-                width:"100%",
-                flexWrap:"wrap" 
-            }}
-        >
-            {      
-                this.props.tags
-                .sort((a:string,b:string) : number => a.localeCompare(b))
-                .map( 
-                    (tag:string, index:number) => 
-                    <div  
-                        key={`${tag}-${index}`} 
-                        style={{ 
-                            paddingLeft:"4px", 
-                            paddingRight:"4px", 
-                            paddingTop:"4px",  
-                            cursor:"default",  
-                            WebkitUserSelect:"none"
-                        }}   
-                    > 
-                        <div style={{
-                            borderRadius:"15px", 
-                            backgroundColor:"rgb(189,219,209)",
-                            paddingLeft:"5px",
-                            paddingRight:"5px",
-                            display:"flex"   
-                        }}>
-                            <div style={{  
-                                height:"15px",
-                                display:"flex",
-                                alignItems:"center",
-                                padding:"4px", 
-                                color:"rgb(115,167,152)",
-                                fontWeight: 600    
-                            }}> 
-                                {uppercase(tag)} 
-                            </div> 
-                            <div  
-                              style={{padding:"2px",alignItems:"center",display:"flex"}} 
-                              onClick={this.onRemoveTag(tag)}
+            return <div
+              onClick={(e) => {e.stopPropagation();}} 
+              style={{display:"flex",paddingTop:"5px",paddingBottom:"5px",flexWrap:"wrap"}}
+            >
+                {      
+                    this.props.tags
+                    .sort((a:string,b:string) : number => a.localeCompare(b))
+                    .map( 
+                        (tag:string, index:number) => 
+                        <div  
+                            key={`${tag}-${index}`} 
+                            style={{ 
+                                paddingLeft:"4px", 
+                                paddingRight:"4px", 
+                                paddingTop:"4px",  
+                                cursor:"default",  
+                                WebkitUserSelect:"none"
+                            }}   
+                        > 
+                            <div 
+                                style={{
+                                    borderRadius:"15px", 
+                                    backgroundColor:"rgb(189,219,209)",
+                                    paddingLeft:"5px",
+                                    paddingRight:"5px",
+                                    display:"flex"   
+                                }}
                             >
-                                <Clear style={{color:"rgba(100,100,100,0.5)",height:20,width:20}}/>
-                            </div>
+                                <div 
+                                    style={{  
+                                        height:"15px",
+                                        display:"flex",
+                                        alignItems:"center",
+                                        padding:"4px", 
+                                        color:"rgb(115,167,152)",
+                                        fontWeight: 600    
+                                    }} 
+                                > 
+                                    {uppercase(tag)} 
+                                </div> 
+                                <div  
+                                  style={{padding:"2px",alignItems:"center",display:"flex",cursor:"pointer"}} 
+                                  onClick={this.onRemoveTag(tag)}
+                                >
+                                    <Clear style={{color:"rgba(100,100,100,0.5)",height:20,width:20}}/>
+                                </div>
+                            </div> 
                         </div> 
-                    </div> 
-                )   
-            }
-            <div
-                style={{ 
-                    display:"flex",
-                    alignItems:"center",
-                    justifyContent:"center"
-                }}
-            >   
-                <AutosizeInput   
-                    type="text"  
-                    name="form-field-name-tag"   
-                    minWidth={40}
-                    style={{ 
-                        display:"flex", 
-                        alignItems:"center",      
-                        cursor:"default"  
-                    }}            
-                    inputStyle={{                
-                        color:"black",  
-                        fontSize:"16px",  
-                        cursor:"default", 
-                        caretColor:"cornflowerblue",  
-                        boxSizing:"content-box", 
-                        backgroundColor:"rgba(0,0,0,0)",
-                        border:"none",  
-                        outline:"none"   
-                    }}  
-                    placeholder=""  
-                    value={this.state.tag} 
-                    onKeyDown={this.onEnterPress} 
-                    onChange={(event) => this.setState({tag:event.target.value})} 
-                /> 
+                    )   
+                }
+                <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>   
+                    <AutosizeInput   
+                        type="text"  
+                        name="form-field-name-tag"   
+                        minWidth={40}
+                        style={{display:"flex", alignItems:"center", cursor:"default"}}            
+                        inputStyle={{                
+                            color:"black",  
+                            fontSize:"16px",  
+                            cursor:"default", 
+                            caretColor:"cornflowerblue",  
+                            boxSizing:"content-box", 
+                            backgroundColor:"rgba(0,0,0,0)",
+                            border:"none",  
+                            outline:"none"   
+                        }}  
+                        placeholder=""  
+                        value={this.state.tag} 
+                        onKeyDown={this.onEnterPress} 
+                        onChange={(event) => this.setState({tag:event.target.value})} 
+                    /> 
+                </div>
             </div>
-        </div>
+        }
     }
-}
+
+
+
+
 
 
 interface TodoInputLabelProps{
@@ -1346,9 +1347,10 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
 
 
 interface TodoInputLabelsProps{
-    onRemoveSelectedCategoryLabel
-    onRemoveAttachedDateLabel
-    onRemoveDeadlineLabel 
+    onRemoveTodayLabel:Function,
+    onRemoveUpcomingLabel:Function,
+    onRemoveSomedayLabel:Function,
+    onRemoveDeadlineLabel:Function,
     todayCategory:boolean,
     open:boolean,
     category:string,
@@ -1379,7 +1381,7 @@ class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLabelsStat
                 paddingLeft:"5px"  
             }}>      
                 <TodoInputLabel 
-                    onRemove={this.props.onRemoveSelectedCategoryLabel}
+                    onRemove={this.props.onRemoveTodayLabel}
                     category={category}
                     content={  true ? null :
                         <div style={{marginLeft:"15px"}}>
@@ -1397,7 +1399,7 @@ class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLabelsStat
                 paddingLeft:"5px"  
             }}>      
                 <TodoInputLabel 
-                    onRemove={this.props.onRemoveSelectedCategoryLabel}
+                    onRemove={this.props.onRemoveSomedayLabel}
                     category={category}
                     content={  true ? null :
                         <div style={{marginLeft:"15px"}}>
@@ -1414,7 +1416,7 @@ class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLabelsStat
                 opacity:open ? 1 : 0
             }}>    
                 <TodoInputLabel 
-                    onRemove={this.props.onRemoveAttachedDateLabel}
+                    onRemove={this.props.onRemoveUpcomingLabel}
                     category={"upcoming"}
                     content={  true ? null :
                         <div style={{marginLeft:"15px", color:"black"}}>
@@ -1483,15 +1485,14 @@ class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCalendarS
   
 
     onOutsideClick = (e) => {
-        if(this.ref===null || this.ref===undefined)
-            return; 
+        if(isNil(this.ref)){ return }
 
         let x = e.pageX;
         let y = e.pageY; 
 
         let inside = insideTargetArea(null,this.ref,x,y);
     
-        if(!inside){
+        if(not(inside)){
             this.props.close(); 
         }   
     }   

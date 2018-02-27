@@ -27,8 +27,6 @@ import ShareIcon from 'material-ui/svg-icons/social/share';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import { TextField } from 'material-ui';
-import AutosizeInput from 'react-input-autosize';
 import { TodosList } from './TodosList';
 import { ContainerHeader } from './ContainerHeader';
 import { Tags } from './Tags';

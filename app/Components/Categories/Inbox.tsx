@@ -67,8 +67,8 @@ export class Inbox extends Component<InboxProps, InboxState>{
             />  
             <div     
                 className="unselectable" 
-                id="todos" 
-                style={{marginBottom:"100px", marginTop:"50px"}} 
+                id="todos"  
+                style={{marginBottom:"100px"}} 
             >    
                 <div className={`no-print`}>
                     <TodoCreationForm  

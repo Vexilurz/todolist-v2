@@ -1308,10 +1308,7 @@ export let getIntroList = () : Project => {
         name : "Intro List",  
         priority : 1,
         deleted : undefined,
-        description : `
-        This project shows you everything you need to know to hit the ground running.
-        Don't hesistate to play around in it - you can always create a new one from the help menu.
-        `, 
+        description : `This project shows you everything you need to know to hit the ground running. Don't hesistate to play around in it - you can always create a new one from the help menu.`, 
         created : new Date(),
         deadline : null,
         completed : null,

@@ -73,8 +73,8 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                         onChange = {(event, newValue:string) => this.props.onChange(this.props.heading._id, newValue)}
                         inputStyle = {{
                             fontWeight:600, color:"rgba(10,110,205,1)", 
-                            fontSize:"16px",  WebkitUserSelect: "none",
-                            cursor:"default", userSelect: "none"
+                            fontSize:"16px", WebkitUserSelect:"none",
+                            cursor:"default", userSelect:"none"
                         }}  
                         hintStyle = {{
                             top:"3px", left:0, width:"100%", 

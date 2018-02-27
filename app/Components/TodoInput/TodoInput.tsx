@@ -23,7 +23,6 @@ import { TagsPopup, TodoTags } from './TodoTags';
 import { TodoInputLabel } from './TodoInputLabel'; 
 import { uniq, isEmpty, contains, isNil, not, multiply, remove, cond, equals, any } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
-import AutosizeInput from 'react-input-autosize'; 
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
@@ -40,43 +39,6 @@ import { debounce } from 'lodash';
 import TextareaAutosize from 'react-autosize-textarea';
 let moment = require("moment"); 
 let Promise = require('bluebird'); 
-
-
-
-interface AutosizeInputComponentProps{title:string,onTitleChange:Function}
-interface AutosizeInputComponentState{}
-class AutosizeInputComponent extends Component<AutosizeInputComponentProps,AutosizeInputComponentState>{  
-
-    constructor(props){ super(props); };
-
-    shouldComponentUpdate(nextProps:AutosizeInputComponentProps){
-        return nextProps.title!==this.props.title;
-    };
-
-    render(){
-        let {title,onTitleChange} = this.props;
-
-        return <div>
-            <AutosizeInput 
-                type="text"
-                name="form-field-name"   
-                style={{display:"flex", alignItems:"center", cursor:"default"}}            
-                inputStyle={{                
-                    color:"black",  
-                    fontSize:"16px",  
-                    cursor:"default", 
-                    boxSizing:"content-box", 
-                    backgroundColor:"rgba(0,0,0,0)",
-                    border:"none", 
-                    outline:"none"   
-                }} 
-                value={title} 
-                placeholder="New To-Do" 
-                onChange={onTitleChange} 
-            /> 
-        </div>
-    }
-}
 
 
 export interface TodoInputProps{ 
@@ -270,9 +232,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
        
     onWindowEnterPress = (e) => {  
-        if(e){
-            if(e.keyCode!==13){ return }
-        }
+        if(e){ if(e.keyCode!==13){ return } }
 
         let {open} = this.state;
         let {onClose} = this.props;
@@ -356,15 +316,22 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         this.subscriptions.push(
             Observable
-            .fromEvent(window,"click")
-            .subscribe(this.onOutsideClick)
-        );
+            .fromEvent(window,"click") 
+            .subscribe(this.onOutsideClick) 
+        ); 
     };        
 
 
 
     componentWillUnmount(){
-        this.onClose();
+        let {dispatch,todo} = this.props;
+        let {attachedDate,deadline,category,title,note,checklist} = this.state;
+        
+        dispatch({
+            type:"updateTodoById",  
+            load:{id:todo._id,props:{attachedDate,deadline,category,title,note,checklist}}
+        })
+
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = []; 
     }; 
@@ -684,36 +651,49 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             <TodoInputLabels 
                 onRemoveTodayLabel={() => {
                     let {selectedCategory, todo, dispatch} = this.props;
+                    let {attachedDate} = this.state; 
 
-                    if(selectedCategory==="today"){ return }
-
-                    this
-                    .updateState({category:"next", attachedDate:null})
-                    .then(() => this.onRemoveReminderClick()); 
+                    if(isToday(deadline) && isToday(attachedDate)){
+                        this
+                        .updateState({category:"next", attachedDate:null, deadline:null})
+                        .then(() => this.onRemoveReminderClick()); 
+                    }else if(isToday(deadline)){
+                        this
+                        .updateState({category:"next", deadline:null})
+                        .then(() => this.onRemoveReminderClick()); 
+                    }else if(isToday(attachedDate)){
+                        this
+                        .updateState({category:"next", attachedDate:null})
+                        .then(() => this.onRemoveReminderClick()); 
+                    }
                 }}
                 onRemoveUpcomingLabel={() => {
                     let {selectedCategory, todo, dispatch} = this.props;
-                    let {attachedDate} = this.state;
+                    let {attachedDate} = this.state; 
 
-                    if(selectedCategory==="today" && isToday(attachedDate)){ return }
-
-                    this
-                    .updateState({attachedDate:null})
-                    .then(() => this.onRemoveReminderClick()); 
+                    if(isDate(deadline)){
+                        this.updateState({attachedDate:null})
+                        .then(() => this.onRemoveReminderClick());
+                     }else{
+                        this.updateState({category:"inbox", attachedDate:null})
+                        .then(() => this.onRemoveReminderClick());
+                     }
                 }}
                 onRemoveSomedayLabel={() => {
                     let {selectedCategory, todo, dispatch} = this.props;
-
-                    if(selectedCategory==="someday"){ return }
 
                     this
                     .updateState({category:"next", attachedDate:null})
                     .then(() => this.onRemoveReminderClick()); 
                 }}
                 onRemoveDeadlineLabel={() => {
-                    let {deadline} = this.state;
-                    if(selectedCategory==="today" && isToday(deadline)){ return }
-                    this.updateState({deadline:null});
+                    let {deadline,attachedDate} = this.state;
+
+                    if(isDate(attachedDate)){
+                        this.updateState({deadline:null});
+                     }else{
+                        this.updateState({category:"inbox", deadline:null});
+                     }
                 }}
                 todayCategory={isToday(attachedDate) || isToday(deadline)}
                 open={open} 
@@ -949,10 +929,10 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                             }} 
                             style={{paddingLeft:"5px",paddingRight:"5px"}}
                         > 
-                           <Checkbox 
+                            <Checkbox 
                                 checked={animatingSlideAway ? true : isDate(completedSet)} 
                                 onClick={onCheckBoxClick}
-                           />
+                            />
                         </div>   
                         {
                             open ? null :       
@@ -1172,9 +1152,8 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
                 /> 
             }   
             {  
-                isEmpty(attachedTags) ? null :
                 <div style={{display:"flex",alignItems:"center"}}>
-                    <div style={{display:"flex",alignItems:"center",justifyContent:"center",paddingLeft:"5px"}}>
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
                         <TriangleLabel />
                     </div>
                     <TodoTags attachTag={onAttachTag} removeTag={onRemoveTag} tags={attachedTags}/> 
@@ -1391,7 +1370,7 @@ export class Checkbox extends Component<CheckboxProps,{}>{
             { this.props.checked ? <Checked style={{color:"white"}}/> : null }
         </div> 
     }
-}
+};
 
  
 
@@ -1462,15 +1441,14 @@ class AdditionalTags extends Component<AdditionalTagsProps,{}>{
         }}>  
             <div   
                 style={{paddingRight:"5px",display:"flex",position:"relative",alignItems:"center"}} 
-                key={`AdditionalTags-${attachedTags[0]}`}
+                key={`AdditionalTags-${attachedTags[0]}`} 
             >    
             {
                 attachedTags
                 .slice(0,3)
-                .map((tag:string) => 
-                    <div style={{paddingRight:"2px"}}>
+                .map((tag:string,index:number) => 
+                    <div  key={`${tag}-${index}`}  style={{paddingRight:"2px"}}>
                         <div  
-                            key={tag}
                             style={{  
                                 height:"20px",
                                 borderRadius:"15px",

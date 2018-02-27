@@ -145,8 +145,11 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
             dispatch({type:"setTodos", load:selected});
 
             if(firstLaunch){  
-               dispatch({type:"addTodos", load:introListLayout.filter(isTodo)});
-               dispatch({type:"addProject", load:getIntroList()}) 
+                let alreadyExists = projects.find( (p:Project) => p._id==="Intro List" );
+                if(not(alreadyExists)){  
+                   dispatch({type:"addTodos", load:introListLayout.filter(isTodo)});
+                   dispatch({type:"addProject", load:getIntroList()}); 
+                }
             };
 
             return updateCalendars(calendars,onError);

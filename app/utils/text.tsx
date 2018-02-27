@@ -28,7 +28,6 @@ Libraries under MIT-license
 •	react-day-picker@7.0.4
 •	react-dom@15.6.2
 •	react-draggable@3.0.4
-•	react-input-autosize@2.1.2
 •	react-minimal-pie-chart@3.0.1
 •	react-redux@5.0.6
 •	react-tap-event-plugin@2.0.1

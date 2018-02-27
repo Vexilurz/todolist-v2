@@ -7,7 +7,6 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Clear from 'material-ui/svg-icons/content/clear';
 import Popover from 'material-ui/Popover';
 import { attachDispatchToProps } from '../../utils/utils';
-import AutosizeInput from 'react-input-autosize'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
@@ -19,7 +18,7 @@ import { insideTargetArea } from '../../utils/insideTargetArea';
 import { assert } from '../../utils/assert';
 import { isArrayOfStrings } from '../../utils/isSomething';
 import { uppercase } from '../../utils/uppercase';
-
+import AutosizeInput from 'react-input-autosize';
 
 interface TagsPopupProps extends Store{
     close : Function,
@@ -188,13 +187,13 @@ export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
         let {tag} = this.state;
         attachTag(tag);
         this.setState({tag:''}); 
-    }
+    };
     
 
     onRemoveTag = (tag:string) => () => {
         let {removeTag} = this.props;
         removeTag(tag);
-    }
+    };
     
     
     render(){

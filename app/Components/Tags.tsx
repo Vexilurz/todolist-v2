@@ -40,15 +40,18 @@ export class Tags extends Component<TagsProps,{}>{
                     display:'flex', 
                     flexWrap:'wrap',
                     WebkitUserSelect:"none",
-                    paddingBottom:"40px" 
+                    paddingBottom:"20px" 
                 }}>  
                     {    
                         ["All",...tags.sort((a:string,b:string) : number => a.localeCompare(b))]
                         .map((tag:string) =>  
                             <div className={`no-print`} key={tag} style={{padding:"4px"}}> 
-                                <div className="chip"      
-                                    onClick={() => selectTag(tag)} 
-                                    style={{
+                                <div className="chip"       
+                                    onClick={() => { 
+                                        if(tag===selectedTag){ selectTag("All") }
+                                        else{ selectTag(tag) } 
+                                    }} 
+                                    style={{ 
                                         width:"auto",
                                         height:"20px", 
                                         alignItems:"center",   

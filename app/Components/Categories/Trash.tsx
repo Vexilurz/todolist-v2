@@ -6,18 +6,18 @@ import { Component } from "react";
 import { connect } from "react-redux";
 import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '../ContainerHeader';
-import { byTags, getTagsFromItems, byDeleted, attachDispatchToProps } from '../../utils/utils';
+import { byTags, getTagsFromItems, byDeleted, attachDispatchToProps} from '../../utils/utils';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { allPass, isEmpty, cond } from 'ramda';
+import { allPass, isEmpty, cond, flatten, not, contains } from 'ramda';
 import { Category, filter } from '../MainContainer';
 import { SimplePopup } from '../SimplePopup';
 import { Store } from '../../app';
 import { ProjectLinkTrash } from '../Project/ProjectLink';
 import { AreaTrashLink } from '../Area/AreaLink';
 import { chooseIcon } from '../../utils/chooseIcon';
-import { isDate, isTodo, isProject, isArea } from '../../utils/isSomething';
+import { isDate, isTodo, isProject, isArea, isString } from '../../utils/isSomething';
 
 
 let sortByDeleted = (a:(Todo & Project & Area),b:(Todo & Project & Area)) => {
@@ -102,17 +102,23 @@ export class Trash extends Component<TrashProps,TrashState>{
   
         let filters = [byDeleted,byTags(selectedTag)]; 
         let deletedProjects = filter(projects, allPass(filters), "deletedProjects");
+        let ids = flatten(deletedProjects.map(p => p.layout.filter(isString)));
         let deletedAreas = filter(areas, allPass(filters), "deletedAreas"); 
-        let deltedTodos = filter(todos, byTags(selectedTag), "deltedTodos");   
+        let deltedTodos = filter(
+            todos, 
+            allPass([
+                byTags(selectedTag),
+                (todo:Todo) => not(contains(todo._id)(ids))
+            ]), 
+            "deltedTodos" 
+        );   
+         
         
+
         let tags = getTagsFromItems([...todos,...deletedProjects,...deletedAreas]); 
         let empty = isEmpty(todos) && isEmpty(deletedProjects) && isEmpty(deletedAreas);
  
-        let items = [
-            ...deltedTodos,
-            ...deletedProjects,
-            ...deletedAreas
-        ].sort(sortByDeleted); 
+        let items = [...deltedTodos,...deletedProjects,...deletedAreas].sort(sortByDeleted); 
 
 
         return <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}> 

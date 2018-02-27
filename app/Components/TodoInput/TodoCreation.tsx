@@ -612,22 +612,42 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                 onRemoveTodayLabel={() => {
                     let {selectedCategory, todo, dispatch} = this.props;
                     if(selectedCategory==="today"){ return }
+
+                    let {deadline,attachedDate} = this.state;
+                        
+                    if(isToday(deadline) && isToday(attachedDate)){
+                        this.setState({category:"inbox", attachedDate:null, deadline:null});
+                    }else if(isToday(deadline)){
+                        this.setState({category:"inbox", deadline:null});
+                    }else if(isToday(attachedDate)){
+                        this.setState({category:"inbox", attachedDate:null});
+                    }
                 }}
                 onRemoveUpcomingLabel={() => {
                     let {selectedCategory, todo, dispatch} = this.props;
                     let {attachedDate} = this.state;
                     if(selectedCategory==="today" && isToday(attachedDate)){ return }
-                    this.setState({attachedDate:null});
+
+                    if(isDate(deadline)){
+                        this.setState({attachedDate:null});
+                     }else{
+                        this.setState({category:"inbox", attachedDate:null});
+                     }
                 }}
                 onRemoveSomedayLabel={() => {
                     let {selectedCategory, todo, dispatch} = this.props;
-
                     if(selectedCategory==="someday"){ return }
+                    this.setState({category:"inbox", attachedDate:null});
                 }}
                 onRemoveDeadlineLabel={() => {
                     let {deadline} = this.state;
                     if(selectedCategory==="today" && isToday(deadline)){ return }
-                    this.setState({deadline:null});
+                    
+                    if(isDate(attachedDate)){
+                        this.setState({deadline:null});
+                    }else{
+                        this.setState({category:"inbox", deadline:null});
+                    }
                 }}
                 todayCategory={isToday(attachedDate) || isToday(deadline)}
                 open={open} 

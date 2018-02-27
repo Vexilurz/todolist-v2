@@ -8,9 +8,8 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import Popover from 'material-ui/Popover';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
-import AutosizeInput from 'react-input-autosize'; 
 import { isEmpty } from 'ramda';
-
+import AutosizeInput from 'react-input-autosize';
 
 interface AreaHeaderProps{
     name:string, 

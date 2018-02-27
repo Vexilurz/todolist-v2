@@ -2,30 +2,10 @@ import './../assets/styles.css';
 import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
-import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { attachDispatchToProps, byCategory, byTags } from "../utils/utils"; 
-import { connect } from "react-redux";
-import { compose, equals, cond } from 'ramda';
-import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { 
-    queryToTodos, getTodos, updateTodo, Todo, 
-    removeTodo, addTodo 
-} from '../database';
-import Popover from 'material-ui/Popover'; 
-import TrashIcon from 'material-ui/svg-icons/action/delete';
-import CheckCircle from 'material-ui/svg-icons/action/check-circle';
+import { equals, cond } from 'ramda';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
-import Repeat from 'material-ui/svg-icons/av/repeat';
 import Inbox from 'material-ui/svg-icons/content/inbox';
-import Duplicate from 'material-ui/svg-icons/content/content-copy';
-import ShareIcon from 'material-ui/svg-icons/social/share'; 
-import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import Flag from 'material-ui/svg-icons/image/assistant-photo';
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import { TextField } from 'material-ui';
-import AutosizeInput from 'react-input-autosize';
 import Star from 'material-ui/svg-icons/toggle/star'; 
 import BusinessCase from 'material-ui/svg-icons/content/archive';
 import Layers from 'material-ui/svg-icons/maps/layers';

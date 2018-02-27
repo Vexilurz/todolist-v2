@@ -6,8 +6,6 @@ import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react";  
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
-import { TextField } from 'material-ui';
-import AutosizeInput from 'react-input-autosize'; 
 import { Todo, Project } from '../../database';
 import { getTagsFromItems, daysLeftMark, getMonthName } from '../../utils/utils';
 import { ProjectMenuPopover } from './ProjectMenu';
@@ -17,8 +15,8 @@ import { DeadlineCalendar } from '../ThingsCalendar';
 import { isNil, isEmpty, not } from 'ramda';
 import { Tags } from '../Tags';
 import { TagsPopup } from '../TodoInput/TodoTags';
-
-
+import AutosizeInput from 'react-input-autosize';
+import TextareaAutosize from 'react-autosize-textarea';
 
 interface ProjectHeaderProps{
     updateProjectName:(value:string) => void,
@@ -253,25 +251,31 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     <div style={{color:"black", fontSize:"15px", fontWeight:"bold", paddingRight:"20px"}}>
                         {`Deadline: ${getMonthName(project.deadline).slice(0,3)}. ${project.deadline.getDate()}`} 
                     </div> 
-                    <div> 
+                    <div style={{paddingTop:"5px"}}> 
                         {daysLeftMark(false, project.deadline, 15)}
                     </div>    
                 </div> 
             }    
-            <div className={`no-print`}>                
-                <TextField       
-                    id={"project_notes"}  
-                    hintText="Notes"      
-                    hintStyle={{top:"12px"}}
-                    value={this.state.description}    
-                    multiLine={true}  
-                    fullWidth={true}   
-                    onChange={(event, newValue:string) => this.updateProjectDescription(newValue)} 
-                    rows={1}    
-                    inputStyle={{color:"rgba(100,100,100,0.7)", fontSize:"15px"}}   
-                    underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}}    
-                    underlineStyle={{borderColor:"rgba(0,0,0,0)"}}   
-                />   
+            <div style={{paddingTop:"10px",paddingBottom:"10px"}} className={`no-print`}>        
+                <TextareaAutosize
+                    id={"project_notes"}
+                    placeholder="Notes"
+                    onChange={(event:any) => this.updateProjectDescription(event.target.value)} 
+                    value={this.state.description}  
+                    style={{
+                        resize:"none",
+                        marginTop:"-4px", 
+                        width:"100%",
+                        fontSize:"14px",
+                        padding:"0px",
+                        cursor:"default",  
+                        position:"relative", 
+                        border:"none",
+                        outline:"none",
+                        backgroundColor:"rgba(0, 0, 0, 0)",
+                        color:"rgba(0, 0, 0, 0.87)" 
+                    }}
+                /> 
             </div>
             <div className={`no-print`}>  
                 <Tags  

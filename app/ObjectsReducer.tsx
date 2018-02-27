@@ -55,6 +55,46 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
         cond([  
 
             [
+                typeEquals("updateTodoById"),  
+                (action:{ type:string, load: {id:string,props:any} }) : Store => {
+
+                    let idx = state.todos.findIndex((t:Todo) => action.load.id===t._id);
+                    let todo = state.todos[idx]; 
+
+                    assert(isString(action.load.id),`id is not of type String. updateTodoById.`);
+
+                    if(isNil(todo)){
+                       return {...state}; 
+                    }
+
+                    todo = {...todo,...action.load.props};
+
+                    //if todo exists and have empty title - remove
+                    if(isEmpty(todo.title)){
+
+                        if(shouldAffectDatabase){ 
+                            removeTodo(action.load.id, onError); 
+                        } 
+
+                        return{ ...state, todos:remove(idx, 1, state.todos) }; 
+
+                    //if todo exists - update
+                    }else{ 
+
+                        if(shouldAffectDatabase){ 
+                            updateTodo(action.load.id, todo, onError); 
+                        }
+
+                        return{ ...state, todos:adjust(() => todo, idx, state.todos) }; 
+                    }
+
+                }
+            ],
+
+           
+
+
+            [
                 typeEquals('updateConfig'),  
                 (action:{type:string, load: { [key in keyof Config]: any }}) : Store => ({...state, ...action.load}) 
             ],

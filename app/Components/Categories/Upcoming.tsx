@@ -384,7 +384,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
 
 
-
 interface CalendarDayProps{ 
     idx:number,
     day:number, 
@@ -406,7 +405,8 @@ interface CalendarDayProps{
     rootRef:HTMLElement
 }
 
-  
+
+
 interface CalendarDayState{}
 
   
@@ -426,14 +426,18 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
         let timed : CalendarEvent[] = events.filter((event) => sameDay(event.start,event.end));
     
         return <div style={{
-            display:"flex",flexDirection:"column",paddingTop:"5px",paddingBottom:"5px",WebkitUserSelect:"none" 
+            display:"flex",
+            flexDirection:"column",
+            paddingTop:"5px",
+            paddingBottom:"5px",
+            WebkitUserSelect:"none" 
         }}> 
                 <div style={{width:"100%",display:"flex",alignItems:"center",WebkitUserSelect:"none"}}>  
                     <div style={{width:"50px",fontWeight:900,fontSize:"35px",userSelect:"none"}}>
                         {day} 
                     </div>  
                     <div style={{
-                        width:"82%",
+                        width:"100%",
                         fontSize:"17px",
                         color:"dimgray",
                         display:"flex",
@@ -528,7 +532,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         scheduledProjects.map(
                             (project:Project, index:number) : JSX.Element => {
                                 return <div key={project._id}>
-                                    <ProjectLink {...{project,showMenu:false,removeUnderline:true} as any}/>  
+                                    <ProjectLink {...{project,showMenu:false} as any}/>  
                                 </div>  
                             } 
                         )     
@@ -543,7 +547,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         width:"100%",
                         paddingTop:"10px",
                         paddingBottom:"10px",
-                        paddingLeft:"25px"
+                        paddingLeft:"20px"
                     }}>   
                         <TodosList    
                             dispatch={this.props.dispatch}  
