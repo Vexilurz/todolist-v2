@@ -166,6 +166,7 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                     <div style={{
                         width:"18px",
                         height:"18px",
+                        transform: "rotate(270deg)",
                         display:"flex",
                         alignItems:"center", 
                         justifyContent:"center",
@@ -466,6 +467,7 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
                     <div style={{
                         width:"18px",
                         height:"18px",
+                        transform: "rotate(270deg)",
                         display:"flex",
                         alignItems:"center", 
                         justifyContent:"center",

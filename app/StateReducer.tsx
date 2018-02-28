@@ -104,7 +104,6 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
               }) : Store => {
                 
                 assert(isBoolean(action.load.showRepeatPopup), `Error: showRepeatPopup. applicationStateReducer. ${action.load}`);
-                assert(isTodo(action.load.repeatTodo), `Error: repeatTodo. applicationStateReducer. ${action.load}`);
                 assert(isNumber(action.load.repeatPopupX), `Error: repeatPopupX. applicationStateReducer. ${action.load}`);
                 assert(isNumber(action.load.repeatPopupY), `Error: repeatPopupY. applicationStateReducer. ${action.load}`);            
                 

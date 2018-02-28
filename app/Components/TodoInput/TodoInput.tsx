@@ -1000,8 +1000,8 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                                             <div style={{display:"flex",alignItems:"center",paddingRight:"4px"}}> 
                                                 <Refresh style={{     
                                                     width:16,   
-                                                    height:16,  
-                                                    color:"black", 
+                                                    height:16,   
+                                                    color:"rgba(100, 100, 100, 0.7)", 
                                                     cursor:"default"
                                                 }}/>
                                             </div>

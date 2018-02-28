@@ -92,6 +92,7 @@ let getProjectHeading = (project:Project, todos:Todo[]) : JSX.Element => {
                 width: "18px",
                 height: "18px",
                 display: "flex",
+                transform: "rotate(270deg)",
                 alignItems: "center", 
                 cursor:"default",
                 justifyContent: "center",

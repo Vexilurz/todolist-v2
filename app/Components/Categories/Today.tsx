@@ -397,7 +397,9 @@ export class Today extends Component<TodayProps,TodayState>{
             style={{disaply:"flex", flexDirection:"column", width: "100%"}}
         > 
             <div style={{ display:"flex", position:"relative", alignItems:"center", marginBottom:"20px"}}>   
-                <div>{chooseIcon({width:"50px",height:"50px"}, "today")}</div> 
+                <div style={{ zoom:"0.8", display:"flex", alignItems:"center" }}>
+                    {chooseIcon({width:"45px", height:"45px"}, "today")}
+                </div> 
                 <div style={{  
                     fontFamily: "sans-serif",   
                     fontSize: "xx-large",

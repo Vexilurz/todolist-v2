@@ -40,9 +40,9 @@ export class ContainerHeader extends Component<ContainerHeaderProps,ContainerHea
                 alignItems:"center",
                 marginBottom:"20px"  
             }}>  
- 
-                <div>  
-                    {chooseIcon({width:"50px", height:"50px"},this.props.selectedCategory)}
+  
+                <div style={{ zoom:"0.8", display:"flex", alignItems:"center" }}>  
+                    {chooseIcon({width:"45px", height:"45px"},this.props.selectedCategory)}
                 </div>
 
                 <div style={{  

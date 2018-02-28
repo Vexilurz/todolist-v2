@@ -4,7 +4,6 @@ import { Component } from "react";
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import { byNotCompleted, byNotDeleted } from '../utils/utils'; 
-import PieChart from 'react-minimal-pie-chart';
 import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains, assoc, isNil, not, all, merge } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';

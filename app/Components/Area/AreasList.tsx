@@ -561,6 +561,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                 }} 
             >     
                     <div style={{    
+                        transform: "rotate(270deg)", 
                         width: "18px",
                         height: "18px",
                         position: "relative",

@@ -157,27 +157,27 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             } 
             <div style={{display:"flex", alignItems: "center"}}>
                 <div style={{    
-                    width: "30px",
-                    height: "30px",
-                    position: "relative",
-                    borderRadius: "100px",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    border: "2px solid rgba(108, 135, 222, 1)",
-                    boxSizing: "border-box",
-                    marginRight: "10px"
+                    position:"relative",
+                    borderRadius:"100px",
+                    zoom:"0.8",
+                    display:"flex",
+                    justifyContent:"center",
+                    alignItems:"center",
+                    border:"2px solid rgba(108, 135, 222, 1)",
+                    boxSizing:"border-box", 
+                    marginRight:"10px"
                 }}> 
                     <div style={{ 
                         width: "28px", 
                         height: "28px",
+                        transform: "rotate(270deg)",
                         display: "flex", 
                         alignItems: "center",
                         justifyContent: "center",
                         position: "relative"
                     }}>   
                         <PieChart
-                            animate={true}    
+                            animate={false}    
                             totalValue={totalValue}
                             data={[{  
                                 value:currentValue,  

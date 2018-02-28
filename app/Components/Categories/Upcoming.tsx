@@ -315,7 +315,8 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                         cursor:"default", 
                         fontSize:"x-large",
                         width:"100%", 
-                        fontWeight:"bold"
+                        fontWeight:"bold",
+                        paddingTop:"20px"
                     }} 
                 >  
                     {month}  
@@ -428,11 +429,11 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
         return <div style={{
             display:"flex",
             flexDirection:"column",
-            paddingTop:"5px",
-            paddingBottom:"5px",
+            paddingTop:"15px",
+            paddingBottom:"15px", 
             WebkitUserSelect:"none" 
-        }}> 
-                <div style={{width:"100%",display:"flex",alignItems:"center",WebkitUserSelect:"none"}}>  
+        }}>  
+                <div style={{width:"100%",display:"flex",paddingBottom:"10px",alignItems:"center",WebkitUserSelect:"none"}}>  
                     <div style={{width:"50px",fontWeight:900,fontSize:"35px",userSelect:"none"}}>
                         {day} 
                     </div>  
