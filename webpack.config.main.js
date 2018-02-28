@@ -7,7 +7,7 @@ module.exports = {
     context: __dirname + "/app",
     
     entry: { 
-        'main':'./main/main.ts',   
+        'main':'./main/main.ts'
     }, 
 
     output: {              

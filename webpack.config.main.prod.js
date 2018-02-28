@@ -10,6 +10,7 @@ module.exports = {
 
     entry: { 
         'main':'./main/main.ts',   
+        's3clean':'./main/s3clean.ts'  
     },    
      
     output: {              
