@@ -10,7 +10,7 @@ import {
     convertTodoDates, convertProjectDates, convertAreaDates, oneDayAhead, measureTime, 
     byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
     byCompleted, isToday, byNotSomeday, byScheduled, yearFromNow, timeDifferenceHours, 
-    isNewVersion, getIntroList, printElement, inFuture, introListIds, introListLayout
+    getIntroList, printElement, inFuture, introListIds, introListLayout
 } from "../utils/utils";  
 import {isDev} from "../utils/isDev"; 
 import { connect } from "react-redux"; 

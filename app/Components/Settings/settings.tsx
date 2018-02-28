@@ -29,11 +29,12 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { debounce } from 'lodash';
 import { Checkbox } from '../TodoInput/TodoInput';
-import { attachDispatchToProps, isNewVersion, keyFromDate, checkForUpdates, getCompletedWhen, findWindowByTitle } from '../../utils/utils';
+import { attachDispatchToProps, keyFromDate, checkForUpdates, getCompletedWhen, findWindowByTitle } from '../../utils/utils';
+import { isNewVersion } from '../../utils/isNewVersion';
 import { 
     Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, 
     Todo, destroyEverything, initDB, addTodos, addProjects, addAreas, 
-    addCalendars, getDatabaseObjects 
+    addCalendars, getDatabaseObjects  
 } from '../../database';
 import {text,value} from '../../utils/text'; 
 import { SimplePopup } from '../SimplePopup';

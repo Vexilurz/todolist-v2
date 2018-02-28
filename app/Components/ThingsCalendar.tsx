@@ -27,7 +27,10 @@ import { Observable } from 'rxjs/Rx';
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { isFunction, isDate } from '../utils/isSomething';
 import { timeOfTheDay } from '../utils/time';
-
+//import TimeInput from 'react-time-input';
+//import TimePicker from 'rc-time-picker';
+const moment = require("moment"); 
+import TimeInput from 'react-keyboard-time-input';
 
 
 interface DateCalendarProps{ 
@@ -286,13 +289,14 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
         super(props);
 
         this.state = {
-           timeSet:false,
+           timeSet:true,
            openReminderInput:false,
-           time:this.props.attachedDate ? 
-                this.props.attachedDate.toLocaleTimeString().replace(/[a-z]/ig, "").trim() : 
-                ''
+           time://this.props.attachedDate ? 
+                //this.props.attachedDate.toLocaleTimeString().replace(/[a-z]/ig, "").trim() : 
+                '12:00' 
         };     
     }  
+
  
     componentDidMount(){
         let {attachedDate,reminder} = this.props;
@@ -301,6 +305,7 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
         }
     }
 
+
     componentWillReceiveProps(nextProps){
         let {attachedDate,reminder} = nextProps;
         if(isDate(reminder)){
@@ -308,12 +313,6 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
         }
     } 
 
-    onTimeInput = (e) => { 
-        let time : string = e.target.value.replace(/[a-z]/ig, "").trim(); //e.target.value.replace(/[a-z]/ig, "").trim();
-        console.log(e.target.valueAsDate)
-        this.setState({time, timeSet:true});
-    }; 
-    
 
     render(){
         let {openReminderInput} = this.state;
@@ -321,7 +320,7 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
         
         return <div>
             {  
-            not(openReminderInput) ? null :
+            not(openReminderInput) ? null : 
             <div>
                 <div style={{  
                     display:"flex", 
@@ -369,14 +368,50 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                             backgroundColor:"rgb(87, 87, 87)",
                             borderRadius:"5px"   
                         }}>
+
+                        <TimeInput
+                            key={`time-input`}
+                            onChange={(time) => this.setState({time,timeSet:true})}
+                            value={this.state.time} 
+                        />
+                           
+                            {/*
+                            <TimePicker 
+                            showSecond={false} 
+                            value={moment(this.state.time)}
+                            style={{    
+                                outline:"none",
+                                border:"none",
+                                width:"100%",
+                                color:"aliceblue",
+                                fontSize:"18px",
+                                backgroundColor:"rgb(87, 87, 87)", 
+                                caretColor:"cornflowerblue"  
+                             }}    
+                            open={false} 
+                            onChange={(e) => {
+                                console.log(e)
+                                this.setState({time:e})
+                            }}
+                            />
+                            */}
+                            {/*
+                            <TimeInput
+                                initTime={this.state.time}
+                                mountFocus='true'
+                                onTimeChange={this.onTimeInput} 
+                                className='s-input -time' 
+                            /> 
+                            */} 
+                            {/*
                             <input  
                                 style={{    
                                    outline:"none",
-                                   border:"none",
+                                   border:"none", 
                                    width:"100%",
                                    color:"aliceblue",
                                    fontSize:"18px",
-                                   backgroundColor:"rgb(87, 87, 87)",
+                                   backgroundColor:"rgb(87, 87, 87)", 
                                    caretColor:"cornflowerblue"  
                                 }}     
                                 placeholder=""
@@ -385,6 +420,7 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                                 value={this.state.time}   
                                 onChange={this.onTimeInput}
                             />    
+                            */}
                             <div  
                             onClick={() => this.setState({time:'', timeSet:false})}
                             style={{ 

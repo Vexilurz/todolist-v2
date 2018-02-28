@@ -246,9 +246,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     (p:Project) => ({ 
                         ...p, 
                         layout:[ 
+                            ...project.layout, 
                             heading, 
-                            ...todos.map((todo:Todo) => todo._id), 
-                            ...project.layout 
+                            ...todos.map((todo:Todo) => todo._id) 
                         ]   
                     }),
                     idx, 

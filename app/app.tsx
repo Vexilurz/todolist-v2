@@ -12,10 +12,11 @@ import { ipcRenderer, remote } from 'electron';
 import {    
     attachDispatchToProps, transformLoadDates, yearFromNow, convertTodoDates, 
     convertProjectDates, convertAreaDates, timeDifferenceHours, 
-    convertDates, checkForUpdates, isNewVersion, nextMidnight,
+    convertDates, checkForUpdates, nextMidnight,
     oneMinuteBefore, threeDaysLater, findWindowByTitle, keyFromDate 
 } from "./utils/utils";  
 import {wrapMuiThemeLight} from './utils/wrapMuiThemeLight'; 
+import {isNewVersion} from './utils/isNewVersion';
 import {
     isTodo, isProject, isArea, isArrayOfAreas, 
     isArrayOfProjects, isArrayOfTodos, isArray, isString, isFunction, isDate
