@@ -383,14 +383,15 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 (selectedCategory:Category) : boolean => 'inbox'===selectedCategory,  
                                 () => {
                                     let inboxFilters = [
-                                        //(todo:Todo) => not(byAttachedToArea(this.props.areas)(todo)), 
                                         (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
                                         (todo:Todo) => isNil(todo.attachedDate), 
                                         (todo:Todo) => isNil(todo.deadline), 
-                                        //byCategory("inbox"), 
+                                        byCategory("inbox"), 
                                         byNotCompleted,  
                                         byNotDeleted   
-                                    ];     
+                                    ];    
+                                    
+                                    
                                     return <Inbox 
                                         todos={filter(todos, allPass(inboxFilters), "Inbox")} 
                                         dispatch={this.props.dispatch}
@@ -484,7 +485,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     let byIntroList = (item : (Project | Todo)) : boolean => contains(item._id)(introListIds);
                                     let byNotIntroList = compose(not, byIntroList);
                                     let nextFilters = [ 
-                                        //(t:Todo) => inFuture(t.attachedDate) || inFuture(t.deadline),
                                         (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
                                         (t:Todo) => t.category!=="inbox",  
                                         (t:Todo) => t.category!=="someday",  
@@ -569,7 +569,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 () => {
  
                                     let upcomingFilters = [
-                                        //(t:Todo) => t.category!=="inbox",  
                                         byScheduled,
                                         byNotCompleted,  
                                         byNotDeleted   

@@ -87,9 +87,11 @@ export let dropTodoOnCategory = ({draggedTodo,projects,category,moveCompletedIte
                     category:"inbox", 
                     attachedDate:undefined,
                     deadline:undefined, 
+                    reminder:null,
                     deleted:undefined,
                     completedSet:null,
-                    completedWhen:null
+                    completedWhen:null,
+                    completed:null
                 }) 
             ],
             [
@@ -99,8 +101,10 @@ export let dropTodoOnCategory = ({draggedTodo,projects,category,moveCompletedIte
                     category:"today",
                     attachedDate:new Date(),
                     deleted:undefined,
+                    reminder:null,
                     completedSet:null,
-                    completedWhen:null
+                    completedWhen:null,
+                    completed:null
                 })
             ],
             [
@@ -110,9 +114,11 @@ export let dropTodoOnCategory = ({draggedTodo,projects,category,moveCompletedIte
                     category:"next",
                     deadline:undefined,
                     attachedDate:undefined,
+                    reminder:null,
                     deleted:undefined,
                     completedSet:null,
-                    completedWhen:null
+                    completedWhen:null,
+                    completed:null
                 })
             ],
             [
@@ -123,22 +129,20 @@ export let dropTodoOnCategory = ({draggedTodo,projects,category,moveCompletedIte
                     deadline:undefined, 
                     deleted:undefined,
                     completedSet:null,
-                    completedWhen:null
+                    completedWhen:null,
+                    completed:null
                 })
             ],
             [
                 equals("trash"),
-                () : Todo => ({
-                    ...draggedTodo, 
-                    reminder:null,
-                    deleted:new Date()
-                })
+                () : Todo => ({...draggedTodo, reminder:null, deleted:new Date()})
             ],
             [
                 equals("logbook"),
                 () : Todo => ({
                     ...draggedTodo,
                     completedSet:new Date(),
+                    reminder:null,
                     completedWhen:getCompletedWhen(moveCompletedItemsToLogbook,new Date()),
                     deleted:undefined
                 })
@@ -164,7 +168,7 @@ export let findDropTarget = (event,projects:Project[]) : {project:Project,catego
 
 
 export let onDrop = ({event,draggedTodo,config,projects}) : { projects:Project[], todo:Todo } => { 
-    let {moveCompletedItemsToLogbook} = config;
+    let { moveCompletedItemsToLogbook } = config;
     let { project, category } = findDropTarget(event,projects);
     let updatedProjects = removeTodoFromProjects(projects,draggedTodo);
 
@@ -312,6 +316,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
             if(updated.todo){
                dispatch({type:"updateTodo", load:updated.todo});
+               dispatch({type:"resetReminders"}); 
             }
  
         }else{     

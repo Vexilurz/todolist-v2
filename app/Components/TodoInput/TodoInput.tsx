@@ -127,6 +127,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         e.stopPropagation(); 
         let {todo,dispatch} = this.props;
+        let {category} = this.state;
 
         let attachedDate = new Date(day.getTime());
         let reminder = todo.reminder;
@@ -137,7 +138,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            reminder = new Date(attachedDate.getTime());
         }
 
-        this.updateState({attachedDate,category:isToday(attachedDate) ? "today" : todo.category,showDateCalendar:false})
+        this.updateState({
+            attachedDate,
+            category:isToday(attachedDate) ? "today" : category,
+            showDateCalendar:false
+        })
         .then(() => {
             this.update({reminder});
             dispatch({type:"resetReminders"});
@@ -181,7 +186,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            reminder = new Date(attachedDate.getTime());
         }
         
-        this.updateState({category:"evening", attachedDate, showDateCalendar:false})
+        this.updateState({category:"evening",attachedDate,showDateCalendar:false})
         .then(() => {
             this.update({reminder});
             dispatch({type:"resetReminders"});
@@ -205,7 +210,15 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onCalendarClear = (e) => {
         e.stopPropagation();
         let {todo,dispatch} = this.props;
-        this.updateState({category:todo.category, showDateCalendar:false, attachedDate:null})
+        let {deadline,category} = this.state;
+
+        let nextState = {
+            category:isDate(deadline) ? category : "next", 
+            showDateCalendar:false, 
+            attachedDate:null
+        };
+
+        this.updateState(nextState)
         .then(() => this.onRemoveReminderClick()); 
     };
 
@@ -271,7 +284,12 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     onDeadlineCalendarClear = (e:any) : void => {
         e.stopPropagation();
-        this.updateState({deadline:null,showDeadlineCalendar:false});
+        let {attachedDate,category} = this.state;
+        this.updateState({
+            deadline:null,
+            showDeadlineCalendar:false,
+            category:isDate(attachedDate) ? "next" : category
+        });
     };
 
 
@@ -675,7 +693,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         this.updateState({attachedDate:null})
                         .then(() => this.onRemoveReminderClick());
                      }else{
-                        this.updateState({category:"inbox", attachedDate:null})
+                        this.updateState({category:"next", attachedDate:null})
                         .then(() => this.onRemoveReminderClick());
                      }
                 }}
@@ -692,7 +710,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     if(isDate(attachedDate)){
                         this.updateState({deadline:null});
                      }else{
-                        this.updateState({category:"inbox", deadline:null});
+                        this.updateState({category:"next", deadline:null});
                      }
                 }}
                 todayCategory={isToday(attachedDate) || isToday(deadline)}
@@ -980,19 +998,12 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                                         <div style={{display:'flex',flexWrap:`wrap`}}>
                                         {
                                             isEmpty(title) ? 
-                                            <div style={{paddingRight:"4px", color:"rgba(100,100,100,0.4)"}}>
-                                                New Task
-                                            </div> 
+                                            <div style={{paddingRight:"4px", color:"rgba(100,100,100,0.4)"}}>New Task</div> 
                                             : 
                                             title
                                             .split(' ')
-                                            .map(
-                                                (c:string,index:number) => <div 
-                                                    style={{paddingRight:"4px"}} 
-                                                    key={`letter-${index}`}
-                                                >
-                                                    {c}
-                                                </div>
+                                            .map((c:string,index:number) => 
+                                                <div style={{paddingRight:"4px"}} key={`letter-${index}`}>{c}</div>
                                             )
                                         }
                                         {    
@@ -1252,14 +1263,12 @@ export class DueDate extends Component<DueDateProps,{}>{
                     cursor:"default", 
                     WebkitUserSelect:"none", 
                     display:"flex",
-                    alignItems:"flex-end",  
-                    justifyContent:"center", 
-                    paddingLeft:"5px",
+                    paddingLeft:"5px", 
                     paddingRight:"5px", 
                     borderRadius:"15px",
                     color:"rgb(0, 60, 250)",
                     fontWeight:"bold",
-                    height:"20px" 
+                    height:"15px" 
                 }}>      
                     <div style={{display:"flex",alignItems:"center",fontSize:"12px"}}>      
                         {

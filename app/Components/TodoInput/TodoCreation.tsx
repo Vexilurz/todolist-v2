@@ -414,7 +414,14 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
  
     onDeadlineCalendarClear = (e:any) : void => {
         e.stopPropagation();
-        this.setState({deadline:null}, () => this.closeDeadlineCalendar());
+        let {selectedCategory} = this.props;
+        this.setState(
+            { 
+                deadline:null, 
+                category:selectedCategory 
+            }, 
+            () => this.closeDeadlineCalendar()
+        );
     };
      
 
@@ -489,10 +496,10 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
     onCalendarClear = (e) => {
         e.stopPropagation();
-        let {todo} = this.props;
+        let {todo,selectedCategory} = this.props;
         this.setState(
             {  
-                category:this.props.todo.category as Category,
+                category:selectedCategory as Category,
                 attachedDate:null, 
                 reminder:null  
             }, 
@@ -514,7 +521,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         let attachedDateToday = isToday(attachedDate);
         let deadlineToday = isToday(deadline); 
         let todayCategory : boolean = attachedDateToday || deadlineToday;
-      
+        
         let daysLeft = 0;
         let flagColor = "rgba(100,100,100,0.7)";
         let canRepeat = false; 
@@ -616,11 +623,11 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                     let {deadline,attachedDate} = this.state;
                         
                     if(isToday(deadline) && isToday(attachedDate)){
-                        this.setState({category:"inbox", attachedDate:null, deadline:null});
+                        this.setState({category:selectedCategory, attachedDate:null, deadline:null});
                     }else if(isToday(deadline)){
-                        this.setState({category:"inbox", deadline:null});
+                        this.setState({category:selectedCategory, deadline:null});
                     }else if(isToday(attachedDate)){
-                        this.setState({category:"inbox", attachedDate:null});
+                        this.setState({category:selectedCategory, attachedDate:null});
                     }
                 }}
                 onRemoveUpcomingLabel={() => {
@@ -631,22 +638,20 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                     if(isDate(deadline)){
                         this.setState({attachedDate:null});
                      }else{
-                        this.setState({category:"inbox", attachedDate:null});
+                        this.setState({category:selectedCategory, attachedDate:null});
                      }
                 }}
                 onRemoveSomedayLabel={() => {
                     let {selectedCategory, todo, dispatch} = this.props;
                     if(selectedCategory==="someday"){ return }
-                    this.setState({category:"inbox", attachedDate:null});
+                    this.setState({category:selectedCategory, attachedDate:null});
                 }}
                 onRemoveDeadlineLabel={() => {
                     let {deadline} = this.state;
-                    if(selectedCategory==="today" && isToday(deadline)){ return }
-                    
                     if(isDate(attachedDate)){
                         this.setState({deadline:null});
                     }else{
-                        this.setState({category:"inbox", deadline:null});
+                        this.setState({category:selectedCategory, deadline:null});
                     }
                 }}
                 todayCategory={isToday(attachedDate) || isToday(deadline)}
@@ -668,7 +673,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                 zIndex:30001    
             }}>  
             {     
-                <div ref={(e) => { this.calendar=e; }}>  
+                <div ref={(e) => {this.calendar=e;}}>  
                     <IconButton 
                         onClick = {this.onCalendarButtonClick} 
                         iconStyle={{   
@@ -684,7 +689,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                 </div> 
             } 
             {
-                <div ref={(e) => { this.tags=e;}} > 
+                <div ref={(e) => {this.tags=e;}} > 
                     <IconButton   
                         onClick = {this.onTagsButtonClick}
                         iconStyle={{ 

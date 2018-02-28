@@ -315,6 +315,7 @@ export class Today extends Component<TodayProps,TodayState>{
 
             if(updated.todo){
                dispatch({type:"updateTodo", load:updated.todo});
+               dispatch({type:"resetReminders"});
             }
             
         }else{     
