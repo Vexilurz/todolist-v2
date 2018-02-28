@@ -368,59 +368,11 @@ class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
                             backgroundColor:"rgb(87, 87, 87)",
                             borderRadius:"5px"   
                         }}>
-
-                        <TimeInput
-                            key={`time-input`}
-                            onChange={(time) => this.setState({time,timeSet:true})}
-                            value={this.state.time} 
-                        />
-                           
-                            {/*
-                            <TimePicker 
-                            showSecond={false} 
-                            value={moment(this.state.time)}
-                            style={{    
-                                outline:"none",
-                                border:"none",
-                                width:"100%",
-                                color:"aliceblue",
-                                fontSize:"18px",
-                                backgroundColor:"rgb(87, 87, 87)", 
-                                caretColor:"cornflowerblue"  
-                             }}    
-                            open={false} 
-                            onChange={(e) => {
-                                console.log(e)
-                                this.setState({time:e})
-                            }}
-                            />
-                            */}
-                            {/*
                             <TimeInput
-                                initTime={this.state.time}
-                                mountFocus='true'
-                                onTimeChange={this.onTimeInput} 
-                                className='s-input -time' 
-                            /> 
-                            */} 
-                            {/*
-                            <input  
-                                style={{    
-                                   outline:"none",
-                                   border:"none", 
-                                   width:"100%",
-                                   color:"aliceblue",
-                                   fontSize:"18px",
-                                   backgroundColor:"rgb(87, 87, 87)", 
-                                   caretColor:"cornflowerblue"  
-                                }}     
-                                placeholder=""
-                                type="time"  
-                                name="time"  
-                                value={this.state.time}   
-                                onChange={this.onTimeInput}
-                            />    
-                            */}
+                                key={`time-input`}
+                                onChange={(time) => this.setState({time,timeSet:true})}
+                                value={this.state.time} 
+                            />
                             <div  
                             onClick={() => this.setState({time:'', timeSet:false})}
                             style={{ 

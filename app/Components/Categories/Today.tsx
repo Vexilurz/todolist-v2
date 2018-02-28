@@ -378,7 +378,7 @@ export class Today extends Component<TodayProps,TodayState>{
             .filter((calendar:Calendar) => calendar.active)
             .forEach( 
                 (calendar:Calendar) => {
-                    let selected = calendar.events.filter( 
+                    let selected = calendar.events.filter( //TODO FIX
                         (event:CalendarEvent) : boolean => 
                             isNil(event) ? false :
                             not(isDate(event.start)) ? false :

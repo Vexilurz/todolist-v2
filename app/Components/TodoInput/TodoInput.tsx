@@ -15,7 +15,7 @@ import List from 'material-ui/svg-icons/action/list';
 import ChecklistIcon from 'material-ui/svg-icons/action/assignment-turned-in'; 
 import NotesIcon from 'material-ui/svg-icons/action/subject'; 
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
-import { daysLeftMark, isToday, getMonthName, getCompletedWhen, getTime, setTime, isNotNil } from '../../utils/utils'; 
+import { daysLeftMark, isToday, getMonthName, getCompletedWhen, getTime, setTime, isNotNil, different } from '../../utils/utils'; 
 import { Todo, Project, Group } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
@@ -164,7 +164,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            reminder = new Date(attachedDate.getTime());
         }
 
-        this.updateState({category:"today",attachedDate,showDateCalendar:false})
+        this
+        .updateState({category:"today",attachedDate,showDateCalendar:false})
         .then(() => {
             this.update({reminder});
             dispatch({type:"resetReminders"});
@@ -186,7 +187,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            reminder = new Date(attachedDate.getTime());
         }
         
-        this.updateState({category:"evening",attachedDate,showDateCalendar:false})
+        this
+        .updateState({category:"evening",attachedDate,showDateCalendar:false})
         .then(() => {
             this.update({reminder});
             dispatch({type:"resetReminders"});
@@ -198,7 +200,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onCalendarAddReminderClick = (reminder:Date) : void => {
         let {dispatch} = this.props;
 
-        this.updateState({attachedDate:reminder, showDateCalendar:false}) 
+        this
+        .updateState({attachedDate:reminder, showDateCalendar:false}) 
         .then(() => {
             this.update({reminder});
             dispatch({type:"resetReminders"});
@@ -218,7 +221,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             attachedDate:null
         };
 
-        this.updateState(nextState)
+        this
+        .updateState(nextState)
         .then(() => this.onRemoveReminderClick()); 
     };
 
@@ -228,7 +232,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let {dispatch, todo} = this.props;
         if(isNil(todo.reminder)){ return }
 
-        this.update({reminder:null}); 
+        this
+        .update({reminder:null}); 
         dispatch({type:"resetReminders"});
     };
 
@@ -344,11 +349,38 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     componentWillUnmount(){
         let {dispatch,todo} = this.props;
         let {attachedDate,deadline,category,title,note,checklist} = this.state;
-        
-        dispatch({
-            type:"updateTodoById",  
-            load:{id:todo._id,props:{attachedDate,deadline,category,title,note,checklist}}
-        })
+        let shouldSave = false;
+
+
+        if(
+            any(
+                (t:boolean) => t,
+                [
+                    different(todo.attachedDate,attachedDate),
+                    different(todo.deadline,deadline),
+                    different(todo.category,category),
+                    different(todo.title,title),
+                    different(todo.note,note),
+                    different(todo.checklist,checklist)
+                ]
+            )
+        ){
+            dispatch({
+                type:"updateTodoById",  
+                load:{
+                    id:todo._id,
+                    props:{ 
+                        attachedDate,
+                        deadline,
+                        category,
+                        title,
+                        note,
+                        checklist
+                    }
+                }
+            })
+        }
+
 
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = []; 

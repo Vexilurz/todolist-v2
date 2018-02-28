@@ -13,7 +13,7 @@ import {
 } from 'ramda'; 
 import { Store } from '.././app';
 import { isDev } from './isDev';
-import { setRepeatedTodos, repeat } from '.././Components/RepeatPopup';
+import { setRepeatedTodos, repeat} from  '.././Components/RepeatPopup';
 import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
 import { UpdateCheckResult } from 'electron-updater';
@@ -32,7 +32,7 @@ import { generateEmptyTodo } from './generateEmptyTodo';
 const PHE = require("print-html-element");
 const domtoimage = require('dom-to-image');
 
-
+export let different = complement(equals);
 
 export let isNotNil = complement(isNil);
 
