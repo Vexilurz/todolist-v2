@@ -48,7 +48,6 @@ import { globalErrorHandler } from '../utils/globalErrorHandler';
 import { generateRandomDatabase } from '../utils/generateRandomObjects';
 import { updateConfig, clearStorage } from '../utils/config';
 import { isNotArray, isDate, isTodo, isString } from '../utils/isSomething';
-import { scheduleReminder } from '../utils/scheduleReminder';
 import { debounce } from 'lodash';
 const Promise = require('bluebird');   
 const moment = require("moment"); 
@@ -166,7 +165,10 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
  
 export let clearScheduledReminders = (store:Store) : Store => {
     let scheduledReminders = store.scheduledReminders;
-    scheduledReminders.forEach(t => clearTimeout(t)); 
+    scheduledReminders.forEach(t => {
+        clearTimeout(t);
+        console.log(`cleared ${t}`); 
+    }); 
     return store;
 };
 

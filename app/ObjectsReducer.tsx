@@ -13,16 +13,19 @@ import {
     isNotNil, typeEquals 
 } from './utils/utils';
 import { 
-    adjust, cond, all, isEmpty, contains, not, remove, uniq, isNil, and, compose, reject, concat, map, prop,
-    ifElse, identity 
+    adjust, cond, all, isEmpty, contains, not, remove, uniq, 
+    isNil, and, 
+    compose, reject, concat, map, prop, ifElse, identity 
 } from 'ramda';
 import { filter, clearScheduledReminders } from './Components/MainContainer';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { Config } from './utils/config';
 import { assert } from './utils/assert';
-import { isTodo, isProject, isArea, isCalendar, isString, isArrayOfTodos, isArrayOfProjects, isArrayOfAreas, isDate } from './utils/isSomething';
-import { scheduleReminder } from './utils/scheduleReminder';
-
+import { 
+    isTodo, isProject, isArea, isCalendar, isString, isArrayOfTodos, isArrayOfProjects, isArrayOfAreas, isDate 
+} from './utils/isSomething';
+import { setCallTimeout } from './utils/setCallTimeout';
+import { findWindowByTitle } from './utils/utils';
 
 
 let onError = (e) => globalErrorHandler(e); 
@@ -43,6 +46,25 @@ let log = (append:string) => (load:any) : any => {
     return load;
 };
 
+
+export let scheduleReminder = (todo) : number => {
+    assert(isDate(todo.reminder),`reminder is not of type Date. scheduleReminder. ${todo.reminder}.`);
+
+    return setCallTimeout(
+        () => {
+            let notification : any = findWindowByTitle('Notification');
+
+            console.log(`schedule ${todo.title} - ${todo.reminder}`);
+
+            if(notification){ 
+               notification.webContents.send('remind',todo); 
+            };
+        }, 
+        todo.reminder
+    ); 
+};
+
+
 export let applicationObjectsReducer = (state:Store, action:{type:string,load:any,kind:string}) : Store => { 
 
     let shouldAffectDatabase : boolean =  and(actionFromQuickEntry(action),isMainWindow()) || 
@@ -53,19 +75,28 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
     let refreshReminders = (newState:Store) : Store => {
         let hasReminder = compose(isDate,prop('reminder'));
+
         return ifElse(
             compose(and(isMainWindow()), isNotNil),  
+
             compose(
-                (scheduledReminders:number[]) => ({...newState,scheduledReminders}),
+                (scheduledReminders:number[]) : Store => ({...newState,scheduledReminders}),
+
                     log(`scheduled reminders`),
+
+                (scheduledReminders:number[]) => filter(scheduledReminders, isNotNil),     
+
                 map((todo) : number => scheduleReminder(todo)), //create timeout for each reminder
-                    log(`todos with reminder`),
+
                 (todos:Todo[]) => filter(todos, hasReminder), //only todos with reminder left
-                prop('todos'), //get todos from current state
+                
+                prop('todos'), //get todos from current state  
+
                 clearScheduledReminders //suspend existing timeouts
-            ),
-            identity 
-        )(newState)
+            ),  
+
+            identity   
+        )(newState);
     };
 
  

@@ -9,7 +9,7 @@ import { ipcRenderer, remote } from 'electron';
 import { 
     cond, assoc, isNil, not, defaultTo, map, isEmpty, 
     uniq, remove, contains, append, adjust, compose, 
-    flatten, concat, prop, ifElse, last
+    flatten, concat, prop, ifElse, last, path, uniqBy
 } from 'ramda';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
@@ -21,14 +21,14 @@ import { Subscription } from 'rxjs/Rx';
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight';
 import { chooseIcon } from './utils/chooseIcon';
 import { globalErrorHandler } from './utils/globalErrorHandler';
-const path = require("path");
+const pathToFile = require("path");
 import ReactAudioPlayer from 'react-audio-player';
 import { isDev } from './utils/isDev';
 import { Config, getConfig } from './utils/config';
 injectTapEventPlugin();  
 
  
-window.onerror = function (msg, url, lineNo, columnNo, error) {
+window.onerror = (msg, url, lineNo, columnNo, error) => {
     let string = msg.toLowerCase();
     var message = [ 
         'Message: ' + msg,
@@ -88,7 +88,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
         this.timeout=null;
         this.state={...defaultState};   
         this.queue=[]; 
-        this.soundPath=path.resolve(__dirname,"sound.wav"); 
+        this.soundPath=pathToFile.resolve(__dirname,"sound.wav"); 
     };
 
 
@@ -108,10 +108,13 @@ class Notification extends Component<NotificationProps,NotificationState>{
                         this.queue.push({todo});
                         this.notify();
                     }else{ 
-                        this.queue.push({todo});
+                        this.queue = compose(
+                            uniqBy(path(['todo', '_id'])),
+                            append({todo})
+                        )(this.queue);
                     }
                 }),
-
+                
             Observable
                 .fromEvent(ipcRenderer,"config",(event,config) => config)
                 .subscribe((config) => { 

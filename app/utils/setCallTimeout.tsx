@@ -8,9 +8,10 @@ export let setCallTimeout = (f:() => void, when:Date) : number => {
  
     // if now or past - make a call
     if(timeMs<=0){ 
-        f() 
+        f(); 
+        return null;
     // if in future - setup interval    
     }else{ 
-        return setTimeout(() => f(), timeMs) as any 
+        return setTimeout(() => f(), timeMs) as any; 
     }   
 }

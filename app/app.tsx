@@ -248,7 +248,7 @@ export class App extends Component<AppProps,{}>{
         let {dispatch} = this.props;
 
         this.subscriptions.push(
-            Observable.interval(15000).subscribe((v) => dispatch({type:'update'})), 
+            Observable.interval(60000).subscribe((v) => dispatch({type:'update'})), 
 
             Observable.interval(60000).subscribe(() => { 
                 let target = path.resolve(os.homedir(), "tasklist");
