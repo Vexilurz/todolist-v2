@@ -1,5 +1,5 @@
 import { Store } from "./app";
-import { activateReminders, Category } from "./Components/MainContainer";
+import { Category } from "./Components/MainContainer";
 import { adjust, cond, all, equals, isEmpty, contains, not, remove, uniq, isNil } from 'ramda';
 import { isTodo, isBoolean, isDate, isString, isNumber, isCategory, isProject, isArea } from "./utils/isSomething";
 import { assert } from "./utils/assert";
@@ -29,11 +29,6 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
             [
               typeEquals("progress"),
               (action:{type:string,load:any}) : Store => ({...state,progress:action.load}) 
-            ],
-
-            [
-              typeEquals("resetReminders"),
-              () : Store => ({...state,scheduledReminders:activateReminders(state.scheduledReminders,state.todos)}) 
             ],
 
             [

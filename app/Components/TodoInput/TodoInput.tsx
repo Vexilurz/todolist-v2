@@ -145,7 +145,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         })
         .then(() => {
             this.update({reminder});
-            dispatch({type:"resetReminders"});
         })
     };
 
@@ -166,10 +165,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         this
         .updateState({category:"today",attachedDate,showDateCalendar:false})
-        .then(() => {
-            this.update({reminder});
-            dispatch({type:"resetReminders"});
-        }); 
+        .then(() => this.update({reminder})); 
     }; 
 
 
@@ -189,10 +185,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         
         this
         .updateState({category:"evening",attachedDate,showDateCalendar:false})
-        .then(() => {
-            this.update({reminder});
-            dispatch({type:"resetReminders"});
-        });
+        .then(() => this.update({reminder}));
     }; 
 
 
@@ -202,10 +195,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         this
         .updateState({attachedDate:reminder, showDateCalendar:false}) 
-        .then(() => {
-            this.update({reminder});
-            dispatch({type:"resetReminders"});
-        }); 
+        .then(() => this.update({reminder})); 
     };
 
 
@@ -232,9 +222,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let {dispatch, todo} = this.props;
         if(isNil(todo.reminder)){ return }
 
-        this
-        .update({reminder:null}); 
-        dispatch({type:"resetReminders"});
+        this.update({reminder:null}); 
     };
 
 

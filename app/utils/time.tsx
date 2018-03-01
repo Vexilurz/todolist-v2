@@ -11,4 +11,21 @@ export let timeOfTheDay = (date:Date) : string => {
     minutes = minutes.length === 1 ? `0${minutes}` : minutes;                                                                                         
     
     return `${hours}:${minutes}`;
-}  
+};  
+
+ 
+export let inTimeRange = (from:Date,to:Date,date:Date) : boolean => {
+
+    if(isDate(from) && isDate(to) && isDate(date)){
+
+        if(
+            date.getTime() <= to.getTime() &&
+            date.getTime() >= from.getTime()
+        ){
+            return true;
+        }
+
+    }
+
+    return false;
+};

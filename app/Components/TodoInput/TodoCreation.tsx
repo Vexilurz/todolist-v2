@@ -232,11 +232,9 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     
         if(not(isEmpty(todos))){ 
             todo.priority = todos[0].priority - 1; 
-        }  
+        }   
         
         dispatch({type:"addTodo", load:todo}); 
-
-        if(not(isNil(todo.reminder))){ dispatch({type:"resetReminders"}) }
 
         if(selectedCategory==="project"){ 
             dispatch({  

@@ -39,7 +39,6 @@ export let deleteProject = (dispatch:Function, project:Project, todos:Todo[]) =>
         load:selectedTodos.map((t:Todo) : Todo => ({...t,reminder:null,deleted:new Date()}))
     });
     dispatch({type:"updateProject", load:{...project,deleted:new Date()}});
-    dispatch({type:"resetReminders"}); 
 }
 
 

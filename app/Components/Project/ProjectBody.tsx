@@ -236,7 +236,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             );
             dispatch({type:"updateProjects",load:updatedProjects});
             dispatch({type:"updateTodos",load:updatedTodos});
-            dispatch({type:"resetReminders"})
 
         }else if(isProject(project)){
 

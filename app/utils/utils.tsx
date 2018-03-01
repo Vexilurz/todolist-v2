@@ -79,9 +79,9 @@ export let setTime = (date:Date, time:{minutes:number,hours:number}) : Date => {
     if(isDate(date)){
         let updated = new Date(date.getTime());
         updated.setHours(hours);
-        updated.setMinutes(minutes);
+        updated.setMinutes(minutes); 
         return updated;
-    }else if(isString(date)){
+    }else if(isString(date)){ 
         let target = new Date(date);
 
         if(isDate(target)){
@@ -96,17 +96,26 @@ export let setTime = (date:Date, time:{minutes:number,hours:number}) : Date => {
 
 
 
-export let printElement = (selectedCategory:Category, list:HTMLElement) : Promise<void> => 
-    domtoimage
-    .toPng(list, { filter:(node) => node.className!=='no-print' })
-    .then((dataUrl) => {
-        let img = document.createElement("img");
-        img.src = dataUrl;
-        return PHE.printElement( img );
-    })
-    .catch((error) => globalErrorHandler(error));
-
-
+export let printElement = (selectedCategory:Category, list:HTMLElement) : Promise<void> => {
+    let convertToImage=false;
+    
+    if(convertToImage){ 
+        return domtoimage
+        .toPng(list, { quality: 1, filter:(node) => node.className!=='no-print' })
+        .then((dataUrl) => {
+            let img = document.createElement("img");
+            img.src = dataUrl;
+            return PHE.printElement(img);
+        })
+        .catch((error) => globalErrorHandler(error));
+    }else{
+        return new Promise( 
+            (resolve) => resolve() 
+        ).then(
+            () => PHE.printElement(list)
+        );
+    }
+}; 
 
 
 export let measureTime = (f:() => void) => {
@@ -428,6 +437,8 @@ export let sameDay = (a:Date,b:Date) => keyFromDate(a)===keyFromDate(b);
 export let keyFromDate = (date:Date) : string => {  
     
     assert(isDate(date), `keyFromDate. input is not a date. ${date}`);
+
+    if(!isDate(date)){ return '' }
     
     let year = date.getFullYear();
     let day = date.getDate(); 

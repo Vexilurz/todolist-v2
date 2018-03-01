@@ -38,7 +38,6 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
         let {rightClickedTodoId, dispatch, todos} = this.props; 
         let todo : Todo = todos.find( (todo) => todo._id===rightClickedTodoId );
         dispatch({type:"updateTodo", load:{...todo,reminder:null,deleted:new Date()}});
-        dispatch({type:"resetReminders"}); 
         this.onClose(); 
     }; 
 

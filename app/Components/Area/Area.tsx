@@ -92,8 +92,6 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
         dispatch({ type:"updateArea", load:{...area,deleted:new Date()} });
 
         dispatch({ type:"selectedCategory", load:"inbox" });
-
-        dispatch({ type:"resetReminders" }); 
     };
 
 

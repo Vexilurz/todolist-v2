@@ -35,7 +35,6 @@ import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { isEmpty, last, isNil, contains, all, not, assoc, flatten, toPairs, map, compose, allPass, cond, defaultTo, reject } from 'ramda';
-import { isString } from 'util';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber"; 
@@ -48,7 +47,7 @@ import { CalendarProps, CalendarEvent, getIcalData, IcalData, AxiosError, update
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 import { generateRandomDatabase } from '../utils/generateRandomObjects';
 import { updateConfig, clearStorage } from '../utils/config';
-import { isNotArray, isDate, isTodo } from '../utils/isSomething';
+import { isNotArray, isDate, isTodo, isString } from '../utils/isSomething';
 import { scheduleReminder } from '../utils/scheduleReminder';
 import { debounce } from 'lodash';
 const Promise = require('bluebird');   
@@ -86,6 +85,7 @@ export let getDateUpperLimit = (areas:Area[], projects:Project[], todos:Todo[], 
 
         return futureLimit.getTime() > currentLimit.getTime() ? futureLimit : currentLimit;
 };
+
 
 
 /**
@@ -163,26 +163,15 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
     )
 }; 
 
-
-/**
- * 1)Retrieve reminders (located in future) from todos.
- * 2)If reminders already scheduled, clear timeouts in current session.
- * 3)Set timeouts for invocation in current session for each of the reminders. 
- */
-export let activateReminders = (scheduledReminders:number[],todos:Todo[]) : number[] => {
-    let todosToBeRemindedOf : Todo[] = filter(todos,(todo:Todo) => isDate(todo.reminder));
  
-    scheduledReminders.map(t => clearTimeout(t)); 
-    
-    return todosToBeRemindedOf.map(
-        (todo) : number => scheduleReminder(todo)
-    ); 
+export let clearScheduledReminders = (store:Store) : Store => {
+    let scheduledReminders = store.scheduledReminders;
+    scheduledReminders.forEach(t => clearTimeout(t)); 
+    return store;
 };
 
 
-let isMainWindow = () => { 
-    return remote.getCurrentWindow().id===1; 
-};
+let isMainWindow = () => remote.getCurrentWindow().id===1;
  
  
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
@@ -248,12 +237,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 ])  
                 .then(() => fetchData(this.props,this.limit,this.onError))  
                 .then((calendars) => isEmpty(calendars) ? null : updateConfig(dispatch)({hideHint:true})) 
-                .then(() => dispatch({type:"resetReminders"}))
             });
         }else{ 
             fetchData(this.props,this.limit,this.onError) 
             .then((calendars) => isEmpty(calendars) ? null : updateConfig(dispatch)({hideHint:true}))   
-            .then(() => dispatch({type:"resetReminders"}))
         } 
     }
 

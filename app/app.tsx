@@ -66,15 +66,20 @@ injectTapEventPlugin();
 
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
-    var message = [ 
+    let message = [ 
         'Message:' + msg, 
         'URL:' + url,
         'Line:' + lineNo,
         'Column:' + columnNo,
         'Error object:' + JSON.stringify(error)
     ].join(' - ');  
+
     globalErrorHandler(message);
-    if(isDev()){ return false }
+
+    if(isDev()){ 
+       return false; 
+    }
+
     return true;
 }; 
 
@@ -85,7 +90,6 @@ export interface Store extends Config{
     selectedTodo : Todo, 
     showUpdatesNotification : boolean, 
     scheduledReminders : number[],
-    resetReminders : any,
     limit : Date, 
     searchQuery : string,  
     openChangeGroupPopup : boolean,
@@ -130,7 +134,6 @@ export let defaultStoreItems : Store = {
     selectedTodo : null, 
     shouldSendStatistics : true, 
     hideHint : true,  
-    resetReminders : null,
     progress : null,  
     scheduledReminders : [],
     showUpdatesNotification : false, 
@@ -217,11 +220,9 @@ export class App extends Component<AppProps,{}>{
                                 let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
 
                                 if(canUpdate){ 
-                                    dispatch({type:"showUpdatesNotification", load:true}) 
+                                   dispatch({type:"showUpdatesNotification", load:true}) 
                                 }else{ 
-                                    updateConfig(dispatch)({
-                                        nextUpdateCheck:threeDaysLater(new Date())
-                                    }) 
+                                   updateConfig(dispatch)({nextUpdateCheck:threeDaysLater(new Date())}) 
                                 }
                            })    
           
@@ -280,6 +281,7 @@ export class App extends Component<AppProps,{}>{
                 }
             }),
 
+
             Observable 
             .fromEvent(ipcRenderer, "action", (event,action) => action)
             .map((action) => ({ 
@@ -291,6 +293,7 @@ export class App extends Component<AppProps,{}>{
                 )(action.load)
             }))
             .subscribe((action) => action.type==="@@redux/INIT" ? null : dispatch(action)),  
+
 
             Observable 
             .fromEvent(ipcRenderer, 'removeReminder', (event,todo) => todo)    
@@ -304,13 +307,16 @@ export class App extends Component<AppProps,{}>{
                 }  
             }),
 
+
             Observable 
             .fromEvent(ipcRenderer, "error", (event,error) => error)    
             .subscribe((error) => this.onError(error)),
 
+
             Observable
             .fromEvent(ipcRenderer, "progress", (event,progress) => progress)
             .subscribe((progress) => dispatch({type:"progress",load:progress})),  
+
 
             Observable  
             .fromEvent(ipcRenderer, "Ctrl+Alt+T", (event) => event)

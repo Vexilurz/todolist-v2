@@ -12,7 +12,6 @@ const storage = require('electron-json-storage');
 storage.setDataPath(os.tmpdir());
 
 
-
 let getConfigMain = () : Promise<any> => {  
     return new Promise( 
         resolve => storage.get(   
@@ -116,14 +115,12 @@ let createTray = () : Tray => {
     let iconPath = path.join(__dirname,"icon.ico"); 
     let tray = null;
 
-
     if(fs.existsSync(iconPath)){
        tray = new Tray(iconPath);   
     }else{
        tray = new Tray(nativeImage.createEmpty()); 
     }   
     
-
     let getWindows = () : BrowserWindow[] => {
         let windows = BrowserWindow.getAllWindows();
         let defaultWindowsTitles = ['Quick Entry','Notification'];
@@ -136,7 +133,6 @@ let createTray = () : Tray => {
             windows
         )
     };
-
 
     const contextMenu = Menu.buildFromTemplate([
         {
@@ -160,7 +156,6 @@ let createTray = () : Tray => {
         },
     ]);
 
-
     tray.on(
         'click', 
         () => {
@@ -175,7 +170,6 @@ let createTray = () : Tray => {
             }  
         }
     );
-
 
     tray.setToolTip(AppName);
     tray.setContextMenu(contextMenu);
@@ -228,44 +222,29 @@ let onReady = (showTray:boolean, config:any) => {
     
     mainWindow = initWindow(
         getWindowSize(), 
-        {  
-            maximizable:true,
-            show:false
-        },
-        (handler:BrowserWindow) => shouldHideApp ? 
-                                    handler.hide() : 
-                                    handler.show() 
+        {maximizable:true, show:false},
+        (handler:BrowserWindow) => shouldHideApp ? handler.hide() : handler.show() 
     );    
 
 
     quickEntry = initQuickEntry({width:500,height:300}); 
     //quickEntry.webContents.openDevTools();  
       
-    notification = initNotification({
-        width:250, 
-        height:200 
-    });   
+    notification = initNotification({width:250,height:200});   
     
  
     if(showTray){ 
-        tray = createTray();
-        mainWindow.on('show', () => tray.setToolTip(`Hide ${AppName}`));
-        mainWindow.on('hide', () => tray.setToolTip(`Show ${AppName}`));
+       tray = createTray();
+       mainWindow.on('show',() => tray.setToolTip(`Hide ${AppName}`));
+       mainWindow.on('hide',() => tray.setToolTip(`Show ${AppName}`));
     }
-       
-    loadApp(mainWindow)  
-    .then(() => {    
-        mainWindow.webContents.send("loaded");
-
-        if(not(shouldHideApp)){
-           mainWindow.focus(); 
-        }
-
-        if(isDev()){ 
-           mainWindow.webContents.openDevTools(); 
-        }  
-    });    
     
+
+    loadNotification(notification)
+    .then(
+        () => notification.webContents.send("loaded")
+    );
+
 
     loadQuickEntry(quickEntry) 
     .then(() => {
@@ -282,10 +261,18 @@ let onReady = (showTray:boolean, config:any) => {
     });  
 
 
-    loadNotification(notification)
-    .then(
-        () => notification.webContents.send("loaded")
-    );
+    loadApp(mainWindow)  
+    .then(() => {    
+        mainWindow.webContents.send("loaded");
+
+        if(not(shouldHideApp)){
+           mainWindow.focus(); 
+        }
+
+        if(isDev()){ 
+           mainWindow.webContents.openDevTools(); 
+        }  
+    });  
 };               
 
 

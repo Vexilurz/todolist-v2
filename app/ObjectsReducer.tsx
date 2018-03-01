@@ -8,18 +8,24 @@ import {
 } from './database';
 import { isDev } from './utils/isDev';
 import { ipcRenderer, remote } from 'electron';
-import { removeDeletedProjects, removeDeletedAreas, removeDeletedTodos, byNotDeleted, isMainWindow, isNotNil, typeEquals } from './utils/utils';
-import { adjust, cond, all, isEmpty, contains, not, remove, uniq, isNil, and, compose, reject, concat } from 'ramda';
-import { filter, activateReminders } from './Components/MainContainer';
+import { 
+    removeDeletedProjects, removeDeletedAreas, removeDeletedTodos, byNotDeleted, isMainWindow, 
+    isNotNil, typeEquals 
+} from './utils/utils';
+import { 
+    adjust, cond, all, isEmpty, contains, not, remove, uniq, isNil, and, compose, reject, concat, map, prop,
+    ifElse, identity 
+} from 'ramda';
+import { filter, clearScheduledReminders } from './Components/MainContainer';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { Config } from './utils/config';
 import { assert } from './utils/assert';
-import { isTodo, isProject, isArea, isCalendar, isString, isArrayOfTodos, isArrayOfProjects, isArrayOfAreas } from './utils/isSomething';
+import { isTodo, isProject, isArea, isCalendar, isString, isArrayOfTodos, isArrayOfProjects, isArrayOfAreas, isDate } from './utils/isSomething';
+import { scheduleReminder } from './utils/scheduleReminder';
 
 
 
 let onError = (e) => globalErrorHandler(e); 
-
 
 
 let actionOriginIsThisWindow = (action:{type:string,load:any,kind:string}) : boolean => {
@@ -27,12 +33,15 @@ let actionOriginIsThisWindow = (action:{type:string,load:any,kind:string}) : boo
 };
 
 
-
 let actionFromQuickEntry = (action:{type:string,load:any,kind:string}) : boolean => {
     return action.kind==="quick-entry";
 };
 
 
+let log = (append:string) => (load:any) : any => {
+    console.log(append,load);
+    return load;
+};
 
 export let applicationObjectsReducer = (state:Store, action:{type:string,load:any,kind:string}) : Store => { 
 
@@ -41,8 +50,27 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
     
     let shouldUpdateOtherInstances : boolean = actionOriginIsThisWindow(action);
 
+
+    let refreshReminders = (newState:Store) : Store => {
+        let hasReminder = compose(isDate,prop('reminder'));
+        return ifElse(
+            compose(and(isMainWindow()), isNotNil),  
+            compose(
+                (scheduledReminders:number[]) => ({...newState,scheduledReminders}),
+                    log(`scheduled reminders`),
+                map((todo) : number => scheduleReminder(todo)), //create timeout for each reminder
+                    log(`todos with reminder`),
+                (todos:Todo[]) => filter(todos, hasReminder), //only todos with reminder left
+                prop('todos'), //get todos from current state
+                clearScheduledReminders //suspend existing timeouts
+            ),
+            identity 
+        )(newState)
+    };
+
  
     return compose(
+        refreshReminders,
         (newState:Store) => {
             //update other windows only if action was initialized inside current window 
             //and action belong to ObjectsReducer (state was updated inside this function)
@@ -233,8 +261,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
                     return{   
                         ...state,  
-                        todos, 
-                        scheduledReminders:activateReminders(state.scheduledReminders,todos) 
+                        todos
                     }; 
                 }
             ],

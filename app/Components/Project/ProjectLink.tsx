@@ -1,4 +1,3 @@
-
 import '../../assets/styles.css';  
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
@@ -12,7 +11,6 @@ import { byNotDeleted, byCompleted, attachDispatchToProps, daysLeftMark } from '
 import { Checkbox, DueDate } from '../TodoInput/TodoInput';
 import PieChart from 'react-minimal-pie-chart';
 import Restore from 'material-ui/svg-icons/content/undo';
-import { isString } from 'util';
 import { contains, isNil, allPass, not, isEmpty } from 'ramda';
 import { Store } from '../../app';
 import { filter } from '../MainContainer';
@@ -20,7 +18,7 @@ import Hide from 'material-ui/svg-icons/action/visibility-off';
 import Count from 'material-ui/svg-icons/editor/format-list-numbered';
 import { assert } from '../../utils/assert';
 import { uppercase } from '../../utils/uppercase';
-import { isDate } from '../../utils/isSomething';
+import { isDate, isString } from '../../utils/isSomething';
 import { daysRemaining } from '../../utils/daysRemaining';
 
 
@@ -68,7 +66,7 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
 
     restoreProject = (p:Project) : void => { 
         let {dispatch, todos} = this.props;
-        let relatedTodosIds : string[] = p.layout.filter(isString);
+        let relatedTodosIds : string[] = p.layout.filter(isString) as any[];
         let selectedTodos : Todo[] = filter(todos, (t:Todo) : boolean => contains(t._id)(relatedTodosIds), "restoreProject");  
 
         dispatch({type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))});
@@ -413,7 +411,7 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
 
     restoreProject = (p:Project) : void => { 
         let {dispatch, todos} = this.props;
-        let relatedTodosIds : string[] = p.layout.filter(isString);
+        let relatedTodosIds : string[] = p.layout.filter(isString) as any[];
         let selectedTodos : Todo[] = filter(todos, (t:Todo) : boolean => contains(t._id)(relatedTodosIds), "restoreProject");  
 
         dispatch({type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))})

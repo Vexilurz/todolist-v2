@@ -316,7 +316,6 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
 
             if(updated.todo){
                dispatch({type:"updateTodo", load:updated.todo});
-               dispatch({type:"resetReminders"}); 
             }
  
         }else{     

@@ -6,7 +6,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, byNotCompleted, byNotDeleted, getTagsFromItems, 
     generateDropStyle,  keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, 
-    sameDay, byTags, byCategory
+    sameDay, byTags, byCategory, isNotNil
 } from "../../utils/utils";  
 import { connect } from "react-redux";
 import { Todo, Project, Area, Calendar } from '../../database'; 
@@ -18,13 +18,12 @@ import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { allPass, isEmpty, not, assoc, isNil, flatten, contains, intersection } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { Category, filter } from '../MainContainer';
-import { isDate } from 'util';
 import { ipcRenderer, remote } from 'electron';
 import { CalendarEvent } from '../Calendar';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { arrayMove } from '../../utils/arrayMove';
-import { isTodo, isNotArray, isString } from '../../utils/isSomething';
+import { isTodo, isNotArray, isString, isDate } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { generateId } from '../../utils/generateId';
@@ -34,7 +33,7 @@ import { SortableContainer } from '../CustomSortableContainer';
 import { updateConfig } from '../../utils/config';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
-import { timeOfTheDay } from '../../utils/time';
+import { timeOfTheDay, inTimeRange } from '../../utils/time';
 
 
 export let indexToPriority = (items:any[]) : any[] => {
@@ -315,7 +314,6 @@ export class Today extends Component<TodayProps,TodayState>{
 
             if(updated.todo){
                dispatch({type:"updateTodo", load:updated.todo});
-               dispatch({type:"resetReminders"});
             }
             
         }else{     
@@ -345,6 +343,7 @@ export class Today extends Component<TodayProps,TodayState>{
         } = this.props;
         let { items, tags } = this.getItems();
         let empty = generateEmptyTodo(generateId(), "today", 0);  
+
 
         if(isDev()){
             let todos = filter(items, isTodo, "");
@@ -376,16 +375,21 @@ export class Today extends Component<TodayProps,TodayState>{
             let todayKey : string = keyFromDate(new Date()); 
             calendars 
             .filter((calendar:Calendar) => calendar.active)
+            .map((calendar:Calendar) : Calendar => {
+                calendar.events = calendar.events.filter(isNotNil);
+                return calendar;
+            })
             .forEach( 
                 (calendar:Calendar) => {
-                    let selected = calendar.events.filter( //TODO FIX
-                        (event:CalendarEvent) : boolean => 
-                            isNil(event) ? false :
-                            not(isDate(event.start)) ? false :
-                            todayKey===keyFromDate(event.start)
-                    );
+                    let selected = calendar.events.filter(
+                        (event:CalendarEvent) : boolean => inTimeRange(event.start,event.end,new Date()) ||
+                                                           todayKey===keyFromDate(event.start) 
+                            
+                    ); 
 
-                    if(!isEmpty(selected)){ events.push(...selected) }; 
+                    if(!isEmpty(selected)){ 
+                        events.push(...selected) 
+                    }; 
                 }   
             ) 
         }
@@ -512,10 +516,11 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
             <div style={{          
                 display:"flex",
                 flexDirection:"column",
-                borderRadius:"10px", 
+                borderRadius:"10px",  
+                padding:"5px",
+                width:"95%",
                 backgroundColor:"rgba(100,100,100,0.1)",
-                width:"100%",
-                fontFamily: "sans-serif", 
+                fontFamily:"sans-serif", 
                 height:"auto"
             }}> 
             {
@@ -676,5 +681,5 @@ export class Hint extends Component<HintProps,HintState>{
                 </div>
             </div>
         </div>  
-    }
+    } 
 } 

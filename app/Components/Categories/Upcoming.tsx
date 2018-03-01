@@ -35,7 +35,7 @@ import { isDate } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { timeOfTheDay } from '../../utils/time';
-
+ 
 
 type Item = Project | Todo | CalendarEvent
  
@@ -67,11 +67,16 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
 
         return compose(
             flatten,
-            map(
-                (event:CalendarEvent) => {
-                    return getRangeDays(event.start, event.end, 1, true).map((date) => ({...event,start:date}))
-                }
-            ) 
+            map((event:CalendarEvent) => {
+                return getRangeDays(
+                    event.start, 
+                    event.end, 
+                    1, 
+                    true
+                ).map(
+                    (date) => ({...event,start:date})
+                )
+            }) 
         )(events) as CalendarEvent[];  
     };
     

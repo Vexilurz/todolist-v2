@@ -100,7 +100,6 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
            dispatch({type:"openChangeGroupPopup", load:true});         
         }else{ 
            dispatch({type:"updateTodo", load:{...todo,reminder:null,deleted:new Date()}});
-           dispatch({type:"resetReminders"});
         } 
     };  
 
