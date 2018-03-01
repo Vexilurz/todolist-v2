@@ -28,7 +28,7 @@ let getConfigMain = () : Promise<any> => {
                         groupTodos:false,
                         preserveWindowWidth:true, //when resizing sidebar
                         enableShortcutForQuickEntry:true,
-                        enableReminder:true,
+                        disableReminder:false,
                         quickEntrySavesTo:"inbox", //inbox today next someday
                         moveCompletedItemsToLogbook:"immediately"
                     });
@@ -204,7 +204,7 @@ let initAutoLaunch = () : Promise<void> => {
 
 
 let onReady = (showTray:boolean, config:any) => {  
-    let {enableReminder, enableShortcutForQuickEntry} = config;
+    let {disableReminder, enableShortcutForQuickEntry} = config;
 
     if(shouldQuit){ 
        app.exit(); 
@@ -230,9 +230,12 @@ let onReady = (showTray:boolean, config:any) => {
     quickEntry = initQuickEntry({width:500,height:300}); 
     //quickEntry.webContents.openDevTools();  
       
-    notification = initNotification({width:250,height:200});   
+    notification = initNotification({
+        width:800,//250,
+        height:800//200
+    });   
+    notification.webContents.openDevTools();  
     
- 
     if(showTray){ 
        tray = createTray();
        mainWindow.on('show',() => tray.setToolTip(`Hide ${AppName}`));

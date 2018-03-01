@@ -934,13 +934,12 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     }; 
 
 
-    enableReminder = (event) => {
-        let {enableReminder,dispatch} = this.props;
+    disableReminder = (event) => {
+        let {disableReminder,dispatch} = this.props;
 
-        updateConfig(dispatch)({enableReminder:!enableReminder})
+        updateConfig(dispatch)({disableReminder:not(disableReminder)})
         .then(
             (config) => {
-                let {enableReminder} = config;
                 let window = findWindowByTitle('Notification');
                 if(window){
                    window.webContents.send('config',config);
@@ -952,7 +951,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
     render(){   
         let {importPath, exportPath, updateStatus, exportMessage, importMessage} = this.state;
-        let {shouldSendStatistics,moveCompletedItemsToLogbook,groupTodos,enableReminder} = this.props;
+        let {shouldSendStatistics,moveCompletedItemsToLogbook,groupTodos,disableReminder} = this.props;
         let buttonStyle = {      
             display:"flex",
             alignItems:"center",
@@ -978,7 +977,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
             </div> 
 
             <div style={{display:"flex", alignItems:"center"}}>
-                <Checkbox checked={enableReminder} onClick={this.enableReminder}/>
+                <Checkbox checked={not(disableReminder)} onClick={this.disableReminder}/>
                 <div style={{paddingLeft:"10px"}}>Enable reminder</div>
             </div> 
 

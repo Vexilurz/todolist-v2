@@ -42,7 +42,7 @@ let actionFromQuickEntry = (action:{type:string,load:any,kind:string}) : boolean
 
 
 let log = (append:string) => (load:any) : any => {
-    console.log(append,load);
+    console.log(append,load); 
     return load;
 };
 
@@ -54,7 +54,7 @@ export let scheduleReminder = (todo) : number => {
         () => {
             let notification : any = findWindowByTitle('Notification');
 
-            console.log(`schedule ${todo.title} - ${todo.reminder}`);
+            //console.log(`schedule ${todo.title} - ${todo.reminder}`);
 
             if(notification){ 
                notification.webContents.send('remind',todo); 

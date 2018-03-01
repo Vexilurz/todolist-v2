@@ -9,7 +9,8 @@ import { ipcRenderer, remote } from 'electron';
 import { 
     cond, assoc, isNil, not, defaultTo, map, isEmpty, 
     uniq, remove, contains, append, adjust, compose, 
-    flatten, concat, prop, ifElse, last, path, uniqBy
+    flatten, concat, prop, ifElse, last, path, uniqBy,
+    identity
 } from 'ramda';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
@@ -27,6 +28,23 @@ import { isDev } from './utils/isDev';
 import { Config, getConfig } from './utils/config';
 injectTapEventPlugin();  
 
+let oneElement = (list:any[]) : boolean => {
+    if(list){
+       return list.length===1
+    }
+
+    return false
+};
+
+
+let manyElements = (list:any[]) : boolean => {
+    if(list){
+       return list.length>1
+    }
+
+    return false
+};
+
  
 window.onerror = (msg, url, lineNo, columnNo, error) => {
     let string = msg.toLowerCase();
@@ -38,7 +56,9 @@ window.onerror = (msg, url, lineNo, columnNo, error) => {
         'Error object: ' + JSON.stringify(error)
     ].join(' - ');
     globalErrorHandler(message);
+
     if(isDev()){ return false } 
+
     return true;
 };
 
@@ -50,13 +70,15 @@ ipcRenderer.once(
         app.style.width="100%"; 
         app.style.height="100%";
         app.id='application';      
-        document.body.appendChild(app);    
-        getConfig().then(
+        document.body.appendChild(app);  
+
+        getConfig()
+        .then(
             (config:Config) => ReactDOM.render(   
                 wrapMuiThemeLight(<Notification config={config}/>),
                 document.getElementById('application')
             )     
-        ) 
+        ); 
     }
 );   
 
@@ -65,71 +87,36 @@ interface NotificationProps{
     config:any
 }   
 
-interface  NotificationState{
-    todo:any
-}    
+interface NotificationState{
+    todos:any[]
+}
 
 class Notification extends Component<NotificationProps,NotificationState>{
+
+    soundPath:string;
     subscriptions:Subscription[];
-    queue:NotificationState[];
     beep:any;
     disable:boolean;
-    soundPath:string;
-    timeout:any;
-
-
+    open:boolean;
+    
     constructor(props){
         super(props);  
-        this.subscriptions=[]; 
-        let {enableReminder} = this.props.config;
-        this.disable = not(enableReminder);
-        //console.log(`initial this.disable:${this.disable}`,this.props.config)
-        let defaultState={ todo:null };
-        this.timeout=null;
-        this.state={...defaultState};   
-        this.queue=[]; 
-        this.soundPath=pathToFile.resolve(__dirname,"sound.wav"); 
+        this.subscriptions = []; 
+        this.state = { todos:[] };
+        let {disableReminder} = this.props.config;
+        this.disable = disableReminder;
+        this.open = false;
+        this.soundPath = pathToFile.resolve(__dirname,"sound.wav"); 
     };
 
 
-    updateState = (state) => new Promise(resolve => this.setState(state, () => resolve()));
-
-
-    componentDidMount(){
-        this.hide();
-
-        this.subscriptions.push(
-            Observable 
-                .fromEvent(ipcRenderer, 'remind', (event,todo) => todo)
-                .subscribe((todo) => {
-                    if(isNil(todo) || isNil(todo.reminder)){ return } 
-
-                    if(isEmpty(this.queue)){
-                        this.queue.push({todo});
-                        this.notify();
-                    }else{ 
-                        this.queue = compose(
-                            uniqBy(path(['todo', '_id'])),
-                            append({todo})
-                        )(this.queue);
-                    }
-                }),
-                
-            Observable
-                .fromEvent(ipcRenderer,"config",(event,config) => config)
-                .subscribe((config) => { 
-                    let {enableReminder} = config;
-                    this.disable = not(enableReminder);
-                    const window = remote.getCurrentWindow();
-                    if(this.disable){
-                        window.hide(); 
-                    }else{
-                        window.show();  
-                    }
-                })     
-        )
+    hide = () => {
+        const window = remote.getCurrentWindow();
+        let {initialX, initialY} = this.getInitialPosition();
+        window.setPosition(initialX, initialY);
+        window.hide();
     };
-
+     
 
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
@@ -159,87 +146,137 @@ class Notification extends Component<NotificationProps,NotificationState>{
     };
 
 
-    notify = () => {  
-        if(isEmpty(this.queue)){return}
-        let next = this.queue[0];
-        this.updateState(next)
-        .then(() => { 
-            if(this.beep){ 
-                if(not(this.disable)){
-                    this.beep.audioEl.play();
-                } 
-            }   
-        }) 
-        .then(() => this.open()) 
+    componentDidMount(){
+        this.hide();
+
+        let onConfig = (config) => { 
+            let {disableReminder} = this.props.config;
+            this.disable = disableReminder;
+        };
+
+        let shouldNotify = () => Observable.of(this.open).skipWhile(val => val);
+
+        this.subscriptions.push(
+            Observable
+                .fromEvent(ipcRenderer,"config",(event,config) => config)
+                .subscribe(onConfig),  
+
+            Observable 
+                .fromEvent(ipcRenderer,"remind",(event,todo) => todo)
+                .buffer(Observable.interval(5000).switchMap(shouldNotify))
+                .do((value) => console.log("buffer",value))
+                .subscribe(
+                    ifElse(
+                        isEmpty,
+                        identity,
+                        compose( 
+                            (todos:any[]) => this.setState({todos},this.notify),
+                            uniqBy(prop('_id'))
+                        )   
+                    ) 
+                )
+        );
     };
 
 
-    open = () => new Promise( 
-        resolve => { 
-            const window = remote.getCurrentWindow();
-            let {initialX, initialY} = this.getInitialPosition();
-            let {finalX, finalY} = this.getFinalPosition();
 
-            let move = () => {
-                let currentPosition = window.getPosition();
-                let [x,y] = currentPosition;
-                let delta = 20;
+    notify = () => new Promise(resolve => { 
+        this.open = true;
 
-                if(y<=finalY){ 
-                   window.setPosition(finalX, finalY);
-                   resolve();
-                }else{
-                   window.setPosition(x, y-delta);
-                   requestAnimationFrame(move);   
-                }
-            };
-
-            window.setPosition(initialX, initialY);
-
-            if(not(this.disable)){ window.show() };
-
-            move();
-        } 
-    );
-    
-    
-    hide = () => {
         const window = remote.getCurrentWindow();
         let {initialX, initialY} = this.getInitialPosition();
-        window.setPosition(initialX, initialY);
-        window.hide();
-    };
-     
+        let {finalX, finalY} = this.getFinalPosition();
 
-    close = () => {
-        let {todo} = this.state;
-        this.hide();
-        let mainWindow = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
-        if(mainWindow && todo){ 
-           mainWindow.webContents.send('removeReminder', todo);
-        } 
-        this.queue.shift(); 
-        this.notify(); 
-    };
+        console.log(`notify, open: ${this.open}`)
+        
+        window.show(); 
 
-    
-    openTodoInApp = (e) => { 
-        let {todo} = this.state;
-        if(todo){
-            let mainWindow = remote.BrowserWindow.getAllWindows().find( w => w.id===1 );
-            if(mainWindow){
-               mainWindow.webContents.send('openTodo', todo);
-               mainWindow.webContents.send('removeReminder', todo);
+        if(this.beep){ 
+           this.beep.audioEl.play();
+        }   
+
+        let move = () => {
+            let currentPosition = window.getPosition();
+            let [x,y] = currentPosition;
+            let delta = 20;
+
+            if(y<=finalY){ 
+                window.setPosition(finalX, finalY);
+                resolve();
+            }else{
+                window.setPosition(x, y-delta);
+                requestAnimationFrame(move);   
             }
-            this.close();
+        };
+
+        window.setPosition(initialX, initialY);
+        move();
+    });
+    
+
+    suspend = () => {
+        let {todos} = this.state;
+        let mainWindow = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
+
+        this.open = false;
+
+        console.log(`suspend, open: ${this.open}`)
+
+        todos.forEach(
+            todo => {
+                if(mainWindow){
+                   mainWindow.webContents.send('removeReminder', todo);
+                }
+            }
+        );
+
+        this.setState({todos:[]}, this.hide);
+    };
+ 
+    
+    openTodoInApp = (todo:any) => { 
+        if(isNil(todo)){ return }
+
+        let mainWindow = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
+
+        if(mainWindow){
+           mainWindow.webContents.send('openTodo',todo);
+           mainWindow.webContents.send('removeReminder',todo);
         }
     };
 
-      
+
     render(){  
-        let {todo} = this.state;
-        let title = isNil(todo) ? '' : todo.title;
-        let reminder = isNil(todo) ? new Date() : todo.reminder;
+        let {todos} = this.state;
+
+        let fontStyle = {
+            fontWeight:600,
+            fontSize:"17px",
+            display:"flex",
+            alignItems:"flex-start",
+            color:"black",
+            position:"relative"
+        };
+
+        if(isEmpty(todos)){ return null }
+
+        let title = <div></div>;
+        let header = '';
+        let button = '';
+        let reminder = new Date();
+
+        if(oneElement(todos)){
+           let todo = todos[0];
+           reminder = isNil(todo) ? new Date() : todo.reminder;
+           header = 'A task is due:';
+           button = 'Open Task';
+           title = <div style={fontStyle as any}>{todos[0].title}</div>;
+        }else if(manyElements(todos)){
+           reminder = new Date();
+           header = `${todos.length} tasks due:`;
+           button = 'Open';
+           title = <div>{todos.map((t,i) => <div style={fontStyle as any}>{`${i+1}.${t.title}`}</div>)}</div>;
+        }
 
         return <div style={{display:"flex",flexDirection:"column",width:"100%",height:"100%"}}>
             <ReactAudioPlayer
@@ -258,11 +295,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
                 textAlign:"center", 
                 justifyContent:"flex-start" 
             }}> 
-                <div style={{
-                    paddingLeft:"5px",
-                    display:"flex", 
-                    alignItems:"center"
-                }}>
+                <div style={{paddingLeft:"5px",display:"flex",alignItems:"center"}}>
                     {chooseIcon({width:"",height:""},"reminder")}
                 </div>
                 <div style={{
@@ -278,37 +311,38 @@ class Notification extends Component<NotificationProps,NotificationState>{
                 <div style={{position:"absolute",right:5,cursor:"pointer",zIndex:200}}>   
                     <div    
                         style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
-                        onClick={() => this.close()}
+                        onClick={this.suspend}
                     >
                         <Clear style={{color:"rgba(255,255,255,1)",height:25,width:25}}/>
                     </div>
                 </div>
             </div> 
-            <div style={{      
+            <div 
+            className="scroll"
+            style={{       
                 padding:"10px",              
                 display:"flex",
                 overflowX:"hidden", 
-                justifyContent:"space-around",
-                height:"85%",
-                position:"relative",
+                height:"100%",
+                justifyContent:"space-between",
                 alignItems:"flex-start", 
                 flexDirection:"column"  
             }}>     
-                <div style={{color:"rgba(100,100,100,0.8)"}}>
-                    A task is due:
-                </div>
+                <div style={{color:"rgba(100,100,100,0.8)"}}>{header}</div>
+                {title}
                 <div style={{
-                    fontWeight:600,
-                    fontSize:"17px",
+                    width:"100%",
                     display:"flex",
-                    alignItems:"flex-start",
-                    color:"black"
+                    minHeight:"50px",
+                    alignItems:"center",
+                    justifyContent:"center",
+                    bottom:"10px"                    
                 }}>
-                    {title}  
-                </div>
-                <div style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center"}}>
                     <div  
-                        onClick={this.openTodoInApp} 
+                        onClick={() => {
+                            this.openTodoInApp(todos[0]);
+                            this.suspend(); 
+                        }} 
                         style={{      
                             display:"flex",
                             alignItems:"center",
@@ -325,7 +359,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
                         }}
                     >    
                         <div style={{color:"white",whiteSpace:"nowrap",fontSize:"16px"}}>  
-                            Open Task 
+                           {button}
                         </div>   
                     </div> 
                 </div>

@@ -161,13 +161,12 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
         } 
     )
 }; 
-
+ 
  
 export let clearScheduledReminders = (store:Store) : Store => {
     let scheduledReminders = store.scheduledReminders;
     scheduledReminders.forEach(t => {
         clearTimeout(t);
-        console.log(`cleared ${t}`); 
     }); 
     return store;
 };

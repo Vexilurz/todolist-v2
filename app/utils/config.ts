@@ -17,7 +17,7 @@ export const defaultConfig : Config = {
     groupTodos:false,
     preserveWindowWidth:true, //when resizing sidebar
     enableShortcutForQuickEntry:true,
-    enableReminder:true,
+    disableReminder:false,
     quickEntrySavesTo:"inbox", //inbox today next someday
     moveCompletedItemsToLogbook:"immediately"
 };
@@ -31,7 +31,7 @@ export interface Config{
     hideHint:boolean,
     shouldSendStatistics:boolean,
     showCalendarEvents:boolean,
-    enableReminder:boolean,
+    disableReminder:boolean,
     groupTodos:boolean,
     preserveWindowWidth:boolean, //when resizing sidebar
     enableShortcutForQuickEntry:boolean,
