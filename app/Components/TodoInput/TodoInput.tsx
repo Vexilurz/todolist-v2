@@ -21,7 +21,7 @@ import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TagsPopup, TodoTags } from './TodoTags';
 import { TodoInputLabel } from './TodoInputLabel'; 
-import { uniq, isEmpty, contains, isNil, not, multiply, remove, cond, equals, any } from 'ramda';
+import { uniq, isEmpty, contains, isNil, not, multiply, remove, cond, equals, any, complement } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
@@ -143,9 +143,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             category:isToday(attachedDate) ? "today" : category,
             showDateCalendar:false
         })
-        .then(() => {
-            this.update({reminder});
-        })
+        .then( 
+            () => this.update({reminder}) 
+        )
     };
 
 
@@ -168,8 +168,19 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         .then(() => this.update({reminder})); 
     }; 
 
+    
+    componentWillReceiveProps(nextProps:TodoInputProps){
+        let notEquals = complement(equals);
+        let { open } = this.state;
+        let closed = not(open);
 
+        if(notEquals(nextProps.todo, this.props.todo) && closed){
+           let {attachedDate,deadline,category,checklist,title,note} = nextProps.todo;
+           this.setState({attachedDate, deadline, category, checklist, title, note});
+        }
+    };
 
+    
     onCalendarThisEveningClick = (e) => {
         e.stopPropagation();
         let {todo,dispatch} = this.props;
@@ -838,7 +849,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 onDayClick = {this.onCalendarDayClick}
                 onSomedayClick = {(e) => {
                     e.stopPropagation();
-                    this.updateState({category:"someday",showDateCalendar:false});
+                    this.updateState({
+                        category:"someday",
+                        deadline:null,
+                        showDateCalendar:false
+                    });
                 }}
                 onTodayClick = {this.onCalendarTodayClick} 
                 onRepeatTodo = {canRepeat ? this.onRepeatTodo : null}
@@ -1550,7 +1565,7 @@ export class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLab
                 <div style={{transition:"opacity 0.4s ease-in-out",opacity:open ? 1 : 0,paddingLeft:"5px"}}>      
                     <TodoInputLabel 
                         onRemove={onRemoveTodayLabel}
-                        category={"today"} 
+                        category={category==="evening" ? "evening" : "today"} 
                         content={ 
                             <div style={{marginLeft:"15px"}}>
                                 {category==="evening" ? "This Evening" : "Today"}   

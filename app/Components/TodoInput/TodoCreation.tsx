@@ -420,8 +420,8 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             }, 
             () => this.closeDeadlineCalendar()
         );
-    };
-     
+    };  
+
 
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
@@ -437,13 +437,18 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         }
 
         this.setState({attachedDate,reminder,category:isToday(attachedDate) ? "today" : "next"});   
-    };
-    
+    };  
+     
+
 
     onCalendarSomedayClick = (e) => {
         e.stopPropagation();
-        this.setState({category:"someday"}, () => this.closeDateCalendar());
+        this.setState(
+            {category:"someday",deadline:null}, 
+            () => this.closeDateCalendar()
+        );  
     };
+
 
 
     onCalendarTodayClick = (e) => {
