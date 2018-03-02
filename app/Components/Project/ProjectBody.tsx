@@ -189,7 +189,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         
         let toLayoutIndex : number = compose(
-            (item) => findIndex(equals(item),layout),
+            (item) => layout.findIndex(equals(item)),
             when(isTodo,prop('_id')),
             (index) => items[index],
             when(lte(items.length),() => items.length-1),
