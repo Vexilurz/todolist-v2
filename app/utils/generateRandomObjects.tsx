@@ -5,7 +5,7 @@ import { ipcRenderer } from 'electron';
 import PouchDB from 'pouchdb-browser';  
 import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist'; 
 import { Category } from '.././Components/MainContainer'; 
-import { randomArrayMember, randomInteger, randomDate, fiveMinutesLater, onHourLater, isToday } from './utils';
+import { randomArrayMember, randomInteger, randomDate, fiveMinutesLater, onHourLater, isToday, fiveMinutesBefore } from './utils';
 import { Todo, Heading, LayoutItem, Project, Area } from './../database';
 import { uniq, splitEvery, contains, isNil, not } from 'ramda';
 import { generateId } from './generateId';
@@ -100,21 +100,25 @@ export let fakeTodo = (tags:string[], remind = null) : Todo => {
     
     let completedWhen = checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null;                
 
+    /*let reminder = isToday(attachedDate) && isNil(deleted) && not(checked) ?  
+                   randomDate(new Date(), fiveMinutesBefore(new Date())) : 
+                   null; */
+
     let reminder = isToday(attachedDate) && isNil(deleted) && not(checked) ?  
-                   randomDate(new Date(), fiveMinutesLater(new Date())) : 
+                   randomDate(fiveMinutesBefore(new Date()), fiveMinutesLater(new Date())) :  
                    null; //onHourLater(date) //fiveMinutesLater(date);
     
     //reminder = randomDate(new Date(), new Date()["addDays"](-50)); 
     
-    return ({  
+    return ({   
         _id:generateId(),     
         type:"todo",
         category:randomCategory(), 
         title:title.join(' '), 
         priority:Math.random()*999999999,
-        note:note.join(' '),
+        note:note.join(' '), 
         checklist:checklist,   
-        reminder,//:remind,  
+        reminder:null,  
         attachedTags:tags,   
         deadline:Math.random() < 0.3 ? null :
                  Math.random() > 0.5 ?

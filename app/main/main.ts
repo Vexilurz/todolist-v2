@@ -231,10 +231,10 @@ let onReady = (showTray:boolean, config:any) => {
     //quickEntry.webContents.openDevTools();  
       
     notification = initNotification({
-        width:800,//250,
-        height:800//200
+        width:250,
+        height:200
     });   
-    notification.webContents.openDevTools();  
+    //notification.webContents.openDevTools();  
     
     if(showTray){ 
        tray = createTray();

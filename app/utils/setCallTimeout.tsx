@@ -12,6 +12,6 @@ export let setCallTimeout = (f:() => void, when:Date) : number => {
         return null;
     // if in future - setup interval    
     }else{ 
-        return setTimeout(() => f(), timeMs) as any; 
+        return setTimeout(f, timeMs) as any; 
     }   
 }

@@ -164,7 +164,6 @@ class Notification extends Component<NotificationProps,NotificationState>{
             Observable 
                 .fromEvent(ipcRenderer,"remind",(event,todo) => todo)
                 .buffer(Observable.interval(5000).switchMap(shouldNotify))
-                .do((value) => console.log("buffer",value))
                 .subscribe(
                     ifElse(
                         isEmpty,
@@ -187,8 +186,6 @@ class Notification extends Component<NotificationProps,NotificationState>{
         let {initialX, initialY} = this.getInitialPosition();
         let {finalX, finalY} = this.getFinalPosition();
 
-        console.log(`notify, open: ${this.open}`)
-        
         window.show(); 
 
         if(this.beep){ 
@@ -219,17 +216,10 @@ class Notification extends Component<NotificationProps,NotificationState>{
         let mainWindow = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
 
         this.open = false;
-
-        console.log(`suspend, open: ${this.open}`)
-
-        todos.forEach(
-            todo => {
-                if(mainWindow){
-                   mainWindow.webContents.send('removeReminder', todo);
-                }
-            }
-        );
-
+        if(mainWindow){ 
+           mainWindow.webContents.send('removeReminders', todos); 
+        }
+     
         this.setState({todos:[]}, this.hide);
     };
  
@@ -275,7 +265,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
            reminder = new Date();
            header = `${todos.length} tasks due:`;
            button = 'Open';
-           title = <div>{todos.map((t,i) => <div style={fontStyle as any}>{`${i+1}.${t.title}`}</div>)}</div>;
+           title = <div>{todos.map((t,i) => <div style={fontStyle as any}>{`${i+1}. ${t.title}`}</div>)}</div>;
         }
 
         return <div style={{display:"flex",flexDirection:"column",width:"100%",height:"100%"}}>

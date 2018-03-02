@@ -13,27 +13,29 @@ import {
     attachDispatchToProps, transformLoadDates, yearFromNow, convertTodoDates, 
     convertProjectDates, convertAreaDates, timeDifferenceHours, 
     convertDates, checkForUpdates, nextMidnight,
-    oneMinuteBefore, threeDaysLater, findWindowByTitle, keyFromDate 
+    oneMinuteBefore, threeDaysLater, findWindowByTitle, keyFromDate, isNotNil 
 } from "./utils/utils";  
 import {wrapMuiThemeLight} from './utils/wrapMuiThemeLight'; 
 import {isNewVersion} from './utils/isNewVersion';
 import {
     isTodo, isProject, isArea, isArrayOfAreas, 
-    isArrayOfProjects, isArrayOfTodos, isArray, isString, isFunction, isDate
+    isArrayOfProjects, isArrayOfTodos, isArray, 
+    isString, isFunction, isDate
 } from './utils/isSomething';
 import { createStore, combineReducers } from "redux"; 
 import { Provider, connect } from "react-redux";
 import './assets/fonts/index.css'; 
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
-import { MainContainer, Category } from './Components/MainContainer';
+import { MainContainer, Category, filter } from './Components/MainContainer';
 import { 
     Project, Area, Todo, removeProject, addProject, removeArea, updateProject, 
     addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, 
-    removeProjects, updateAreas, updateProjects, addTodos, Calendar, Heading, getDatabaseObjects,
+    removeProjects, updateAreas, updateProjects, addTodos, Calendar, Heading, 
+    getDatabaseObjects
 } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
-import { cond, assoc, isNil, not, defaultTo, map, isEmpty, compose } from 'ramda';
+import { cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { Settings, section, SettingsPopup } from './Components/Settings/settings'; 
 import { SimplePopup } from './Components/SimplePopup';
@@ -305,6 +307,17 @@ export class App extends Component<AppProps,{}>{
                    let updated:Todo = {...target,reminder:null};
                    dispatch({type:"updateTodo",load:updated}); 
                 }  
+            }),
+
+
+            Observable 
+            .fromEvent(ipcRenderer, 'removeReminders', (event,todos) => todos)    
+            .subscribe((items:Todo[]) => {
+                let {todos,dispatch} = this.props; 
+                let ids = items.filter(isNotNil).map((t:Todo) => t._id);
+                let updated = filter(todos, (todo:Todo) => contains(todo._id)(ids));
+                
+                dispatch({ type:"updateTodos",load:updated.map((t:Todo) => ({...t,reminder:null})) }); 
             }),
 
 

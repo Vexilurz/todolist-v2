@@ -162,15 +162,6 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
     )
 }; 
  
- 
-export let clearScheduledReminders = (store:Store) : Store => {
-    let scheduledReminders = store.scheduledReminders;
-    scheduledReminders.forEach(t => {
-        clearTimeout(t);
-    }); 
-    return store;
-};
-
 
 let isMainWindow = () => remote.getCurrentWindow().id===1;
  

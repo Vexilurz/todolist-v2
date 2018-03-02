@@ -401,6 +401,10 @@ export let fiveMinutesLater = (date:Date) : Date => {
     return new Date(date.getTime() + fiveMinutesMs);
 }; 
 
+export let fiveMinutesBefore = (date:Date) : Date => { 
+    let fiveMinutesMs = 1000 * 60 * 5;
+    return new Date(date.getTime() - fiveMinutesMs);
+}; 
 
 export let onHourLater = (date:Date) : Date => {  
     let oneHourMs = 1000 * 60 * 60; 
