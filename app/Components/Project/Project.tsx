@@ -4,7 +4,7 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react"; 
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
 import { 
- byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading 
+ byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNotNil 
 } from '../../utils/utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
@@ -86,6 +86,11 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     
      
     updateLayoutOrder = (layout:LayoutItem[]) => {
+        let { project } = this.props;
+        assert(layout.length===project.layout.length,`incorrect length.updateLayoutOrder.`);    
+        this.updateProject({layout});
+        
+        /*
         let { project } = this.props; 
         let previousLayout = [...project.layout]; 
         let allLayoutItemsPresent : boolean = previousLayout.length===layout.length;
@@ -109,7 +114,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             );    
 
             this.updateProject({layout:newLayout});
-        }   
+        } 
+        */  
     };
      
 
@@ -138,14 +144,11 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     
       
     render(){   
-        let {
-            selectedTag, project, showCompleted, 
-            showScheduled, todos, selectedCategory
-        } = this.props;
+        let {selectedTag, project, showCompleted, showScheduled, todos, selectedCategory} = this.props;
 
         if(isNil(project)){ return null } 
 
-        let byNotFuture = (t:Todo) => !isNil(t.attachedDate) ? daysRemaining(t.attachedDate)<=0 : true;
+        let byNotFuture = (t:Todo) => isNotNil(t.attachedDate) ? daysRemaining(t.attachedDate)<=0 : true;
         
         let projectFilters = [ 
             showCompleted ? null : byNotCompleted, 
@@ -153,19 +156,21 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             showScheduled ? null : byNotSomeday 
         ].filter( f => f );
 
-
-        let layout = project.layout
-                            .map( (item:LayoutItem) => isString(item) ? todos.find(todo => todo._id===item) : item )
-                            .filter( (item) => not(isNil(item)) );  
+        let layout = project
+                    .layout
+                    .map((item:LayoutItem) => isString(item) ? todos.find(todo => todo._id===item) : item)
+                    .filter(isNotNil);  
                  
 
+        //this items will go to project header, dont filter them by tag, 
+        //because available tags will be derived from them        
         let toProjectHeader = filter(
             layout,
             (i:Todo) => isTodo(i) ? allPass(projectFilters)(i as (Project & Todo)) : false, 
             ""
         );
         
-          
+        //filter by tag & by selected filters  
         let toProjectBody = filter(
             layout,
             (i:Todo) => isTodo(i) ? allPass([byTags(selectedTag),...projectFilters])(i as (Project & Todo)) : true, 
@@ -193,6 +198,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                     </div>    
                     <ProjectBody    
                         items={toProjectBody}
+                        project={project}
                         dragged={this.props.dragged}
                         groupTodos={this.props.groupTodos}
                         selectedCategory={this.props.selectedCategory}

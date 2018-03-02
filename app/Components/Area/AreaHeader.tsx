@@ -58,6 +58,10 @@ export class AreaHeader extends Component<AreaHeaderProps,AreaHeaderState>{
            this.setState({openMenu:false}); 
         }
 
+        if(this.inputRef && isEmpty(nextProps.name)){
+           this.inputRef.focus();  
+        }
+
         if(nextProps.name!==this.props.name){
            this.setState({name:nextProps.name}); 
         }

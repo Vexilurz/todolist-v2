@@ -72,6 +72,10 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
            this.setState({description:nextProps.project.description}); 
         }
 
+        if(this.inputRef && isEmpty(nextProps.project.name)){
+           this.inputRef.focus();  
+        }
+
         if(this.props.project.name!==nextProps.project.name){
            this.setState({name:nextProps.project.name}); 
         }
@@ -94,7 +98,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
 
 
     onDeadlineCalendarClear = (e) => this.setState(
-        {showDeadlineCalendar:false}, 
+        {showDeadlineCalendar:false},
         () => this.props.updateProjectDeadline(null)
     );
 
@@ -104,7 +108,6 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         () => this.props.updateProjectDeadline(day)
     );  
        
- 
 
     render(){ 
         let {todos,project,rootRef} = this.props;
@@ -179,11 +182,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         <PieChart
                             animate={false}    
                             totalValue={totalValue}
-                            data={[{  
-                                value:currentValue,  
-                                key:1,   
-                                color:'rgba(108, 135, 222, 0.8)'  
-                            }]}   
+                            data={[{value:currentValue,key:1,color:'rgba(108, 135, 222, 0.8)'}]}   
                             style={{  
                                 width:22, 
                                 height:22,

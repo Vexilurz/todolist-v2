@@ -62,29 +62,34 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
 
     constructor(props){ super(props) }  
   
-    closeMenu = () => this.props.dispatch({type:"showProjectMenuPopover", load:false})
+    closeMenu = () => this.props.dispatch({type:"showProjectMenuPopover", load:false});
       
     updateProject = (selectedProject:Project, updatedProps) : void => { 
         let {dispatch} = this.props;
         dispatch({type:"updateProject", load:{ ...selectedProject, ...updatedProps }})
-    }   
+    }; 
+
   
     onRepeat = (e) => { 
         this.closeMenu(); 
-    }
+    };
+
 
     onMove = (e) => { 
         this.closeMenu(); 
-    }
+    };
+
 
     onShare = (e) => { 
         this.closeMenu(); 
-    } 
+    };
+
 
     onAddDeadline = (e) => { 
         this.closeMenu(); 
         this.props.openDeadlineCalendar();   
-    }   
+    };
+
 
     onDuplicate = (e) => {   
         let {project,todos} = this.props;
@@ -111,41 +116,48 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         this.props.dispatch({type:"addTodos",load:duplicatedTodos});
         
         this.closeMenu(); 
-    } 
+    };
+
 
     onComplete = (e) => { 
         let {project} = this.props;
         this.updateProject(project, {completed:new Date()});
         this.props.dispatch({type:"selectedCategory",load:"inbox"});
         this.closeMenu() 
-    } 
+    };
+
   
     onDelete = (e) => {   
         let {project} = this.props;
         deleteProject(this.props.dispatch, project, this.props.todos); 
         this.props.dispatch({type:"selectedCategory", load:"inbox"});
         this.closeMenu();           
-    }   
+    };
+
  
     onAddHeading = (e) => {
         createHeading(e, this.props); 
         this.closeMenu(); 
-    }  
+    }; 
+
    
     onAddTags = (e) => {
         this.props.openTagsPopup();
         this.closeMenu(); 
-    }
+    };
+
 
     onToggleCompleted = (e) => {
         this.props.dispatch({type:"showCompleted", load:!this.props.showCompleted});
         this.closeMenu(); 
-    }
+    };
+
      
     onToggleScheduled = (e) => {
         this.props.dispatch({type:"showScheduled", load:!this.props.showScheduled});
         this.closeMenu(); 
-    }
+    };
+
 
     onRestoreVisibility = (category:Category, project:Project) => {
         let {dispatch} = this.props;
@@ -156,23 +168,16 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
             type:"updateProject", 
             load:{ ...project, hide:remove(idx, 1, [...project.hide]) }
         }) 
-    }
+    };
+
      
     render(){   
-        let {
-            project, showProjectMenuPopover, rootRef, 
-            anchorEl, showCompleted, showScheduled
-        } = this.props;
+        let {project, showProjectMenuPopover, rootRef, anchorEl, showCompleted, showScheduled} = this.props;
 
         return not(showProjectMenuPopover) ? null :
         <Popover   
             className="nocolor"
-            style={{
-                marginTop:"20px", 
-                backgroundColor:"rgba(0,0,0,0)",
-                background:"rgba(0,0,0,0)",
-                borderRadius:"10px" 
-            }}   
+            style={{marginTop:"20px",backgroundColor:"rgba(0,0,0,0)",background:"rgba(0,0,0,0)",borderRadius:"10px"}}   
             open={showProjectMenuPopover}
             scrollableContainer={rootRef}
             useLayerForClickAway={false} 

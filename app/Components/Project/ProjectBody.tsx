@@ -7,7 +7,11 @@ import { Todo, Project, Heading, LayoutItem, Area } from '../../database';
 import { generateDropStyle, hideChildrens, removeHeading, typeEquals } from '../../utils/utils'; 
 import { ProjectHeading } from './ProjectHeading';  
 import { TodoInput } from '../TodoInput/TodoInput'; 
-import { isEmpty, isNil, not, uniq, contains, drop, map, compose, adjust, findIndex, cond } from 'ramda';
+import { 
+    isEmpty, isNil, not, uniq, contains, drop, 
+    map, compose, adjust, findIndex, cond, prepend, equals, lt, lte, add,
+    takeWhile, splitAt, insertAll, remove, last, prop, when, reject 
+} from 'ramda';
 import { onDrop, removeTodosFromProjects, dropTodoOnCategory, findDropTarget } from '../TodosList';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { arrayMove } from '../../utils/arrayMove';
@@ -20,10 +24,16 @@ import { SortableContainer } from '../CustomSortableContainer';
 import { Category } from '../MainContainer';
 
 
+let log = (msg) => (item) => {
+    console.log(msg,item);
+    return item;
+};
+
 
 interface ProjectBodyProps{ 
     items:(Heading|Todo)[], 
     groupTodos:boolean,
+    project:Project,
     updateLayoutOrder:(layout:LayoutItem[]) => void,
     updateHeading:(heading_id:string, newValue:string) => void,
     archiveHeading:(heading_id:string) => void,
@@ -119,81 +129,80 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let nodes = [].slice.call(e.path);
         for(let i=0; i<nodes.length; i++){
             if(nodes[i].preventDrag){ 
-               return true 
+               return true; 
             }
         }
         return false; 
     };
 
 
-
     changeOrder = (oldIndex:number,newIndex:number) => { 
-        let items = this.props.items;  
-        items = items.map(i => i.type==="todo" ? i._id : i) as any; 
-        let changed = arrayMove(items, oldIndex, newIndex); 
+        let {items,project} = this.props;
+        let from = items[oldIndex];
+        let to = items[newIndex];
+        let layout = [...project.layout];
+
+        let fromIndex = layout.findIndex((item:any) => {
+            if(isTodo(from)){ 
+               return from._id===item; 
+            }else if(isHeading(from as Heading)){ 
+               return isString(item) ? false : from._id===item._id;
+            }
+        });
+
+        let toIndex = layout.findIndex((item:any) => {
+            if(isTodo(to)){ 
+               return to._id===item; 
+            }else if(isHeading(to as Heading)){ 
+               return isString(item) ? false : to._id===item._id;
+            }
+        });
+
+        let changed = arrayMove(layout, fromIndex, toIndex); 
         this.props.updateLayoutOrder(changed);    
     };  
 
     
-
     changeHeadingsOrder = (oldIndex:number,newIndex:number) => {
+        let {items,project,updateLayoutOrder} = this.props;
+        let layout = [...project.layout];
+        let from : Heading = items[oldIndex] as Heading;
+        assert(isHeading(from as Heading),`item is not heading. ${from}. changeHeadingsOrder.`);
 
-        let items = [...this.props.items];
-         
-        assert(isHeading(items[oldIndex] as Heading),`item is not heading. ${items[oldIndex]}. changeHeadingsOrder.`);
+        //heading + string[]
+        let data = compose(  
+            log('dragged item'),
+            prepend(items[oldIndex]), 
+            map(prop('_id')), 
+            takeWhile(isTodo),
+            log('split'),
+            last,
+            log('split'),
+            splitAt(oldIndex+1) 
+        )(items);
 
-        let before = [];
-        let after = [];
 
-        let heading = items[oldIndex]; 
-        let todos = [];
-
-        for(let i=oldIndex+1; i<items.length; i++){
-            if(items[i].type==="todo"){ 
-               todos.push(items[i]);
-            }else{ 
-               break;
-            }     
-        }    
-
-        if(isEmpty(todos)){
+        if(data.length===1){
            this.changeOrder(oldIndex,newIndex);
-           return;  
+           return; 
         }
+
         
-        let todosIds = todos.map( t => t._id );
-        let index = 0;
-        if(newIndex<oldIndex)
-            index = newIndex;
-        else      
-            index = newIndex + todos.length + 1;   
-                   
-
-        for(let i=0; i<items.length; i++){ 
-            let item = items[i];
-
-            if(item._id===heading._id || contains(item._id)(todosIds))
-               continue; 
-               
-            if(i<index){ 
-               before.push(item); 
-            }else{
-               after.push(item); 
-            }
-        }
+        let toLayoutIndex : number = compose(
+            (item) => findIndex(equals(item),layout),
+            when(isTodo,prop('_id')),
+            (index) => items[index],
+            when(lte(items.length),() => items.length-1),
+            when(lt(oldIndex),add(data.length))
+        )(newIndex);
         
-        let updated = [ 
-            ...before,
-            heading, 
-            ...todos,  
-            ...after 
-        ];  
 
-        assert(heading._id===updated[newIndex]._id,`incorrect item placement. ${updated[newIndex]} changeHeadingsOrder.`); 
-
-        let layoutItems = updated.map( i => isTodo(i) ? i._id : i as any); 
-   
-        this.props.updateLayoutOrder(layoutItems);    
+        compose(
+            updateLayoutOrder,
+            reject(isNil),
+            insertAll(toLayoutIndex,data),
+            map( when( (item) => contains(item)(data), () => undefined ) )
+        )(layout);
     };
 
        
@@ -261,19 +270,29 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
  
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
         let {moveCompletedItemsToLogbook,dispatch,areas,projects,selectedProjectId} = this.props;
-        dispatch({type:"dragged",load:null});  
+        let leftpanel = document.getElementById("leftpanel");
+        dispatch({type:"dragged",load:null}); 
+
+
         let x = event.clientX;  
         let y = event.clientY;  
-        let items = this.props.items;   
-        let draggedTodo : (Todo | Heading) = items[oldIndex];
-        let leftpanel = document.getElementById("leftpanel");
+
+        let items = this.props.items; // subset of layout, but maybe a full set
+
+        // dragged item -> ( heading + todos  |  todo )
         let selectedItems = compose(
             map(index => items[index]),
-            (items) => this.selectElements(oldIndex, items)
+            (items) => this.selectElements(oldIndex,items)
         )(items);
 
+        // dragged item -> ( todo | heading )
+        let draggedTodo : (Todo | Heading) = items[oldIndex]; 
+
+
         if(insideTargetArea(null,leftpanel,x,y)){
+
             if(isTodo(draggedTodo)){
+
                 let updated : { projects:Project[], todo:Todo } = onDrop({
                     event, 
                     draggedTodo, 
@@ -282,22 +301,27 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 }); 
 
                 if(updated.projects){
-                    dispatch({type:"updateProjects", load:updated.projects});
+                   dispatch({type:"updateProjects", load:updated.projects});
                 }
                 
                 if(updated.todo){
-                    dispatch({type:"updateTodo", load:updated.todo});
+                   dispatch({type:"updateTodo", load:updated.todo});
                 }
+
             }else if(isHeading(draggedTodo as Heading)){
+
                 let heading = selectedItems[0];
                 let todos = drop(1,selectedItems);
                 this.onDropMany(event,heading,todos);  
             };
-        }else{   
+
+        }else{  
             if(isTodo(draggedTodo)){
-                this.changeOrder(oldIndex,newIndex); 
+
+               this.changeOrder(oldIndex,newIndex); 
             }else if(isHeading(draggedTodo as Heading)){
-                this.changeHeadingsOrder(oldIndex,newIndex); 
+
+               this.changeHeadingsOrder(oldIndex,newIndex); 
             }
         };   
     };
