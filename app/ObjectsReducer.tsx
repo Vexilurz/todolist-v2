@@ -210,12 +210,18 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                         return{ ...state, todos:adjust(() => todo, idx, state.todos) }; 
                     }
                 }
-            ],
+            ], 
 
             [
                 typeEquals('updateConfig'),  
                 (action:{type:string, load: { [key in keyof Config]: any }}) : Store => ({...state, ...action.load}) 
             ],
+            
+
+            [
+                typeEquals('showCalendarEvents'),  
+                (action:{type:string,load:boolean}) : Store => ({...state, showCalendarEvents:action.load}) 
+            ], 
 
             [
                 typeEquals('update'),  

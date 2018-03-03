@@ -97,7 +97,8 @@ let shortcuts = {
            quickEntry.webContents.send("focus"); 
         }
     },
-    'Ctrl+D':() => mainWindow.webContents.openDevTools()
+    'Ctrl+D':() => mainWindow.webContents.openDevTools(),
+    'Ctrl+B':() => mainWindow.webContents.send("toggle")
 };
 
 

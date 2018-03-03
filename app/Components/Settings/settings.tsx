@@ -109,7 +109,11 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                 backgroundColor:"rgb(234, 235, 239)",
             }}>   
                 <div style={{
-                    width:"100%",alignItems:"center",position:"relative",justifyContent:"center",display:"flex"
+                    width:"100%",
+                    alignItems:"center",
+                    position:"relative",
+                    justifyContent:"center",
+                    display:"flex"
                 }}>
                     <div style={{
                         padding:"5px",
@@ -577,7 +581,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
             load:{ ...calendar, active:!calendar.active }
         }), 
         50
-    )     
+    );     
    
 
     onShowCalendarEvents = debounce(
@@ -586,7 +590,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
             dispatch({type:"showCalendarEvents", load:!showCalendarEvents});
         },
         50
-    ) 
+    ); 
     
     
     onRemoveCalendar = (_id:string) => (e) => this.props.dispatch({ type:"removeCalendar", load:_id })

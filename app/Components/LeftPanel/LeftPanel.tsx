@@ -9,6 +9,7 @@ import {
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
     byDeleted, byAttachedToProject, isTodayOrPast, isDeadlineTodayOrPast
 } from "../../utils/utils";  
+import { ipcRenderer, remote } from 'electron';
 import { connect } from "react-redux";
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import Plus from 'material-ui/svg-icons/content/add';  
@@ -76,30 +77,19 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
     onError = (error) => globalErrorHandler(error);
     
-     
+
     initCtrlB = () => {
-        let ctrlBPress = Observable
-                         .fromEvent(window,"keydown")
-                         .filter((e:any) => e.keyCode===ctrlKeyCode)
-                         .switchMap(
-                            () => Observable
-                                  .fromEvent(window, "keydown")
-                                  .filter((e:any) => e.keyCode===bKeyCode)
-                                  .takeUntil(
-                                     Observable
-                                     .fromEvent(window,"keyup")
-                                     .filter((e:any) => e.keyCode===ctrlKeyCode)
-                                  )
-                         )
-                         .subscribe(
-                            () => this.setState({collapsed:!this.state.collapsed})
-                         );
-        
-        this.subscriptions.push(ctrlBPress); 
-    };
+        this.subscriptions.push(
+            Observable
+            .fromEvent(ipcRenderer,"toggle",(event) => event)
+            .subscribe(
+                () => this.setState({collapsed:!this.state.collapsed})
+            )
+        ); 
+    }; 
     
     
-    componentDidMount(){
+    componentDidMount(){ 
         this.initCtrlB(); 
     }  
          

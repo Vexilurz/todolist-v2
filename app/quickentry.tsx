@@ -36,7 +36,7 @@ import List from 'material-ui/svg-icons/action/list';
 import { 
     cond, assoc, isNil, not, defaultTo, map,  isEmpty, 
     uniq, remove, contains, append, adjust, 
-    compose, flatten, concat, prop  
+    compose, flatten, concat, prop, equals  
 } from 'ramda';
 let moment = require("moment");
 import Popover from 'material-ui/Popover';
@@ -149,48 +149,57 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         this.defaultWidth=500;
         this.defaultHeight=300;
         this.subscriptions=[];
-        let {defaultTags,quickEntrySavesTo} = this.props.config;
-        let category = isNil(quickEntrySavesTo) ? "inbox" : quickEntrySavesTo.toLowerCase();
+        let {config} = this.props;
+        let partialState = this.stateFromConfig(config);
 
-        this.state={    
+        this.state = {    
             tag:'',
-            category, 
+            category:'', 
             title:'',
             note:'',  
             deadline:undefined, 
             deleted:undefined, 
             attachedDate:undefined,
-            defaultTags:defaultTo([])(defaultTags),  
+            defaultTags:[],  
             attachedTags:[],  
             checklist:[], 
             showAdditionalTags:false, 
             showDateCalendar:false,  
             showTagsSelection:false, 
             showChecklist:false,  
-            showDeadlineCalendar:false
+            showDeadlineCalendar:false,
+            ...partialState
         };       
-    }
+    } 
+
+
+    stateFromConfig = (config) => { 
+        let { quickEntrySavesTo, defaultTags } = config;
+        let category = isNil(quickEntrySavesTo) ? "inbox" : quickEntrySavesTo.toLowerCase();
+
+        return cond([
+            [equals("inbox"), () => ({category,deadline:undefined,attachedDate:undefined,defaultTags})],
+
+            [equals("today"), () => ({category,attachedDate:new Date(),defaultTags})],
+
+            [equals("next"), () => ({category,deadline:undefined,attachedDate:undefined,defaultTags})],
+
+            [equals("someday"), () => ({category,deadline:undefined,attachedDate:undefined,defaultTags})],
+
+            [() => true, () => ({})]
+        ])(category);
+    };
 
 
     componentDidMount(){
         this.subscriptions.push(
             Observable
             .fromEvent(ipcRenderer,"focus", (event) => event) 
-            .subscribe(
-                (event) => this.inputRef ? this.inputRef.focus() : null
-            ),
+            .subscribe((event) => this.inputRef ? this.inputRef.focus() : null),
 
             Observable
             .fromEvent(ipcRenderer,"config", (event,config) => config)
-            .subscribe(
-                (config) => { 
-                    let { quickEntrySavesTo } = config;
-                    let category = isNil(quickEntrySavesTo) ? "inbox" : quickEntrySavesTo.toLowerCase();
-                    if(isString(quickEntrySavesTo)){
-                        this.setState({category}); 
-                    }
-                }
-            )
+            .subscribe(compose( (state) => this.setState(state), this.stateFromConfig )) 
         )
     }
 
