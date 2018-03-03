@@ -10,7 +10,7 @@ import { TodoInput } from '../TodoInput/TodoInput';
 import { 
     isEmpty, isNil, not, uniq, contains, drop, 
     map, compose, adjust, findIndex, cond, prepend, equals, lt, lte, add,
-    takeWhile, splitAt, insertAll, remove, last, prop, when, reject 
+    takeWhile, splitAt, insertAll, remove, last, prop, when, reject, ifElse 
 } from 'ramda';
 import { onDrop, removeTodosFromProjects, dropTodoOnCategory, findDropTarget } from '../TodosList';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
@@ -67,18 +67,19 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     }  
     
 
-    getElement = (value:Heading | Todo, index:number) : JSX.Element =>  
-        cond([
+    getElement = (value:Heading | Todo, index:number) : JSX.Element => { 
+        let id = prop('_id',value);
+        return cond([
             [
                 typeEquals("todo"),
                 (value:Todo) => <div   
-                    id = {value["_id"]}
-                    key = {`${value["_id"]}-todo`}  
-                    style = {{position:"relative",UserSelect:"none",WebkitUserSelect:"none"}}
+                    id={id}
+                    key={`${id}-todo`}  
+                    style={{position:"relative",UserSelect:"none",WebkitUserSelect:"none"}}
                 >  
-                    <TodoInput    
-                        id={value["_id"]} 
-                        key={value["_id"]} 
+                    <TodoInput     
+                        id={id} 
+                        key={id} 
                         showCompleted={this.props.showCompleted}
                         selectedTodo={this.props.selectedTodo}
                         groupTodos={this.props.groupTodos}
@@ -96,9 +97,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             ],
             [
                 typeEquals("heading"),
-                (value:Heading) => <div   
-                    key={`${value["_id"]}-heading`} 
-                    id={value["_id"]} 
+                (value:Heading) => <div  
+                    id={id}  
+                    key={`${id}-heading`} 
                     style={{
                         position:"relative", 
                         paddingBottom:"10px", 
@@ -107,7 +108,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                         WebkitUserSelect:"none"    
                     }}               
                 > 
-                    <ProjectHeading  
+                    <ProjectHeading   
                         heading={value as Heading}
                         rootRef={this.props.rootRef} 
                         onChange={this.props.updateHeading}
@@ -117,12 +118,12 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     /> 
                 </div> 
             ],
-            [
-                () => true,
-                () => null
+            [ 
+                () => true, 
+                () => null 
             ]
         ])(value);
-    
+    };
 
 
     shouldCancelStart = (e) => {
@@ -171,14 +172,11 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         //heading + string[]
         let data = compose(  
-            log('dragged item'),
             prepend(items[oldIndex]), 
-            map(prop('_id')), 
+            map(prop('_id')),
             takeWhile(isTodo),
-            log('split'),
             last,
-            log('split'),
-            splitAt(oldIndex+1) 
+            splitAt(oldIndex+1)
         )(items);
 
 
@@ -189,19 +187,29 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         
         let toLayoutIndex : number = compose(
-            (item) => layout.findIndex(equals(item)),
-            when(isTodo,prop('_id')),
-            (index) => items[index],
-            when(lte(items.length),() => items.length-1),
+            ifElse(
+                lte(items.length),
+                () => -1, 
+                compose(
+                    (item) => layout.findIndex(equals(item)),
+                    when(isTodo,prop('_id')),
+                    (index) => items[index],
+                )
+            ),
             when(lt(oldIndex),add(data.length))
-        )(newIndex);
+        )(newIndex); 
         
 
-        compose(
+        compose( 
             updateLayoutOrder,
             reject(isNil),
-            insertAll(toLayoutIndex,data),
-            map( when( (item) => contains(item)(data), () => undefined ) )
+            insertAll(toLayoutIndex,data), 
+            map( 
+                when(
+                    (item) => contains(item,data), 
+                    () => undefined
+                ) 
+            )
         )(layout);
     };
 
@@ -349,15 +357,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
     
     render(){  
-        let empty = generateEmptyTodo(generateId(),"project",0);
-        
         let {selectedCategory} = this.props;
-
-        let decorators = [{  
-            area:document.getElementById("leftpanel"),  
-            decorator:generateDropStyle("nested"),
-            id:"default"
-        }];    
+        let empty = generateEmptyTodo(generateId(),"project",0);
+        let decorators = [{area:document.getElementById("leftpanel"),decorator:generateDropStyle("nested"),id:"default"}];    
             
         return <div className="unselectable">   
             <div className={`no-print`}>  
@@ -371,7 +373,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     rootRef={this.props.rootRef} 
                     todo={empty as any} 
                 />  
-            </div>  
+            </div>   
             <SortableContainer
                 items={this.props.items}
                 scrollableContainer={this.props.rootRef}

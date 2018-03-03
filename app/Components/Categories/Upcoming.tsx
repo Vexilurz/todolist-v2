@@ -19,98 +19,68 @@ import {
     getMonthName,
     selectNeverTodos,
     updateNeverTodos,
-    sameDay,
     yearFromDate,
     convertTodoDates,
     getRangeDays,
+    timeDifferenceHours,
+    isNotNil,
+    setTime,
 } from '../../utils/utils';  
 import {
-    allPass, uniq, isNil, compose, not, last, isEmpty, map, flatten, prop, uniqBy, groupBy, defaultTo 
+    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,
+    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve
 } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category, filter, selectTodos } from '../MainContainer';
 import { Hint } from './Today'; 
 import { CalendarEvent } from '../Calendar';
-import { isDate } from '../../utils/isSomething';
+import { isDate, isArray } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { timeOfTheDay } from '../../utils/time';
+import { calendarsToGroupedEvents } from '../../utils/calendarsToGroupedEvents'; 
  
 
-type Item = Project | Todo | CalendarEvent
- 
-interface objectsByDate{ [key:string]:Item[] }  
-
- 
 let haveDate = (item : Project | Todo) : boolean => {  
     if(item.type==="project"){  
        return not(isNil(item.deadline)); 
     }else if(item.type==="todo"){ 
        return not(isNil(item["attachedDate"])) || not(isNil(item.deadline));
     }
-}
+};
 
 
-let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
-    
+type Item = Project | Todo | CalendarEvent;
+ 
+
+interface objectsByDate{ [key:string]:Item[] }  
+
+
+let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {  
     let {showCalendarEvents,todos,projects,calendars} = props;
 
-    let filters = [  
+    let filters = [
         haveDate,  
         byTags(props.selectedTag),
         byNotCompleted, 
         byNotDeleted  
     ];    
 
-    let splitLongEvents = (events:CalendarEvent[]) : CalendarEvent[] => {
-        if(isNil(events) || isEmpty(events)){ return [] }
-
-        return compose(
-            flatten,
-            map((event:CalendarEvent) => {
-                return getRangeDays(
-                    event.start, 
-                    event.end, 
-                    1, 
-                    true
-                ).map(
-                    (date) => ({...event,start:date})
-                )
-            }) 
-        )(events) as CalendarEvent[];  
-    };
-    
     let items = filter([...todos, ...projects], i => allPass(filters)(i), "upcoming");
     
-    if(showCalendarEvents && !isNil(calendars)){ 
-        let events : CalendarEvent[] = flatten(
-            calendars  
-            .filter((c:Calendar) => c.active)
-            .map( 
-                (c:Calendar) => c.events
-                    .filter((event:CalendarEvent) => isDate(event.end) && isDate(event.start))
-                    .map(
-                        (event:CalendarEvent) => ({
-                            ...event,
-                            end:new Date(event.end.getTime()-1)
-                        })
-                    )  
-            )
-        );
- 
-        if(not(isEmpty(events))){
-            let {sameDayEvents,multipleDaysEvents} = groupBy(
-                (event) => sameDay(event.start,event.end) ? "sameDayEvents" : "multipleDaysEvents", 
-                events 
-            );
-            
-            items.push(...splitLongEvents(multipleDaysEvents)); 
-            items.push(
-                ...defaultTo([],sameDayEvents)
-                    .map(
-                        (event:CalendarEvent) => ({...event,end:new Date(event.end.getTime()+1)})
-                    )
-            );
+    if(showCalendarEvents && isNotNil(calendars)){
+        let {sameDayEvents, fullDayEvents, multipleDaysEvents} = calendarsToGroupedEvents(calendars);
+
+        if(isArray(sameDayEvents)){
+           items.push(...sameDayEvents);
+        }
+
+        if(isArray(fullDayEvents)){
+           items.push(...fullDayEvents); 
+        }
+
+        if(isArray(multipleDaysEvents)){
+           items.push(...multipleDaysEvents); 
         }
     };    
 
@@ -208,24 +178,24 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         let never = selectNeverTodos(todos);
         let day = 1000 * 60 * 60 * 24;
 
-        if( (last(range).getTime() + day) >= limit.getTime() ){
+        if((last(range).getTime() + day) >= limit.getTime()){
             getTodos(this.onError)(true, 1000000)
             .then(todos => todos.map(convertTodoDates)) 
             .then (todos => selectTodos(areas, projects, todos, limit))
             .then(
-                (selected:Todo[]) => {
-                    dispatch({type:"setTodos", load:selected});
-                    dispatch({type:"limit", load:yearFromDate(limit)}); 
-                }
+             (selected:Todo[]) => {
+                dispatch({type:"setTodos", load:selected});
+                dispatch({type:"limit", load:yearFromDate(limit)}); 
+              }
             )  
         }
         
         if(isEmpty(never)){
-            this.setState({objects:[...this.state.objects,...objects], enter:this.state.enter+1});
+           this.setState({objects:[...this.state.objects,...objects], enter:this.state.enter+1});
         }else{
-            this.setState({enter:this.state.enter+1}, () => updateNeverTodos(dispatch,never,limit));
+           this.setState({enter:this.state.enter+1}, () => updateNeverTodos(dispatch,never,limit));
         }   
-    }   
+    };   
 
 
     onError = (e) => globalErrorHandler(e);
@@ -241,7 +211,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         let range = getDatesRange(new Date(), n, true, true); 
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
         return objects;
-    } 
+    }; 
 
 
     componentDidMount(){
@@ -297,7 +267,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         } 
          
         return objects; 
-    }
+    };
 
 
     objectToComponent = (
@@ -349,7 +319,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 rootRef={this.props.rootRef}
             />  
         </div>
-    } 
+    }; 
 
 
     render(){ 
@@ -421,19 +391,15 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
     constructor(props){ super(props) }
 
     render(){   
-        
-        let {
-            selectedTodos,todos,scheduledProjects,
-            day,idx,dayName,dispatch,selectedEvents
-        } = this.props; 
-         
+        let {selectedTodos,todos,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
         let events = uniqBy(prop("name"), selectedEvents) as CalendarEvent[];
-        let wholeDay : CalendarEvent[] = events.filter((event) => not(sameDay(event.start,event.end)));
-        let timed : CalendarEvent[] = events.filter((event) => sameDay(event.start,event.end));
-    
+
+        let wholeDay : CalendarEvent[] = events.filter((event) => event.type==='fullDayEvents');
+        let timed : CalendarEvent[] = events.filter((event) => event.type==='sameDayEvents');
+        
         return <div style={{
             display:"flex",
-            flexDirection:"column",
+            flexDirection:"column", 
             paddingTop:"15px",
             paddingBottom:"15px", 
             WebkitUserSelect:"none" 
@@ -461,11 +427,14 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         }
                     </div> 
                 </div>    
-                <div style={{
-                    display:'flex', 
-                    flexDirection:"column", 
-                    alignItems:"flex-start", 
-                    justifyContent:"flex-start"
+                <div 
+                
+                style={{
+                  display:'flex', 
+                  flexDirection:"column", 
+                  alignItems:"flex-start", 
+                  justifyContent:"flex-start",
+                  marginLeft:"45px"
                 }}>  
                         {
                             wholeDay
@@ -496,11 +465,27 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         }
                         {
                             timed
-                            .map(  
-                                (event) => 
-                                <div  key={`event-${event.name}`} style={{padding:"1px"}}>
+                            .sort((a:CalendarEvent,b:CalendarEvent) => { 
+                                let aTime = 0;
+                                let bTime = 0;
+                            
+                                if(isDate(a.start)){
+                                    aTime = a.start.getTime(); 
+                                }
+            
+                                if(isDate(b.start)){
+                                    bTime = b.start.getTime(); 
+                                }
+                                
+                                return aTime-bTime;
+                            })
+                            .map(   
+                                (event) => <div   
+                                  key={`event-${event.name}`} 
+                                  style={{paddingTop:"1px",paddingBottom:"1px"}}
+                                >
                                     <div style={{display:"flex",height:"20px",alignItems:"center"}}>
-                                    <div style={{paddingLeft:"5px", fontSize:"14px", fontWeight:500}}>
+                                    <div style={{fontSize:"14px", fontWeight:500}}>
                                         {timeOfTheDay(event.start)}
                                     </div>
                                     <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
@@ -511,7 +496,6 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                         isNil(event.description) ? null :
                                         isEmpty(event.description) ? null :
                                         <div style={{
-                                            paddingLeft:"10px",
                                             textAlign:"left",
                                             fontSize:"14px",
                                             cursor:"default",

@@ -387,9 +387,16 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     }; 
 
     
-    onCalendarSomedayClick = (e) => {
-        this.setState({category:"someday"}, () => this.closeDateCalendar());
-    };
+    onCalendarSomedayClick = (e) => { 
+        this.setState(
+            {
+                category:"someday",
+                attachedDate:null, 
+                deadline:null
+            }, 
+            () => this.closeDateCalendar()
+        );
+    }; 
 
 
     onCalendarTodayClick = (e) => {

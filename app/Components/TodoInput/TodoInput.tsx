@@ -849,9 +849,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 onDayClick = {this.onCalendarDayClick}
                 onSomedayClick = {(e) => {
                     e.stopPropagation();
-                    this.updateState({
+                    this.updateState({ 
                         category:"someday",
                         deadline:null,
+                        attachedDate:null,
                         showDateCalendar:false
                     });
                 }}

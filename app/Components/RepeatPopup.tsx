@@ -78,7 +78,7 @@ let selectedDatesToTodos = (todo:Todo, data:{dates:Date[],group:Group}) : Todo[]
             } as Todo
         }
     )
-}
+};
    
 
 let getStartDate = (todo:Todo) : Date => 
@@ -93,25 +93,38 @@ let handleDay = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Grou
      
     let groupId : string = generateId();
     let start : Date = getStartDate(todo);
- 
-    switch(selectedOption){
-        case "on":
-            return {
+
+    return cond([
+        [
+            equals("on"), 
+            () => ({
                 dates : getRangeDays(start,endsDate,repeatEveryN),
                 group : { type:selectedOption, _id:groupId }
-            };
-        case "after": 
-            return {
+            })
+        ],
+        [ 
+            equals("after"),
+            () => ({
                 dates:getRangeRepetitions(start, endsAfter, repeatEveryN),
                 group:{ type:selectedOption, _id:groupId }
-            }; 
-        case "never":
-            return {
+            })
+        ],
+        [
+            equals("never"),
+            () => ({
                 dates:getRangeRepetitions(start, never, repeatEveryN),
                 group:{ type:selectedOption, _id:groupId }
-            };
-    }  
-}
+            })
+        ],
+        [
+            () => true,
+            () => ({
+                dates:[],
+                group:{ type:selectedOption, _id:groupId }
+            })
+        ]
+    ])(selectedOption);
+};
 
 
 let handleWeek = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Group} => {
@@ -126,51 +139,76 @@ let handleWeek = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gro
     let groupId : string = generateId();
     let start : Date = getStartDate(todo);
 
-    switch(selectedOption){
-        case "on":
-            return {
+    return cond([
+        [
+            equals("on"), 
+            () => ({
                 dates:getRangeDays( start, endsDate, repeatEveryN * 7 ),
                 group:{type:selectedOption, _id:groupId}
-            };
-        case "after":
-            return {
+            })
+        ],
+        [ 
+            equals("after"),
+            () => ({
                 dates:getRangeRepetitions(start, endsAfter, repeatEveryN * 7),
                 group:{type:selectedOption, _id:groupId}
-            }; 
-        case "never":
-            return {
+            })
+        ],
+        [
+            equals("never"),
+            () => ({
                 dates:getRangeRepetitions(start, never, repeatEveryN * 7),
                 group:{type:selectedOption, _id:groupId}
-            };  
-    }
-}
+            })
+        ],
+        [
+            () => true,
+            () => ({
+                dates:[],
+                group:{ type:selectedOption, _id:groupId }
+            })
+        ]
+    ])(selectedOption);
+};
 
 
 let handleMonth = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Group} => {
-
     let {repeatEveryN,endsDate,endsAfter,selectedOption} = options;       
     
     let groupId : string = generateId();
     let start : Date = getStartDate(todo);
 
-    switch(selectedOption){  
-        case "on": 
-            return {
+    return cond([
+        [
+            equals("on"), 
+            () => ({
                 dates:getRangeMonthUntilDate(start, endsDate, repeatEveryN),
                 group:{type:selectedOption, _id:groupId}
-            };
-        case "after":
-            return {
+            })
+        ],
+        [ 
+            equals("after"),
+            () => ({
                 dates:getRangeMonthRepetitions(start, endsAfter, repeatEveryN),
                 group:{type:selectedOption, _id:groupId}
-            };
-        case "never":
-            return {
+            })
+        ],
+        [
+            equals("never"),
+            () => ({
                 dates:getRangeMonthRepetitions(start, never, repeatEveryN),
                 group:{type:selectedOption, _id:groupId}
-            };
-    } 
-} 
+            })
+        ],
+        [
+            () => true,
+            () => ({
+                dates:[],
+                group:{ type:selectedOption, _id:groupId }
+            })
+        ]
+    ])(selectedOption);
+}; 
   
 
 let handleYear = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Group} => {
@@ -180,24 +218,37 @@ let handleYear = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gro
     let groupId : string = generateId();
     let start : Date = getStartDate(todo); 
 
-    switch(selectedOption){
-        case 'on':
-            return {
+    return cond([
+        [
+            equals("on"), 
+            () => ({
                 dates:getRangeYearUntilDate(start,endsDate,repeatEveryN),
                 group:{type:selectedOption, _id:groupId}
-            };
-        case 'after':
-            return {
+            })
+        ],
+        [ 
+            equals("after"),
+            () => ({
                 dates:getRangeYearRepetitions(start,endsAfter,repeatEveryN),
                 group:{type:selectedOption, _id:groupId} 
-            };
-        case 'never': 
-            return {
+            })
+        ],
+        [
+            equals("never"),
+            () => ({
                 dates:getRangeYearRepetitions(start,never,repeatEveryN),
                 group:{type:selectedOption, _id:groupId} 
-            };
-    }
-}
+            })
+        ],
+        [
+            () => true,
+            () => ({
+                dates:[],
+                group:{ type:selectedOption, _id:groupId }
+            })
+        ]
+    ])(selectedOption);
+};
  
 
 export let repeat = (options:RepeatPopupState, todo:Todo) : Todo[] => {

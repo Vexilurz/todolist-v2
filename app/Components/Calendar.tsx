@@ -32,7 +32,8 @@ export interface CalendarEvent{
     name:string,
     start:Date,
     end:Date, 
-    description:string
+    description:string,
+    type?:string
 }
 
 

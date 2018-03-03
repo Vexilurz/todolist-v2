@@ -329,7 +329,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
 
 
-    onNoteChange = (event,newValue:string) : void => this.setState({note:newValue});
+    onNoteChange = (event) : void => this.setState({note:event.target.value});
 
 
 
@@ -339,9 +339,10 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
    
     onRightClickMenu = (e) => {  
         let {open} = this.state;
+        let {dispatch} = this.props;
 
         if(not(open)){ 
-            this.props.dispatch({ 
+            dispatch({ 
                 type:"openRightClickMenu",  
                 load:{   
                    showRightClickMenu:true, 
@@ -351,7 +352,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                 } 
             });     
 
-            this.props.dispatch({type:"showRepeatPopup", load:false});
+            dispatch({type:"showRepeatPopup", load:false});
         }     
     };  
 
@@ -429,7 +430,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
            attachedDate = setTime(attachedDate,time); 
            reminder = new Date(attachedDate.getTime());
         }
-
+        
         this.setState({attachedDate,reminder,category:isToday(attachedDate) ? "today" : "next"});   
     };  
      
@@ -437,7 +438,12 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
 
     onCalendarSomedayClick = (e) => {
         e.stopPropagation();
-        this.setState({category:"someday",deadline:null,showDateCalendar:false});  
+        this.setState({
+            category:"someday",
+            deadline:null,
+            attachedDate:null,
+            showDateCalendar:false
+        });  
     };
 
 

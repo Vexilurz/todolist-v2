@@ -15,7 +15,7 @@ import { Store } from '../../app';
 import { onDrop } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { allPass, isEmpty, not, assoc, isNil, flatten, contains, intersection } from 'ramda';
+import { allPass, isEmpty, not, assoc, isNil, flatten, contains, intersection, or, uniqBy, prop, compose } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { Category, filter } from '../MainContainer';
 import { ipcRenderer, remote } from 'electron';
@@ -23,7 +23,7 @@ import { CalendarEvent } from '../Calendar';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { arrayMove } from '../../utils/arrayMove';
-import { isTodo, isNotArray, isString, isDate } from '../../utils/isSomething';
+import { isTodo, isNotArray, isString, isDate, isArray } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { generateId } from '../../utils/generateId';
@@ -34,6 +34,7 @@ import { updateConfig } from '../../utils/config';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
 import { timeOfTheDay, inTimeRange } from '../../utils/time';
+import { calendarsToGroupedEvents } from '../../utils/calendarsToGroupedEvents';
 
 
 export let indexToPriority = (items:any[]) : any[] => {
@@ -264,7 +265,6 @@ export class Today extends Component<TodayProps,TodayState>{
        
 
     shouldCancelStart = (e) => {
-
         let nodes = [].slice.call(e.path);
 
         for(let i=0; i<nodes.length; i++){
@@ -277,30 +277,26 @@ export class Today extends Component<TodayProps,TodayState>{
     };
 
 
-    onSortStart = (oldIndex:number,event:any) => { 
-        this.props.dispatch({type:"dragged",load:"todo"});  
-    };
-
+    onSortStart = (oldIndex:number,event:any) => this.props.dispatch({type:"dragged",load:"todo"});  
+    
 
     onSortMove = (oldIndex:number,event:any) => { };
 
  
     onSortEnd = (oldIndex:number,newIndex:number,event:any) => { 
-        this.props.dispatch({type:"dragged",load:null});
-        let leftpanel = document.getElementById("leftpanel");
-
         let {todos, dispatch, areas, projects, moveCompletedItemsToLogbook} = this.props;
+        let leftpanel = document.getElementById("leftpanel");
         let {items, tags} = this.getItems();
-
         let x = event.clientX; 
         let y = event.clientY;  
-
         let draggedTodo = items[oldIndex] as Todo;
-
         assert(isTodo(draggedTodo), `draggedTodo is not of type Todo. onSortEnd. ${draggedTodo}`);
 
-        if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
 
+        dispatch({type:"dragged",load:null});
+        
+
+        if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
             let updated : { projects:Project[], todo:Todo } = onDrop({
                 event, 
                 draggedTodo, 
@@ -315,9 +311,10 @@ export class Today extends Component<TodayProps,TodayState>{
             if(updated.todo){
                dispatch({type:"updateTodo", load:updated.todo});
             }
-            
         }else{     
+
             if(oldIndex===newIndex){ return }
+
             this.changeOrder(oldIndex,newIndex,items);  
         }     
     };   
@@ -341,6 +338,8 @@ export class Today extends Component<TodayProps,TodayState>{
             selectedTodo,
             clone  
         } = this.props;
+
+
         let { items, tags } = this.getItems();
         let empty = generateEmptyTodo(generateId(), "today", 0);  
 
@@ -369,33 +368,40 @@ export class Today extends Component<TodayProps,TodayState>{
             id:"default"
         }];    
 
+
         let events : CalendarEvent[] = [];
+
 
         if(showCalendarEvents){
             let todayKey : string = keyFromDate(new Date()); 
-            calendars 
-            .filter((calendar:Calendar) => calendar.active)
-            .map((calendar:Calendar) : Calendar => {
-                calendar.events = calendar.events.filter(isNotNil);
-                return calendar;
-            })
-            .forEach( 
-                (calendar:Calendar) => {
-                    let selected = calendar.events.filter(
-                        (event:CalendarEvent) : boolean => inTimeRange(event.start,event.end,new Date()) ||
-                                                           todayKey===keyFromDate(event.start) 
-                            
-                    ); 
+            let {sameDayEvents, fullDayEvents, multipleDaysEvents} = calendarsToGroupedEvents(calendars);
+            
+             
+            if(isArray(sameDayEvents)){
+               events.push(...sameDayEvents); 
+            }
 
-                    if(!isEmpty(selected)){ 
-                        events.push(...selected) 
-                    }; 
-                }   
-            ) 
-        }
-        
-        
+            if(isArray(fullDayEvents)){
+               events.push(...fullDayEvents); 
+            }
 
+            if(isArray(multipleDaysEvents)){
+               events.push(...multipleDaysEvents); 
+            }
+
+
+            events = compose(
+                uniqBy(prop("name")),
+                (events) => events.filter(  
+                    (event:CalendarEvent) : boolean => or(
+                        inTimeRange(event.start,event.end,new Date()), 
+                        todayKey===keyFromDate(event.start) 
+                    ) 
+                )
+            )(events);
+        } 
+        
+ 
         return <div 
             id={`${selectedCategory}-list`}
             ref={(e) => {this.ref=e;}}             
@@ -507,8 +513,10 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
 
     render(){
         let {show, events} = this.props;
-        let wholeDay : CalendarEvent[] = events.filter((event) => not(sameDay(event.start,event.end)));
-        let timed : CalendarEvent[] = events.filter((event) => sameDay(event.start,event.end));
+
+        let wholeDay : CalendarEvent[] = events.filter((event) => event.type==='fullDayEvents');
+        let timed : CalendarEvent[] = events.filter((event) => event.type==='sameDayEvents');
+
         let empty : boolean = isEmpty(wholeDay) && isEmpty(timed);
         
         return not(show) ? null : empty ? null :  

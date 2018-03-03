@@ -370,7 +370,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         byNotDeleted   
                                     ];    
                                     
-                                    
                                     return <Inbox 
                                         todos={filter(todos, allPass(inboxFilters), "Inbox")} 
                                         dispatch={this.props.dispatch}
@@ -394,6 +393,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
                                     let todayFilters = [   
                                         (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
+                                        (t:Todo) => t.category!=="someday",
                                         byNotCompleted,  
                                         byNotDeleted   
                                     ];   
@@ -434,8 +434,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 () => {
                                     let somedayFilters = [
                                         byCategory("someday"),
-                                        (todo:Todo) => isNil(todo.deadline),
-                                        byNotCompleted,  
+                                        (todo:Todo) => isNil(todo.deadline) && isNil(todo.attachedDate),
+                                        byNotCompleted,   
                                         byNotDeleted 
                                     ];
 
@@ -549,6 +549,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
  
                                     let upcomingFilters = [
                                         byScheduled,
+                                        (t:Todo) => t.category!=="someday",
                                         byNotCompleted,  
                                         byNotDeleted   
                                     ];
@@ -609,7 +610,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     />
                                 } 
                             ],
-                            [ 
+                            [  
                                 (selectedCategory:Category) : boolean => 'area'===selectedCategory,  
                                 () => {
                                     let area = areas.find((a) => selectedAreaId===a._id);
@@ -624,7 +625,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         areas={this.props.areas} 
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedCategory={this.props.selectedCategory}
-                                        selectedAreaId={this.props.selectedAreaId}
+                                        selectedAreaId={this.props.selectedAreaId} 
                                         selectedTag={this.props.selectedTag}
                                         dispatch={this.props.dispatch}      
                                         selectedProjectId={this.props.selectedProjectId}
