@@ -593,7 +593,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
     ); 
     
     
-    onRemoveCalendar = (_id:string) => (e) => this.props.dispatch({ type:"removeCalendar", load:_id })
+    onRemoveCalendar = (_id:string) => (e) => this.props.dispatch({ type:"removeCalendar", load:_id });
       
 
     render(){

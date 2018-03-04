@@ -190,15 +190,15 @@ export class Today extends Component<TodayProps,TodayState>{
         let items = arrayMove(selected,oldIndex,newIndex);
 
         for(let i=0; i<items.length; i++){
-           let item = items[i]; 
+            let item = items[i]; 
            
-           if(item.kind==="evening"){
-              category="evening"; 
-              continue; 
-           }else{
-              item.category = category;
-              item.priority = i; 
-           }
+            if(item.kind==="evening"){
+               category="evening"; 
+               continue; 
+            }else{
+               item.category=category;
+               item.priority=i; 
+            }
            
            load.push(item);
         }

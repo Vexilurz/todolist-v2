@@ -150,16 +150,19 @@ class Notification extends Component<NotificationProps,NotificationState>{
         this.hide();
 
         let onConfig = (config) => { 
-            let {disableReminder} = this.props.config;
+            let {disableReminder} = config;
             this.disable = disableReminder;
+            if(this.disable){
+               this.suspend(); 
+            }
         };
 
-        let shouldNotify = () => Observable.of(this.open).skipWhile(val => val);
+        let shouldNotify = () => Observable.of(this.open || this.disable).skipWhile(val => val);
 
         this.subscriptions.push(
             Observable
                 .fromEvent(ipcRenderer,"config",(event,config) => config)
-                .subscribe(onConfig),  
+                .subscribe((config) => onConfig(config)),  
 
             Observable 
                 .fromEvent(ipcRenderer,"remind",(event,todo) => todo)
@@ -220,7 +223,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
            mainWindow.webContents.send('removeReminders', todos); 
         }
      
-        this.setState({todos:[]}, this.hide);
+        this.setState({todos:[]}, this.hide); 
     };
  
     
