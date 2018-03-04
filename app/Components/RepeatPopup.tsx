@@ -31,12 +31,12 @@ import { assert } from '../utils/assert';
 import { isDev } from '../utils/isDev';
 import { insideTargetArea } from '../utils/insideTargetArea';
 
-const never : number = 100;
+const never : number = 15;
 
 
 let limit = (down:number,up:number) => 
             (value:number) => value<down ? down :
-                              value>up ? up :
+                              value>up ? up : 
                               value;
 
                               
@@ -92,6 +92,11 @@ let handleDay = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Grou
     let {repeatEveryN,endsDate,endsAfter,selectedOption} = options;       
      
     let groupId : string = generateId();
+
+    if(todo.group){
+       groupId = todo.group._id;
+    }
+
     let start : Date = getStartDate(todo);
 
     return cond([
@@ -137,6 +142,11 @@ let handleWeek = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gro
     let {repeatEveryN, endsDate, endsAfter, selectedOption} = options;       
     
     let groupId : string = generateId();
+
+    if(todo.group){
+       groupId = todo.group._id;
+    }
+
     let start : Date = getStartDate(todo);
 
     return cond([
@@ -176,6 +186,11 @@ let handleMonth = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gr
     let {repeatEveryN,endsDate,endsAfter,selectedOption} = options;       
     
     let groupId : string = generateId();
+
+    if(todo.group){
+       groupId = todo.group._id;
+    }
+
     let start : Date = getStartDate(todo);
 
     return cond([
@@ -216,6 +231,11 @@ let handleYear = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gro
     let {repeatEveryN,endsDate,endsAfter,selectedOption} = options;       
     
     let groupId : string = generateId();
+
+    if(todo.group){
+       groupId = todo.group._id;
+    }
+
     let start : Date = getStartDate(todo); 
 
     return cond([
@@ -249,7 +269,7 @@ let handleYear = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gro
         ]
     ])(selectedOption);
 };
- 
+  
 
 export let repeat = (options:RepeatPopupState, todo:Todo, limit:Date) : Todo[] => {
 
@@ -277,10 +297,10 @@ export let repeat = (options:RepeatPopupState, todo:Todo, limit:Date) : Todo[] =
         map((t:Todo) : Todo => ({...t,reminder:null})),
 
         (data:{dates: Date[]; group: Group;}) => selectedDatesToTodos(todo, data),
-        
+
         cond(
             [
-                [ equals("day"), () => handleDay(options, todo) ],
+                [ equals("day"), () => handleDay(options,todo) ],
                 [ equals("week"), () => handleWeek(options,todo) ],
                 [ equals("month"), () => handleMonth(options,todo) ],
                 [ equals("year"), () => handleYear(options,todo) ],
@@ -365,9 +385,12 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
         assert(isTodo(repeatTodo),'repeatTodo is not of type todo.');
 
+        //could be empty
         let repeatedTodos : Todo[] = repeat(options, todo, limit);
+        if(isEmpty(repeatedTodos)){ return }
 
-        assert(isNotEmpty(repeatedTodos),'repeatedTodos is empty. incorrect limit ?');
+        
+ 
         assert(isArrayOfTodos(repeatedTodos),'repeatedTodos is not of type array of todos.');
         assert(all((todo) => isDate(todo.attachedDate), repeatedTodos),'not all repeatedTodos have attachedDate.');
         assert(

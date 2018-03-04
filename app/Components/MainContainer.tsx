@@ -222,7 +222,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
             fetchData(this.props,this.limit,this.onError) 
             .then((calendars) => isEmpty(calendars) ? null : updateConfig(dispatch)({hideHint:true}))   
         } 
-    }
+    };
 
 
 
@@ -246,7 +246,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     .subscribe(() => showRightClickMenu ? dispatch({type:"showRightClickMenu", load:false}) : null); 
 
         this.subscriptions.push(resize,click,calendars);
-    }
+    };
   
 
 
@@ -292,9 +292,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
     
     render(){   
         let { 
-            todos, projects, areas, selectedProjectId, 
-            selectedAreaId, showCompleted, showScheduled,
-            selectedCategory 
+            todos, projects, areas, selectedProjectId, selectedAreaId, 
+            showCompleted, showScheduled, selectedCategory 
         } = this.props; 
 
         return  <div ref={(e) => { this.rootRef=e }}

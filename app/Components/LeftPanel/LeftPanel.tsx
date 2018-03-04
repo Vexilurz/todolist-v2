@@ -51,11 +51,12 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
         this.hotFilters = [
             (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
+            (t:Todo) => t.category!=="someday",
             byNotCompleted,  
             byNotDeleted  
         ];
         
-        this.inboxFilters = [
+        this.inboxFilters = [ 
             (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
             (todo:Todo) => isNil(todo.attachedDate), 
             (todo:Todo) => isNil(todo.deadline), 
@@ -66,6 +67,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
         this.todayFilters = [   
             (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
+            (t:Todo) => t.category!=="someday",
             byNotCompleted,  
             byNotDeleted   
         ];   

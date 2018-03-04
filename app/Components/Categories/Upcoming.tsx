@@ -283,17 +283,23 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
         assert(isDate(from.date), `from.date is not Date. ${from}. onEnter.`);
 
+
         let range = getDatesRange(from.date, this.n, false, true);
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
         let todos = flatten(objects.map((object) => object.todos)) as any[];
-
-        this.dealWithRepeated(todos);
         this.updateLimit(range); 
         
-        this.setState({objects:[...this.state.objects,...objects], enter:this.state.enter+1});
-    };   
 
+        this.setState(
+            {
+                objects:[...this.state.objects,...objects], 
+                enter:this.state.enter+1
+            },
+            () => this.dealWithRepeated(todos)
+        );
+    };     
 
+    
     onError = (e) => globalErrorHandler(e);
 
 
@@ -307,10 +313,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         let objectsByDate = objectsToHashTableByDate(props);
         let range = getDatesRange(new Date(), n, true, true); 
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
-        let todos = flatten(objects.map((object) => object.todos)) as any[];
-
-        this.dealWithRepeated(todos);
-        this.updateLimit(range);
 
         return objects;
     }; 
@@ -324,16 +326,13 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     componentWillReceiveProps(nextProps:UpcomingProps){
         if( 
             nextProps.projects!==this.props.projects ||
-            nextProps.todos!==this.props.todos ||
             nextProps.areas!==this.props.areas ||
             nextProps.calendars!==this.props.calendars ||
-            nextProps.showCalendarEvents!==this.props.showCalendarEvents
+            nextProps.showCalendarEvents!==this.props.showCalendarEvents ||
+            nextProps.todos!==this.props.todos
         ){       
-            
             this.setState({objects:this.getObjects(nextProps, this.n * this.state.enter)});
-
         }else if(nextProps.selectedTag!==this.props.selectedTag){  
-
             this.setState({objects:this.getObjects(nextProps, this.n), enter:1}); 
         }   
     } 
