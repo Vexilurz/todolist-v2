@@ -26,26 +26,10 @@ const pathToFile = require("path");
 import ReactAudioPlayer from 'react-audio-player';
 import { isDev } from './utils/isDev';
 import { Config, getConfig } from './utils/config';
+import { isArray } from './utils/isSomething';
 injectTapEventPlugin();  
 
-let oneElement = (list:any[]) : boolean => {
-    if(list){
-       return list.length===1
-    }
 
-    return false
-};
-
-
-let manyElements = (list:any[]) : boolean => {
-    if(list){
-       return list.length>1
-    }
-
-    return false
-};
-
- 
 window.onerror = (msg, url, lineNo, columnNo, error) => {
     let string = msg.toLowerCase();
     var message = [ 
@@ -83,16 +67,21 @@ ipcRenderer.once(
 );   
 
 
-interface NotificationProps{
-    config:any
-}   
+let oneElement = (list:any[]) : boolean => {
+    if(isArray(list)){ return list.length===1; }
+    return false;
+};
 
-interface NotificationState{
-    todos:any[]
-}
 
+let manyElements = (list:any[]) : boolean => {
+    if(isArray(list)){ return list.length>1; }
+    return false;
+};
+
+
+interface NotificationProps{config:any}   
+interface NotificationState{todos:any[]}
 class Notification extends Component<NotificationProps,NotificationState>{
-
     soundPath:string;
     subscriptions:Subscription[];
     beep:any;
@@ -110,6 +99,12 @@ class Notification extends Component<NotificationProps,NotificationState>{
     };
 
 
+    componentWillUnmount(){
+        this.subscriptions.map(s => s.unsubscribe());
+        this.subscriptions = [];
+    };
+
+
     hide = () => {
         const window = remote.getCurrentWindow();
         let {initialX, initialY} = this.getInitialPosition();
@@ -117,12 +112,6 @@ class Notification extends Component<NotificationProps,NotificationState>{
         window.hide();
     };
      
-
-    componentWillUnmount(){
-        this.subscriptions.map(s => s.unsubscribe());
-        this.subscriptions = [];
-    };
-
 
     getInitialPosition = () : {initialX:number,initialY:number} => {
         const window = remote.getCurrentWindow();
@@ -181,7 +170,6 @@ class Notification extends Component<NotificationProps,NotificationState>{
     };
 
 
-
     notify = () => new Promise(resolve => { 
         this.open = true;
 
@@ -216,14 +204,14 @@ class Notification extends Component<NotificationProps,NotificationState>{
 
     suspend = () => {
         let {todos} = this.state;
-        let mainWindow = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
-
         this.open = false;
+
+        let mainWindow = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
         if(mainWindow){ 
            mainWindow.webContents.send('removeReminders', todos); 
         }
      
-        this.setState({todos:[]}, this.hide); 
+        this.setState({ todos:[] }, this.hide); 
     };
  
     
@@ -242,6 +230,8 @@ class Notification extends Component<NotificationProps,NotificationState>{
     render(){  
         let {todos} = this.state;
 
+        if(isEmpty(todos)){ return null }
+
         let fontStyle = {
             fontWeight:600,
             fontSize:"17px",
@@ -250,13 +240,11 @@ class Notification extends Component<NotificationProps,NotificationState>{
             color:"black",
             position:"relative"
         };
-
-        if(isEmpty(todos)){ return null }
-
         let title = <div></div>;
         let header = '';
         let button = '';
         let reminder = new Date();
+
 
         if(oneElement(todos)){
            let todo = todos[0];
@@ -270,6 +258,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
            button = 'Open';
            title = <div>{todos.map((t,i) => <div style={fontStyle as any}>{`${i+1}. ${t.title}`}</div>)}</div>;
         }
+
 
         return <div style={{display:"flex",flexDirection:"column",width:"100%",height:"100%"}}>
             <ReactAudioPlayer

@@ -136,7 +136,7 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
         return <li  
             onClick={this.openProject}    
             style={{width:"100%"}}   
-            className={"upcomingListHeading"}
+            className="upcomingListHeading"
         >      
         <div   
             id = {project._id}        
@@ -271,7 +271,7 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                     anchorEl={this.actionsAnchor} 
                 >   
                     <div    
-                        className={"darkscroll"}
+                        className="darkscroll"
                         style={{  
                           backgroundColor:"rgb(39, 43, 53)",
                           paddingRight:"10px",
@@ -284,7 +284,7 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                     >    
                         <div  
                             onClick={this.onHideFrom} 
-                            className={"tagItem"} 
+                            className="tagItem"
                             style={{ 
                                 display:"flex",  
                                 height:"auto",
@@ -302,7 +302,7 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
                     
                         <div   
                             onClick={this.onShowOnlyOne} 
-                            className={"tagItem"} 
+                            className="tagItem"
                             style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}} 
                         >  
                             <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>

@@ -149,9 +149,9 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
             paddingRight: "3px",
             paddingLeft: "3px"
         } as any;
-            
+             
         return <li 
-          className={'checklistItem'}    
+          className="checklistItem"   
           id={value._id} 
           key={value.key} 
           style={{width:"100%"}}    

@@ -27,8 +27,6 @@ import { Observable } from 'rxjs/Rx';
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { isFunction, isDate } from '../utils/isSomething';
 import { timeOfTheDay } from '../utils/time';
-//import TimeInput from 'react-time-input';
-//import TimePicker from 'rc-time-picker';
 const moment = require("moment"); 
 import TimeInput from 'react-keyboard-time-input';
 

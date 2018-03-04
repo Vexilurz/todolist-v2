@@ -12,7 +12,7 @@ import { Heading } from '../../database';
 import { isEmpty, isNil, equals, complement, when, prop } from 'ramda';
 import { uppercase } from '../../utils/uppercase';
 import { isNotNil } from '../../utils/utils';
-import { isFunction } from 'util';
+import { isFunction } from '../../utils/isSomething';
 let notEquals = complement(equals);
  
 
@@ -136,7 +136,7 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                 anchorEl={this.actionsAnchor} 
             >   
                 <div    
-                    className={"darkscroll"}
+                    className="darkscroll"
                     style={{  
                         backgroundColor:"rgb(39, 43, 53)",
                         paddingRight:"10px",
@@ -149,7 +149,7 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                 >    
                     <div  
                         onClick={() => this.props.onArchive(this.props.heading._id) as any} 
-                        className={"tagItem"} 
+                        className="tagItem"
                         style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}}
                     >  
                         <Duplicate style={{color:"rgb(69, 95, 145)"}}/> 
@@ -161,7 +161,8 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
 
                     <div  
                         onClick={() => this.props.onMove(this.props.heading._id) as any} 
-                        className={"tagItem"} style={{
+                        className="tagItem" 
+                        style={{
                             display:"flex",  
                             height:"auto",
                             alignItems:"center",
@@ -176,7 +177,8 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
 
                     <div   
                         onClick={() => this.props.onRemove(this.props.heading._id)  as any} 
-                        className={"tagItem"} style={{
+                        className="tagItem" 
+                        style={{
                             display:"flex", 
                             height:"auto",
                             alignItems:"center",

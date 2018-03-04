@@ -187,7 +187,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
             targetOrigin={{vertical:"top",horizontal:"middle"}} 
         >   
             <div  
-                className={"darkscroll"}
+                className="darkscroll"
                 style={{  
                     backgroundColor:"rgb(39, 43, 53)",
                     paddingRight:"10px",

@@ -96,12 +96,12 @@ export class Listeners{
             }, 
             {
                 name:"closeClonedWindows",
-                callback : (event) => { 
+                callback : (event) => {  
                     let windows = getClonedWindows();
                     windows.forEach((window) =>  window.destroy());
                     event.sender.send("closeClonedWindows");  
-                }   
-            },
+                }    
+            }, 
             {  
                 name:"store", 
                 callback : (event, store) => {
@@ -110,7 +110,7 @@ export class Listeners{
                     .then(
                         () => {
                             newWindow.webContents.send("loaded", store);
-                            newWindow.webContents.openDevTools(); 
+                            //newWindow.webContents.openDevTools(); 
                         }
                     );  
                 }

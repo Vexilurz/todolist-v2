@@ -169,7 +169,7 @@ export class AreaMenu extends Component<AreaMenuProps,AreaMenuState>{
             anchorOrigin={{vertical: "center", horizontal: "middle"}} 
             targetOrigin={{vertical: "top", horizontal: "middle"}} 
         >   
-            <div  className={"darkscroll"}
+            <div  className="darkscroll"
                   style={{  
                         backgroundColor: "rgb(39, 43, 53)",
                         paddingRight: "10px",

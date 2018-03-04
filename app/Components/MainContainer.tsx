@@ -312,20 +312,17 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 <RightClickMenu {...{} as any}/> 
                 <RepeatPopup {...{} as any}/>  
                 <div style={{display: "flex", padding: "10px"}}>   
-                    <div 
-                    className="no-drag" 
-                    style={{
-                        display:"flex", 
-                        alignItems:"center", 
-                        position:"fixed", 
-                        top:0, 
-                        right:0 
+                    <div style={{
+                      display:"flex", 
+                      alignItems:"center", 
+                      position:"fixed", 
+                      top:0, 
+                      right:0 
                     }}>  
                         { 
                             this.props.clone ? null :
                             <IconButton  
                                 iconStyle={{color:"rgba(100,100,100,0.6)", height:"22px", width:"22px"}} 
-                                className="no-drag" 
                                 onTouchTap={this.printCurrentList}
                             > 
                                 <Print />   
@@ -334,8 +331,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         {     
                             this.props.clone ? null :
                             <IconButton    
-                                onClick={() => ipcRenderer.send("store", {...this.props})}     
-                                className="no-drag"  
+                                onClick={() => ipcRenderer.send("store", {...this.props})}   
                                 iconStyle={{color:"rgba(100,100,100,0.6)",width:"18px",height:"18px"}}
                             >     
                                 <OverlappingWindows />

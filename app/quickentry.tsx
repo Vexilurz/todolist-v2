@@ -908,7 +908,7 @@ class TagsPopup extends Component<TagsPopupProps,{}>{
             >      
                 <div   
                     ref={(e) => { this.ref=e; }}
-                    className={"darkscroll"}
+                    className="darkscroll"
                     onClick = {(e) => { 
                         e.stopPropagation();
                         e.preventDefault(); 
@@ -916,7 +916,7 @@ class TagsPopup extends Component<TagsPopupProps,{}>{
                     style={{borderRadius:"10px", width:"180px"}}
                 > 
                     <div    
-                        className={"darkscroll"}
+                        className="darkscroll"
                         style={{   
                             backgroundColor: "rgb(39, 43, 53)",
                             paddingRight: "10px",
@@ -940,7 +940,7 @@ class TagsPopup extends Component<TagsPopupProps,{}>{
                                             e.stopPropagation();  
                                             this.props.attachTag(tag)
                                         }} 
-                                        className={"tagItem"} 
+                                        className="tagItem"
                                         style={{
                                             display:"flex", 
                                             height:"auto",
