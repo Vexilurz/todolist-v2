@@ -4,16 +4,15 @@ import * as ReactDOM from 'react-dom';
 import { cyan500, cyan700, pinkA200, grey100, grey300, grey400, grey500, white, darkBlack, fullBlack } from 'material-ui/styles/colors'; 
 import { fade } from 'material-ui/utils/colorManipulator';
 import { Todo, Project, Area, removeTodos, removeProjects, removeAreas, Heading, LayoutItem } from './../database';
-import { Category } from '.././Components/MainContainer';
+import { Category, filter } from '.././Components/MainContainer';
 import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist';
 import { 
     contains, isNil, prepend, isEmpty, last, not, 
     when, flatten, map, compose, cond, remove, 
-    complement, equals, prop 
+    complement, equals, prop, groupBy, path 
 } from 'ramda'; 
 import { Store } from '.././app';
 import { isDev } from './isDev';
-import { setRepeatedTodos, repeat} from  '.././Components/RepeatPopup';
 import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
 import { UpdateCheckResult } from 'electron-updater';
@@ -37,11 +36,18 @@ export let different = complement(equals);
 export let isNotNil = complement(isNil);
 
 
+export let groupByRepeatGroup = (todos:Todo[]) : any => {
+    assert(isArrayOfTodos(todos),'todos is not of type array of todos. groupByRepeatGroup.');
+    return compose(
+        groupBy(path(['group','_id'])),
+        (todos:Todo[]) => filter(todos, (todo:Todo) => isNotNil(todo.group))
+    )(todos)
+};
+
 
 export let isMainWindow = () => {  
     return remote.getCurrentWindow().id===1; 
 };
-
 
 
 export let typeEquals = (type:string) => compose(equals(type), prop(`type`))
@@ -133,33 +139,6 @@ export let byScheduled = (item : Todo) : boolean => {
 }; 
 
 
-
-export let selectNeverTodos = (todos:Todo[]) : Todo[] => {
-    return todos.filter( 
-        (todo:Todo) => isNil(todo.group) ? false :
-                       todo.group.type!=="never" ? false :
-                       (
-                           todo.group.last &&
-                           !isNil(todo.group.options)
-                       )
-    );
-}; 
-
-
-
-export let updateNeverTodos = (dispatch:Function,never:Todo[],limit:Date) => {
-
-    if(isEmpty(never)){ return }
-
-    for(let i=0; i<never.length; i++){
-        let todo :Todo = never[i];
-        let {options} = todo.group; 
-        let repeatedTodos : Todo[] = repeat(options, todo);
-
-        setRepeatedTodos({dispatch,todo,repeatedTodos,options,limit});
-    }
-};
- 
 
 
 export let getRangeYearUntilDate = (start:Date,endsDate:Date,repeatEveryN:number) : Date[] => {

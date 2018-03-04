@@ -12,13 +12,13 @@ import Popover from 'material-ui/Popover';
 import {  
     attachDispatchToProps, getMonthName, dateToYearMonthDay, getRangeDays, getRangeRepetitions, 
     daysInMonth, getRangeMonthUntilDate, getRangeMonthRepetitions, getRangeYearUntilDate, 
-    getRangeYearRepetitions, dateToDateInputValue, dateInputUpperLimit
+    getRangeYearRepetitions, dateToDateInputValue, dateInputUpperLimit, isNotNil
 } from '../utils/utils'; 
 import { Todo, removeTodo, addTodo,  Project, Area, LayoutItem, Group } from '../database';
 import { Store } from '../app'; 
 import { ChecklistItem } from './TodoInput/TodoChecklist'; 
 import { Category, filter } from './MainContainer';
-import { remove, isNil, not, isEmpty, last, compose, map, cond, equals } from 'ramda';
+import { remove, isNil, not, isEmpty, last, compose, map, cond, equals, all, when, prop, first, complement, adjust, path } from 'ramda';
 let uniqid = require("uniqid");    
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -26,7 +26,7 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import FlatButton from 'material-ui/FlatButton';
 import { generateId } from '../utils/generateId';
-import { isDate, isTodo } from '../utils/isSomething';
+import { isDate, isTodo, isArrayOfTodos } from '../utils/isSomething';
 import { assert } from '../utils/assert';
 import { isDev } from '../utils/isDev';
 import { insideTargetArea } from '../utils/insideTargetArea';
@@ -44,7 +44,7 @@ let limitInput = limit(1,1000);
 
 
 let limitDate = (date:Date) : Date => {
-    let end = new Date(2050, 12, 0);
+    let end = new Date(2022, 12, 0);
     let start = new Date();
 
     return date.getTime() > end.getTime() ? end :
@@ -77,7 +77,7 @@ let selectedDatesToTodos = (todo:Todo, data:{dates:Date[],group:Group}) : Todo[]
               checked:false
             } as Todo
         }
-    )
+    );
 };
    
 
@@ -251,81 +251,44 @@ let handleYear = (options:RepeatPopupState, todo:Todo) : {dates:Date[],group:Gro
 };
  
 
-export let repeat = (options:RepeatPopupState, todo:Todo) : Todo[] => {
+export let repeat = (options:RepeatPopupState, todo:Todo, limit:Date) : Todo[] => {
 
     assert(isTodo(todo), 'todo is not of type Todo. repeat.');
     
-    let { repeatEveryInterval } = options;     
+    let { repeatEveryInterval, endsDate } = options;     
 
-    return cond(
-        [
+    return compose(
+        (items) => adjust(
+            (todo:Todo) => ({ ...todo, group:{ ...todo.group, last:true, options } }), 
+            items.length-1, 
+            items
+        ),
+
+        (items) => filter(items, isBeforeLimit(limit)),
+
+        map((t:Todo) : Todo => ({...t,reminder:null})),
+
+        (data:{dates: Date[]; group: Group;}) => selectedDatesToTodos(todo, data),
+        
+        cond(
             [
-                equals("day"),
-                () => selectedDatesToTodos(todo, handleDay(options, todo))
-            ],
-            [
-                equals("week"),
-                () => selectedDatesToTodos(todo, handleWeek(options,todo))
-            ],
-            [
-                equals("month"),
-                () => selectedDatesToTodos(todo, handleMonth(options,todo))
-            ],
-            [
-                equals("year"),
-                () => selectedDatesToTodos(todo, handleYear(options,todo))
-            ],
-            [
-                () => true,
-                () => []
-            ],
-        ]
-    )(repeatEveryInterval);
+                [ equals("day"), () => handleDay(options, todo) ],
+                [ equals("week"), () => handleWeek(options,todo) ],
+                [ equals("month"), () => handleMonth(options,todo) ],
+                [ equals("year"), () => handleYear(options,todo) ],
+                [ () => true, () => [] ],
+            ]
+        ) 
+    )(repeatEveryInterval); 
+
 }; 
 
 
-export let setRepeatedTodos = ({
-    dispatch,
-    todo, 
-    repeatedTodos,
-    options,
-    limit
-}) : void => { 
 
-    if(isEmpty(repeatedTodos)){ return }
-
-    let isBeforeLimit = (limit:Date) => 
-                        (todo:Todo) => isNil(todo.attachedDate) ? true : 
+let isBeforeLimit = (limit:Date) => 
+                        (todo:Todo) => isNil(todo.attachedDate) ? false : 
                                        todo.attachedDate.getTime() <
                                        limit.getTime();  
- 
-    let newLastTodo : Todo = repeatedTodos[repeatedTodos.length - 1];
-
-    let oldLastTodoGroup = {
-        _id:newLastTodo.group._id,  
-        type:newLastTodo.group.type,  
-        last:false
-    }; 
-
-    let newLastTodoGroup = {
-        _id:newLastTodo.group._id,   
-        type:newLastTodo.group.type, 
-        last:true,
-        options
-    };
-    
-    repeatedTodos[repeatedTodos.length - 1] = {...newLastTodo, group:newLastTodoGroup};    
-     
-    dispatch({
-        type:"addTodos", 
-        load:compose(
-            (todos) => filter(todos, isBeforeLimit(limit), "setRepeatedTodos"),
-            map((todo:Todo) : Todo => ({...todo,reminder:null})) 
-        )(repeatedTodos)
-    });  
-
-    dispatch({type:"updateTodo", load:{...todo, group:oldLastTodoGroup}}); 
-}
 
     
 interface RepeatPopupProps extends Store{}
@@ -359,7 +322,16 @@ const initialState : RepeatPopupState = {
     endsAfter:1,
     selectedOption:'never',
     error:''
-}    
+};    
+
+
+let log = (append:string) => (load:any) : any => {
+    console.log(append,load); 
+    return load;
+};
+
+
+let isNotEmpty = complement(isEmpty);
 
  
 @connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
@@ -374,32 +346,42 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         this.state = {...initialState};
     }   
 
-    onDone = (e) => {  
+    
+    onDone = () => {  
         let { todos, repeatTodo, dispatch, limit } = this.props;
-        let todo = { ...repeatTodo};
-        let options = { 
-            ...this.state,
-            endsDate:limitDate(this.state.endsDate)
-        }; 
+        let todo = { ...repeatTodo };
+        let options = { ...this.state, endsDate:limitDate(this.state.endsDate) }; 
+
+        assert(isTodo(repeatTodo),'repeatTodo is not of type todo.');
+
+        let repeatedTodos : Todo[] = repeat(options, todo, limit);
+
+        assert(isNotEmpty(repeatedTodos),'repeatedTodos is empty. incorrect limit ?');
+        assert(isArrayOfTodos(repeatedTodos),'repeatedTodos is not of type array of todos.');
+        assert(all((todo) => isDate(todo.attachedDate), repeatedTodos),'not all repeatedTodos have attachedDate.');
+        assert(
+            compose(equals(true), path(['group', 'last']), last)(repeatedTodos),
+            'last item does not have last flag.'
+        );
  
-        if(!isNil(todo.group)){
-            options = todo.group.options ? todo.group.options : this.state;
-        }
+        //attach group to repeated todo
+        compose(
+            (group) => dispatch({ type:"updateTodo", load:{...todo,group:{...group,last:false}} }),
+            when(isNotNil,prop('group')),
+            (items) => items[0]
+        )(repeatedTodos) 
 
-        let repeatedTodos : Todo[] = repeat(options, todo);  
-
-        setRepeatedTodos({dispatch,todo,repeatedTodos,options,limit});
-                
-        this.close();   
-    }    
+        //add repeated todos to state
+        dispatch({type:"addTodos",load:repeatedTodos});  
+    };    
 
 
     componentDidMount(){  
-        let click = Observable  
+        this.subscriptions.push(
+            Observable  
                     .fromEvent(window, "click")
-                    .subscribe(this.onOutsideClick);
-
-        this.subscriptions.push(click); 
+                    .subscribe(this.onOutsideClick)
+        ); 
     }   
 
 
@@ -410,15 +392,15 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
 
     onOutsideClick = (e) => {
-        if(this.ref===null || this.ref===undefined){ return }
+        if(isNil(this.ref)){ return }
 
         let x = e.pageX;
         let y = e.pageY; 
 
         let inside = insideTargetArea(null,this.ref,x,y);
 
-        if(!inside){ this.close(); }   
-    }   
+        if(not(inside)){ this.close(); }   
+    };   
  
 
     close = () => {
@@ -431,7 +413,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                 repeatPopupY : 0 
             }
         }); 
-    } 
+    }; 
       
 
     allInputsAreValid = () => {
@@ -466,7 +448,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     selectedOptionValid; 
           
         return valid;              
-    }   
+    };   
 
 
     render(){
@@ -708,7 +690,12 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     </div> 
                     <div style={{padding:"2px"}}>
                         <div     
-                            onClick={(e) => this.allInputsAreValid() ? this.onDone(e) : null} 
+                            onClick={(e) => {
+                                if(this.allInputsAreValid()){ 
+                                   this.onDone(); 
+                                   this.close(); 
+                                }
+                            }} 
                             style={{     
                                 width:"90px",
                                 display:"flex",

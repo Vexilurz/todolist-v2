@@ -11,8 +11,6 @@ import {
     byNotDeleted,
     getTagsFromItems,
     getMonthName,
-    selectNeverTodos,
-    updateNeverTodos,
     yearFromDate,
     convertTodoDates,
     getRangeDays,

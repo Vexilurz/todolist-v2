@@ -6,7 +6,7 @@ import { ipcRenderer, remote } from 'electron';
 import IconButton from 'material-ui/IconButton';  
 import { Component } from "react"; 
 import { 
-    attachDispatchToProps, byTags, byCategory, selectNeverTodos, updateNeverTodos, oneDayBehind, 
+    attachDispatchToProps, byTags, byCategory, oneDayBehind, 
     convertTodoDates, convertProjectDates, convertAreaDates, oneDayAhead, measureTime, 
     byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
     byCompleted, isToday, byNotSomeday, byScheduled, yearFromNow, timeDifferenceHours, 
@@ -195,10 +195,11 @@ export class MainContainer extends Component<Store,MainContainerState>{
         let {todos, dispatch, limit} = this.props;
         let tomorrow : Date = oneDayAhead(new Date()); 
 
-        let never = selectNeverTodos(todos) //last === true, last item in sequence  
-                    .filter((todo:Todo) => todo.attachedDate.getTime() <= tomorrow.getTime());   
-  
-        if(!isEmpty(never)){ updateNeverTodos(dispatch,never,limit) }
+        let never = [];
+         
+        if(!isEmpty(never)){ 
+            //updateNeverTodos(dispatch,never,limit) 
+        }
     };
 
 
@@ -206,8 +207,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
 
     initData = () => {
-        
         if(not(isMainWindow())){ return }  
+
         let {dispatch} = this.props;
 
         if(isDev()){ 

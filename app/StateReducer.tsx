@@ -208,7 +208,6 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
               }) : Store => {
                   
                   assert(isBoolean(action.load.showRightClickMenu), `Error: showRightClickMenu. applicationStateReducer. ${action.load}`);
-                  assert(isString(action.load.rightClickedTodoId), `Error: rightClickedTodoId. applicationStateReducer. ${action.load}`);
                   assert(isNumber(action.load.rightClickMenuX), `Error: rightClickMenuX. applicationStateReducer. ${action.load}`);
                   assert(isNumber(action.load.rightClickMenuY), `Error: rightClickMenuY. applicationStateReducer. ${action.load}`);            
           
