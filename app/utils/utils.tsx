@@ -375,6 +375,19 @@ export let oneDayAhead = (date:Date) : Date => {
 }; 
 
 
+
+export let threeDaysAhead = (date:Date) : Date => { 
+    Date.prototype["addDays"] = function(days) {
+        let date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;   
+    };
+      
+    return new Date(date.getTime())["addDays"](3);
+}; 
+
+
+
 export let fiveMinutesLater = (date:Date) : Date => { 
     let fiveMinutesMs = 1000 * 60 * 5;
     return new Date(date.getTime() + fiveMinutesMs);
@@ -920,6 +933,13 @@ export let isToday = (date : Date) => {
 };    
 
 
+
+export let firstDateBeforeSecond = (first:Date,second:Date) : boolean => {
+    return compareByDate((date:Date) => date)(first as any,second as any)===1;
+};
+
+
+
 export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:Todo | Project) => {
 
     assert(isFunction(getDateFromObject), `getDateFromObject is not a function. ${getDateFromObject}. compareByDate.`);
@@ -935,6 +955,7 @@ export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:
     if(iDate.getTime() < jDate.getTime()){ return 1 }
     else{ return -1 }   
 };
+
 
 
 export let oneMinuteBefore = (date:Date) : Date => {

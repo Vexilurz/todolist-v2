@@ -48,7 +48,9 @@ export let prolongateRepeated = (limit:Date, todos:Todo[]) : {repeated:Todo[], u
     let update = [];
 
     let repeated = compose(
+        // Todo[][] -> into Todo[]
         flatten,
+        //for each last item, transform it into new group
         map(
             cond([
                 [
@@ -56,6 +58,11 @@ export let prolongateRepeated = (limit:Date, todos:Todo[]) : {repeated:Todo[], u
                     (todo:Todo) => {
                         let group = path(['group'], todo);
                         let options = path(['group','options'], todo);
+
+                        //limit - current limit - one year ahead
+                        //todo - last todo in sequence 
+                        //options contains end date
+
                         let todos = repeat(options, todo, limit);
 
                         if(isDev()){
@@ -89,6 +96,7 @@ export let prolongateRepeated = (limit:Date, todos:Todo[]) : {repeated:Todo[], u
             ])
         ),
         (todos:Todo[]) => {
+            //all last todos now should be selected and last should be set to false (they no longer last)
             let lastFalse = todos.map(
                 (todo:Todo) => {
                     let group = path(['group'], todo);
@@ -96,17 +104,18 @@ export let prolongateRepeated = (limit:Date, todos:Todo[]) : {repeated:Todo[], u
                 }
             );
 
+            //send items for update in outer variable
             update.push(...lastFalse);
             return todos;
         },
-        reject(isNil),
-        flatten,
-        values,
+        reject(isNil), //remove undefined where todos didnt have last item (remember this is a partial subset so last items could be missing)
+        flatten, //flatten values
+        values, //get values from hash table
         mapObjIndexed(
             (value:Todo[],key:string) => value.find( (todo:Todo) => path(['group','last'], todo) )
-        ),
-        groupByRepeatGroup
-    )(todos)
+        ), //in each group currently present, find last item in sequence (if present)
+        groupByRepeatGroup //create hash table for each repeated group id select corresponding items (Todos)
+    )(todos);
 
     assert(isArrayOfTodos(repeated),`repeated is not of type array of todos. prolongateRepeated.`);
 
@@ -234,6 +243,36 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         this.state = {objects:[], enter:1}; 
     }    
       
+    //add additional items if last item in repeating sequence in current date range
+    dealWithRepeated = (todos:Todo[]) => { //todos - subset of items, part of todos in current range
+        let {limit, dispatch} = this.props;
+        let {repeated, update} = prolongateRepeated(limit,todos); 
+
+        if(isDev()){
+           console.log('repeated',repeated);
+           console.log('update',update); 
+        }
+        
+        if(not(isEmpty(repeated))){
+            dispatch({type:"updateTodos", load:update});
+        } 
+        if(not(isEmpty(update))){
+            dispatch({type:"addTodos", load:repeated}); 
+        }
+    };
+    
+
+    updateLimit = (range:Date[]) => {
+        let {dispatch,limit} = this.props;
+        let day = 1000 * 60 * 60 * 24;
+        let threshold = last(range).getTime() + day*this.n;
+
+        if( threshold >= limit.getTime() ){
+
+           dispatch({type:"limit", load:yearFromDate(limit)}); 
+        }
+    };
+
 
     onEnter = ({ previousPosition, currentPosition }) => { 
         let objectsByDate = objectsToHashTableByDate(this.props);
@@ -248,36 +287,9 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
         let todos = flatten(objects.map((object) => object.todos)) as any[];
 
-
-        let {repeated, update} = prolongateRepeated(limit,todos); 
-
-        if(isDev()){
-           console.log('repeated',repeated);
-           console.log('update',update); 
-        }
+        this.dealWithRepeated(todos);
+        this.updateLimit(range); 
         
-        if(not(isEmpty(repeated))){
-            dispatch({type:"updateTodos", load:update});
-        } 
-        if(not(isEmpty(update))){
-            dispatch({type:"addTodos", load:repeated}); 
-        }
-
-        let day = 1000 * 60 * 60 * 24;
-        if(isDev()){
-            console.log('last in range', last(range));  
-        }
-
-        if( (last(range).getTime() + day*this.n) >= limit.getTime() ){
-           let newLimit = yearFromDate(limit);
-           if(isDev()){
-              console.log(`old limit`,limit);
-              console.log(`new limit`,newLimit); 
-           }
-           
-           dispatch({type:"limit",load:newLimit}); 
-        }
-
         this.setState({objects:[...this.state.objects,...objects], enter:this.state.enter+1});
     };   
 
@@ -291,9 +303,15 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         projects: Project[];
         events: any[]
     }[] => {  
+        let {limit,dispatch} = this.props;
         let objectsByDate = objectsToHashTableByDate(props);
         let range = getDatesRange(new Date(), n, true, true); 
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
+        let todos = flatten(objects.map((object) => object.todos)) as any[];
+
+        this.dealWithRepeated(todos);
+        this.updateLimit(range);
+
         return objects;
     }; 
 

@@ -10,7 +10,7 @@ import {
     convertTodoDates, convertProjectDates, convertAreaDates, oneDayAhead, measureTime, 
     byAttachedToProject, byNotCompleted, byNotDeleted, isTodayOrPast, byDeleted, 
     byCompleted, isToday, byNotSomeday, byScheduled, yearFromNow, timeDifferenceHours, 
-    getIntroList, printElement, inFuture, introListIds, introListLayout
+    getIntroList, printElement, inFuture, introListIds, introListLayout, threeDaysAhead, firstDateBeforeSecond, byHaveAttachedDate
 } from "../utils/utils";  
 import {isDev} from "../utils/isDev"; 
 import { connect } from "react-redux"; 
@@ -30,7 +30,7 @@ import { Trash, TrashPopup } from './Categories/Trash';
 import { Logbook } from './Categories/Logbook';
 import { Someday } from './Categories/Someday';
 import { Next } from './Categories/Next';  
-import { Upcoming } from './Categories/Upcoming';
+import { Upcoming, prolongateRepeated } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
@@ -169,7 +169,7 @@ let isMainWindow = () => remote.getCurrentWindow().id===1;
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
                        "deadline" | "search" | "group" | "search" | "reminder";
-                  
+                   
                        
 interface MainContainerState{ fullWindowSize:boolean }
 
@@ -190,19 +190,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
     }  
      
       
-    //TODO Test
-    requestAdditionalNeverTodos = () : void => { 
-        let {todos, dispatch, limit} = this.props;
-        let tomorrow : Date = oneDayAhead(new Date()); 
-
-        let never = [];
-         
-        if(!isEmpty(never)){ 
-            //updateNeverTodos(dispatch,never,limit) 
-        }
-    };
-
-
     onError = (e) => globalErrorHandler(e); 
 
 
@@ -263,8 +250,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
   
 
 
-    componentDidMount(){   
-        this.requestAdditionalNeverTodos();  
+    componentDidMount(){    
+        let {todos, dispatch, limit} = this.props;
+        
         this.initObservables(); 
         this.initData(); 
     }      

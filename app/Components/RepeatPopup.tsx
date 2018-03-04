@@ -255,9 +255,17 @@ export let repeat = (options:RepeatPopupState, todo:Todo, limit:Date) : Todo[] =
 
     assert(isTodo(todo), 'todo is not of type Todo. repeat.');
     
-    let { repeatEveryInterval, endsDate } = options;     
+    let { repeatEveryInterval } = options;     
 
-    return compose(
+    assert(
+        repeatEveryInterval==="week" || 
+        repeatEveryInterval==="day" || 
+        repeatEveryInterval==="month" || 
+        repeatEveryInterval==="year",
+        `repeatEveryInterval incorrect value ${repeatEveryInterval}. repeat.`
+    ) 
+
+    let result = compose(
         (items) => adjust(
             (todo:Todo) => ({ ...todo, group:{ ...todo.group, last:true, options } }), 
             items.length-1, 
@@ -281,6 +289,9 @@ export let repeat = (options:RepeatPopupState, todo:Todo, limit:Date) : Todo[] =
         ) 
     )(repeatEveryInterval); 
 
+    assert(isArrayOfTodos(result),'result is not of type array of todos. repeat.');
+
+    return result;
 }; 
 
 
@@ -346,7 +357,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         this.state = {...initialState};
     }   
 
-    
+
     onDone = () => {  
         let { todos, repeatTodo, dispatch, limit } = this.props;
         let todo = { ...repeatTodo };
