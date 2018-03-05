@@ -56,6 +56,60 @@ const path = require("path");
 const os = remote.require('os'); 
 const dialog = remote.dialog;
 
+
+interface LicensePopupProps extends Store{}
+interface LicensePopupState{}
+@connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
+export class LicensePopup extends Component<LicensePopupProps,LicensePopupState>{
+    
+    constructor(props){ super(props) }
+
+    render(){
+        return <SimplePopup 
+            show={this.props.showLicense}
+            onOutsideClick={() => this.props.dispatch({type:"showLicense",load:false})}
+        > 
+            <div 
+            className="scroll"  
+            style={{
+                display:"flex", 
+                flexDirection:"column",
+                maxWidth:"650px", 
+                maxHeight:"500px",
+                minHeight:"400px",
+                borderRadius:"5px",
+                position:"relative", 
+                backgroundColor:"rgba(254, 254, 254, 1)"
+            }}>  
+                <div style={{
+                    width:"100%",
+                    display:"flex",  
+                    justifyContent:"center",
+                    alignItems:"center",
+                    flexDirection:"column",
+                    backgroundColor:"rgb(234, 235, 239)",
+                }}>   
+                    <div style={{width:"100%",alignItems:"center",position:"relative",justifyContent:"center",display:"flex"}}>
+                        <div style={{position:"absolute", top:0, right:5, cursor:"pointer", zIndex:200}}>   
+                            <div   
+                                style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
+                                onClick={() => this.props.dispatch({type:"showLicense",load:false})}
+                            >
+                                <Clear style={{color:"rgba(100,100,100,0.5)",height:25,width:25}}/>
+                            </div>
+                        </div>
+                    </div>  
+                </div> 
+                <div style={{whiteSpace:"pre", padding:"10px"}}>{value}</div>
+                <div style={{padding:"10px"}}>{text}</div>
+            </div>
+        </SimplePopup> 
+    }
+};
+
+
+
+
 interface SettingsPopupProps extends Store{}
 interface SettingsPopupState{}
 @connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
@@ -265,7 +319,10 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
         .then(
             (config) => {
                 let registered = remote.globalShortcut.isRegistered('Ctrl+Alt+T');
+                let {disableReminder} = config;
                 let enable = config.enableShortcutForQuickEntry;
+                
+                ipcRenderer.send("autolaunch", enableShortcutForQuickEntry && not(disableReminder));
 
                 if(enable && not(registered)){
                     remote.globalShortcut.register(
@@ -944,6 +1001,10 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         updateConfig(dispatch)({disableReminder:not(disableReminder)})
         .then(
             (config) => {
+                let {enableShortcutForQuickEntry} = config;
+
+                ipcRenderer.send("autolaunch", enableShortcutForQuickEntry && not(disableReminder));
+
                 let window = findWindowByTitle('Notification');
                 if(window){
                    window.webContents.send('config',config);

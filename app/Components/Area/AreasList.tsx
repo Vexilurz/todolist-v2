@@ -136,10 +136,11 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     };
 
 
-    getAreaElement = (a : Area, index : number) : JSX.Element => {
+    getAreaElement = (a : Area, index : number, hideAreaPadding : boolean) : JSX.Element => {
         return <AreaElement 
             area={a}
             index={index} 
+            hideAreaPadding={hideAreaPadding}
             leftPanelRef={this.props.leftPanelRef}
             dragged={this.props.dragged}
             selectArea={this.selectArea}
@@ -162,37 +163,31 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         />
     };
     
-     
 
-    getElement = (value : LayoutItem, index : number) : JSX.Element => 
+    getElement = (value : LayoutItem, index : number, hideAreaPadding : boolean) : JSX.Element => 
         cond([
             [
                 typeEquals("area"),
-                (value) => {
-                    return <div key={`key-${value._id}`} id={value._id}>{this.getAreaElement(value as any,index)}</div>
-                }
+                (value) => <div key={`key-${value._id}`} id={value._id}>
+                    {this.getAreaElement(value as any, index, hideAreaPadding)}
+                </div>
             ],
             [
                 typeEquals("project"),
-                (value) => {
-                    return <div key={`key-${value._id}`} id={value._id}>{this.getProjectElement(value as any,index)}</div>
-                }
+                (value) => <div key={`key-${value._id}`} id={value._id}>
+                    {this.getProjectElement(value as any, index)}
+                </div>
             ],
             [
                 typeEquals("separator"),
-                (value) => {
-                    return <div 
-                        key={`key-${value._id}`} 
-                        id={value._id} 
-                        style={{outline:"none",width:"100%",height:"1px"}}
-                    >
-                    </div>
-                }
+                (value) => <div 
+                    key={`key-${value._id}`} 
+                    id={value._id} 
+                    style={{outline:"none",width:"100%",height:"1px"}}
+                >
+                </div>
             ],
-            [
-                () => true,
-                () => null
-            ]
+            [   () => true, () => null  ]
         ])(value); 
 
 
@@ -349,6 +344,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             areas.filter( byNotDeleted )
         );
         let layout = generateLayout(this.props.areas,{table,detached}); 
+        let hideAreaPadding = true; 
+        let detachedEmpty = isEmpty(detached);
 
         return <div   
             id="areas"
@@ -366,7 +363,15 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 lock={true} 
                 hidePlaceholder={true}
             >   
-                {layout.map((item,index) => this.getElement(item,index))}
+                {
+                    layout.map( 
+                        (item,index) => {
+                            let element = this.getElement(item,index,hideAreaPadding && detachedEmpty);
+                            if(isArea(item as Area)){ hideAreaPadding = false; }  
+                            return element;
+                        }
+                    )
+                }
             </SortableContainer> 
          </div> 
     }
@@ -378,6 +383,7 @@ interface AreaElementProps{
     dragged:string, 
     leftPanelWidth:number, 
     index:number,
+    hideAreaPadding:boolean,
     leftPanelRef:HTMLElement,
     selectArea:Function,
     selectedAreaId:string,
@@ -415,19 +421,19 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
     } 
     
     render(){      
-        let {area, selectedAreaId, selectedCategory, index, dragged} = this.props;   
+        let {area, selectedAreaId, selectedCategory, index, hideAreaPadding, dragged} = this.props;   
         let {highlight} = this.state;
-        let selected = area._id===selectedAreaId && selectedCategory==="area";
+        let selected = (area._id===selectedAreaId) && selectedCategory==="area";
         
         return <li   
             ref={e => {this.ref=e;}} 
             style={{WebkitUserSelect:"none",width:"100%"}} 
             className={"area"}  
-            key={index} 
+            key={index}  
             onMouseOver={this.onMouseOver} 
             onMouseOut={this.onMouseOut} 
         >     
-            <div style={{outline:"none",width:"100%",height:"20px"}}></div>  
+            <div style={{outline:"none",width:"100%",height:hideAreaPadding ? "0px" : "20px"}}></div>  
             <div     
                 onClick = {(e) => this.props.selectArea(this.props.area)}
                 id = {this.props.area._id} 

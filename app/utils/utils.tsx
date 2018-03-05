@@ -35,6 +35,8 @@ export let different = complement(equals);
 
 export let isNotNil = complement(isNil);
 
+export let isNotEmpty = complement(isEmpty);
+
 
 export let groupByRepeatGroup = (todos:Todo[]) : any => {
     assert(isArrayOfTodos(todos),'todos is not of type array of todos. groupByRepeatGroup.');
@@ -783,6 +785,7 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
 };
 
 
+
 export let attachEmptyTodo = (selectedCategory:Category) => (todos:Todo[]) => {
     let sorted = todos.sort((a:Todo,b:Todo) => a.priority-b.priority);
     let priority = sorted[0] ? sorted[0].priority - 1 : 0;
@@ -803,15 +806,56 @@ export let findAttachedProject = (projects:Project[]) => (t:Todo) : Project => {
 
 
 export let byAttachedToProject = (projects:Project[]) => (t:Todo) : boolean => {
+
     for(let i=0; i<projects.length; i++){
         let attachedTodosIds = projects[i].layout.filter(isString) as string[];
         assert(isArrayOfStrings(attachedTodosIds),`attachedTodosIds is not an array of strings ${attachedTodosIds}.`); 
-        if(contains(t._id)(attachedTodosIds)){ return true }
+
+        if(contains(t._id)(attachedTodosIds)){ 
+           return true; 
+        }
     }  
+
     return false;     
 };  
 
-  
+
+
+export let byAttachedToCompletedProject = (projects:Project[]) => (t:Todo) : boolean => {
+
+    for(let i=0; i<projects.length; i++){
+        let project = projects[i];
+        let attachedTodosIds = project.layout.filter(isString) as string[];
+        assert(isArrayOfStrings(attachedTodosIds),`attachedTodosIds is not an array of strings ${attachedTodosIds}.`); 
+
+        if(contains(t._id)(attachedTodosIds)){ 
+           return isDate(project.completed); 
+        }
+    }  
+
+    return false;     
+};  
+
+
+
+export let byNotAttachedToProject = (projects:Project[]) => (t:Todo) : boolean => {
+    return compose(
+        not,
+        byAttachedToProject(projects)
+    )(t);
+};
+
+
+ 
+export let byNotAttachedToCompletedProject = (projects:Project[]) => (t:Todo) : boolean => {
+    return compose(
+       not,
+       byAttachedToCompletedProject(projects)
+    )(t);
+};
+
+ 
+
 export let generateTagElement = (tag:string,idx:number) => {
 
     return <div key={String(idx)}>  

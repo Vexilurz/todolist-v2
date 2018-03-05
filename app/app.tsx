@@ -37,7 +37,7 @@ import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
 import { cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
-import { Settings, section, SettingsPopup } from './Components/Settings/settings'; 
+import { Settings, section, SettingsPopup, LicensePopup } from './Components/Settings/settings'; 
 import { SimplePopup } from './Components/SimplePopup';
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { TopSnackbar } from './Components/Snackbar';
@@ -55,7 +55,7 @@ import { writeJsonFile } from './utils/jsonFile';
 import Clear from 'material-ui/svg-icons/content/clear';
 import { getMachineIdSync } from './utils/userid';
 import { assert } from './utils/assert';
-import {value,text} from './utils/text';
+import { value,text } from './utils/text';
 import { setCallTimeout } from './utils/setCallTimeout';
 import { isDev } from './utils/isDev';
 const MockDate = require('mockdate');  
@@ -352,62 +352,27 @@ export class App extends Component<AppProps,{}>{
  
     render(){     
         let { clone } = this.props;
-        
+
+
         return wrapMuiThemeLight(
-            <div style={{
-                backgroundColor:"white",
-                width:"100%",
-                height:"100%", 
-                scroll:"none",  
-                zIndex:2001,  
-            }}>    
-                <div style={{display:"flex", width:"inherit", height:"inherit"}}>  
+            <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001}}>    
+                <div style={{display:"flex",width:"inherit",height:"inherit"}}>  
+
                     { clone ? null : <LeftPanel {...{} as any}/> }
+
                     <MainContainer {...{} as any}/>    
+
                 </div>       
-                <UpdateNotification {...{} as any} />    
+
+                <UpdateNotification {...{} as any} />  
+
                 <SettingsPopup {...{} as any} />   
+
                 <ChangeGroupPopup {...{} as any} /> 
+
                 <TrashPopup {...{} as any} />
-                <SimplePopup      
-                    show={this.props.showLicense}
-                    onOutsideClick={() => this.props.dispatch({type:"showLicense",load:false})}
-                > 
-                    <div 
-                    className="scroll"  
-                    style={{
-                        display:"flex", 
-                        flexDirection:"column",
-                        maxWidth:"650px", 
-                        maxHeight:"500px",
-                        minHeight:"400px",
-                        borderRadius:"5px",
-                        position:"relative", 
-                        backgroundColor:"rgba(254, 254, 254, 1)"
-                    }}>  
-                        <div style={{
-                            width:"100%",
-                            display:"flex",  
-                            justifyContent:"center",
-                            alignItems:"center",
-                            flexDirection:"column",
-                            backgroundColor:"rgb(234, 235, 239)",
-                        }}>   
-                            <div style={{width:"100%",alignItems:"center",position:"relative",justifyContent:"center",display:"flex"}}>
-                                <div style={{position:"absolute", top:0, right:5, cursor:"pointer", zIndex:200}}>   
-                                    <div   
-                                        style={{padding:"2px",alignItems:"center",cursor:"pointer",display:"flex"}} 
-                                        onClick={() => this.props.dispatch({type:"showLicense",load:false})}
-                                    >
-                                        <Clear style={{color:"rgba(100,100,100,0.5)",height:25,width:25}}/>
-                                    </div>
-                                </div>
-                            </div>  
-                        </div> 
-                        <div style={{whiteSpace:"pre", padding:"10px"}}>{value}</div>
-                        <div style={{padding:"10px"}}>{text}</div>
-                    </div>
-                </SimplePopup> 
+
+                <LicensePopup {...{} as any} />
             </div>            
         );    
     }           

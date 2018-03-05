@@ -7,7 +7,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
-    byDeleted, byAttachedToProject, isTodayOrPast, isDeadlineTodayOrPast
+    byDeleted, byAttachedToProject, isTodayOrPast, isDeadlineTodayOrPast, byNotAttachedToCompletedProject, byNotAttachedToProject
 } from "../../utils/utils";  
 import { ipcRenderer, remote } from 'electron';
 import { connect } from "react-redux";
@@ -30,9 +30,6 @@ import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { googleAnalytics } from '../../analytics';
 import { isArrayOfStrings, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
-
-const ctrlKeyCode = 17;
-const bKeyCode = 66;
  
 interface LeftPanelState{ collapsed:boolean }
  
@@ -45,19 +42,15 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
     todayFilters:((todo:Todo) => boolean)[];
     hotFilters:((todo:Todo) => boolean)[];
     inboxFilters:((todo:Todo) => boolean)[];
+    trashFilters:((todo:Todo) => boolean)[];
+    logbookFilters:((todo:Todo) => boolean)[];
 
     constructor(props){  
         super(props);   
+        let {projects} = this.props;
 
-        this.hotFilters = [
-            (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
-            (t:Todo) => t.category!=="someday",
-            byNotCompleted,  
-            byNotDeleted  
-        ];
-        
         this.inboxFilters = [ 
-            (todo:Todo) => not(byAttachedToProject(this.props.projects)(todo)), 
+            byNotAttachedToProject(projects), 
             (todo:Todo) => isNil(todo.attachedDate), 
             (todo:Todo) => isNil(todo.deadline), 
             byCategory("inbox"), 
@@ -65,12 +58,30 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
             byNotDeleted   
         ];
 
-        this.todayFilters = [   
+        this.hotFilters = [
+            (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
+            byNotAttachedToCompletedProject(projects),
+            byNotCompleted,  
+            byNotDeleted  
+        ];
+
+        this.todayFilters = [  
+            byNotAttachedToCompletedProject(projects), 
             (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
             (t:Todo) => t.category!=="someday",
             byNotCompleted,  
             byNotDeleted   
         ];   
+
+        this.logbookFilters = [
+            byNotAttachedToCompletedProject(projects),
+            byCompleted, 
+            byNotDeleted
+        ];
+
+        this.trashFilters = [
+            byDeleted
+        ];
 
         this.subscriptions = [];    
         this.state = { collapsed:false };      
@@ -104,6 +115,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
  
     onNewProjectClick = (e:any) => {  
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
+        let {dispatch} = this.props;
 
         googleAnalytics.send(
             'event', 
@@ -119,15 +131,16 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
         let project = generateEmptyProject();
 
-        this.props.dispatch({type:"addProject", load:project});
-        this.props.dispatch({type:"selectedProjectId", load:project._id});
-        this.props.dispatch({type:"openNewProjectAreaPopup", load:false});
-        this.props.dispatch({type:"selectedCategory", load:"project"});
+        dispatch({type:"addProject", load:project});
+        dispatch({type:"selectedProjectId", load:project._id});
+        dispatch({type:"openNewProjectAreaPopup", load:false});
+        dispatch({type:"selectedCategory", load:"project"});
     };   
  
          
     onNewAreaClick = (e:any) => {    
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
+        let {dispatch} = this.props;
 
         googleAnalytics.send(  
             'event', 
@@ -142,51 +155,52 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         .catch(err => this.onError(err))  
 
         let area = generateEmptyArea();
-        this.props.dispatch({type:"addArea", load:area});
-        this.props.dispatch({type:"selectedAreaId", load:area._id});
-        this.props.dispatch({type:"openNewProjectAreaPopup", load:false}); 
-        this.props.dispatch({type:"selectedCategory", load:"area"});
+        dispatch({type:"addArea", load:area});
+        dispatch({type:"selectedAreaId", load:area._id});
+        dispatch({type:"openNewProjectAreaPopup", load:false}); 
+        dispatch({type:"selectedCategory", load:"area"});
     };
 
 
-    onResizableHandleDrag = (e,d) => {
-        this.props.dispatch({type:"leftPanelWidth",load:this.props.leftPanelWidth+d.deltaX})
-    };
+    onResizableHandleDrag = (e,d) => this.props.dispatch({
+        type:"leftPanelWidth",
+        load:this.props.leftPanelWidth+d.deltaX
+    });
       
 
     openNewProjectAreaPopup = () => {
-        if(!this.props.openNewProjectAreaPopup){
-            this.props.dispatch({type:"openNewProjectAreaPopup",load:true})
+        let {openNewProjectAreaPopup,dispatch} = this.props;
+        if(not(openNewProjectAreaPopup)){
+           dispatch({type:"openNewProjectAreaPopup",load:true})
         } 
     };
 
-  
+     
     render(){      
         let {collapsed} = this.state; 
         let {areas, projects, todos, leftPanelWidth, dispatch, searchQuery} = this.props; 
         
-        let inbox = filter(todos, allPass(this.inboxFilters), "inbox");
-        let today = filter(todos, allPass(this.todayFilters), "today"); 
-        let hot = filter(today, allPass(this.hotFilters), "hot"); 
-        let trash = filter(todos, allPass([byDeleted]), "trash");  
-        let logbook = filter(todos, allPass([byCompleted, byNotDeleted]), "logbook"); 
-         
+        let inbox = filter(todos, allPass(this.inboxFilters));
+        let today = filter(todos, allPass(this.todayFilters)); 
+        let hot = filter(today, allPass(this.hotFilters)); 
+        let trash = filter(todos, allPass(this.trashFilters));  
+        let logbook = filter(todos, allPass(this.logbookFilters));
+        
         let ids = flatten(projects.map((p) => p.layout.filter(isString) as string[])) as any;
           
         assert(isArrayOfStrings(ids),`ids is not an array of strings. AreasList.`); 
    
         let areasFilters = [(todo:Todo) => contains(todo._id)(ids), byNotDeleted]; 
 
-
         return  <div style={{display:"flex",flexDirection:"row-reverse",height:window.innerHeight}}> 
-            {    
-                not(collapsed) ? 
+            { 
+                not(collapsed) ?
                 <ResizableHandle onDrag={this.onResizableHandleDrag}/> : 
-                null   
+                null 
             } 
             <div        
                 id="leftpanel"
-                ref={(e) => { this.leftPanelRef=e; }} 
+                ref={(e) => {this.leftPanelRef=e;}} 
                 className="scroll"
                 style={{ 
                     WebkitUserSelect:"none", 
@@ -197,7 +211,6 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                 }}      
             >   
                 <SearchInput dispatch={dispatch} searchQuery={searchQuery}/>
-                 
                 <LeftPanelMenu   
                     dragged={this.props.dragged}
                     dispatch={this.props.dispatch} 
@@ -212,7 +225,7 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                     leftPanelWidth={this.props.leftPanelWidth}
                     leftPanelRef={this.leftPanelRef} 
                     dragged={this.props.dragged} 
-                    todos={filter(todos, allPass(areasFilters), "AreasList")} 
+                    todos={filter(todos,allPass(areasFilters),"AreasList")} 
                     dispatch={this.props.dispatch}   
                     areas={this.props.areas}
                     selectedProjectId={this.props.selectedProjectId}
@@ -261,11 +274,11 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
     }
      
     render(){ 
-        let { collapsed } = this.props; 
+        let { collapsed, openSettings, openNewProjectAreaPopup, width, setNewProjectAnchor } = this.props; 
 
         return <div style={{    
             transition: "width 0.2s ease-in-out", 
-            width:collapsed ? "0px" : `${this.props.width}px`,
+            width:collapsed ? "0px" : `${width}px`,
             display:"flex",  
             alignItems:"center",  
             position:"fixed",    
@@ -278,12 +291,20 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
         }}>         
 
             <div  
-                onClick = {this.props.openNewProjectAreaPopup}
-                style={{display:"flex", paddingLeft:"10px", alignItems:"center", cursor:"pointer"}}
+                onClick={openNewProjectAreaPopup}
+                style={{
+                    display:"flex",
+                    paddingLeft:"10px",
+                    alignItems:"center",
+                    cursor:"pointer"
+                }}
             >     
                 <div 
-                    style={{display:"flex", alignItems:"center", justifyContent:"center"}}
-                    ref = {this.props.setNewProjectAnchor}
+                    style={{
+                        display:"flex",
+                        alignItems:"center",
+                        justifyContent:"center"}}
+                    ref={setNewProjectAnchor}
                 >
                     <Plus    
                         style = {{     
@@ -306,7 +327,7 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
                 }}
             >     
                 <IconButton    
-                onClick = {(e) => this.props.openSettings(e)}  
+                onClick = {(e) => openSettings(e)}  
                 iconStyle={{   
                     color:"rgba(100, 100, 100, 1)",
                     width:"25px", 

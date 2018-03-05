@@ -12,6 +12,7 @@ import Logbook from 'material-ui/svg-icons/av/library-books';
 import { merge, isNil, not } from 'ramda';
 import { Category } from '../MainContainer';
 import { assert } from '../../utils/assert';
+import { isNotNil } from '../../utils/utils';
 
 
 let Hot = (hot:number) : JSX.Element => 
@@ -128,7 +129,7 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
 
         let selected = this.props.selected;    
         
-        if(!isNil(hot) && !isNil(counter)){
+        if(isNotNil(hot) && isNotNil(counter)){
            assert((counter-hot)>=0,`incorrect values counter : ${counter}; hot : ${hot};`);
         }   
 

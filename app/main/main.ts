@@ -193,12 +193,22 @@ let getWindowSize = () : {width:number,height:number} => {
 
 
 
-let initAutoLaunch = () : Promise<void> => {
+export let initAutoLaunch = (shouldEnable:boolean) : Promise<void> => {
     let appAutoLauncher = new AutoLaunch({name: AppName, isHidden: true});
 
     return appAutoLauncher.isEnabled()
-    .then((enabled:boolean) => enabled ? appAutoLauncher.disable() : null)
-    .then(() => appAutoLauncher.enable())
+    .then((enabled:boolean) => {
+        if(enabled){
+           appAutoLauncher.disable();
+           console.log('autolaunch disabled');
+        }
+    })
+    .then(() => { 
+        if(shouldEnable){
+           appAutoLauncher.enable();
+           console.log('autolaunch enabled')
+        }
+    })
     .catch((err) => console.log(err));
 };
 
@@ -215,7 +225,7 @@ let onReady = (showTray:boolean, config:any) => {
     let shouldHideApp : boolean = contains("--hidden")(process.argv); 
 
     registerAllShortcuts(); 
-    initAutoLaunch();   
+    initAutoLaunch(enableShortcutForQuickEntry && not(disableReminder));   
 
     dialog.showErrorBox = (title, content) => {}; 
     
@@ -245,9 +255,7 @@ let onReady = (showTray:boolean, config:any) => {
     
 
     loadNotification(notification)
-    .then(
-        () => notification.webContents.send("loaded")
-    );
+    .then(() => notification.webContents.send("loaded"));
 
 
     loadQuickEntry(quickEntry) 

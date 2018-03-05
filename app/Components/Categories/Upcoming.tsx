@@ -24,6 +24,7 @@ import {
     isNotNil,
     groupByRepeatGroup,
     setTime,
+    isNotEmpty,
 } from '../../utils/utils';  
 import {
     allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,
@@ -234,14 +235,14 @@ interface UpcomingState{
 
  
 export class Upcoming extends Component<UpcomingProps,UpcomingState>{
-
     n:number
     
     constructor(props){
         super(props);
-        this.n = 10;  
-        this.state = {objects:[], enter:1}; 
+        this.n=10;  
+        this.state={objects:[],enter:1}; 
     }    
+
       
     //add additional items if last item in repeating sequence in current date range
     dealWithRepeated = (todos:Todo[]) => { //todos - subset of items, part of todos in current range
@@ -253,11 +254,12 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
            console.log('update',update); 
         }
         
-        if(not(isEmpty(repeated))){
-            dispatch({type:"updateTodos", load:update});
+        if(isNotEmpty(repeated)){
+           dispatch({type:"updateTodos",load:update});
         } 
-        if(not(isEmpty(update))){
-            dispatch({type:"addTodos", load:repeated}); 
+
+        if(isNotEmpty(update)){
+           dispatch({type:"addTodos",load:repeated}); 
         }
     };
     
@@ -283,21 +285,22 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
         assert(isDate(from.date), `from.date is not Date. ${from}. onEnter.`);
 
-
         let range = getDatesRange(from.date, this.n, false, true);
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
-        let todos = flatten(objects.map((object) => object.todos)) as any[];
         this.updateLimit(range); 
         
-
         this.setState(
             {
                 objects:[...this.state.objects,...objects], 
                 enter:this.state.enter+1
             },
-            () => this.dealWithRepeated(todos)
+            () => compose(
+                this.dealWithRepeated,
+                flatten,
+                map((object) => object.todos)
+            )(objects)
         );
-    };     
+    };      
 
     
     onError = (e) => globalErrorHandler(e);

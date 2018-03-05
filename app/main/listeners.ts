@@ -1,5 +1,5 @@
 import { isDev } from './../utils/isDev';
-import { mainWindow, getClonedWindows } from './main';
+import { mainWindow, getClonedWindows, initAutoLaunch } from './main';
 import { loadApp } from './loadApp'; 
 import { ipcMain,app,BrowserWindow,screen } from 'electron';
 import { initWindow } from './initWindow';
@@ -61,7 +61,11 @@ export class Listeners{
             {
                 name:"hide",
                 callback:(event) => BrowserWindow.getAllWindows().forEach((win:BrowserWindow) => win.hide())
-            }, 
+            },   
+            {
+                name:"autolaunch",
+                callback:(event,shouldEnable) => initAutoLaunch(shouldEnable)
+            },
             {
                 name:"downloadUpdates",
                 callback:(event) => {
