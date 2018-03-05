@@ -341,12 +341,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                     </div>   
                         <div     
                             key={generateId()}
-                            style={{   
-                                display:"flex",
-                                justifyContent:"space-around",
-                                width:"100%",    
-                                alignItems:"center"
-                            }}  
+                            style={{display:"flex",justifyContent:"space-around",width:"100%",alignItems:"center"}}  
                         >    
                             <TextField     
                                 ref={e => {this.inputRef=e;}}  
@@ -356,11 +351,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                                 defaultValue={''}
                                 hintStyle={{top:"3px", left:0, width:"100%", height:"100%"}}  
                                 style={{height:"28px", cursor:"default"}}  
-                                inputStyle={{
-                                    color:"rgba(0,0,0,1)",    
-                                    fontSize:"16px",
-                                    textDecoration:"none"
-                                }} 
+                                inputStyle={{color:"rgba(0,0,0,1)",fontSize:"16px",textDecoration:"none"}} 
                                 underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}}  
                                 underlineStyle={{borderColor:"rgba(0,0,0,0)"}}   
                                 onBlur={this.onBlankBlur}  

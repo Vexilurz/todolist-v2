@@ -268,9 +268,9 @@ class Notification extends Component<NotificationProps,NotificationState>{
                 controls={false}
             />
             <div style={{
-                width:"100%",  
+                width:"100%",   
                 position:"relative",
-                height:"15%",
+                height:"25%",
                 backgroundColor:"rgba(81, 144, 247, 1)",
                 display:"flex",
                 alignItems:"center",
@@ -282,7 +282,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
                 </div>
                 <div style={{
                     paddingLeft:"5px",
-                    fontWeight:600,
+                    fontWeight:600, 
                     fontSize:"16px",
                     display:"flex",
                     alignItems:"center",

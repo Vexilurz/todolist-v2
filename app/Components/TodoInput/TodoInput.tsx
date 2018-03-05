@@ -69,6 +69,7 @@ export interface TodoInputState{
     showAdditionalTags : boolean, 
     showDateCalendar : boolean,  
     showTagsSelection : boolean,
+    showTags : boolean,
     showChecklist : boolean,   
     showDeadlineCalendar : boolean,
     attachedDate : Date,
@@ -93,7 +94,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         this.subscriptions = [];
          
-        let {checklist,attachedDate,deadline,category,reminder,title,note} = this.props.todo;
+        let {checklist,attachedDate,deadline,category,reminder,title,note,attachedTags} = this.props.todo;
 
         this.state={   
             open:false,
@@ -103,6 +104,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             display:"flex",
             showAdditionalTags:false, 
             showDateCalendar:false,  
+            showTags:attachedTags.length>0, 
             showTagsSelection:false, 
             showChecklist:checklist.length>0,  
             checklist,
@@ -110,7 +112,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             attachedDate,
             deadline,
             category,
-            title,
+            title, 
             note
         };        
     };
@@ -380,7 +382,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             })
         }
 
-
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = []; 
     }; 
@@ -448,6 +449,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         }
         
         let preventSlideAway = selectedCategory==="project" && showCompleted;
+
         let shouldAnimateSlideAway = isNil(todo.completedSet) && 
                                      selectedCategory!=="logbook" &&  
                                      selectedCategory!=="trash" &&
@@ -456,7 +458,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                                      not(preventSlideAway);  
             
         let completedWhen = getCompletedWhen(moveCompletedItemsToLogbook,new Date());
-
 
         if(shouldAnimateSlideAway){
             this.updateState({animatingSlideAway:true})
@@ -591,9 +592,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
   
     render(){   
-        let {
-            open, showChecklist, showDateCalendar, animatingSlideAway, category, deadline, checklist, attachedDate, title, note
+        let { 
+            open,showChecklist,showDateCalendar,animatingSlideAway,showTags, 
+            category,deadline,checklist,attachedDate,title,note
         } = this.state;
+
         let {selectedCategory, id, rootRef, todo} = this.props; 
 
         let relatedProjectName = this.getRelatedProjectName();
@@ -685,8 +688,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         updateChecklist={this.updateChecklist}
                         open={open} 
                         closeChecklist={() => this.setState({showChecklist:false})}
+                        closeTags={() => this.setState({showTags:false})}
                         showChecklist={showChecklist}
-
+                        showTags={showTags}
                         _id={todo._id}
                         note={note}
                         checklist={checklist}
@@ -786,7 +790,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     <IconButton   
                         onClick={(e) => { 
                             e.stopPropagation();
-                            this.setState({showTagsSelection:true});
+                            this.setState({showTagsSelection:true,showTags:true});
                         }}
                         iconStyle={{ 
                             transition:"opacity 0.2s ease-in-out",
@@ -1142,11 +1146,12 @@ interface TodoInputMiddleLevelProps{
     onNoteChange:Function, 
     updateChecklist:Function, 
     closeChecklist:() => void,
+    closeTags:() => void,
     open:boolean,
     onAttachTag:(tag:string) => void,
     onRemoveTag:(tag:string) => void,
     showChecklist:boolean,
-
+    showTags:boolean,
     _id:string,
     note:string,
     checklist:ChecklistItem[],
@@ -1160,7 +1165,20 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
     constructor(props){ super(props) }
 
     render(){
-        let {open,showChecklist,onAttachTag,onRemoveTag,_id,note,checklist,attachedTags} = this.props;
+        let {
+            open,
+            closeTags,
+            closeChecklist,
+            updateChecklist,
+            showChecklist,
+            onAttachTag,
+            onRemoveTag,
+            _id,
+            note,
+            checklist,
+            attachedTags,
+            showTags
+        } = this.props;
 
         return <div style={{
             transition:"opacity 0.2s ease-in-out", 
@@ -1189,21 +1207,27 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
                     onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
                     value={note} 
                 /> 
-            </div>
+            </div> 
             {    
                 not(showChecklist) ? null : 
                 <Checklist 
                     checklist={checklist} 
-                    closeChecklist={this.props.closeChecklist}
-                    updateChecklist={this.props.updateChecklist as any}
+                    closeChecklist={closeChecklist}
+                    updateChecklist={updateChecklist as any}
                 /> 
-            }   
+            }    
             {  
+                not(showTags) ? null :
                 <div style={{display:"flex",alignItems:"center"}}>
                     <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
                         <TriangleLabel />
                     </div>
-                    <TodoTags attachTag={onAttachTag} removeTag={onRemoveTag} tags={attachedTags}/> 
+                    <TodoTags 
+                        attachTag={onAttachTag} 
+                        removeTag={onRemoveTag} 
+                        tags={attachedTags}
+                        closeTags={closeTags}
+                    /> 
                 </div>
             } 
         </div>   

@@ -54,6 +54,7 @@ let notEquals = complement(equals);
 let scheduleReminder = (todo) : number => {
     assert(isDate(todo.reminder),`reminder is not of type Date. scheduleReminder. ${todo.reminder}.`);
     console.log(`schedule ${todo.title}`);
+
     return setCallTimeout(
         () => {
             let notification : any = findWindowByTitle('Notification');

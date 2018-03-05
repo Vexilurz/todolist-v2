@@ -29,7 +29,6 @@ import { googleAnalytics } from '../../analytics';
 import { isDate } from '../../utils/isSomething';
   
 
-
 export interface TodoCreationFormState{  
     open : boolean,
     category : Category,
@@ -47,6 +46,7 @@ export interface TodoCreationFormState{
     display : string,
     opacity:number,
     checklist : ChecklistItem[],
+    showTags : boolean,
     showDateCalendar : boolean,  
     showTagsSelection : boolean,
     showChecklist : boolean,   
@@ -77,7 +77,9 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
  
     constructor(props){
         super(props);  
+
         this.subscriptions = [];
+
         let {
             category, 
             title,  
@@ -111,24 +113,26 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             checklist, 
             showDateCalendar:false,  
             showTagsSelection:false, 
+            showTags:attachedTags.length>0, 
             showChecklist:checklist.length>0,  
             showDeadlineCalendar:false
         };       
     }
 
 
-
     onError = (error) => globalErrorHandler(error);
     
     
     componentDidMount(){  
-        let click = Observable.fromEvent(window,"click").subscribe(this.onOutsideClick); 
-        this.subscriptions.push(click);
+
+        this.subscriptions.push(
+            Observable.fromEvent(window,"click").subscribe(this.onOutsideClick)
+        );
+
         this.resetCreationForm(false);
         this.preventDragOfThisItem(); 
     }          
  
-
 
     componentDidUpdate(prevProps:TodoCreationFormProps,prevState:TodoCreationFormState){
         let { open } = this.state; 
@@ -136,21 +140,20 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     }   
 
 
-
     resetCreationForm = (open) => {
         let emptyTodo = generateEmptyTodo(generateId(), this.props.selectedCategory, 0); 
-        let newState = {
+        let newState : TodoCreationFormState = {
             ...this.stateFromTodo(this.state,emptyTodo as any),
             open, 
             showDateCalendar:false,     
             showTagsSelection:false, 
+            showTags:false,
             showChecklist:false,   
             showDeadlineCalendar:false 
         };
         this.setState(newState, () => { if(this.inputRef && open){ this.inputRef.focus(); }});     
     };   
  
-
 
     onFieldsContainerClick = (e) => {    
         e.stopPropagation();     
@@ -168,11 +171,10 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                         dispatch({type:"showRightClickMenu", load:false});
                     } 
                 }
-            );
+            ); 
         }    
     };   
       
-
     
     onWindowEnterPress = (e) => {   
         if(e){ if(e.keyCode!==13){ return } }
@@ -183,7 +185,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         }
     };        
     
-
 
     onOutsideClick = (e) => {
         let { rootRef, dispatch } = this.props;
@@ -209,7 +210,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     };    
 
 
-
     addTodo = () => {
         let todo : Todo = this.todoFromState(); 
         if(isEmpty(todo.title)){ return };
@@ -231,7 +231,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         let todos = [...this.props.todos].sort((a:Todo,b:Todo) => a.priority-b.priority);
     
         if(not(isEmpty(todos))){ 
-            todo.priority = todos[0].priority - 1; 
+           todo.priority = todos[0].priority - 1; 
         }   
         
         dispatch({type:"addTodo", load:todo}); 
@@ -250,12 +250,10 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     };  
 
 
-
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = []; 
     };
-
 
   
     stateFromTodo = (state:TodoCreationFormState,todo:Todo) : TodoCreationFormState => ({   
@@ -273,7 +271,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         checklist:todo.checklist  
     }); 
     
-
 
     todoFromState = () : Todo => ({
         _id : this.props.todo._id,
@@ -295,13 +292,11 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     }); 
      
 
-
     enableDragOfThisItem = () => {
         if(this.ref){
            this.ref["preventDrag"] = false;  
         }
     };
-
 
     
     preventDragOfThisItem = () => {
@@ -311,12 +306,10 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     };
 
 
-
     onAttachTag = (tag:string) => {
         if(isEmpty(tag)){ return };
         this.setState({tag:'', attachedTags:uniq([...this.state.attachedTags, tag])});
     };
-
 
 
     onRemoveTag = (tag:string) => {
@@ -328,13 +321,10 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     };
 
 
-
     onNoteChange = (event) : void => this.setState({note:event.target.value});
 
 
-
     onTitleChange = (event) :void => this.setState({title:event.target.value});
-
 
    
     onRightClickMenu = (e) => {  
@@ -356,7 +346,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         }     
     };  
 
-
  
     onChecklistButtonClick = (e) => {
         e.stopPropagation();
@@ -364,19 +353,16 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     }; 
       
 
-
     onFlagButtonClick = (e) => {
         e.stopPropagation();
         this.setState({showDeadlineCalendar:true});
     };
 
 
-
-    closeDeadlineCalendar = () => {
+    closeDeadlineCalendar = () => { 
         this.setState({showDeadlineCalendar:false});
-    };
+    }; 
  
-
 
     onCalendarButtonClick = (e) => {
         e.stopPropagation();
@@ -384,12 +370,10 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     };
     
 
-
     onTagsButtonClick = (e) => { 
         e.stopPropagation();
-        this.setState({showTagsSelection:true});
+        this.setState({showTagsSelection:true,showTags:true});
     };   
-
 
 
     closeTagsSelection = (e) => {
@@ -397,12 +381,10 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     };
 
 
-
     onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         e.stopPropagation();
         this.setState({deadline:day}, () => this.closeDeadlineCalendar());
     };
-
 
  
     onDeadlineCalendarClear = (e:any) : void => {
@@ -416,7 +398,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             () => this.closeDeadlineCalendar()
         );
     };  
-
 
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
@@ -435,7 +416,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     };  
      
 
-
     onCalendarSomedayClick = (e) => {
         e.stopPropagation();
         this.setState({
@@ -445,7 +425,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             showDateCalendar:false
         });  
     };
-
 
 
     onCalendarTodayClick = (e) => {
@@ -464,7 +443,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     }; 
 
 
-
     onCalendarThisEveningClick = (e) => {
         e.stopPropagation();
 
@@ -481,7 +459,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     }; 
 
 
-
     onCalendarAddReminderClick = (reminder:Date) : void => this.setState({
         reminder, 
         attachedDate:reminder, 
@@ -489,9 +466,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     });
 
 
-
     onRemoveReminderClick = () : void => this.setState({reminder:null});
-
 
 
     onCalendarClear = (e) => {
@@ -505,16 +480,14 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         })  
     }; 
   
-  
 
-    render(){   
+    render(){  
+        let {selectedCategory} = this.props; 
         let {
             open, deleted, attachedDate, title, attachedTags, 
-            note, deadline, showChecklist, completedWhen,
-            checklist, category, completedSet, showDateCalendar   
+            note, deadline, showChecklist, completedWhen, checklist, showTags,
+            category, completedSet, showDateCalendar, showTagsSelection   
         } = this.state;
-
-        let {selectedCategory} = this.props; 
 
         let attachedDateToday = isToday(attachedDate);
         let deadlineToday = isToday(deadline); 
@@ -526,7 +499,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
  
         return  <div    
             onKeyDown={this.onWindowEnterPress}  
-            onContextMenu={this.onRightClickMenu}
+            onContextMenu={this.onRightClickMenu} 
             style={{    
                 marginTop:"5px", 
                 marginBottom:"5px",  
@@ -598,9 +571,10 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                             onRemoveTag={this.onRemoveTag}
                             updateChecklist={(checklist:ChecklistItem[]) => this.setState({checklist})}
                             closeChecklist={() => this.setState({showChecklist:false})}
+                            closeTags={() => this.setState({showTags:false})}
                             open={open} 
                             showChecklist={showChecklist}
-
+                            showTags={showTags}
                             _id={this.props.todo._id}
                             note={note}
                             checklist={checklist}
@@ -616,16 +590,16 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             <TodoInputLabels 
                 onRemoveTodayLabel={() => {
                     let {selectedCategory, todo, dispatch} = this.props;
+                    let {deadline,attachedDate} = this.state;
+
                     if(selectedCategory==="today"){ return }
 
-                    let {deadline,attachedDate} = this.state;
-                        
                     if(isToday(deadline) && isToday(attachedDate)){
-                        this.setState({category:selectedCategory, attachedDate:null, deadline:null});
+                       this.setState({category:selectedCategory, attachedDate:null, deadline:null});
                     }else if(isToday(deadline)){
-                        this.setState({category:selectedCategory, deadline:null});
+                       this.setState({category:selectedCategory, deadline:null});
                     }else if(isToday(attachedDate)){
-                        this.setState({category:selectedCategory, attachedDate:null});
+                       this.setState({category:selectedCategory, attachedDate:null});
                     }
                 }}
                 onRemoveUpcomingLabel={() => {
@@ -733,24 +707,23 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                     </IconButton> 
                 </div>  
             }  
-            
             <DateCalendar 
-                close = {() => this.setState({showDateCalendar:false})}
-                open = {showDateCalendar}
-                origin = {{vertical: "center", horizontal: "right"}} 
-                point = {{vertical: "center", horizontal: "right"}}  
-                anchorEl = {this.calendar}
-                rootRef = {this.props.rootRef}
-                reminder = {this.state.reminder} 
-                attachedDate = {this.state.attachedDate}
-                onDayClick = {this.onCalendarDayClick}
-                onSomedayClick = {this.onCalendarSomedayClick}
-                onTodayClick = {this.onCalendarTodayClick} 
-                onRepeatTodo = {null}
-                onThisEveningClick = {this.onCalendarThisEveningClick}
-                onAddReminderClick = {this.onCalendarAddReminderClick}
-                onRemoveReminderClick = {this.onRemoveReminderClick}
-                onClear = {this.onCalendarClear}  
+                close={() => this.setState({showDateCalendar:false})}
+                open={showDateCalendar}
+                origin={{vertical:"center",horizontal:"right"}} 
+                point={{vertical:"center",horizontal:"right"}}  
+                anchorEl={this.calendar}
+                rootRef={this.props.rootRef}
+                reminder={this.state.reminder} 
+                attachedDate={this.state.attachedDate}
+                onDayClick={this.onCalendarDayClick}
+                onSomedayClick={this.onCalendarSomedayClick}
+                onTodayClick={this.onCalendarTodayClick} 
+                onRepeatTodo={null}
+                onThisEveningClick={this.onCalendarThisEveningClick}
+                onAddReminderClick={this.onCalendarAddReminderClick}
+                onRemoveReminderClick={this.onRemoveReminderClick}
+                onClear={this.onCalendarClear}  
             />  
             <TagsPopup
                 {  
@@ -759,8 +732,8 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                         close:this.closeTagsSelection,
                         open:this.state.showTagsSelection,   
                         anchorEl:this.tags,
-                        origin:{vertical: "center", horizontal: "right"},
-                        point:{vertical: "center", horizontal: "right"},
+                        origin:{vertical:"center",horizontal:"right"},
+                        point:{vertical:"center",horizontal:"right"},
                         rootRef:this.props.rootRef
                     } as any
                 } 
@@ -769,11 +742,11 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                 close={this.closeDeadlineCalendar}
                 onDayClick={this.onDeadlineCalendarDayClick}
                 open={this.state.showDeadlineCalendar}
-                origin = {{vertical: "center", horizontal: "right"}} 
-                point = {{vertical: "center", horizontal: "right"}} 
-                anchorEl = {this.deadline}
+                origin={{vertical:"center",horizontal:"right"}} 
+                point={{vertical:"center",horizontal:"right"}} 
+                anchorEl={this.deadline}
                 onClear={this.onDeadlineCalendarClear}
-                rootRef = {this.props.rootRef}
+                rootRef={this.props.rootRef}
             />       
             </div>   
         }     

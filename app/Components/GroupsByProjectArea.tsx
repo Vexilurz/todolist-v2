@@ -261,7 +261,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                             >     
                                 { 
                                     not(expanded) ? 
-                                    `Show ${ todos.length-expand } more items` :
+                                    `Show ${ todos.length-expand } more tasks` :
                                     `Hide` 
                                 } 
                             </div>

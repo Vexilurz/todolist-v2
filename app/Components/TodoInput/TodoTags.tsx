@@ -13,7 +13,7 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { connect } from "react-redux";
 import { Store } from '../../app';
-import { compose, uniq, flatten, concat, isNil, not, prop} from 'ramda';
+import { compose, uniq, flatten, concat, isNil, not, prop, isEmpty } from 'ramda';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { assert } from '../../utils/assert';
 import { isArrayOfStrings } from '../../utils/isSomething';
@@ -167,9 +167,12 @@ interface TodoTagsProps{
     tags:string[],
     attachTag:(tag:string) => void,
     removeTag:(tag:string) => void,
+    closeTags:() => void
 }    
 
-interface TodoTagsState{tag:string}
+interface TodoTagsState{
+    tag:string
+}
  
 export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
 
@@ -179,19 +182,26 @@ export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
     } 
     
     
-    onEnterPress = (e) => { 
-        if(e.keyCode!==13){ return }
+    onKeyPress = (e) => { 
+        let {tags,closeTags,attachTag} = this.props;
+        let {tag} = this.state;
         e.stopPropagation(); 
 
-        let {attachTag} = this.props;
-        let {tag} = this.state;
-        attachTag(tag);
-        this.setState({tag:''}); 
+        if(e.which===13 || e.keyCode===13){
+            attachTag(tag);
+            this.setState({tag:''}); 
+        }else if(e.which===8 || e.keyCode===8){
+            if(tag==='' && isEmpty(tags)){ closeTags() } 
+        }    
     };
     
 
     onRemoveTag = (tag:string) => () => {
-        let {removeTag} = this.props;
+        let {closeTags,tags,removeTag} = this.props;
+
+        if(tags.length<=1){ 
+           closeTags(); 
+        }
         removeTag(tag);
     };
     
@@ -267,8 +277,8 @@ export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
                         outline:"none"   
                     }}  
                     placeholder=""  
-                    value={this.state.tag} 
-                    onKeyDown={this.onEnterPress} 
+                    value={this.state.tag}  
+                    onKeyDown={this.onKeyPress} 
                     onChange={(event) => this.setState({tag:event.target.value})} 
                 /> 
             </div>

@@ -38,6 +38,12 @@ let multipleDays = (event:CalendarEvent) : boolean => {
 };
 
 
+let log = (msg) => (item) => {
+    console.log(msg,item);
+    return item;
+};
+
+
 let splitLongEvents = (events:CalendarEvent[]) : CalendarEvent[] => {
     if(isNil(events) || isEmpty(events)){ return [] }
 
@@ -46,15 +52,13 @@ let splitLongEvents = (events:CalendarEvent[]) : CalendarEvent[] => {
         map(
             (event:CalendarEvent) => compose( 
                (range) => adjust(
-                   (event) => ({
-                       ...event,
-                       end:setTime(event.end, {minutes:0,hours:0})
-                    }), 
+                   (event) => ({ ...event, end:setTime(event.end, {minutes:0,hours:0}) }),  
                     range.length-1, 
                     range
                 ), 
+                //log(`${event.name} splitted into:`),
                 map((date:Date) => ({...event,start:date})),
-                () => getRangeDays(event.start,event.end,1,true),
+                () => getRangeDays(event.start,event.end,1,true), 
             )()
         ) 
     )(events) as CalendarEvent[];  
@@ -67,34 +71,28 @@ export let calendarsToGroupedEvents = (calendars:Calendar[]) => {
         fullDayEvents:CalendarEvent[], 
         multipleDaysEvents:CalendarEvent[]
     } = compose(
-
-        evolve({
-            sameDayEvents:map((event) => ({...event,type:'sameDayEvents'})),
-            fullDayEvents:map((event) => ({...event,type:'fullDayEvents'})),
-            multipleDaysEvents:compose(
-                map((event) => ({...event,type:'fullDayEvents'})),
-                splitLongEvents
-            )
-        }),
-        
-        groupBy(
-            cond(
-                [
-                    [sameDay, () => 'sameDayEvents'],
-                    [fullDay, () => 'fullDayEvents'],
-                    [multipleDays, () => 'multipleDaysEvents']
-                ]
-            )
-        ), 
-
-        (events) => events.filter((event) => all(isDate, [event.end,event.start])),
-
-        flatten, 
-
-        map( compose( defaultTo([]), prop('events') ) ), 
-
-        (calendars) => calendars.filter((c:Calendar) => c.active)
-    )(calendars);
+            evolve({
+                sameDayEvents:map((event) => ({...event,type:'sameDayEvents'})),
+                fullDayEvents:map((event) => ({...event,type:'fullDayEvents'})),
+                multipleDaysEvents:compose(
+                    map((event) => ({...event,type:'fullDayEvents'})),
+                    splitLongEvents
+                )
+            }),
+            groupBy(
+                cond(
+                    [
+                        [sameDay, () => 'sameDayEvents'],
+                        [fullDay, () => 'fullDayEvents'],
+                        [multipleDays, () => 'multipleDaysEvents']
+                    ]
+                )
+            ), 
+            (events) => events.filter((event) => all(isDate, [event.end,event.start])),
+            flatten, 
+            map( compose( defaultTo([]), prop('events') ) ), 
+            (calendars) => calendars.filter((c:Calendar) => c.active)
+        )(calendars);
 
     return calendarEvents;
 }
