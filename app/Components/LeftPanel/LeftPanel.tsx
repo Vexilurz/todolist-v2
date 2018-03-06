@@ -38,51 +38,10 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
     anchor:HTMLElement;
     subscriptions:Subscription[];
     leftPanelRef:HTMLElement;  
-    
-    todayFilters:((todo:Todo) => boolean)[];
-    hotFilters:((todo:Todo) => boolean)[];
-    inboxFilters:((todo:Todo) => boolean)[];
-    trashFilters:((todo:Todo) => boolean)[];
-    logbookFilters:((todo:Todo) => boolean)[];
 
     constructor(props){  
         super(props);   
         let {projects} = this.props;
-
-        this.inboxFilters = [ 
-            byNotAttachedToProject(projects), 
-            (todo:Todo) => isNil(todo.attachedDate), 
-            (todo:Todo) => isNil(todo.deadline), 
-            byCategory("inbox"), 
-            byNotCompleted,  
-            byNotDeleted   
-        ];
-
-        this.hotFilters = [
-            (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
-            byNotAttachedToCompletedProject(projects),
-            byNotCompleted,  
-            byNotDeleted  
-        ];
-
-        this.todayFilters = [  
-            byNotAttachedToCompletedProject(projects), 
-            (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
-            (t:Todo) => t.category!=="someday",
-            byNotCompleted,  
-            byNotDeleted   
-        ];   
-
-        this.logbookFilters = [
-            byNotAttachedToCompletedProject(projects),
-            byCompleted, 
-            byNotDeleted
-        ];
-
-        this.trashFilters = [
-            byDeleted
-        ];
-
         this.subscriptions = [];    
         this.state = { collapsed:false };      
     } 
@@ -179,13 +138,52 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
     render(){      
         let {collapsed} = this.state; 
         let {areas, projects, todos, leftPanelWidth, dispatch, searchQuery} = this.props; 
+
+ 
+        let inbox = filter(
+            todos, 
+            allPass([ 
+                byNotAttachedToProject(projects), 
+                (todo:Todo) => isNil(todo.attachedDate) && isNil(todo.deadline), 
+                byCategory("inbox"), 
+                byNotCompleted,  
+                byNotDeleted   
+            ])
+        );
+
+        let today = filter(
+            todos, 
+            allPass([  
+                byNotAttachedToCompletedProject(projects), 
+                (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
+                (t:Todo) => t.category!=="someday",
+                byNotCompleted,  
+                byNotDeleted   
+            ])
+        ); 
+
+        let hot = filter(
+            today, 
+            allPass([
+                (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
+                byNotAttachedToCompletedProject(projects),
+                byNotCompleted,  
+                byNotDeleted  
+            ])
+        ); 
+
+        let logbook = filter(
+            todos, 
+            allPass([
+                byNotAttachedToCompletedProject(projects),
+                byCompleted, 
+                byNotDeleted
+            ])
+        );
+
+        let trash = filter(todos, byDeleted);  
         
-        let inbox = filter(todos, allPass(this.inboxFilters));
-        let today = filter(todos, allPass(this.todayFilters)); 
-        let hot = filter(today, allPass(this.hotFilters)); 
-        let trash = filter(todos, allPass(this.trashFilters));  
-        let logbook = filter(todos, allPass(this.logbookFilters));
-        
+
         let ids = flatten(projects.map((p) => p.layout.filter(isString) as string[])) as any;
           
         assert(isArrayOfStrings(ids),`ids is not an array of strings. AreasList.`); 

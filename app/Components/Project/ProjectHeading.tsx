@@ -88,7 +88,7 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
             <div style={{width:"100%",paddingLeft:"10px",WebkitUserSelect:"none"}}>  
                 <div style={{display:"flex",cursor:"default"}}>  
                     <TextField     
-                        authFocus={true}
+                        autoFocus={true}
                         ref={(e) => {this.inputRef=e;}} 
                         hintText="Heading"      
                         id={`${heading._id}-input`} 

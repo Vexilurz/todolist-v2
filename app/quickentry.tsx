@@ -36,8 +36,8 @@ import { createStore } from "redux";
 import { Provider, connect } from "react-redux";
 import List from 'material-ui/svg-icons/action/list';
 import { 
-    cond, assoc, isNil, not, defaultTo, map, isEmpty, 
-    uniq, remove, contains, append, adjust, 
+    cond, assoc, isNil, not, defaultTo, map, isEmpty, when,
+    uniq, remove, contains, append, adjust, complement,
     compose, flatten, concat, prop, equals  
 } from 'ramda';
 let moment = require("moment");
@@ -80,6 +80,7 @@ import { getProgressStatus } from './Components/Project/ProjectLink';
 import { stringToLength } from './utils/stringToLength';
 injectTapEventPlugin();  
 
+let isNotEmpty = complement(isEmpty);
 
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
@@ -119,23 +120,24 @@ ipcRenderer.once(
 
 
 interface QuickEntryState{
+    project:any,
     projects:any[],
     todos:any[],
-    category : string,
-    title : string,  
-    note : string, 
-    deadline : Date,
-    deleted : Date,
-    attachedDate : Date, 
-    attachedTags : string[],
-    tag : string, 
-    checklist : any[],
-    defaultTags : string[],
-    showTags : boolean, 
-    showDateCalendar : boolean,  
-    showTagsSelection : boolean,
-    showChecklist : boolean,   
-    showDeadlineCalendar : boolean
+    category:string,
+    title:string,  
+    note:string, 
+    deadline:Date,
+    deleted:Date,
+    attachedDate:Date, 
+    attachedTags:string[],
+    tag:string, 
+    checklist:any[],
+    defaultTags:string[],
+    showTags:boolean, 
+    showDateCalendar:boolean,  
+    showTagsSelection:boolean,
+    showChecklist:boolean,   
+    showDeadlineCalendar:boolean
 }   
   
 
@@ -145,7 +147,6 @@ interface QuickEntryProps{
   
 
 class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
-
     calendar:HTMLElement; 
     deadline:HTMLElement;
     tags:HTMLElement;
@@ -156,7 +157,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     defaultHeight:number;
     subscriptions:Subscription[]; 
 
-
     constructor(props){
         super(props);  
         this.defaultWidth=500;
@@ -166,6 +166,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         let partialState = this.stateFromConfig(config);
 
         this.state = {    
+            project:null,
             tag:'',
             category:'', 
             title:'',
@@ -206,6 +207,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     };
 
 
+    tagsFromTodos = (todos:any[]) => flatten(todos.map((todo) => todo.attachedTags));
+
+
     componentDidMount(){
         this.subscriptions.push(
             Observable
@@ -222,7 +226,14 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
             Observable
             .fromEvent(ipcRenderer,"todos", (event,todos:any[]) => todos)
-            .subscribe((todos:any[]) => this.setState({todos})),
+            .subscribe((todos:any[]) => this.setState({
+                todos,
+                defaultTags:compose(
+                    uniq,
+                    append(this.state.defaultTags),
+                    map(prop('attachedTags'))
+                )(todos),
+            })), 
         )
     }
 
@@ -258,9 +269,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         deadline:this.state.deadline, 
         created:new Date(),
         deleted:this.state.deleted, 
-        attachedDate:this.state.category==="today" ? 
-                     new Date() : 
-                     this.state.attachedDate,  
+        attachedDate:this.state.category==="today" ? new Date() : this.state.attachedDate,  
         attachedTags:this.state.attachedTags
     }); 
 
@@ -281,13 +290,15 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     };
 
 
-    addTodo = () => isEmpty(this.state.title) ? 
-                    null : 
-                    ipcRenderer.send(
-                        "quick-entry",
-                        this.todoFromState(),
-                        this.props.config
-                    ); 
+    addTodo = () => {
+       let todo = this.todoFromState(); 
+       let {project} = this.state;
+       let {config} = this.props;
+
+       if(isNotEmpty(this.state.title)){
+          ipcRenderer.send("quick-entry",todo,project,config); 
+       } 
+    };
     
 
     onSave = () => {
@@ -327,98 +338,84 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         this.setState({attachedTags:remove(idx,1,attachedTags)})
     }; 
 
+    onNoteChange = (event) : void => this.setState({note:event.target.value});
 
-    onNoteChange = (event) : void => {
-        this.setState({note:event.target.value})
-    };
+    onTitleChange = (event:any) : void => this.setState({title:event.target.value});  
 
-
-    onTitleChange = (event:any) : void => {
-        this.setState({title:event.target.value})
-    };  
-
-
-    onChecklistButtonClick = (e) => {
-        this.setState({showChecklist:true}) 
-    };
+    onChecklistButtonClick = (e) => this.setState({showChecklist:true});
       
+    onFlagButtonClick = (e) => this.setState({showDeadlineCalendar:true}, () => this.setBigSize());
 
-    onFlagButtonClick = (e) => {
-        this.setState({showDeadlineCalendar:true}, () => this.setBigSize())
-    };
-
-
-    closeDeadlineCalendar = () => {
-        this.setState({showDeadlineCalendar:false}, () => this.setSmallSize())
-    };
+    closeDeadlineCalendar = () => this.setState({showDeadlineCalendar:false}, () => this.setSmallSize());
  
-
-    onCalendarButtonClick = (e) => {
-        this.setState({showDateCalendar:true}, () => this.setBigSize())
-    };
-     
-
-    closeDateCalendar = () => {
-        this.setState({showDateCalendar:false}, () => this.setSmallSize())
-    };
-
+    onCalendarButtonClick = (e) => this.setState({showDateCalendar:true}, () => this.setBigSize());
     
-    onTagsButtonClick = (e) => {
-        this.setState({showTagsSelection:true, showTags:true})
+    closeDateCalendar = () => this.setState({showDateCalendar:false}, () => this.setSmallSize());
+
+    onTagsButtonClick = (e) => this.setState({showTagsSelection:true, showTags:true});
+
+    closeTagsSelection = (e) => this.setState({showTagsSelection:false});
+
+
+    categoryFromState = () : string => {
+        //inbox - next  
+        let {project,category,deadline,attachedDate} = this.state;
+
+        if(isDate(deadline) || isDate(attachedDate) || isProject(project)){
+
+            if(isToday(deadline) || isToday(attachedDate)){
+                return "today"; 
+            }else{ 
+                return "next";
+            }
+            
+        }else{
+            return "inbox"; 
+        }
     };
 
 
-    closeTagsSelection = (e) => {
-        this.setState({showTagsSelection:false}) 
-    };
-
-
-    onRemoveSelectedCategoryLabel = () => {
-        let { category, attachedDate, deadline } = this.state;   
-        this.setState({category:'inbox', attachedDate:null}); 
-    };     
-
-
-    onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
-        let {attachedDate,category} = this.state;
-        let deadlineToday = daysRemaining(day)===0;
+    onCalendarClear = () => {
         this.setState(
-            {deadline:day,category:deadlineToday ? "today" : category}, 
-            () => this.closeDeadlineCalendar()
-        );
-    };   
-
- 
-    onRemoveAttachedDateLabel = () => {
-        let {category,deadline} = this.state;
-        this.setState({category:isNil(deadline) ? "inbox" : category, attachedDate:null}); 
-    };
-
-
-    onCalendarClear = (e) => {
-        let {category,deadline} = this.state;
-        this.setState({category:isNil(deadline) ? "inbox" : category, attachedDate:null}); 
+            {attachedDate:null}, 
+            () => this.setState({category:this.categoryFromState()})
+        ); 
     }; 
 
 
-    onDeadlineCalendarClear = (e:any) : void => {
-        let {category, attachedDate} = this.state;
+    onDeadlineCalendarClear = () : void => {
         this.setState(
-            {deadline:null, category:isNil(attachedDate) ? "inbox" : category},
-            () => this.closeDeadlineCalendar()
+            {deadline:null},
+            () => {
+                this.setState({category:this.categoryFromState()});
+                this.closeDeadlineCalendar();
+            }
         );
     };
  
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
-        let {category} = this.state;
         this.setState(
-            {attachedDate:day,category:daysRemaining(day)===0 ? "today" : category},
-            () => this.closeDateCalendar()
+            {attachedDate:day},
+            () => {
+                this.setState({category:this.categoryFromState()});
+                this.closeDateCalendar();
+            }
         );   
     }; 
 
-    
+
+    onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
+        this.setState(
+            {deadline:day}, 
+            () => {
+                this.setState({category:this.categoryFromState()});
+                this.closeDeadlineCalendar();
+            }
+        );
+    };   
+
+
     onCalendarSomedayClick = (e) => { 
         this.setState(
             {
@@ -449,14 +446,8 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
         <div 
             ref={(e) => { this.ref=e; }} 
-            style={{
-                paddingTop:"25px",
-                paddingLeft:"25px",
-                paddingRight:"25px",
-                paddingBottom:"75px"
-            }}
+            style={{paddingTop:"25px",paddingLeft:"25px",paddingRight:"25px",paddingBottom:"75px"}}
         >    
- 
             <div>
             <div style={{}}> 
                 <TextareaAutosize 
@@ -486,7 +477,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     }}
                 /> 
             </div> 
-
             <div style={{paddingTop:"10px"} as any}>  
                 <TextareaAutosize
                     id={`always-note`}  
@@ -509,49 +499,47 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); }}}
                 /> 
             </div>
-
             <div className="scroll" style={{maxHeight:"50%"}}>    
-            <div 
-                ref={(e) => {this.checklist=e;}} 
-                style={{height:"100%"}} 
-            > 
-                {    
-                    not(showChecklist) ? null : 
-                    <div> 
-                    <Checklist  
-                        checklist={this.state.checklist}   
-                        closeChecklist={() => this.setState({showChecklist:false})}
-                        updateChecklist={
-                            (checklist:ChecklistItem[]) => {  
-                                this.setState(
-                                    {checklist}, 
-                                    () => {
-                                        if(this.checklist){ this.checklist.scrollTop=0; }
-                                    }
-                                )
-                            }
-                        } 
-                    />  
-                    </div>
-                } 
-                {  
-                    not(showTags) ? null :
-                    <div style={{display:"flex",alignItems:"center"}}>
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
-                            <TriangleLabel />
+                <div 
+                    ref={(e) => {this.checklist=e;}} 
+                    style={{height:"100%"}} 
+                > 
+                    {    
+                        not(showChecklist) ? null : 
+                        <div> 
+                        <Checklist  
+                            checklist={this.state.checklist}   
+                            closeChecklist={() => this.setState({showChecklist:false})}
+                            updateChecklist={
+                                (checklist:ChecklistItem[]) => {  
+                                    this.setState(
+                                        {checklist}, 
+                                        () => {
+                                            if(this.checklist){ this.checklist.scrollTop=0; }
+                                        }
+                                    )
+                                }
+                            } 
+                        />  
                         </div>
-                        <TodoTags 
-                            attachTag={this.onAttachTag}
-                            removeTag={this.onRemoveTag}
-                            tags={this.state.attachedTags}
-                            closeTags={() => this.setState({showTags:false})}
-                        /> 
-                    </div>
-                } 
+                    } 
+                    {  
+                        not(showTags) ? null :
+                        <div style={{display:"flex",alignItems:"center"}}>
+                            <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
+                                <TriangleLabel />
+                            </div>
+                            <TodoTags 
+                                attachTag={this.onAttachTag}
+                                removeTag={this.onRemoveTag}
+                                tags={this.state.attachedTags}
+                                closeTags={() => this.setState({showTags:false})}
+                            /> 
+                        </div>
+                    } 
+                </div> 
             </div> 
             </div> 
-            </div> 
-            
             <div style={{  
                 display:"flex",
                 alignItems:"center",
@@ -582,7 +570,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             } 
             {
                 <TagsPopup   
-                    { 
+                    {  
                         ...{
                             attachTag:this.onAttachTag, 
                             close:this.closeTagsSelection,
@@ -677,49 +665,33 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
             <div style={{width:"100%",position:"fixed",bottom:0,right:0}}>    
                 <TodoInputPopupFooter
-                    project={null}
+                    project={this.state.project}
                     todos={this.state.todos}
                     projects={this.state.projects}
                     openDeadlineCalendar={this.onFlagButtonClick}
-                    openCalendar={this.onCalendarButtonClick}
+                    openCalendar={this.onCalendarButtonClick} 
                     onCancel={this.clear}
                     onSave={this.onSave}
                     todayCategory={todayCategory}
                     category={this.state.category}
                     attachedDate={this.state.attachedDate}
                     deadline={this.state.deadline}
-                    onRemoveTodayLabel={() => {
-                        let {deadline,attachedDate} = this.state;
-                        
-                        if(isToday(deadline) && isToday(attachedDate)){
-                            this.setState({category:"inbox", attachedDate:null, deadline:null});
-                        }else if(isToday(deadline)){
-                            this.setState({category:"inbox", deadline:null});
-                        }else if(isToday(attachedDate)){
-                            this.setState({category:"inbox", attachedDate:null});
-                        }
-                    }}
-                    onRemoveUpcomingLabel={() => {
-                        let {deadline,attachedDate} = this.state;
-                        
-                        if(isDate(deadline)){
-                           this.setState({attachedDate:null});
-                        }else{
-                           this.setState({category:"inbox", attachedDate:null});
-                        }
-                    }}
-                    onRemoveSomedayLabel={() => {
-                        this.setState({category:"inbox", attachedDate:null});
-                    }}
-                    onRemoveDeadlineLabel={() => {
-                        let {deadline,attachedDate} = this.state;
-                        
-                        if(isDate(attachedDate)){ 
-                           this.setState({deadline:null});
-                        }else{
-                           this.setState({category:"inbox", deadline:null});
-                        }
-                    }}
+                    onRemoveTodayLabel={() => this.onCalendarClear()}
+                    onRemoveUpcomingLabel={() => this.onCalendarClear()}
+                    onRemoveSomedayLabel={() => this.onCalendarClear()}
+                    onRemoveDeadlineLabel={() => this.onDeadlineCalendarClear()}
+                    onSelectInboxCategory={
+                        () => this.setState({
+                            project:null,
+                            category:'inbox',
+                            deadline:undefined, 
+                            attachedDate:undefined,
+                            showDateCalendar:false,  
+                            showTagsSelection:false, 
+                            showDeadlineCalendar:false
+                        })
+                    }
+                    onSelectProject={(project) => this.setState({project,category:'next'})}
                 /> 
             </div> 
     </div> 
@@ -737,6 +709,8 @@ interface TodoInputPopupFooterProps{
     onRemoveUpcomingLabel:Function,
     onRemoveSomedayLabel:Function,
     onRemoveDeadlineLabel:Function,
+    onSelectInboxCategory:() => void,
+    onSelectProject:(project:any) => void,
     todayCategory:boolean,
     category:string,
     attachedDate:Date,
@@ -796,15 +770,7 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
                         cursor:"default"   
                     }}  
                 >  
-                    {
-                        selectButtonContent({
-                            category,
-                            project,
-                            attachedDate,
-                            deadline,
-                            todos
-                        })
-                    } 
+                    { selectButtonContent({category,project,attachedDate,deadline,todos}) } 
                 </div> 
                 <div 
                     ref={e => {this.ref=e;}}
@@ -879,10 +845,10 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
                     </div>
                 </div>  
                 <SelectorPopup
-                    selectInbox={() => {}}        
-                    selectProject={() => {}}
+                    selectInbox={this.props.onSelectInboxCategory}        
+                    selectProject={this.props.onSelectProject}
                     category={this.props.category}
-                    project={{}}
+                    project={this.props.project}
                     open={selectorPopupOpened} 
                     anchorEl={this.ref}
                     rootRef={document.body}
@@ -926,22 +892,13 @@ class TodoInputLabel extends Component<TodoInputLabelProps, TodoInputLabelState>
  
            
         return  <Chip 
-                    onRequestDelete={this.props.onRemove}
-                    onClick={(e) => {}}
-                    style={{
-                        backgroundColor:"",
-                        background:"",
-                        display:"flex",
-                        alignItems:"baseline"
-                    }}   
+                  onRequestDelete={this.props.onRemove}
+                  onClick={(e) => this.props.onClick()}
+                  style={{backgroundColor:"",background:"",display:"flex",alignItems:"baseline"}}   
                 >
                     <div style={containerStyle}>
-                        {
-                            chooseIcon({height: "25px", width: "25px"}, this.props.category as any)
-                        } 
-                        {
-                            this.props.content 
-                        }
+                        {chooseIcon({height: "25px", width: "25px"}, this.props.category as any)} 
+                        {this.props.content}
                     </div>
                 </Chip>
     }
@@ -1401,19 +1358,6 @@ class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCalendarS
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 interface SelectorPopupProps{
     open:boolean
     anchorEl:HTMLElement,
@@ -1677,21 +1621,11 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
     }    
 }
 
- 
 
-let selectButtonContent = ({
-    category,
-    project,
-    attachedDate,
-    deadline,
-    todos
-}) => { 
-    if(
-        category==="inbox" && 
-        isNil(attachedDate) && 
-        isNil(project) && 
-        isNil(deadline)
-    ){
+
+let selectButtonContent = ({category, project, attachedDate, deadline, todos}) => { 
+
+    if(category==="inbox" && isNil(attachedDate) && isNil(project) && isNil(deadline)){
         return <div   
             style={{
                 cursor:"pointer",
@@ -1701,18 +1635,8 @@ let selectButtonContent = ({
                 alignItems:"center"
             }}
         >
-            <Inbox   
-                style={{
-                    width:"18px",
-                    height:"18px",
-                    color:"rgba(100,100,100,1)"
-                }}  
-            />
-            <div style={{ 
-                paddingRight:"5px",    
-                paddingLeft:"5px", 
-                WebkitUserSelect:"none"
-            }}>  
+            <Inbox style={{width:"18px",height:"18px",color:"rgba(100,100,100,1)"}}/>
+            <div style={{paddingRight:"5px",paddingLeft:"5px",WebkitUserSelect:"none"}}>  
                 Inbox
             </div> 
         </div>

@@ -5,6 +5,8 @@ import { ipcMain,app,BrowserWindow,screen } from 'electron';
 import { initWindow } from './initWindow';
 import { isEmpty, when } from 'ramda';
 import { autoUpdater } from "electron-updater";
+import { isNotNil } from '../utils/utils';
+import { isProject } from '../utils/isSomething';
 
 const log = require("electron-log");
 const os = require('os'); 
@@ -113,15 +115,15 @@ export class Listeners{
                     loadApp(newWindow)
                     .then(
                         () => {
-                            newWindow.webContents.send("loaded", store);
+                            newWindow.webContents.send("loaded", store); 
                             //newWindow.webContents.openDevTools(); 
-                        }
+                        } 
                     );  
                 }
             },  
             {
                 name:"quick-entry",
-                callback : (event, todo, config) => {
+                callback : (event, todo, project, config) => { 
                     type kind="quick-entry";
                     let kind:kind="quick-entry";
                     let action={type:"addTodo",load:todo}; 
@@ -131,6 +133,15 @@ export class Listeners{
 
                     for(let i=0; i<windows.length; i++){
                         windows[i].webContents.send("action", {...action, kind});
+
+                        if(isProject(project)){
+                            let attachToProject={
+                               type:"attachTodoToProject",
+                               load:{projectId:project._id,todoId:todo._id}
+                            }; 
+                           
+                            windows[i].webContents.send("action", {...attachToProject, kind});
+                        }
                     }  
                 }   
             },

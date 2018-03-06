@@ -148,10 +148,10 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
         let quickEntry = findWindowByTitle('Add task');
 
         if(isNotNil(quickEntry)){ 
-           quickEntry.webContents.send("projects", state.projects);
-           quickEntry.webContents.send("todos", state.todos); 
+           quickEntry.webContents.send("projects", filter( state.projects, allPass([byNotDeleted,byNotCompleted]) ) );
+           quickEntry.webContents.send("todos", filter( state.todos, allPass([byNotDeleted]) ) ); 
         }
-          
+           
         return newState;  
     };
 
