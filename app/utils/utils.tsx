@@ -580,16 +580,14 @@ export let attachDispatchToProps = (dispatch:Function,props) => ({...props, disp
 
 
 export let inPast = (date:Date) : boolean => {
-    assert(isDate(date),'inPast');
-    return new Date().getTime()>date.getTime();
+    if(isNil(date)){ return false }
+    return new Date().getTime()>new Date(date).getTime();
 };
 
   
 export let inFuture =  (date:Date) : boolean => {
     if(isNil(date)){ return false }
-
-    assert(isDate(date),'inFuture');
-    return new Date().getTime()<date.getTime();
+    return new Date().getTime()<new Date(date).getTime();
 };
 
 

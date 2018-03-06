@@ -68,12 +68,16 @@ import { SortableContainer } from './Components/CustomSortableContainer';
 import { arrayMove } from './utils/arrayMove';
 import { ChecklistItem, Checklist } from './Components/TodoInput/TodoChecklist';
 import { globalErrorHandler } from './utils/globalErrorHandler';
-import { isString, isDate } from './utils/isSomething';
+import { isString, isDate, isProject } from './utils/isSomething';
 import { isToday } from './utils/utils';
 import { isDev } from './utils/isDev';
 import TextareaAutosize from 'react-autosize-textarea';
 import { TodoTags } from './Components/TodoInput/TodoTags';
 import { TagsPopup } from './Components/TodoInput/TagsPopup';
+import PieChart from 'react-minimal-pie-chart';
+import { AutoresizableText } from './Components/AutoresizableText';
+import { getProgressStatus } from './Components/Project/ProjectLink';
+import { stringToLength } from './utils/stringToLength';
 injectTapEventPlugin();  
 
 
@@ -115,6 +119,8 @@ ipcRenderer.once(
 
 
 interface QuickEntryState{
+    projects:any[],
+    todos:any[],
     category : string,
     title : string,  
     note : string, 
@@ -164,11 +170,13 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             category:'', 
             title:'',
             note:'',  
+            projects:[],
+            todos:[],
             deadline:undefined, 
             deleted:undefined, 
             attachedDate:undefined,
             defaultTags:[],  
-            attachedTags:[],  
+            attachedTags:[],   
             checklist:[], 
             showDateCalendar:false,  
             showTagsSelection:false, 
@@ -206,7 +214,15 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
             Observable
             .fromEvent(ipcRenderer,"config", (event,config) => config)
-            .subscribe(compose( (state) => this.setState(state), this.stateFromConfig )) 
+            .subscribe(compose( (state) => this.setState(state), this.stateFromConfig )),
+            
+            Observable
+            .fromEvent(ipcRenderer,"projects", (event,projects:any[]) => projects)
+            .subscribe((projects:any[]) => this.setState({projects})),
+
+            Observable
+            .fromEvent(ipcRenderer,"todos", (event,todos:any[]) => todos)
+            .subscribe((todos:any[]) => this.setState({todos})),
         )
     }
 
@@ -536,8 +552,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             </div> 
             </div> 
             
-
-
             <div style={{  
                 display:"flex",
                 alignItems:"center",
@@ -663,6 +677,11 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
             <div style={{width:"100%",position:"fixed",bottom:0,right:0}}>    
                 <TodoInputPopupFooter
+                    project={null}
+                    todos={this.state.todos}
+                    projects={this.state.projects}
+                    openDeadlineCalendar={this.onFlagButtonClick}
+                    openCalendar={this.onCalendarButtonClick}
                     onCancel={this.clear}
                     onSave={this.onSave}
                     todayCategory={todayCategory}
@@ -712,6 +731,8 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 interface TodoInputPopupFooterProps{  
     onCancel:Function,
     onSave:Function,
+    openDeadlineCalendar:Function,
+    openCalendar:Function,
     onRemoveTodayLabel:Function,
     onRemoveUpcomingLabel:Function,
     onRemoveSomedayLabel:Function,
@@ -719,7 +740,10 @@ interface TodoInputPopupFooterProps{
     todayCategory:boolean,
     category:string,
     attachedDate:Date,
-    deadline:Date
+    deadline:Date,
+    project:any,
+    projects:any[],
+    todos:any[]
 }
 
 
@@ -729,7 +753,6 @@ interface TodoInputPopupFooterState{
 
 
 class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInputPopupFooterState>{
-    
     ref:HTMLElement;
 
     constructor(props){
@@ -745,6 +768,13 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
 
     render(){
         let {selectorPopupOpened} = this.state;
+        let {
+            category,
+            attachedDate,
+            deadline,
+            project,
+            todos
+        } = this.props;
 
         return <div style={{
             backgroundColor:"rgb(234, 235, 239)",
@@ -753,6 +783,29 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
             justifyContent:"space-between",
             width:"100%"
         }}>     
+                 <div 
+                    ref = {e => {this.ref=e;}}
+                    onClick={() => this.setState({selectorPopupOpened:true})}
+                    style={{
+                        display:"flex",
+                        alignItems:"center",
+                        justifyContent:"flex-start",
+                        fontSize:"14px",
+                        fontWeight:"bold",
+                        color:"rgba(100,100,100,1)",
+                        cursor:"default"   
+                    }}  
+                >  
+                    {
+                        selectButtonContent({
+                            category,
+                            project,
+                            attachedDate,
+                            deadline,
+                            todos
+                        })
+                    } 
+                </div> 
                 <div 
                     ref={e => {this.ref=e;}}
                     style={{
@@ -766,6 +819,8 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
                     }}  
                 >  
                     <TodoInputLabels 
+                        openDeadlineCalendar={this.props.openDeadlineCalendar}
+                        openCalendar={this.props.openCalendar}
                         onRemoveTodayLabel={this.props.onRemoveTodayLabel}
                         onRemoveUpcomingLabel={this.props.onRemoveUpcomingLabel}
                         onRemoveSomedayLabel={this.props.onRemoveSomedayLabel}
@@ -822,8 +877,19 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
                             </div>   
                         </div> 
                     </div>
-                </div> 
-         
+                </div>  
+                <SelectorPopup
+                    selectInbox={() => {}}        
+                    selectProject={() => {}}
+                    category={this.props.category}
+                    project={{}}
+                    open={selectorPopupOpened} 
+                    anchorEl={this.ref}
+                    rootRef={document.body}
+                    close={this.closeSelectorPopup}
+                    projects={this.props.projects}
+                    todos={this.props.todos}
+                />
         </div>
     }
 }
@@ -832,6 +898,7 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
 
 
 interface TodoInputLabelProps{
+    onClick:Function,
     onRemove:Function,
     category:string,
     content:JSX.Element 
@@ -1099,6 +1166,8 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
 
 
 interface TodoInputLabelsProps{
+    openDeadlineCalendar:Function,
+    openCalendar:Function,
     onRemoveTodayLabel:Function,
     onRemoveUpcomingLabel:Function,
     onRemoveSomedayLabel:Function,
@@ -1122,7 +1191,21 @@ class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLabelsStat
 
 
     render(){  
-        let {todayCategory,open,category,attachedDate,deadline} = this.props;
+        let {
+            todayCategory,
+            open,
+            category,
+            attachedDate,
+            deadline,
+
+            openDeadlineCalendar,
+            openCalendar,
+
+            onRemoveTodayLabel,
+            onRemoveUpcomingLabel,
+            onRemoveSomedayLabel,
+            onRemoveDeadlineLabel
+        } = this.props;
 
         return <div style={{display:"flex",flexDirection:"row",paddingRight:"10px"}}> 
         {    
@@ -1133,9 +1216,11 @@ class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLabelsStat
                 paddingLeft:"5px"  
             }}>      
                 <TodoInputLabel 
-                    onRemove={this.props.onRemoveTodayLabel}
+                    onClick={() => openCalendar()}
+                    onRemove={onRemoveTodayLabel}
                     category={category}
-                    content={  true ? null :
+                    content={  
+                        true ? null :
                         <div style={{marginLeft:"15px"}}>
                             { category==="evening" ? "This Evening" : "Today" }   
                         </div>   
@@ -1151,9 +1236,11 @@ class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLabelsStat
                 paddingLeft:"5px"  
             }}>      
                 <TodoInputLabel 
-                    onRemove={this.props.onRemoveSomedayLabel}
+                    onClick={() => openCalendar()}
+                    onRemove={onRemoveSomedayLabel}
                     category={category}
-                    content={  true ? null :
+                    content={  
+                        true ? null :
                         <div style={{marginLeft:"15px"}}>
                             {"Someday"}   
                         </div>   
@@ -1168,9 +1255,11 @@ class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLabelsStat
                 opacity:open ? 1 : 0
             }}>    
                 <TodoInputLabel 
-                    onRemove={this.props.onRemoveUpcomingLabel}
+                    onClick={() => openCalendar()}
+                    onRemove={onRemoveUpcomingLabel}
                     category={"upcoming"}
-                    content={  true ? null :
+                    content={  
+                        true ? null :
                         <div style={{marginLeft:"15px", color:"black"}}>
                             When : {moment(attachedDate).format('MMMM D')} 
                         </div>    
@@ -1178,16 +1267,15 @@ class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLabelsStat
                 />    
             </div>    
         } 
-        { 
+        {  
             isNil(deadline) ? null : 
-            <div style={{
-                transition : "opacity 0.4s ease-in-out",
-                opacity : open ? 1 : 0
-            }}>
+            <div style={{transition:"opacity 0.4s ease-in-out", opacity:open?1:0}}>
                 <TodoInputLabel  
-                    onRemove={this.props.onRemoveDeadlineLabel}
+                    onClick={() => openDeadlineCalendar()}
+                    onRemove={onRemoveDeadlineLabel}
                     category={"deadline"} 
-                    content={ true ? null :
+                    content={ 
+                        true ? null :
                         <div style={{marginLeft:"15px", color:"black"}}>
                             Deadline: {moment(deadline).format('MMMM D')}
                         </div>
@@ -1311,3 +1399,411 @@ class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCalendarS
     } 
 }  
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+interface SelectorPopupProps{
+    open:boolean
+    anchorEl:HTMLElement,
+    close:Function,
+    projects:any[],
+    rootRef:HTMLElement, 
+    todos:any[],
+    selectInbox:() => void,    
+    selectProject:(project:any) => void,
+    category:any,
+    project:any 
+}
+
+
+interface SelectorPopupState{}
+ 
+
+class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
+
+    ref:HTMLElement;
+    subscriptions:Subscription[];
+
+    constructor(props){
+        super(props);
+        this.subscriptions=[];         
+    }
+
+    componentDidMount(){
+        let {close} = this.props;
+        this.subscriptions.push(
+            Observable
+                    .fromEvent(document.body,"click")
+                    .subscribe((event:any) => 
+                        insideTargetArea(null,this.ref,event.clientX,event.clientY) ? 
+                        null :
+                        close() 
+                    ) 
+        );  
+    }
+
+    componentWillUnmount(){
+        this.subscriptions.map(s => s.unsubscribe());
+        this.subscriptions = []; 
+    } 
+
+    render(){
+        let {open,anchorEl,close,projects,todos,rootRef,project,category} = this.props;
+    
+        return <div> 
+            <Popover  
+                open={open}
+                style={{
+                    zIndex:200005,
+                    background:"rgba(39, 43, 53, 0)", 
+                    backgroundColor:"rgb(39, 43, 53, 0)"
+                }}
+                anchorEl={anchorEl} 
+                canAutoPosition={true}  
+                onRequestClose={() => {}} 
+                scrollableContainer={rootRef}
+                useLayerForClickAway={false} 
+                anchorOrigin={{vertical: "center", horizontal: "left"}} 
+                targetOrigin={{vertical: "bottom", horizontal: "left"}} 
+            >      
+                <div    
+                    ref={(e) => { this.ref=e; }} 
+                    className={"darkscroll"}
+                    onClick = {(e) => {e.stopPropagation();}}
+                    style={{borderRadius:"10px", width:"240px"}}
+                > 
+                    <div    
+                        className={"darkscroll"}
+                        style={{   
+                            backgroundColor:"rgb(39, 43, 53)",
+                            paddingRight:"10px",
+                            paddingLeft:"10px",
+                            paddingTop:"5px",
+                            paddingBottom:"5px",
+                            maxHeight:"150px",
+                            overflowX:"hidden" 
+                        }}  
+                    >     
+                            <div style={{
+                                display:"flex",
+                                alignItems:"center", 
+                                paddingTop:"5px",
+                                paddingBottom:"5px",
+                            }}>
+                                <div  
+                                    className="hoverDateType" 
+                                    onClick={() => {
+                                        let {selectInbox,close} = this.props;
+                                        selectInbox();
+                                        close();
+                                    }}
+                                    style={{
+                                        height:"25px",
+                                        display:"flex",
+                                        alignItems:"center",
+                                        width:"100%",
+                                        borderRadius:"2px"
+                                    }} 
+                                >
+                                    <div style={{display:"flex", alignItems:"center"}}>
+                                        <Inbox    
+                                            style={{  
+                                                paddingLeft:"5px",
+                                                width:"18px",
+                                                height:"18px",
+                                                color:"white", 
+                                                cursor:"default"
+                                            }}  
+                                        /> 
+                                    </div>
+                                    <div  
+                                        style={{
+                                            width:"100%", 
+                                            fontSize:"15px",
+                                            paddingRight:"5px", 
+                                            paddingLeft:"5px", 
+                                            cursor:"default",
+                                            color:"white", 
+                                            WebkitUserSelect:"none" 
+                                        }}
+                                    >   
+                                        Inbox 
+                                    </div>
+                                    <div style={{flexGrow:1,justifyContent:"flex-end",alignItems:"center"}}>
+                                        <div style={{height:"20px"}}>
+
+                                            {
+                                                category!=="inbox" ? null :
+                                                <Checked style={{
+                                                    color:"white",
+                                                    height:18,
+                                                    width:18,  
+                                                    paddingRight:"5px",
+                                                    paddingLeft:"5px",
+                                                }}/> 
+                                            }
+                                        </div>  
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style={{
+                                outline: "none",
+                                color: "rgba(255, 255, 255, 1)",
+                                width: "100%",
+                                borderBottom: "1px solid rgba(255,255,255,0.2)"
+                            }}>
+                            </div> 
+                            {
+                                projects 
+                                .map( 
+                                    (p:any) => { 
+                                        let {selectProject,close} = this.props;
+                                        let {done, left} = getProgressStatus(p,todos,false);
+                                        let totalValue = (done+left)===0 ? 1 : (done+left);
+                                        let currentValue = done;
+
+                                        return <div    
+                                            key = {`${p._id}-project`}
+                                            onClick = {(e) => {
+                                                let {selectProject,close} = this.props;
+                                                selectProject(p);
+                                                close(); 
+                                            }}
+                                            id = {`${p._id}-popup`} 
+                                            className="hoverDateType" 
+                                            style={{       
+                                                borderRadius:"2px", 
+                                                color:"white",
+                                                height:"25px",  
+                                                paddingLeft:"4px", 
+                                                display:"flex",
+                                                alignItems:"center" 
+                                            }} 
+                                        >     
+                                                <div style={{    
+                                                    transform: "rotate(270deg)", 
+                                                    width: "18px",
+                                                    height: "18px",
+                                                    position: "relative",
+                                                    borderRadius: "100px",
+                                                    display: "flex",
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                    border: "1px solid rgb(170, 170, 170)",
+                                                    boxSizing: "border-box" 
+                                                }}> 
+                                                    <div style={{
+                                                        width: "18px",
+                                                        height: "18px",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        position: "relative" 
+                                                    }}>  
+                                                        <PieChart 
+                                                            animate={false}    
+                                                            totalValue={totalValue}
+                                                            data={[{     
+                                                                value:currentValue,  
+                                                                key:1,    
+                                                                color:"white" 
+                                                            }]}    
+                                                            style={{ 
+                                                                color:"white",
+                                                                width:"12px", 
+                                                                height:"12px",
+                                                                position:"absolute",
+                                                                display:"flex",
+                                                                alignItems:"center",
+                                                                justifyContent:"center"  
+                                                            }}    
+                                                        />       
+                                                    </div>
+                                                </div> 
+                            
+                                                <div    
+                                                    id = {`${p._id}-popup-text`}   
+                                                    style={{  
+                                                        width:"100%",
+                                                        paddingLeft:"5px",
+                                                        fontFamily: "sans-serif",
+                                                        fontSize:`15px`,  
+                                                        whiteSpace: "nowrap",
+                                                        cursor: "default",
+                                                        color:"white",  
+                                                        WebkitUserSelect: "none" 
+                                                    }}
+                                                >    
+                                                    <AutoresizableText
+                                                        text={p.name}
+                                                        placeholder="New Project"
+                                                        fontSize={15}
+                                                        style={{}}
+                                                        offset={45} 
+                                                        placeholderStyle={{}}
+                                                    />
+                                                </div>     
+
+                                                {   
+                                                    isNil(project) ? null :
+                                                    project._id!==p._id ? null : 
+                                                    <Checked style={{  
+                                                        color:"white",
+                                                        paddingRight:"5px",
+                                                        paddingLeft:"5px",
+                                                    }}/> 
+                                                }  
+                                        </div>
+                                    }
+                                )
+                            }   
+                    </div>  
+                </div>  
+            </Popover> 
+        </div>
+    }    
+}
+
+ 
+
+let selectButtonContent = ({
+    category,
+    project,
+    attachedDate,
+    deadline,
+    todos
+}) => { 
+    if(
+        category==="inbox" && 
+        isNil(attachedDate) && 
+        isNil(project) && 
+        isNil(deadline)
+    ){
+        return <div   
+            style={{
+                cursor:"pointer",
+                display:"flex",
+                paddingLeft:"5px",
+                height:"25px", 
+                alignItems:"center"
+            }}
+        >
+            <Inbox   
+                style={{
+                    width:"18px",
+                    height:"18px",
+                    color:"rgba(100,100,100,1)"
+                }}  
+            />
+            <div style={{ 
+                paddingRight:"5px",    
+                paddingLeft:"5px", 
+                WebkitUserSelect:"none"
+            }}>  
+                Inbox
+            </div> 
+        </div>
+
+    }else if(isProject(project)){ 
+        let {done, left} = getProgressStatus(project, todos, false);
+        let totalValue = (done+left)===0 ? 1 : (done+left);
+        let currentValue = done;
+
+        return <div   
+            style={{
+                paddingLeft:"15px",
+                cursor:"pointer",
+                display:"flex",
+                height:"25px", 
+                alignItems:"center"
+            }}
+        >
+            <div style={{    
+                width: "18px",
+                height: "18px",
+                position: "relative",
+                borderRadius: "100px",
+                display: "flex",
+                justifyContent: "flex-start", 
+                alignItems: "center",
+                border: "1px solid rgb(170, 170, 170)",
+                boxSizing: "border-box" 
+            }}> 
+                <div style={{
+                    width: "18px",
+                    height: "18px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative" 
+                }}>  
+                    <PieChart 
+                        animate={false}    
+                        totalValue={totalValue}
+                        data={[{
+                            value:currentValue,  
+                            key:1,    
+                            color:"white"   
+                        }]}    
+                        style={{ 
+                            color:"white",
+                            width:"12px", 
+                            height:"12px",
+                            position:"absolute",
+                            display:"flex",
+                            alignItems:"center",
+                            justifyContent:"center"  
+                        }}    
+                    />       
+                </div>
+            </div> 
+            <div style={{ 
+                paddingRight:"5px", 
+                paddingLeft: "5px", 
+                WebkitUserSelect:"none", 
+                width:"100%"
+            }}>   
+                {isEmpty(project.name) ? "New Project" : stringToLength(project.name,10)}    
+            </div>  
+        </div>  
+    }else{
+        return <div  
+            style={{
+                cursor:"pointer",
+                display:"flex",
+                paddingLeft:"15px", 
+                height:"25px", 
+                alignItems:"center"
+            }}
+        >
+            <CalendarIco 
+                style={{
+                    width:"18px",
+                    height:"18px",
+                    color:"rgba(100,100,100,1)", 
+                    cursor:"default"
+                }}  
+            />
+            <div style={{ 
+                paddingRight:"5px", 
+                paddingLeft:"5px", 
+                WebkitUserSelect:"none"
+            }}>  
+                Scheduled
+            </div>
+        </div>
+    }
+}

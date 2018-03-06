@@ -22,11 +22,11 @@ import { globalErrorHandler } from './utils/globalErrorHandler';
 import { Config } from './utils/config';
 import { assert } from './utils/assert';
 import { 
-    isTodo, isProject, isArea, isCalendar, isString, isArrayOfTodos, isArrayOfProjects, isArrayOfAreas, isDate, isNumber 
+    isTodo, isProject, isArea, isCalendar, isString, isArrayOfTodos, 
+    isArrayOfProjects, isArrayOfAreas, isDate, isNumber 
 } from './utils/isSomething';
 import { setCallTimeout } from './utils/setCallTimeout';
 import { findWindowByTitle } from './utils/utils';
-
 
 
 let onError = (e) => globalErrorHandler(e); 
@@ -89,29 +89,12 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
 
     let shouldRefreshReminders : boolean = cond([
-        [
-            typeEquals("updateTodoById"),
-            compose(isDate, path(['load','props','reminder']))
-        ],
-        [
-            typeEquals("setTodos"),
-            (action:{type:string,load:Todo[]}) => true
-        ],
-        [
-            typeEquals("removeGroup"),
-            (action:{type:string, load:string})  => true
-        ],
-        [
-            typeEquals("removeDeleted"),
-            (action:{type:string}) => false
-        ],
-        [
-            typeEquals("addTodo"),
-            (action:{type:string, load:Todo}) => {
-                let todo : Todo = action.load;
-                return isDate(todo.reminder);
-            }
-        ],
+        [ typeEquals("updateTodoById"), compose(isDate, path(['load','props','reminder'])) ],
+        [ typeEquals("setTodos"), (action:{type:string,load:Todo[]}) => true ],
+        [ typeEquals("removeGroup"), (action:{type:string, load:string})  => true ],
+        [ typeEquals("removeDeleted"), (action:{type:string}) => false ],
+        [ typeEquals("addTodo"), compose(isDate, path(['load','reminder'])) ],
+        [ typeEquals("updateTodos"), (action:{type:string, load:Todo[]}) => true ],
         [
             typeEquals("updateTodo"),
             (action:{type:string, load:Todo}) => {
@@ -123,10 +106,6 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     prop(`reminder`,previous)
                 );
             }
-        ],
-        [
-            typeEquals("updateTodos"),
-            (action:{type:string, load:Todo[]}) => true
         ],
         [() => true, () => false]
     ])(action);
@@ -164,8 +143,21 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
         )(newState);
     };
 
+
+    let updateQuickEntry = (newState:Store) : Store => {
+        let quickEntry = findWindowByTitle('Add task');
+
+        if(isNotNil(quickEntry)){ 
+           quickEntry.webContents.send("projects", state.projects);
+           quickEntry.webContents.send("todos", state.todos); 
+        }
+          
+        return newState;  
+    };
+
     
     return compose(
+        updateQuickEntry, 
         refreshReminders,
         (newState:Store) => {
             //update other windows only if action was initialized inside current window 
