@@ -22,7 +22,7 @@ import {
     isArrayOfProjects, isArrayOfTodos, isArray, 
     isString, isFunction, isDate
 } from './utils/isSomething';
-import { createStore, combineReducers } from "redux"; 
+import { createStore } from "redux"; 
 import { Provider, connect } from "react-redux";
 import './assets/fonts/index.css'; 
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';

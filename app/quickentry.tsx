@@ -32,9 +32,11 @@ import Calendar from 'material-ui/svg-icons/action/date-range';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import { ipcRenderer, remote } from 'electron'; 
 import AutosizeInput from 'react-input-autosize';
+import { createStore } from "redux"; 
+import { Provider, connect } from "react-redux";
 import List from 'material-ui/svg-icons/action/list';
 import { 
-    cond, assoc, isNil, not, defaultTo, map,  isEmpty, 
+    cond, assoc, isNil, not, defaultTo, map, isEmpty, 
     uniq, remove, contains, append, adjust, 
     compose, flatten, concat, prop, equals  
 } from 'ramda';
@@ -51,7 +53,6 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { Provider, connect } from "react-redux";
 import Chip from 'material-ui/Chip';
 import DayPicker from 'react-day-picker'; 
 import RaisedButton from 'material-ui/RaisedButton';
@@ -71,6 +72,8 @@ import { isString, isDate } from './utils/isSomething';
 import { isToday } from './utils/utils';
 import { isDev } from './utils/isDev';
 import TextareaAutosize from 'react-autosize-textarea';
+import { TodoTags } from './Components/TodoInput/TodoTags';
+import { TagsPopup } from './Components/TodoInput/TagsPopup';
 injectTapEventPlugin();  
 
 
@@ -91,7 +94,7 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 
 ipcRenderer.once( 
     'loaded',     
-    (event) => {  
+    (event) => {   
         let app=document.createElement('div'); 
         app.style.width="100%"; 
         app.style.height="100%";
@@ -99,7 +102,11 @@ ipcRenderer.once(
         document.body.appendChild(app);    
         getConfig().then(
             (config:Config) => ReactDOM.render(   
-                wrapMuiThemeLight(<QuickEntry config={config}/>),
+                wrapMuiThemeLight(
+                    <Provider store={createStore((state, action) =>  state, {})}>   
+                        <QuickEntry config={config}/>
+                    </Provider>
+                ),
                 document.getElementById('application')
             )     
         )
@@ -118,7 +125,7 @@ interface QuickEntryState{
     tag : string, 
     checklist : any[],
     defaultTags : string[],
-    showAdditionalTags : boolean, 
+    showTags : boolean, 
     showDateCalendar : boolean,  
     showTagsSelection : boolean,
     showChecklist : boolean,   
@@ -126,7 +133,7 @@ interface QuickEntryState{
 }   
   
 
-interface  QuickEntryProps{
+interface QuickEntryProps{
     config:Config
 }    
   
@@ -163,9 +170,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             defaultTags:[],  
             attachedTags:[],  
             checklist:[], 
-            showAdditionalTags:false, 
             showDateCalendar:false,  
             showTagsSelection:false, 
+            showTags:false, 
             showChecklist:false,  
             showDeadlineCalendar:false,
             ...partialState
@@ -282,7 +289,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             ...this.stateFromTodo(this.state,emptyTodo),
             showDateCalendar:false,     
             showTagsSelection:false, 
-            showAdditionalTags:false, 
+            showTags:false, 
             showChecklist:false,   
             showDeadlineCalendar:false 
         };
@@ -341,7 +348,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
     
     onTagsButtonClick = (e) => {
-        this.setState({showTagsSelection:true})
+        this.setState({showTagsSelection:true, showTags:true})
     };
 
 
@@ -419,36 +426,23 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
     render(){  
-        let {category,attachedDate} = this.state;
+        let {category,attachedDate,showChecklist,showTags} = this.state;
         let todayCategory : boolean = category==="evening" || category==="today"; 
 
         return <div style={{display:"flex",flexDirection:"column",width:"100%",height:"100%"}}>
-        <div  
-            ref={(e) => { this.ref=e; }}  
-            style={{                    
-                display:"flex",
-                overflow:"hidden", 
-                justifyContent:"flex-start",
-                height:"100%",
-                position:"relative", 
-                alignItems:"center", 
-                flexDirection:"column"  
-            }}   
-        >     
-            <div style={{width:"100%"}}>    
-            <div style={{
-                display:"flex", 
-                height:"25px", 
-                alignItems:"center", 
-                width:"100%", 
-                marginLeft:"10px", 
-                paddingLeft:"20px" , 
-                marginRight:"10px", 
-                marginTop:"5px", 
-                marginBottom:"5px",
-                paddingTop:"10px",
-                paddingBottom:"10px" 
-            }}>
+
+        <div 
+            ref={(e) => { this.ref=e; }} 
+            style={{
+                paddingTop:"25px",
+                paddingLeft:"25px",
+                paddingRight:"25px",
+                paddingBottom:"75px"
+            }}
+        >    
+ 
+            <div>
+            <div style={{}}> 
                 <TextareaAutosize 
                     placeholder="New Task"
                     innerRef={e => {this.inputRef=e;}}
@@ -476,73 +470,74 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     }}
                 /> 
             </div> 
-            <div style={{
-                transition:"opacity 0.2s ease-in-out",
-                opacity:1,
-                minHeight:"25px",
-                width:"100%",
-                marginLeft:"30px",
-                paddingRight:"25px"  
-            } as any}>    
+
+            <div style={{paddingTop:"10px"} as any}>  
                 <TextareaAutosize
-                id={`always-note`}  
-                value={this.state.note} 
-                placeholder="Notes"
-                onChange={this.onNoteChange}
-                style={{
-                    resize:"none",
-                    marginTop:"-4px",
-                    width:"100%",
-                    fontSize:"14px",
-                    padding:"0px",
-                    cursor:"default", 
-                    position:"relative", 
-                    border:"none",
-                    outline:"none",
-                    backgroundColor:"rgba(0, 0, 0, 0)",
-                    color:"rgba(0, 0, 0, 0.87)" 
-                }}
-                onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); }}}
+                    id={`always-note`}  
+                    value={this.state.note} 
+                    placeholder="Notes"
+                    onChange={this.onNoteChange}
+                    style={{
+                        resize:"none",
+                        marginTop:"-4px",
+                        width:"100%",
+                        fontSize:"14px",
+                        padding:"0px",
+                        cursor:"default", 
+                        position:"relative", 
+                        border:"none",
+                        outline:"none",
+                        backgroundColor:"rgba(0, 0, 0, 0)",
+                        color:"rgba(0, 0, 0, 0.87)" 
+                    }}
+                    onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); }}}
                 /> 
             </div>
-            </div> 
-                <div 
-                    ref={(e) => {this.checklist=e;}} 
-                    className="scroll" 
-                    style={{
-                        width:"85%",
-                        height:"50%", 
-                        paddingBottom:"80px",
-                        paddingRight:"30px"
-                    }}
-                > 
-                    {    
-                        not(this.state.showChecklist) ? null : 
-                        <div> 
-                        <Checklist  
-                            checklist={this.state.checklist}   
-                            closeChecklist={() => this.setState({showChecklist:false})}
-                            updateChecklist={
-                                (checklist:ChecklistItem[]) => {  
-                                    this.setState(
-                                        {checklist}, 
-                                        () => {
-                                            if(this.checklist){ this.checklist.scrollTop=0; }
-                                        }
-                                    )
-                                }
-                            } 
-                        />  
+
+            <div className="scroll" style={{maxHeight:"50%"}}>    
+            <div 
+                ref={(e) => {this.checklist=e;}} 
+                style={{height:"100%"}} 
+            > 
+                {    
+                    not(showChecklist) ? null : 
+                    <div> 
+                    <Checklist  
+                        checklist={this.state.checklist}   
+                        closeChecklist={() => this.setState({showChecklist:false})}
+                        updateChecklist={
+                            (checklist:ChecklistItem[]) => {  
+                                this.setState(
+                                    {checklist}, 
+                                    () => {
+                                        if(this.checklist){ this.checklist.scrollTop=0; }
+                                    }
+                                )
+                            }
+                        } 
+                    />  
+                    </div>
+                } 
+                {  
+                    not(showTags) ? null :
+                    <div style={{display:"flex",alignItems:"center"}}>
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
+                            <TriangleLabel />
                         </div>
-                    } 
-                    {  
-                        <TodoTags   
-                            tags={this.state.attachedTags}
+                        <TodoTags 
                             attachTag={this.onAttachTag}
                             removeTag={this.onRemoveTag}
+                            tags={this.state.attachedTags}
+                            closeTags={() => this.setState({showTags:false})}
                         /> 
-                    } 
-                </div>  
+                    </div>
+                } 
+            </div> 
+            </div> 
+            </div> 
+            
+
+
             <div style={{  
                 display:"flex",
                 alignItems:"center",
@@ -665,7 +660,8 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             } 
             </div>        
             </div> 
-            <div style={{width:"100%", position:"fixed", bottom:0, right:0}}>    
+
+            <div style={{width:"100%",position:"fixed",bottom:0,right:0}}>    
                 <TodoInputPopupFooter
                     onCancel={this.clear}
                     onSave={this.onSave}
@@ -673,7 +669,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     category={this.state.category}
                     attachedDate={this.state.attachedDate}
                     deadline={this.state.deadline}
-
                     onRemoveTodayLabel={() => {
                         let {deadline,attachedDate} = this.state;
                         
@@ -834,264 +829,6 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
 }
 
 
-interface TagsPopupProps{
-    close : Function,
-    open : boolean,
-    attachTag:(tag:string) => void,
-    origin : any,  
-    todos:any[],
-    defaultTags:string[],
-    rootRef : HTMLElement, 
-    anchorEl : HTMLElement,
-    point : any 
-};   
-
-class TagsPopup extends Component<TagsPopupProps,{}>{
-        ref:HTMLElement;
-        subscriptions:Subscription[];
-
-        constructor(props){  
-            super(props); 
-            this.subscriptions = []; 
-        }   
-
-        componentDidMount(){ 
-            let click = Observable.fromEvent(document.body,"click").subscribe(this.onOutsideClick);
-            this.subscriptions.push(click);
-        }   
-
-        componentWillUnmount(){
-            this.subscriptions.map(s => s.unsubscribe());
-            this.subscriptions = []; 
-        } 
-
-        onOutsideClick = (e) => {
-            if(isNil(this.ref)){ return }
-
-            let x = e.pageX;
-            let y = e.pageY; 
-
-            let inside = insideTargetArea(null,this.ref,x,y);
-        
-            if(!inside){ this.props.close() }   
-        }      
-
-        getTags = () => {
-            let {todos, defaultTags} = this.props;
-
-            return compose( 
-                uniq,
-                flatten,
-                concat(defaultTags),
-                (todos) => todos.map(prop("attachedTags"))
-            )(todos as any)
-        }
-                
-        render(){ 
-            let tags = this.getTags();
-
-            return <Popover  
-                open={this.props.open}
-                style={{
-                    zIndex:40005,
-                    background:"rgba(39, 43, 53, 0)", 
-                    backgroundColor:"rgb(39, 43, 53, 0)"
-                }}
-                anchorEl={this.props.anchorEl}
-                canAutoPosition={true}
-                onRequestClose={this.props.close}
-                scrollableContainer={this.props.rootRef}
-                useLayerForClickAway={false} 
-                anchorOrigin={this.props.origin} 
-                targetOrigin={this.props.point} 
-                zDepth={0}        
-            >      
-                <div   
-                    ref={(e) => { this.ref=e; }}
-                    className="darkscroll"
-                    onClick = {(e) => { 
-                        e.stopPropagation();
-                        e.preventDefault(); 
-                    }} 
-                    style={{borderRadius:"10px", width:"180px"}}
-                > 
-                    <div    
-                        className="darkscroll"
-                        style={{   
-                            backgroundColor: "rgb(39, 43, 53)",
-                            paddingRight: "10px",
-                            paddingLeft: "10px",
-                            paddingTop: "5px",
-                            paddingBottom: "5px",
-                            maxHeight:"150px",
-                            cursor:"pointer",
-                            overflowX:"hidden" 
-                        }}
-                    >    
-                        {  
-                            tags
-                            .sort((a:string,b:string) : number => a.localeCompare(b))
-                            .map(
-                                (tag:string) => {
-
-                                    return <div   
-                                        key={tag}  
-                                        onClick={(e) => {
-                                            e.stopPropagation();  
-                                            this.props.attachTag(tag)
-                                        }} 
-                                        className="tagItem"
-                                        style={{
-                                            display:"flex", 
-                                            height:"auto",
-                                            width:"140px", 
-                                            paddingLeft:"5px", 
-                                            paddingRight:"10px"  
-                                        }}
-                                    >   
-                                            <div style={{width:"24px",height:"24px"}}>
-                                                <TriangleLabel style={{color:"gainsboro"}}/>
-                                            </div> 
-                                            <div style={{
-                                                color:"gainsboro", 
-                                                marginLeft:"5px", 
-                                                marginRight:"5px",
-                                                overflowX:"hidden",
-                                                whiteSpace: "nowrap" 
-                                            }}> 
-                                                {tag}   
-                                            </div>  
-                                    </div>
-                                }
-                            )
-                        } 
-                    </div>  
-                </div>  
-            </Popover> 
-        } 
-      
-    }
- 
-
-
-
-
-    interface TodoTagsProps{
-        tags:string[],
-        attachTag:(tag:string) => void,
-        removeTag:(tag:string) => void,
-    }    
-    
-    interface TodoTagsState{tag:string}
-     
-    export class TodoTags extends Component<TodoTagsProps,TodoTagsState>{
-    
-        constructor(props){
-            super(props);
-            this.state={ tag:'' };  
-        } 
-        
-        
-        onEnterPress = (e) => { 
-            if(e.keyCode!==13){ return }
-            e.stopPropagation(); 
-    
-            let {attachTag} = this.props;
-            let {tag} = this.state;
-            attachTag(tag);
-            this.setState({tag:''}); 
-        };
-        
-    
-        onRemoveTag = (tag:string) => () => {
-            let {removeTag} = this.props;
-            removeTag(tag);
-        };
-        
-        
-        render(){
-            let {attachTag} = this.props;
-            let {tag} = this.state;
-    
-            return <div
-              onClick={(e) => {e.stopPropagation();}} 
-              style={{display:"flex",paddingTop:"5px",paddingBottom:"5px",flexWrap:"wrap"}}
-            >
-                {      
-                    this.props.tags
-                    .sort((a:string,b:string) : number => a.localeCompare(b))
-                    .map( 
-                        (tag:string, index:number) => 
-                        <div  
-                            key={`${tag}-${index}`} 
-                            style={{ 
-                                paddingLeft:"4px", 
-                                paddingRight:"4px", 
-                                paddingTop:"4px",  
-                                cursor:"default",  
-                                WebkitUserSelect:"none"
-                            }}   
-                        > 
-                            <div 
-                                style={{
-                                    borderRadius:"15px", 
-                                    backgroundColor:"rgb(189,219,209)",
-                                    paddingLeft:"5px",
-                                    paddingRight:"5px",
-                                    display:"flex"   
-                                }}
-                            >
-                                <div 
-                                    style={{  
-                                        height:"15px",
-                                        display:"flex",
-                                        alignItems:"center",
-                                        padding:"4px", 
-                                        color:"rgb(115,167,152)",
-                                        fontWeight: 600    
-                                    }} 
-                                > 
-                                    {uppercase(tag)} 
-                                </div> 
-                                <div  
-                                  style={{padding:"2px",alignItems:"center",display:"flex",cursor:"pointer"}} 
-                                  onClick={this.onRemoveTag(tag)}
-                                >
-                                    <Clear style={{color:"rgba(100,100,100,0.5)",height:20,width:20}}/>
-                                </div>
-                            </div> 
-                        </div> 
-                    )   
-                }
-                <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>   
-                    <AutosizeInput   
-                        type="text"  
-                        name="form-field-name-tag"   
-                        minWidth={40}
-                        style={{display:"flex", alignItems:"center", cursor:"default"}}            
-                        inputStyle={{                
-                            color:"black",  
-                            fontSize:"16px",  
-                            cursor:"default", 
-                            caretColor:"cornflowerblue",  
-                            boxSizing:"content-box", 
-                            backgroundColor:"rgba(0,0,0,0)",
-                            border:"none",  
-                            outline:"none"   
-                        }}  
-                        placeholder=""  
-                        value={this.state.tag} 
-                        onKeyDown={this.onEnterPress} 
-                        onChange={(event) => this.setState({tag:event.target.value})} 
-                    /> 
-                </div>
-            </div>
-        }
-    }
-
-
-
-
 
 
 interface TodoInputLabelProps{
@@ -1176,11 +913,12 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
 
 
     componentDidMount(){ 
-        let click = Observable
-                    .fromEvent(document.body,"click")
-                    .subscribe(this.onOutsideClick); 
          
-        this.subscriptions.push(click);
+        this.subscriptions.push(
+            Observable
+                    .fromEvent(document.body,"click")
+                    .subscribe(this.onOutsideClick)
+        );
     }
 
 
@@ -1191,17 +929,15 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
   
 
     onOutsideClick = (e) => {
-        if(this.ref===null || this.ref===undefined)
-            return; 
+        let {close} = this.props;
+        if(isNil(this.ref)){ return }
 
         let x = e.pageX;
         let y = e.pageY; 
 
         let inside = insideTargetArea(null,this.ref,x,y);
     
-        if(!inside){
-            this.props.close(); 
-        }   
+        if(not(inside)){ close() }   
     }   
                
      

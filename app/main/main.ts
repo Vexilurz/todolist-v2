@@ -65,7 +65,7 @@ const shouldQuit = app.makeSingleInstance(
 
 
 export let getClonedWindows = () : BrowserWindow[] => {
-    let defaultWindowsTitles = ['Quick Entry','Notification'];
+    let defaultWindowsTitles = ['Add task','Notification'];
     let mainWindowId = isNil(mainWindow) ? 1 : mainWindow.id;
     let windows = BrowserWindow.getAllWindows();
 
@@ -124,7 +124,7 @@ let createTray = () : Tray => {
     
     let getWindows = () : BrowserWindow[] => {
         let windows = BrowserWindow.getAllWindows();
-        let defaultWindowsTitles = ['Quick Entry','Notification'];
+        let defaultWindowsTitles = ['Add task','Notification'];
 
         return reject(
             compose(
@@ -238,19 +238,24 @@ let onReady = (showTray:boolean, config:any) => {
     );    
 
 
-    quickEntry = initQuickEntry({width:500,height:300}); 
-    //quickEntry.webContents.openDevTools();  
+    quickEntry = initQuickEntry({
+        width:500,
+        height:300 
+    }); 
+    quickEntry.webContents.openDevTools();  
       
-    notification = initNotification({
+
+    notification = initNotification({ 
         width:250,
         height:200
     });   
     //notification.webContents.openDevTools();  
     
+
     if(showTray){ 
        tray = createTray();
-       mainWindow.on('show',() => tray.setToolTip(`Hide ${AppName}`));
-       mainWindow.on('hide',() => tray.setToolTip(`Show ${AppName}`));
+       mainWindow.on('show', () => tray.setToolTip(`Hide ${AppName}`));
+       mainWindow.on('hide', () => tray.setToolTip(`Show ${AppName}`));
     }
     
 
@@ -265,7 +270,8 @@ let onReady = (showTray:boolean, config:any) => {
         quickEntry.on('blur',(event) => {
             event.preventDefault(); 
             quickEntry.hide()
-        });   
+        });
+
         quickEntry.on('close',(event) => {
             event.preventDefault(); 
             quickEntry.hide();

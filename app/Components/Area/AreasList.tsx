@@ -125,6 +125,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     selectArea = (a:Area) => {
         let {dispatch} = this.props;
         dispatch({type:"selectedAreaId",load:a._id}); 
+        dispatch({type:"selectedTag", load:"All"});
         dispatch({type:"searchQuery", load:""});
     };
  
@@ -132,6 +133,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     selectProject = (p:Project) => {
         let {dispatch} = this.props;
         dispatch({type:"selectedProjectId",load:p._id});
+        dispatch({type:"selectedTag", load:"All"});
         dispatch({type:"searchQuery", load:""});
     };
 

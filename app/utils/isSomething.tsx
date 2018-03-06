@@ -36,12 +36,14 @@ export let isCalendar = (item:any) => item.type==="calendar";
 export let isHeading = (item:Heading) : boolean => isNil(item) ? false : item.type==="heading";
 
 
-
 export let isArray = (item:any[]) : boolean => Array.isArray(item); 
    
 
 export let isDate = (date) : boolean => isNil(date) ? false : (date instanceof Date && isFunction(date.getTime)); 
  
+
+export let isNotDate = (date) : boolean => not(isDate(date)); 
+
 
 export let isFunction = (item) : boolean => typeof item==="function"; 
  

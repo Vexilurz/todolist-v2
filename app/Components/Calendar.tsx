@@ -15,6 +15,7 @@ import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
 let ical = require('ical.js'); 
 import axios from 'axios';
+import { isNotNil } from '../utils/utils';
 
 
 type vcalPropsInitial = [string,Object,string,string];
@@ -136,7 +137,7 @@ export let updateCalendars = (calendars:Calendar[], onError:Function) : Promise<
                 (data:IcalData)=> {
                     let {calendar,events,error} = data as IcalData;
 
-                    if(!isNil(error)){  
+                    if(isNotNil(error)){  
                         onError(error);
                         return c; 
                     }   

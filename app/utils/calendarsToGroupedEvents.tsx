@@ -17,6 +17,7 @@ import {
     timeDifferenceHours,
     isNotNil,
     setTime,
+    oneMinutesBefore,
 } from './utils';  
 import { CalendarEvent } from '../Components/Calendar';
 import { Calendar } from '../database';
@@ -75,9 +76,10 @@ export let calendarsToGroupedEvents = (calendars:Calendar[]) => {
                 sameDayEvents:map((event) => ({...event,type:'sameDayEvents'})),
                 fullDayEvents:map((event) => ({...event,type:'fullDayEvents'})),
                 multipleDaysEvents:compose(
-                    map((event) => ({...event,type:'fullDayEvents'})),
-                    splitLongEvents
-                )
+                    map((event) => ({ ...event, type:'fullDayEvents' })), 
+                    splitLongEvents,
+                    map((event) => ({ ...event, end:oneMinutesBefore(event.end) })),
+                )   
             }),
             groupBy(
                 cond(

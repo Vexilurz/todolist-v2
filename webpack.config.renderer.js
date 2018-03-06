@@ -66,7 +66,7 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject:true, 
-            title:'Quick Entry',     
+            title:'Add task',     
             chunks:['quickentry'],
             filename: 'quickentry.html' 
         }),

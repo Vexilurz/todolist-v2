@@ -141,13 +141,7 @@ interface objectsByDate{ [key:string]:Item[] }
 
 let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {  
     let {showCalendarEvents,todos,projects,calendars} = props;
-
-    let filters = [
-        haveDate,  
-        byTags(props.selectedTag),
-        byNotCompleted, 
-        byNotDeleted  
-    ];    
+    let filters = [haveDate, byTags(props.selectedTag), byNotCompleted, byNotDeleted];    
 
     let items = filter([...todos, ...projects], i => allPass(filters)(i), "upcoming");
     

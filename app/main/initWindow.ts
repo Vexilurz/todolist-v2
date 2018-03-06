@@ -46,7 +46,7 @@ export let initQuickEntry = ({width,height}:{width:number,height:number}):Browse
         height,      
         show:false, 
         useContentSize:true,  
-        title:'Quick Entry',    
+        title:'Add task',    
         center:true,       
         minimizable:false,
         frame:true    

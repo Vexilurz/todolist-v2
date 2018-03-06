@@ -215,15 +215,17 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
     
 
     render(){ 
+        let {dispatch} = this.props;
+
         return <div style={{paddingLeft:"15px",paddingRight:"15px"}}>
 
             <Separator />
 
             <LeftPanelMenuItem
                 onClick={() => {
-                    this.props.dispatch({type:"selectedCategory", load:"inbox"});
-                    this.props.dispatch({type:"searchQuery", load:""});
-                    this.props.dispatch({type:"selectedTag", load:"All"});
+                    dispatch({type:"selectedCategory", load:"inbox"});
+                    dispatch({type:"searchQuery", load:""});
+                    dispatch({type:"selectedTag", load:"All"});
                 }}
                 dragged={this.props.dragged}
                 icon={<Inbox style={{color:"dodgerblue"}}/>}
@@ -238,9 +240,9 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
             <LeftPanelMenuItem
                 onClick={() => {
-                    this.props.dispatch({type:"selectedCategory", load:"today"});
-                    this.props.dispatch({type:"searchQuery", load:""});
-                    this.props.dispatch({type:"selectedTag", load:"All"});
+                    dispatch({type:"selectedCategory", load:"today"});
+                    dispatch({type:"searchQuery", load:""});
+                    dispatch({type:"selectedTag", load:"All"});
                 }} 
                 dragged={this.props.dragged}
                 icon={<Star style={{color:"gold"}}/>}
@@ -254,9 +256,9 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
             <LeftPanelMenuItem
                 onClick={() => {
-                    this.props.dispatch({type:"selectedCategory", load:"next"});
-                    this.props.dispatch({type:"searchQuery", load:""});
-                    this.props.dispatch({type:"selectedTag", load:"All"});
+                    dispatch({type:"selectedCategory", load:"next"});
+                    dispatch({type:"searchQuery", load:""});
+                    dispatch({type:"selectedTag", load:"All"});
                 }} 
                 dragged={this.props.dragged}
                 icon={<Layers style={{color:"darkgreen"}}/>}
@@ -269,9 +271,9 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
             <LeftPanelMenuItem
                 onClick={() => {
-                    this.props.dispatch({type:"selectedCategory", load:"upcoming"});
-                    this.props.dispatch({type:"searchQuery", load:""});
-                    this.props.dispatch({type:"selectedTag", load:"All"}); 
+                    dispatch({type:"selectedCategory", load:"upcoming"});
+                    dispatch({type:"searchQuery", load:""});
+                    dispatch({type:"selectedTag", load:"All"}); 
                 }}
                 dragged={this.props.dragged}
                 category={"upcoming"}
@@ -284,9 +286,9 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
             <LeftPanelMenuItem
                 onClick={() => {
-                    this.props.dispatch({type:"selectedCategory", load:"someday"});
-                    this.props.dispatch({type:"searchQuery", load:""});
-                    this.props.dispatch({type:"selectedTag", load:"All"}); 
+                    dispatch({type:"selectedCategory", load:"someday"});
+                    dispatch({type:"searchQuery", load:""});
+                    dispatch({type:"selectedTag", load:"All"}); 
                 }} 
                 dragged={this.props.dragged}
                 category={"someday"}
@@ -303,9 +305,9 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 this.props.logbook===0 ? null :
                 <LeftPanelMenuItem 
                     onClick={() => {
-                        this.props.dispatch({type:"selectedCategory", load:"logbook"});
-                        this.props.dispatch({type:"searchQuery", load:""});
-                        this.props.dispatch({type:"selectedTag", load:"All"});
+                        dispatch({type:"selectedCategory", load:"logbook"});
+                        dispatch({type:"searchQuery", load:""});
+                        dispatch({type:"selectedTag", load:"All"});
                     }}   
                     dragged={this.props.dragged}
                     icon={<Logbook style={{color:"limegreen"}}/>}
@@ -317,13 +319,13 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 />   
             } 
 
-            {
+            { 
                 this.props.trash===0 ? null :    
                 <LeftPanelMenuItem
                     onClick={() => {
-                        this.props.dispatch({type:"selectedCategory", load:"trash"});
-                        this.props.dispatch({type:"searchQuery", load:""});
-                        this.props.dispatch({type:"selectedTag", load:"All"});
+                        dispatch({type:"selectedCategory", load:"trash"});
+                        dispatch({type:"searchQuery", load:""});
+                        dispatch({type:"selectedTag", load:"All"});
                     }}  
                     dragged={this.props.dragged}
                     icon={<Trash style={{color:"darkgray"}}/>}

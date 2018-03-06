@@ -212,7 +212,12 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                         }}    
                         underlineFocusStyle={{borderColor: "rgba(0,0,0,0)"}}   
                         underlineStyle={{borderColor: "rgba(0,0,0,0)"}}   
-                        onClick={(e) => e.target.focus()}  
+                        onClick={(e) => {
+                            let value = e.target.value;
+                            e.target.value = '';
+                            e.target.focus();
+                            e.target.value = value; 
+                        }}  
                         onChange={(event, newText:string) => this.onChecklistItemChange(value.key, event, newText)}
                         onKeyDown={(event) => { 
                             if(event.which == 13 || event.keyCode == 13){

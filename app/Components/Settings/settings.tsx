@@ -328,7 +328,7 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
                     remote.globalShortcut.register(
                         'Ctrl+Alt+T',  
                         () => {
-                            let quickEntry = findWindowByTitle('Quick Entry');
+                            let quickEntry = findWindowByTitle('Add task');
                             if(isNil(quickEntry)){ return }    
                             
                             if(quickEntry.isVisible()){
@@ -355,7 +355,7 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
         updateConfig(dispatch)({quickEntrySavesTo:event.target.value})
         .then(
             (config) => {
-                let window = findWindowByTitle('Quick Entry');
+                let window = findWindowByTitle('Add task');
                 if(window){
                     window.webContents.send('config',config)
                 }

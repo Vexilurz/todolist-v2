@@ -19,7 +19,8 @@ import { daysLeftMark, isToday, getMonthName, getCompletedWhen, getTime, setTime
 import { Todo, Project, Group } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
-import { TagsPopup, TodoTags } from './TodoTags';
+import { TodoTags } from './TodoTags';
+import { TagsPopup } from './TagsPopup';
 import { TodoInputLabel } from './TodoInputLabel'; 
 import { uniq, isEmpty, contains, isNil, not, multiply, remove, cond, equals, any, complement } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';

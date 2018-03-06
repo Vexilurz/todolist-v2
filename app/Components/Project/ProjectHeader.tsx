@@ -14,7 +14,7 @@ import Checked from 'material-ui/svg-icons/navigation/check';
 import { DeadlineCalendar } from '../ThingsCalendar'; 
 import { isNil, isEmpty, not } from 'ramda';
 import { Tags } from '../Tags';
-import { TagsPopup } from '../TodoInput/TodoTags';
+import { TagsPopup } from '../TodoInput/TagsPopup';
 import AutosizeInput from 'react-input-autosize';
 import TextareaAutosize from 'react-autosize-textarea';
 

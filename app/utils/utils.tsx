@@ -25,7 +25,7 @@ import {
     isItem,isArray,isDate,isFunction,isString,  
     isCategory,bySomeday,isTodo,isArrayOfTodos, 
     isProject,isArrayOfProjects,isArea, 
-    isArrayOfAreas,isArrayOfStrings,Item
+    isArrayOfAreas,isArrayOfStrings,Item, isNotDate
 } from './isSomething';
 import { generateEmptyTodo } from './generateEmptyTodo';
 const PHE = require("print-html-element");
@@ -246,7 +246,7 @@ export let getRangeMonthRepetitions = (start:Date, endsAfter:number, repeatEvery
 
         next.setMonth(nextMonth);
 
-        let daysInNextMonth : number = daysInMonth(next);
+        let daysInNextMonth = daysInMonth(next);
 
         if(dayOfTheMonth>daysInNextMonth){
            next.setDate(daysInNextMonth);
@@ -322,15 +322,25 @@ export let dateInputUpperLimit = (limit = 2030) : string => {
 
 
 
-export let daysInMonth = (date:Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+export let daysInMonth = (date:Date) : number => {
+    if(isNotDate(date)){ return 0 }
+
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+}
 
 
 
-export let dateToYearMonthDay = (date:Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+export let dateToYearMonthDay = (date:Date) => {
+    if(isNotDate(date)){ return date }
+
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+}
 
 
 
 export let yearFromDate = (date:Date) : Date => {
+    if(isNotDate(date)){ return date }
+
     Date.prototype["addDays"] = function(days) {
         let date = new Date(this.valueOf());
         date.setDate(date.getDate() + days);
@@ -355,6 +365,8 @@ export let yearFromNow = () => {
 
 
 export let threeDaysLater = (date:Date) : Date => { 
+    if(isNotDate(date)){ return date }
+
     Date.prototype["addDays"] = function(days) {
         let date = new Date(this.valueOf());
         date.setDate(date.getDate() + days);
@@ -367,6 +379,8 @@ export let threeDaysLater = (date:Date) : Date => {
 
 
 export let oneDayAhead = (date:Date) : Date => { 
+    if(isNotDate(date)){ return date }
+
     Date.prototype["addDays"] = function(days) {
         let date = new Date(this.valueOf());
         date.setDate(date.getDate() + days);
@@ -379,6 +393,8 @@ export let oneDayAhead = (date:Date) : Date => {
 
 
 export let threeDaysAhead = (date:Date) : Date => { 
+    if(isNotDate(date)){ return date }
+
     Date.prototype["addDays"] = function(days) {
         let date = new Date(this.valueOf());
         date.setDate(date.getDate() + days);
@@ -390,20 +406,40 @@ export let threeDaysAhead = (date:Date) : Date => {
 
 
 
+export let oneMinutesBefore = (date:Date) : Date => { 
+    if(isNotDate(date)){ return date }
+
+    let oneMinuteMs = 1000 * 60;
+    return new Date(date.getTime() - oneMinuteMs);
+}; 
+
+
+
 export let fiveMinutesLater = (date:Date) : Date => { 
+    if(isNotDate(date)){ return date }
+
     let fiveMinutesMs = 1000 * 60 * 5;
     return new Date(date.getTime() + fiveMinutesMs);
 }; 
 
+
+
 export let fiveMinutesBefore = (date:Date) : Date => { 
+    if(isNotDate(date)){ return date }
+
     let fiveMinutesMs = 1000 * 60 * 5;
     return new Date(date.getTime() - fiveMinutesMs);
 }; 
 
+
+
 export let onHourLater = (date:Date) : Date => {  
+    if(isNotDate(date)){ return date }
+
     let oneHourMs = 1000 * 60 * 60; 
     return new Date(date.getTime() + oneHourMs);
 }; 
+
 
 
 export let oneDayBehind = () : Date => { 
@@ -415,6 +451,7 @@ export let oneDayBehind = () : Date => {
       
     return new Date()["addDays"](-1);
 }; 
+
 
 
 export let dateToDateInputValue = (date:Date) : string => {
@@ -429,7 +466,9 @@ export let dateToDateInputValue = (date:Date) : string => {
 };
 
 
+
 export let sameDay = (a:Date,b:Date) => keyFromDate(a)===keyFromDate(b); 
+
 
 
 export let keyFromDate = (date:Date) : string => {  

@@ -1,17 +1,18 @@
 html{
-    height:100%;
-} 
+    height:100% !important;
+}
 
 body{  
-    height:100%;
-} 
+    height:100% !important;
+    overflow-y: auto !important;
+}
 
-.scroll {  
+.scroll {   
     overflow-y: scroll;
 } 
   
 .scroll::-webkit-scrollbar {
-    width: 12px;
+    width: 8px;
 } 
    
 .scroll::-webkit-scrollbar-track {
