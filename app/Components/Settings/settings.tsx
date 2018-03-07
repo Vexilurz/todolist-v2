@@ -585,7 +585,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
 
     onUrlSubmit = (e) => {
         let { url, error } = this.state;
-        let { calendars, dispatch, hideHint } = this.props;
+        let { calendars, dispatch, hideHint, limit } = this.props;
         let urls = calendars.map( c => c.url );
  
         if(isEmpty(url)){ return null }
@@ -602,7 +602,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
            url = url.replace("webcal","http");
         }
          
-        getIcalData(url)
+        getIcalData(limit,url) 
         .then( 
             (data:IcalData) => { 
                 let {calendar,events,error} = data;

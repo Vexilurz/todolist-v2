@@ -160,7 +160,7 @@ export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calen
                 }
             };
 
-            return updateCalendars(calendars,onError);
+            return updateCalendars(limit,calendars,onError);
         }
     )
     .then( 
@@ -233,15 +233,15 @@ export class MainContainer extends Component<Store,MainContainerState>{
         } 
     };
 
-
+ 
 
     initObservables = () => {  
-        let {dispatch,showRightClickMenu} = this.props; 
+        let {dispatch,showRightClickMenu,limit} = this.props; 
         let minute = 1000 * 60;  
 
         
         let calendars = Observable.interval(2 * minute)
-                        .flatMap( () =>  updateCalendars(this.props.calendars, this.onError))
+                        .flatMap( () =>  updateCalendars(limit,this.props.calendars, this.onError))
                         .subscribe((calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars}));   
 
         let resize = Observable
