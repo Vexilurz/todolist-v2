@@ -68,7 +68,6 @@ export interface TodoCreationFormProps{
  
   
 export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreationFormState>{
-    
     calendar:HTMLElement; 
     deadline:HTMLElement;
     tags:HTMLElement;
@@ -96,8 +95,8 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         } = this.props.todo;
 
         this.state={   
-            open : false,
-            tag : '',
+            open:false,
+            tag:'',
             category, 
             title,
             note,  

@@ -593,13 +593,13 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
   
     render(){   
+        let {selectedCategory, id, rootRef, todo} = this.props; 
         let { 
             open,showChecklist,showDateCalendar,animatingSlideAway,showTags, 
             category,deadline,checklist,attachedDate,title,note
         } = this.state;
 
-        let {selectedCategory, id, rootRef, todo} = this.props; 
-
+        
         let relatedProjectName = this.getRelatedProjectName();
         let canRepeat = isNil(todo.group); 
 
@@ -652,7 +652,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 }}        
                 onClick={this.onFieldsContainerClick}  
             >          
-            <div style={{display:"flex", flexDirection:"column", paddingTop:"4px", width:"100%"}}>
+            <div style={{display:"flex",flexDirection:"column",paddingTop:"4px",width:"100%"}}>
                 <TodoInputTopLevel 
                     onWindowEnterPress={this.onWindowEnterPress}
                     groupTodos={this.props.groupTodos}
@@ -1060,12 +1060,22 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                                         }  
                                         { 
                                             isNil(reminder) ? null :
-                                            <div style={{paddingRight:"4px",paddingTop:"2px",height:"18px"}}>
-                                                <Alert style={{
-                                                    width:15,
-                                                    height:15,
-                                                    color:"rgba(100,100,100,0.3)"
-                                                }}/>
+                                            <div style={{
+                                                paddingRight:"4px", 
+                                                paddingTop:"2px",
+                                                height:"18px",
+                                                position:"relative"
+                                            }}>
+                                                <Alert style={{width:15,height:15,color:"rgb(200, 200, 200)"}}/>
+                                                <div style={{
+                                                    top:"8px",
+                                                    left:"5px",
+                                                    width:"5px",
+                                                    height:"7px",
+                                                    position:"absolute",
+                                                    backgroundColor:"rgb(200, 200, 200)"
+                                                }}>
+                                                </div>
                                             </div>
                                         }
                                         {   
@@ -1077,22 +1087,13 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                                                 alignItems:"center",
                                                 height:"20px"
                                             }}>
-                                                <ChecklistIcon style={{
-                                                    width:15,
-                                                    height:15,
-                                                    color:"rgba(100,100,100,0.3)"
-                                                }}/>
+                                                <ChecklistIcon style={{width:15,height:15,color:"rgba(100,100,100,0.3)"}}/>
                                             </div>
                                         } 
                                         {
                                             isNil(note) || isEmpty(note) ? null :
                                             <div style={{paddingRight:"4px",height:"18px"}}>  
-                                                <NotesIcon style={{ 
-                                                    width:18,
-                                                    height:18,
-                                                    paddingTop:"2px", 
-                                                    color:"rgba(100,100,100,0.3)"
-                                                }}/>  
+                                                <NotesIcon style={{width:18,height:18,paddingTop:"2px",color:"rgba(100,100,100,0.3)"}}/>  
                                             </div>
                                         }
                                         </div>

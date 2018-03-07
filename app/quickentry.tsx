@@ -1642,26 +1642,19 @@ let selectButtonContent = ({category, project, attachedDate, deadline, todos}) =
         </div>
 
     }else if(isProject(project)){ 
-        let {done, left} = getProgressStatus(project, todos, false);
+        let {done, left} = getProgressStatus(project,todos,false);
         let totalValue = (done+left)===0 ? 1 : (done+left);
         let currentValue = done;
 
-        return <div   
-            style={{
-                paddingLeft:"15px",
-                cursor:"pointer",
-                display:"flex",
-                height:"25px", 
-                alignItems:"center"
-            }}
-        >
+        return <div style={{paddingLeft:"15px",cursor:"pointer",display:"flex",height:"25px",alignItems:"center"}}>
             <div style={{    
-                width: "18px",
-                height: "18px",
+                transform:"rotate(270deg)", 
+                width:"18px",
+                height:"18px",
                 position: "relative",
                 borderRadius: "100px",
                 display: "flex",
-                justifyContent: "flex-start", 
+                justifyContent: "center",
                 alignItems: "center",
                 border: "1px solid rgb(170, 170, 170)",
                 boxSizing: "border-box" 
@@ -1677,13 +1670,9 @@ let selectButtonContent = ({category, project, attachedDate, deadline, todos}) =
                     <PieChart 
                         animate={false}    
                         totalValue={totalValue}
-                        data={[{
-                            value:currentValue,  
-                            key:1,    
-                            color:"white"   
-                        }]}    
+                        data={[{value:currentValue, key:1, color:"grey"}]}    
                         style={{ 
-                            color:"white",
+                            color:"grey",
                             width:"12px", 
                             height:"12px",
                             position:"absolute",
@@ -1694,14 +1683,9 @@ let selectButtonContent = ({category, project, attachedDate, deadline, todos}) =
                     />       
                 </div>
             </div> 
-            <div style={{ 
-                paddingRight:"5px", 
-                paddingLeft: "5px", 
-                WebkitUserSelect:"none", 
-                width:"100%"
-            }}>   
+            <div style={{paddingRight:"5px",paddingLeft: "5px",WebkitUserSelect:"none",width:"100%"}}>   
                 {isEmpty(project.name) ? "New Project" : stringToLength(project.name,10)}    
-            </div>  
+            </div>    
         </div>  
     }else{
         return <div  

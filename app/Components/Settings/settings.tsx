@@ -594,7 +594,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
         let extension = last(url.split('.'));
 
         if(extension!=='ics'){    
-           this.setState({error:"Incorrect format. Only ics extension supported."});
+           this.setState({error:"Incorrect format. Only (*.ics) extension supported."});
            return null;    
         }  
         
@@ -708,7 +708,7 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
                         <input 
                             type="url"     
                             value={this.state.url}
-                            placeholder="Input Calendar URL (ics)" 
+                            placeholder="Input Calendar URL (*.ics)" 
                             style={{
                                 backgroundColor:"white",
                                 color:"rgba(100, 100, 100, 0.9)",   
@@ -961,9 +961,9 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                    dispatch({type:"openSettings", load:false});  
                    dispatch({type:"showUpdatesNotification", load:true});
                 }else{   
-                   this.setState({updateStatus:"Latest version already installed."}); 
+                   this.setState({updateStatus:"Latest version is already installed."}); 
                 }; 
-            }      
+            }       
         );  
     },100); 
      

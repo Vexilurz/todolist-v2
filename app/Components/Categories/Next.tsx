@@ -72,7 +72,6 @@ export class Next extends Component<NextProps, NextState>{
  
         let empty = generateEmptyTodo(generateId(), selectedCategory, 0);  
 
-
         if(isDev()){
             let hiddenProjects = filter(
                 projects, 
@@ -89,7 +88,6 @@ export class Next extends Component<NextProps, NextState>{
                 `tags from hidden Todos still displayed in ${selectedCategory}.`
             ); 
         }
-
 
         return  <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}>
                     <ContainerHeader 
