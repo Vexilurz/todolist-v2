@@ -1,21 +1,22 @@
-  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { 
-    getTodos, queryToTodos, Todo, updateTodo, Project, Area, 
-    removeTodos, removeProjects, removeAreas, updateProjects, updateTodos, 
-    updateAreas, Heading, LayoutItem, Calendar } from './../database';
+  getTodos, queryToTodos, Todo, updateTodo, Project, Area, 
+  removeTodos, removeProjects, removeAreas, updateProjects, 
+  updateTodos, updateAreas, Heading, LayoutItem, Calendar 
+} from './../database';
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { 
-    contains, isNil, all, prepend, isEmpty, last,
-    not, assoc, flatten, toPairs, map, compose, allPass, uniq 
+  contains, isNil, all, prepend, isEmpty, last, not,  
+  assoc, flatten, toPairs, map, compose, allPass, uniq 
 } from 'ramda'; 
 import { Store } from './../app';
 import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
-let ical = require('ical.js'); 
 import axios from 'axios';
-import { isNotNil } from '../utils/utils';
+import { isNotNil } from '../utils/utils'; 
+let ical = require('ical.js'); 
+import * as icalR from '../ical/index.js'; 
 
 
 type vcalPropsInitial = [string,Object,string,string];
@@ -72,6 +73,13 @@ let parseCalendar = (icalData:string) : {calendar : CalendarProps, events : Cale
 
     let jcal : any[] = ical.parse(icalData);
 
+    try{
+       let parsed = icalR.parseICS(icalData);
+       console.log('parsed',parsed); 
+    }catch(e){
+       console.log('parsed',e); 
+    }
+  
     if(isEmpty(jcal)){ return null }
 
     let vcalendarProps : vcalProps[] = map(
@@ -117,6 +125,8 @@ export type IcalData = {
     error? : AxiosError
 } 
  
+
+
 
 export let getIcalData = (url:string) : Promise<IcalData> => 
     axios.get(url)

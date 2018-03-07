@@ -9,8 +9,7 @@ module.exports = {
     context: __dirname + "/app",  
 
     entry: { 
-        'main':'./main/main.ts',   
-        's3clean':'./main/s3clean.ts'  
+        'main':'./main/main.ts',    
     },    
      
     output: {              

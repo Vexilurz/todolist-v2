@@ -113,7 +113,7 @@ let unregisterAllShortcuts = () => globalShortcut.unregisterAll();
 
 
 let createTray = () : Tray => {
-    let iconPath = path.join(__dirname,"icon.ico"); 
+    let iconPath = path.join(__dirname, "icon.ico"); 
     let tray = null;
 
     if(fs.existsSync(iconPath)){
@@ -132,7 +132,7 @@ let createTray = () : Tray => {
                 (w:BrowserWindow) : string => w.getTitle()
             ),
             windows
-        )
+        ); 
     };
 
     const contextMenu = Menu.buildFromTemplate([

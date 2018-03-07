@@ -351,6 +351,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             
             Observable
             .fromEvent(window,"beforeunload")
+            .do(() => console.log('unload'))
             .subscribe(this.saveOnUnmount)
         ); 
     };        
