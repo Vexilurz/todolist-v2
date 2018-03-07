@@ -4587,6 +4587,10 @@ plist@^2.1.0:
     xmlbuilder "8.2.2"
     xmldom "0.1.x"
 
+popper.js@^1.11.1:
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/popper.js/-/popper.js-1.13.0.tgz#e1e7ff65cc43f7cf9cf16f1510a75e81f84f4565"
+
 posix-character-classes@^0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/posix-character-classes/-/posix-character-classes-0.1.1.tgz#01eac0fe3b5af71a2a6c02feabb8c1fef7e00eab"
@@ -5198,6 +5202,12 @@ react-test-renderer@^15.6.1:
 react-time-input@^0.0.17:
   version "0.0.17"
   resolved "https://registry.yarnpkg.com/react-time-input/-/react-time-input-0.0.17.tgz#3a4ba4f59ec3d0602ebf801388f224fc64f90059"
+
+react-tippy@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/react-tippy/-/react-tippy-1.2.2.tgz#061467d34d29e7a5a9421822d125c451d6bb5153"
+  dependencies:
+    popper.js "^1.11.1"
 
 react-transition-group@^1.2.1:
   version "1.2.1"

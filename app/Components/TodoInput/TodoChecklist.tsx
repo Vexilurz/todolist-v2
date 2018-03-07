@@ -232,8 +232,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
 
     onBlankBlur = (event) => {
-        if(event.target.value==='')
-           return;  
+        if(event.target.value===''){ return } 
 
         let newItem = {
             checked:false,  

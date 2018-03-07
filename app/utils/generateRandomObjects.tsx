@@ -110,7 +110,7 @@ export let fakeTodo = (tags:string[], remind = null) : Todo => {
     
     //reminder = randomDate(new Date(), new Date()["addDays"](-50)); 
     
-    return ({   
+    return {   
         _id:generateId(),     
         type:"todo",
         category:randomCategory(), 
@@ -129,7 +129,7 @@ export let fakeTodo = (tags:string[], remind = null) : Todo => {
         attachedDate,
         completedSet,
         completedWhen 
-    });   
+    };   
 };
     
     
@@ -263,10 +263,10 @@ export let generateRandomDatabase = (
         
 } => { 
       
-    let tags = fakeTags(8);
-    let tagsChunks = splitEvery(3, tags); 
+    let tags = fakeTags(30);
+    let tagsChunks = splitEvery(10, tags); 
     let todosItems : Todo[] = [];
-
+ 
     for(let i=0; i<todos; i++)
         todosItems.push(fakeTodo(randomArrayMember(tagsChunks)));
 

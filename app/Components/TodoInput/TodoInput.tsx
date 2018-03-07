@@ -1,3 +1,4 @@
+import 'react-tippy/dist/tippy.css'
 import '../../assets/styles.css';  
 import '../../assets/calendarStyle.css';  
 import * as React from 'react';
@@ -12,10 +13,11 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import List from 'material-ui/svg-icons/action/list';
+import Popover from 'material-ui/Popover';
 import ChecklistIcon from 'material-ui/svg-icons/action/assignment-turned-in'; 
 import NotesIcon from 'material-ui/svg-icons/action/subject'; 
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
-import { daysLeftMark, isToday, getMonthName, getCompletedWhen, getTime, setTime, isNotNil, different } from '../../utils/utils'; 
+import { daysLeftMark, isToday, getMonthName, getCompletedWhen, getTime, setTime, isNotNil, different, isNotEmpty } from '../../utils/utils'; 
 import { Todo, Project, Group } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
@@ -40,6 +42,7 @@ import { debounce } from 'lodash';
 import TextareaAutosize from 'react-autosize-textarea';
 let moment = require("moment"); 
 let Promise = require('bluebird'); 
+import {Tooltip,withTooltip} from 'react-tippy';
 
 
 export interface TodoInputProps{ 
@@ -332,6 +335,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     componentDidMount(){   
         let { todo, selectedTodo } = this.props;
 
+
         if(isNotNil(selectedTodo) && selectedTodo._id===todo._id){ 
             this.updateState({open:true})
             .then(
@@ -339,20 +343,32 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             )
         };
 
+
         this.subscriptions.push(
             Observable
             .fromEvent(window,"click") 
-            .subscribe(this.onOutsideClick) 
+            .subscribe(this.onOutsideClick),
+            
+            Observable
+            .fromEvent(window,"beforeunload")
+            .subscribe(this.saveOnUnmount)
         ); 
     };        
-
+ 
 
 
     componentWillUnmount(){
+        this.saveOnUnmount();
+        this.subscriptions.map(s => s.unsubscribe());
+        this.subscriptions = []; 
+    }; 
+
+
+
+    saveOnUnmount = () => {
         let {dispatch,todo} = this.props;
         let {attachedDate,deadline,category,title,note,checklist} = this.state;
         let shouldSave = false;
-
 
         if(
             any(
@@ -382,10 +398,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 }
             })
         }
-
-        this.subscriptions.map(s => s.unsubscribe());
-        this.subscriptions = []; 
-    }; 
+    };
 
 
 
@@ -665,7 +678,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     selectedCategory={selectedCategory}
                     relatedProjectName={relatedProjectName}
                     flagColor={flagColor}   
-
+                    rootRef={rootRef}
                     deleted={todo.deleted}
                     completedSet={todo.completedSet}
                     completedWhen={todo.completedWhen}
@@ -673,7 +686,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     checklist={checklist}
                     group={todo.group} 
                     attachedTags={todo.attachedTags}
-
                     category={category}
                     attachedDate={attachedDate}
                     deadline={deadline}
@@ -926,6 +938,7 @@ interface TodoInputTopLevelProps{
     attachedTags:string[],
     note:string, 
     deadline:Date,
+    rootRef:HTMLElement,
 
     animatingSlideAway?:boolean   
 }
@@ -934,6 +947,7 @@ interface TodoInputTopLevelState{}
 
 
 export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInputTopLevelState>{
+    ref:HTMLElement;
 
     constructor(props){
         super(props);
@@ -950,7 +964,7 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
             flagColor,  
             groupTodos, 
             animatingSlideAway,
-
+            rootRef,
             deleted,
             completedSet,
             category,
@@ -965,7 +979,10 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
             deadline
         } = this.props;  
 
-        return <div style={{display:"flex",alignItems:"flex-start",width:"100%",overflow:"hidden"}}>  
+        return <div 
+            ref={e => {this.ref=e;}} 
+            style={{display:"flex",alignItems:"flex-start",width:"100%",overflow:"hidden"}}
+        >  
                         {  
                             isNil(deleted) ? null :      
                             <div
@@ -1109,7 +1126,11 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                                         } 
                                         {  
                                             isEmpty(attachedTags) ? null :    
-                                            <AdditionalTags open={open} attachedTags={attachedTags}/>  
+                                            <AdditionalTags 
+                                                open={open} 
+                                                rootRef={this.ref} 
+                                                attachedTags={attachedTags}
+                                            />  
                                         }
                                     </div>
                                 </div>
@@ -1477,73 +1498,141 @@ class RestoreButton extends Component<RestoreButtonProps,{}>{
         </div> 
     }
 };
-
-
-
+ 
 
 
 interface AdditionalTagsProps{
     attachedTags:string[],
-    open:boolean
+    open:boolean,
+    rootRef:HTMLElement
 }
-class AdditionalTags extends Component<AdditionalTagsProps,{}>{
+
+interface AdditionalTagsState{
+    showMoreTags:boolean
+}
+
+class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
+    ref:HTMLElement;
 
     constructor(props){
         super(props); 
+        this.state={ showMoreTags:false };
     }   
     
     render(){
-        let {attachedTags,open} = this.props;
-        
+        let {attachedTags,open,rootRef} = this.props;
+        let {showMoreTags} = this.state;
 
         if(isNil(attachedTags)){ return null }  
         if(isEmpty(attachedTags)){ return null }
-        if(open){ return null }
-        
+        if(open){ return null } 
 
-        return <div style={{
-            height:"25px",
-            display:"flex",
-            alignItems:"center",
-            zIndex:1001,   
-            justifyContent:"flex-start",
-            zoom:0.8, 
-            flexGrow:1   
-        }}>  
-            <div   
-                style={{paddingRight:"5px",display:"flex",position:"relative",alignItems:"center"}} 
-                key={`AdditionalTags-${attachedTags[0]}`} 
-            >    
-            {
-                attachedTags
-                .slice(0,3)
-                .map((tag:string,index:number) => 
-                    <div  key={`${tag}-${index}`}  style={{paddingRight:"2px"}}>
-                        <div  
-                            style={{  
-                                height:"20px",
-                                borderRadius:"15px",
-                                display:'flex',
-                                alignItems:"center",
-                                justifyContent:"center",  
-                                border:"1px solid rgba(200,200,200,0.5)" 
-                            }}
-                        >  
-                            <div style={{ 
-                                color:"rgba(200,200,200,1)", 
-                                fontSize:"13px", 
-                                cursor:"default",
-                                padding:"5px", 
-                                WebkitUserSelect:"none"
-                            }}> 
-                                {tag} 
-                            </div>  
-                        </div>   
+        let moreTags = attachedTags.slice(3,attachedTags.length);
+
+
+        return  <Tooltip 
+                size={"small"} //small regular big
+                disabled={isEmpty(moreTags)}
+                position="bottom"
+                /*style={{ 
+                    border:"1px solid rgba(200,200,200,0.5)", 
+                    background:"rgba(255,255,255,1)",
+                    backgroundColor:"rgba(255,255,255,1)" 
+                }}*/ 
+                animateFill={false} 
+                transitionFlip={false}
+                theme="light"  
+                trigger="mouseenter"
+                duration={40}
+                animation="fade" 
+                html={ 
+                    <div style={{
+                        padding:"5px", 
+                        display:"flex", 
+                        flexWrap:"wrap",
+                        alignItems:"center",
+                        justifyContent:"center", 
+                        height:'90%',
+                        overflow:'hidden',
+                        width:'90%',
+                        background:"rgba(255,255,255,1)",
+                        borderRadius:"10px"
+                    }}>
+                        { 
+                            moreTags
+                            .map((tag:string,index:number) => 
+                                <div 
+                                    key={`${tag}-${index}`} 
+                                    style={{padding:"2px"}}
+                                >
+                                    <div style={{  
+                                        height:"20px",
+                                        borderRadius:"15px",
+                                        display:'flex',
+                                        alignItems:"center",
+                                        justifyContent:"center",  
+                                        border:"1px solid rgba(200,200,200,0.5)" 
+                                    }}>  
+                                        <div style={{ 
+                                            color:"rgba(200,200,200,1)", 
+                                            fontSize:"13px", 
+                                            cursor:"default",
+                                            padding:"5px",   
+                                            WebkitUserSelect:"none"
+                                        }}> 
+                                            {tag} 
+                                        </div>  
+                                    </div>   
+                                </div>
+                            ) 
+                        }
                     </div>
-                ) 
-            } 
+                }
+            >
+            <div 
+            ref={e => {this.ref=e;}}
+            style={{
+                height:"25px",
+                display:"flex",
+                alignItems:"center",
+                zIndex:1001,   
+                justifyContent:"flex-start",
+                zoom:0.8, 
+                flexGrow:1    
+            }}>
+                <div   
+                    style={{paddingRight:"5px",display:"flex",position:"relative",alignItems:"center"}} 
+                    key={`AdditionalTags-${attachedTags[0]}`} 
+                >     
+                    { 
+                        attachedTags
+                        .slice(0,3) 
+                        .map((tag:string,index:number) => 
+                            <div key={`${tag}-${index}`} style={{paddingRight:"2px"}}>
+                                <div style={{  
+                                    height:"20px",
+                                    borderRadius:"15px",
+                                    display:'flex',
+                                    alignItems:"center",
+                                    justifyContent:"center",  
+                                    border:"1px solid rgba(200,200,200,0.5)" 
+                                }}>  
+                                    <div style={{ 
+                                        color:"rgba(200,200,200,1)", 
+                                        fontSize:"13px", 
+                                        cursor:"default",
+                                        padding:"5px", 
+                                        WebkitUserSelect:"none"
+                                    }}> 
+                                        {tag} 
+                                    </div>  
+                                </div>    
+                            </div>
+                        ) 
+                    }  
+                </div> 
             </div>
-        </div>   
+        </Tooltip>
     }
 };
 

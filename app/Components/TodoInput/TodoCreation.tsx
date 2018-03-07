@@ -352,7 +352,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         this.setState({showChecklist:true});
     }; 
       
-
+ 
     onFlagButtonClick = (e) => {
         e.stopPropagation();
         this.setState({showDeadlineCalendar:true});
@@ -482,7 +482,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
   
 
     render(){  
-        let {selectedCategory} = this.props; 
+        let {selectedCategory,rootRef} = this.props; 
         let {
             open, deleted, attachedDate, title, attachedTags, note, 
             deadline, showChecklist, completedWhen, checklist, showTags,
@@ -547,6 +547,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                             onCheckBoxClick={() => {}}
                             onTitleChange={this.onTitleChange} 
                             open={open}  
+                            rootRef={rootRef}
                             selectedCategory={selectedCategory}
                             relatedProjectName={null}
                             flagColor={flagColor}   
