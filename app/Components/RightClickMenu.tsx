@@ -336,7 +336,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             icon={null} 
                         />
                         <RightClickMenuItem 
-                            title={"Duplicate To-Do"}
+                            title={"Duplicate Task"}
                             dispatch={this.props.dispatch}
                             onClick={this.onDuplicate}
                             disabled={!canDuplicate}
@@ -350,7 +350,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             icon={null}
                         />
                         <RightClickMenuItem 
-                            title={"Delete To-Do"}
+                            title={"Delete Task"}
                             dispatch={this.props.dispatch}
                             onClick={this.onDeleteToDo}
                             disabled={!canDelete}
@@ -399,44 +399,44 @@ export class RightClickMenuItem extends Component<RightClickMenuItemProps,RightC
     }  
 
     render(){ 
-
+         let {disabled} = this.props;   
          let disabledColor = "rgba(0,0,0,0.2)";
          
          return <div  
-                    onClick = {
-                        (e) => {
-                            if(!this.props.disabled){
-                                this.props.onClick(e);
-                                this.props.dispatch({type:"showRightClickMenu",load:false});
-                            } 
-                        }
+            onClick = {
+                (e) => {
+                    if(!this.props.disabled){
+                        this.props.onClick(e);
+                        this.props.dispatch({type:"showRightClickMenu",load:false});
                     } 
-                    className="rightclickmenuitem"
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        fontFamily: "sans-serif",
-                        paddingLeft: "5px",
-                        paddingRight: "5px",
-                        fontSize: "14px",
-                        cursor: this.props.disabled ? "pointer" : "default",
-                        paddingTop: "2px",
-                        paddingBottom: "2px" 
-                    }}
-                >  
-                    <div style={{color: !this.props.disabled ? "rgba(70,70,70,1)" : disabledColor}}>
-                        {this.props.title} 
-                    </div>
-                    <div style={{
-                        height: "14px",
-                        display: "flex", 
-                        alignItems: "center",   
-                        margin: "0px", 
-                        fontWeight: 600 
-                    }}>
-                        {this.props.icon}
-                    </div>
-                </div> 
+                }
+            } 
+            className="rightclickmenuitem"
+            style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                fontFamily: "sans-serif",
+                paddingLeft: "5px",
+                paddingRight: "5px",
+                fontSize: "14px",
+                cursor: disabled ? "pointer" : "default",
+                paddingTop: "2px",
+                paddingBottom: "2px" 
+            }}
+        >  
+            <div style={{color: not(disabled) ? "rgba(70,70,70,1)" : disabledColor}}>
+                {this.props.title} 
+            </div>
+            <div style={{
+                height: "14px",
+                display: "flex", 
+                alignItems: "center",   
+                margin: "0px", 
+                fontWeight: 600 
+            }}>
+                {this.props.icon}
+            </div>
+        </div>  
     }
 }

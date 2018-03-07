@@ -128,9 +128,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                     overflowX:"hidden"  
                 }}
             >    
-                
-                <div  
-                style={{
+                <div style={{
                     color: "white",
                     textAlign: "center",
                     padding: "5px",
@@ -147,6 +145,8 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                         color: "white",
                         marginLeft: "20px",
                         marginRight: "20px",
+                        marginBottom:"2px",
+                        padding:"2px",
                         cursor: "default",
                         WebkitUserSelect:"none"  
                     }}  
@@ -161,7 +161,6 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                         Today
                     </div>
                 </div>
-
                 <div  
                     className="hoverDateType"
                     onClick={this.props.onThisEveningClick}
@@ -171,6 +170,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                         color: "white",
                         cursor: "default",
                         marginLeft: "20px",
+                        padding:"2px",
                         marginRight: "20px",
                         WebkitUserSelect:"none"  
                 }}>
@@ -185,14 +185,9 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                         This Evening
                     </div>
                 </div>
-
-                <div style={{
-                    display: "flex",
-                    justifyContent: "center" 
-                }}> 
-                    <DayPicker onDayClick={this.props.onDayClick} />
+                <div style={{display:"flex",justifyContent:"center"}}> 
+                    <DayPicker onDayClick={this.props.onDayClick}/>
                 </div> 
-                     
                 <div  
                     className="hoverDateType"
                     onClick={this.props.onSomedayClick}
@@ -203,7 +198,8 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                         cursor: "default",
                         marginLeft: "20px",
                         marginRight: "20px",
-                        WebkitUserSelect:"none"  
+                        WebkitUserSelect:"none",
+                        padding:"2px"  
                     }}
                 >
                     <BusinessCase style={{  
@@ -227,32 +223,35 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                     hideRepeatButton ? null :    
                     <div  
                         className="hoverDateType"
-                        onClick={() => {
-                            let { top, left } = this.ref.getBoundingClientRect();
+                        onClick={() => { 
+                            let {top, left} = this.ref.getBoundingClientRect();
                             this.props.close(); 
                             this.props.onRepeatTodo(top,left); 
                         }}  
                         style={{
-                            display: "flex",
-                            alignItems: "center",
-                            color: "white",
-                            cursor: "default",
-                            marginLeft: "20px",
-                            marginRight: "20px",
-                            WebkitUserSelect:"none"  
+                            display:"flex",
+                            alignItems:"center",
+                            color:"white",
+                            cursor:"default",
+                            marginLeft:"15px",
+                            marginRight:"15px",
+                            padding:"2px",
+                            userSelect:"none", 
+                            marginBottom:"2px"
                         }}
                     >
                         <Refresh style={{  
+                            paddingLeft:"2px",
                             color:"white", 
-                            width:"15px", 
-                            height:"15px", 
+                            width:"18px", 
+                            height:"18px", 
                             cursor:"default"  
                         }}/>
-                        <div style={{marginLeft:"15px"}}> 
+                        <div style={{marginLeft:"13px"}}> 
                             Recurring task
                         </div>
                     </div> 
-                }
+                } 
                 <CalendarFooter 
                     onAddReminder={this.props.onAddReminderClick}
                     onRemoveReminder={this.props.onRemoveReminderClick}
@@ -501,12 +500,13 @@ class AddReminderButton extends Component<AddReminderButtonProps,{}>{
             className={disable ? "" : "hoverDateType"}
             onClick={(e) => disable ? null : openReminderInput(e)} 
             style={{
-              display:"flex", 
-              cursor:"default", 
-              alignItems:"center",    
-              marginLeft:"15px", 
-              marginRight:"15px"  
-            }}  
+                display:"flex",
+                cursor:"default",
+                alignItems:"center",
+                marginLeft:"15px",
+                marginRight:"15px",
+                padding:"1px"
+            }}   
         >       
             <Plus style={{       
                 color:disable ? "rgba(70,70,70,0.5)" : "white",    
@@ -520,7 +520,7 @@ class AddReminderButton extends Component<AddReminderButtonProps,{}>{
                 color:disable ? "rgba(70,70,70,0.5)" : "white",  
                 fontSize:"15px",  
                 cursor:"default",
-                WebkitUserSelect:"none"   
+                WebkitUserSelect:"none"  
             }}> 
                 Add reminder  
             </div>      

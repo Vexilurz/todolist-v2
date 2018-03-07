@@ -611,15 +611,15 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            flagColor = daysLeft <= 1 ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
         }     
 
-        return <div       
+        return <div        
             id={id}    
             onKeyDown={this.onWindowEnterPress}  
             onContextMenu={this.onRightClickMenu}
             style={{    
-                marginTop:"5px", 
-                marginBottom:"5px",  
+                marginTop:"0px", 
+                marginBottom:"0px",  
                 width:"100%",   
-                WebkitUserSelect:"none",
+                WebkitUserSelect:"none", 
                 display:this.state.display,     
                 transform:`translateX(${this.state.translateX}%)`, 
                 alignItems:"center",    
@@ -636,7 +636,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 boxShadow:open ? "rgba(156, 156, 156, 0.3) 0px 0px 20px" : "", 
                 borderRadius:"5px"
             }}     
-        >        
+        >         
             <div 
                 className={open ? "" : "tasklist"}
                 style={{    

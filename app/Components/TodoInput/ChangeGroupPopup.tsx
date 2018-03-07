@@ -20,17 +20,17 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
     ref:HTMLElement; 
 
     constructor(props){
-       super(props); 
+        super(props); 
     }   
  
     onClose = () => {
-       let { dispatch } = this.props;     
-       dispatch({type:"openChangeGroupPopup", load:false}); 
+        let { dispatch } = this.props;     
+        dispatch({type:"openChangeGroupPopup", load:false}); 
     };  
 
 
     onCancel = (e) => {
-       this.onClose();  
+        this.onClose();  
     };  
  
 
@@ -49,12 +49,10 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
         this.onClose();   
     };
  
-    
     render(){ 
-    
         let { openChangeGroupPopup } = this.props; 
        
-        return <SimplePopup    
+        return <SimplePopup
           show={openChangeGroupPopup}
           onOutsideClick={this.onClose} 
         >   
@@ -73,7 +71,7 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
                     minWidth:"180px",  
                     backgroundColor:"white" 
                 }}> 
-                    <div style={{display:"flex", alignItems:"center"}}>  
+                    <div style={{display:"flex",alignItems:"center"}}>  
                         <div style={{  
                             display:"flex",
                             flexDirection:"column",
@@ -89,15 +87,11 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
                                 color:"rgba(0,0,0,1)",
                                 textAlign:"center"
                             }}>    
-                                Delete Todo
+                                Delete recurring task
                             </div>
-                            <div style={{
-                                fontSize:"14px", 
-                                color:"rgba(0,0,0,1)",
-                                textAlign:"center" 
-                            }}>
-                                This todo is part of a group, 
-                                do you want to remove only this Todo or a group ? 
+                            <div style={{fontSize:"14px",color:"rgba(0,0,0,1)",textAlign:"center"}}>
+                                This task is part of a series of recurring tasks. 
+                                Do you want to delete only this task or all recurring tasks of this series? 
                             </div>   
                         </div>
                     </div> 
@@ -112,7 +106,7 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
                             <div     
                                 onClick={this.onDeleteSingleItem} 
                                 style={{       
-                                    width:"150px",
+                                    width:"170px",
                                     display:"flex",
                                     alignItems:"center",
                                     cursor:"pointer",
@@ -123,8 +117,8 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
                                     backgroundColor:"rgb(10, 90, 250)"  
                                 }}  
                             > 
-                                <div style={{color:"white", fontSize:"16px"}}>      
-                                    Delete single item 
+                                <div style={{color:"white", fontSize:"14px"}}>      
+                                    Delete single task 
                                 </div>    
                             </div>
                         </div> 
@@ -132,7 +126,7 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
                             <div    
                                 onClick={this.onDeleteGroup} 
                                 style={{       
-                                    width:"150px",
+                                    width:"170px",
                                     display:"flex",
                                     alignItems:"center",
                                     cursor:"pointer",
@@ -143,8 +137,8 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
                                     backgroundColor:"rgb(10, 90, 250)"   
                                 }}   
                             > 
-                                <div style={{color:"white", fontSize:"16px"}}>      
-                                    Delete group
+                                <div style={{color:"white", fontSize:"14px"}}>      
+                                    Delete all recurring tasks
                                 </div>  
                             </div>
                         </div> 
@@ -152,7 +146,7 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
                             <div     
                                 onClick={this.onCancel} 
                                 style={{      
-                                    width:"150px", 
+                                    width:"170px", 
                                     display:"flex",
                                     alignItems:"center",
                                     cursor:"pointer",
@@ -163,7 +157,7 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
                                     backgroundColor:"white" 
                                 }}  
                             >   
-                                <div style={{color:"rgba(0,0,0,0.9)", fontSize:"16px"}}>  
+                                <div style={{color:"rgba(0,0,0,0.9)", fontSize:"14px"}}>  
                                     Cancel
                                 </div>    
                             </div>  

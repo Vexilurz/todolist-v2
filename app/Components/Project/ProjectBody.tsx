@@ -4,7 +4,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
-import { generateDropStyle, hideChildrens, removeHeading, typeEquals } from '../../utils/utils'; 
+import { generateDropStyle, hideChildrens, removeHeading, typeEquals, isNotNil } from '../../utils/utils'; 
 import { ProjectHeading } from './ProjectHeading';  
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { 
@@ -339,7 +339,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let selected = [index];
         let item = items[index];
 
-        assert(!isNil(item),`item is Nil. selectElements. index ${index}`);
+        assert(isNotNil(item),`item is Nil. selectElements. index ${index}`);
 
         if(isHeading(item)){   
             for(let i=index+1; i<items.length; i++){
@@ -359,7 +359,11 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     render(){  
         let {selectedCategory} = this.props;
         let empty = generateEmptyTodo(generateId(),"project",0);
-        let decorators = [{area:document.getElementById("leftpanel"),decorator:generateDropStyle("nested"),id:"default"}];    
+        let decorators = [{
+            area:document.getElementById("leftpanel"),
+            decorator:generateDropStyle("nested"),
+            id:"default"
+        }];    
             
         return <div className="unselectable">   
             <div className={`no-print`}>  

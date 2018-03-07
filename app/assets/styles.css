@@ -150,7 +150,7 @@ ul {
 
 .projectHeading{
   transition : background-color 0.5s ease;
-  border-bottom : 1px solid rgba(100, 100, 100, 0.2);
+  border-bottom : 1px solid rgba(100, 100, 100, 0.3);
 } 
 
 
@@ -190,12 +190,14 @@ ul {
 
 .upcomingListHeading{
   transition: background-color 0.5s ease;
+  border-bottom : 1px solid rgba(100, 100, 100, 0.3);
 } 
 
 
 .upcomingListHeading:hover{ 
   background-color: rgba(228,230,233,1);  
   border-radius: 5px; 
+  border-bottom : 1px solid rgba(100, 100, 100, 0);
 } 
 
 

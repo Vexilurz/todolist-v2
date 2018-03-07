@@ -484,8 +484,8 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     render(){  
         let {selectedCategory} = this.props; 
         let {
-            open, deleted, attachedDate, title, attachedTags, 
-            note, deadline, showChecklist, completedWhen, checklist, showTags,
+            open, deleted, attachedDate, title, attachedTags, note, 
+            deadline, showChecklist, completedWhen, checklist, showTags,
             category, completedSet, showDateCalendar, showTagsSelection   
         } = this.state;
 
@@ -497,12 +497,12 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         let flagColor = "rgba(100,100,100,0.7)";
         let canRepeat = false; 
  
-        return  <div    
+        return <div     
             onKeyDown={this.onWindowEnterPress}  
             onContextMenu={this.onRightClickMenu} 
             style={{    
-                marginTop:"5px", 
-                marginBottom:"5px",  
+                marginTop:"10px", 
+                marginBottom:"0px",  
                 width:"100%",   
                 WebkitUserSelect:"none",
                 display:this.state.display,     
@@ -529,7 +529,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                     paddingTop:open ? "20px":"5px",
                     paddingBottom:open ? "20px":"5px", 
                     paddingLeft:"20px", 
-                    paddingRight:"20px",   
+                    paddingRight:"20px",    
                     alignItems:"center", 
                     minHeight:"30px",
                     transition: "max-height 0.2s ease-in-out", 

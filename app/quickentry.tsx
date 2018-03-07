@@ -937,7 +937,6 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
 
 
     componentDidMount(){ 
-         
         this.subscriptions.push(
             Observable
                     .fromEvent(document.body,"click")
@@ -1000,9 +999,7 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
                     overflowX:"hidden"  
                 }}
             >    
-                
-                <div  
-                style={{
+                <div style={{
                     color: "white",
                     textAlign: "center",
                     padding: "5px",
@@ -1017,8 +1014,10 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
                         display: "flex",
                         alignItems: "center",
                         color: "white",
-                        marginLeft:"20px",
-                        marginRight:"20px",
+                        marginLeft: "20px",
+                        marginRight: "20px",
+                        marginBottom:"2px",
+                        padding:"2px",
                         cursor: "default",
                         WebkitUserSelect:"none"  
                     }}  
@@ -1041,9 +1040,10 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
                         display: "flex",
                         alignItems: "center",
                         color: "white",
-                        marginLeft:"20px",
-                        marginRight:"20px",
                         cursor: "default",
+                        marginLeft: "20px",
+                        padding:"2px",
+                        marginRight: "20px",
                         WebkitUserSelect:"none"  
                 }}>
                     <Moon style={{ 
@@ -1071,11 +1071,12 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        marginLeft:"20px",
-                        marginRight:"20px",
                         color: "white",
                         cursor: "default",
-                        WebkitUserSelect:"none"  
+                        marginLeft: "20px",
+                        marginRight: "20px",
+                        WebkitUserSelect:"none",
+                        padding:"2px"  
                     }}
                 >
                     <BusinessCase style={{  
