@@ -87,17 +87,11 @@ export let getClonedWindows = () : BrowserWindow[] => {
 
 let shortcuts = {
     'Ctrl+Alt+T':() => {
-        if(isNil(quickEntry)){ return }  
-        
-        if(quickEntry.isVisible()){
-           quickEntry.hide();   
-           quickEntry.setSkipTaskbar(true);
-        }else{
-           quickEntry.show();
-           quickEntry.focus();
-           quickEntry.setSkipTaskbar(false); 
-           quickEntry.webContents.send("focus"); 
-        }
+        if(isNil(quickEntry)){ return }   
+        quickEntry.show();
+        quickEntry.focus();
+        quickEntry.setSkipTaskbar(false); 
+        quickEntry.webContents.send("focus"); 
     },
     'Ctrl+D':() => mainWindow.webContents.openDevTools(),
     'Ctrl+B':() => mainWindow.webContents.send("toggle")
@@ -239,8 +233,8 @@ let onReady = (showTray:boolean, config:any) => {
 
     quickEntry = initQuickEntry({
         width:500,
-        height:350 
-    }); 
+        height:300 
+    });  
     //quickEntry.webContents.openDevTools();  
       
 

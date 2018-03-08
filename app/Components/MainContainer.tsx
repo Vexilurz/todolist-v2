@@ -14,10 +14,10 @@ import {
     getIntroList, printElement, inFuture, introListIds, introListLayout, 
     threeDaysAhead, firstDateBeforeSecond, byHaveAttachedDate, 
     byAttachedToCompletedProject, byNotAttachedToProject, 
-    byNotAttachedToCompletedProject, isNotEmpty
+    byNotAttachedToCompletedProject, isNotEmpty, isNotNil
 } from "../utils/utils";  
 import {isDev} from "../utils/isDev"; 
-import { connect } from "react-redux"; 
+import {connect} from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Hide from 'material-ui/svg-icons/navigation/arrow-drop-down';
 import { 
@@ -42,7 +42,7 @@ import { Inbox } from './Categories/Inbox';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { 
     isEmpty, last, isNil, contains, all, not, assoc, flatten, 
-    toPairs, map, compose, allPass, cond, defaultTo, reject 
+    toPairs, map, compose, allPass, cond, defaultTo, reject, when 
 } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -101,12 +101,12 @@ export let getDateUpperLimit = (areas:Area[], projects:Project[], todos:Todo[], 
  * located on timeline beyound current limiting point.
  */
 export let selectTodos = (areas, projects, todos, limit) => {
-    let isRepeated = (todo:Todo) => not(isNil(todo.group));
+    let isRepeated = (todo:Todo) => isNotNil(todo.group);
     let isAfterLimit = (limit:Date) => 
-                        (todo:Todo) => isNil(todo.attachedDate) ? false : 
-                                        todo.attachedDate.getTime() >
-                                        limit.getTime();  
+                        (todo:Todo) =>  isNil(todo.attachedDate) ? false : 
+                                        todo.attachedDate.getTime() > limit.getTime();  
     
+
     let limitByProjects = getDateUpperLimit(areas, projects, todos, limit); 
     let selected = filter( 
         todos,
@@ -197,7 +197,28 @@ export class MainContainer extends Component<Store,MainContainerState>{
         this.disablePrintButton=false;
         this.state = { fullWindowSize:true };
     }  
+
      
+    test = () => {  
+        let {dispatch} = this.props;
+
+        initDB(); 
+        let fakeData = generateRandomDatabase({todos:215, projects:38, areas:15});      
+            
+        let todos = fakeData.todos; 
+        let projects = fakeData.projects; 
+        let areas = fakeData.areas;  
+             
+        Promise.all([ 
+            addTodos(this.onError,todos),    
+            addProjects(this.onError,projects), 
+            addAreas(this.onError,areas),  
+            clearStorage(this.onError)     
+        ])  
+        .then( () => fetchData(this.props,this.limit,this.onError) )  
+        .then( when(isNotEmpty, () => updateConfig(dispatch)({hideHint:true})) ) 
+    };
+
       
     onError = (e) => globalErrorHandler(e); 
 
@@ -207,29 +228,15 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
         let {dispatch} = this.props;
 
-        if(isDev()){ 
-            destroyEverything()    
-            .then(() => {  
-                
-                initDB(); 
-                let fakeData = generateRandomDatabase({todos:215, projects:38, areas:15});      
-                    
-                let todos = fakeData.todos; 
-                let projects = fakeData.projects; 
-                let areas = fakeData.areas;  
-                     
-                Promise.all([ 
-                    addTodos(this.onError,todos),    
-                    addProjects(this.onError,projects), 
-                    addAreas(this.onError,areas),  
-                    clearStorage(this.onError)     
-                ])  
-                .then(() => fetchData(this.props,this.limit,this.onError))  
-                .then((calendars) => isEmpty(calendars) ? null : updateConfig(dispatch)({hideHint:true})) 
-            });
-        }else{ 
-            fetchData(this.props,this.limit,this.onError) 
-            .then((calendars) => isEmpty(calendars) ? null : updateConfig(dispatch)({hideHint:true}))   
+        if(isDev()){ destroyEverything().then(this.test) }
+        else{ 
+
+            fetchData(
+                this.props,
+                this.limit,
+                this.onError
+            ) 
+            .then( when(isNotEmpty, () => updateConfig(dispatch)({hideHint:true})) )  
         } 
     };
 
@@ -239,22 +246,22 @@ export class MainContainer extends Component<Store,MainContainerState>{
         let {dispatch,showRightClickMenu,limit} = this.props; 
         let minute = 1000 * 60;  
 
-        
-        let calendars = Observable.interval(5 * minute)
-                        .flatMap(() =>  updateCalendars(limit, this.props.calendars, this.onError))
-                        .subscribe((calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars}));   
+        this.subscriptions.push(
+            Observable
+                    .interval(5 * minute)
+                    .flatMap(() =>  updateCalendars(limit, this.props.calendars, this.onError))
+                    .subscribe((calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars})),
 
-        let resize = Observable
+            Observable
                     .fromEvent(window,"resize")
                     .debounceTime(100) 
-                    .subscribe(() => dispatch({type:"leftPanelWidth", load:window.innerWidth/3.7}));
- 
-        let click = Observable  
+                    .subscribe(() => dispatch({type:"leftPanelWidth", load:window.innerWidth/3.7})),
+    
+            Observable  
                     .fromEvent(window,"click")
                     .debounceTime(100)
-                    .subscribe(() => showRightClickMenu ? dispatch({type:"showRightClickMenu", load:false}) : null); 
-
-        this.subscriptions.push(resize,click,calendars);
+                    .subscribe(() => showRightClickMenu ? dispatch({type:"showRightClickMenu", load:false}) : null)
+        );
     };
   
 
@@ -273,14 +280,21 @@ export class MainContainer extends Component<Store,MainContainerState>{
         this.subscriptions = [];
     }  
  
+ 
 
-
-    componentWillReceiveProps(nextProps){
-        if(this.props.selectedCategory!==nextProps.selectedCategory){
-           if(this.rootRef){ this.rootRef.scrollTop=0; } 
+    componentDidUpdate(prevProps, prevState){
+        if(
+            this.props.selectedCategory!==prevProps.selectedCategory ||
+            this.props.selectedProjectId!==prevProps.selectedProjectId ||
+            this.props.selectedAreaId!==prevProps.selectedAreaId
+        ){
+            if(this.rootRef){ 
+               this.rootRef.scrollTop=0;  
+            } 
         }
-    }
-      
+    } 
+
+
 
     printCurrentList = () => {  
         let {selectedCategory} = this.props;

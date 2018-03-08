@@ -72,6 +72,7 @@ export let calendarsToGroupedEvents = (calendars:Calendar[]) => {
         fullDayEvents:CalendarEvent[], 
         multipleDaysEvents:CalendarEvent[]
     } = compose(
+            log('events'),
             evolve({
                 sameDayEvents:map((event) => ({...event,type:'sameDayEvents'})),
                 fullDayEvents:map((event) => ({...event,type:'fullDayEvents'})),

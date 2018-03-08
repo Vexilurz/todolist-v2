@@ -98,6 +98,7 @@ export interface Area{
   description : string,
   attachedTags : string[], 
   attachedProjectsIds : string[], 
+  hideContentFromAreasList? : boolean
 };  
 
 

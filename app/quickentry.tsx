@@ -208,28 +208,30 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
     tagsFromTodos = (todos:any[]) => flatten(todos.map((todo) => todo.attachedTags));
 
+    resize = () => {
+        let target = document.getElementById('application');
+        let checklist = document.getElementById('checklist');
+        
+        target.style.width=`${window.innerWidth}px`; 
+        target.style.height=`${window.innerHeight}px`;
+
+        checklist.style.height=`${window.innerHeight/2}px`;
+    };
 
     componentDidMount(){
+        this.resize(); 
+
         this.subscriptions.push(
             Observable
             .fromEvent(window,"resize", (event) => event) 
-            .subscribe((event) => {
-                let target = document.getElementById('application');
-                let checklist = document.getElementById('checklist');
-                
-                target.style.width=`${window.innerWidth}px`; 
-                target.style.height=`${window.innerHeight}px`;
-
-                checklist.style.height=`${window.innerHeight/2}px`;
-            }),
-
+            .subscribe(this.resize),
 
             Observable
             .fromEvent(ipcRenderer,"focus", (event) => event) 
             .subscribe((event) => this.inputRef ? this.inputRef.focus() : null),
 
             Observable
-            .fromEvent(ipcRenderer,"config", (event,config) => config)
+            .fromEvent(ipcRenderer,"config", (event,config) => config) 
             .subscribe(compose( (state) => this.setState(state), this.stateFromConfig )),
             
             Observable
@@ -248,7 +250,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             })), 
         )
     }
-
 
     componentWillUnmount(){ 
         this.subscriptions.map(s => s.unsubscribe());

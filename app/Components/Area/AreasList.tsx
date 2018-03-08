@@ -6,12 +6,16 @@ import { Component } from "react";
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area, Todo } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
-import { byNotCompleted, byNotDeleted, typeEquals } from '../../utils/utils';
+
+import ArrowUp from 'material-ui/svg-icons/navigation/arrow-drop-up';
+import ArrowDown from 'material-ui/svg-icons/navigation/arrow-drop-down';
+
+import { byNotCompleted, byNotDeleted, typeEquals, isNotNil } from '../../utils/utils';
 import PieChart from 'react-minimal-pie-chart';
 import { 
     uniq, allPass, remove, intersection, reject, slice, prop, flatten,
     isEmpty, contains, assoc, isNil, not, merge, map, concat, ifElse, 
-    addIndex, compose, cond, defaultTo, last, insertAll, prepend  
+    addIndex, compose, cond, defaultTo, last, insertAll, prepend, find  
 } from 'ramda'; 
 import { Category } from '../MainContainer';
 import { AutoresizableText } from '../AutoresizableText';
@@ -146,6 +150,15 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             leftPanelRef={this.props.leftPanelRef}
             dragged={this.props.dragged}
             selectArea={this.selectArea}
+            onCollapseContent={(e) => { 
+                e.stopPropagation(); 
+                let {dispatch} = this.props;
+                let {hideContentFromAreasList} = a; 
+                dispatch({
+                    type:"updateArea",
+                    load:{...a,hideContentFromAreasList:not(hideContentFromAreasList)}
+                });
+            }}
             leftPanelWidth={this.props.leftPanelWidth}
             selectedAreaId={this.props.selectedAreaId}
             selectedCategory={this.props.selectedCategory}
@@ -205,7 +218,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
    
         return false; 
     }; 
-    
+     
 
     onSortMove = (oldIndex:number, event) : void => {} 
 
@@ -213,16 +226,36 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     onSortStart = (oldIndex:number, event:any) : void => {}
 
 
+    byNotAttachedToCollapsedArea = (project:Project) : boolean => compose(
+        ifElse(
+            isNil,
+            () => true,
+            compose(
+                not,
+                prop('hideContentFromAreasList')
+            )
+        ),
+        find((area:Area) => contains(project._id)(area.attachedProjectsIds)),
+        prop('areas')
+    )(this.props);
+
+
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
         let {dispatch,projects,areas} = this.props;
 
         let {table,detached} = groupProjectsByArea(
-            projects.filter( allPass([byNotDeleted,byNotCompleted]) ),
-            areas.filter( byNotDeleted )
+            projects.filter(
+                allPass([
+                    byNotDeleted, 
+                    byNotCompleted,
+                    this.byNotAttachedToCollapsedArea
+                ])
+            ),
+            areas.filter(byNotDeleted)
         );
 
         let layout = generateLayout(areas,{table,detached}); 
-
+ 
         if(isEmpty(layout)){ return }
 
         //projects ids contained in current layout
@@ -333,7 +366,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 else{ break }   
             }
         } 
- 
+  
         return selected; 
     };   
  
@@ -341,10 +374,18 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     render(){ 
         let scrollableContainer = document.getElementById("leftpanel");
         let {projects,areas} = this.props;
+
         let {table,detached} = groupProjectsByArea(
-            projects.filter( allPass([byNotDeleted,byNotCompleted]) ),
-            areas.filter( byNotDeleted )
+            projects.filter(
+                allPass([
+                    byNotDeleted,
+                    byNotCompleted,
+                    this.byNotAttachedToCollapsedArea
+                ])
+            ),
+            areas.filter(byNotDeleted)
         );
+
         let layout = generateLayout(this.props.areas,{table,detached}); 
         let hideAreaPadding = true; 
         let detachedEmpty = isEmpty(detached);
@@ -388,6 +429,7 @@ interface AreaElementProps{
     hideAreaPadding:boolean,
     leftPanelRef:HTMLElement,
     selectArea:Function,
+    onCollapseContent:(e:any) => void,
     selectedAreaId:string,
     selectedCategory:Category
 } 
@@ -426,7 +468,8 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
         let {area, selectedAreaId, selectedCategory, index, hideAreaPadding, dragged} = this.props;   
         let {highlight} = this.state;
         let selected = (area._id===selectedAreaId) && selectedCategory==="area";
-        
+        let {hideContentFromAreasList} = area;
+
         return <li   
             ref={e => {this.ref=e;}} 
             style={{WebkitUserSelect:"none",width:"100%"}} 
@@ -487,6 +530,26 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                         placeholderStyle={{}}
                     />
                 </div>   
+                <IconButton  
+                    onClick={this.props.onCollapseContent}
+                    style={{ 
+                        width:"20px", 
+                        height:"20px", 
+                        padding:"0px",
+                        display:"flex",  
+                        alignItems:"center", 
+                        justifyContent:"center"
+                    }}    
+                    iconStyle={{color:"rgba(109,109,109,0.7)", width:"20px", height:"20px"}}   
+                >      
+                    <div style={{display:"flex", justifyContent:"center", alignItems:"center"}}>
+                    {
+                        hideContentFromAreasList ?
+                        <ArrowDown style={{width:"20px",height:"20px"}}/> :
+                        <ArrowUp style={{width:"20px",height:"20px"}}/> 
+                    }
+                    </div>
+                </IconButton> 
             </div> 
         </li>
     }
