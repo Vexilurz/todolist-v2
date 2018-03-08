@@ -241,7 +241,7 @@ let onReady = (showTray:boolean, config:any) => {
         width:500,
         height:350 
     }); 
-    quickEntry.webContents.openDevTools();  
+    //quickEntry.webContents.openDevTools();  
       
 
     notification = initNotification({ 
