@@ -240,8 +240,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
         let minute = 1000 * 60;  
 
         
-        let calendars = Observable.interval(2 * minute)
-                        .flatMap( () =>  updateCalendars(limit,this.props.calendars, this.onError))
+        let calendars = Observable.interval(5 * minute)
+                        .flatMap(() =>  updateCalendars(limit, this.props.calendars, this.onError))
                         .subscribe((calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars}));   
 
         let resize = Observable

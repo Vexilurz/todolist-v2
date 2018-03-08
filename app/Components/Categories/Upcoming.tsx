@@ -34,7 +34,7 @@ import {
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category, filter, selectTodos } from '../MainContainer';
 import { Hint } from './Today'; 
-import { CalendarEvent } from '../Calendar';
+import { CalendarEvent, updateCalendars } from '../Calendar';
 import { isDate, isArray, isArrayOfTodos } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
@@ -196,7 +196,7 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
     }    
     
     return objectsByDate; 
-}   
+};   
 
 
 
@@ -261,16 +261,16 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     updateLimit = (range:Date[]) => {
         let {dispatch,limit} = this.props;
         let day = 1000 * 60 * 60 * 24;
-        let threshold = last(range).getTime() + day*this.n;
+        let threshold = last(range).getTime() + (day*this.n);
 
-        if( threshold >= limit.getTime() ){
-
+        if(threshold >= limit.getTime()){
            dispatch({type:"limit", load:yearFromDate(limit)}); 
+           updateCalendars(limit, this.props.calendars, this.onError);
         }
     };
 
 
-    onEnter = ({ previousPosition, currentPosition }) => { 
+    onEnter = ({previousPosition, currentPosition}) => { 
         let objectsByDate = objectsToHashTableByDate(this.props);
         let from = last(this.state.objects);
         let {dispatch,limit,areas,projects} = this.props;
@@ -457,7 +457,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 }
 
 
-
 interface CalendarDayProps{ 
     idx:number,
     day:number, 
@@ -480,18 +479,17 @@ interface CalendarDayProps{
 }
 
 
-
 interface CalendarDayState{}
 
   
 export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
-
     constructor(props){ super(props) }
 
     render(){   
         let {selectedTodos,todos,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
-        let events = uniqBy(prop("name"), selectedEvents) as CalendarEvent[];
-
+        let events = selectedEvents as CalendarEvent[];
+        //uniqBy(prop("name"), selectedEvents) as CalendarEvent[];
+ 
         let wholeDay : CalendarEvent[] = events.filter((event) => event.type==='fullDayEvents');
         let timed : CalendarEvent[] = events.filter((event) => event.type==='sameDayEvents');
         
@@ -537,8 +535,8 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         {
                             wholeDay
                             .map(  
-                                (event) => 
-                                <div  key={`event-${event.name}`} style={{padding:"1px"}}>
+                                (event,index) => 
+                                <div  key={`event-${event.name}-${index}`} style={{padding:"1px"}}>
                                 <div style={{display:"flex",height:"20px",alignItems:"center"}}>
                                     <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
                                     <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
@@ -578,13 +576,13 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                 return aTime-bTime;
                             })
                             .map(   
-                                (event) => <div   
-                                  key={`event-${event.name}`} 
+                                (event,index) => <div   
+                                  key={`event-${event.name}-${index}`}  
                                   style={{paddingTop:"1px",paddingBottom:"1px"}}
                                 >
                                     <div style={{display:"flex",height:"20px",alignItems:"center"}}>
                                     <div style={{fontSize:"14px", fontWeight:500}}>
-                                        {timeOfTheDay(event.start)}
+                                        {timeOfTheDay(event.start)} 
                                     </div>
                                     <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
                                         {event.name}  

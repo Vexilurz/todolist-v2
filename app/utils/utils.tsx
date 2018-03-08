@@ -31,12 +31,33 @@ import { generateEmptyTodo } from './generateEmptyTodo';
 const PHE = require("print-html-element");
 const domtoimage = require('dom-to-image');
 
+
 export let different = complement(equals);
+
 
 export let isNotNil = complement(isNil);
 
+
 export let isNotEmpty = complement(isEmpty);
 
+
+export let addDates = (one:Date, two:Date) : Date => {
+    if(isNil(one) || isNil(two)){ return new Date() }
+
+    let first = new Date(one);
+    let second = new Date(two);
+
+    return new Date(
+        first.getTime() + 
+        second.getTime()
+    ); 
+};
+
+
+export let addTime = (date:Date, time:number) : Date => {
+    return new Date(date.getTime() + time);
+};
+ 
 
 export let groupByRepeatGroup = (todos:Todo[]) : any => {
     assert(isArrayOfTodos(todos),'todos is not of type array of todos. groupByRepeatGroup.');
@@ -54,7 +75,6 @@ export let isMainWindow = () => {
 
 export let typeEquals = (type:string) => compose(equals(type), prop(`type`))
  
-
 
 export let getTime = (date:Date) : {minutes : number,hours : number} => {
 
@@ -360,6 +380,18 @@ export let yearFromNow = () => {
     }
       
     return new Date()["addDays"](365);
+};
+
+
+
+export let nDaysFromNow = (n:number) => {
+    Date.prototype["addDays"] = function(days) {
+        let date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;   
+    }
+      
+    return new Date()["addDays"](n);
 };
 
 

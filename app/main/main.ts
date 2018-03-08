@@ -90,10 +90,12 @@ let shortcuts = {
         if(isNil(quickEntry)){ return }  
         
         if(quickEntry.isVisible()){
-           quickEntry.hide(); 
+           quickEntry.hide();   
+           quickEntry.setSkipTaskbar(true);
         }else{
            quickEntry.show();
            quickEntry.focus();
+           quickEntry.setSkipTaskbar(false); 
            quickEntry.webContents.send("focus"); 
         }
     },
@@ -106,7 +108,7 @@ let registerAllShortcuts = () : void => {
     forEachObjIndexed(
         (value:Function,key:string) => globalShortcut.register(key, value)  
     )(shortcuts)
-};
+}; 
 
 
 let unregisterAllShortcuts = () => globalShortcut.unregisterAll();
@@ -177,7 +179,6 @@ let createTray = () : Tray => {
     return tray;
 };
 
-
     
 let getWindowSize = () : {width:number,height:number} => {
     let mainWindowWidth : number = isDev() ? 100 : 60;  
@@ -190,7 +191,6 @@ let getWindowSize = () : {width:number,height:number} => {
      
     return {width,height};  
 };  
-
 
 
 export let initAutoLaunch = (shouldEnable:boolean) : Promise<void> => {
@@ -211,7 +211,6 @@ export let initAutoLaunch = (shouldEnable:boolean) : Promise<void> => {
     })
     .catch((err) => console.log(err));
 };
-
 
 
 let onReady = (showTray:boolean, config:any) => {  
@@ -267,13 +266,9 @@ let onReady = (showTray:boolean, config:any) => {
     .then(() => {
         quickEntry.webContents.send("loaded"); 
  
-        quickEntry.on('blur',(event) => {
-            event.preventDefault(); 
-            quickEntry.hide()
-        });
-
         quickEntry.on('close',(event) => {
             event.preventDefault(); 
+            quickEntry.setSkipTaskbar(true);
             quickEntry.hide();
         });
     });  

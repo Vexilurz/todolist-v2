@@ -36,7 +36,7 @@ export let initWindow = (
 };         
 
 
-export let initQuickEntry = ({width,height}:{width:number,height:number}):BrowserWindow => { 
+export let initQuickEntry = ({width,height}:{width:number,height:number}) : BrowserWindow => { 
     Menu.setApplicationMenu(null);   
 
     let icon = path.resolve(__dirname,'icon.ico');
@@ -48,9 +48,9 @@ export let initQuickEntry = ({width,height}:{width:number,height:number}):Browse
         useContentSize:true,  
         title:'Add task',    
         center:true,       
-        minimizable:false,
+        minimizable:true,
         frame:true    
-    } as any);                
+    } as any);                 
   
     handler.setResizable(true); 
     handler.setMovable(true); 

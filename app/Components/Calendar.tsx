@@ -15,10 +15,11 @@ import { Store } from './../app';
 import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
 import axios from 'axios';
-import { isNotNil } from '../utils/utils'; 
+import { isNotNil, fiveMinutesLater, addTime } from '../utils/utils'; 
 let ical = require('ical.js'); 
 let RRule = require('rrule')
 import * as icalR from '../ical/index.js'; 
+import { isDate } from '../utils/isSomething';
 
 
 type vcalPropsInitial = [string,Object,string,string];
@@ -104,11 +105,32 @@ interface rrule{
 };
 
 
-let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, events:CalendarEvent[]} => {
-    let jcal : any[] = ical.parse(icalData); 
 
-    // name : RRule object
-    let recurrentByName : {name:string, rrule:any, ends:any}[] = compose(
+let parseRecEvents = (
+    limit:Date,
+    icalData:string
+) : {
+    dates:Date[],
+    ends:Date,
+    name:string,
+    rrule:any
+}[] => {
+    return compose(
+        map(
+            ifElse(
+                (event:{name:string, rrule:any, ends:any}) => isNil(event.ends),
+                (event:{name:string, rrule:any, ends:any}) => {
+                    let rule = event.rrule;
+                    let dates = rule.between(new Date(),limit);
+                    return {...event, dates}; 
+                },
+                (event:{name:string, rrule:any, ends:any}) => {
+                    let rule = event.rrule;
+                    let dates = rule.all();//event.ends
+                    return {...event, dates};
+                },
+            )
+        ), 
         map( 
             (e) : {name:string, rrule:any, ends:any} => ({
                 name:e.summary,
@@ -133,27 +155,12 @@ let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, eve
         reject( (e) => isNil(e.rrule) ),
         values,
         (data) => icalR.parseICS(data)
-    )(icalData);
+    )(icalData)
+};
 
-    debugger; 
 
-    let toDates =  map(
-        ifElse(
-            (event:{name:string, rrule:any, ends:any}) => isNil(event.ends),
-            (event:{name:string, rrule:any, ends:any}) => {
-                let rule = event.rrule;
-                let dates = rule.between(new Date(),limit);
-                return {...event, dates}; 
-            },
-            (event:{name:string, rrule:any, ends:any}) => {
-                let rule = event.rrule;
-                let dates = rule.all();//event.ends
-                return {...event, dates};
-            },
-        )
-    )(recurrentByName);
-
-    debugger;
+let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, events:CalendarEvent[]} => {
+    let jcal : any[] = ical.parse(icalData); 
 
     if(isEmpty(jcal)){ return null }
 
@@ -182,16 +189,31 @@ let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, eve
     
     let vcal = new ical.Component(jcal);
     let vevents = vcal.getAllSubcomponents("vevent");
-    let events = map(
-        compose(
-           parseEvent
-        ),
-        vevents
+    let rec : {dates:Date[],ends:Date,name:string,rrule:any}[] = parseRecEvents(limit,icalData);
+
+    let events = flatten(
+        map(
+            compose( 
+                (event:CalendarEvent) => {
+                    let target = rec.find((e) => e.name===event.name);
+                    if(isNotNil(target)){
+                        let {dates, ends, name, rrule} = target;
+                        let {start, end} = event;
+                        let interval = end.getTime() - start.getTime();
+                        return map( (start:Date) => ({...event,start,end:addTime(start,interval) }), dates );
+                    }else{
+                        return event;
+                    }
+                }, 
+                parseEvent
+            ),
+            vevents
+        )
     );  
  
     return {calendar, events};
 };
-  
+   
 
 export interface AxiosError{
     name:string,
@@ -221,16 +243,18 @@ export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function
     return Promise.all(
         calendars.map((c:Calendar) => 
             getIcalData(limit, c.url)
-            .then( 
-                (data:IcalData)=> {
+            .then(
+                (data:IcalData) => {
                     let {calendar,events,error} = data as IcalData;
 
+                    console.log(`updateCalendars, limit:${limit}`,events);
+
                     if(isNotNil(error)){  
-                        onError(error);
-                        return c; 
+                       onError(error);
+                       return c; 
                     }   
- 
-                    return {
+
+                    return{
                         url:c.url,  
                         name:calendar.name,
                         description:calendar.description,
@@ -243,5 +267,5 @@ export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function
                 }
             )    
         )
-    )
+    );
 }; 
