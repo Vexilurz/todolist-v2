@@ -101,11 +101,11 @@ ipcRenderer.once(
     'loaded',     
     (event) => {   
         let app=document.createElement('div'); 
-        app.style.width="100%"; 
-        app.style.height="100%";
+        app.style.width=`${window.innerWidth}px`; 
+        app.style.height=`${window.innerHeight}px`;
         app.id='application';      
         document.body.appendChild(app);    
-        getConfig().then(
+        getConfig().then( 
             (config:Config) => ReactDOM.render(   
                 wrapMuiThemeLight(
                     <Provider store={createStore((state, action) =>  state, {})}>   
@@ -150,7 +150,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     calendar:HTMLElement; 
     deadline:HTMLElement;
     tags:HTMLElement;
-    ref:HTMLElement; 
     inputRef:HTMLElement; 
     checklist:HTMLElement; 
     defaultWidth:number;
@@ -160,7 +159,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     constructor(props){
         super(props);  
         this.defaultWidth=500;
-        this.defaultHeight=300;
+        this.defaultHeight=350;
         this.subscriptions=[];
         let {config} = this.props;
         let partialState = this.stateFromConfig(config);
@@ -212,6 +211,19 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
     componentDidMount(){
         this.subscriptions.push(
+            Observable
+            .fromEvent(window,"resize", (event) => event) 
+            .subscribe((event) => {
+                let target = document.getElementById('application');
+                let checklist = document.getElementById('checklist');
+                
+                target.style.width=`${window.innerWidth}px`; 
+                target.style.height=`${window.innerHeight}px`;
+
+                checklist.style.height=`${window.innerHeight/2}px`;
+            }),
+
+
             Observable
             .fromEvent(ipcRenderer,"focus", (event) => event) 
             .subscribe((event) => this.inputRef ? this.inputRef.focus() : null),
@@ -289,7 +301,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         }
     };
 
-
+ 
     addTodo = () => {
        let todo = this.todoFromState(); 
        let {project} = this.state;
@@ -442,19 +454,19 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         let {category,attachedDate,showChecklist,showTags} = this.state;
         let todayCategory : boolean = category==="evening" || category==="today"; 
 
-        return <div style={{display:"flex",flexDirection:"column",width:"100%",height:"100%"}}>
-
-        <div 
-            ref={(e) => { this.ref=e; }} 
-            style={{paddingTop:"25px",paddingLeft:"25px",paddingRight:"25px",paddingBottom:"75px"}}
-        >    
-            <div>
-            <div style={{}}> 
+        return <div style={{
+            display:"flex",
+            flexDirection:"column",
+            paddingTop:"25px", 
+            paddingLeft:"25px",
+            paddingRight:"5px"
+        }}>  
+            <div> 
                 <TextareaAutosize 
                     placeholder="New Task"
                     innerRef={e => {this.inputRef=e;}}
                     onKeyDown={(event) => { 
-                        if(event.which===13 || event.keyCode===13){
+                        if(event.which===13 || event.keyCode===13){ 
                            event.stopPropagation(); 
                            event.preventDefault();
                            this.onSave();
@@ -499,51 +511,48 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); }}}
                 /> 
             </div>
-            <div className="scroll" style={{maxHeight:"50%"}}>    
                 <div 
-                    ref={(e) => {this.checklist=e;}} 
-                    style={{height:"100%"}} 
-                > 
-                    {    
-                        not(showChecklist) ? null : 
-                        <div> 
-                        <Checklist  
-                            checklist={this.state.checklist}   
-                            closeChecklist={() => this.setState({showChecklist:false})}
-                            updateChecklist={
-                                (checklist:ChecklistItem[]) => {  
-                                    this.setState(
+                ref={(e) => {this.checklist=e;}} 
+                className="scroll"
+                id="checklist"
+                style={{
+                    height:`${window.innerHeight/2.5}px`
+                }}>   
+                    {     
+                        not(showChecklist) ? null :  
+                        <div style={{position:"relative"}}>  
+                            <Checklist  
+                                checklist={this.state.checklist}   
+                                closeChecklist={() => this.setState({showChecklist:false})}
+                                updateChecklist={
+                                    (checklist:ChecklistItem[]) => this.setState(
                                         {checklist}, 
-                                        () => {
-                                            if(this.checklist){ this.checklist.scrollTop=0; }
-                                        }
+                                        () => { if(this.checklist){ this.checklist.scrollTop=0; } }
                                     )
-                                }
-                            } 
-                        />  
+                                } 
+                            />  
                         </div>
                     } 
-                    {  
+                    {   
                         not(showTags) ? null :
-                        <div style={{display:"flex",alignItems:"center"}}>
+                        <div style={{display:"flex",alignItems:"center",position:"relative"}}>
                             <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
                                 <TriangleLabel />
                             </div>
                             <TodoTags 
-                                attachTag={this.onAttachTag}
+                                attachTag={this.onAttachTag} 
                                 removeTag={this.onRemoveTag}
-                                tags={this.state.attachedTags}
+                                tags={this.state.attachedTags} 
                                 closeTags={() => this.setState({showTags:false})}
                             /> 
                         </div>
                     } 
                 </div> 
-            </div> 
-            </div> 
+
             <div style={{  
                 display:"flex",
                 alignItems:"center",
-                width:"30%%", 
+                width:"30%", 
                 position:"fixed",
                 justifyContent:"flex-end",
                 bottom:30, 
@@ -694,7 +703,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     onSelectProject={(project) => this.setState({project,category:'next'})}
                 /> 
             </div> 
-    </div> 
     </div>  
   } 
 }

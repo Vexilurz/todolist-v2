@@ -239,7 +239,7 @@ let onReady = (showTray:boolean, config:any) => {
 
     quickEntry = initQuickEntry({
         width:500,
-        height:300 
+        height:350 
     }); 
     quickEntry.webContents.openDevTools();  
       
