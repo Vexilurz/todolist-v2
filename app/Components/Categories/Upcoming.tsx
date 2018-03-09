@@ -67,8 +67,11 @@ export let groupEventsByType = (events:CalendarEvent[]) : {
     sameDayEvents:CalendarEvent[], 
     fullDayEvents:CalendarEvent[]
 } => compose(
-    evolve({ sameDayEvents:defaultTo([]), fullDayEvents:defaultTo([]) }),
-    groupBy(
+    ({sameDayEvents,fullDayEvents}) => ({ 
+        sameDayEvents:defaultTo([],sameDayEvents), 
+        fullDayEvents:defaultTo([],fullDayEvents) 
+    }),
+    groupBy( 
         cond(
             [
                 [typeEquals('sameDayEvents'), () => 'sameDayEvents'],
@@ -611,14 +614,21 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                              {timeOfTheDay(event.start)} 
                                             </div>
                                         }
-
-                                        <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
-                                            {event.name}  
+                                        <div style={{
+                                            fontSize:"14px",
+                                            userSelect:"none",
+                                            cursor:"default",
+                                            fontWeight:500,
+                                            paddingLeft:"5px",
+                                            paddingRight:"5px",
+                                            overflowX:"hidden"
+                                        }}>   
+                                            {event.name}   
                                         </div>
                                         {    
                                             not(event.sequenceEnd) ? null :
                                             <div style={{fontSize:"14px",fontWeight:500}}>
-                                             {timeOfTheDay(event.end)} 
+                                             {`(ending ${timeOfTheDay(event.end)})`} 
                                             </div>
                                         }
                                     </div> 

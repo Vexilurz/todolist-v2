@@ -17,7 +17,7 @@ import {
     getRangeDays,
     timeDifferenceHours,
     isNotNil,
-    setTime,
+    setTime, 
     oneMinutesBefore,
     sameDay,
     fromMidnightToMidnight,
@@ -33,26 +33,34 @@ import { assert } from './assert';
 
 let sameDayEvent = (event:CalendarEvent) : boolean => {
     assert(isEvent(event), `event is not of type CalendarEvent. sameDayEvents. ${event}`);
-    return and(
-        timeDifferenceHours(event.start,event.end) < 24,
-        sameDay(event.start,event.end)
-    );
-};
 
+    let t = timeDifferenceHours(event.start,event.end) < 24;
+    let s = sameDay(event.start,event.end);
+
+    return and(t,s);
+};
+ 
 
 let fullDayEvent = (event:CalendarEvent) : boolean => {
     assert(isEvent(event), `event is not of type CalendarEvent. fullDayEvents. ${event}`);
-    return distanceInOneDay(event.start,event.end) &&
-           fromMidnightToMidnight(event.start, event.end) &&
-           Math.round( timeDifferenceHours(event.start,event.end) )===24;
+    let d = distanceInOneDay(event.start,event.end);
+    let m = fromMidnightToMidnight(event.start, event.end);
+    let t = Math.round( timeDifferenceHours(event.start,event.end) )===24;
+
+    return d && m && t; 
 };
 
 
 let multipleDaysEvent = (event:CalendarEvent) : boolean => {
     assert(isEvent(event), `event is not of type CalendarEvent. multipleDaysEvents. ${event}`);
     
-    if(fullDayEvent(event)){ return false }
-    else{ return differentDays(event.start,event.end) }
+    let f = fullDayEvent(event);
+
+    if(f){ 
+       return false; 
+    }else{ 
+       return differentDays(event.start,event.end); 
+    } 
 };
 
 
@@ -88,14 +96,30 @@ export let calendarsToGroupedEvents = (calendars:Calendar[]) => {
         multipleDaysEvents:CalendarEvent[]
     } = compose( 
             evolve({
-                sameDayEvents:map((event) => ({...event,type:'sameDayEvents'})),
-                fullDayEvents:map((event) => ({...event,type:'fullDayEvents'})),
+                sameDayEvents:map((event) => ({ ...event, type:'sameDayEvents' })),
+                fullDayEvents:map((event) => ({ ...event, type:'fullDayEvents' })),
                 multipleDaysEvents:compose(
-                    map((event) => ({...event, type:'multipleDaysEvents' })), 
+                    map((event) => ({ ...event, type:'multipleDaysEvents' })), 
                     splitLongEvents,
-                    map((event) => ({...event, end:when(timeIsMidnight, oneMinutesBefore)(event.end)})),
+                    map((event) => ({ ...event, end:when(timeIsMidnight, oneMinutesBefore)(event.end) })),
                 )    
             }),  
+
+            evolve({
+                sameDayEvents:(events) => {
+                    events.forEach((event) => console.log(`${event.name} - sameDayEvents, ${event}`))
+                    return events;
+                },
+                fullDayEvents:(events) => {
+                    events.forEach((event) => console.log(`${event.name} - fullDayEvents, ${event}`))
+                    return events;
+                },
+                multipleDaysEvents:(events) => {
+                    events.forEach((event) => console.log(`${event.name} - multipleDaysEvents, ${event}`))
+                    return events;
+                }
+            }),
+
             groupBy(
                 cond(
                     [

@@ -511,7 +511,7 @@ export let differentDays = (a:Date,b:Date) : boolean => not(sameDay(a,b));
 
 
 export let distanceInOneDay = (a:Date,b:Date) : boolean => {
-    let distance = a.getDate() - b.getDate();
+    let distance = Math.abs(a.getDate() - b.getDate());
     return distance === 1;
 };
 

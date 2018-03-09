@@ -522,7 +522,7 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
         <div style={{paddingTop:"20px",paddingLeft:"25px"}}>    
             <div style={{          
                 display:"flex",
-                flexDirection:"column",
+                flexDirection:"column", 
                 borderRadius:"10px",  
                 padding:"5px",
                 width:"95%",
@@ -555,15 +555,23 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                             event.sequenceEnd ? null :
                             <div style={{fontSize:"14px",fontWeight:500}}>
                                 {timeOfTheDay(event.start)} 
-                            </div> 
+                            </div>
                         }
-                        <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
-                            {event.name}  
+                        <div style={{
+                            fontSize:"14px",
+                            userSelect:"none",  
+                            cursor:"default",
+                            fontWeight:500,
+                            paddingLeft:"5px",
+                            paddingRight:"5px",
+                            overflowX:"hidden"
+                        }}>   
+                            {event.name}   
                         </div>
                         {    
                             not(event.sequenceEnd) ? null :
                             <div style={{fontSize:"14px",fontWeight:500}}>
-                                {timeOfTheDay(event.end)} 
+                                {`(ending ${timeOfTheDay(event.end)})`} 
                             </div>
                         }
                         </div>
