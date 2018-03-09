@@ -28,7 +28,7 @@ import {
     typeEquals,
 } from '../../utils/utils';  
 import {
-    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,
+    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and,
     map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve,
     mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject
 } from 'ramda';
@@ -40,7 +40,6 @@ import { isDate, isArray, isArrayOfTodos } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { timeOfTheDay } from '../../utils/time';
-import { calendarsToGroupedEvents } from '../../utils/calendarsToGroupedEvents'; 
 import { repeat } from '../RepeatPopup';
 import { isDev } from '../../utils/isDev';
 
@@ -192,19 +191,11 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
     let items = filter([...todos, ...projects], i => allPass(filters)(i));
     
     if(showCalendarEvents && isNotNil(calendars)){
-        let {sameDayEvents, fullDayEvents, multipleDaysEvents} = calendarsToGroupedEvents(calendars);
-
-        if(isArray(sameDayEvents)){
-           items.push(...sameDayEvents);
-        }
-
-        if(isArray(fullDayEvents)){
-           items.push(...fullDayEvents); 
-        }
-
-        if(isArray(multipleDaysEvents)){
-           items.push(...multipleDaysEvents); 
-        }
+        compose(
+            (events) => items.push(...events), 
+            flatten,
+            map(prop('events'))
+        )(calendars)
     };    
 
     let objectsByDate : objectsByDate = {};
@@ -309,17 +300,26 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         let day = 1000 * 60 * 60 * 24;
         let threshold = last(range).getTime() + (day*this.n);
 
-        if(threshold >= limit.getTime()){
-           dispatch({type:"limit", load:yearFromDate(limit)}); 
-           updateCalendars(limit, this.props.calendars, this.onError);
-        }
-    };
+        if(threshold>=limit.getTime()){
+            let newLimit = yearFromDate(limit);
+            dispatch({type:"limit", load:newLimit}); 
+            updateCalendars(
+               newLimit, 
+               this.props.calendars,  
+               this.onError
+            ).then(
+               (calendars) => dispatch({type:"setCalendars",load:calendars})
+            ); 
+        } 
+    }; 
 
 
     onEnter = ({previousPosition, currentPosition}) => { 
         let objectsByDate = objectsToHashTableByDate(this.props);
         let from = last(this.state.objects);
         let {dispatch,limit,areas,projects} = this.props;
+
+        console.log('limit',limit);
 
         if(isNil(from)){ return }
 
@@ -607,31 +607,59 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             .sort(byTime)
                             .map((event,index) => 
                                 <div key={`event-${event.name}-${index}`} style={{paddingTop:"1px",paddingBottom:"1px"}}>
-                                    <div style={{display:"flex",height:"20px",alignItems:"center"}}>
-                                        {
-                                            event.sequenceEnd ? null :
-                                            <div style={{fontSize:"14px",fontWeight:500}}>
-                                             {timeOfTheDay(event.start)} 
-                                            </div>
-                                        }
-                                        <div style={{
-                                            fontSize:"14px",
-                                            userSelect:"none",
-                                            cursor:"default",
-                                            fontWeight:500,
-                                            paddingLeft:"5px",
-                                            paddingRight:"5px",
-                                            overflowX:"hidden"
-                                        }}>   
-                                            {event.name}   
-                                        </div>
-                                        {    
-                                            not(event.sequenceEnd) ? null :
-                                            <div style={{fontSize:"14px",fontWeight:500}}>
-                                             {`(ending ${timeOfTheDay(event.end)})`} 
-                                            </div>
-                                        }
-                                    </div> 
+                                    {
+                                        cond([
+                                            [ 
+                                                //end
+                                                (event) => {
+                                                    let {sequenceEnd,sequenceStart} = event;
+                                                    return not(sequenceStart) && sequenceEnd; 
+                                                },
+                                                (event) => <div style={{
+                                                    display:"flex",
+                                                    height:"20px",
+                                                    alignItems:"center"
+                                                }}>
+                                                    <div style={{
+                                                        fontSize:"14px",
+                                                        userSelect:"none",
+                                                        cursor:"default",
+                                                        fontWeight:500, 
+                                                        paddingRight:"5px",
+                                                        overflowX:"hidden"
+                                                    }}>   
+                                                        {event.name}   
+                                                    </div>
+                                                    <div style={{fontSize:"14px",fontWeight:500}}>
+                                                        {`(ending ${timeOfTheDay(event.end)})`} 
+                                                    </div>
+                                                </div>
+                                            ],
+                                            [
+                                                //start
+                                                (event) => true,
+                                                (event) => <div style={{
+                                                    display:"flex",
+                                                    height:"20px",
+                                                    alignItems:"center"
+                                                }}>
+                                                    <div style={{fontSize:"14px",fontWeight:500}}>
+                                                        {timeOfTheDay(event.start)} 
+                                                    </div>
+                                                    <div style={{
+                                                        fontSize:"14px",
+                                                        userSelect:"none",
+                                                        cursor:"default",
+                                                        fontWeight:500,
+                                                        paddingLeft:"5px",
+                                                        overflowX:"hidden"
+                                                    }}>   
+                                                        {event.name}   
+                                                    </div>
+                                                </div>
+                                            ]
+                                        ])(event)
+                                    }
                                     { 
                                         isNil(event.description) ? null :
                                         isEmpty(event.description) ? null :

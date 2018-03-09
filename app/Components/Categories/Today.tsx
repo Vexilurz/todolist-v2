@@ -15,7 +15,7 @@ import { Store } from '../../app';
 import { onDrop } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { allPass, isEmpty, not, assoc, isNil, flatten, contains, intersection, or, uniqBy, prop, compose } from 'ramda';
+import { allPass, isEmpty, not, assoc, isNil, flatten, contains, intersection, or, uniqBy, prop, compose, map } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { Category, filter } from '../MainContainer';
 import { ipcRenderer, remote } from 'electron';
@@ -34,7 +34,6 @@ import { updateConfig } from '../../utils/config';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
 import { timeOfTheDay, inTimeRange } from '../../utils/time';
-import { calendarsToGroupedEvents } from '../../utils/calendarsToGroupedEvents';
 import { groupEventsByType, byTime } from './Upcoming';
 
 
@@ -346,14 +345,14 @@ export class Today extends Component<TodayProps,TodayState>{
 
 
         if(isDev()){
-            let todos = filter(items, isTodo, "");
+            let todos = filter(items, isTodo);
             let hiddenProjects = filter(
                 projects, 
                 (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide),
                 ""
             );
-            let ids : string[] = flatten(hiddenProjects.map((p:Project) => filter(p.layout,isString,"")));
-            let hiddenTodos = filter(todos, (todo:Todo) => contains(todo._id)(ids), "");
+            let ids : string[] = flatten(hiddenProjects.map((p:Project) => filter(p.layout,isString)));
+            let hiddenTodos = filter(todos, (todo:Todo) => contains(todo._id)(ids));
             let tagsFromTodos : string[] = flatten(hiddenTodos.map((todo:Todo) => todo.attachedTags));
 
             assert(
@@ -375,31 +374,17 @@ export class Today extends Component<TodayProps,TodayState>{
 
         if(showCalendarEvents){
             let todayKey : string = keyFromDate(new Date()); 
-            let {sameDayEvents, fullDayEvents, multipleDaysEvents} = calendarsToGroupedEvents(calendars);
-            
-             
-            if(isArray(sameDayEvents)){
-               events.push(...sameDayEvents); 
-            }
-
-            if(isArray(fullDayEvents)){
-               events.push(...fullDayEvents); 
-            }
-
-            if(isArray(multipleDaysEvents)){
-               events.push(...multipleDaysEvents); 
-            }
-
-
             events = compose(
-                uniqBy(prop("name")),
-                (events) => events.filter(  
+                (events) => filter(  
+                    events,
                     (event:CalendarEvent) : boolean => or(
                         inTimeRange(event.start,event.end,new Date()), 
                         todayKey===keyFromDate(event.start) 
-                    ) 
-                )
-            )(events);
+                    )
+                ), 
+                flatten,    
+                map(prop('events'))
+            )(calendars);
         } 
         
  

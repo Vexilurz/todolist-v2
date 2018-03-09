@@ -9,20 +9,29 @@ import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { 
   contains, isNil, all, prepend, isEmpty, last, not, values, 
   assoc, flatten, toPairs, map, compose, allPass, uniq, path,
-  reject, prop, pick, evolve, when, ifElse
+  reject, prop, pick, evolve, when, ifElse, groupBy, and, adjust,
+  cond, defaultTo, find
 } from 'ramda'; 
 import { Store } from './../app';
 import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
 import axios from 'axios';
-import { isNotNil, fiveMinutesLater, addTime, inPast } from '../utils/utils'; 
+import { 
+    isNotNil, fiveMinutesLater, addTime, inPast, distanceInOneDay, 
+    fromMidnightToMidnight, timeDifferenceHours, differentDays,
+    sameDay, timeIsMidnight, oneMinutesBefore 
+} from '../utils/utils'; 
 let ical = require('ical.js'); 
 let RRule = require('rrule')
 import * as icalR from '../ical/index.js'; 
-import { isDate } from '../utils/isSomething';
+import { isDate, isEvent } from '../utils/isSomething';
+import { assert } from '../utils/assert';
 
 
 type vcalPropsInitial = [string,Object,string,string];
+
+
+type rcal = {dates:Date[],ends:Date,name:string,rrule:any}[];
 
 
 interface vcalProps{
@@ -51,33 +60,17 @@ export interface CalendarProps{
 } 
 
 
-let parseEvent = (vevent:any) : CalendarEvent => { 
-
-    if(isNil(vevent)){ 
-        return {
-           name:null, 
-           start:null, 
-           end:null, 
-           description:null
-        }  
-    }  
-
-    let start = vevent.getFirstPropertyValue("dtstart");
-    let end = vevent.getFirstPropertyValue("dtend");
-    
-    return { 
-      name:vevent.getFirstPropertyValue("summary"), 
-      start:isNil(start) ? null : start.toJSDate(),
-      end:isNil(end) ? null : end.toJSDate(),
-      description:vevent.getFirstPropertyValue("description")
-    }
-};
+export interface AxiosError{
+    name:string,
+    message:string 
+}
 
 
-let log = (msg) => (item) => {
-    console.log(msg,item);
-    return item;
-};
+export type IcalData = {
+    calendar : CalendarProps, 
+    events : CalendarEvent[],
+    error? : AxiosError
+} 
 
 
 interface rrule{
@@ -108,6 +101,146 @@ interface rrule{
 
 
 
+let eventInPast = (event:CalendarEvent) : boolean => inPast(event.start) && inPast(event.end);
+
+
+
+let parseEvent = (vevent:any) : CalendarEvent => { 
+    if(isNil(vevent)){ 
+        return {
+           name:null, 
+           start:null, 
+           end:null, 
+           description:null
+        }  
+    }  
+
+    let start = vevent.getFirstPropertyValue("dtstart");
+    let end = vevent.getFirstPropertyValue("dtend");
+    
+    return { 
+      name:vevent.getFirstPropertyValue("summary"), 
+      start:isNil(start) ? null : start.toJSDate(),
+      end:isNil(end) ? null : end.toJSDate(),
+      description:vevent.getFirstPropertyValue("description")
+    };
+};
+
+
+
+let sameDayEvent = (event:CalendarEvent) : boolean => {
+    assert(isEvent(event), `event is not of type CalendarEvent. sameDayEvents. ${event}`);
+
+    let t = timeDifferenceHours(event.start,event.end) < 24;
+    let s = sameDay(event.start,event.end);
+
+    return and(t,s);
+};
+
+
+
+let fullDayEvent = (event:CalendarEvent) : boolean => {
+    assert(isEvent(event), `event is not of type CalendarEvent. fullDayEvents. ${event}`);
+    let d = distanceInOneDay(event.start,event.end);
+    let m = fromMidnightToMidnight(event.start, event.end);
+    let t = Math.round( timeDifferenceHours(event.start,event.end) )===24;
+
+    return d && m && t; 
+};
+
+
+
+let multipleDaysEvent = (event:CalendarEvent) : boolean => {
+    assert(isEvent(event), `event is not of type CalendarEvent. multipleDaysEvents. ${event}`);
+    let f = fullDayEvent(event);
+
+    if(f){ 
+       return false; 
+    }else{ 
+       return differentDays(event.start,event.end); 
+    } 
+};
+
+
+
+let splitLongEvents = (events:CalendarEvent[]) : CalendarEvent[] => {
+    if(isNil(events) || isEmpty(events)){ return [] }
+
+    return compose( 
+        flatten, 
+        map(
+            (event:CalendarEvent) => compose( 
+
+                (range) => adjust(assoc('sequenceEnd', true), range.length-1, range), 
+
+                adjust(assoc('sequenceStart', true), 0 ),
+ 
+                map((date:Date) => ({...event,start:date})),
+
+                () => {
+                    //getRangeDays(event.start,event.end,1,true)
+                    let rule = new RRule({
+                        freq:RRule.DAILY,
+                        interval:1,
+                        dtstart:event.start,
+                        until:event.end
+                    });
+
+                    return rule.all(); 
+                }, 
+            )()
+        ) 
+    )(events) as CalendarEvent[];  
+};
+
+
+
+let groupEvents = (events:CalendarEvent[]) : CalendarEvent[] => 
+    compose( 
+        flatten,
+
+        values,
+
+        evolve({
+            sameDayEvents:map((event) => ({ ...event, type:'sameDayEvents' })),
+
+            fullDayEvents:map((event) => ({ ...event, type:'fullDayEvents' })),
+
+            multipleDaysEvents:compose(
+                map((event) => ({ ...event, type:'multipleDaysEvents' })), 
+                splitLongEvents,
+                map((event) => ({ ...event, end:when(timeIsMidnight, oneMinutesBefore)(event.end) })),
+            )  
+        }),  
+        /*
+        evolve({
+            sameDayEvents:(events) => {
+                events.forEach((event) => console.log(`${event.name} - sameDayEvents, ${event}`))
+                return events;
+            },
+            fullDayEvents:(events) => {
+                events.forEach((event) => console.log(`${event.name} - fullDayEvents, ${event}`))
+                return events;
+            },
+            multipleDaysEvents:(events) => {
+                events.forEach((event) => console.log(`${event.name} - multipleDaysEvents, ${event}`))
+                return events;
+            }
+        }),
+        */
+        groupBy(
+            cond(
+                [
+                    [sameDayEvent, () => 'sameDayEvents'],
+                    [fullDayEvent, () => 'fullDayEvents'],
+                    [multipleDaysEvent, () => 'multipleDaysEvents']
+                ]
+            )
+        )
+    )(events);
+
+
+
 let parseRecEvents = (
     limit:Date,
     icalData:string
@@ -116,132 +249,132 @@ let parseRecEvents = (
     ends:Date,
     name:string,
     rrule:any
-}[] => {
-    return compose(
-        map(
-            ifElse(
-                (event:{name:string, rrule:any, ends:any}) => isNil(event.ends),
-                (event:{name:string, rrule:any, ends:any}) => {
-                    let rule = event.rrule;
-                    let dates = rule.between(new Date(),limit);
-                    return {...event, dates}; 
-                },
-                (event:{name:string, rrule:any, ends:any}) => {
-                    let rule = event.rrule;
-                    let dates = rule.all();//event.ends
-                    return {...event, dates};
-                },
-            )
-        ), 
-        map( 
-            (e) : {name:string, rrule:any, ends:any} => ({
-                name:e.summary,
-                rrule:compose(
-                    (options) => new RRule(options),
-                    evolve({ 
-                        dtstart:when(isNotNil,(date) => new Date(date)),
-                        until:when(isNotNil,(date) => new Date(date))
-                    }),
-                    pick([
-                        'byeaster','byhour','byminute','bymonth',
-                        'bymonthday','bynmonthday','bynweekday','bysecond',
-                        'bysetpos','byweekday','byweekno','byyearday',
-                        'count','dtstart','freq','interval',
-                        'until','wkst'
-                    ]),
-                    path(['rrule','options'])
-                )(e), 
-                ends:path(['rrule','options','until'],e)
-            }),
-        ),
-        reject( (e) => isNil(e.rrule) ),
-        values,
-        (data) => icalR.parseICS(data)
-    )(icalData)
-};
+}[] => compose(
+    map(
+        ifElse(
+            (event:{name:string, rrule:any, ends:any}) => isNil(event.ends),
+            (event:{name:string, rrule:any, ends:any}) => {
+                let rule = event.rrule;
+                let dates = rule.between(new Date(),limit);
+                return {...event, dates}; 
+            },
+            (event:{name:string, rrule:any, ends:any}) => {
+                let rule = event.rrule;
+                let dates = rule.all();
+                return {...event, dates};
+            },
+        )
+    ), 
+    map( 
+        (e) : {name:string, rrule:any, ends:any} => ({
+            name:e.summary,
+            rrule:compose(
+                (options) => new RRule(options),
+                evolve({ 
+                    dtstart:when(isNotNil,(date) => new Date(date)),
+                    until:when(isNotNil,(date) => new Date(date))
+                }),
+                pick([
+                    'byeaster','byhour','byminute','bymonth',
+                    'bymonthday','bynmonthday','bynweekday','bysecond',
+                    'bysetpos','byweekday','byweekno','byyearday',
+                    'count','dtstart','freq','interval',
+                    'until','wkst'
+                ]),
+                path(['rrule','options'])
+            )(e), 
+            ends:path(['rrule','options','until'],e)
+        }),
+    ),
+    reject( (e) => isNil(e.rrule) ),
+    values,
+    (data) => icalR.parseICS(data)
+)(icalData);
+
 
 
 let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, events:CalendarEvent[]} => {
-    let jcal : any[] = ical.parse(icalData); 
-
-    if(isEmpty(jcal)){ return null }
-
-    let vcalendarProps : vcalProps[] = map(
-       (d:vcalPropsInitial) => ({
-            name:d[0],
-            object:d[1],
-            type:d[2], 
-            value:d[3]
-        })  
-    )(jcal[1]);
-
     const calendarName = "x-wr-calname";
     const calendarTimezone = "x-wr-timezone";
     const calendarDescription = "x-wr-caldesc";
-     
-    let name : vcalProps = vcalendarProps.find( (el) => el.name===calendarName );
-    let description : vcalProps = vcalendarProps.find( (el) => el.name===calendarDescription );
-    let timezone : vcalProps = vcalendarProps.find( (el) => el.name===calendarTimezone );
+    const empty = {calendar:{name:null,description:'',timezone:''}, events:[]};
 
-    let calendar = {
-        name:isNil(name) ? "" : name.value,
-        description:isNil(description) ? "" : description.value,
-        timezone:isNil(timezone) ? "" : timezone.value
+    let jcal = ical.parse(icalData);
+    let rcal : rcal = parseRecEvents(limit,icalData);
+
+
+    let setRecurrent = (event:CalendarEvent) => {
+        let target = rcal.find((e) => e.name===event.name);
+        if(isNotNil(target)){
+            let {dates, ends, name, rrule} = target;
+            let {start, end} = event;
+            let interval = end.getTime() - start.getTime();
+            return map( (start:Date) => ({...event,start,end:addTime(start,interval) }), dates );
+        }else{
+            return event;
+        }
     };
-    
-    let vcal = new ical.Component(jcal);
-    let vevents = vcal.getAllSubcomponents("vevent");
-    let rec : {dates:Date[],ends:Date,name:string,rrule:any}[] = parseRecEvents(limit,icalData);
 
-    let events = flatten(
+
+    let findByName = (list:any[],prop:string) => compose(
+        (item) => item ? item.value : '', 
+        find((el) => el.name===prop)
+    )(list); 
+
+
+    // -> jcal
+    let getCalendar = compose(
+        (vcalProps:vcalProps[]) => ({
+            name:findByName(vcalProps,calendarName),
+            description:findByName(vcalProps,calendarDescription),
+            timezone:findByName(vcalProps,calendarTimezone)
+        }),
         map(
-            compose( 
-                (event:CalendarEvent) => {
-                    let target = rec.find((e) => e.name===event.name);
-                    if(isNotNil(target)){
-                        let {dates, ends, name, rrule} = target;
-                        let {start, end} = event;
-                        let interval = end.getTime() - start.getTime();
-                        return map( (start:Date) => ({...event,start,end:addTime(start,interval) }), dates );
-                    }else{
-                        return event;
-                    }
-                }, 
-                parseEvent
-            ),
-            vevents
-        )
-    );  
+            (d:vcalPropsInitial) : vcalProps => ({
+                name:d[0],
+                object:d[1],
+                type:d[2], 
+                value:d[3]
+            })  
+        ), 
+        defaultTo([]),
+        prop('1')
+    );
+
+
+    // -> jcal
+    let getEvents = compose(
+        groupEvents,
+        reject(eventInPast),
+        flatten,
+        map(compose(setRecurrent,parseEvent)),
+        (component) => component.getAllSubcomponents("vevent"),
+        (data) => new ical.Component(data)
+    );
+
  
-    return {calendar, events};
-};
-   
+    return ifElse(
+        isNil,
+        (jcal) => empty,
+        (jcal) => ({ calendar:getCalendar(jcal),events:getEvents(jcal) })
+    )(jcal)
+};  
+  
 
-export interface AxiosError{
-    name:string,
-    message:string 
-}
-
-
-export type IcalData = {
-    calendar : CalendarProps, 
-    events : CalendarEvent[],
-    error? : AxiosError
-} 
- 
-let eventInPast = (event:CalendarEvent) : boolean => inPast(event.start) && inPast(event.end);
 
 export let getIcalData = (limit:Date,url:string) : Promise<IcalData> => 
     axios.get(url)
     .then((response) => {
         let data : string = response.data;
         let {calendar,events} = parseCalendar(limit,data);
+        
         if(isNil(calendar.name) || isEmpty(calendar.name)){ calendar.name = url }
+
         return {calendar,events}; 
     }) 
-    .then(evolve({events:reject(eventInPast)}))
     .catch((error) => ({error}) as any); 
      
+
 
 export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function) : Promise<Calendar[]> => {
     return Promise.all(
@@ -250,8 +383,6 @@ export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function
             .then(
                 (data:IcalData) => {
                     let {calendar,events,error} = data as IcalData;
-
-                    console.log(`updateCalendars, limit:${limit}`,events);
 
                     if(isNotNil(error)){  
                        onError(error);
