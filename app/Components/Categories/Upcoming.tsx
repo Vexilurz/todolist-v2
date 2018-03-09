@@ -29,7 +29,7 @@ import {
 } from '../../utils/utils';  
 import {
     allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and,
-    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve,
+    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or,
     mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject
 } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
@@ -73,8 +73,12 @@ export let groupEventsByType = (events:CalendarEvent[]) : {
     groupBy( 
         cond(
             [
-                [typeEquals('sameDayEvents'), () => 'sameDayEvents'],
-                [typeEquals('fullDayEvents'), () => 'fullDayEvents'],
+                [
+                    typeEquals('sameDayEvents'), () => 'sameDayEvents'
+                ],
+                [
+                    typeEquals('fullDayEvents'), () => 'fullDayEvents'
+                ],
                 [
                     typeEquals('multipleDaysEvents'), 
                     cond([
@@ -104,11 +108,9 @@ export let prolongateRepeated = (limit:Date, todos:Todo[]) : {repeated:Todo[], u
                     (todo:Todo) => {
                         let group = path(['group'], todo);
                         let options = path(['group','options'], todo);
-
                         //limit - current limit - one year ahead
                         //todo - last todo in sequence 
                         //options contains end date
-
                         let todos = repeat(options, todo, limit);
 
                         if(isDev()){
@@ -117,7 +119,6 @@ export let prolongateRepeated = (limit:Date, todos:Todo[]) : {repeated:Todo[], u
                             console.log('on todo',todo);
                             console.log('on limit',limit);
                         }
-
                         return todos;
                     }
                 ],
@@ -134,7 +135,6 @@ export let prolongateRepeated = (limit:Date, todos:Todo[]) : {repeated:Todo[], u
                             console.log('never todo', todo);
                             console.log('never limit', limit);
                         }
-
                         return todos;
                     }
                 ],
@@ -149,7 +149,6 @@ export let prolongateRepeated = (limit:Date, todos:Todo[]) : {repeated:Todo[], u
                     return { ...todo, group:{...group,last:false} }
                 }
             );
-
             //send items for update in outer variable
             update.push(...lastFalse);
             return todos;
@@ -171,9 +170,12 @@ export let prolongateRepeated = (limit:Date, todos:Todo[]) : {repeated:Todo[], u
 
 let haveDate = (item : Project | Todo) : boolean => {  
     if(item.type==="project"){  
-       return not(isNil(item.deadline)); 
+        return isNotNil(item.deadline); 
     }else if(item.type==="todo"){ 
-       return not(isNil(item["attachedDate"])) || not(isNil(item.deadline));
+        return or(
+           isNotNil(item["attachedDate"]), 
+           isNotNil(item.deadline)
+        );
     }
 };
 

@@ -1540,24 +1540,22 @@ class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
                     background:"rgba(255,255,255,1)",
                     backgroundColor:"rgba(255,255,255,1)" 
                 }}*/ 
-                animateFill={false} 
+                animateFill={false}  
                 transitionFlip={false}
-                theme="light"  
+                theme="light"   
+                delay={200}
                 trigger="mouseenter"
                 duration={40}
                 animation="fade" 
                 html={ 
                     <div style={{
-                        padding:"5px", 
-                        display:"flex", 
+                        zoom:0.8, 
+                        display:"flex",  
                         flexWrap:"wrap",
                         alignItems:"center",
                         justifyContent:"center", 
-                        height:'90%',
-                        overflow:'hidden',
-                        width:'90%',
-                        background:"rgba(255,255,255,1)",
-                        borderRadius:"10px"
+                        maxWidth:"150px", 
+                        background:"rgba(255,255,255,1)"
                     }}>
                         { 
                             moreTags
@@ -1566,10 +1564,10 @@ class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
                                     key={`${tag}-${index}`} 
                                     style={{padding:"2px"}}
                                 >
-                                    <div style={{  
+                                    <div style={{    
                                         height:"20px",
                                         borderRadius:"15px",
-                                        display:'flex',
+                                        display:'flex', 
                                         alignItems:"center",
                                         justifyContent:"center",  
                                         border:"1px solid rgba(200,200,200,0.5)" 
@@ -1586,7 +1584,7 @@ class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
                                     </div>   
                                 </div>
                             ) 
-                        }
+                        } 
                     </div>
                 }
             >

@@ -302,7 +302,6 @@ let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, eve
     let jcal = ical.parse(icalData);
     let rcal : rcal = parseRecEvents(limit,icalData);
 
-
     let setRecurrent = (event:CalendarEvent) => {
         let target = rcal.find((e) => e.name===event.name);
         if(isNotNil(target)){
@@ -315,12 +314,10 @@ let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, eve
         }
     };
 
-
     let findByName = (list:any[],prop:string) => compose(
         (item) => item ? item.value : '', 
         find((el) => el.name===prop)
     )(list); 
-
 
     // -> jcal
     let getCalendar = compose(
@@ -341,7 +338,6 @@ let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, eve
         prop('1')
     );
 
-
     // -> jcal
     let getEvents = compose(
         groupEvents,
@@ -352,12 +348,11 @@ let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, eve
         (data) => new ical.Component(data)
     );
 
- 
     return ifElse(
         isNil,
         (jcal) => empty,
         (jcal) => ({ calendar:getCalendar(jcal),events:getEvents(jcal) })
-    )(jcal)
+    )(jcal);
 };  
   
 
