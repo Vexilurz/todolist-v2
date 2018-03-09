@@ -15,7 +15,7 @@ import { Store } from './../app';
 import { ipcRenderer, remote } from 'electron';
 let Promise = require('bluebird');
 import axios from 'axios';
-import { isNotNil, fiveMinutesLater, addTime } from '../utils/utils'; 
+import { isNotNil, fiveMinutesLater, addTime, inPast } from '../utils/utils'; 
 let ical = require('ical.js'); 
 let RRule = require('rrule')
 import * as icalR from '../ical/index.js'; 
@@ -35,10 +35,12 @@ interface vcalProps{
 
 export interface CalendarEvent{ 
     name:string,
-    start:Date,
+    start:Date, 
     end:Date, 
     description:string,
     type?:string
+    sequenceEnd?:boolean, 
+    sequenceStart?:boolean
 }
 
 
@@ -227,6 +229,7 @@ export type IcalData = {
     error? : AxiosError
 } 
  
+let eventInPast = (event:CalendarEvent) : boolean => inPast(event.start) && inPast(event.end);
 
 export let getIcalData = (limit:Date,url:string) : Promise<IcalData> => 
     axios.get(url)
@@ -234,10 +237,11 @@ export let getIcalData = (limit:Date,url:string) : Promise<IcalData> =>
         let data : string = response.data;
         let {calendar,events} = parseCalendar(limit,data);
         if(isNil(calendar.name) || isEmpty(calendar.name)){ calendar.name = url }
-        return {calendar,events} 
+        return {calendar,events}; 
     }) 
+    .then(evolve({events:reject(eventInPast)}))
     .catch((error) => ({error}) as any); 
-    
+     
 
 export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function) : Promise<Calendar[]> => {
     return Promise.all(

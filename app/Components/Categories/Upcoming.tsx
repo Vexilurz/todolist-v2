@@ -25,6 +25,7 @@ import {
     groupByRepeatGroup,
     setTime,
     isNotEmpty,
+    typeEquals,
 } from '../../utils/utils';  
 import {
     allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,
@@ -42,6 +43,48 @@ import { timeOfTheDay } from '../../utils/time';
 import { calendarsToGroupedEvents } from '../../utils/calendarsToGroupedEvents'; 
 import { repeat } from '../RepeatPopup';
 import { isDev } from '../../utils/isDev';
+
+
+
+export let byTime = (a:CalendarEvent,b:CalendarEvent) => { 
+    let aTime = 0;
+    let bTime = 0;
+
+    if(isDate(a.start)){
+        aTime = a.start.getTime(); 
+    }
+
+    if(isDate(b.start)){
+        bTime = b.start.getTime(); 
+    }
+    
+    return aTime-bTime;
+};
+
+
+
+export let groupEventsByType = (events:CalendarEvent[]) : { 
+    sameDayEvents:CalendarEvent[], 
+    fullDayEvents:CalendarEvent[]
+} => compose(
+    evolve({ sameDayEvents:defaultTo([]), fullDayEvents:defaultTo([]) }),
+    groupBy(
+        cond(
+            [
+                [typeEquals('sameDayEvents'), () => 'sameDayEvents'],
+                [typeEquals('fullDayEvents'), () => 'fullDayEvents'],
+                [
+                    typeEquals('multipleDaysEvents'), 
+                    cond([
+                        [prop('sequenceEnd'), () => 'sameDayEvents'],
+                        [prop('sequenceStart'), () => 'sameDayEvents'],
+                        [() => true, () => 'fullDayEvents'],
+                    ])
+                ]
+            ]
+        )
+    )
+)(events);
  
 
 
@@ -143,7 +186,7 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
     let {showCalendarEvents,todos,projects,calendars} = props;
     let filters = [haveDate, byTags(props.selectedTag), byNotCompleted, byNotDeleted];    
 
-    let items = filter([...todos, ...projects], i => allPass(filters)(i), "upcoming");
+    let items = filter([...todos, ...projects], i => allPass(filters)(i));
     
     if(showCalendarEvents && isNotNil(calendars)){
         let {sameDayEvents, fullDayEvents, multipleDaysEvents} = calendarsToGroupedEvents(calendars);
@@ -229,7 +272,7 @@ interface UpcomingState{
 
  
 export class Upcoming extends Component<UpcomingProps,UpcomingState>{
-    n:number
+    n:number;
     
     constructor(props){
         super(props);
@@ -485,14 +528,11 @@ interface CalendarDayState{}
 export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
     constructor(props){ super(props) }
 
+    
     render(){   
         let {selectedTodos,todos,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
-        let events = selectedEvents as CalendarEvent[];
-        //uniqBy(prop("name"), selectedEvents) as CalendarEvent[];
- 
-        let wholeDay : CalendarEvent[] = events.filter((event) => event.type==='fullDayEvents');
-        let timed : CalendarEvent[] = events.filter((event) => event.type==='sameDayEvents');
-        
+        let {sameDayEvents,fullDayEvents} = groupEventsByType(selectedEvents); 
+
         return <div style={{
             display:"flex",
             flexDirection:"column", 
@@ -533,7 +573,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                   marginLeft:"45px"
                 }}>  
                         {
-                            wholeDay
+                            fullDayEvents
                             .map(  
                                 (event,index) => 
                                 <div  key={`event-${event.name}-${index}`} style={{padding:"1px"}}>
@@ -558,36 +598,30 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                 }
                                 </div>  
                             )  
-                        }
+                        } 
                         {
-                            timed
-                            .sort((a:CalendarEvent,b:CalendarEvent) => { 
-                                let aTime = 0;
-                                let bTime = 0;
-                            
-                                if(isDate(a.start)){
-                                    aTime = a.start.getTime(); 
-                                }
-            
-                                if(isDate(b.start)){
-                                    bTime = b.start.getTime(); 
-                                }
-                                
-                                return aTime-bTime;
-                            })
-                            .map(   
-                                (event,index) => <div   
-                                  key={`event-${event.name}-${index}`}  
-                                  style={{paddingTop:"1px",paddingBottom:"1px"}}
-                                >
+                            sameDayEvents 
+                            .sort(byTime)
+                            .map((event,index) => 
+                                <div key={`event-${event.name}-${index}`} style={{paddingTop:"1px",paddingBottom:"1px"}}>
                                     <div style={{display:"flex",height:"20px",alignItems:"center"}}>
-                                    <div style={{fontSize:"14px", fontWeight:500}}>
-                                        {timeOfTheDay(event.start)} 
-                                    </div>
-                                    <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
-                                        {event.name}  
-                                    </div>
-                                    </div>
+                                        {
+                                            event.sequenceEnd ? null :
+                                            <div style={{fontSize:"14px",fontWeight:500}}>
+                                             {timeOfTheDay(event.start)} 
+                                            </div>
+                                        }
+
+                                        <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
+                                            {event.name}  
+                                        </div>
+                                        {    
+                                            not(event.sequenceEnd) ? null :
+                                            <div style={{fontSize:"14px",fontWeight:500}}>
+                                             {timeOfTheDay(event.end)} 
+                                            </div>
+                                        }
+                                    </div> 
                                     { 
                                         isNil(event.description) ? null :
                                         isEmpty(event.description) ? null :

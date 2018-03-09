@@ -35,6 +35,7 @@ import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
 import { timeOfTheDay, inTimeRange } from '../../utils/time';
 import { calendarsToGroupedEvents } from '../../utils/calendarsToGroupedEvents';
+import { groupEventsByType, byTime } from './Upcoming';
 
 
 export let indexToPriority = (items:any[]) : any[] => {
@@ -513,11 +514,9 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
 
     render(){
         let {show, events} = this.props;
+        let {sameDayEvents,fullDayEvents} = groupEventsByType(events); 
+        let empty : boolean = isEmpty(sameDayEvents) && isEmpty(fullDayEvents);
 
-        let wholeDay : CalendarEvent[] = events.filter((event) => event.type==='fullDayEvents');
-        let timed : CalendarEvent[] = events.filter((event) => event.type==='sameDayEvents');
-
-        let empty : boolean = isEmpty(wholeDay) && isEmpty(timed);
         
         return not(show) ? null : empty ? null :  
         <div style={{paddingTop:"20px",paddingLeft:"25px"}}>    
@@ -532,7 +531,7 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                 height:"auto"
             }}> 
             {
-                wholeDay
+                fullDayEvents
                 .map(  
                     (event) => 
                     <div key={`event-${event.name}`} style={{padding:"1px"}}>
@@ -546,31 +545,27 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                 )   
             }
             {
-                timed
-                .sort((a:CalendarEvent,b:CalendarEvent) => { 
-                    let aTime = 0;
-                    let bTime = 0;
-                
-                    if(isDate(a.start)){
-                        aTime = a.start.getTime(); 
-                    }
-
-                    if(isDate(b.start)){
-                        bTime = b.start.getTime(); 
-                    }
-                    
-                    return aTime-bTime;
-                })
+                sameDayEvents
+                .sort(byTime)
                 .map(   
-                    (event) => 
+                    (event) =>  
                     <div key={`event-${event.name}`} style={{padding:"1px"}}>
                         <div style={{display:"flex",height:"20px",alignItems:"center"}}>
-                        <div style={{paddingLeft:"5px", fontSize:"14px", fontWeight:500}}>
-                            {timeOfTheDay(event.start)}
-                        </div>
+                        {
+                            event.sequenceEnd ? null :
+                            <div style={{fontSize:"14px",fontWeight:500}}>
+                                {timeOfTheDay(event.start)} 
+                            </div> 
+                        }
                         <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
                             {event.name}  
                         </div>
+                        {    
+                            not(event.sequenceEnd) ? null :
+                            <div style={{fontSize:"14px",fontWeight:500}}>
+                                {timeOfTheDay(event.end)} 
+                            </div>
+                        }
                         </div>
                     </div> 
                 )  

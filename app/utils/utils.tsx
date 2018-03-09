@@ -498,20 +498,33 @@ export let dateToDateInputValue = (date:Date) : string => {
 };
 
 
+export let sameDay = (a:Date,b:Date) : boolean => {
+    if(isNotDate(a) || isNotDate(b)){
+       return false; 
+    }
 
-export let sameDay = (a:Date,b:Date) => keyFromDate(a)===keyFromDate(b); 
+    return keyFromDate(a)===keyFromDate(b); 
+};
 
 
+export let differentDays = (a:Date,b:Date) : boolean => not(sameDay(a,b));
 
+
+export let distanceInOneDay = (a:Date,b:Date) : boolean => {
+    let distance = a.getDate() - b.getDate();
+    return distance === 1;
+};
+
+ 
 export let keyFromDate = (date:Date) : string => {  
-    
     assert(isDate(date), `keyFromDate. input is not a date. ${date}`);
 
-    if(!isDate(date)){ return '' }
+    if(isNotDate(date)){ return '' }
     
     let year = date.getFullYear();
     let day = date.getDate(); 
     let month = date.getMonth();
+
     return [year,month+1,day].join('-'); 
 };
 
@@ -606,6 +619,24 @@ export let getTagsFromItems = (items:Item[]) : string[] => {
     
     return tags; 
 }; 
+
+
+
+export let timeIsMidnight = (date:Date) : boolean => {
+    if(isNotDate(date)){ return false }
+
+    return (date.getHours()===0) &&  
+           (date.getMinutes()===0) &&   
+           (date.getSeconds()===0); 
+}; 
+
+
+
+export let fromMidnightToMidnight = (start:Date, end:Date) : boolean => {
+    if(isNotDate(start) || isNotDate(end)){ return false }
+    return timeIsMidnight(start) && timeIsMidnight(end);
+};
+
 
 
 export let attachDispatchToProps = (dispatch:Function,props) => ({...props, dispatch});

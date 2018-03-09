@@ -1,6 +1,7 @@
 import {
     allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,
-    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve
+    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, when,
+    evolve, and, assoc
 } from 'ramda';
 import {  
     byTags, 
@@ -18,24 +19,40 @@ import {
     isNotNil,
     setTime,
     oneMinutesBefore,
+    sameDay,
+    fromMidnightToMidnight,
+    differentDays,
+    distanceInOneDay,
+    timeIsMidnight
 } from './utils';  
 import { CalendarEvent } from '../Components/Calendar';
 import { Calendar } from '../database';
-import { isDate } from './isSomething';
+import { isDate, isEvent } from './isSomething';
+import { assert } from './assert';
 
 
-let sameDay = (event:CalendarEvent) : boolean => {
-    return timeDifferenceHours(event.start,event.end) < 23;
+let sameDayEvent = (event:CalendarEvent) : boolean => {
+    assert(isEvent(event), `event is not of type CalendarEvent. sameDayEvents. ${event}`);
+    return and(
+        timeDifferenceHours(event.start,event.end) < 24,
+        sameDay(event.start,event.end)
+    );
 };
 
 
-let fullDay = (event:CalendarEvent) : boolean => {
-    return Math.round( timeDifferenceHours(event.start,event.end) ) === 24;
+let fullDayEvent = (event:CalendarEvent) : boolean => {
+    assert(isEvent(event), `event is not of type CalendarEvent. fullDayEvents. ${event}`);
+    return distanceInOneDay(event.start,event.end) &&
+           fromMidnightToMidnight(event.start, event.end) &&
+           Math.round( timeDifferenceHours(event.start,event.end) )===24;
 };
 
 
-let multipleDays = (event:CalendarEvent) : boolean => {
-    return timeDifferenceHours(event.start,event.end) > 25;
+let multipleDaysEvent = (event:CalendarEvent) : boolean => {
+    assert(isEvent(event), `event is not of type CalendarEvent. multipleDaysEvents. ${event}`);
+    
+    if(fullDayEvent(event)){ return false }
+    else{ return differentDays(event.start,event.end) }
 };
 
 
@@ -49,15 +66,13 @@ let splitLongEvents = (events:CalendarEvent[]) : CalendarEvent[] => {
     if(isNil(events) || isEmpty(events)){ return [] }
 
     return compose(
-        flatten,
+        flatten, 
         map(
             (event:CalendarEvent) => compose( 
-               (range) => adjust(
-                   (event) => ({ ...event, end:setTime(event.end, {minutes:0,hours:0}) }),  
-                    range.length-1, 
-                    range
-                ), 
-                //log(`${event.name} splitted into:`),
+
+                (range) => adjust(assoc('sequenceEnd', true), range.length-1, range), 
+                adjust(assoc('sequenceStart', true), 0 ),
+ 
                 map((date:Date) => ({...event,start:date})),
                 () => getRangeDays(event.start,event.end,1,true), 
             )()
@@ -71,23 +86,22 @@ export let calendarsToGroupedEvents = (calendars:Calendar[]) => {
         sameDayEvents:CalendarEvent[], 
         fullDayEvents:CalendarEvent[], 
         multipleDaysEvents:CalendarEvent[]
-    } = compose(
-            log('events'),
+    } = compose( 
             evolve({
                 sameDayEvents:map((event) => ({...event,type:'sameDayEvents'})),
                 fullDayEvents:map((event) => ({...event,type:'fullDayEvents'})),
                 multipleDaysEvents:compose(
-                    map((event) => ({ ...event, type:'fullDayEvents' })), 
+                    map((event) => ({...event, type:'multipleDaysEvents' })), 
                     splitLongEvents,
-                    map((event) => ({ ...event, end:oneMinutesBefore(event.end) })),
-                )   
-            }),
+                    map((event) => ({...event, end:when(timeIsMidnight, oneMinutesBefore)(event.end)})),
+                )    
+            }),  
             groupBy(
                 cond(
                     [
-                        [sameDay, () => 'sameDayEvents'],
-                        [fullDay, () => 'fullDayEvents'],
-                        [multipleDays, () => 'multipleDaysEvents']
+                        [sameDayEvent, () => 'sameDayEvents'],
+                        [fullDayEvent, () => 'fullDayEvents'],
+                        [multipleDaysEvent, () => 'multipleDaysEvents']
                     ]
                 )
             ), 
@@ -96,6 +110,6 @@ export let calendarsToGroupedEvents = (calendars:Calendar[]) => {
             map( compose( defaultTo([]), prop('events') ) ), 
             (calendars) => calendars.filter((c:Calendar) => c.active)
         )(calendars);
-
+    
     return calendarEvents;
-}
+}; 

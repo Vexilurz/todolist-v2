@@ -153,9 +153,10 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     selectProject = (p:Project) : void => {
         let {dispatch} = this.props;
+        
         dispatch({type:"selectedProjectId",load:p._id});
-        dispatch({type:"selectedTag", load:"All"});
-        dispatch({type:"searchQuery", load:""});
+        dispatch({type:"selectedTag",load:"All"});
+        dispatch({type:"searchQuery",load:""});
     };
 
 

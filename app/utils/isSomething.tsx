@@ -33,6 +33,12 @@ export let isItem = (item:Item) : boolean => isNil(item) ? false : item.type==="
 export let isCalendar = (item:any) => item.type==="calendar";    
 
 
+export let isEvent = (item:any) => {
+    if(isNil(item)){ return false }
+    return isString(item.name) && isDate(item.start) && isDate(item.end);
+};
+
+
 export let isHeading = (item:Heading) : boolean => isNil(item) ? false : item.type==="heading";
 
 
