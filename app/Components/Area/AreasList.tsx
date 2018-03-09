@@ -126,15 +126,32 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     } 
 
 
-    selectArea = (a:Area) => {
+    onCollapseContent = (area:Area) : void => { 
         let {dispatch} = this.props;
-        dispatch({type:"selectedAreaId",load:a._id}); 
-        dispatch({type:"selectedTag", load:"All"});
-        dispatch({type:"searchQuery", load:""});
+        let {hideContentFromAreasList} = area; 
+
+        dispatch({
+            type:"updateArea",
+            load:{...area,hideContentFromAreasList:not(hideContentFromAreasList)}
+        });
+    };
+
+ 
+    selectArea = (area:Area) : void => {
+        let {dispatch} = this.props;
+        let {hideContentFromAreasList} = area; 
+
+        if(hideContentFromAreasList){
+           this.onCollapseContent(area);
+        }
+ 
+        dispatch({type:"selectedAreaId",load:area._id}); 
+        dispatch({type:"selectedTag",load:"All"});
+        dispatch({type:"searchQuery",load:""});
     };
  
 
-    selectProject = (p:Project) => {
+    selectProject = (p:Project) : void => {
         let {dispatch} = this.props;
         dispatch({type:"selectedProjectId",load:p._id});
         dispatch({type:"selectedTag", load:"All"});
@@ -150,15 +167,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             leftPanelRef={this.props.leftPanelRef}
             dragged={this.props.dragged}
             selectArea={this.selectArea}
-            onCollapseContent={(e) => { 
-                e.stopPropagation(); 
-                let {dispatch} = this.props;
-                let {hideContentFromAreasList} = a; 
-                dispatch({
-                    type:"updateArea",
-                    load:{...a,hideContentFromAreasList:not(hideContentFromAreasList)}
-                });
-            }}
+            onCollapseContent={this.onCollapseContent}
             leftPanelWidth={this.props.leftPanelWidth}
             selectedAreaId={this.props.selectedAreaId}
             selectedCategory={this.props.selectedCategory}
@@ -428,8 +437,8 @@ interface AreaElementProps{
     index:number,
     hideAreaPadding:boolean,
     leftPanelRef:HTMLElement,
-    selectArea:Function,
-    onCollapseContent:(e:any) => void,
+    selectArea:(area:Area) => void,
+    onCollapseContent:(area:Area) => void,
     selectedAreaId:string,
     selectedCategory:Category
 } 
@@ -448,24 +457,32 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
         this.state={highlight:false}; 
     }  
 
-    onMouseOver = (e) => {
+    onMouseEnter = (e) => {
         let {dragged} = this.props;
-  
-        if(e.buttons == 1 || e.buttons == 3){
-            if(dragged==="project" || dragged==="todo" || dragged==="heading"){  
-                this.setState({highlight:false})  
-            } 
-        } 
-    }  
+        //if(e.buttons == 1 || e.buttons == 3){
+            //if(dragged==="project" || dragged==="todo" || dragged==="heading"){  
+        this.setState({highlight:true});  
+            //} 
+        //} 
+    };  
 
-    onMouseOut = (e) => {  
+    onMouseLeave = (e) => {  
         if(this.state.highlight){
            this.setState({highlight:false})
         } 
-    } 
+    }; 
     
     render(){      
-        let {area, selectedAreaId, selectedCategory, index, hideAreaPadding, dragged} = this.props;   
+        let {
+            area, 
+            selectedAreaId, 
+            selectedCategory, 
+            selectArea, 
+            index, 
+            hideAreaPadding, 
+            dragged, 
+            onCollapseContent
+        } = this.props;   
         let {highlight} = this.state;
         let selected = (area._id===selectedAreaId) && selectedCategory==="area";
         let {hideContentFromAreasList} = area;
@@ -474,23 +491,24 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
             ref={e => {this.ref=e;}} 
             style={{WebkitUserSelect:"none",width:"100%"}} 
             className={"area"}  
-            key={index}  
-            onMouseOver={this.onMouseOver} 
-            onMouseOut={this.onMouseOut} 
+            key={index}   
+            onMouseEnter={this.onMouseEnter} 
+            onMouseLeave={this.onMouseLeave} 
         >     
             <div style={{outline:"none",width:"100%",height:hideAreaPadding ? "0px" : "20px"}}></div>  
             <div     
-                onClick = {(e) => this.props.selectArea(this.props.area)}
-                id = {this.props.area._id} 
+                onClick={(e) => {
+                    e.stopPropagation(); 
+                    selectArea(area);
+                }}
+                id={area._id} 
                 className={selected ? "" : "leftpanelmenuitem"}  
                 style={{  
-                    borderRadius: highlight || selected ? "5px" : "0px", 
-                    backgroundColor: highlight ? "rgba(0,200,0,0.3)" :
-                                     selected ? "rgba(228,230,233,1)" : 
-                                     "",  
+                    borderRadius:selected ? "5px" : "0px", 
+                    backgroundColor:selected ? "rgba(228,230,233,1)" : "",  
                     height:"25px", 
                     display:"flex",  
-                    alignItems: "center" 
+                    alignItems:"center" 
                 }}
             >      
                 <IconButton  
@@ -508,9 +526,8 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                         height:"20px" 
                     }}   
                 >      
-                    <NewAreaIcon style={{width:"20px", height:"20px"}}/> 
+                    <NewAreaIcon style={{width:"20px",height:"20px"}}/> 
                 </IconButton>  
-                 
                 <div style={{ 
                     width:"100%",
                     fontFamily:"sans-serif",
@@ -523,33 +540,39 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                 }}>  
                     <AutoresizableText
                         text={area.name}
-                        placeholder="New Area"
+                        placeholder="New Area" 
                         fontSize={15}
-                        offset={45}
+                        offset={45} 
                         style={{}}
                         placeholderStyle={{}}
                     />
-                </div>   
-                <IconButton  
-                    onClick={this.props.onCollapseContent}
-                    style={{ 
-                        width:"20px", 
-                        height:"20px", 
-                        padding:"0px",
-                        display:"flex",  
-                        alignItems:"center", 
-                        justifyContent:"center"
-                    }}    
-                    iconStyle={{color:"rgba(109,109,109,0.7)", width:"20px", height:"20px"}}   
-                >      
-                    <div style={{display:"flex", justifyContent:"center", alignItems:"center"}}>
-                    {
-                        hideContentFromAreasList ?
-                        <ArrowDown style={{width:"20px",height:"20px"}}/> :
-                        <ArrowUp style={{width:"20px",height:"20px"}}/> 
-                    }
-                    </div>
-                </IconButton> 
+                </div>  
+                { 
+                    not(highlight) ? null :
+                    <IconButton  
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onCollapseContent(area);
+                        }}
+                        style={{ 
+                            width:"22px",  
+                            height:"22px", 
+                            padding:"0px",
+                            display:"flex",  
+                            alignItems:"center", 
+                            justifyContent:"center"   
+                        }}    
+                        iconStyle={{color:"rgba(150,150,150,1)",width:"22px",height:"22px"}}   
+                    >      
+                        <div style={{display:"flex",justifyContent:"center",alignItems:"center"}}>
+                            {
+                                hideContentFromAreasList ?
+                                <ArrowDown style={{color:"rgba(150,150,150,1)",width:"22px",height:"22px"}}/> :
+                                <ArrowUp style={{color:"rgba(150,150,150,1)",width:"22px",height:"22px"}}/> 
+                            }
+                        </div>
+                    </IconButton> 
+                }
             </div> 
         </li>
     }

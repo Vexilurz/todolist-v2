@@ -76,15 +76,9 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
         let {text, style, fontSize, placeholder, placeholderStyle} = this.props;
         let {stringLength} = this.state;
          
-        let defaultStyle = { 
-            fontSize:`${fontSize}px`,   
-            whiteSpace:"nowrap", 
-            width:"inherit"
-        };  
+        let defaultStyle = { fontSize:`${fontSize}px`, whiteSpace:"nowrap", width:"inherit" };  
  
-        let textStyle = isEmpty(text) ? 
-                        merge(placeholderStyle,defaultStyle) :
-                        merge(style,defaultStyle);  
+        let textStyle = merge(isEmpty(text) ? placeholderStyle : style, defaultStyle);  
          
         return <div ref={(e) => {this.ref = e;}} style={textStyle}>  
             { stringToLength(isEmpty(text) ? placeholder : text, stringLength) }
@@ -94,11 +88,24 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
 
 
 export let stringToContainer = (containerWidth:number, s:string, fontSize:number) : number => {
+
     let textWidth = getStringWidth(s,fontSize);
     let length = s.length; 
-    let factor = length===0 ? 1 : textWidth/length;
-    return factor===0 ? 1 : containerWidth/factor;
-} 
+    let remainder = textWidth - containerWidth;
+
+    if(remainder<=0){
+       return length; 
+    }else{
+       let widthOfSingleLetter = textWidth/length; 
+       let remainderLength = remainder / widthOfSingleLetter;
+       return length - remainderLength;
+    }
+     
+    /*
+        let factor = length===0 ? 1 : textWidth/length;
+        return factor===0 ? 1 : containerWidth/factor;
+    */
+};  
 
 
 export let getStringWidth = (s:string, fontSize:number) : number => {
