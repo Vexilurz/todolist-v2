@@ -1203,11 +1203,13 @@ export let oneMinuteBefore = (date:Date) : Date => {
 };
 
 
+
 export let nextMidnight = () : Date => {
     let d = new Date()
     d.setHours(24,0,0,0); // next midnight
     return d;
 };
+
 
      
 export let getDatesRange = (
@@ -1241,12 +1243,15 @@ export let getDatesRange = (
 }; 
 
 
+
 export let randomInteger = (n:number) : number => {
     return Math.round(Math.random() * n);
 }; 
 
 
+
 export let randomDate = (start, end) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+
 
     
 export let randomArrayMember = (array : any[]) => {
@@ -1256,6 +1261,7 @@ export let randomArrayMember = (array : any[]) => {
     let member = array[idx]; 
     return member;
 }; 
+
 
 
 export let generateEmptyProject = () : Project => ({
@@ -1271,12 +1277,22 @@ export let generateEmptyProject = () : Project => ({
     completed : null, 
     attachedTags : []
 });
-   
+  
+
 
 export let findWindowByTitle = (title:string) => {
-    let windows = remote.BrowserWindow.getAllWindows();
+    let windows = [];
+
+    try{
+        windows = remote.BrowserWindow.getAllWindows();
+    }catch(e){
+        console.log(`findWindowByTitle ${e}`); 
+        windows = remote.BrowserWindow.getAllWindows();
+    } 
+
     return windows.find((w) => w.getTitle()===title); 
 };
+
 
 
 export let generateEmptyArea = () : Area => ({
@@ -1292,12 +1308,14 @@ export let generateEmptyArea = () : Area => ({
 });
 
 
+
 export let timeDifferenceHours = (from:Date,to:Date) : number => {
     let first = isString(from) ? new Date(from).getTime() : from.getTime();
     let second = isString(to) ? new Date(to).getTime() : to.getTime();
     let diff = (second - first)/(1000*60*60);
     return Math.abs(diff);  
 };
+
 
 
 export let transformLoadDates = (load) : any => {
@@ -1339,6 +1357,7 @@ export let transformLoadDates = (load) : any => {
  
     return  converted;  
 };
+
 
 
 export let convertTodoDates = (t:Todo) : Todo => ({
@@ -1450,6 +1469,7 @@ export let createHeading = (e, props:Store) : void => {
 };
 
 
+
 interface ItemsAmount{  
     inbox:number,
     today:number,  
@@ -1459,15 +1479,18 @@ interface ItemsAmount{
 }
 
 
+
 export let isDeadlineTodayOrPast = (deadline:Date) : boolean => isNil(deadline) ? 
                                                                 false : 
                                                                 daysRemaining(deadline)<=0;
+
 
 
 export let isTodayOrPast = (date:Date) : boolean => isNil(date) ?    
                                                     false :  
                                                     daysRemaining(date)<=0;  
 
+                                                    
 
 export let todoToKeywords = (t:Todo) : string[] => {
     let toWords = (s:string) => s.trim()

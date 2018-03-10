@@ -257,9 +257,11 @@ let parseRecEvents = (
                 let count : number = path(['options','count'],rule);
 
                 if(isNil(count)){ //never ends -> slice
-                   return {...event, dates:rule.between(oneDayBehind(),limit)}; 
+                   let dates = rule.between(oneDayBehind(),limit);
+                   return {...event, dates}; 
                 }else{ 
-                   return {...event, dates:rule.all()};
+                   let dates = rule.all(); 
+                   return {...event, dates};
                 }
             },
             (event:{name:string, rrule:any, ends:any}) => {
@@ -283,7 +285,7 @@ let parseRecEvents = (
                     'bymonthday','bynmonthday','bynweekday','bysecond',
                     'bysetpos','byweekday','byweekno','byyearday',
                     'count','dtstart','freq','interval',
-                    'until','wkst'
+                    'until'//,'wkst' 
                 ]),
                 path(['rrule','options'])
             )(e), 
@@ -375,8 +377,7 @@ export let getIcalData = (limit:Date,url:string) : Promise<IcalData> =>
 
 
 export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function) : Promise<Calendar[]> => {
-   
-
+    
     return Promise.all(
         calendars.map((c:Calendar) =>  
             getIcalData(limit, c.url)

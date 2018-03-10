@@ -73,6 +73,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 <div className={`no-print`}>
                     <TodoCreationForm  
                         dispatch={this.props.dispatch}  
+                        selectedTodo={this.props.selectedTodo}
                         selectedCategory={this.props.selectedCategory} 
                         selectedProjectId={this.props.selectedProjectId}
                         selectedAreaId={this.props.selectedAreaId} 

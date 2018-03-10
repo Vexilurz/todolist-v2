@@ -71,8 +71,9 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                 show={isEmpty(todos)}
             />  
             <div className={`no-print`}>
-                <TodoCreationForm  
+                <TodoCreationForm   
                     dispatch={this.props.dispatch}  
+                    selectedTodo={this.props.selectedTodo}
                     selectedCategory={this.props.selectedCategory} 
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 

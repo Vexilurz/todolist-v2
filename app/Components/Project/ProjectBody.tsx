@@ -369,6 +369,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
             <div className={`no-print`}>  
                 <TodoCreationForm  
                     dispatch={this.props.dispatch}  
+                    selectedTodo={this.props.selectedTodo}
                     selectedCategory={selectedCategory as any} 
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 

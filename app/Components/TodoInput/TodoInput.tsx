@@ -428,14 +428,15 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         e.stopPropagation();     
         this.preventDragOfThisItem();
         let {open} = this.state;
-        let {dispatch, onOpen} = this.props;
+        let {dispatch, onOpen, todo} = this.props;
 
         if(not(open)){    
            this.setState({open:true, showAdditionalTags:false}, () => isFunction(onOpen) ? onOpen() : null);   
            dispatch({type:"showRepeatPopup", load:false});
            dispatch({type:"showRightClickMenu", load:false});
+           dispatch({type:"selectedTodo", load:todo});
         };   
-    };  
+    };   
 
 
 

@@ -9,14 +9,14 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import List from 'material-ui/svg-icons/action/list';
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
-import { isToday, getTime, setTime } from '../../utils/utils'; 
+import { isToday, getTime, setTime, different } from '../../utils/utils'; 
 import { Todo, removeTodo, updateTodo, Project } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TodoTags } from './TodoTags';
 import { TagsPopup } from './TagsPopup';
 import { TodoInputLabel } from './TodoInputLabel'; 
-import { uniq, isEmpty, isNil, not, remove, cond, equals, any } from 'ramda';
+import { uniq, isEmpty, isNil, not, remove, cond, equals, any, path } from 'ramda';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
@@ -27,7 +27,7 @@ import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { googleAnalytics } from '../../analytics';
-import { isDate } from '../../utils/isSomething';
+import { isDate, isTodo } from '../../utils/isSomething';
   
 
 export interface TodoCreationFormState{  
@@ -57,6 +57,7 @@ export interface TodoCreationFormState{
     
 export interface TodoCreationFormProps{ 
     dispatch:Function,  
+    selectedTodo:Todo,
     selectedCategory:Category, 
     selectedProjectId:string,
     selectedAreaId:string,
@@ -124,7 +125,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     
     
     componentDidMount(){  
-
         this.subscriptions.push(
             Observable.fromEvent(window,"click").subscribe(this.onOutsideClick)
         );
@@ -147,13 +147,27 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             open, 
             showDateCalendar:false,     
             showTagsSelection:false, 
-            showTags:false,
+            showTags:false, 
             showChecklist:false,   
             showDeadlineCalendar:false 
         };
         this.setState(newState, () => { if(this.inputRef && open){ this.inputRef.focus(); }});     
-    };   
+    };    
  
+
+    componentWillReceiveProps(nextProps:TodoCreationFormProps){
+        let todo = path(['selectedTodo'],this.props);
+        let nextTodo = path(['selectedTodo'],nextProps);   
+
+        if(
+            todo!==nextTodo && 
+            this.state.open && 
+            isEmpty(this.state.title)
+        ){
+            this.setState({open:false}) 
+        }
+    } 
+
 
     onFieldsContainerClick = (e) => {    
         e.stopPropagation();     

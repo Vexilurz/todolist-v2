@@ -256,7 +256,10 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                calendars,  
                this.onError
             ).then(
-               (result) => dispatch({type:"setCalendars",load:result})
+               (result) => dispatch({
+                   type:"setCalendars",
+                   load:result
+                })
             ) 
 
             let never = extendNever(newLimit, todos);

@@ -438,7 +438,8 @@ export class Today extends Component<TodayProps,TodayState>{
             <div id="todos">  
                 <div className={`no-print`}>        
                     <TodoCreationForm  
-                        dispatch={this.props.dispatch}  
+                        dispatch={this.props.dispatch}   
+                        selectedTodo={this.props.selectedTodo}
                         selectedCategory={this.props.selectedCategory} 
                         selectedProjectId={this.props.selectedProjectId}
                         selectedAreaId={this.props.selectedAreaId} 
