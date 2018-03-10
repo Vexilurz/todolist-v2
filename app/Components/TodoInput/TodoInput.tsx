@@ -43,9 +43,9 @@ import TextareaAutosize from 'react-autosize-textarea';
 let moment = require("moment"); 
 let Promise = require('bluebird'); 
 import {Tooltip,withTooltip} from 'react-tippy';
-
-
-
+let ContentEditable = require('react-contenteditable');
+let Autolinker = require( 'autolinker' );
+ 
 export interface TodoInputProps{ 
     dispatch : Function,  
     groupTodos : boolean,  
@@ -446,7 +446,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     onNoteChange = (event) : void => this.updateState({note:event.target.value});
     
-
+    
 
     updateChecklist = (checklist:ChecklistItem[]) : void => this.updateState({checklist});
 
@@ -1216,7 +1216,27 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
             paddingRight:"25px"
         }}>    
             <div style={{display:"flex",paddingTop:"10px",paddingBottom:"10px"}}>
-                <TextareaAutosize
+                <ContentEditable
+                    id={`note-${_id}`}  
+                    html={ Autolinker.link( note )  } 
+                    disabled={false}       
+                    onChange={this.props.onNoteChange as any} 
+                    style={{
+                        resize:"none",
+                        marginTop:"-4px",
+                        width:"100%",
+                        fontSize:"14px", 
+                        padding:"0px",
+                        cursor:"default", 
+                        position:"relative", 
+                        border:"none",
+                        outline:"none",
+                        backgroundColor:"rgba(0, 0, 0, 0)",
+                        color:"rgba(0, 0, 0, 0.87)" 
+                    }}
+                    onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
+                />
+                {/*<TextareaAutosize
                     id={`note-${_id}`}  
                     placeholder="Notes"
                     onChange={this.props.onNoteChange as any} 
@@ -1235,7 +1255,7 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
                     }}
                     onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
                     value={note} 
-                /> 
+                />*/}
             </div> 
             {    
                 not(showChecklist) ? null : 

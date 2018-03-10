@@ -357,6 +357,10 @@ auto-launch@^5.0.5:
     untildify "^3.0.2"
     winreg "1.2.4"
 
+autolinker@^1.6.2:
+  version "1.6.2"
+  resolved "https://registry.yarnpkg.com/autolinker/-/autolinker-1.6.2.tgz#67ae9da272e808e0d8eb8e02cbc8cde303947457"
+
 autoprefixer@^6.3.1:
   version "6.7.7"
   resolved "https://registry.yarnpkg.com/autoprefixer/-/autoprefixer-6.7.7.tgz#1dbd1c835658e35ce3f9984099db00585c782014"
@@ -5373,6 +5377,10 @@ react-color@^2.13.8:
     reactcss "^1.2.0"
     tinycolor2 "^1.4.1"
 
+react-contenteditable@^2.0.7:
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/react-contenteditable/-/react-contenteditable-2.0.7.tgz#a8d1c1d7b9a393f336c5ecdb74e5e336d786676b"
+
 react-day-picker@^7.0.4:
   version "7.0.4"
   resolved "https://registry.yarnpkg.com/react-day-picker/-/react-day-picker-7.0.4.tgz#5d5d2a9e052890b671304b2d33c156792c626181"
@@ -5854,6 +5862,10 @@ restore-cursor@^2.0.0:
   dependencies:
     onetime "^2.0.0"
     signal-exit "^3.0.2"
+
+retina-dom-to-image@^2.5.6:
+  version "2.5.6"
+  resolved "https://registry.yarnpkg.com/retina-dom-to-image/-/retina-dom-to-image-2.5.6.tgz#60de088f4bff5b91511b9ad6e84ce61391edebd3"
 
 rgb2hex@~0.1.0:
   version "0.1.0"

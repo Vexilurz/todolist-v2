@@ -32,42 +32,35 @@ export class ContainerHeader extends Component<ContainerHeaderProps,ContainerHea
 
     render(){
        
-        return <div style={{WebkitUserSelect:"none"}}>
-            <div style={{ width: "100%"}}> 
+        return <div style={{width:"100%",WebkitUserSelect:"none"}}> 
             <div style={{
                 display:"flex", 
                 position:"relative",
                 alignItems:"center",
                 marginBottom:"20px"  
             }}>  
-  
-                <div style={{ zoom:"0.8", display:"flex", alignItems:"center" }}>  
-                    {chooseIcon({width:"45px", height:"45px"},this.props.selectedCategory)}
+                <div style={{zoom:"0.8", display:"flex", alignItems:"center"}}>  
+                    {chooseIcon({width:"45px", height:"45px"}, this.props.selectedCategory)}
                 </div>
-
                 <div style={{  
-                    fontFamily: "sans-serif",  
-                    fontSize: "xx-large",
-                    fontWeight: 600,
-                    paddingLeft: "10px",
-                    WebkitUserSelect: "none",
+                    fontFamily:"sans-serif",  
+                    fontSize:"xx-large",
+                    fontWeight:600,
+                    paddingLeft:"10px",
+                    WebkitUserSelect:"none", 
                     cursor:"default" 
                 }}>    
                     {uppercase(this.props.selectedCategory)}
                 </div> 
-             
             </div>  
-            <div className={`no-print`}>       
+            <div className={`no-print`}>        
                 <Tags  
-                  selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
-                  tags={this.props.tags} 
-                  selectedTag={this.props.selectedTag} 
-                  show={this.props.showTags} 
+                    selectTag={(tag) => this.props.dispatch({type:"selectedTag",load:tag})}
+                    tags={this.props.tags} 
+                    selectedTag={this.props.selectedTag} 
+                    show={this.props.showTags} 
                 />   
             </div>  
-        </div>  
-        </div>
-
+        </div> 
     } 
-
 }

@@ -21,7 +21,7 @@ import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { Category, filter } from './MainContainer';
 import { 
     remove, isNil, not, isEmpty, last, compose, map, cond, defaultTo,
-    equals, all, when, prop, first, complement, adjust, path 
+    equals, all, when, prop, first, complement, adjust, path, drop, add 
 } from 'ramda';
 let uniqid = require("uniqid");    
 import { Observable } from 'rxjs/Rx';
@@ -124,7 +124,7 @@ export let repeat = (options:RepeatOptions, todo:Todo, start:Date, limit:Date) :
                     return rule.all();
                 } ],
                 [ equals('after'), () : Date[] => {
-                    let rule = new RRule({freq:getFreq(freq),interval,dtstart,count,until:null});
+                    let rule = new RRule({freq:getFreq(freq),interval,dtstart,count:count,until:null});
                     return rule.all();
                 } ],
                 [ equals('never'), () => {
@@ -202,19 +202,21 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         let { todos, repeatTodo, dispatch, limit } = this.props;
         let {interval,freq,until,count,selectedOption} = this.state; 
         let todo = {...repeatTodo};
-        let repeatedTodos : Todo[] = repeat(
-            {
-               interval, 
-               freq, 
-               until, 
-               count, 
-               selectedOption
-            },
-            todo, 
-            new Date(),
-            limit
+        let repeatedTodos : Todo[] = drop(1)(  
+            repeat(  
+                {
+                    interval, 
+                    freq, 
+                    until, 
+                    count:when(isNotNil,add(1))(count), 
+                    selectedOption 
+                },
+                todo, 
+                new Date(),
+                limit
+            )
         );
- 
+        
         if(isEmpty(repeatedTodos)){ return }
 
         assert(isArrayOfTodos(repeatedTodos),'repeatedTodos is not of type array of todos.');

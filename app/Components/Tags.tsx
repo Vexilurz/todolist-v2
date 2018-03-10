@@ -29,13 +29,12 @@ export class Tags extends Component<TagsProps,{}>{
     }  
 
   
-      render(){
+    render(){
          let { show, tags, selectTag, selectedTag } = this.props; 
           
          return not(show) ? null :
                 isEmpty(tags) ? null :
                 <div 
-                className={`no-print`}
                 style={{  
                     display:'flex', 
                     flexWrap:'wrap',
@@ -45,7 +44,7 @@ export class Tags extends Component<TagsProps,{}>{
                     {    
                         ["All",...tags.sort((a:string,b:string) : number => a.localeCompare(b))]
                         .map((tag:string) =>  
-                            <div className={`no-print`} key={tag} style={{padding:"4px"}}> 
+                            <div key={tag} style={{padding:"4px"}}> 
                                 <div className="chip"       
                                     onClick={() => { 
                                         if(tag===selectedTag){ selectTag("All") }

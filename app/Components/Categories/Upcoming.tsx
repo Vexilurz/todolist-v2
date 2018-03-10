@@ -115,7 +115,6 @@ export let extendNever = (limit:Date, todos:Todo[]) : Todo[] => {
                    return todos; 
                 }, 
                (todos) => todos[0],
-               log('sorted'),
                (todos) => todos.sort(compareByAttachedDate)
             )
         ),
@@ -249,7 +248,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
         //if extended range reached limit 
         if(threshold>=limit.getTime()){
-            let newLimit = monthFromDate(limit);
+            let newLimit = yearFromDate(limit);
  
             updateCalendars(
                newLimit,  
@@ -263,6 +262,8 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             ) 
 
             let never = extendNever(newLimit, todos);
+
+            
 
             if(isNotEmpty(never)){
                dispatch({type:"addTodos", load:never}); 

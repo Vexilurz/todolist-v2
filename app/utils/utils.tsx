@@ -30,8 +30,8 @@ import {
 } from './isSomething';
 import { generateEmptyTodo } from './generateEmptyTodo';
 const PHE = require("print-html-element");
-const domtoimage = require('dom-to-image');
-
+const domtoimage = require('retina-dom-to-image');
+ 
 
 
 export let limit = (down:number,up:number) => 
@@ -198,28 +198,29 @@ export let setTime = (date:Date, time:{minutes:number,hours:number}) : Date => {
 
     return date;
 };
-
+ 
 
 
 export let printElement = (selectedCategory:Category, list:HTMLElement) : Promise<void> => {
-    let convertToImage=true;
-    
-    if(convertToImage){ 
-        return domtoimage
-        .toPng(list, { quality: 1, filter:(node) => node.className!=='no-print' })
-        .then((dataUrl) => {
-            let img = document.createElement("img");
-            img.src = dataUrl;
-            return PHE.printElement(img);
-        })
-        .catch((error) => globalErrorHandler(error));
-    }else{
-        return new Promise( 
-            (resolve) => resolve() 
-        ).then(
-            () => PHE.printElement(list)
-        );
-    }
+    const clone = list.cloneNode(true) as HTMLElement;
+    document.body.appendChild(clone);
+    clone.style.width="100%";
+
+    let hide = clone.getElementsByClassName('no-print');
+
+    while(hide[0]){ hide[0].parentNode.removeChild(hide[0]) }
+ 
+    return domtoimage
+    .toPng(clone, { quality: 1 })
+    .then((dataUrl) => {
+
+        document.body.removeChild(clone);
+
+        let img = document.createElement("img");
+        img.src = dataUrl;
+        return PHE.printElement(img);
+    })
+    .catch((error) => globalErrorHandler(error));
 }; 
 
 

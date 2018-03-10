@@ -75,12 +75,11 @@ export class Next extends Component<NextProps, NextState>{
         if(isDev()){
             let hiddenProjects = filter(
                 projects, 
-                (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide),
-                ""
+                (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide)
             );
 
-            let ids : string[] = flatten(hiddenProjects.map((p:Project) => filter(p.layout,isString,"")));
-            let hiddenTodos = filter(todos, (todo:Todo) => contains(todo._id)(ids), "");
+            let ids : string[] = flatten(hiddenProjects.map((p:Project) => filter(p.layout,isString)));
+            let hiddenTodos = filter(todos, (todo:Todo) => contains(todo._id)(ids));
             let tagsFromTodos : string[] = flatten(hiddenTodos.map((todo:Todo) => todo.attachedTags));
 
             assert(
@@ -90,18 +89,18 @@ export class Next extends Component<NextProps, NextState>{
         }
 
         return  <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}>
-                    <ContainerHeader 
-                        selectedCategory={selectedCategory}  
-                        dispatch={this.props.dispatch}  
-                        tags={tags} 
-                        selectedTag={this.props.selectedTag}
-                        showTags={true} 
-                    />   
-                    <FadeBackgroundIcon    
-                        container={this.props.rootRef} 
-                        selectedCategory={selectedCategory}    
-                        show={isEmpty(todos)}  
-                    />    
+                        <ContainerHeader 
+                            selectedCategory={selectedCategory}  
+                            dispatch={this.props.dispatch}  
+                            tags={tags} 
+                            selectedTag={this.props.selectedTag}
+                            showTags={true} 
+                        />    
+                        <FadeBackgroundIcon    
+                            container={this.props.rootRef} 
+                            selectedCategory={selectedCategory}    
+                            show={isEmpty(todos)}  
+                        />    
                     <div className={`no-print`}> 
                         <TodoCreationForm   
                             dispatch={this.props.dispatch}  
