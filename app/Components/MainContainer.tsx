@@ -119,7 +119,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
     
      
     test = () => {  
-        let {dispatch,limit} = this.props;
+        let {dispatch} = this.props;
 
         initDB(); 
         let fakeData = generateRandomDatabase({todos:215, projects:38, areas:15});      
@@ -134,7 +134,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
             addAreas(this.onError,areas),  
             clearStorage(this.onError)     
         ])  
-        .then(() => getData(limit,this.onError,this.limit))  
+        .then(() => getData(this.props.limit,this.onError,this.limit))  
         .then(
             ({projects, areas, todos, calendars}) => this.setData({ 
                 projects:defaultTo([], projects), 
@@ -153,13 +153,13 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     initData = () => {
         if(not(isMainWindow())){ return }  
-
-        let {dispatch,limit} = this.props;
+        let {dispatch} = this.props;
 
         if(isDev()){ 
-            destroyEverything().then(this.test) 
+            destroyEverything()
+            .then(this.test) 
         }else{ 
-            getData(limit,this.onError,this.limit)   
+            getData(this.props.limit,this.onError,this.limit)   
             .then(
                 ({projects, areas, todos, calendars}) => this.setData({
                     projects:defaultTo([], projects), 
@@ -174,9 +174,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
 
     addIntroList = (projects:Project[]) => {
-        let {clone,dispatch,limit,firstLaunch} = this.props;
+        let {dispatch} = this.props;
 
-        if(firstLaunch){  
+        if(this.props.firstLaunch){  
             let alreadyExists = projects.find( (p:Project) => p._id==="Intro List" );
             if(not(alreadyExists)){  
                dispatch({type:"addTodos", load:introListLayout.filter(isTodo)});
@@ -188,9 +188,9 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
 
     setData = ({projects, areas, todos, calendars}) : void => {
-        let {clone,dispatch,limit} = this.props;
+        let {dispatch} = this.props;
         
-        if(clone){ return } 
+        if(this.props.clone){ return } 
 
         dispatch({type:"setProjects", load:projects});
         dispatch({type:"setAreas", load:areas});
@@ -199,7 +199,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
         this.addIntroList(projects); 
 
-        let never = extendNever(limit, todos);
+        let never = extendNever(this.props.limit, todos);
 
         if(isNotEmpty(never)){
            dispatch({type:"addTodos", load:never}); 
@@ -214,13 +214,17 @@ export class MainContainer extends Component<Store,MainContainerState>{
  
 
     initObservables = () => {  
-        let {dispatch,showRightClickMenu,limit} = this.props; 
+        let {dispatch} = this.props; 
         let minute = 1000 * 60;  
-
+ 
         this.subscriptions.push(
             Observable
-                    .interval(5 * minute)
-                    .flatMap(() =>  updateCalendars(limit, this.props.calendars, this.onError))
+                    .interval(1 * minute)
+                    .flatMap(() => updateCalendars(
+                        this.props.limit, 
+                        this.props.calendars, 
+                        this.onError
+                    ))
                     .subscribe((calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars})),
 
             Observable
@@ -231,15 +235,13 @@ export class MainContainer extends Component<Store,MainContainerState>{
             Observable  
                     .fromEvent(window,"click")
                     .debounceTime(100)
-                    .subscribe(() => showRightClickMenu ? dispatch({type:"showRightClickMenu", load:false}) : null)
+                    .subscribe(() => this.props.showRightClickMenu ? dispatch({type:"showRightClickMenu", load:false}) : null)
         );
     };
   
 
 
     componentDidMount(){    
-        let {todos, dispatch, limit} = this.props;
-        
         this.initObservables(); 
         this.initData(); 
     }      

@@ -15,7 +15,7 @@ import { Store } from '../../app';
 import { onDrop } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { allPass, isEmpty, not, assoc, isNil, flatten, contains, intersection, or, uniqBy, prop, compose, map } from 'ramda';
+import { allPass, isEmpty, not, assoc, isNil, flatten, contains, intersection, or, prop, compose, map, cond } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { Category, filter } from '../MainContainer';
 import { ipcRenderer, remote } from 'electron';
@@ -377,11 +377,14 @@ export class Today extends Component<TodayProps,TodayState>{
             events = compose(
                 (events) => filter(  
                     events,
-                    (event:CalendarEvent) : boolean => or(
-                        inTimeRange(event.start,event.end,new Date()), 
+                    (event:CalendarEvent) : boolean => todayKey===keyFromDate(event.start) 
+                    /*
+                    or(
+                        true,//inTimeRange(event.start,event.end,new Date()), 
                         todayKey===keyFromDate(event.start) 
                     )
-                ), 
+                    */
+                ),  
                 flatten,    
                 map(prop('events'))
             )(calendars);
@@ -422,7 +425,7 @@ export class Today extends Component<TodayProps,TodayState>{
                 <TodaySchedule show={showCalendarEvents} events={events}/>  
                 {  
                     clone ? null :
-                    <Hint 
+                    <Hint  
                         {
                             ...{
                             text:`These are your tasks for today. 
@@ -535,31 +538,59 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                 .map(   
                     (event) =>  
                     <div key={`event-${event.name}`} style={{padding:"1px"}}>
-                        <div style={{display:"flex",height:"20px",alignItems:"center"}}>
-                        {
-                            event.sequenceEnd ? null :
-                            <div style={{fontSize:"14px",fontWeight:500}}>
-                                {timeOfTheDay(event.start)} 
-                            </div>
-                        }
-                        <div style={{
-                            fontSize:"14px",
-                            userSelect:"none",  
-                            cursor:"default",
-                            fontWeight:500,
-                            paddingLeft:"5px",
-                            paddingRight:"5px",
-                            overflowX:"hidden"
-                        }}>   
-                            {event.name}   
-                        </div>
-                        {    
-                            not(event.sequenceEnd) ? null :
-                            <div style={{fontSize:"14px",fontWeight:500}}>
-                                {`(ending ${timeOfTheDay(event.end)})`} 
-                            </div>
-                        }
-                        </div>
+                    {
+                        cond([
+                            [ 
+                                //end
+                                (event) => {
+                                    let {sequenceEnd,sequenceStart} = event;
+                                    return not(sequenceStart) && sequenceEnd; 
+                                },
+                                (event) => <div style={{
+                                    display:"flex",
+                                    height:"20px",
+                                    alignItems:"center"
+                                }}>
+                                    <div style={{
+                                        fontSize:"14px",
+                                        userSelect:"none",
+                                        cursor:"default",
+                                        fontWeight:500, 
+                                        paddingRight:"5px",
+                                        overflowX:"hidden"
+                                    }}>   
+                                        {event.name}   
+                                    </div>
+                                    <div style={{fontSize:"14px",fontWeight:500}}>
+                                        {`(ending ${timeOfTheDay(event.end)})`} 
+                                    </div>
+                                </div>
+                            ],
+                            [
+                                //start
+                                (event) => true,
+                                (event) => <div style={{
+                                    display:"flex",
+                                    height:"20px",
+                                    alignItems:"center"
+                                }}>
+                                    <div style={{fontSize:"14px",fontWeight:500}}>
+                                        {timeOfTheDay(event.start)} 
+                                    </div>
+                                    <div style={{
+                                        fontSize:"14px",
+                                        userSelect:"none",
+                                        cursor:"default",
+                                        fontWeight:500,
+                                        paddingLeft:"5px",
+                                        overflowX:"hidden"
+                                    }}>   
+                                        {event.name}   
+                                    </div>
+                                </div>
+                            ]
+                        ])(event)
+                    }
                     </div> 
                 )  
             }

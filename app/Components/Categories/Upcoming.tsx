@@ -150,17 +150,17 @@ interface objectsByDate{ [key:string]:Item[] }
 
 
 let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {  
-    let {showCalendarEvents,todos,projects,calendars} = props;
+    let {showCalendarEvents,todos,projects} = props;
     let filters = [haveDate, byTags(props.selectedTag), byNotCompleted, byNotDeleted];    
 
     let items = filter([...todos, ...projects], i => allPass(filters)(i));
     
-    if(showCalendarEvents && isNotNil(calendars)){
+    if(showCalendarEvents && isNotNil(props.calendars)){
         compose(
             (events) => items.push(...events), 
             flatten,
             map(prop('events'))
-        )(calendars)
+        )(props.calendars)
     };    
 
     let objectsByDate : objectsByDate = {};
@@ -299,11 +299,11 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     getObjects = (props:UpcomingProps,n:number) : { 
         date: Date;
         todos: Todo[]; 
-        projects: Project[];
+        projects: Project[]; 
         events: any[]
     }[] => {  
         let {limit,dispatch} = this.props;
-        let objectsByDate = objectsToHashTableByDate(props);
+        let objectsByDate = objectsToHashTableByDate(props); 
         let range = getDatesRange(new Date(), n, true, true); 
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
 
@@ -516,9 +516,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         }
                     </div> 
                 </div>    
-                <div 
-                
-                style={{
+                <div style={{
                   display:'flex', 
                   flexDirection:"column", 
                   alignItems:"flex-start", 

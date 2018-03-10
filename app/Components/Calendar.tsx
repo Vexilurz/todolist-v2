@@ -19,7 +19,7 @@ import axios from 'axios';
 import { 
     isNotNil, fiveMinutesLater, addTime, inPast, distanceInOneDay, 
     fromMidnightToMidnight, timeDifferenceHours, differentDays,
-    sameDay, timeIsMidnight, oneMinutesBefore 
+    sameDay, timeIsMidnight, oneMinutesBefore, oneDayBehind, log 
 } from '../utils/utils'; 
 let ical = require('ical.js'); 
 let RRule = require('rrule');
@@ -238,8 +238,7 @@ let groupEvents = (events:CalendarEvent[]) : CalendarEvent[] =>
             )
         )
     )(events);
-
-
+ 
 
 let parseRecEvents = (
     limit:Date,
@@ -249,14 +248,19 @@ let parseRecEvents = (
     ends:Date,
     name:string,
     rrule:any
-}[] => compose(
+}[] => compose( 
     map(
         ifElse(
             (event:{name:string, rrule:any, ends:any}) => isNil(event.ends),
             (event:{name:string, rrule:any, ends:any}) => {
-                let rule = event.rrule;
-                let dates = rule.between(new Date(),limit);
-                return {...event, dates}; 
+                let rule = event.rrule; 
+                let count : number = path(['options','count'],rule);
+
+                if(isNil(count)){ //never ends -> slice
+                   return {...event, dates:rule.between(oneDayBehind(),limit)}; 
+                }else{ 
+                   return {...event, dates:rule.all()};
+                }
             },
             (event:{name:string, rrule:any, ends:any}) => {
                 let rule = event.rrule;
@@ -286,7 +290,7 @@ let parseRecEvents = (
             ends:path(['rrule','options','until'],e)
         }),
     ),
-    reject( (e) => isNil(e.rrule) ),
+    reject( (e) => isNil(e.rrule) ), 
     values,
     (data) => icalR.parseICS(data)
 )(icalData);
@@ -308,7 +312,7 @@ let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, eve
             let {dates, ends, name, rrule} = target;
             let {start, end} = event;
             let interval = end.getTime() - start.getTime();
-            return map( (start:Date) => ({...event,start,end:addTime(start,interval) }), dates );
+            return map( (date:Date) => ({...event,start:date,end:addTime(date,interval) }), dates );
         }else{
             return event;
         }
@@ -339,21 +343,20 @@ let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, eve
     );
 
     // -> jcal
-    let getEvents = compose(
-        groupEvents,
-        reject(eventInPast),
-        flatten,
-        map(compose(setRecurrent,parseEvent)),
-        (component) => component.getAllSubcomponents("vevent"),
+    let getEvents = compose( 
+        groupEvents, 
+        flatten, 
+        map(compose(setRecurrent,parseEvent)), 
+        (component) => component.getAllSubcomponents("vevent"), 
         (data) => new ical.Component(data)
     );
 
     return ifElse(
         isNil,
-        (jcal) => empty,
+        (jcal) => empty, 
         (jcal) => ({ calendar:getCalendar(jcal),events:getEvents(jcal) })
     )(jcal);
-};  
+};   
   
 
 
@@ -372,8 +375,10 @@ export let getIcalData = (limit:Date,url:string) : Promise<IcalData> =>
 
 
 export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function) : Promise<Calendar[]> => {
+   
+
     return Promise.all(
-        calendars.map((c:Calendar) => 
+        calendars.map((c:Calendar) =>  
             getIcalData(limit, c.url)
             .then(
                 (data:IcalData) => {
@@ -383,7 +388,7 @@ export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function
                        onError(error);
                        return c; 
                     }   
-
+ 
                     return{
                         url:c.url,  
                         name:calendar.name,
