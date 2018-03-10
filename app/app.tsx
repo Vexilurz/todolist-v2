@@ -13,7 +13,8 @@ import {
     attachDispatchToProps, transformLoadDates, yearFromNow, convertTodoDates, 
     convertProjectDates, convertAreaDates, timeDifferenceHours, 
     convertDates, checkForUpdates, nextMidnight,
-    oneMinuteBefore, threeDaysLater, findWindowByTitle, keyFromDate, isNotNil, nDaysFromNow 
+    oneMinuteBefore, threeDaysLater, findWindowByTitle, keyFromDate, isNotNil, 
+    nDaysFromNow, monthFromDate  
 } from "./utils/utils";  
 import {wrapMuiThemeLight} from './utils/wrapMuiThemeLight'; 
 import {isNewVersion} from './utils/isNewVersion';
@@ -137,9 +138,9 @@ export let defaultStoreItems : Store = {
     shouldSendStatistics : true,  
     hideHint : true,  
     progress : null,  
-    scheduledReminders : [],
+    scheduledReminders : [], 
     showUpdatesNotification : false, 
-    limit : nDaysFromNow(30),
+    limit : monthFromDate(new Date()), 
     searchQuery : "",
     openChangeGroupPopup : false,  
     selectedSettingsSection : "QuickEntry",

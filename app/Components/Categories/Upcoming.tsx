@@ -15,25 +15,27 @@ import {
     keyFromDate, 
     byNotCompleted,
     byNotDeleted,
-    getTagsFromItems,
+    getTagsFromItems, 
     getMonthName,
     yearFromDate,
     convertTodoDates,
     getRangeDays,
     timeDifferenceHours,
-    isNotNil,
-    groupByRepeatGroup,
+    isNotNil, 
     setTime,
     isNotEmpty,
     typeEquals,
+    compareByDate,
+    monthFromDate,
+    log,
 } from '../../utils/utils';  
 import {
-    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and,
-    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or,
+    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, first,
+    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy,
     mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject
 } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
-import { Category, filter, selectTodos } from '../MainContainer';
+import { Category, filter } from '../MainContainer';
 import { Hint } from './Today'; 
 import { CalendarEvent, updateCalendars } from '../Calendar';
 import { isDate, isArray, isArrayOfTodos } from '../../utils/isSomething';
@@ -94,78 +96,38 @@ export let groupEventsByType = (events:CalendarEvent[]) : {
  
 
 
-export let prolongateRepeated = (limit:Date, todos:Todo[]) : {repeated:Todo[], update:Todo[]} => {
-    let update = [];
+export let extendNever = (limit:Date, todos:Todo[]) : Todo[] => {
+    
+    let isNotNeverGroup = compose(not, equals('never'), path(['group','type']));
+    let getDate = (todo:Todo) => todo.attachedDate;
+    let compareByAttachedDate = compareByDate(getDate);
 
-    let repeated = compose(
-        // Todo[][] -> into Todo[]
-        flatten,
-        //for each last item, transform it into new group
+    let repeated = compose( 
+        flatten, 
+        values,
         map(
-            cond([
-                [
-                    compose(equals('on'), path(['group','type'])),
-                    (todo:Todo) => {
-                        let group = path(['group'], todo);
-                        let options = path(['group','options'], todo);
-                        //limit - current limit - one year ahead
-                        //todo - last todo in sequence 
-                        //options contains end date
-                        let todos = repeat(options, todo, limit);
-
-                        if(isDev()){
-                            console.log('on options',options);
-                            console.log('on group',group);
-                            console.log('on todo',todo);
-                            console.log('on limit',limit);
-                        }
-                        return todos;
-                    }
-                ],
-                [
-                    compose(equals('never'), path(['group','type'])),
-                    (todo:Todo) => {
-                        let group = path(['group'], todo);
-                        let options = path(['group','options'], todo);
-                        let todos = repeat(options, todo, limit);
-
-                        if(isDev()){
-                            console.log('never options', options);
-                            console.log('never group', group);
-                            console.log('never todo', todo);
-                            console.log('never limit', limit);
-                        }
-                        return todos;
-                    }
-                ],
-                [ () => true, () => [] ]
-            ])
+            compose(
+               (todo:Todo) => {
+                   if(isNil(todo)){ return [] }
+                   let options = path(['group','options'], todo);
+                   let start = todo.attachedDate;
+                   let todos = repeat(options, todo, start, limit);
+                   return todos; 
+                }, 
+               (todos) => todos[0],
+               log('sorted'),
+               (todos) => todos.sort(compareByAttachedDate)
+            )
         ),
-        (todos:Todo[]) => {
-            //all last todos now should be selected and last should be set to false (they no longer last)
-            let lastFalse = todos.map(
-                (todo:Todo) => {
-                    let group = path(['group'], todo);
-                    return { ...todo, group:{...group,last:false} }
-                }
-            );
-            //send items for update in outer variable
-            update.push(...lastFalse);
-            return todos;
-        },
-        reject(isNil), //remove undefined where todos didnt have last item (remember this is a partial subset so last items could be missing)
-        flatten, //flatten values
-        values, //get values from hash table
-        mapObjIndexed(
-            (value:Todo[],key:string) => value.find( (todo:Todo) => path(['group','last'], todo) )
-        ), //in each group currently present, find last item in sequence (if present)
-        groupByRepeatGroup //create hash table for each repeated group id select corresponding items (Todos)
+        groupBy(path(['group','_id'])),
+        reject(isNotNeverGroup)
     )(todos);
 
     assert(isArrayOfTodos(repeated),`repeated is not of type array of todos. prolongateRepeated.`);
 
-    return {repeated,update};
+    return repeated;
 };
+
 
 
 let haveDate = (item : Project | Todo) : boolean => {  
@@ -178,6 +140,7 @@ let haveDate = (item : Project | Todo) : boolean => {
         );
     }
 };
+
 
 
 type Item = Project | Todo | CalendarEvent;
@@ -275,45 +238,37 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         this.n=10;  
         this.state={objects:[],enter:1}; 
     }    
-
-      
-    //add additional items if last item in repeating sequence in current date range
-    dealWithRepeated = (todos:Todo[]) => { //todos - subset of items, part of todos in current range
-        let {limit, dispatch} = this.props;
-        let {repeated, update} = prolongateRepeated(limit,todos); 
-
-        if(isDev()){
-           console.log('repeated',repeated);
-           console.log('update',update); 
-        }
-        
-        if(isNotEmpty(repeated)){
-           dispatch({type:"updateTodos",load:update});
-        } 
-
-        if(isNotEmpty(update)){
-           dispatch({type:"addTodos",load:repeated}); 
-        }
-    };
-    
+ 
 
     updateLimit = (range:Date[]) => {
-        let {dispatch,limit} = this.props;
+        let {dispatch,limit,todos,calendars} = this.props;
         let day = 1000 * 60 * 60 * 24;
+
+        //threshold ->>> last date in range + 10 days ahead
         let threshold = last(range).getTime() + (day*this.n);
 
+        //if extended range reached limit 
         if(threshold>=limit.getTime()){
-            let newLimit = yearFromDate(limit);
-            dispatch({type:"limit", load:newLimit}); 
+            let newLimit = monthFromDate(limit);
+ 
             updateCalendars(
-               newLimit, 
-               this.props.calendars,  
+               newLimit,  
+               calendars,  
                this.onError
             ).then(
-               (calendars) => dispatch({type:"setCalendars",load:calendars})
-            ); 
+               (result) => dispatch({type:"setCalendars",load:result})
+            ) 
+
+            let never = extendNever(newLimit, todos);
+
+            if(isNotEmpty(never)){
+               dispatch({type:"addTodos", load:never}); 
+            }
+
+            dispatch({type:"limit", load:newLimit}); 
         } 
     }; 
+
 
 
     onEnter = ({previousPosition, currentPosition}) => { 
@@ -321,26 +276,19 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         let from = last(this.state.objects);
         let {dispatch,limit,areas,projects} = this.props;
 
-        console.log('limit',limit);
-
         if(isNil(from)){ return }
 
         assert(isDate(from.date), `from.date is not Date. ${from}. onEnter.`);
 
         let range = getDatesRange(from.date, this.n, false, true);
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
-        this.updateLimit(range); 
         
         this.setState(
             {
                 objects:[...this.state.objects,...objects], 
                 enter:this.state.enter+1
             },
-            () => compose(
-                this.dealWithRepeated,
-                flatten,
-                map((object) => object.todos)
-            )(objects)
+            () => this.updateLimit(range)
         );
     };      
 

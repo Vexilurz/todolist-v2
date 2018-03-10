@@ -9,7 +9,8 @@ import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist';
 import { 
     contains, isNil, prepend, isEmpty, last, not, 
     when, flatten, map, compose, cond, remove, 
-    complement, equals, prop, groupBy, path 
+    complement, equals, prop, groupBy, path, reject,
+    ifElse, identity, reduce 
 } from 'ramda'; 
 import { Store } from '.././app';
 import { isDev } from './isDev';
@@ -32,14 +33,85 @@ const PHE = require("print-html-element");
 const domtoimage = require('dom-to-image');
 
 
+export let limit = (down:number,up:number) => 
+            (value:number) => value<down ? down :
+                              value>up ? up : 
+                              value;
+
+
+                              
+export let limitInput = limit(1,1000); 
+
+
+
+export let limitDate = (date:Date) : Date => {
+    let end = new Date(2022, 12, 0);
+    let start = new Date();
+
+    return date.getTime() > end.getTime() ? end :
+           date.getTime() < start.getTime() ? start :
+           date;  
+};
+
+
+
+export let log = (append:string) => (load:any) : any => {
+    console.log(append,load); 
+    return load;
+};
+
+
 export let different = complement(equals);
 
+export let isNotNan = (n) => not(isNaN(n));
 
 export let isNotNil = complement(isNil);
 
 
 export let isNotEmpty = complement(isEmpty);
 
+
+let getDateUpperLimit = (projects:Project[], todos:Todo[], currentLimit:Date) : Date => {
+
+    let getDates : (projects:Project[]) => Date[] = compose(
+        reject(isNil),
+        map(prop('attachedDate')),
+        (ids) => filter(todos, (todo:Todo) => contains(todo._id)(ids)),
+        flatten,
+        map( (p:Project) => p.layout.filter(isString) )
+    );
+
+    let result : Date =  compose(
+        reduce(
+            ifElse(
+                gtDate,
+                identity,
+                (acc:Date,attachedDate:Date) => attachedDate
+            ), 
+            currentLimit
+        ),
+        getDates
+    )(projects);
+
+    console.log('getDateUpperLimit', result);
+
+    return result;
+};
+
+
+let selectTodosByLimit = (limit:Date) => (projects:Project[], todos:Todo[]) : Todo[] => {
+    
+    let limitByProjects : Date = getDateUpperLimit(projects, todos, limit); 
+
+    return reject(
+        compose(
+            (date:Date) => gtDate(date,limitByProjects), //reject if attached date above limit
+            prop('attachedDate')
+        ),
+        todos
+    );
+};
+ 
 
 export let addDates = (one:Date, two:Date) : Date => {
     if(isNil(one) || isNil(two)){ return new Date() }
@@ -56,15 +128,6 @@ export let addDates = (one:Date, two:Date) : Date => {
 
 export let addTime = (date:Date, time:number) : Date => {
     return new Date(date.getTime() + time);
-};
- 
-
-export let groupByRepeatGroup = (todos:Todo[]) : any => {
-    assert(isArrayOfTodos(todos),'todos is not of type array of todos. groupByRepeatGroup.');
-    return compose(
-        groupBy(path(['group','_id'])),
-        (todos:Todo[]) => filter(todos, (todo:Todo) => isNotNil(todo.group))
-    )(todos)
 };
 
 
@@ -243,7 +306,7 @@ export let getCompletedWhen = (moveCompletedItemsToLogbook:string,date:Date) => 
         ],
         [
             (value:string) => value==="day",
-            () => oneDayAhead(date)
+            () => oneDayMore(date)
         ],
         [
             () => true,
@@ -346,7 +409,7 @@ export let daysInMonth = (date:Date) : number => {
     if(isNotDate(date)){ return 0 }
 
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-}
+};
 
 
 
@@ -354,9 +417,21 @@ export let dateToYearMonthDay = (date:Date) => {
     if(isNotDate(date)){ return date }
 
     return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
-}
+};
 
 
+export let monthFromDate = (date:Date) : Date => {
+    if(isNotDate(date)){ return date }
+
+    Date.prototype["addDays"] = function(days) {
+        let date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;   
+    }
+      
+    return date["addDays"](31);
+};
+ 
 
 export let yearFromDate = (date:Date) : Date => {
     if(isNotDate(date)){ return date }
@@ -410,13 +485,13 @@ export let threeDaysLater = (date:Date) : Date => {
 
 
 
-export let oneDayAhead = (date:Date) : Date => { 
+export let oneDayMore = (date:Date) : Date => { 
     if(isNotDate(date)){ return date }
 
     Date.prototype["addDays"] = function(days) {
         let date = new Date(this.valueOf());
         date.setDate(date.getDate() + days);
-        return date;   
+        return date;    
     };
       
     return new Date(date.getTime())["addDays"](1);
@@ -1077,9 +1152,10 @@ export let isToday = (date : Date) => {
 };    
 
 
-
-export let firstDateBeforeSecond = (first:Date,second:Date) : boolean => {
-    return compareByDate((date:Date) => date)(first as any,second as any)===1;
+//Returns true if the first argument is greater than the second (first in future)
+export let gtDate = (first:Date,second:Date) : boolean => {
+    if(isNotDate(first) || isNotDate(second)){ return false }
+    return first.getTime() > second.getTime();
 };
 
 

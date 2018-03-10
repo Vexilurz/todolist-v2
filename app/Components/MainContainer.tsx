@@ -8,13 +8,13 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, byTags, byCategory, oneDayBehind, 
     convertTodoDates, convertProjectDates, convertAreaDates, 
-    oneDayAhead, measureTime, byAttachedToProject, byNotCompleted, 
+    oneDayMore, measureTime, byAttachedToProject, byNotCompleted, 
     byNotDeleted, isTodayOrPast, byDeleted, byCompleted, isToday, 
     byNotSomeday, byScheduled, yearFromNow, timeDifferenceHours, 
     getIntroList, printElement, inFuture, introListIds, introListLayout, 
-    threeDaysAhead, firstDateBeforeSecond, byHaveAttachedDate, 
-    byAttachedToCompletedProject, byNotAttachedToProject, 
-    byNotAttachedToCompletedProject, isNotEmpty, isNotNil
+    threeDaysAhead, byHaveAttachedDate, byAttachedToCompletedProject, 
+    byNotAttachedToProject, byNotAttachedToCompletedProject, isNotEmpty, 
+    isNotNil, gtDate 
 } from "../utils/utils";  
 import {isDev} from "../utils/isDev"; 
 import {connect} from "react-redux"; 
@@ -36,13 +36,13 @@ import { Trash, TrashPopup } from './Categories/Trash';
 import { Logbook } from './Categories/Logbook';
 import { Someday } from './Categories/Someday';
 import { Next } from './Categories/Next';  
-import { Upcoming, prolongateRepeated } from './Categories/Upcoming';
+import { Upcoming, extendNever } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { 
-    isEmpty, last, isNil, contains, all, not, assoc, flatten, 
-    toPairs, map, compose, allPass, cond, defaultTo, reject, when 
+    isEmpty, last, isNil, contains, all, not, assoc, flatten, reduce, prop, evolve,
+    toPairs, map, compose, allPass, cond, defaultTo, reject, when, ifElse, identity 
 } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -62,127 +62,45 @@ const Promise = require('bluebird');
 const moment = require("moment"); 
 
 
-
-export let filter = (array:any[],f:Function,caller?:string) : any[] => {
-    return lodashFilter(array,f); 
-} 
-
-
-
-/**
- * Find the most distant in time todo among todos attached to either project or area.
- */
-export let getDateUpperLimit = (areas:Area[], projects:Project[], todos:Todo[], currentLimit:Date) => {
-        let pIds = flatten( projects.map( (p:Project) => p.layout.filter(isString) ) );
-        
-        let attached : Todo[] = filter( 
-           todos,
-          (todo:Todo) => contains(todo._id)(pIds), 
-          "getDateUpperLimit"
-        );
-
-        let futureLimit = new Date();
-
-        for(let i = 0; i < attached.length; i++){
-            let todo : Todo = attached[i];
-            if(isNil(todo.attachedDate)){ continue }
-            if(todo.attachedDate.getTime() > futureLimit.getTime()){
-                futureLimit = new Date(todo.attachedDate.getTime());
-            }
-        }   
-
-        return futureLimit.getTime() > currentLimit.getTime() ? futureLimit : currentLimit;
-};
-
-
-
-/**
- * Remove todos which belong to repeating group and 
- * located on timeline beyound current limiting point.
- */
-export let selectTodos = (areas, projects, todos, limit) => {
-    let isRepeated = (todo:Todo) => isNotNil(todo.group);
-    let isAfterLimit = (limit:Date) => 
-                        (todo:Todo) =>  isNil(todo.attachedDate) ? false : 
-                                        todo.attachedDate.getTime() > limit.getTime();  
-    
-
-    let limitByProjects = getDateUpperLimit(areas, projects, todos, limit); 
-    let selected = filter( 
-        todos,
-        (todo:Todo) => {
-            if(isRepeated(todo) && isAfterLimit(limitByProjects)(todo)){
-                return false; //throw away 
-            }else{
-                return true; //keep
-            }
-        },
-        "selected" 
-    );
-
-    return selected;
-};
-
-
-
-/**
- * Get items from database, convert dates from string to objects and
- * set retrieved items to store.
- */
-export let fetchData = (props:Store,max:number,onError:Function) : Promise<Calendar[]> => { 
-    let {clone,dispatch} = props;
-    
-    if(clone){ return } 
-
-    return getDatabaseObjects(onError,max)
-    .then(
-        ([calendars,projects,areas,todos]) => [
-            calendars,
-            projects.map(convertProjectDates),
-            areas.map(convertAreaDates),
-            todos.map(convertTodoDates)
-        ]
-    )
-    .then( 
-        ([calendars,projects,areas,todos]) => {
-            let {limit,firstLaunch} = props; 
-            let selected = selectTodos(areas, projects, todos, limit);
-
-            dispatch({type:"setProjects", load:projects});
-            dispatch({type:"setAreas", load:areas});
-            dispatch({type:"setTodos", load:selected});
-
-            if(firstLaunch){  
-                let alreadyExists = projects.find( (p:Project) => p._id==="Intro List" );
-                if(not(alreadyExists)){  
-                   dispatch({type:"addTodos", load:introListLayout.filter(isTodo)});
-                   dispatch({type:"addProject", load:getIntroList()}); 
-                }
-            };
-
-            return updateCalendars(limit,calendars,onError);
-        }
-    )
-    .then( 
-        (calendars) => {  
-            dispatch({type:"setCalendars",load:calendars});
-            return calendars; 
-        } 
-    )
-}; 
- 
-
-let isMainWindow = () => remote.getCurrentWindow().id===1;
- 
- 
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
                        "deadline" | "search" | "group" | "search" | "reminder";
-                   
+
+
+export let filter = (array:any[],f:Function,caller?:string) : any[] => lodashFilter(array,f); 
+
+
+let isMainWindow = () => remote.getCurrentWindow().id===1;
+
+
+export let getData = (limit:Date,onError:Function,max:number) : Promise<{
+    projects:Project[],
+    areas:Area[],
+    todos:Todo[],
+    calendars:Calendar[]
+}> => 
+    getDatabaseObjects(onError,max)
+    .then(
+        compose(
+            evolve({
+                projects:map(convertProjectDates),
+                areas:map(convertAreaDates),
+                todos:map(convertTodoDates), //selectTodosByLimit(limit)(projects, todos);
+            }),
+            ([calendars,projects,areas,todos]) => ({calendars,projects,areas,todos})
+        )
+    ).then(
+        ({projects,areas,todos,calendars}) => updateCalendars(
+            limit,
+            calendars,
+            onError
+        ).then(
+            (updated) => ({projects,areas,todos,calendars:updated})
+        )
+    );
+
                        
 interface MainContainerState{ fullWindowSize:boolean }
-
-
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
 export class MainContainer extends Component<Store,MainContainerState>{
     rootRef:HTMLElement;  
@@ -192,15 +110,16 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     constructor(props){ 
         super(props);  
-        this.limit = 10000;
+        this.limit = 100000;
         this.subscriptions = [];
         this.disablePrintButton=false;
         this.state = { fullWindowSize:true };
     }  
 
+    
      
     test = () => {  
-        let {dispatch} = this.props;
+        let {dispatch,limit} = this.props;
 
         initDB(); 
         let fakeData = generateRandomDatabase({todos:215, projects:38, areas:15});      
@@ -209,37 +128,89 @@ export class MainContainer extends Component<Store,MainContainerState>{
         let projects = fakeData.projects; 
         let areas = fakeData.areas;  
              
-        Promise.all([ 
+        Promise.all([  
             addTodos(this.onError,todos),    
             addProjects(this.onError,projects), 
             addAreas(this.onError,areas),  
             clearStorage(this.onError)     
         ])  
-        .then( () => fetchData(this.props,this.limit,this.onError) )  
-        .then( when(isNotEmpty, () => updateConfig(dispatch)({hideHint:true})) ) 
+        .then(() => getData(limit,this.onError,this.limit))  
+        .then(
+            ({projects, areas, todos, calendars}) => this.setData({ 
+                projects:defaultTo([], projects), 
+                areas:defaultTo([], areas), 
+                todos:defaultTo([], todos), 
+                calendars:defaultTo([], calendars)
+            }) 
+        )
     };
+
 
       
     onError = (e) => globalErrorHandler(e); 
 
 
+
     initData = () => {
         if(not(isMainWindow())){ return }  
 
-        let {dispatch} = this.props;
+        let {dispatch,limit} = this.props;
 
-        if(isDev()){ destroyEverything().then(this.test) }
-        else{ 
-
-            fetchData(
-                this.props,
-                this.limit,
-                this.onError
-            ) 
-            .then( when(isNotEmpty, () => updateConfig(dispatch)({hideHint:true})) )  
+        if(isDev()){ 
+            destroyEverything().then(this.test) 
+        }else{ 
+            getData(limit,this.onError,this.limit)   
+            .then(
+                ({projects, areas, todos, calendars}) => this.setData({
+                    projects:defaultTo([], projects), 
+                    areas:defaultTo([], areas), 
+                    todos:defaultTo([], todos), 
+                    calendars:defaultTo([], calendars)
+                }) 
+            )
         } 
     };
 
+
+
+    addIntroList = (projects:Project[]) => {
+        let {clone,dispatch,limit,firstLaunch} = this.props;
+
+        if(firstLaunch){  
+            let alreadyExists = projects.find( (p:Project) => p._id==="Intro List" );
+            if(not(alreadyExists)){  
+               dispatch({type:"addTodos", load:introListLayout.filter(isTodo)});
+               dispatch({type:"addProject", load:getIntroList()}); 
+            }
+        };
+    };
+ 
+
+
+    setData = ({projects, areas, todos, calendars}) : void => {
+        let {clone,dispatch,limit} = this.props;
+        
+        if(clone){ return } 
+
+        dispatch({type:"setProjects", load:projects});
+        dispatch({type:"setAreas", load:areas});
+        dispatch({type:"setTodos", load:todos});
+        dispatch({type:"setCalendars", load:calendars});
+
+        this.addIntroList(projects); 
+
+        let never = extendNever(limit, todos);
+
+        if(isNotEmpty(never)){
+           dispatch({type:"addTodos", load:never}); 
+        }
+
+        when(
+          isNotEmpty, 
+          () => updateConfig(dispatch)({hideHint:true}) 
+        )(calendars); 
+    };
+   
  
 
     initObservables = () => {  
@@ -312,27 +283,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
         }
     };
 
-
-    dealWithRepeatedToday = (selectedTodos:Todo[]) => {
-        let {dispatch,limit} = this.props;
-
-        compose(
-            ({repeated,update}) => {
-              if(isNotEmpty(repeated)){
-                 console.log('repeated',repeated); 
-                 dispatch({type:"updateTodos",load:update});
-              } 
-              if(isNotEmpty(update)){
-                 console.log('update',update); 
-                 dispatch({type:"addTodos",load:repeated}); 
-              } 
-            },   
-            (items) => prolongateRepeated(limit, items), 
-            reject((t:Todo) => isNil(t.group))
-        )(selectedTodos);
-    };
-
     
+
     render(){   
         let { 
             todos, projects, areas, selectedProjectId, selectedAreaId, 
@@ -428,8 +380,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     ];   
 
                                     let selectedTodos = filter(todos, allPass(todayFilters));
-
-                                    this.dealWithRepeatedToday(selectedTodos); 
 
                                     if(groupTodos){
                                         let hidden = filter( 
@@ -683,7 +633,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 </div>    
         </div> 
     }
-}  
+}   
  
 
 

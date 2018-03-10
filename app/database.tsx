@@ -8,10 +8,10 @@ import { Category } from './Components/MainContainer';
 import { randomArrayMember, randomInteger, randomDate, convertTodoDates } from './utils/utils';
 import { isNil, all, map, isEmpty, not } from 'ramda'; 
 import { isDev } from './utils/isDev';
-import { RepeatPopupState } from './Components/RepeatPopup';
 import { assert } from './utils/assert';
 import { isArea, isString, isProject, isTodo } from './utils/isSomething';
 import {debounce} from 'lodash';
+import { RepeatOptions } from './Components/RepeatPopup';
 
 let uniqid = require("uniqid"); 
 let path = require('path');
@@ -105,7 +105,7 @@ export interface Area{
 export interface Group{
    _id:string,  
    type:'never'|'on'|'after',
-   options?:RepeatPopupState,  
+   options?:RepeatOptions,  
    last?:boolean
 }; 
  

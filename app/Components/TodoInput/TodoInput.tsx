@@ -45,6 +45,7 @@ let Promise = require('bluebird');
 import {Tooltip,withTooltip} from 'react-tippy';
 
 
+
 export interface TodoInputProps{ 
     dispatch : Function,  
     groupTodos : boolean,  
@@ -62,6 +63,7 @@ export interface TodoInputProps{
     onClose? : Function,
     showCompleted? : boolean
 }    
+
 
 
 export interface TodoInputState{  
@@ -83,6 +85,7 @@ export interface TodoInputState{
     title : string,
     note : string
 }   
+
 
 
 export class TodoInput extends Component<TodoInputProps,TodoInputState>{
@@ -174,6 +177,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         .then(() => this.update({reminder})); 
     }; 
 
+  
     
     componentWillReceiveProps(nextProps:TodoInputProps){
         let notEquals = complement(equals);
@@ -186,6 +190,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         }
     };
 
+    
     
     onCalendarThisEveningClick = (e) => {
         e.stopPropagation();
@@ -1257,10 +1262,6 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
         </div>   
     } 
 } 
-  
-
-
-
 
 
 
@@ -1371,9 +1372,6 @@ export class DueDate extends Component<DueDateProps,{}>{
         }
     }
 }
-
-
-
 
 
 
@@ -1532,14 +1530,9 @@ class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
 
 
         return  <Tooltip 
-                size={"small"} //small regular big
+                size={"small"}
                 disabled={isEmpty(moreTags)}
                 position="bottom"
-                /*style={{ 
-                    border:"1px solid rgba(200,200,200,0.5)", 
-                    background:"rgba(255,255,255,1)",
-                    backgroundColor:"rgba(255,255,255,1)" 
-                }}*/ 
                 animateFill={false}  
                 transitionFlip={false}
                 theme="light"   

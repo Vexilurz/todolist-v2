@@ -39,7 +39,7 @@ import {
 import {text,value} from '../../utils/text'; 
 import { SimplePopup } from '../SimplePopup';
 import { getIcalData, IcalData, AxiosError } from '../Calendar';
-import { fetchData, filter } from '../MainContainer';
+import { filter, getData } from '../MainContainer';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 import { Store } from '../../app';
 import { updateConfig } from '../../utils/config';
@@ -857,24 +857,48 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
     replaceDatabaseObjects = (json) : Promise<void> => {
-        let { todos, projects, areas, calendars } = json.database;
+        let { todos, projects, areas, calendars, limit } = json.database;
+        let remRev = compose(map(removeRev), defaultTo([])); 
 
         return  closeClonedWindows()
                 .then(() => destroyEverything())
                 .then(() => initDB())
-                .then(() => {  
-                    return Promise.all([  
-                        addTodos(this.onError, defaultTo([])(todos).map(removeRev)),      
-                        addProjects(this.onError, defaultTo([])(projects).map(removeRev)), 
-                        addAreas(this.onError, defaultTo([])(areas).map(removeRev)),
-                        addCalendars(this.onError, defaultTo([])(calendars).map(removeRev))
+                .then(() =>  
+                    Promise.all([  
+                        addTodos(this.onError, remRev(todos)),      
+                        addProjects(this.onError, remRev(projects)), 
+                        addAreas(this.onError, remRev(areas)),
+                        addCalendars(this.onError, remRev(calendars))
                     ])   
-                }) 
-                .then(() => fetchData(this.props,this.limit,this.onError)) 
+                ) 
+                .then(() => getData(limit,this.onError,this.limit))  
+                .then(
+                    ({projects, areas, todos, calendars}) => this.setData({
+                        projects:defaultTo([], projects), 
+                        areas:defaultTo([], areas), 
+                        todos:defaultTo([], todos), 
+                        calendars:defaultTo([], calendars)
+                    }) 
+                )
     };  
 
+
+
+    setData = ({projects, areas, todos, calendars}) : void => {
+        let {clone,dispatch} = this.props;
+        
+        if(clone){ return } 
     
+        dispatch({type:"setProjects", load:projects});
+        dispatch({type:"setAreas", load:areas});
+        dispatch({type:"setTodos", load:todos});
+        dispatch({type:"setCalendars", load:calendars});
+    };
+
+    
+
     onError = (error) => globalErrorHandler(error);
+
 
 
     export = (folder:string) => {   

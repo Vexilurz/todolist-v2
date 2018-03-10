@@ -22,7 +22,7 @@ import {
     sameDay, timeIsMidnight, oneMinutesBefore 
 } from '../utils/utils'; 
 let ical = require('ical.js'); 
-let RRule = require('rrule')
+let RRule = require('rrule');
 import * as icalR from '../ical/index.js'; 
 import { isDate, isEvent } from '../utils/isSomething';
 import { assert } from '../utils/assert';
