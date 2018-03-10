@@ -219,23 +219,27 @@ export class MainContainer extends Component<Store,MainContainerState>{
  
         this.subscriptions.push(
             Observable
-                    .interval(1 * minute)
-                    .flatMap(() => updateCalendars(
-                        this.props.limit, 
-                        this.props.calendars, 
-                        this.onError
-                    ))
-                    .subscribe((calendars:Calendar[]) => dispatch({type:"setCalendars", load:calendars})),
+                .interval(5 * minute)
+                .flatMap(() => updateCalendars(
+                    this.props.limit, 
+                    this.props.calendars, 
+                    this.onError
+                ))
+                .subscribe((calendars:Calendar[]) => dispatch({type:"setCalendars",load:calendars})),
 
             Observable
-                    .fromEvent(window,"resize")
-                    .debounceTime(100) 
-                    .subscribe(() => dispatch({type:"leftPanelWidth", load:window.innerWidth/3.7})),
+                .fromEvent(window,"resize")
+                .debounceTime(100) 
+                .subscribe(() => dispatch({type:"leftPanelWidth",load:window.innerWidth/3.7})),
     
             Observable  
-                    .fromEvent(window,"click")
-                    .debounceTime(100)
-                    .subscribe(() => this.props.showRightClickMenu ? dispatch({type:"showRightClickMenu", load:false}) : null)
+                .fromEvent(window,"click")
+                .debounceTime(100)
+                .subscribe(() => 
+                    this.props.showRightClickMenu ? 
+                    dispatch({type:"showRightClickMenu", load:false}) : 
+                    null
+                )
         );
     };
   
@@ -267,22 +271,24 @@ export class MainContainer extends Component<Store,MainContainerState>{
         }
     } 
 
-
+    
 
     printCurrentList = () => {  
         let {selectedCategory} = this.props;
+        if(this.disablePrintButton){ return } 
 
-        if(this.disablePrintButton){ return }
+        //let mainWindow = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
+        //mainWindow.webContents.printToPDF({}, () => {})
 
         let list = document.getElementById(`${selectedCategory}-list`); 
-        if(list){ 
+        if(list){  
            this.disablePrintButton = true; 
 
            printElement(selectedCategory, list) 
            .then(() => { 
               this.disablePrintButton = false;
            })
-        }
+        } 
     };
 
     
@@ -459,13 +465,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         byNotDeleted    
                                     ]; 
 
-                                    let selectedTodos = filter(todos, allPass(nextFilters), "");
+                                    let selectedTodos = filter(todos, allPass(nextFilters));
 
                                     if(groupTodos){ 
                                         let hidden = filter(
                                            projects, 
-                                           (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide),
-                                           ""
+                                           (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide)
                                         );
                                         let ids : string[] = flatten(hidden.map((p:Project) => p.layout.filter(isString)));
                                         selectedTodos = reject((todo:Todo) => contains(todo._id)(ids),selectedTodos);
@@ -486,7 +491,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         projects={this.props.projects.filter(byNotIntroList)} 
                                     />
                                 }
-                            ], 
+                            ],  
                             [ 
                                 (selectedCategory:Category) : boolean => 'trash'===selectedCategory,  
                                 () => {

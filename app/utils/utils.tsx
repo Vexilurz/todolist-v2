@@ -202,7 +202,7 @@ export let setTime = (date:Date, time:{minutes:number,hours:number}) : Date => {
 
 
 export let printElement = (selectedCategory:Category, list:HTMLElement) : Promise<void> => {
-    let convertToImage=false;
+    let convertToImage=true;
     
     if(convertToImage){ 
         return domtoimage
@@ -738,7 +738,15 @@ export let attachDispatchToProps = (dispatch:Function,props) => ({...props, disp
 
 export let inPast = (date:Date) : boolean => {
     if(isNil(date)){ return false }
+    
     return new Date().getTime()>new Date(date).getTime();
+};
+
+
+export let inPastRelativeTo = (to:Date) => (date:Date) : boolean => {
+    if(isNil(date)){ return false }
+
+    return to.getTime()>new Date(date).getTime();
 };
 
   

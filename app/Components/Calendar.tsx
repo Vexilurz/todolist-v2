@@ -19,7 +19,7 @@ import axios from 'axios';
 import { 
     isNotNil, fiveMinutesLater, addTime, inPast, distanceInOneDay, 
     fromMidnightToMidnight, timeDifferenceHours, differentDays,
-    sameDay, timeIsMidnight, oneMinutesBefore, oneDayBehind, log 
+    sameDay, timeIsMidnight, oneMinutesBefore, oneDayBehind, log, inPastRelativeTo 
 } from '../utils/utils'; 
 let ical = require('ical.js'); 
 let RRule = require('rrule');
@@ -345,8 +345,9 @@ let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, eve
     );
 
     // -> jcal
-    let getEvents = compose( 
+    let getEvents = compose(  
         groupEvents, 
+        reject(inPastRelativeTo(oneDayBehind())),
         flatten, 
         map(compose(setRecurrent,parseEvent)), 
         (component) => component.getAllSubcomponents("vevent"), 

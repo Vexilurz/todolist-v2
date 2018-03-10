@@ -1,14 +1,19 @@
-@media print {
-  .pageBreak{
-    page-break-after: always;
-  } 
-  .printHide{
-    visibility: hidden;
-  }
-}
+@media print and (color) {
+    .pageBreak{
+      page-break-after: always !important;
+    } 
+    .no-print{ 
+      display:none !important;
+    }
+    * {
+        transition: none !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+} 
 
-
+ 
 body{  
+  image-rendering: optimizeQuality;
   -webkit-print-color-adjust: exact !important;
   background-size: cover;
   height:100%;

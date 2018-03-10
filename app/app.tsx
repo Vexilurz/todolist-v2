@@ -249,11 +249,12 @@ export class App extends Component<AppProps,{}>{
  
     initObservables = () => {  
         let {dispatch} = this.props;
+        let minute = 1000 * 60;  
 
         this.subscriptions.push(
-            Observable.interval(60000).subscribe((v) => dispatch({type:'update'})), 
+            Observable.interval(2*minute).subscribe((v) => dispatch({type:'update'})), 
 
-            Observable.interval(60000).subscribe(() => { 
+            Observable.interval(5*minute).subscribe(() => { 
                 let target = path.resolve(os.homedir(), "tasklist");
 
                 if(not(fs.existsSync(target))){ fs.mkdirSync(target); }
@@ -336,7 +337,7 @@ export class App extends Component<AppProps,{}>{
             .fromEvent(ipcRenderer, "Ctrl+Alt+T", (event) => event)
             .subscribe((event) => {
                 dispatch({type:"openNewProjectAreaPopup", load:false});
-                dispatch({type:"showTrashPopup", load:false});
+                dispatch({type:"showTrashPopup", load:false}); 
                 dispatch({type:"openTodoInputPopup", load:true});
             })
         );
