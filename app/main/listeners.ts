@@ -21,7 +21,6 @@ let initAutoUpdater = () => {
     autoUpdater.on( 
         'error', 
         (error) => { 
-            console.log(error) 
             if(mainWindow){ mainWindow.webContents.send("error",error) }
         }
     );

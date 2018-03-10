@@ -85,7 +85,6 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                ev:timeSeconds  
             }
         ) 
-        .then(() => console.log('Project Created')) 
         .catch(err => this.onError(err)) 
 
         let project = generateEmptyProject();
@@ -110,7 +109,6 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                ev:timeSeconds 
             }
         ) 
-        .then(() => console.log('Area created'))
         .catch(err => this.onError(err))  
 
         let area = generateEmptyArea();

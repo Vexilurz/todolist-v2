@@ -53,7 +53,7 @@ let notEquals = complement(equals);
 
 let scheduleReminder = (todo) : number => {
     assert(isDate(todo.reminder),`reminder is not of type Date. scheduleReminder. ${todo.reminder}.`);
-    console.log(`schedule ${todo.title}`);
+  
 
     return setCallTimeout(
         () => {
@@ -61,7 +61,6 @@ let scheduleReminder = (todo) : number => {
  
             if(notification){ 
                notification.webContents.send('remind',todo); 
-               console.log(`send to notify: ${todo.title}`);
             };
         }, 
         todo.reminder
@@ -146,10 +145,21 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
     let updateQuickEntry = (newState:Store) : Store => {
         let quickEntry = findWindowByTitle('Add task');
+        let shouldUpdate = typeEquals("setTodos")(action) || typeEquals("setProjects")(action);
 
         if(isNotNil(quickEntry)){ 
-           quickEntry.webContents.send("projects", filter( state.projects, allPass([byNotDeleted,byNotCompleted]) ) );
-           quickEntry.webContents.send("todos", filter( state.todos, allPass([byNotDeleted]) ) ); 
+            if(quickEntry.isVisible() || shouldUpdate){ 
+               
+                quickEntry.webContents.send( 
+                   "projects", 
+                   filter( state.projects, allPass([byNotDeleted,byNotCompleted]) ) 
+                );
+
+                quickEntry.webContents.send(
+                    "todos",  
+                    filter( state.todos, allPass([byNotDeleted]) ) 
+                ); 
+            }
         }
            
         return newState;  

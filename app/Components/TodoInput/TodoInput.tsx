@@ -327,7 +327,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 ev:timeSeconds 
             }
         )  
-        .then((e) => console.log(`Todo completed`))  
         .catch(err => this.onError(err));
     };
 

@@ -33,6 +33,7 @@ const PHE = require("print-html-element");
 const domtoimage = require('dom-to-image');
 
 
+
 export let limit = (down:number,up:number) => 
             (value:number) => value<down ? down :
                               value>up ? up : 
@@ -61,14 +62,21 @@ export let log = (append:string) => (load:any) : any => {
 };
 
 
+
 export let different = complement(equals);
 
+
+
 export let isNotNan = (n) => not(isNaN(n));
+
+
 
 export let isNotNil = complement(isNil);
 
 
+
 export let isNotEmpty = complement(isEmpty);
+
 
 
 let getDateUpperLimit = (projects:Project[], todos:Todo[], currentLimit:Date) : Date => {
@@ -93,10 +101,10 @@ let getDateUpperLimit = (projects:Project[], todos:Todo[], currentLimit:Date) : 
         getDates
     )(projects);
 
-    console.log('getDateUpperLimit', result);
 
     return result;
 };
+
 
 
 let selectTodosByLimit = (limit:Date) => (projects:Project[], todos:Todo[]) : Todo[] => {
@@ -113,6 +121,7 @@ let selectTodosByLimit = (limit:Date) => (projects:Project[], todos:Todo[]) : To
 };
  
 
+
 export let addDates = (one:Date, two:Date) : Date => {
     if(isNil(one) || isNil(two)){ return new Date() }
 
@@ -126,9 +135,11 @@ export let addDates = (one:Date, two:Date) : Date => {
 };
 
 
+
 export let addTime = (date:Date, time:number) : Date => {
     return new Date(date.getTime() + time);
 };
+
 
 
 export let isMainWindow = () => {  
@@ -136,8 +147,10 @@ export let isMainWindow = () => {
 };
 
 
+
 export let typeEquals = (type:string) => compose(equals(type), prop(`type`))
  
+
 
 export let getTime = (date:Date) : {minutes : number,hours : number} => {
 
@@ -161,6 +174,7 @@ export let getTime = (date:Date) : {minutes : number,hours : number} => {
 
     return defaultValue;
 };
+
 
 
 export let setTime = (date:Date, time:{minutes:number,hours:number}) : Date => {
@@ -209,6 +223,7 @@ export let printElement = (selectedCategory:Category, list:HTMLElement) : Promis
 }; 
 
 
+
 export let measureTime = (f:() => void) => {
     let start : number = performance.now();
     f(); 
@@ -222,7 +237,6 @@ export let byScheduled = (item : Todo) : boolean => {
     if(isNil(item)){ return false } 
     return !isNil(item.deadline) || !isNil(item.attachedDate); 
 }; 
-
 
 
 
@@ -290,6 +304,7 @@ export let getRangeMonthUntilDate = (start:Date, ends:Date, repeatEveryN:number)
 };
 
 
+
 export let getCompletedWhen = (moveCompletedItemsToLogbook:string,date:Date) => {
     return cond([
         [
@@ -314,6 +329,7 @@ export let getCompletedWhen = (moveCompletedItemsToLogbook:string,date:Date) => 
         ]
     ])(moveCompletedItemsToLogbook);
 };
+
 
 
 export let getRangeMonthRepetitions = (start:Date, endsAfter:number, repeatEveryN:number) : Date[] => {
@@ -342,6 +358,7 @@ export let getRangeMonthRepetitions = (start:Date, endsAfter:number, repeatEvery
 
     return dates;
 };
+
 
 
 export let getRangeDays = (start:Date, endDate:Date, step:number, includeStart=false) : Date[] => {
@@ -420,6 +437,7 @@ export let dateToYearMonthDay = (date:Date) => {
 };
 
 
+
 export let monthFromDate = (date:Date) : Date => {
     if(isNotDate(date)){ return date }
 
@@ -432,6 +450,7 @@ export let monthFromDate = (date:Date) : Date => {
     return date["addDays"](31);
 };
  
+
 
 export let yearFromDate = (date:Date) : Date => {
     if(isNotDate(date)){ return date }

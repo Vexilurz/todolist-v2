@@ -194,13 +194,11 @@ export let initAutoLaunch = (shouldEnable:boolean) : Promise<void> => {
     .then((enabled:boolean) => {
         if(enabled){
            appAutoLauncher.disable();
-           console.log('autolaunch disabled');
         }
     })
     .then(() => { 
         if(shouldEnable){
            appAutoLauncher.enable();
-           console.log('autolaunch enabled')
         }
     })
     .catch((err) => console.log(err));

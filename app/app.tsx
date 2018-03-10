@@ -115,7 +115,7 @@ export interface Store extends Config{
     selectedCategory : Category,
     selectedTag : string, 
     leftPanelWidth : number,
-    closeAllItems : any,
+    closeAllItems : any, 
     dragged : string,
     selectedProjectId : string, 
     selectedAreaId : string,
@@ -318,7 +318,7 @@ export class App extends Component<AppProps,{}>{
                 let ids = items.filter(isNotNil).map((t:Todo) => t._id);
                 let updated = filter(todos, (todo:Todo) => contains(todo._id)(ids));
                 
-                dispatch({ type:"updateTodos",load:updated.map((t:Todo) => ({...t,reminder:null})) }); 
+                dispatch({type:"updateTodos",load:updated.map((t:Todo) => ({...t,reminder:null})) }); 
             }),
 
 

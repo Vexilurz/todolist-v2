@@ -225,7 +225,6 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                 ev:timeSeconds 
             }
         )  
-        .then(() => console.log('Todo created')) 
         .catch(err => this.onError(err)); 
 
         let todos = [...this.props.todos].sort((a:Todo,b:Todo) => a.priority-b.priority);
