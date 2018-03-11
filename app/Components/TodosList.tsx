@@ -126,6 +126,7 @@ export let dropTodoOnCategory = ({draggedTodo,projects,category,moveCompletedIte
                 () : Todo => ({
                     ...draggedTodo, 
                     category:"someday",
+                    attachedDate:undefined,
                     deadline:undefined, 
                     deleted:undefined,
                     completedSet:null,

@@ -368,20 +368,25 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         .catch(err => this.onError(err));
     };
 
-
+      
 
     onError = (error) => globalErrorHandler(error);
 
 
 
     componentDidMount(){   
-        let { todo, selectedTodo } = this.props;
+        let { todo, selectedTodo, dispatch } = this.props;
 
 
         if(isNotNil(selectedTodo) && selectedTodo._id===todo._id){ 
             this.updateState({open:true})
             .then(
-                () => isNil(this.ref) ? null : this.ref.scrollIntoView()
+                () => {
+                    if(isNotNil(this.ref)){
+                       this.ref.scrollIntoView();
+                       dispatch({type:"selectedTodo",load:null}); 
+                    }
+                }
             )
         };
 

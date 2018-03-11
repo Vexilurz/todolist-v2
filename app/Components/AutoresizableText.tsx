@@ -71,7 +71,7 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
         this.suspendRo(); 
     } 
 
-
+ 
     render(){
         let {text, style, fontSize, placeholder, placeholderStyle} = this.props;
         let {stringLength} = this.state;
@@ -81,7 +81,7 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
         let textStyle = merge(isEmpty(text) ? placeholderStyle : style, defaultStyle);  
          
         return <div ref={(e) => {this.ref = e;}} style={textStyle}>  
-            { stringToLength(isEmpty(text) ? placeholder : text, stringLength) }
+            {  stringToLength(isEmpty(text) ? placeholder : text, stringLength) }
         </div>  
     } 
 }

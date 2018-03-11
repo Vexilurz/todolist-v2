@@ -145,7 +145,8 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
     let updateQuickEntry = (newState:Store) : Store => {
         let quickEntry = findWindowByTitle('Add task');
-        let shouldUpdate = typeEquals("setTodos")(action) || typeEquals("setProjects")(action);
+        let shouldUpdate = true;    
+        //typeEquals("setTodos")(action) || typeEquals("setProjects")(action);
 
         if(isNotNil(quickEntry)){ 
             if(quickEntry.isVisible() || shouldUpdate){ 
@@ -174,7 +175,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
             //and action belong to ObjectsReducer (state was updated inside this function)
             if(isNotNil(newState) && shouldUpdateOtherInstances){
                ipcRenderer.send("action", {id:remote.getCurrentWindow().id, action}); 
-            }
+            }  
 
             return newState;
         },  

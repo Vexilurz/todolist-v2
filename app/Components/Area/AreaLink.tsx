@@ -80,11 +80,11 @@ export class AreaTrashLink extends Component<AreaTrashLinkProps,AreaTrashLinkSta
         let {area, projects, todos, dispatch} = this.props;
 
         //projects attached to area
-        let selectedProjects : Project[] = filter(projects,(p:Project) => contains(p._id)(area.attachedProjectsIds),""); 
+        let selectedProjects : Project[] = filter(projects,(p:Project) => contains(p._id)(area.attachedProjectsIds)); 
 
         //todos attached to projects which attached to area to be removed
         let selectedTodos : Todo[] = compose(
-            (ids:string[]) => filter(todos, (t) => contains(t._id)(ids), ""),
+            (ids:string[]) => filter(todos, (t) => contains(t._id)(ids)),
             flatten,
             (selectedProjects) => selectedProjects.map((p:Project) => p.layout.filter(isString))
         )(selectedProjects);
