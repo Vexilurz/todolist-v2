@@ -7,7 +7,7 @@ import { connect } from "react-redux";
 import Popover from 'material-ui/Popover';
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import { Todo, Project } from '../../database';
-import { byNotDeleted, byCompleted, attachDispatchToProps, daysLeftMark } from '../../utils/utils'; 
+import { byNotDeleted, byCompleted, attachDispatchToProps, daysLeftMark, isNotNil } from '../../utils/utils'; 
 import { Checkbox, DueDate } from '../TodoInput/TodoInput';
 import PieChart from 'react-minimal-pie-chart';
 import Restore from 'material-ui/svg-icons/content/undo';
@@ -353,12 +353,12 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
                 display:"flex",  
                 alignItems:"center" 
             }}
-        >     
-            <div style={{paddingLeft:"20px",display:"flex",alignItems:"center"}}>
+        >      
+            <div style={{paddingLeft:"19px",display:"flex",alignItems:"center"}}>
                 <Checkbox  
-                    checked={!isNil(project.completed)}
+                    checked={isNotNil(project.completed)}
                     onClick={(e) => {
-                        if(!isNil(project.completed)){
+                        if(isNotNil(project.completed)){
                             let type = "updateProject";
                             this.props.dispatch({
                                 type:"updateProject", 
@@ -368,7 +368,7 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
                     }}
                 />
                 <div style={{paddingLeft:"5px"}}> 
-                    <DueDate
+                    <DueDate 
                         date={null}
                         selectedCategory={this.props.selectedCategory}
                         category={this.props.selectedCategory}

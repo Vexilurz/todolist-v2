@@ -29,6 +29,9 @@ import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
 import { Category } from '../Components/MainContainer';
 import Alert from 'material-ui/svg-icons/alert/add-alert';
+import SearchIcon from 'material-ui/svg-icons/action/search'; 
+
+
 
 export let chooseIcon = (size : { width:string, height:string }, selectedCategory : Category) => 
     cond([
@@ -182,7 +185,7 @@ export let chooseIcon = (size : { width:string, height:string }, selectedCategor
                     display:"flex", 
                     alignItems:"center",
                     color:"white", 
-                    width:20, 
+                    width:20,  
                     height:20, 
                     WebkitUserSelect:"none"
                 }}/>
@@ -198,8 +201,11 @@ export let chooseIcon = (size : { width:string, height:string }, selectedCategor
             </div>
         ],
         [
-            () => true,
-            () => null
+            equals("search"),
+            () => <SearchIcon style={{...size, color:"rgb(100, 100, 100)"}}/>  
+        ],
+        [
+            () => true, () => null
         ]
     ])(selectedCategory);
 

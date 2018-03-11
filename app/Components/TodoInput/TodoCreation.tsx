@@ -9,14 +9,14 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import List from 'material-ui/svg-icons/action/list';
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
-import { isToday, getTime, setTime, different } from '../../utils/utils'; 
+import { isToday, getTime, setTime, different, isNotEmpty } from '../../utils/utils'; 
 import { Todo, removeTodo, updateTodo, Project } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TodoTags } from './TodoTags';
 import { TagsPopup } from './TagsPopup';
 import { TodoInputLabel } from './TodoInputLabel'; 
-import { uniq, isEmpty, isNil, not, remove, cond, equals, any, path } from 'ramda';
+import { uniq, isEmpty, isNil, not, remove, cond, equals, any, path, compose } from 'ramda';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
@@ -28,16 +28,17 @@ import { generateId } from '../../utils/generateId';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { googleAnalytics } from '../../analytics';
 import { isDate, isTodo } from '../../utils/isSomething';
+import { RawDraftContentState, noteToState, noteFromState, getNotePlainText } from '../../utils/draftUtils';
   
 
 export interface TodoCreationFormState{  
     open : boolean,
     category : Category,
     title : string,  
-    note : string,
+    editorState : any,
     completedWhen : Date,
     completedSet : Date,
-    reminder : Date,
+    reminder : Date, 
     deadline : Date,
     deleted : Date,
     attachedDate : Date,  
@@ -100,7 +101,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             tag:'',
             category, 
             title,
-            note,  
+            editorState:noteToState(note), 
             display:"flex",
             translateX:0,
             opacity:1,
@@ -273,7 +274,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         ...state,
         category:todo.category, 
         title:todo.title,
-        note:todo.note,  
+        editorState:noteToState(todo.note),  
         completedWhen:todo.completedWhen,
         completedSet:todo.completedSet,
         reminder:todo.reminder, 
@@ -291,7 +292,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         type : "todo",
         title : this.state.title,
         priority : this.props.todo.priority,
-        note : this.state.note,  
+        note : noteFromState(this.state.editorState),  
         checklist : this.state.checklist,
         reminder : this.state.reminder,  
         deadline : this.state.deadline,
@@ -334,7 +335,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     };
 
 
-    onNoteChange = (event) : void => this.setState({note:event.target.value});
+    onNoteChange = (editorState) : void => this.setState({editorState}); 
 
 
     onTitleChange = (event) :void => this.setState({title:event.target.value});
@@ -342,7 +343,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
    
     onRightClickMenu = (e) => {  
         let {open} = this.state;
-        let {dispatch} = this.props;
+        let {dispatch} = this.props; 
 
         if(not(open)){ 
             dispatch({ 
@@ -497,9 +498,9 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     render(){  
         let {selectedCategory,rootRef} = this.props; 
         let {
-            open, deleted, attachedDate, title, attachedTags, note, 
-            deadline, showChecklist, completedWhen, checklist, showTags,
-            category, completedSet, showDateCalendar, showTagsSelection   
+           open, deleted, attachedDate, title, attachedTags, deadline, 
+           showChecklist, completedWhen, checklist, showTags, category, 
+           completedSet, showDateCalendar, showTagsSelection   
         } = this.state;
 
         let attachedDateToday = isToday(attachedDate);
@@ -575,7 +576,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                             attachedDate={attachedDate}
                             deadline={deadline}
                             title={title}
-                            note={note} 
+                            haveNote={compose(isNotEmpty,getNotePlainText)(this.state.editorState)}
                         />   
                     {    
                         not(open) ? null :    
@@ -588,17 +589,15 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                             closeTags={() => this.setState({showTags:false})}
                             open={open} 
                             showChecklist={showChecklist}
+                            editorState={this.state.editorState}
                             showTags={showTags}
                             _id={this.props.todo._id}
-                            note={note}
                             checklist={checklist}
                             attachedTags={attachedTags}
                         />  
                     }
                 </div>    
-            </div>   
-
-
+            </div>  
         {
             not(open) ? null :  
             <TodoInputLabels 
@@ -741,15 +740,15 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             />  
             <TagsPopup
                 {  
-                    ...{
-                        attachTag:this.onAttachTag,
-                        close:this.closeTagsSelection,
-                        open:this.state.showTagsSelection,   
-                        anchorEl:this.tags,
-                        origin:{vertical:"center",horizontal:"right"},
-                        point:{vertical:"center",horizontal:"right"},
-                        rootRef:this.props.rootRef
-                    } as any
+                ...{
+                    attachTag:this.onAttachTag,
+                    close:this.closeTagsSelection,
+                    open:this.state.showTagsSelection,   
+                    anchorEl:this.tags,
+                    origin:{vertical:"center",horizontal:"right"},
+                    point:{vertical:"center",horizontal:"right"},
+                    rootRef:this.props.rootRef
+                } as any
                 } 
             /> 
             <DeadlineCalendar  

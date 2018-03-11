@@ -7,6 +7,16 @@ body{
 } 
 
 
+.DraftEditor-root{
+  width:100% !important;
+}
+
+
+.public-DraftEditorPlaceholder-root {
+  color: rgba(100,100,100,0.6) !important;
+}
+
+
 #application{
   height:100%;
 }

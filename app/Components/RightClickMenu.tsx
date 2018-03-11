@@ -24,6 +24,7 @@ import { attachDispatchToProps, getCompletedWhen } from '../utils/utils';
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { generateId } from '../utils/generateId';
 import { assert } from '../utils/assert';
+import { noteFromState, getNotePlainTextFromRaw } from '../utils/draftUtils';
  
    
 
@@ -149,7 +150,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                     type : "todo",
                     title : c.text,  
                     priority : Math.random(),
-                    note : '',  
+                    note : noteFromState(null),  
                     checklist : [],
                     reminder : null,  
                     attachedTags : [], 
@@ -164,12 +165,12 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
         let layout : string[] = todos.map( (t:Todo) : string => t._id ); 
 
-        let converted : Project = {  
+        let converted : Project = {   
             _id : generateId(),  
             type : "project", 
             name : todo.title,   
-            description : todo.note, 
-            layout,  
+            description : getNotePlainTextFromRaw(todo.note), 
+            layout,   
             priority : todo.priority, 
             created : todo.created, 
             deadline : todo.deadline,

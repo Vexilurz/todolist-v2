@@ -11,7 +11,7 @@ export let generateEmptyTodo = (
     title : '', 
     priority, 
     reminder : null, 
-    note : '',
+    note : undefined,
     checklist : [],   
     attachedTags : [],
     attachedDate : selectedCategory==="today" ? new Date() : null,

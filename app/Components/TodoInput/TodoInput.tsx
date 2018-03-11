@@ -17,14 +17,18 @@ import Popover from 'material-ui/Popover';
 import ChecklistIcon from 'material-ui/svg-icons/action/assignment-turned-in'; 
 import NotesIcon from 'material-ui/svg-icons/action/subject'; 
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
-import { daysLeftMark, isToday, getMonthName, getCompletedWhen, getTime, setTime, isNotNil, different, isNotEmpty } from '../../utils/utils'; 
+import { daysLeftMark, isToday, getMonthName, getCompletedWhen, getTime, setTime, isNotNil, different, isNotEmpty, log } from '../../utils/utils'; 
 import { Todo, Project, Group } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
 import { TodoTags } from './TodoTags';
 import { TagsPopup } from './TagsPopup';
 import { TodoInputLabel } from './TodoInputLabel'; 
-import { uniq, isEmpty, contains, isNil, not, multiply, remove, cond, equals, any, complement } from 'ramda';
+import { 
+    uniq, isEmpty, contains, isNil, not, multiply, remove, cond, ifElse,
+    equals, any, complement, compose, defaultTo, path, first, prop, always,
+    identity
+} from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
@@ -40,12 +44,32 @@ import { stringToLength } from '../../utils/stringToLength';
 import { assert } from '../../utils/assert';
 import { debounce } from 'lodash';    
 import TextareaAutosize from 'react-autosize-textarea';
+import {Tooltip,withTooltip} from 'react-tippy';
+import {shell} from 'electron'; 
+import Editor from 'draft-js-plugins-editor';
+import {
+    convertToRaw,
+    convertFromRaw,
+    CompositeDecorator,
+    ContentState,
+    EditorState,
+    RichUtils
+} from 'draft-js';
+import createLinkifyPlugin from 'draft-js-linkify-plugin';
+import 'draft-js/dist/Draft.css';
+import { noteToState, noteFromState, RawDraftContentState, getNotePlainText } from '../../utils/draftUtils';
+
+
+const linkifyPlugin = createLinkifyPlugin({
+    component:(props) => {
+      const {contentState, ...rest} = props;
+      return <a {...rest} onClick={() => shell.openExternal(rest.href)}/>
+    }
+});
 let moment = require("moment"); 
 let Promise = require('bluebird'); 
-import {Tooltip,withTooltip} from 'react-tippy';
-let ContentEditable = require('react-contenteditable');
-let Autolinker = require( 'autolinker' );
- 
+
+
 export interface TodoInputProps{ 
     dispatch : Function,  
     groupTodos : boolean,  
@@ -71,6 +95,7 @@ export interface TodoInputState{
     tag : string, 
     translateX : number,
     display : string,
+    editorState : any,
     animatingSlideAway : boolean,
     showAdditionalTags : boolean, 
     showDateCalendar : boolean,  
@@ -82,8 +107,7 @@ export interface TodoInputState{
     deadline : Date,
     category : Category,
     checklist : ChecklistItem[],
-    title : string,
-    note : string
+    title : string
 }   
 
 
@@ -95,7 +119,45 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     ref:HTMLElement; 
     inputRef:HTMLElement; 
     subscriptions:Subscription[]; 
- 
+
+
+    componentWillReceiveProps(nextProps:TodoInputProps){
+        let notEquals = complement(equals);
+        let { open } = this.state;
+        let closed = not(open);
+
+        if(notEquals(nextProps.todo, this.props.todo) && closed){
+            let {attachedDate,deadline,category,checklist,title, note} = nextProps.todo;
+            this.setState({
+               attachedDate, 
+               deadline, 
+               category, 
+               checklist, 
+               title, 
+               editorState:noteToState(note)
+            });
+        }
+    };
+
+
+    onClose = () => {
+        let {dispatch,onClose,todo} = this.props;
+        let {attachedDate,deadline,category,title,editorState,checklist} = this.state;
+
+        this.update({
+            attachedDate,
+            deadline,
+            category,
+            title,
+            note:noteFromState(editorState),
+            checklist
+        });
+
+        if(isFunction(onClose)){ onClose() } 
+    };
+
+
+
     constructor(props){
         super(props);  
 
@@ -107,6 +169,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             open:false,
             tag:'', 
             translateX:0,
+            editorState:noteToState(note),
             animatingSlideAway:false,
             display:"flex",
             showAdditionalTags:false, 
@@ -119,8 +182,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             attachedDate,
             deadline,
             category,
-            title, 
-            note
+            title
         };        
     };
 
@@ -177,20 +239,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         .then(() => this.update({reminder})); 
     }; 
 
-  
-    
-    componentWillReceiveProps(nextProps:TodoInputProps){
-        let notEquals = complement(equals);
-        let { open } = this.state;
-        let closed = not(open);
 
-        if(notEquals(nextProps.todo, this.props.todo) && closed){
-           let {attachedDate,deadline,category,checklist,title,note} = nextProps.todo;
-           this.setState({attachedDate, deadline, category, checklist, title, note});
-        }
-    };
-
-    
     
     onCalendarThisEveningClick = (e) => {
         e.stopPropagation();
@@ -243,22 +292,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onRemoveReminderClick = () : void => {
         let {dispatch, todo} = this.props;
         if(isNil(todo.reminder)){ return }
-
         this.update({reminder:null}); 
     };
 
+    
 
-  
-    onClose = () => {
-        let {dispatch,onClose,todo} = this.props;
-        let {attachedDate,deadline,category,title,note,checklist} = this.state;
-        this.update({attachedDate,deadline,category,title,note,checklist});
-
-        if(isFunction(onClose)){ onClose() } 
-    };
-
-
-       
     onWindowEnterPress = (e) => {  
         if(e){ if(e.keyCode!==13){ return } }
 
@@ -355,7 +393,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             
             Observable
             .fromEvent(window,"beforeunload")
-            .do(() => console.log('unload'))
             .subscribe(this.saveOnUnmount)
         ); 
     };        
@@ -372,12 +409,13 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     saveOnUnmount = () => {
         let {dispatch,todo} = this.props;
-        let {attachedDate,deadline,category,title,note,checklist} = this.state;
+        let {attachedDate,deadline,category,title,editorState,checklist} = this.state;
+        let note = noteFromState(editorState);
         let shouldSave = false;
 
         if(
             any(
-                (t:boolean) => t,
+                identity,
                 [
                     different(todo.attachedDate,attachedDate),
                     different(todo.deadline,deadline),
@@ -419,7 +457,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            this.preventDragOfThisItem(); 
         }else{ 
            this.enableDragOfThisItem(); 
-        }  
+        }   
     };   
 
 
@@ -444,8 +482,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     
 
 
-    onNoteChange = (event) : void => this.updateState({note:event.target.value});
-    
+    onNoteChange = (editorState) : void => this.updateState({editorState}); 
+      
     
 
     updateChecklist = (checklist:ChecklistItem[]) : void => this.updateState({checklist});
@@ -615,7 +653,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let {selectedCategory, id, rootRef, todo} = this.props; 
         let { 
             open,showChecklist,showDateCalendar,animatingSlideAway,showTags, 
-            category,deadline,checklist,attachedDate,title,note
+            category,deadline,checklist,attachedDate,title
         } = this.state;
 
         
@@ -696,7 +734,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     attachedDate={attachedDate}
                     deadline={deadline}
                     title={title}
-                    note={note} 
+                    haveNote={compose(isNotEmpty, getNotePlainText)(this.state.editorState)}
                 />  
                 {    
                     not(open) ? null :    
@@ -710,10 +748,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         closeTags={() => this.setState({showTags:false})}
                         showChecklist={showChecklist}
                         showTags={showTags}
-                        _id={todo._id}
-                        note={note}
+                        _id={todo._id} 
                         checklist={checklist}
                         attachedTags={todo.attachedTags}
+                        editorState={this.state.editorState}
                     /> 
                 }  
             </div>   
@@ -942,7 +980,7 @@ interface TodoInputTopLevelProps{
     checklist:ChecklistItem[],
     group:Group, 
     attachedTags:string[],
-    note:string, 
+    haveNote:boolean, 
     deadline:Date,
     rootRef:HTMLElement,
 
@@ -981,8 +1019,8 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
             checklist,
             group, 
             attachedTags,
-            note, 
-            deadline
+            deadline,
+            haveNote
         } = this.props;  
 
         return <div 
@@ -1114,7 +1152,7 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                                             </div>
                                         } 
                                         {
-                                            isNil(note) || isEmpty(note) ? null :
+                                            not(haveNote) ? null :
                                             <div style={{paddingRight:"4px",height:"18px"}}>  
                                                 <NotesIcon style={{width:18,height:18,paddingTop:"2px",color:"rgba(100,100,100,0.3)"}}/>  
                                             </div>
@@ -1165,24 +1203,18 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
 
 
 
-
-
-
-
-
-
 interface TodoInputMiddleLevelProps{
     onNoteChange:Function, 
     updateChecklist:Function, 
     closeChecklist:() => void,
     closeTags:() => void,
     open:boolean,
+    editorState:any,
     onAttachTag:(tag:string) => void,
     onRemoveTag:(tag:string) => void,
     showChecklist:boolean,
     showTags:boolean,
     _id:string,
-    note:string,
     checklist:ChecklistItem[],
     attachedTags:string[]
 } 
@@ -1203,7 +1235,6 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
             onAttachTag,
             onRemoveTag,
             _id,
-            note,
             checklist,
             attachedTags,
             showTags
@@ -1215,31 +1246,26 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
             paddingLeft:"25px", 
             paddingRight:"25px"
         }}>    
-            <div style={{display:"flex",paddingTop:"10px",paddingBottom:"10px"}}>
-                <ContentEditable
-                    id={`note-${_id}`}  
-                    html={ Autolinker.link( note )  } 
-                    disabled={false}       
+            <div style={{
+                display:"flex",
+                paddingTop:"10px", 
+                fontSize:'14px',
+                color:'rgba(10,10,10,0.9)',
+                paddingBottom:"10px"
+            }}>
+                <Editor
+                    editorState={this.props.editorState}
                     onChange={this.props.onNoteChange as any} 
-                    style={{
-                        resize:"none",
-                        marginTop:"-4px",
-                        width:"100%",
-                        fontSize:"14px", 
-                        padding:"0px",
-                        cursor:"default", 
-                        position:"relative", 
-                        border:"none",
-                        outline:"none",
-                        backgroundColor:"rgba(0, 0, 0, 0)",
-                        color:"rgba(0, 0, 0, 0.87)" 
-                    }}
-                    onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
+                    plugins={[linkifyPlugin]} 
+                    keyBindingFn={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
+                    placeholder="Note"
                 />
-                {/*<TextareaAutosize
+                { 
+                /*
+                <TextareaAutosize
                     id={`note-${_id}`}  
                     placeholder="Notes"
-                    onChange={this.props.onNoteChange as any} 
+                    onChange={this.props.onNoteChange as any}  //this.updateState({note:event.target.value})
                     style={{
                         resize:"none",
                         marginTop:"-4px",
@@ -1255,7 +1281,9 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
                     }}
                     onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
                     value={note} 
-                />*/}
+                />
+                */
+               }
             </div> 
             {    
                 not(showChecklist) ? null : 
@@ -1281,7 +1309,7 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
             } 
         </div>   
     } 
-} 
+}  
 
 
 
@@ -1328,14 +1356,13 @@ export class DueDate extends Component<DueDateProps,{}>{
 
 
         if(isNil(completed) && showSomeday){
-
             return <div style={{height:"18px",marginTop:"-2px"}}>
                 <BusinessCase style={{...style,color:"burlywood"}}/>
-            </div>
-
+            </div>; 
         }else if(
             isNotNil(date) && 
             selectedCategory!=="logbook" && 
+            selectedCategory!=="search" &&
             selectedCategory!=="upcoming" &&
             selectedCategory!=="today"
         ){
@@ -1355,10 +1382,9 @@ export class DueDate extends Component<DueDateProps,{}>{
                         <div>{day}</div>
                     </div> 
                 </div>
-            </div>  
-
-        }else if(isNotNil(completed) && selectedCategory==="logbook"){
-
+            </div>;  
+ 
+        }else if(isNotNil(completed) && ( selectedCategory==="logbook" || selectedCategory==="search" )){ 
             let month = getMonthName(completed);
             let day = completed.getDate(); 
 
@@ -1377,18 +1403,18 @@ export class DueDate extends Component<DueDateProps,{}>{
                 }}>      
                     <div style={{display:"flex",alignItems:"center",fontSize:"12px"}}>      
                         {
-                          isToday(completed) ? 
-                          <div>Today</div> :  
-                          <div style={{display:"flex",padding:"5px",alignItems:"center",fontSize:"12px"}}>    
+                            isToday(completed) ? 
+                            <div style={{display:"flex",padding:"5px",alignItems:"center",fontSize:"12px"}}>Today</div> :  
+                            <div style={{display:"flex",padding:"5px",alignItems:"center",fontSize:"12px"}}>    
                                 <div style={{paddingRight:"5px"}}>{month.slice(0,3)+'.'}</div>  
                                 <div>{day}</div>
-                          </div>
-                        }  
+                            </div>
+                        }   
                     </div>  
                 </div>
-            </div> 
+            </div>; 
         }else{
-            return null
+            return null;
         }
     }
 }

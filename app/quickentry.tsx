@@ -78,9 +78,36 @@ import PieChart from 'react-minimal-pie-chart';
 import { AutoresizableText } from './Components/AutoresizableText';
 import { getProgressStatus } from './Components/Project/ProjectLink';
 import { stringToLength } from './utils/stringToLength';
+import Editor from 'draft-js-plugins-editor';
+import {shell} from 'electron'; 
+import {
+    convertToRaw,
+    convertFromRaw,
+    CompositeDecorator,
+    ContentState,
+    EditorState,
+    RichUtils
+} from 'draft-js';
+import createLinkifyPlugin from 'draft-js-linkify-plugin';
+import 'draft-js/dist/Draft.css';
+import { 
+    noteToState, noteFromState, RawDraftContentState, getNotePlainText,
+} from './utils/draftUtils';
+
+
+const linkifyPlugin = createLinkifyPlugin({
+    component:(props) => {
+      const {contentState, ...rest} = props;
+      return <a {...rest} onClick={() => shell.openExternal(rest.href)}/>
+    }
+});
+
+
 injectTapEventPlugin();  
 
+
 let isNotEmpty = complement(isEmpty);
+
 
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
@@ -119,13 +146,14 @@ ipcRenderer.once(
 );   
 
 
+
 interface QuickEntryState{
     project:any,
     projects:any[],
     todos:any[],
     category:string,
     title:string,  
-    note:string, 
+    editorState:any,
     deadline:Date,
     deleted:Date,
     attachedDate:Date, 
@@ -141,10 +169,12 @@ interface QuickEntryState{
 }   
   
 
+
 interface QuickEntryProps{
     config:Config
 }    
-  
+ 
+
 
 class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     calendar:HTMLElement; 
@@ -168,9 +198,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             project:null,
             tag:'',
             category:'', 
-            title:'',
-            note:'',  
+            title:'', 
             projects:[],
+            editorState:noteToState(null),
             todos:[],
             deadline:undefined, 
             deleted:undefined, 
@@ -208,6 +238,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
     tagsFromTodos = (todos:any[]) => flatten(todos.map((todo) => todo.attachedTags));
 
+
     resize = () => {
         let target = document.getElementById('application');
         let checklist = document.getElementById('checklist');
@@ -217,6 +248,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
         checklist.style.height=`${window.innerHeight/2}px`;
     };
+
 
     componentDidMount(){
         this.resize(); 
@@ -257,11 +289,11 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     }
 
 
-    stateFromTodo = (state,todo) => ({   
+    stateFromTodo = (state,todo) : QuickEntryState => ({   
         ...state,
         category:todo.category, 
         title:todo.title,
-        note:todo.note,  
+        editorState:noteToState(todo.note),
         reminder:todo.reminder, 
         deadline:todo.deadline, 
         deleted:todo.deleted, 
@@ -274,10 +306,10 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     todoFromState = () : any => ({
         _id:generateId(),
         category:this.state.category as any, 
-        type:"todo",
+        type:"todo", 
         title:this.state.title,
         priority:0,
-        note:this.state.note,  
+        note:noteFromState(this.state.editorState),  
         checklist:this.state.checklist,
         deadline:this.state.deadline, 
         created:new Date(),
@@ -351,21 +383,30 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         this.setState({attachedTags:remove(idx,1,attachedTags)})
     }; 
 
-    onNoteChange = (event) : void => this.setState({note:event.target.value});
+
+    onNoteChange = (editorState) : void => this.setState({editorState}); 
+
 
     onTitleChange = (event:any) : void => this.setState({title:event.target.value});  
 
+
     onChecklistButtonClick = (e) => this.setState({showChecklist:true});
+
       
     onFlagButtonClick = (e) => this.setState({showDeadlineCalendar:true}, () => this.setBigSize());
 
+
     closeDeadlineCalendar = () => this.setState({showDeadlineCalendar:false}, () => this.setSmallSize());
+
  
     onCalendarButtonClick = (e) => this.setState({showDateCalendar:true}, () => this.setBigSize());
+
     
     closeDateCalendar = () => this.setState({showDateCalendar:false}, () => this.setSmallSize());
 
+
     onTagsButtonClick = (e) => this.setState({showTagsSelection:true, showTags:true});
+
 
     closeTagsSelection = (e) => this.setState({showTagsSelection:false});
 
@@ -375,13 +416,11 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         let {project,category,deadline,attachedDate} = this.state;
 
         if(isDate(deadline) || isDate(attachedDate) || isProject(project)){
-
             if(isToday(deadline) || isToday(attachedDate)){
                 return "today"; 
             }else{ 
                 return "next";
             }
-            
         }else{
             return "inbox"; 
         }
@@ -491,26 +530,35 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                 /> 
             </div> 
             <div style={{paddingTop:"10px"} as any}>  
-                <TextareaAutosize
-                    id={`always-note`}  
-                    value={this.state.note} 
-                    placeholder="Notes"
-                    onChange={this.onNoteChange}
-                    style={{
-                        resize:"none",
-                        marginTop:"-4px",
-                        width:"100%",
-                        fontSize:"14px",
-                        padding:"0px",
-                        cursor:"default", 
-                        position:"relative", 
-                        border:"none",
-                        outline:"none",
-                        backgroundColor:"rgba(0, 0, 0, 0)",
-                        color:"rgba(0, 0, 0, 0.87)" 
-                    }}
-                    onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); }}}
-                /> 
+            <Editor
+                editorState={this.state.editorState}
+                onChange={this.onNoteChange}
+                plugins={[linkifyPlugin]} 
+                keyBindingFn={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
+                placeholder="Note"
+            />
+            {
+            /*<TextareaAutosize
+                id={`always-note`}  
+                value={this.state.note} 
+                placeholder="Notes"
+                onChange={this.onNoteChange}
+                style={{
+                    resize:"none",
+                    marginTop:"-4px",
+                    width:"100%",
+                    fontSize:"14px",
+                    padding:"0px",
+                    cursor:"default", 
+                    position:"relative", 
+                    border:"none",
+                    outline:"none",
+                    backgroundColor:"rgba(0, 0, 0, 0)",
+                    color:"rgba(0, 0, 0, 0.87)" 
+                }}
+                onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); }}}
+            />*/
+            }
             </div>
                 <div 
                 ref={(e) => {this.checklist=e;}} 

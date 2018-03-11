@@ -52,7 +52,19 @@ import { Subscription } from 'rxjs/Rx';
 import PieChart from 'react-minimal-pie-chart';
 import { TodoInput } from './TodoInput/TodoInput';
 import { Tags } from './Tags';
-import { isArray, isString } from '../utils/isSomething';
+import { isArray, isString, isDate, isNotDate } from '../utils/isSomething';
+import { chooseIcon } from '../utils/chooseIcon';
+import { FadeBackgroundIcon } from './FadeBackgroundIcon';
+
+let sortByCompletedOrNot = (a:Todo,b:Todo) => {
+    if(isDate(a.completedSet) && isNotDate(b.completedSet)){
+        return 1; 
+    }else if(isDate(b.completedSet) && isNotDate(a.completedSet)){
+        return -1; 
+    }else{
+        return 0;
+    }
+};
 
 
 let getProjectHeading = (project:Project, todos:Todo[]) : JSX.Element => {
@@ -283,7 +295,8 @@ export class Search extends Component<SearchProps,SearchState>{
         }
  
         return result;
-    } 
+    }; 
+
 
 
     getSuggestions = (todos:Todo[], projects:Project[], areas:Area[]) : {
@@ -343,62 +356,62 @@ export class Search extends Component<SearchProps,SearchState>{
                      .filter(({project,todos}) => isNil(todos) ? false : !isEmpty(todos)),
             detached  
         } 
-    }   
+    };   
+
+
  
+    getTodoComponent = (todo:Todo,index:number) : JSX.Element => {
+
+        return <div key={`todo-${index}`}>
+            <TodoInput        
+                id={todo._id} 
+                key={todo._id} 
+                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                selectedTodo={this.props.selectedTodo}
+                groupTodos={this.props.groupTodos}
+                projects={this.props.projects}  
+                dispatch={this.props.dispatch}  
+                selectedProjectId={this.props.selectedProjectId}
+                selectedAreaId={this.props.selectedAreaId} 
+                todos={this.props.todos}
+                selectedCategory={this.props.selectedCategory} 
+                rootRef={document.getElementById("maincontainer")}  
+                todo={todo}
+            />   
+        </div>
+    };
+
+
 
     suggestionToComponent = (
         projectWithTodos:{project:Project,todos:Todo[]}, 
         index:number, 
         attachedTodos:Todo[]
     ) => {
-        let {areas, projects, dispatch, groupTodos} = this.props;
+        let {areas, projects, dispatch} = this.props;
         let {project} = projectWithTodos;
          
-        return <div>
-            {groupTodos ? <div>{getProjectHeading(project,attachedTodos)}</div> : null}
+        return <div key={`attached-${index}`}>
+            <div>{getProjectHeading(project,attachedTodos)}</div>
             {
-                projectWithTodos.todos
-                .map(
-                    (todo:Todo,index:number) : JSX.Element => 
-                        <div key={`todo-${index}`}>
-                            <TodoInput        
-                                id={todo._id} 
-                                key={todo._id} 
-                                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                                selectedTodo={this.props.selectedTodo}
-                                groupTodos={this.props.groupTodos}
-                                projects={this.props.projects}  
-                                dispatch={this.props.dispatch}  
-                                selectedProjectId={this.props.selectedProjectId}
-                                selectedAreaId={this.props.selectedAreaId} 
-                                todos={this.props.todos}
-                                selectedCategory={this.props.selectedCategory} 
-                                rootRef={document.getElementById("maincontainer")}  
-                                todo={todo}
-                            />   
-                        </div>  
-                )
+                projectWithTodos
+                .todos
+                .sort(sortByCompletedOrNot)
+                .map(this.getTodoComponent)
             } 
         </div>  
-    } 
+    };  
 
+    
 
     onEnter = ({ previousPosition, currentPosition }) => this.limitReached ? 
                                                          null : 
-                                                         this.setState({limit:this.state.limit + 20})
+                                                         this.setState({limit:this.state.limit + 20});
  
- 
+
+
     render(){
         let {todos, projects, areas, dispatch, selectedTag, groupTodos, selectedCategory} = this.props; 
-      
-        let selectedTodos = filter(todos, allPass([byNotDeleted,byTags(selectedTag)]), "");
-        let selectedProjects = filter(projects, byNotDeleted, "");
-        let selectedAreas = filter(areas, byNotDeleted, "");
-
-        let suggestions = this.getSuggestions(selectedTodos,selectedProjects,selectedAreas);
-        let ids = flatten(selectedProjects.map((p) => p.layout.filter(isString))) as string[];
-        let attachedTodos = filter(selectedTodos, (todo:Todo) => contains(todo._id)(ids), "");
-
         let noresults = { 
             fontSize:"18px",
             userSelect:"none",
@@ -408,23 +421,37 @@ export class Search extends Component<SearchProps,SearchState>{
             alignItems:"center",
             justifyContent:"center" 
         };  
+      
+        let selectedTodos = filter(todos, allPass([byNotDeleted,byTags(selectedTag)]));
+        let selectedProjects = filter(projects, byNotDeleted);
+        let selectedAreas = filter(areas, byNotDeleted);
+        let suggestions = this.getSuggestions(selectedTodos,selectedProjects,selectedAreas);
 
-        let allTodos = flatten([suggestions.detached, suggestions.attached.map(i => i.todos)]);
-        let tags = getTagsFromItems(allTodos); 
-    
+        let ids = flatten(selectedProjects.map((p) => p.layout.filter(isString))) as string[];
+
+        let attachedTodos = compose(
+           (todos) => todos.sort(sortByCompletedOrNot),
+           (todos) => filter(todos, (todo:Todo) => contains(todo._id)(ids))
+        )(selectedTodos);
+
+        let searchedTodos = flatten([suggestions.detached, suggestions.attached.map(i => i.todos)]);
+        let tags = getTagsFromItems(searchedTodos); 
+
         return <div id={`${selectedCategory}-list`}>   
-            <div 
-                style={{
-                    fontSize:"xx-large", 
-                    paddingBottom:"10px", 
-                    fontWeight:600, 
-                    textAlign:"center", 
-                    userSelect:"none",   
+            <div style={{ display:"flex", position:"relative", alignItems:"center", marginBottom:"20px"}}>   
+                <div style={{ zoom:"0.8", display:"flex", alignItems:"center" }}>
+                    {chooseIcon({width:"45px", height:"45px"}, selectedCategory)}
+                </div> 
+                <div style={{  
+                    fontFamily: "sans-serif",   
+                    fontSize: "xx-large",
+                    fontWeight: 600,
+                    paddingLeft: "10px", 
                     cursor:"default" 
-                }} 
-            >     
-                Search results
-            </div>  
+                }}>   
+                    Search results 
+                </div>  
+            </div> 
             <div className="no-print" style={{paddingTop:"15px", paddingBottom:"15px"}}>
                 <Tags  
                     selectTag={(tag) => dispatch({type:"selectedTag", load:tag})}
@@ -440,39 +467,26 @@ export class Search extends Component<SearchProps,SearchState>{
                 null
             }
             <div> 
-                {         
-                    suggestions.attached.map(
-                        ( projectWithTodos:{ project:Project, todos:Todo[] }, index ) => 
-                            <div key={`attached-${index}`}>
-                                {this.suggestionToComponent(projectWithTodos,index,attachedTodos)} 
-                            </div>  
-                    )  
-                } 
-                <div style={{paddingTop:groupTodos ? "20px" : "0px"}}>
-                {
-                    suggestions.detached 
-                    .map( 
-                        (todo:Todo,index:number) : JSX.Element => 
-                            <div key={`detached-${index}`}>
-                                <TodoInput         
-                                    id={todo._id} 
-                                    key={todo._id} 
-                                    projects={this.props.projects}  
-                                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                                    groupTodos={this.props.groupTodos}
-                                    dispatch={this.props.dispatch}  
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    selectedAreaId={this.props.selectedAreaId} 
-                                    todos={this.props.todos}  
-                                    selectedTodo={this.props.selectedTodo}
-                                    selectedCategory={this.props.selectedCategory} 
-                                    rootRef={document.getElementById("maincontainer")}  
-                                    todo={todo}
-                                />   
-                            </div> 
-                    )   
-                }
-            </div>
+            { 
+                not(groupTodos) ?
+                searchedTodos.sort(sortByCompletedOrNot).map(this.getTodoComponent) :
+                <div>
+                    <div> 
+                        {
+                            suggestions
+                            .attached
+                            .map((data,index) => this.suggestionToComponent(data,index,attachedTodos))
+                        } 
+                    </div>
+                    <div style={{paddingTop:"20px"}}>
+                        {
+                            suggestions.detached 
+                            .sort(sortByCompletedOrNot)
+                            .map(this.getTodoComponent)   
+                        }
+                    </div>
+                </div>
+            }
             </div>
             <div className="no-print" style={{width:"100%", height:"1px"}}> 
                 <Waypoint  

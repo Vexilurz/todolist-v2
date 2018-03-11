@@ -89,11 +89,13 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
     }  
     
     
+    
     init = (props:LogbookProps) => {
         let groups : (Todo | Project)[][] = this.groupByMonth(props);
         return groups;
     } 
  
+
 
     groupByMonth = (props:LogbookProps) : (Todo | Project)[][] => {  
  
@@ -185,7 +187,6 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                     .sort(sortByCompleted)
                     .map(  
                         (value:Todo|Project,index) => 
-
                         <div  
                           key={value._id}
                           style={{position:"relative", marginTop:"5px", marginBottom:"5px"}}

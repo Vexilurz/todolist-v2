@@ -10,7 +10,8 @@ import { isNil, all, map, isEmpty, not } from 'ramda';
 import { isDev } from './utils/isDev';
 import { assert } from './utils/assert';
 import { isArea, isString, isProject, isTodo } from './utils/isSomething';
-import {debounce} from 'lodash';
+import { RawDraftContentState } from './utils/draftUtils';
+import { debounce } from 'lodash';
 import { RepeatOptions } from './Components/RepeatPopup';
 
 let uniqid = require("uniqid"); 
@@ -66,9 +67,7 @@ export interface Heading{
 };
 
 
-
 export type LayoutItem = string | Heading;
-
 
 
 export interface Project{
@@ -116,7 +115,7 @@ export interface Todo{
   type : ObjectType,
   title : string,
   priority : number,
-  note : string,  
+  note : RawDraftContentState,  
   checklist : ChecklistItem[],
   reminder : Date,  
   deadline : Date,

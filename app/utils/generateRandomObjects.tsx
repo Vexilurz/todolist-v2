@@ -11,6 +11,7 @@ import { uniq, splitEvery, contains, isNil, not } from 'ramda';
 import { generateId } from './generateId';
 import { isString } from './isSomething';
 import { assert } from './assert';
+import { noteFromText } from './draftUtils';
 const randomWord = require('random-word');
 let uniqid = require("uniqid"); 
  
@@ -116,7 +117,7 @@ export let fakeTodo = (tags:string[], remind = null) : Todo => {
         category:randomCategory(), 
         title:title.join(' '), 
         priority:Math.random()*999999999,
-        note:note.join(' '), 
+        note:noteFromText(note.join(' ')), 
         checklist:checklist,   
         reminder:null,  
         attachedTags:tags,   

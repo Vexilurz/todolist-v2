@@ -17,9 +17,10 @@ export let initWindow = (
             center:true,
             frame:true, 
             ...options
-    });                
+    });                 
  
     handler.on('ready-to-show',() => onReady(handler));
+
     handler.on(
         'close', 
         (event) => {
@@ -31,7 +32,9 @@ export let initWindow = (
             }  
         }
     );
+
     handler.on('closed', () => {handler = null;}); 
+
     return handler; 
 };         
 
