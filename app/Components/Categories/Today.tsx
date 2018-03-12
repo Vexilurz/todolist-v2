@@ -6,7 +6,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, byNotCompleted, byNotDeleted, getTagsFromItems, 
     generateDropStyle,  keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, 
-    sameDay, byTags, byCategory, isNotNil
+    sameDay, byTags, byCategory, isNotNil, measureTime
 } from "../../utils/utils";  
 import { connect } from "react-redux";
 import { Todo, Project, Area, Calendar } from '../../database'; 
@@ -201,10 +201,10 @@ export class Today extends Component<TodayProps,TodayState>{
                item.priority=i; 
             }
            
-           load.push(item);
+            load.push(item);
         }
-
-        this.props.dispatch({type:"updateTodos", load});
+ 
+        console.log(`updateTodos ${measureTime(() =>  this.props.dispatch({type:"updateTodos", load}) )}`);
     };
 
 
@@ -294,7 +294,7 @@ export class Today extends Component<TodayProps,TodayState>{
         assert(isTodo(draggedTodo), `draggedTodo is not of type Todo. onSortEnd. ${draggedTodo}`);
 
 
-        dispatch({type:"dragged",load:null});
+        //dispatch({type:"dragged",load:null});
         
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
@@ -313,10 +313,10 @@ export class Today extends Component<TodayProps,TodayState>{
                dispatch({type:"updateTodo", load:updated.todo});
             }
         }else{     
-
+ 
             if(oldIndex===newIndex){ return }
 
-            this.changeOrder(oldIndex,newIndex,items);  
+            console.log(`changeOrder ${measureTime(() => this.changeOrder(oldIndex,newIndex,items))}`);  
         }     
     };   
     

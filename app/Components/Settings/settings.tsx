@@ -861,16 +861,14 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         let remRev = compose(map(removeRev), defaultTo([])); 
 
         return  closeClonedWindows()
-                .then(() => destroyEverything())
+                .then(() => destroyEverything()) 
                 .then(() => initDB())
-                .then(() =>  
-                    Promise.all([  
-                        addTodos(this.onError, remRev(todos)),      
-                        addProjects(this.onError, remRev(projects)), 
-                        addAreas(this.onError, remRev(areas)),
-                        addCalendars(this.onError, remRev(calendars))
-                    ])   
-                ) 
+                .then(() => Promise.all([  
+                    addTodos(this.onError, remRev(todos)),      
+                    addProjects(this.onError, remRev(projects)), 
+                    addAreas(this.onError, remRev(areas)),
+                    addCalendars(this.onError, remRev(calendars))
+                ])) 
                 .then(() => getData(limit,this.onError,this.limit))  
                 .then(
                     ({projects, areas, todos, calendars}) => this.setData({

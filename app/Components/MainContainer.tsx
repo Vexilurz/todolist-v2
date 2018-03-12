@@ -58,6 +58,7 @@ import { generateRandomDatabase } from '../utils/generateRandomObjects';
 import { updateConfig, clearStorage } from '../utils/config';
 import { isNotArray, isDate, isTodo, isString } from '../utils/isSomething';
 import { debounce } from 'lodash';
+import { noteFromText } from '../utils/draftUtils';
 const Promise = require('bluebird');   
 const moment = require("moment");  
 
@@ -68,10 +69,19 @@ export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" |
 
 
 export let filter = (array:any[],f:Function,caller?:string) : any[] => lodashFilter(array,f); 
+ 
 
+let isMainWindow = () => { 
+    return remote.getCurrentWindow().id===1;
+}
+  
 
-let isMainWindow = () => remote.getCurrentWindow().id===1;
-
+let assureCorrectNoteType : (todo:Todo) => Todo = 
+    when(
+        compose(isString, prop('note')), 
+        evolve({note:noteFromText}) 
+    );
+    
 
 export let getData = (limit:Date,onError:Function,max:number) : Promise<{
     projects:Project[],
@@ -82,10 +92,12 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
     getDatabaseObjects(onError,max)
     .then(
         compose(
-            evolve({
+            evolve({ 
                 projects:map(convertProjectDates),
                 areas:map(convertAreaDates),
-                todos:map(convertTodoDates), //selectTodosByLimit(limit)(projects, todos);
+                todos:map( 
+                    compose(assureCorrectNoteType, convertTodoDates)
+                ),  
             }),
             ([calendars,projects,areas,todos]) => ({calendars,projects,areas,todos})
         )

@@ -12,7 +12,7 @@ import Logbook from 'material-ui/svg-icons/av/library-books';
 import { merge, isNil, not } from 'ramda';
 import { Category } from '../MainContainer';
 import { assert } from '../../utils/assert';
-import { isNotNil } from '../../utils/utils';
+import { isNotNil, anyTrue } from '../../utils/utils';
 
 
 let Hot = (hot:number) : JSX.Element => 
@@ -211,6 +211,35 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
     constructor(props){
         super(props);
+    }
+
+
+    shouldComponentUpdate(nextProps:LeftPanelMenuProps){
+        let {
+            dragged, dispatch, selectedCategory,
+            inbox, today, hot,
+            logbook, trash 
+        } = nextProps;
+
+
+        let draggedChanged =  dragged!==this.props.dragged;
+        let selectedCategoryChanged =  selectedCategory!==this.props.selectedCategory
+        let inboxChanged =  inbox!==this.props.inbox
+        let todayChanged =  today!==this.props.today
+        let hotChanged =  hot!==this.props.hot
+        let logbookChanged =  logbook!==this.props.logbook
+        let trashChanged =  trash!==this.props.trash
+  
+
+        return anyTrue([
+            draggedChanged,
+            selectedCategoryChanged,
+            inboxChanged,
+            todayChanged,
+            hotChanged,
+            logbookChanged,
+            trashChanged 
+        ]);
     }
     
 

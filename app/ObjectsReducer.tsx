@@ -10,7 +10,7 @@ import { isDev } from './utils/isDev';
 import { ipcRenderer, remote } from 'electron';
 import { 
     removeDeletedProjects, removeDeletedAreas, removeDeletedTodos, byNotDeleted, isMainWindow, 
-    isNotNil, typeEquals, inFuture, byNotCompleted 
+    isNotNil, typeEquals, inFuture, byNotCompleted, measureTime 
 } from './utils/utils';
 import { 
     adjust, cond, all, isEmpty, contains, not, remove, uniq, 
@@ -84,44 +84,43 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                                           actionOriginIsThisWindow(action);
 
     
-    let shouldUpdateOtherInstances : boolean = actionOriginIsThisWindow(action);
-
-
-    let shouldRefreshReminders : boolean = cond([
-        [ typeEquals("updateTodoById"), compose(isDate, path(['load','props','reminder'])) ],
-        [ typeEquals("setTodos"), (action:{type:string,load:Todo[]}) => true ],
-        [ typeEquals("removeGroup"), (action:{type:string, load:string})  => true ],
-        [ typeEquals("removeDeleted"), (action:{type:string}) => false ],
-        [ typeEquals("addTodo"), compose(isDate, path(['load','reminder'])) ],
-        [ typeEquals("updateTodos"), (action:{type:string, load:Todo[]}) => true ],
-        [
-            typeEquals("updateTodo"),
-            (action:{type:string, load:Todo}) => {
-                let todo : Todo = action.load; 
-                let previous : Todo = state.todos.find((t:Todo) => t._id===todo._id);
-
-                return notEquals(
-                    prop(`reminder`,todo),
-                    prop(`reminder`,previous)
-                );
-            }
-        ],
-        [() => true, () => false]
-    ])(action);
-
 
     let refreshReminders = (newState:Store) : Store => {
         let hasReminder = compose(isDate,prop('reminder'));
         let reminderInFuture = compose(inFuture,prop('reminder'));
-         
         let initial = typeEquals("setTodos")(action);
         let filters = [byNotCompleted,byNotDeleted];
+
 
         if(initial){ 
            filters.push(hasReminder); 
         }else{
            filters.push(reminderInFuture); 
         }
+
+
+        let shouldRefreshReminders : boolean = cond([
+            [ typeEquals("updateTodoById"), compose(isDate, path(['load','props','reminder'])) ],
+            [ typeEquals("setTodos"), (action:{type:string,load:Todo[]}) => true ],
+            [ typeEquals("removeGroup"), (action:{type:string, load:string})  => true ],
+            [ typeEquals("removeDeleted"), (action:{type:string}) => false ],
+            [ typeEquals("addTodo"), compose(isDate, path(['load','reminder'])) ],
+            [ typeEquals("updateTodos"), (action:{type:string, load:Todo[]}) => true ],
+            [
+                typeEquals("updateTodo"),
+                (action:{type:string, load:Todo}) => {
+                    let todo : Todo = action.load; 
+                    let previous : Todo = state.todos.find((t:Todo) => t._id===todo._id);
+    
+                    return notEquals(
+                        prop(`reminder`,todo),
+                        prop(`reminder`,previous)
+                    );
+                }
+            ],
+            [() => true, () => false]
+        ])(action);
+
 
         return ifElse(
             (newState:Store) => shouldRefreshReminders && isMainWindow() && isNotNil(newState),
@@ -141,6 +140,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
             identity   
         )(newState);
     };
+
 
 
     let updateQuickEntry = (newState:Store) : Store => {
@@ -167,19 +167,45 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
     };
 
     
+    
     return compose(
-        updateQuickEntry, 
+        updateQuickEntry,  
         refreshReminders,
         (newState:Store) => {
+            if(isNil(newState)){ return newState }
+
+            let shouldUpdateOtherInstances : boolean = actionOriginIsThisWindow(action);
             //update other windows only if action was initialized inside current window 
             //and action belong to ObjectsReducer (state was updated inside this function)
-            if(isNotNil(newState) && shouldUpdateOtherInstances){
+            if(shouldUpdateOtherInstances){
                ipcRenderer.send("action", {id:remote.getCurrentWindow().id, action}); 
             }  
-
+  
             return newState;
         },  
         cond([  
+            [ 
+                typeEquals("updateTodos"),
+                (action:{type:string, load:Todo[]}) : Store => {
+                    let changedTodos = action.load;
+                    let changedIds:string[] = changedTodos.map((t:Todo) => t._id);
+
+                    let todos : Todo[] = compose(
+                        concat(changedTodos),
+                        reject((todo:Todo) => contains(todo._id)(changedIds))
+                    )(state.todos);
+
+                    if(isDev()){
+                        assert(isArrayOfTodos(todos), `Error: updateTodos. objectsReducer. ${todos}`);
+                    }
+
+                    if(shouldAffectDatabase){ 
+                       updateTodos(changedTodos,onError); 
+                    }
+        
+                    return { ...state, todos };
+                } 
+            ],
             [
                 typeEquals("updateTodoById"),  
                 (action:{ type:string, load: {id:string,props:any} }) : Store => {
@@ -546,28 +572,6 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     }
 
                     return {...state, areas:adjust(() => action.load, idx, state.areas)};
-                } 
-            ],
-
-            [ 
-                typeEquals("updateTodos"),
-    
-                (action:{type:string, load:Todo[]}) : Store => {
-                    let changedTodos = [...action.load];
-                    let changedIds:string[] = changedTodos.map((t:Todo) => t._id);
-
-                    let todos : Todo[] = compose(
-                        concat(changedTodos),
-                        reject((todo:Todo) => contains(todo._id)(changedIds))
-                    )(state.todos);
-
-                    assert(isArrayOfTodos(todos), `Error: updateTodos. objectsReducer. ${todos}`);
-
-                    if(shouldAffectDatabase){ 
-                       updateTodos(changedTodos,onError); 
-                    }
-        
-                    return { ...state, todos };
                 } 
             ],
 

@@ -18,7 +18,7 @@ import Popover from 'material-ui/Popover';
 import ChecklistIcon from 'material-ui/svg-icons/action/assignment-turned-in'; 
 import NotesIcon from 'material-ui/svg-icons/action/subject'; 
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
-import { daysLeftMark, isToday, getMonthName, getCompletedWhen, getTime, setTime, isNotNil, different, isNotEmpty, log } from '../../utils/utils'; 
+import { daysLeftMark, isToday, getMonthName, getCompletedWhen, getTime, setTime, isNotNil, different, isNotEmpty, log, anyTrue } from '../../utils/utils'; 
 import { Todo, Project, Group } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
@@ -158,6 +158,76 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
 
+    shouldComponentUpdate(nextProps:TodoInputProps,nextState:TodoInputState){
+        let {
+            groupTodos,  
+            scrolledTodo,
+            moveCompletedItemsToLogbook, 
+            showCompleted,
+
+            //
+            selectedCategory,
+            selectedProjectId,
+            selectedAreaId,
+            //
+
+            todos,
+            projects, 
+            todo,
+
+            rootRef,  
+            id
+        } = nextProps;
+
+        let {
+            open,
+            tag, 
+            translateX,
+            display,
+            editorState,
+            animatingSlideAway,
+            showAdditionalTags, 
+            showDateCalendar,  
+            showTagsSelection,
+            showTags,
+            showChecklist,   
+            showDeadlineCalendar,
+            attachedDate,
+            deadline,
+            category,
+            checklist,
+            title 
+        } = nextState;
+
+        let todoChanged = different(todo,this.props.todo);
+        let projectsChanged = projects!==this.props.projects;
+        let groupTodosChanged = groupTodos!==this.props.groupTodos;
+        let scrolledTodoChanged = scrolledTodo!==this.props.scrolledTodo;
+        let moveCompletedItemsToLogbookChanged = moveCompletedItemsToLogbook!==this.props.moveCompletedItemsToLogbook;
+        let showCompletedChanged = showCompleted!==this.props.showCompleted;
+
+        let stateChanged = different(this.state,nextState);
+
+        let should = anyTrue([
+            stateChanged,
+
+            todoChanged, 
+            projectsChanged, 
+            groupTodosChanged, 
+            scrolledTodoChanged, 
+            moveCompletedItemsToLogbookChanged, 
+            showCompletedChanged
+        ]);
+
+        if(todo){
+           //console.log(`${todo.title} -> should update : ${should}`);  
+        }
+
+        return should;
+    }
+
+
+
     constructor(props){
         super(props);  
 
@@ -193,6 +263,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         dispatch({type:"updateTodo",load:{...todo,...props}});
     };
 
+
+    
 
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
@@ -1578,11 +1650,104 @@ class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
         return tagsChanged || showMoreTagsChanged || openChanged;
     }
 
+
     constructor(props){
         super(props); 
         this.state={ showMoreTags:false };
     }   
     
+
+    getVisiblePortion = (attachedTags:string[]) : JSX.Element => {
+        return <div 
+        ref={e => {this.ref=e;}}
+        onMouseEnter={() => this.setState({showMoreTags:true})}
+        onMouseLeave={() => this.setState({showMoreTags:false})}
+        style={{
+            height:"25px",
+            display:"flex",
+            alignItems:"center",
+            zIndex:1001,   
+            justifyContent:"flex-start",
+            zoom:0.8, 
+            flexGrow:1    
+        }}>
+            <div   
+                style={{paddingRight:"5px",display:"flex",position:"relative",alignItems:"center"}} 
+                key={`AdditionalTags-${attachedTags[0]}`} 
+            >     
+                { 
+                    attachedTags
+                    .slice(0,3) 
+                    .map((tag:string,index:number) => 
+                        <div key={`${tag}-${index}`} style={{paddingRight:"2px"}}>
+                            <div style={{  
+                                height:"20px",
+                                borderRadius:"15px",
+                                display:'flex',
+                                alignItems:"center",
+                                justifyContent:"center",  
+                                border:"1px solid rgba(200,200,200,0.5)" 
+                            }}>  
+                                <div style={{ 
+                                    color:"rgba(200,200,200,1)", 
+                                    fontSize:"13px", 
+                                    cursor:"default",
+                                    padding:"5px", 
+                                    WebkitUserSelect:"none"
+                                }}> 
+                                    {tag} 
+                                </div>  
+                            </div>    
+                        </div>
+                    ) 
+                }  
+            </div> 
+        </div>
+    }
+
+
+    tooltipContent = (moreTags:string[]) : JSX.Element => {
+        return <div style={{
+            zoom:0.8, 
+            display:"flex",  
+            flexWrap:"wrap",
+            alignItems:"center",
+            justifyContent:"center", 
+            maxWidth:"150px", 
+            background:"rgba(255,255,255,1)"
+        }}>
+            { 
+                moreTags
+                .map((tag:string,index:number) => 
+                    <div 
+                        key={`${tag}-${index}`} 
+                        style={{padding:"2px"}}
+                    >
+                        <div style={{    
+                            height:"20px",
+                            borderRadius:"15px",
+                            display:'flex', 
+                            alignItems:"center",
+                            justifyContent:"center",  
+                            border:"1px solid rgba(200,200,200,0.5)" 
+                        }}>  
+                            <div style={{ 
+                                color:"rgba(200,200,200,1)", 
+                                fontSize:"13px", 
+                                cursor:"default",
+                                padding:"5px",   
+                                WebkitUserSelect:"none"
+                            }}> 
+                                {tag} 
+                            </div>  
+                        </div>   
+                    </div>
+                ) 
+            } 
+        </div>
+    }
+
+
     render(){
         let {attachedTags,open,rootRef} = this.props;
 
@@ -1592,103 +1757,21 @@ class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
 
         let moreTags = attachedTags.slice(3,attachedTags.length);
  
-        return <Tooltip 
-                size={"small"}
-                disabled={isEmpty(moreTags) || not(this.state.showMoreTags)}
-                position="bottom"
-                animateFill={false}  
-                transitionFlip={false}
-                theme="light"   
-                unmountHTMLWhenHide={true}
-                trigger="mouseenter"
-                duration={0}
-                animation="fade" 
-                html={ 
-                    <div style={{
-                        zoom:0.8, 
-                        display:"flex",  
-                        flexWrap:"wrap",
-                        alignItems:"center",
-                        justifyContent:"center", 
-                        maxWidth:"150px", 
-                        background:"rgba(255,255,255,1)"
-                    }}>
-                        { 
-                            moreTags
-                            .map((tag:string,index:number) => 
-                                <div 
-                                    key={`${tag}-${index}`} 
-                                    style={{padding:"2px"}}
-                                >
-                                    <div style={{    
-                                        height:"20px",
-                                        borderRadius:"15px",
-                                        display:'flex', 
-                                        alignItems:"center",
-                                        justifyContent:"center",  
-                                        border:"1px solid rgba(200,200,200,0.5)" 
-                                    }}>  
-                                        <div style={{ 
-                                            color:"rgba(200,200,200,1)", 
-                                            fontSize:"13px", 
-                                            cursor:"default",
-                                            padding:"5px",   
-                                            WebkitUserSelect:"none"
-                                        }}> 
-                                            {tag} 
-                                        </div>  
-                                    </div>   
-                                </div>
-                            ) 
-                        } 
-                    </div>
-                }
-            >
-            <div 
-            ref={e => {this.ref=e;}}
-            onMouseEnter={() => this.setState({showMoreTags:true})}
-            onMouseLeave={() => this.setState({showMoreTags:false})}
-            style={{
-                height:"25px",
-                display:"flex",
-                alignItems:"center",
-                zIndex:1001,   
-                justifyContent:"flex-start",
-                zoom:0.8, 
-                flexGrow:1    
-            }}>
-                <div   
-                    style={{paddingRight:"5px",display:"flex",position:"relative",alignItems:"center"}} 
-                    key={`AdditionalTags-${attachedTags[0]}`} 
-                >     
-                    { 
-                        attachedTags
-                        .slice(0,3) 
-                        .map((tag:string,index:number) => 
-                            <div key={`${tag}-${index}`} style={{paddingRight:"2px"}}>
-                                <div style={{  
-                                    height:"20px",
-                                    borderRadius:"15px",
-                                    display:'flex',
-                                    alignItems:"center",
-                                    justifyContent:"center",  
-                                    border:"1px solid rgba(200,200,200,0.5)" 
-                                }}>  
-                                    <div style={{ 
-                                        color:"rgba(200,200,200,1)", 
-                                        fontSize:"13px", 
-                                        cursor:"default",
-                                        padding:"5px", 
-                                        WebkitUserSelect:"none"
-                                    }}> 
-                                        {tag} 
-                                    </div>  
-                                </div>    
-                            </div>
-                        ) 
-                    }  
-                </div> 
-            </div>
+        return not(this.state.showMoreTags) ? this.getVisiblePortion(attachedTags) :
+        <Tooltip 
+            size={"small"}
+            disabled={isEmpty(moreTags)}
+            position="bottom"
+            animateFill={false}  
+            transitionFlip={false}
+            theme="light"   
+            unmountHTMLWhenHide={true}
+            trigger="mouseenter"
+            duration={0}
+            animation="fade" 
+            html={this.tooltipContent(moreTags)}
+        >
+            {this.getVisiblePortion(attachedTags)}
         </Tooltip>
     }
 };

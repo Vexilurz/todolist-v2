@@ -162,7 +162,13 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
     constructor(props){ 
         super(props)
     } 
+
+
+    shouldComponentUpdate(nextProps){
+        return nextProps.searchQuery!==this.props.searchQuery;
+    }   
     
+
     onChange = (e) => { 
         let {dispatch} = this.props; 
         
@@ -174,7 +180,8 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
            dispatch({type:"selectedCategory", load:"search"});
         }       
     }
-        
+      
+    
     render(){  
         return <div 
             style={{   

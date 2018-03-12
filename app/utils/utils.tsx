@@ -8,7 +8,7 @@ import { Category, filter } from '.././Components/MainContainer';
 import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist';
 import { 
     contains, isNil, prepend, isEmpty, last, not, 
-    when, flatten, map, compose, cond, remove, 
+    when, flatten, map, compose, cond, remove, any,
     complement, equals, prop, groupBy, path, reject,
     ifElse, identity, reduce 
 } from 'ramda'; 
@@ -33,7 +33,7 @@ import { noteFromText } from './draftUtils';
 const PHE = require("print-html-element");
 const domtoimage = require('retina-dom-to-image');
  
-
+export let anyTrue = any(identity);
 
 export let limit = (down:number,up:number) => 
             (value:number) => value<down ? down :

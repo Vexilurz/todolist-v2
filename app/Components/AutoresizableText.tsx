@@ -25,8 +25,6 @@ interface AutoresizableTextState{
     stringLength:number
 }
 
-let last = 0;
-
 export class AutoresizableText extends Component<AutoresizableTextProps,AutoresizableTextState>{
 
     ref:HTMLElement;
@@ -35,21 +33,21 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
     constructor(props){
         super(props);
         this.state={
-            stringLength:last
+            stringLength:0
         }; 
     } 
  
 
     onResize = (entries, observer) => { 
         const {left, top, width, height} = entries[0].contentRect;
-        const {text, style, fontSize, offset} = this.props;
+        const {text, style, fontSize, offset, placeholder} = this.props;
         let containerWidth = width-offset <= 0 ? 0 : width-offset; 
-        let stringLength = stringToContainer(containerWidth, text, fontSize); 
-        last = stringLength;   
+        let name = isEmpty(text) ? placeholder : text;
+        let stringLength = stringToContainer(containerWidth, name, fontSize); 
         this.setState({stringLength}); 
-    }     
+    }      
   
-  
+   
     initRo = () => {  
         this.ro = new ResizeObserver(this.onResize);  
         this.ro.observe(this.ref);   

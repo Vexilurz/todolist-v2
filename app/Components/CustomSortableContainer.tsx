@@ -11,6 +11,7 @@ import { insideTargetArea } from '../utils/insideTargetArea';
 import { assert } from '../utils/assert';
 import { isArrayOfDOMElements, allHave, isDomElement, isArrayOfNumbers, isHeading } from '../utils/isSomething';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
+import { measureTime } from '../utils/utils';
 
 
 let getCSSPixelValue = (stringValue) => {
@@ -302,10 +303,12 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                                 .fromEvent(document.body,"mousemove")
                                 .skipWhile(byExceedThreshold)
                                 .takeUntil(
-
                                     Observable
                                     .fromEvent(document.body,"mouseup")
-                                    .do((event:any) => this.onDragEnd(event))
+                                    .do((event:any) => {
+                                       let time = measureTime(() => this.onDragEnd(event))
+                                       console.log(`this.onDragEnd ${time}`); 
+                                    })
 
                                 ); 
                     }
@@ -378,12 +381,15 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         this.deltaY=0;
         
         //Invoke supplied with props onSortEnd function.
-        this.props.onSortEnd(   
-            this.initial.initialIndex,
-            newIndex, 
-            event,
-            items[this.initial.initialIndex] 
-        );     
+        let time = measureTime(
+            () => this.props.onSortEnd(   
+                this.initial.initialIndex,
+                newIndex, 
+                event,
+                items[this.initial.initialIndex] 
+            )   
+        )
+        console.log(`onSortEnd -> time ${time}`)
 
         //Set initial dragging parameters to initial state - means dragging is not started yet.
         this.initial = {   

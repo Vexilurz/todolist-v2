@@ -10,7 +10,7 @@ import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import ArrowUp from 'material-ui/svg-icons/navigation/arrow-drop-up';
 import ArrowDown from 'material-ui/svg-icons/navigation/arrow-drop-down';
 
-import { byNotCompleted, byNotDeleted, typeEquals, isNotNil } from '../../utils/utils';
+import { byNotCompleted, byNotDeleted, typeEquals, isNotNil, anyTrue } from '../../utils/utils';
 import PieChart from 'react-minimal-pie-chart';
 import { 
     uniq, allPass, remove, intersection, reject, slice, prop, flatten,
@@ -24,16 +24,19 @@ import { assert } from '../../utils/assert';
 import { isArea, isProject, isNotArray } from '../../utils/isSomething';
 import { arrayMove } from '../../utils/arrayMove';
 import { SortableContainer } from '../CustomSortableContainer';
+import { isDev } from '../../utils/isDev';
 const mapIndexed = addIndex(map);
 const isSeparator = (item) => item.type==="separator"; 
-     
+      
 
 export let removeFromArea = (dispatch:Function, fromArea:Area, selectedProject:Project) : void => {
     let idx = fromArea.attachedProjectsIds.findIndex((id:string) => id===selectedProject._id);  
 
-    assert(idx!==-1,`selectedProject is not attached to fromArea. ${selectedProject} ${fromArea}`);
-    assert(selectedProject.type==="project",`selectedProject is not of type project.  ${selectedProject}. removeFromArea.`);
-    assert(fromArea.type==="area",`fromArea is not of type Area. ${fromArea}. removeFromArea.`);
+    if(isDev()){
+       assert(idx!==-1,`selectedProject is not attached to fromArea. ${selectedProject} ${fromArea}`);
+       assert(selectedProject.type==="project",`selectedProject is not of type project.  ${selectedProject}. removeFromArea.`);
+       assert(fromArea.type==="area",`fromArea is not of type Area. ${fromArea}. removeFromArea.`);
+    }
      
     fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
     dispatch({type:"updateArea", load:fromArea});  
@@ -126,6 +129,41 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     } 
 
 
+    shouldComponentUpdate(nextProps:AreasListProps){
+        let {
+            leftPanelWidth, 
+            dragged, 
+            selectedProjectId,
+            selectedAreaId, 
+            todos,
+            areas,
+            projects   
+        } = nextProps;
+
+
+        let leftPanelWidthChanged =  leftPanelWidth!==this.props.leftPanelWidth;
+        let draggedChanged = dragged!==this.props.dragged;
+
+        let selectedProjectIdChanged = selectedProjectId!==this.props.selectedProjectId;
+        let selectedAreaIdChanged = selectedAreaId!==this.props.selectedAreaId;
+
+        let todosChanged = todos!==this.props.todos;
+        let areasChanged = areas!==this.props.areas;
+        let projectsChanged = projects!==this.props.projects;
+        
+
+        return anyTrue([
+            leftPanelWidthChanged, 
+            draggedChanged,
+            selectedProjectIdChanged,
+            selectedAreaIdChanged,
+            todosChanged,
+            areasChanged,
+            projectsChanged 
+        ]); 
+    }
+
+
     onCollapseContent = (area:Area) : void => { 
         let {dispatch} = this.props;
         let {hideContentFromAreasList} = area; 
@@ -166,7 +204,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             index={index} 
             hideAreaPadding={hideAreaPadding}
             leftPanelRef={this.props.leftPanelRef}
-            dragged={this.props.dragged}
             selectArea={this.selectArea}
             onCollapseContent={this.onCollapseContent}
             leftPanelWidth={this.props.leftPanelWidth}
@@ -433,7 +470,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 interface AreaElementProps{
     area:Area,
-    dragged:string, 
     leftPanelWidth:number, 
     index:number,
     hideAreaPadding:boolean,
@@ -458,21 +494,41 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
         this.state={highlight:false}; 
     }  
 
-    onMouseEnter = (e) => {
-        let {dragged} = this.props;
-        //if(e.buttons == 1 || e.buttons == 3){
-            //if(dragged==="project" || dragged==="todo" || dragged==="heading"){  
-        this.setState({highlight:true});  
-            //} 
-        //} 
-    };  
 
-    onMouseLeave = (e) => {  
-        if(this.state.highlight){
-           this.setState({highlight:false})
-        } 
-    }; 
+    shouldComponentUpdate(nextProps:AreaElementProps,nextState:AreaElementState){
+        let {
+            area,
+            leftPanelWidth, 
+            index,
+            hideAreaPadding,
+            selectedAreaId
+        } = nextProps;
+        let {highlight} = nextState;
+
+        let areaChanged = area!==this.props.area;
+        let leftPanelWidthChanged = leftPanelWidth!==this.props.leftPanelWidth;
+        let indexChanged = index!==this.props.index;
+        let hideAreaPaddingChanged = hideAreaPadding!==this.props.hideAreaPadding;
+        let selectedAreaIdChanged = selectedAreaId!==this.props.selectedAreaId;
+        let highlightChanged = highlight!==this.state.highlight;
+
+        return anyTrue([
+            highlightChanged,
+            areaChanged, 
+            leftPanelWidthChanged, 
+            indexChanged, 
+            hideAreaPaddingChanged,
+            selectedAreaIdChanged
+        ]);
+    }
+
+
+    onMouseEnter = (e) => this.setState({highlight:true});  
+      
+
+    onMouseLeave = (e) => this.setState({highlight:false});
     
+
     render(){      
         let {
             area, 
@@ -481,18 +537,18 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
             selectArea, 
             index, 
             hideAreaPadding, 
-            dragged, 
             onCollapseContent
-        } = this.props;   
+        } = this.props;
+
         let {highlight} = this.state;
         let selected = (area._id===selectedAreaId) && selectedCategory==="area";
         let {hideContentFromAreasList} = area;
-
+ 
         return <li   
             ref={e => {this.ref=e;}} 
             style={{WebkitUserSelect:"none",width:"100%"}} 
             className={"area"}  
-            key={index}   
+            key={`area-${index}`}   
             onMouseEnter={this.onMouseEnter} 
             onMouseLeave={this.onMouseLeave} 
         >     
@@ -600,15 +656,42 @@ interface ProjectElementState{
  
 class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
     
-
     constructor(props){
         super(props);
         this.state={
             highlight:false 
         }; 
     }  
+    
 
+    shouldComponentUpdate(nextProps:ProjectElementProps,nextState:ProjectElementState){
+        let {
+            project,
+            todos,
+            index,
+            dragged,
+            selectedProjectId
+        } = nextProps;
+        let {highlight} = nextState;
+       
+        let highlightChanged = highlight!==this.state.highlight;
+        let projectChanged = project!==this.props.project;
+        let todosChanged = todos!==this.props.todos;
+        let indexChanged = index!==this.props.index;
+        let draggedChanged = dragged!==this.props.dragged;
+        let selectedProjectIdChanged = selectedProjectId!==this.props.selectedProjectId;
+        
+        return anyTrue([
+            highlightChanged, 
+            projectChanged, 
+            todosChanged, 
+            indexChanged,
+            draggedChanged, 
+            selectedProjectIdChanged 
+        ]);
+    }
 
+    
     onMouseOver = (e) => {  
         let {dragged} = this.props; 
 
@@ -641,18 +724,18 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
             onMouseOut={this.onMouseOut}   
         >    
             <div  
-                onClick = {(e) => this.props.selectProject(this.props.project)} 
-                id = {this.props.project._id}
+                onClick={(e) => this.props.selectProject(this.props.project)} 
+                id={this.props.project._id}
                 className={selected ? "" : "leftpanelmenuitem"}  
                 style={{     
-                  borderRadius: this.state.highlight || selected ? "5px" : "0px", 
-                  backgroundColor: this.state.highlight ? "rgba(0,200,0,0.3)" :
-                                   selected ? "rgba(228,230,233,1)" : 
-                                   "",   
-                  height:"25px",  
-                  paddingLeft:"4px",   
-                  display:"flex",
-                  alignItems:"center"  
+                    borderRadius:this.state.highlight || selected ? "5px" : "0px", 
+                    backgroundColor:this.state.highlight ? "rgba(0,200,0,0.3)" :
+                                    selected ? "rgba(228,230,233,1)" : 
+                                    "",   
+                    height:"25px",  
+                    paddingLeft:"4px",   
+                    display:"flex",
+                    alignItems:"center"  
                 }} 
             >     
                     <div style={{    
@@ -695,7 +778,6 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                             />       
                         </div>
                     </div> 
- 
                     <div   
                         id = {this.props.project._id}   
                         style={{  

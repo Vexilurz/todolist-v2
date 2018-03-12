@@ -7,7 +7,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
-    byDeleted, byAttachedToProject, isTodayOrPast, isDeadlineTodayOrPast, byNotAttachedToCompletedProject, byNotAttachedToProject
+    byDeleted, byAttachedToProject, isTodayOrPast, isDeadlineTodayOrPast, byNotAttachedToCompletedProject, byNotAttachedToProject, anyTrue
 } from "../../utils/utils";  
 import { ipcRenderer, remote } from 'electron';
 import { connect } from "react-redux";
@@ -30,6 +30,7 @@ import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { googleAnalytics } from '../../analytics';
 import { isArrayOfStrings, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
+import { isDev } from '../../utils/isDev';
  
 interface LeftPanelState{ collapsed:boolean }
  
@@ -183,9 +184,12 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
 
         let ids = flatten(projects.map((p) => p.layout.filter(isString) as string[])) as any;
           
-        assert(isArrayOfStrings(ids),`ids is not an array of strings. AreasList.`); 
-   
+        if(isDev()){
+           assert(isArrayOfStrings(ids),`ids is not an array of strings. AreasList.`); 
+        }
+    
         let areasFilters = [(todo:Todo) => contains(todo._id)(ids), byNotDeleted]; 
+        
 
         return  <div style={{display:"flex",flexDirection:"row-reverse",height:window.innerHeight}}> 
             { 
@@ -219,8 +223,8 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
                 <AreasList   
                     leftPanelWidth={this.props.leftPanelWidth}
                     leftPanelRef={this.leftPanelRef} 
-                    dragged={this.props.dragged} 
-                    todos={filter(todos,allPass(areasFilters),"AreasList")} 
+                    dragged={this.props.dragged}  
+                    todos={filter(todos,allPass(areasFilters))} 
                     dispatch={this.props.dispatch}   
                     areas={this.props.areas}
                     selectedProjectId={this.props.selectedProjectId}
@@ -268,6 +272,16 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
         super(props); 
     }
      
+
+    shouldComponentUpdate(nextProps:LeftPanelFooterProps){
+        let {width, collapsed} = nextProps;
+        let widthChanged = width!==this.props.width;
+        let collapsedChanged = collapsed!==this.props.collapsed;
+
+        return anyTrue([widthChanged, collapsedChanged]);
+    };
+
+    
     render(){ 
         let { collapsed, openSettings, openNewProjectAreaPopup, width, setNewProjectAnchor } = this.props; 
 
@@ -283,8 +297,7 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
             height:"60px",
             backgroundColor:"rgb(248, 248, 248)",
             borderTop:"1px solid rgba(100, 100, 100, 0.2)"
-        }}>         
-
+        }}>    
             <div  
                 onClick={openNewProjectAreaPopup}
                 style={{
@@ -312,7 +325,6 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
                     />
                 </div>    
             </div>   
-
             <div
                 style={{
                     display:"flex", 
