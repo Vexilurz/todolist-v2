@@ -17,7 +17,7 @@ interface AreaBodyProps{
     area:Area, 
     areas:Area[], 
     projects:Project[],
-    selectedTodo:Todo, 
+    scrolledTodo:Todo, 
     moveCompletedItemsToLogbook:string, 
     selectedAreaId:string, 
     groupTodos:boolean, 
@@ -44,7 +44,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         let { 
             dispatch, selectedProjectId, groupTodos, moveCompletedItemsToLogbook, area,
             selectedAreaId, selectedCategory, selectedTag, 
-            rootRef, projects, todos, selectedTodo 
+            rootRef, projects, todos, scrolledTodo 
         } = this.props;
 
         let projectsFilters=[
@@ -71,7 +71,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 projectsFilters={projectsFilters}
                 areasFilters={[byNotDeleted]}
                 dispatch={dispatch} 
-                selectedTodo={selectedTodo}
+                scrolledTodo={this.props.scrolledTodo}
                 selectedProjectId={selectedProjectId}
                 groupTodos={groupTodos}
                 moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}

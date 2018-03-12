@@ -26,6 +26,7 @@ interface NextProps{
     dispatch:Function, 
     groupTodos:boolean,
     selectedTodo:Todo,
+    scrolledTodo:Todo,
     selectedProjectId:string, 
     moveCompletedItemsToLogbook:string, 
     selectedAreaId:string,
@@ -119,14 +120,14 @@ export class Next extends Component<NextProps, NextState>{
                         groupTodos ? 
                         <GroupsByProjectArea
                             dispatch={this.props.dispatch} 
-                            selectedTodo={this.props.selectedTodo}
+                            scrolledTodo={this.props.scrolledTodo}
                             selectedAreaId={this.props.selectedAreaId}
                             selectedProjectId={this.props.selectedProjectId}
                             groupTodos={this.props.groupTodos}
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             selectedCategory={this.props.selectedCategory}  
                             selectedTag={this.props.selectedTag}  
-                            rootRef={this.props.rootRef}
+                            rootRef={this.props.rootRef} 
                             areas={this.props.areas}
                             projectsFilters={[byNotCompleted, byNotDeleted]}
                             areasFilters={[byNotDeleted]}
@@ -136,7 +137,7 @@ export class Next extends Component<NextProps, NextState>{
                         :
                         <TodosList            
                             dispatch={this.props.dispatch}     
-                            selectedTodo={this.props.selectedTodo}
+                            scrolledTodo={this.props.scrolledTodo}
                             sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                             areas={this.props.areas}
                             groupTodos={this.props.groupTodos}

@@ -16,7 +16,7 @@ import { assert } from '../../utils/assert';
 interface AreaComponentProps{
     area:Area,
     todos:Todo[], 
-    selectedTodo:Todo,
+    scrolledTodo:Todo,
     areas:Area[],  
     selectedCategory:Category, 
     groupTodos:boolean, 
@@ -90,7 +90,6 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
         });
 
         dispatch({ type:"updateArea", load:{...area,deleted:new Date()} });
-
         dispatch({ type:"selectedCategory", load:"inbox" });
     };
 
@@ -113,7 +112,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                 todos={this.props.todos} 
                 groupTodos={this.props.groupTodos}
                 selectedAreaId={this.props.selectedAreaId}
-                selectedTodo={this.props.selectedTodo}
+                scrolledTodo={this.props.scrolledTodo}
                 selectedProjectId={this.props.selectedProjectId}
                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                 selectedTag={this.props.selectedTag}

@@ -64,10 +64,10 @@ let sortByCompleted = (a:(Todo & Project),b:(Todo & Project)) => {
 interface LogbookProps{
     dispatch:Function,
     todos:Todo[],
-    selectedTodo:Todo, 
     moveCompletedItemsToLogbook:string,
     groupTodos:boolean, 
     selectedAreaId:string,
+    scrolledTodo:Todo,
     selectedProjectId:string, 
     selectedCategory:Category,  
     projects:Project[],
@@ -164,7 +164,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
     getComponent = (month:string, todos:Todo[], projects:Project[]) : JSX.Element => {
         let {
             moveCompletedItemsToLogbook,selectedCategory,groupTodos,
-            dispatch,selectedProjectId,selectedAreaId,rootRef,selectedTodo
+            dispatch,selectedProjectId,selectedAreaId,rootRef
         } = this.props;
 
         return <div style={{position:"relative", display:"flex", flexDirection:"column", WebkitUserSelect:"none"}}>
@@ -193,14 +193,14 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                         > 
                             {
                                 isProject(value as any) ? 
-                                <ProjectLinkLogbook { ...{project:value} as any }/>
+                                <ProjectLinkLogbook {...{project:value} as any}/>
                                 : 
                                 isTodo(value) ?
                                 <TodoInput     
                                     id={value._id}
                                     key={value._id}
                                     groupTodos={groupTodos}
-                                    selectedTodo={selectedTodo}
+                                    scrolledTodo={this.props.scrolledTodo}
                                     moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}
                                     projects={this.props.projects}  
                                     dispatch={dispatch}  

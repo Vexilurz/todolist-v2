@@ -37,6 +37,7 @@ interface ProjectComponentProps{
     selectedTag:string, 
     dragged:string, 
     areas:Area[], 
+    scrolledTodo:Todo,
     selectedCategory:string, 
     selectedProjectId:string, 
     selectedAreaId:string, 
@@ -166,16 +167,14 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         //because available tags will be derived from them        
         let toProjectHeader = filter(
             layout,
-            (i:Todo) => isTodo(i) ? allPass(projectFilters)(i as (Project & Todo)) : false, 
-            ""
+            (i:Todo) => isTodo(i) ? allPass(projectFilters)(i as (Project & Todo)) : false
         );
         
         //filter by tag & by selected filters  
         let toProjectBody = filter(
             layout,
-            (i:Todo) => isTodo(i) ? allPass([byTags(selectedTag),...projectFilters])(i as (Project & Todo)) : true, 
-            ""
-        );
+            (i:Todo) => isTodo(i) ? allPass([byTags(selectedTag),...projectFilters])(i as (Project & Todo)) : true
+        ); 
 
 
         let progress = getProgressStatus(project, todos, false);
@@ -202,6 +201,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         dragged={this.props.dragged}
                         groupTodos={this.props.groupTodos}
                         selectedCategory={this.props.selectedCategory}
+                        scrolledTodo={this.props.scrolledTodo}
                         selectedTodo={this.props.selectedTodo}
                         showCompleted={this.props.showCompleted}
                         updateLayoutOrder={this.updateLayoutOrder}

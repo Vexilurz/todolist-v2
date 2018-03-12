@@ -36,7 +36,7 @@ import {
 } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
-import { cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains } from 'ramda';
+import { cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains, prop } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { Settings, section, SettingsPopup, LicensePopup } from './Components/Settings/settings'; 
 import { SimplePopup } from './Components/SimplePopup';
@@ -90,6 +90,7 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 export interface Store extends Config{
     showLicense : boolean,
     progress : any,
+    scrolledTodo : Todo,
     selectedTodo : Todo, 
     showUpdatesNotification : boolean, 
     scheduledReminders : number[],
@@ -135,6 +136,7 @@ export let defaultStoreItems : Store = {
     ...defaultConfig,
     showLicense : false, 
     selectedTodo : null, 
+    scrolledTodo : null,
     shouldSendStatistics : true,  
     hideHint : true,  
     progress : null,  
@@ -274,19 +276,19 @@ export class App extends Component<AppProps,{}>{
 
             Observable
             .fromEvent(ipcRenderer,'openTodo', (event,todo) => todo)
-            .do((todo) => dispatch({type:"selectedCategory",load:"inbox"}))
-            .do((todo) => dispatch({type:"selectedTodo",load:todo}))
-            .do((todo) => dispatch({type:"selectedCategory",load:"today"}))
             .subscribe((todo) => {
-                const window = remote.getCurrentWindow();
-                if(window){
-                    window.show();
-                    window.focus();
+                let window = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
+                if(isNotNil(window)){ 
+                   window.show();
+                   window.focus();
                 }
-            }),
+                dispatch({type:"selectedCategory",load:"inbox"});
+                dispatch({type:"scrolledTodo",load:todo}); 
+                dispatch({type:"selectedCategory",load:"today"});
+            }), 
 
 
-            Observable 
+            Observable  
             .fromEvent(ipcRenderer, "action", (event,action) => action)
             .map((action) => ({ 
                 ...action,

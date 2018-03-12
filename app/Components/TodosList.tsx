@@ -205,7 +205,7 @@ interface TodosListProps{
     dispatch:Function, 
     projects:Project[],
     sortBy:(a:Todo,b:Todo) => number,  
-    selectedTodo:Todo,
+    scrolledTodo:Todo,
     areas:Area[],
     groupTodos:boolean, 
     moveCompletedItemsToLogbook:string, 
@@ -238,7 +238,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             <TodoInput        
                 id={value._id} 
                 key={value._id} 
-                selectedTodo={this.props.selectedTodo}
+                scrolledTodo={this.props.scrolledTodo}
                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                 groupTodos={this.props.groupTodos}
                 projects={this.props.projects}  

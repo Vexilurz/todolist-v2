@@ -59,7 +59,7 @@ import { updateConfig, clearStorage } from '../utils/config';
 import { isNotArray, isDate, isTodo, isString } from '../utils/isSomething';
 import { debounce } from 'lodash';
 const Promise = require('bluebird');   
-const moment = require("moment"); 
+const moment = require("moment");  
 
 
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
@@ -114,7 +114,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
         this.subscriptions = [];
         this.disablePrintButton=false;
         this.state = { fullWindowSize:true };
-    }  
+    };  
 
     
      
@@ -248,14 +248,14 @@ export class MainContainer extends Component<Store,MainContainerState>{
     componentDidMount(){    
         this.initObservables(); 
         this.initData(); 
-    }      
+    };      
      
 
 
     componentWillUnmount(){ 
         this.subscriptions.map( s => s.unsubscribe() );
         this.subscriptions = [];
-    }  
+    };  
  
  
 
@@ -269,7 +269,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                this.rootRef.scrollTop=0;  
             } 
         }
-    } 
+    }; 
 
     
 
@@ -293,12 +293,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     
 
-    render(){   
+    render(){    
         let { 
             todos, projects, areas, selectedProjectId, selectedAreaId, 
             showCompleted, showScheduled, selectedCategory, clone 
         } = this.props; 
-
+ 
         return  <div ref={(e) => { this.rootRef=e }}
                     className="scroll"  
                     id="maincontainer"  
@@ -359,11 +359,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     ];    
                                     
                                     return <Inbox 
-                                        todos={filter(todos, allPass(inboxFilters), "Inbox")} 
+                                        todos={filter(todos, allPass(inboxFilters))} 
                                         dispatch={this.props.dispatch}
                                         selectedCategory={this.props.selectedCategory}
                                         groupTodos={this.props.groupTodos}
                                         selectedTodo={this.props.selectedTodo}
+                                        scrolledTodo={this.props.scrolledTodo}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedTag={this.props.selectedTag} 
                                         selectedProjectId={this.props.selectedProjectId} 
@@ -400,10 +401,11 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         selectedTodos = reject((todo:Todo) => contains(todo._id)(ids),selectedTodos);
                                     };  
  
-                                    return <Today  
+                                    return <Today   
                                         todos={selectedTodos}
                                         clone={clone}
                                         dispatch={this.props.dispatch}
+                                        scrolledTodo={this.props.scrolledTodo}
                                         selectedTodo={this.props.selectedTodo}
                                         groupTodos={this.props.groupTodos}
                                         selectedProjectId={this.props.selectedProjectId}
@@ -438,6 +440,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         dispatch={this.props.dispatch}
                                         selectedTodo={this.props.selectedTodo}
                                         groupTodos={this.props.groupTodos}
+                                        scrolledTodo={this.props.scrolledTodo}
                                         selectedProjectId={this.props.selectedProjectId}
                                         selectedAreaId={this.props.selectedAreaId} 
                                         selectedCategory={this.props.selectedCategory}
@@ -482,6 +485,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         dispatch={this.props.dispatch}
                                         groupTodos={this.props.groupTodos}
                                         selectedTodo={this.props.selectedTodo}
+                                        scrolledTodo={this.props.scrolledTodo}
                                         selectedCategory={this.props.selectedCategory}
                                         selectedTag={this.props.selectedTag}
                                         rootRef={this.rootRef}
@@ -497,10 +501,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                 () => {
                                 
                                     return <Trash    
-                                        todos={filter(todos, byDeleted, "Trash")}
+                                        todos={filter(todos, byDeleted)}
                                         groupTodos={this.props.groupTodos}  
                                         dispatch={this.props.dispatch} 
-                                        selectedTodo={this.props.selectedTodo}
+                                        scrolledTodo={this.props.scrolledTodo}
                                         selectedCategory={this.props.selectedCategory}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedTag={this.props.selectedTag} 
@@ -524,10 +528,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     ]; 
 
                                     return <Logbook   
-                                        todos={filter(todos, allPass(logbookFilters), "Logbook")} 
+                                        todos={filter(todos, allPass(logbookFilters))} 
                                         groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch}
-                                        selectedTodo={this.props.selectedTodo}
+                                        scrolledTodo={this.props.scrolledTodo}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedCategory={this.props.selectedCategory} 
                                         selectedAreaId={this.props.selectedAreaId} 
@@ -554,11 +558,11 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     return <Upcoming  
                                         limit={this.props.limit}
                                         clone={this.props.clone}
-                                        todos={filter(todos, allPass(upcomingFilters), "Upcoming")}
+                                        todos={filter(todos, allPass(upcomingFilters))}
                                         groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch}
                                         selectedCategory={this.props.selectedCategory}
-                                        selectedTodo={this.props.selectedTodo}
+                                        scrolledTodo={this.props.scrolledTodo}
                                         areas={this.props.areas}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedAreaId={this.props.selectedAreaId}
@@ -585,11 +589,12 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         byNotDeleted 
                                     ];  
                                  
-                                    let selectedTodos = filter(todos, allPass(projectFilters), "");
+                                    let selectedTodos = filter(todos, allPass(projectFilters));
 
                                     return <ProjectComponent 
                                         project={project}
                                         todos={selectedTodos}
+                                        scrolledTodo={this.props.scrolledTodo}
                                         selectedTodo={this.props.selectedTodo}
                                         groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch} 
@@ -617,7 +622,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     return <AreaComponent    
                                         area={area}  
                                         todos={this.props.todos}  
-                                        selectedTodo={this.props.selectedTodo}
+                                        scrolledTodo={this.props.scrolledTodo}
                                         groupTodos={this.props.groupTodos}
                                         areas={this.props.areas} 
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}

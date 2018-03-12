@@ -19,6 +19,7 @@ interface InboxProps{
     dispatch:Function,
     selectedProjectId:string, 
     groupTodos:boolean, 
+    scrolledTodo:Todo,
     selectedTodo:Todo, 
     selectedAreaId:string,  
     moveCompletedItemsToLogbook:string,
@@ -89,7 +90,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                         sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                         selectedProjectId={this.props.selectedProjectId}
                         areas={this.props.areas}
-                        selectedTodo={this.props.selectedTodo}
+                        scrolledTodo={this.props.scrolledTodo}
                         groupTodos={this.props.groupTodos}
                         projects={this.props.projects}  
                         dispatch={this.props.dispatch}     

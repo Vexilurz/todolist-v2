@@ -88,7 +88,6 @@ export class LeftPanel extends Component<Store,LeftPanelState>{
         .catch(err => this.onError(err)) 
 
         let project = generateEmptyProject();
-
         dispatch({type:"addProject", load:project});
         dispatch({type:"selectedProjectId", load:project._id});
         dispatch({type:"openNewProjectAreaPopup", load:false});

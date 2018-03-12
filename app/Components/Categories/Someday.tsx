@@ -16,13 +16,13 @@ import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
-
   
  
 interface SomedayProps{
     dispatch:Function,
     selectedCategory:Category, 
     selectedTodo:Todo,
+    scrolledTodo:Todo,
     moveCompletedItemsToLogbook:string, 
     selectedProjectId:string, 
     selectedAreaId:string, 
@@ -91,7 +91,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         selectedProjectId={this.props.selectedProjectId}
                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                         selectedAreaId={this.props.selectedAreaId}
-                        selectedTodo={this.props.selectedTodo}
+                        scrolledTodo={this.props.scrolledTodo}
                         groupTodos={this.props.groupTodos}
                         selectedCategory={this.props.selectedCategory}
                         selectedTag={this.props.selectedTag}
@@ -108,7 +108,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         selectedAreaId={this.props.selectedAreaId}
                         sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                         selectedProjectId={this.props.selectedProjectId}
-                        selectedTodo={this.props.selectedTodo}
+                        scrolledTodo={this.props.scrolledTodo}
                         projects={this.props.projects}
                         groupTodos={this.props.groupTodos}
                         dispatch={this.props.dispatch}   

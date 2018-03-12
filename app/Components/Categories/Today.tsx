@@ -107,11 +107,12 @@ interface TodayProps{
     clone:boolean,
     groupTodos:boolean,
     showCalendarEvents:boolean,  
-    selectedTodo:Todo, 
+    scrolledTodo:Todo, 
     moveCompletedItemsToLogbook:string,
     selectedProjectId:string, 
     selectedAreaId:string, 
     selectedCategory:Category,  
+    selectedTodo:Todo,
     areas:Area[],
     calendars:Calendar[],  
     projects:Project[],
@@ -247,7 +248,7 @@ export class Today extends Component<TodayProps,TodayState>{
                 <TodoInput   
                     id={todo._id}
                     key={todo._id}
-                    selectedTodo={this.props.selectedTodo}
+                    scrolledTodo={this.props.scrolledTodo}
                     projects={this.props.projects}  
                     dispatch={this.props.dispatch}  
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
@@ -335,7 +336,6 @@ export class Today extends Component<TodayProps,TodayState>{
             selectedAreaId,
             selectedCategory,
             rootRef, 
-            selectedTodo,
             clone  
         } = this.props;
 
@@ -454,11 +454,11 @@ export class Today extends Component<TodayProps,TodayState>{
                         groupTodos ? 
                         <GroupsByProjectArea
                             dispatch={dispatch}
+                            scrolledTodo={this.props.scrolledTodo}
                             selectedProjectId={selectedProjectId}
                             selectedAreaId={selectedAreaId}
                             selectedCategory={selectedCategory}
                             groupTodos={groupTodos}
-                            selectedTodo={selectedTodo}
                             moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}
                             selectedTag={selectedTag}
                             rootRef={rootRef}

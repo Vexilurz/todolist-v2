@@ -30,7 +30,6 @@ interface UpdateNotificationState{
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)
 export class UpdateNotification extends Component<UpdateNotificationProps,UpdateNotificationState>{
-
     downloading:boolean;
     
     constructor(props){
@@ -92,17 +91,15 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
             position:"relative", 
             overflow:"hidden"
         }}>
-            <div 
-                style={{
-                    cursor:"default", 
-                    display:"flex",
-                    alignItems:"center", 
-                    fontSize:"14px", 
-                    userSelect:"none",
-                    color:"rgba(100,100,100,1)",
-                    fontWeight:500
-                }}            
-            >       
+            <div style={{
+                cursor:"default", 
+                display:"flex",
+                alignItems:"center", 
+                fontSize:"14px", 
+                userSelect:"none",
+                color:"rgba(100,100,100,1)",
+                fontWeight:500
+            }}>       
                 { 
                     isNil(progress) ? "An update is available!" : 
                     not(canRestart) ? `Updating... ${Math.round(progress.percent)}%` :

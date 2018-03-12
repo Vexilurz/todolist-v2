@@ -39,7 +39,7 @@ let sortByDeleted = (a:(Todo & Project & Area),b:(Todo & Project & Area)) => {
 interface TrashProps{ 
     dispatch:Function,
     groupTodos:boolean,
-    selectedTodo:Todo, 
+    scrolledTodo:Todo,
     selectedCategory:Category,  
     moveCompletedItemsToLogbook:string, 
     showTrashPopup:boolean, 
@@ -52,7 +52,7 @@ interface TrashProps{
     rootRef:HTMLElement     
 }      
 
-
+ 
 interface TrashState{}
  
 export class Trash extends Component<TrashProps,TrashState>{ 
@@ -75,7 +75,7 @@ export class Trash extends Component<TrashProps,TrashState>{
                     id={value._id} 
                     key = {value._id} 
                     projects={this.props.projects} 
-                    selectedTodo={this.props.selectedTodo}  
+                    scrolledTodo={this.props.scrolledTodo}  
                     selectedCategory={this.props.selectedCategory}
                     dispatch={this.props.dispatch}   
                     groupTodos={this.props.groupTodos}
@@ -97,7 +97,7 @@ export class Trash extends Component<TrashProps,TrashState>{
     render(){  
         let {
             todos, projects, areas, selectedProjectId, selectedCategory,
-            dispatch, selectedAreaId, selectedTag, rootRef, selectedTodo 
+            dispatch, selectedAreaId, selectedTag, rootRef
         } = this.props;   
 
 
@@ -183,7 +183,7 @@ export class Trash extends Component<TrashProps,TrashState>{
                                     id={todo._id}
                                     key={todo._id}
                                     projects={projects}  
-                                    selectedTodo={selectedTodo}
+                                    scrolledTodo={this.props.scrolledTodo}
                                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                     dispatch={dispatch}  
                                     selectedProjectId={selectedProjectId}

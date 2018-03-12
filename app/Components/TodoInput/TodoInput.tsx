@@ -1,4 +1,5 @@
 import 'react-tippy/dist/tippy.css'
+//import '../../assets/bootstrap_white.css';
 import '../../assets/styles.css';  
 import '../../assets/calendarStyle.css';  
 import * as React from 'react';
@@ -24,10 +25,10 @@ import { Category } from '../MainContainer';
 import { TodoTags } from './TodoTags';
 import { TagsPopup } from './TagsPopup';
 import { TodoInputLabel } from './TodoInputLabel'; 
-import { 
+import {  
     uniq, isEmpty, contains, isNil, not, multiply, remove, cond, ifElse,
     equals, any, complement, compose, defaultTo, path, first, prop, always,
-    identity
+    identity, when
 } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
 import * as Rx from 'rxjs/Rx';
@@ -58,7 +59,7 @@ import {
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import 'draft-js/dist/Draft.css';
 import { noteToState, noteFromState, RawDraftContentState, getNotePlainText } from '../../utils/draftUtils';
-
+//import Tooltip from 'rc-tooltip'; remove
 
 const linkifyPlugin = createLinkifyPlugin({
     component:(props) => {
@@ -69,11 +70,10 @@ const linkifyPlugin = createLinkifyPlugin({
 let moment = require("moment"); 
 let Promise = require('bluebird'); 
 
-
 export interface TodoInputProps{ 
     dispatch : Function,  
     groupTodos : boolean,  
-    selectedTodo : Todo,
+    scrolledTodo : Todo,
     moveCompletedItemsToLogbook : string, 
     selectedCategory : Category,
     selectedProjectId : string,
@@ -375,30 +375,33 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
     componentDidMount(){   
-        let { todo, selectedTodo, dispatch } = this.props;
+        let idEquals = (id:string) => compose(equals(id), prop('_id'));
+        let { todo, scrolledTodo, dispatch } = this.props;
 
-
-        if(isNotNil(selectedTodo) && selectedTodo._id===todo._id){ 
-            this.updateState({open:true})
-            .then(
+        ifElse(
+            isNil,
+            identity,
+            when(
+                idEquals(todo._id), 
                 () => {
-                    if(isNotNil(this.ref)){
-                       this.ref.scrollIntoView();
-                       dispatch({type:"selectedTodo",load:null}); 
-                    }
+                    setTimeout(
+                        () => {
+                            if(isNotNil(this.ref)){ 
+                                this.setState({open:true});
+                                this.ref.scrollIntoView(); 
+                            };
+                        },
+                        100
+                    )  
+                    dispatch({type:"scrolledTodo",load:null}); 
                 }
-            )
-        };
-
+            ) 
+        )(scrolledTodo)
 
         this.subscriptions.push(
             Observable
             .fromEvent(window,"click") 
-            .subscribe(this.onOutsideClick),
-            
-            Observable
-            .fromEvent(window,"beforeunload")
-            .subscribe(this.saveOnUnmount)
+            .subscribe(this.onOutsideClick)
         ); 
     };        
  
@@ -452,7 +455,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     componentDidUpdate(prevProps:TodoInputProps,prevState:TodoInputState){
         let { open, title } = this.state; 
-        let { todo, selectedTodo } = this.props;
+        let { todo } = this.props;
 
         if(this.inputRef && isEmpty(title) && open){ 
            this.inputRef.focus(); 
@@ -464,7 +467,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            this.enableDragOfThisItem(); 
         }   
     };   
-
+  
 
 
     onFieldsContainerClick = (e) => {    
@@ -661,7 +664,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             category,deadline,checklist,attachedDate,title
         } = this.state;
 
-        
         let relatedProjectName = this.getRelatedProjectName();
         let canRepeat = isNil(todo.group); 
 
@@ -904,16 +906,16 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 </div>  
             }  
             <DateCalendar 
-                close = {() => this.setState({showDateCalendar:false})}
-                open = {showDateCalendar}
-                origin = {{vertical: "center", horizontal: "right"}} 
-                point = {{vertical: "center", horizontal: "right"}}  
-                anchorEl = {this.calendar}
-                rootRef = {this.props.rootRef}
-                reminder = {todo.reminder} 
-                attachedDate = {attachedDate}
-                onDayClick = {this.onCalendarDayClick}
-                onSomedayClick = {(e) => {
+                close={() => this.setState({showDateCalendar:false})}
+                open={showDateCalendar}
+                origin={{vertical: "center", horizontal: "right"}} 
+                point={{vertical: "center", horizontal: "right"}}  
+                anchorEl={this.calendar}
+                rootRef={this.props.rootRef}
+                reminder={todo.reminder} 
+                attachedDate={attachedDate}
+                onDayClick={this.onCalendarDayClick}
+                onSomedayClick={(e) => {
                     e.stopPropagation();
                     this.updateState({ 
                         category:"someday",
@@ -922,12 +924,12 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                         showDateCalendar:false
                     });
                 }}
-                onTodayClick = {this.onCalendarTodayClick} 
-                onRepeatTodo = {canRepeat ? this.onRepeatTodo : null}
-                onThisEveningClick = {this.onCalendarThisEveningClick}
-                onAddReminderClick = {this.onCalendarAddReminderClick}
-                onRemoveReminderClick = {this.onRemoveReminderClick}
-                onClear = {this.onCalendarClear}  
+                onTodayClick={this.onCalendarTodayClick} 
+                onRepeatTodo={canRepeat ? this.onRepeatTodo : null}
+                onThisEveningClick={this.onCalendarThisEveningClick}
+                onAddReminderClick={this.onCalendarAddReminderClick}
+                onRemoveReminderClick={this.onRemoveReminderClick}
+                onClear={this.onCalendarClear}  
             />  
             <TagsPopup
                 {  
@@ -1176,6 +1178,7 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                                         {  
                                             isEmpty(attachedTags) ? null :    
                                             <AdditionalTags 
+                                            selectedCategory={this.props.selectedCategory}
                                                 open={open} 
                                                 rootRef={this.ref} 
                                                 attachedTags={attachedTags}
@@ -1554,6 +1557,7 @@ class RestoreButton extends Component<RestoreButtonProps,{}>{
 interface AdditionalTagsProps{
     attachedTags:string[],
     open:boolean,
+    selectedCategory:Category,
     rootRef:HTMLElement
 }
 
@@ -1564,6 +1568,16 @@ interface AdditionalTagsState{
 class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
     ref:HTMLElement;
 
+
+    shouldComponentUpdate(nextProps:AdditionalTagsProps,nextState:AdditionalTagsState){
+        let tagsChanged = different(this.props.attachedTags, nextProps.attachedTags);
+        let showMoreTagsChanged = different(this.state.showMoreTags, nextState.showMoreTags);
+        let openChanged = different(this.props.open, nextProps.open);
+
+        
+        return tagsChanged || showMoreTagsChanged || openChanged;
+    }
+
     constructor(props){
         super(props); 
         this.state={ showMoreTags:false };
@@ -1571,25 +1585,23 @@ class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
     
     render(){
         let {attachedTags,open,rootRef} = this.props;
-        let {showMoreTags} = this.state;
 
         if(isNil(attachedTags)){ return null }  
         if(isEmpty(attachedTags)){ return null }
         if(open){ return null } 
 
         let moreTags = attachedTags.slice(3,attachedTags.length);
-
-
-        return  <Tooltip 
+ 
+        return <Tooltip 
                 size={"small"}
-                disabled={isEmpty(moreTags)}
+                disabled={isEmpty(moreTags) || not(this.state.showMoreTags)}
                 position="bottom"
                 animateFill={false}  
                 transitionFlip={false}
                 theme="light"   
-                delay={200}
+                unmountHTMLWhenHide={true}
                 trigger="mouseenter"
-                duration={40}
+                duration={0}
                 animation="fade" 
                 html={ 
                     <div style={{
@@ -1634,6 +1646,8 @@ class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
             >
             <div 
             ref={e => {this.ref=e;}}
+            onMouseEnter={() => this.setState({showMoreTags:true})}
+            onMouseLeave={() => this.setState({showMoreTags:false})}
             style={{
                 height:"25px",
                 display:"flex",

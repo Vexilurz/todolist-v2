@@ -48,7 +48,7 @@ interface GroupsByProjectAreaProps{
     dispatch:Function, 
     selectedProjectId:string, 
     groupTodos:boolean, 
-    selectedTodo:Todo, 
+    scrolledTodo:Todo, 
     moveCompletedItemsToLogbook:string,
     selectedAreaId:string,
     selectedCategory:Category, 
@@ -128,7 +128,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                     areas={this.props.areas}
                     sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                     groupTodos={this.props.groupTodos}
-                    selectedTodo={this.props.selectedTodo}
+                    scrolledTodo={this.props.scrolledTodo}
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     projects={this.props.projects}
                     selectedCategory={this.props.selectedCategory} 
@@ -157,7 +157,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                                     dispatch={this.props.dispatch}    
                                     sortBy={this.sortByLayoutOrder(project)}
                                     selectedTag={this.props.selectedTag} 
-                                    selectedTodo={this.props.selectedTodo}
+                                    scrolledTodo={this.props.scrolledTodo}
                                     selectedAreaId={this.props.selectedAreaId}
                                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                     selectedProjectId={this.props.selectedProjectId}
@@ -183,7 +183,7 @@ interface ExpandableTodosListProps{
     dispatch:Function,   
     sortBy:(a:Todo,b:Todo) => number,
     moveCompletedItemsToLogbook:string,
-    selectedTodo:Todo,
+    scrolledTodo:Todo,
     selectedAreaId:string,
     selectedCategory:Category,
     groupTodos:boolean,
@@ -228,10 +228,10 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
         return <div>          
                 <TodosList  
                     todos={sortedSliced}
-                    dispatch={this.props.dispatch}     
+                    dispatch={this.props.dispatch}    
+                    scrolledTodo={this.props.scrolledTodo} 
                     sortBy={this.props.sortBy}
                     selectedCategory={this.props.selectedCategory} 
-                    selectedTodo={this.props.selectedTodo}
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     areas={this.props.areas}
                     groupTodos={this.props.groupTodos}

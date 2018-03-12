@@ -359,15 +359,14 @@ export class Search extends Component<SearchProps,SearchState>{
     };   
 
 
- 
+    
     getTodoComponent = (todo:Todo,index:number) : JSX.Element => {
-
         return <div key={`todo-${index}`}>
             <TodoInput        
                 id={todo._id} 
                 key={todo._id} 
                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                selectedTodo={this.props.selectedTodo}
+                scrolledTodo={this.props.scrolledTodo}
                 groupTodos={this.props.groupTodos}
                 projects={this.props.projects}  
                 dispatch={this.props.dispatch}  
@@ -376,12 +375,12 @@ export class Search extends Component<SearchProps,SearchState>{
                 todos={this.props.todos}
                 selectedCategory={this.props.selectedCategory} 
                 rootRef={document.getElementById("maincontainer")}  
-                todo={todo}
+                todo={todo} 
             />   
         </div>
     };
 
-
+ 
 
     suggestionToComponent = (
         projectWithTodos:{project:Project,todos:Todo[]}, 

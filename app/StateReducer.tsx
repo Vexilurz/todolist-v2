@@ -1,6 +1,6 @@
 import { Store } from "./app";
 import { Category } from "./Components/MainContainer";
-import { adjust, cond, all, equals, isEmpty, contains, not, remove, uniq, isNil } from 'ramda';
+import { adjust, cond, all, equals, isEmpty, contains, not, remove, uniq, isNil, defaultTo } from 'ramda';
 import { isTodo, isBoolean, isDate, isString, isNumber, isCategory, isProject, isArea } from "./utils/isSomething";
 import { assert } from "./utils/assert";
 import { typeEquals } from "./utils/utils";
@@ -13,11 +13,15 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
             [
               typeEquals("selectedTodo"),
               (action:{type:string,load:Todo}) : Store => {
-                assert(isTodo(action.load), `Error: selectedTodo. applicationStateReducer. ${action.load}`); 
-                return ({...state,selectedTodo:action.load}); 
-              }
+                return ({...state, selectedTodo:action.load}); 
+              } 
             ],
-
+            [
+              typeEquals("scrolledTodo"),
+              (action:{type:string,load:Todo}) : Store => {
+                return ({...state, scrolledTodo:action.load}); 
+              } 
+            ], 
             [ 
               typeEquals("showLicense"),
               (action:{type:string,load:boolean}) : Store => {

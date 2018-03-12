@@ -42,7 +42,8 @@ interface ProjectBodyProps{
     showCompleted:boolean,
     selectedCategory:string, 
     todos:Todo[],  
-    selectedTodo:Todo, 
+    scrolledTodo:Todo, 
+    selectedTodo:Todo,
     selectedTag:string,
     moveCompletedItemsToLogbook:string,
     areas:Area[],
@@ -81,7 +82,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                         id={id} 
                         key={id} 
                         showCompleted={this.props.showCompleted}
-                        selectedTodo={this.props.selectedTodo}
+                        scrolledTodo={this.props.scrolledTodo}
                         groupTodos={this.props.groupTodos}
                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                         projects={this.props.projects}
