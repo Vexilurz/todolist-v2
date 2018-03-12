@@ -379,7 +379,6 @@ export class Search extends Component<SearchProps,SearchState>{
                 dispatch={this.props.dispatch}  
                 selectedProjectId={this.props.selectedProjectId}
                 selectedAreaId={this.props.selectedAreaId} 
-                todos={this.props.todos}
                 selectedCategory={this.props.selectedCategory} 
                 rootRef={document.getElementById("maincontainer")}  
                 todo={todo} 

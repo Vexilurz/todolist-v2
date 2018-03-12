@@ -10,7 +10,7 @@ import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import ArrowUp from 'material-ui/svg-icons/navigation/arrow-drop-up';
 import ArrowDown from 'material-ui/svg-icons/navigation/arrow-drop-down';
 
-import { byNotCompleted, byNotDeleted, typeEquals, isNotNil, anyTrue } from '../../utils/utils';
+import { byNotCompleted, byNotDeleted, typeEquals, isNotNil, anyTrue, attachDispatchToProps } from '../../utils/utils';
 import PieChart from 'react-minimal-pie-chart';
 import { 
     uniq, allPass, remove, intersection, reject, slice, prop, flatten,
@@ -25,6 +25,7 @@ import { isArea, isProject, isNotArray } from '../../utils/isSomething';
 import { arrayMove } from '../../utils/arrayMove';
 import { SortableContainer } from '../CustomSortableContainer';
 import { isDev } from '../../utils/isDev';
+import { Provider, connect } from "react-redux";
 const mapIndexed = addIndex(map);
 const isSeparator = (item) => item.type==="separator"; 
       
@@ -219,7 +220,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             index={index}
             dragged={this.props.dragged}  
             selectProject={this.selectProject}
-            todos={this.props.todos}   
             selectedProjectId={this.props.selectedProjectId}
             selectedCategory={this.props.selectedCategory}
         />
@@ -642,18 +642,20 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
 
 interface ProjectElementProps{
     project:Project,
-    todos:Todo[],
     index:number,
     dragged:string,
     selectProject:Function,
     selectedProjectId:string,
-    selectedCategory:Category
+    selectedCategory:Category,
+    todos?:Todo[]
 }
 
 interface ProjectElementState{ 
     highlight:boolean
 } 
+
  
+@connect((store,props) => ({ ...props, todos:store.todos }), attachDispatchToProps) 
 class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
     
     constructor(props){
@@ -661,7 +663,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         this.state={
             highlight:false 
         }; 
-    }  
+    }   
     
 
     shouldComponentUpdate(nextProps:ProjectElementProps,nextState:ProjectElementState){

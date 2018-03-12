@@ -82,7 +82,6 @@ export class Trash extends Component<TrashProps,TrashState>{
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
-                    todos={this.props.todos} 
                     rootRef={this.props.rootRef} 
                     todo={value}
                 />   
@@ -189,7 +188,6 @@ export class Trash extends Component<TrashProps,TrashState>{
                                     selectedProjectId={selectedProjectId}
                                     groupTodos={this.props.groupTodos}
                                     selectedAreaId={selectedAreaId} 
-                                    todos={this.props.todos}
                                     selectedCategory={selectedCategory}
                                     rootRef={rootRef}  
                                     todo={todo}
@@ -232,10 +230,22 @@ export class Trash extends Component<TrashProps,TrashState>{
   
       
 
-interface TrashPopupProps extends Store{}   
+interface TrashPopupProps{
+    dispatch:Function,
+    showTrashPopup:boolean
+} // extends Store{}   
 interface TrashPopupState{}  
 
-@connect((store,props) => ({...store, ...props}), attachDispatchToProps)
+@connect(
+    (store,props) => ({ showTrashPopup:store.showTrashPopup }), 
+    attachDispatchToProps,
+    null,
+    {
+        areStatesEqual: (nextStore:Store, prevStore:Store) => {
+            return nextStore.showTrashPopup===prevStore.showTrashPopup;
+        }
+    }
+)
 export class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
 
     onCancel = () => { 

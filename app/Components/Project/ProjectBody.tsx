@@ -89,7 +89,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                         dispatch={this.props.dispatch}   
                         selectedProjectId={this.props.selectedProjectId}
                         selectedAreaId={this.props.selectedAreaId} 
-                        todos={this.props.todos}
                         selectedCategory={this.props.selectedCategory as Category}
                         rootRef={this.props.rootRef}  
                         todo={value as Todo}

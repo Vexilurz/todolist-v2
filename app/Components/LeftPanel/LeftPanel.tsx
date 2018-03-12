@@ -13,7 +13,7 @@ import { ipcRenderer, remote } from 'electron';
 import { connect } from "react-redux";
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import Plus from 'material-ui/svg-icons/content/add';  
-import { Todo } from '../../database';
+import { Todo, Project, Area } from '../../database';
 import { Store } from '../../app'; 
 import { AreasList } from './../Area/AreasList';
 import { ResizableHandle } from './../ResizableHandle';
@@ -24,7 +24,7 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { filter } from '../MainContainer';
+import { filter, Category } from '../MainContainer';
 import { SearchInput } from '../Search';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { googleAnalytics } from '../../analytics';
@@ -33,16 +33,43 @@ import { assert } from '../../utils/assert';
 import { isDev } from '../../utils/isDev';
  
 interface LeftPanelState{ collapsed:boolean }
- 
-@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
-export class LeftPanel extends Component<Store,LeftPanelState>{
+interface LeftPanelProps{
+    dispatch?:Function,
+    projects:Project[],
+    leftPanelWidth:number,
+    openNewProjectAreaPopup:boolean,
+    areas:Area[], 
+    todos:Todo[], 
+    searchQuery:string,
+    dragged:any, 
+    selectedProjectId:string,
+    selectedAreaId:string,
+    selectedCategory:Category
+}
+
+
+@connect(
+    (store,props) : LeftPanelProps => ({ 
+        projects:store.projects,
+        leftPanelWidth:store.leftPanelWidth,
+        openNewProjectAreaPopup:store.openNewProjectAreaPopup,
+        areas:store.areas,
+        todos:store.todos,
+        searchQuery:store.searchQuery,
+        dragged:store.dragged,
+        selectedProjectId:store.selectedProjectId,
+        selectedAreaId:store.selectedAreaId,
+        selectedCategory:store.selectedCategory 
+    }), 
+    attachDispatchToProps 
+)  
+export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
     anchor:HTMLElement;
     subscriptions:Subscription[];
     leftPanelRef:HTMLElement;  
 
     constructor(props){  
         super(props);   
-        let {projects} = this.props;
         this.subscriptions = [];    
         this.state = { collapsed:false };      
     } 

@@ -255,7 +255,6 @@ export class Today extends Component<TodayProps,TodayState>{
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
                     groupTodos={this.props.groupTodos}
-                    todos={this.props.todos}
                     selectedCategory={this.props.selectedCategory as Category} 
                     rootRef={this.props.rootRef}  
                     todo={todo}

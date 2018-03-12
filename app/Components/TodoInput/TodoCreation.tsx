@@ -387,7 +387,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     onTagsButtonClick = (e) => { 
         e.stopPropagation();
         this.setState({showTagsSelection:true,showTags:true});
-    };   
+    };    
 
 
     closeTagsSelection = (e) => {
@@ -400,7 +400,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         this.setState({deadline:day}, () => this.closeDeadlineCalendar());
     };
 
- 
+  
     onDeadlineCalendarClear = (e:any) : void => {
         e.stopPropagation();
         let {selectedCategory} = this.props;
@@ -426,7 +426,12 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
            reminder = new Date(attachedDate.getTime());
         }
         
-        this.setState({attachedDate,reminder,category:isToday(attachedDate) ? "today" : "next"});   
+        this.setState({
+            attachedDate,
+            reminder,
+            showDateCalendar:false,
+            category:isToday(attachedDate) ? "today" : "next"
+        });   
     };  
      
 

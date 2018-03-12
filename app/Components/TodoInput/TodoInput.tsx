@@ -18,7 +18,7 @@ import Popover from 'material-ui/Popover';
 import ChecklistIcon from 'material-ui/svg-icons/action/assignment-turned-in'; 
 import NotesIcon from 'material-ui/svg-icons/action/subject'; 
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
-import { daysLeftMark, isToday, getMonthName, getCompletedWhen, getTime, setTime, isNotNil, different, isNotEmpty, log, anyTrue } from '../../utils/utils'; 
+import { daysLeftMark, isToday, getMonthName, getCompletedWhen, getTime, setTime, isNotNil, different, isNotEmpty, log, anyTrue, attachDispatchToProps } from '../../utils/utils'; 
 import { Todo, Project, Group } from '../../database';
 import { Checklist, ChecklistItem } from './TodoChecklist';
 import { Category } from '../MainContainer'; 
@@ -60,6 +60,8 @@ import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import 'draft-js/dist/Draft.css';
 import { noteToState, noteFromState, RawDraftContentState, getNotePlainText } from '../../utils/draftUtils';
 //import Tooltip from 'rc-tooltip'; remove
+import { Provider, connect } from "react-redux";
+
 
 const linkifyPlugin = createLinkifyPlugin({
     component:(props) => {
@@ -71,18 +73,17 @@ let moment = require("moment");
 let Promise = require('bluebird'); 
 
 export interface TodoInputProps{ 
-    dispatch : Function,  
+    dispatch? : Function,  
     groupTodos : boolean,  
     scrolledTodo : Todo,
     moveCompletedItemsToLogbook : string, 
     selectedCategory : Category,
     selectedProjectId : string,
     selectedAreaId : string,
-    todos : Todo[],
     projects : Project[], 
     todo : Todo,  
     rootRef : HTMLElement,  
-    id : string, 
+    id : string,  
     onOpen? : Function,
     onClose? : Function,
     showCompleted? : boolean
@@ -109,9 +110,27 @@ export interface TodoInputState{
     checklist : ChecklistItem[],
     title : string
 }   
+ 
 
+@connect(
+    (store,props):TodoInputProps => ({ 
+        groupTodos : store.groupTodos,  
+        scrolledTodo : store.scrolledTodo, 
+        moveCompletedItemsToLogbook : store.moveCompletedItemsToLogbook,  
+        selectedCategory : store.selectedCategory, 
+        selectedProjectId : store.selectedProjectId, 
+        selectedAreaId : store.selectedAreaId, 
+        projects : store.projects, 
 
-
+        todo : props.todo,   
+        rootRef : props.rootRef,  
+        id : props.id,  
+        onOpen : props.onOpen,
+        onClose : props.onCLose,
+        showCompleted : props.showCompleted
+    }), 
+    attachDispatchToProps
+)  
 export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     calendar:HTMLElement; 
     deadline:HTMLElement;
@@ -171,7 +190,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             selectedAreaId,
             //
 
-            todos,
             projects, 
             todo,
 
@@ -215,13 +233,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             projectsChanged, 
             groupTodosChanged, 
             scrolledTodoChanged, 
-            moveCompletedItemsToLogbookChanged, 
+            moveCompletedItemsToLogbookChanged,   
             showCompletedChanged
         ]);
-
-        if(todo){
-           //console.log(`${todo.title} -> should update : ${should}`);  
-        }
 
         return should;
     }

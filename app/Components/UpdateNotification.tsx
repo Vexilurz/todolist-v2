@@ -7,7 +7,7 @@ import { Provider, connect } from "react-redux";
 import Popover from 'material-ui/Popover';
 import { Transition } from 'react-transition-group';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
-import { uniq, compose, contains, allPass, isNil, not, isEmpty } from 'ramda';
+import { uniq, compose, contains, allPass, isNil, not, isEmpty, all, identity, equals } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
@@ -22,13 +22,37 @@ import { updateConfig } from '../utils/config';
  
 
 
-interface UpdateNotificationProps extends Store{}
+interface UpdateNotificationProps {
+    showUpdatesNotification:boolean, 
+    progress:any, 
+    dispatch:Function
+} // extends Store{}
 interface UpdateNotificationState{ 
     canRestart:boolean,
     downloading:boolean 
 } 
 
-@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)
+
+ 
+@connect(
+    (store,props) => ({  
+        showUpdatesNotification:store.showUpdatesNotification, 
+        progress:store.progress
+    }), 
+    attachDispatchToProps,
+    null,
+    {
+        areStatesEqual: (nextStore:Store, prevStore:Store) => {
+            return all(
+                identity, 
+                [
+                    nextStore.showUpdatesNotification===prevStore.showUpdatesNotification,
+                    equals(nextStore.progress,prevStore.progress)
+                ]
+            );
+        }
+    } 
+)
 export class UpdateNotification extends Component<UpdateNotificationProps,UpdateNotificationState>{
     downloading:boolean;
     

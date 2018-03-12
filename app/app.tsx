@@ -14,7 +14,7 @@ import {
     convertProjectDates, convertAreaDates, timeDifferenceHours, 
     convertDates, checkForUpdates, nextMidnight,
     oneMinuteBefore, threeDaysLater, findWindowByTitle, keyFromDate, isNotNil, 
-    nDaysFromNow, monthFromDate, measureTime  
+    nDaysFromNow, monthFromDate, measureTime, log  
 } from "./utils/utils";  
 import {wrapMuiThemeLight} from './utils/wrapMuiThemeLight'; 
 import {isNewVersion} from './utils/isNewVersion';
@@ -36,7 +36,7 @@ import {
 } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
-import { cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains, prop } from 'ramda';
+import { cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains, prop, equals, identity, all } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { Settings, section, SettingsPopup, LicensePopup } from './Components/Settings/settings'; 
 import { SimplePopup } from './Components/SimplePopup';
@@ -180,8 +180,27 @@ export let defaultStoreItems : Store = {
 };      
 
 
-interface AppProps extends Store{};  
-@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)  
+interface AppProps {
+    clone:boolean,  
+    dispatch:Function,
+    nextUpdateCheck:Date
+} // extends Store{};  
+@connect(
+    (store,props) => ({clone:store.clone, nextUpdateCheck:store.nextUpdateCheck}), 
+    attachDispatchToProps,
+    null,
+    {
+        areStatesEqual: (nextStore:Store, prevStore:Store) => {
+            return all(
+                identity, 
+                [
+                    nextStore.clone===prevStore.clone,
+                    equals(nextStore.nextUpdateCheck,prevStore.nextUpdateCheck)
+                ]
+            );
+        }
+    }
+)  
 export class App extends Component<AppProps,{}>{  
     subscriptions:Subscription[]; 
     timeouts:any[]; 
@@ -215,7 +234,7 @@ export class App extends Component<AppProps,{}>{
     ) 
     .catch(err => this.onError(err));
 
-
+    
     initUpdateTimeout = () => {
         let {dispatch, nextUpdateCheck} = this.props;
         let check = () => checkForUpdates()  
@@ -302,30 +321,6 @@ export class App extends Component<AppProps,{}>{
 
 
             Observable 
-            .fromEvent(ipcRenderer, 'removeReminder', (event,todo) => todo)    
-            .subscribe((todo:Todo) => {
-                assert(isTodo(todo), `todo is not of type todo. removeReminder. ${todo}`);
-                let {todos,dispatch} = this.props; 
-                let target = todos.find((t:Todo) => t._id===todo._id);
-                if(target){ 
-                   let updated:Todo = {...target,reminder:null};
-                   dispatch({type:"updateTodo",load:updated}); 
-                }  
-            }),
-
-
-            Observable 
-            .fromEvent(ipcRenderer, 'removeReminders', (event,todos) => todos)    
-            .subscribe((items:Todo[]) => {
-                let {todos,dispatch} = this.props; 
-                let ids = items.filter(isNotNil).map((t:Todo) => t._id);
-                let updated = filter(todos, (todo:Todo) => contains(todo._id)(ids));
-                
-                dispatch({type:"updateTodos",load:updated.map((t:Todo) => ({...t,reminder:null})) }); 
-            }),
-
-
-            Observable 
             .fromEvent(ipcRenderer, "error", (event,error) => error)    
             .subscribe((error) => this.onError(error)),
 
@@ -358,7 +353,7 @@ export class App extends Component<AppProps,{}>{
         let { clone } = this.props;
 
 
-        return wrapMuiThemeLight(
+        return wrapMuiThemeLight( 
             <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001}}>    
                 <div style={{display:"flex",width:"inherit",height:"inherit"}}>  
 
@@ -377,10 +372,10 @@ export class App extends Component<AppProps,{}>{
                 <TrashPopup {...{} as any} />
 
                 <LicensePopup {...{} as any} />
-            </div>            
-        );    
+            </div>  
+        );  
     }           
-};   
+};    
 
    
 //render application

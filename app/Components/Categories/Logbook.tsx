@@ -206,7 +206,6 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                                     dispatch={dispatch}  
                                     selectedProjectId={selectedProjectId}
                                     selectedAreaId={selectedAreaId} 
-                                    todos={this.props.todos} 
                                     selectedCategory={selectedCategory}  
                                     rootRef={rootRef}  
                                     todo={value as Todo}

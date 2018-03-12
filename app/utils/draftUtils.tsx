@@ -34,8 +34,10 @@ export interface RawDraftContentState{
 
 let getEmptyRaw : () => RawDraftContentState = 
     compose(
-        content => EditorState.createWithContent(content), 
-        state => state.getCurrentContent(), 
+        convertToRaw, 
+        (state) => state.getCurrentContent(),
+        //content => EditorState.createWithContent(content), 
+        //state => state.getCurrentContent(), 
         EditorState.createEmpty 
     );
 

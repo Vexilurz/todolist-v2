@@ -59,6 +59,7 @@ import { updateConfig, clearStorage } from '../utils/config';
 import { isNotArray, isDate, isTodo, isString } from '../utils/isSomething';
 import { debounce } from 'lodash';
 import { noteFromText } from '../utils/draftUtils';
+import { assert } from '../utils/assert';
 const Promise = require('bluebird');   
 const moment = require("moment");  
 
@@ -113,12 +114,15 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
 
                        
 interface MainContainerState{ fullWindowSize:boolean }
-@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)   
+
+@connect((store,props) => store, attachDispatchToProps)   
 export class MainContainer extends Component<Store,MainContainerState>{
     rootRef:HTMLElement;  
     limit:number;
     subscriptions:Subscription[]; 
     disablePrintButton:boolean;
+
+    
 
     constructor(props){ 
         super(props);  
@@ -251,7 +255,32 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     this.props.showRightClickMenu ? 
                     dispatch({type:"showRightClickMenu", load:false}) : 
                     null
-                )
+                ),  
+
+
+            Observable 
+                .fromEvent(ipcRenderer, 'removeReminder', (event,todo) => todo)    
+                .subscribe((todo:Todo) => {
+                    assert(isTodo(todo), `todo is not of type todo. removeReminder. ${todo}`);
+                    let {todos,dispatch} = this.props; 
+                    let target = todos.find((t:Todo) => t._id===todo._id);
+                    if(target){ 
+                        let updated:Todo = {...target,reminder:null};
+                        dispatch({type:"updateTodo",load:updated}); 
+                    }  
+                }),
+
+
+            Observable 
+                .fromEvent(ipcRenderer, 'removeReminders', (event,todos) => todos)    
+                .subscribe((items:Todo[]) => {
+                    let {todos,dispatch} = this.props; 
+                    let ids = items.filter(isNotNil).map((t:Todo) => t._id);
+                    let updated = filter(todos, (todo:Todo) => contains(todo._id)(ids));
+                    
+                    dispatch({type:"updateTodos",load:updated.map((t:Todo) => ({...t,reminder:null})) }); 
+                })
+        
         );
     };
   

@@ -245,7 +245,6 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 dispatch={this.props.dispatch}  
                 selectedProjectId={this.props.selectedProjectId}
                 selectedAreaId={this.props.selectedAreaId}  
-                todos={this.props.todos}
                 selectedCategory={this.props.selectedCategory} 
                 rootRef={this.props.rootRef}   
                 todo={value}

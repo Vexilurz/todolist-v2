@@ -2,6 +2,7 @@ import '../../assets/styles.css';
 import '../../assets/calendarStyle.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
+import { equals } from 'ramda';
 import { ipcRenderer } from 'electron'; 
 import { Component } from "react";   
 import { connect } from "react-redux";
@@ -10,13 +11,33 @@ import { Todo } from '../../database';
 import { Store } from '../../app';
 import { SimplePopup } from '../SimplePopup';
 
-interface ChangeGroupPopupProps extends Store{} 
+interface ChangeGroupPopupProps{
+    dispatch?:Function,
+    todo:Todo,
+    openChangeGroupPopup:boolean
+} // extends Store{} 
             
 interface ChangeGroupPopupState{}
   
-@connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
+@connect(
+    (store,props) : ChangeGroupPopupProps => ({
+        openChangeGroupPopup:store.openChangeGroupPopup,
+        todo:store.todos.find((todo) => todo._id===store.rightClickedTodoId),
+    }), 
+    attachDispatchToProps,
+    null,
+    {
+        areStatesEqual: (nextStore:Store, prevStore:Store) => {
+            let todoNext = nextStore.todos.find((todo) => todo._id===nextStore.rightClickedTodoId);
+            let todoPrev = prevStore.todos.find((todo) => todo._id===prevStore.rightClickedTodoId);
+            
+            return  nextStore.openChangeGroupPopup===prevStore.openChangeGroupPopup &&
+                    nextStore.rightClickedTodoId===prevStore.rightClickedTodoId &&
+                    equals(todoNext,todoPrev);
+        }
+    }
+) 
 export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGroupPopupState>{
-
     ref:HTMLElement; 
 
     constructor(props){
@@ -31,24 +52,23 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
 
     onCancel = (e) => {
         this.onClose();  
-    };  
+    };   
  
 
     onDeleteSingleItem = (e) => {
-        let {rightClickedTodoId, dispatch, todos} = this.props; 
-        let todo : Todo = todos.find( (todo) => todo._id===rightClickedTodoId );
+        let {todo,dispatch} = this.props; 
         dispatch({type:"updateTodo", load:{...todo,reminder:null,deleted:new Date()}});
         this.onClose(); 
     }; 
 
 
     onDeleteGroup = () => {
-        let {rightClickedTodoId, dispatch, todos} = this.props; 
-        let todo : Todo = todos.find( (todo) => todo._id===rightClickedTodoId );
+        let {todo,dispatch} = this.props; 
         dispatch({type:"removeGroup", load:todo.group._id});
         this.onClose();   
     };
  
+
     render(){ 
         let { openChangeGroupPopup } = this.props; 
        

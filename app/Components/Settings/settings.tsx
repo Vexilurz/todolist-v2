@@ -19,8 +19,8 @@ import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Popover from 'material-ui/Popover';
 import { 
-    remove, isNil, not, isEmpty, compose, toPairs, map, findIndex,
-    contains, last, cond, defaultTo, flatten, uniq, concat 
+    remove, isNil, not, isEmpty, compose, toPairs, map, findIndex, equals,
+    contains, last, cond, defaultTo, flatten, uniq, concat, all, identity 
 } from 'ramda';
 let uniqid = require("uniqid");    
 import { Observable } from 'rxjs/Rx';
@@ -57,9 +57,21 @@ const os = remote.require('os');
 const dialog = remote.dialog;
 
 
-interface LicensePopupProps extends Store{}
+interface LicensePopupProps{
+    showLicense:boolean,
+    dispatch:Function
+}// extends Store{}
 interface LicensePopupState{}
-@connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
+@connect(
+    (store:Store,props) =>  ({ showLicense:store.showLicense }), 
+    attachDispatchToProps,
+    null,
+    {
+        areStatesEqual:(nextStore:Store, prevStore:Store) => {
+           return nextStore.showLicense===prevStore.showLicense;
+        }  
+    }    
+)  
 export class LicensePopup extends Component<LicensePopupProps,LicensePopupState>{
     
     constructor(props){ super(props) }
@@ -110,9 +122,22 @@ export class LicensePopup extends Component<LicensePopupProps,LicensePopupState>
 
 
 
-interface SettingsPopupProps extends Store{}
+interface SettingsPopupProps{
+    openSettings:boolean,
+    dispatch:Function
+} //extends Store{}
 interface SettingsPopupState{}
-@connect((store,props) =>  ({ ...store, ...props }), attachDispatchToProps)  
+
+@connect(
+    (store:Store,props) =>  ({ openSettings:store.openSettings }), 
+    attachDispatchToProps,
+    null,
+    {
+        areStatesEqual:(nextStore:Store, prevStore:Store) => {
+           return nextStore.openSettings===prevStore.openSettings;
+        }
+    }   
+)  
 export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupState>{
     constructor(props){ super(props) }
     render(){
@@ -127,11 +152,25 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
     }  
 }  
 
-interface SettingsProps extends Store{}
+
 export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags';
+interface SettingsProps{
+    selectedSettingsSection:section,
+    dispatch?:Function
+}// extends Store{}
+
 interface SettingsState{}
 
-@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
+@connect(
+    (store:Store,props) : SettingsProps => ({ selectedSettingsSection:store.selectedSettingsSection }), 
+    attachDispatchToProps,
+    null, 
+    {
+        areStatesEqual:(nextStore:Store, prevStore:Store) => {
+           return nextStore.selectedSettingsSection===prevStore.selectedSettingsSection;
+        }
+    }   
+) 
 export class Settings extends Component<SettingsProps,SettingsState>{
 
     constructor(props){ super(props) }
@@ -302,12 +341,32 @@ class Section extends Component<SectionProps,{}>{
 
 
 
-interface QuickEntrySettingsProps extends Store{}
-
+interface QuickEntrySettingsProps{
+    enableShortcutForQuickEntry:boolean, 
+    quickEntrySavesTo:string,
+    dispatch?:Function
+} // extends Store{}
 interface QuickEntrySettingsState{}
 
-
-@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)  
+@connect(
+    (store:Store,props) : QuickEntrySettingsProps => ({ 
+        enableShortcutForQuickEntry:store.enableShortcutForQuickEntry, 
+        quickEntrySavesTo:store.quickEntrySavesTo
+    }), 
+    attachDispatchToProps,
+    null, 
+    {
+        areStatesEqual:(nextStore:Store, prevStore:Store) => {
+           return all(
+               identity,
+               [
+                 nextStore.enableShortcutForQuickEntry===prevStore.enableShortcutForQuickEntry, 
+                 nextStore.quickEntrySavesTo===prevStore.quickEntrySavesTo
+               ]
+           )           
+        }
+    }   
+)  
 class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySettingsState>{
 
     constructor(props){ super(props) }
@@ -425,10 +484,20 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
 
 
 
-interface TagsSettingsProps extends Store{}
+interface TagsSettingsProps{
+    dispatch?:Function,
+    todos:Todo[],
+    defaultTags:string[]
+}
 interface TagsSettingsState{}
 
-@connect((store,props) => ({...store, ...props}), attachDispatchToProps)   
+@connect(
+    (store:Store,props) : TagsSettingsProps => ({
+        todos:store.todos,
+        defaultTags:store.defaultTags
+    }), 
+    attachDispatchToProps
+)   
 class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
 
     constructor(props){ super(props) }
@@ -563,15 +632,42 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
     }   
 }
 
+ 
 
 
-
-interface CalendarEventsSettingsProps extends Store{}
+interface CalendarEventsSettingsProps{
+    dispatch?:Function,
+    calendars:Calendar[], 
+    hideHint:boolean, 
+    showCalendarEvents:boolean
+    limit:Date
+} // extends Store{}
 
 interface CalendarEventsSettingsState{ url:string, error:string }
 
-
-@connect((store,props) => ({...store, ...props}), attachDispatchToProps)   
+@connect(
+    (store:Store,props) : CalendarEventsSettingsProps => ({
+        calendars:store.calendars, 
+        hideHint:store.hideHint, 
+        limit:store.limit,
+        showCalendarEvents:store.showCalendarEvents
+    }), 
+    attachDispatchToProps,
+    null, 
+    {
+        areStatesEqual:(nextStore:Store, prevStore:Store) => {
+           return all(
+               identity,
+               [
+                 equals(nextStore.calendars,prevStore.calendars), 
+                 nextStore.hideHint===prevStore.hideHint, 
+                 equals(nextStore.limit,prevStore.limit), 
+                 nextStore.showCalendarEvents===prevStore.showCalendarEvents
+               ]
+           )           
+        }
+    }   
+)   
 class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,CalendarEventsSettingsState>{
 
     constructor(props){
@@ -818,7 +914,15 @@ let removeRev = (item) => {
     return item;
 };
 
-interface AdvancedProps extends Store{}
+interface AdvancedProps{
+    dispatch?:Function,
+    clone:boolean,
+    shouldSendStatistics,
+    moveCompletedItemsToLogbook:any,
+    groupTodos:boolean,
+    disableReminder:boolean,
+    todos:Todo[]
+} 
 
 interface AdvancedState{ 
     showPopup:boolean,
@@ -829,7 +933,17 @@ interface AdvancedState{
     exportPath:string
 }   
   
-@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)  
+@connect(
+    (store,props) : AdvancedProps => ({ 
+        clone:store.clone,
+        shouldSendStatistics:store.shouldSendStatistics,
+        moveCompletedItemsToLogbook:store.moveCompletedItemsToLogbook,
+        groupTodos:store.groupTodos,
+        disableReminder:store.disableReminder,
+        todos:store.todos,
+    }), 
+    attachDispatchToProps
+)  
 class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     backupFolder:string;
     backupFilename:string;

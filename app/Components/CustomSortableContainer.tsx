@@ -257,7 +257,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
     componentDidMount(){ 
         this.init(); //Initialize event based Observables.
     }  
-
+ 
 
     componentWillUnmount(){
         this.initial.initialRect=undefined; 
