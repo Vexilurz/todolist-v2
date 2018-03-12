@@ -32,7 +32,7 @@ import {
 import {
     allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, first,
     map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy,
-    mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject
+    mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass
 } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
 import { Category, filter } from '../MainContainer';
@@ -96,11 +96,16 @@ export let groupEventsByType = (events:CalendarEvent[]) : {
  
 
 
-export let extendNever = (limit:Date, todos:Todo[]) : Todo[] => {
+export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
     
     let isNotNeverGroup = compose(not, equals('never'), path(['group','type']));
     let getDate = (todo:Todo) => todo.attachedDate;
     let compareByAttachedDate = compareByDate(getDate);
+
+    let groupButNotAfter = compose(
+        anyPass([equals('never'),equals('on')]), 
+        path(['group','type'])
+    );
 
     let repeated = compose( 
         flatten, 
@@ -113,16 +118,18 @@ export let extendNever = (limit:Date, todos:Todo[]) : Todo[] => {
                    let start = todo.attachedDate;
                    let todos = repeat(options, todo, start, limit);
                    return todos; 
-                }, 
+                },  
                (todos) => todos[0],
                (todos) => todos.sort(compareByAttachedDate)
             )
         ),
         groupBy(path(['group','_id'])),
-        reject(isNotNeverGroup)
+        (todos) => filter(todos, groupButNotAfter)
     )(todos);
 
-    assert(isArrayOfTodos(repeated),`repeated is not of type array of todos. prolongateRepeated.`);
+    if(isDev()){
+       assert(isArrayOfTodos(repeated),`repeated is not of type array of todos. prolongateRepeated.`);
+    }
 
     return repeated;
 };
@@ -261,18 +268,16 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 })
             ) 
 
-            let never = extendNever(newLimit, todos);
+            let extended = extend(newLimit, todos);
 
-            
-
-            if(isNotEmpty(never)){
-               dispatch({type:"addTodos", load:never}); 
+            if(isNotEmpty(extended)){
+               dispatch({type:"addTodos", load:extended}); 
             }
 
             dispatch({type:"limit", load:newLimit}); 
         } 
     }; 
-
+ 
 
 
     onEnter = ({previousPosition, currentPosition}) => { 

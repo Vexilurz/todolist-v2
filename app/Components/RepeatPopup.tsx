@@ -108,7 +108,7 @@ export let repeat = (options:RepeatOptions, todo:Todo, start:Date, limit:Date) :
         count,
         selectedOption //'on' | 'after' | 'never',
     } = options;     
-
+ 
     let todos = compose(
         (items) => adjust(
             (todo:Todo) => ({ ...todo, group:{...todo.group, last:true} }), 
@@ -121,7 +121,7 @@ export let repeat = (options:RepeatOptions, todo:Todo, start:Date, limit:Date) :
             [
                 [ equals('on'), () : Date[] => {
                     let rule = new RRule({freq:getFreq(freq),interval,dtstart,until});
-                    return rule.all();
+                    return rule.between(start,limit);  
                 } ],
                 [ equals('after'), () : Date[] => {
                     let rule = new RRule({freq:getFreq(freq),interval,dtstart,count:count,until:null});
@@ -202,21 +202,27 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         let { todos, repeatTodo, dispatch, limit } = this.props;
         let {interval,freq,until,count,selectedOption} = this.state; 
         let todo = {...repeatTodo};
-        let repeatedTodos : Todo[] = drop(1)(  
-            repeat(  
-                {
-                    interval, 
-                    freq, 
-                    until, 
-                    count:when(isNotNil,add(1))(count), 
-                    selectedOption 
-                },
+
+
+        let repeatedTodos : Todo[] = compose(
+            when(() => equals(selectedOption,'after'), drop(1)),
+            (options) => repeat(  
+                options,
                 todo, 
                 new Date(),
                 limit
             )
+        )(
+            {
+                interval, 
+                freq, 
+                until, 
+                count, 
+                selectedOption 
+            }
         );
-        
+
+         
         if(isEmpty(repeatedTodos)){ return }
 
         assert(isArrayOfTodos(repeatedTodos),'repeatedTodos is not of type array of todos.');
@@ -225,11 +231,11 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
             compose(equals(true), path(['group', 'last']), last)(repeatedTodos),
             'last item does not have last flag.'
         );
- 
+  
         //attach group to repeated todo
         compose(
             (group) => dispatch({ type:"updateTodo", load:{...todo,group:{...group,last:false}} }),
-            when(isNotNil,prop('group')),
+            prop('group'),
             (items) => items[0]
         )(repeatedTodos) 
 

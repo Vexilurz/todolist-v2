@@ -79,7 +79,7 @@ let clearScheduledReminders = (store:Store) : Store => {
 
 
 export let applicationObjectsReducer = (state:Store, action:{type:string,load:any,kind:string}) : Store => { 
-
+console.log(`applicationObjectsReducer ${action.type}`)
     let shouldAffectDatabase : boolean =  and(actionFromQuickEntry(action),isMainWindow()) || 
                                           actionOriginIsThisWindow(action);
 

@@ -14,7 +14,7 @@ import {
     convertProjectDates, convertAreaDates, timeDifferenceHours, 
     convertDates, checkForUpdates, nextMidnight,
     oneMinuteBefore, threeDaysLater, findWindowByTitle, keyFromDate, isNotNil, 
-    nDaysFromNow, monthFromDate  
+    nDaysFromNow, monthFromDate, measureTime  
 } from "./utils/utils";  
 import {wrapMuiThemeLight} from './utils/wrapMuiThemeLight'; 
 import {isNewVersion} from './utils/isNewVersion';
@@ -140,10 +140,10 @@ export let defaultStoreItems : Store = {
     shouldSendStatistics : true,  
     hideHint : true,  
     progress : null,  
-    scheduledReminders : [], 
+    scheduledReminders : [],  
     showUpdatesNotification : false, 
-    limit : yearFromNow(),//monthFromDate(new Date()), 
-    searchQuery : "",
+    limit:nDaysFromNow(50),//monthFromDate(new Date()), 
+    searchQuery : "", 
     openChangeGroupPopup : false,    
     selectedSettingsSection : "QuickEntry",
     openSettings : false,   
@@ -423,7 +423,7 @@ let reducer = (reducers) => (state:Store, action) => {
     }   
     return state;      
 }; 
-
+  
 
 let applicationReducer = reducer([applicationStateReducer, applicationObjectsReducer]); 
   

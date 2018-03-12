@@ -157,7 +157,7 @@ export class Today extends Component<TodayProps,TodayState>{
     
         let hotFilters = [ 
             (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
-            byNotCompleted,  
+            byNotCompleted,   
             byNotDeleted  
         ]; 
 
@@ -176,12 +176,12 @@ export class Today extends Component<TodayProps,TodayState>{
     
 
     componentDidMount(){ 
-        this.calculateTodayAmount(this.props);
+        //this.calculateTodayAmount(this.props);
     };     
   
 
     componentWillReceiveProps(nextProps:TodayProps){
-        this.calculateTodayAmount(nextProps); 
+        //this.calculateTodayAmount(nextProps); 
     };
 
 

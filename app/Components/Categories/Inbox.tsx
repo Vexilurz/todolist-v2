@@ -42,11 +42,11 @@ export class Inbox extends Component<InboxProps, InboxState>{
     constructor(props){ super(props) }   
 
     componentDidMount(){
-        this.props.dispatch({type:"inboxAmount",load:this.props.todos.length});
+        //this.props.dispatch({type:"inboxAmount",load:this.props.todos.length});
     }
 
     componentWillReceiveProps(nextProps:InboxProps){ 
-        this.props.dispatch({type:"inboxAmount",load:nextProps.todos.length});
+        //this.props.dispatch({type:"inboxAmount",load:nextProps.todos.length});
     }
 
     render(){  

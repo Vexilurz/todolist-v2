@@ -36,7 +36,7 @@ import { Trash, TrashPopup } from './Categories/Trash';
 import { Logbook } from './Categories/Logbook';
 import { Someday } from './Categories/Someday';
 import { Next } from './Categories/Next';  
-import { Upcoming, extendNever } from './Categories/Upcoming';
+import { Upcoming, extend } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
@@ -211,10 +211,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
         this.addIntroList(projects); 
 
-        let never = extendNever(this.props.limit, todos);
+        let extended = extend(this.props.limit, todos);
 
-        if(isNotEmpty(never)){
-           dispatch({type:"addTodos", load:never}); 
+        if(isNotEmpty(extended)){ 
+           dispatch({type:"addTodos", load:extended}); 
         }
 
         when(
