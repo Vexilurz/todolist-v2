@@ -115,7 +115,7 @@ export class Listeners{
                     .then(
                         () => {
                             newWindow.webContents.send("loaded",store); 
-                            newWindow.webContents.openDevTools(); 
+                            //newWindow.webContents.openDevTools(); 
                         } 
                     );  
                 }

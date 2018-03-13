@@ -612,11 +612,12 @@ export let distanceInOneDay = (a:Date,b:Date) : boolean => {
 };
 
  
-export let keyFromDate = (date:Date) : string => {  
-    assert(isDate(date), `keyFromDate. input is not a date. ${date}`);
-
-    if(isNotDate(date)){ return '' }
+export let keyFromDate = (d:Date) : string => {  
+    //assert(isDate(date), `keyFromDate. input is not a date. ${date}`);
     
+    if(isNil(d)){ return '' }
+    let date = isString(d) ? new Date(d) : d;
+
     let year = date.getFullYear();
     let day = date.getDate(); 
     let month = date.getMonth();

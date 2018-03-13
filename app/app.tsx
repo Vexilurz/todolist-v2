@@ -188,7 +188,7 @@ interface AppProps {
     nextUpdateCheck:Date
 } // extends Store{};  
 @connect(
-    (store,props) => ({clone:store.clone, nextUpdateCheck:store.nextUpdateCheck}), 
+    (store,props) => ({clone:store.clone, nextUpdateCheck:new Date(store.nextUpdateCheck)}), 
     attachDispatchToProps,
     null,
     {
@@ -407,8 +407,19 @@ ipcRenderer.once(
         getConfig() 
         .then((config) => 
             ReactDOM.render(   
-                <Provider store={createStore(applicationReducer, {...defaultStore, ...config})}>   
-                   {wrapMuiThemeLight(  <App {...{} as any}/> )}
+                <Provider 
+                    store={
+                        createStore(
+                            applicationReducer, 
+                            {
+                                ...defaultStore, 
+                                ...config,  
+                                nextUpdateCheck:new Date(config.nextUpdateCheck)
+                            }
+                        )
+                    }
+                >    
+                {wrapMuiThemeLight(<App {...{} as any}/>)}
                 </Provider>,
                 document.getElementById('application')
             ) 

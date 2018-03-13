@@ -124,7 +124,12 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
             calendars,
             onError
         ).then(
-            (updated) => ({projects,areas,todos,calendars:updated})
+            (updated) => ({
+                projects,
+                areas,
+                todos,
+                calendars:updated
+            })
         )
     );
 
@@ -227,7 +232,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
         dispatch({type:"setAreas", load:areas});
         dispatch({type:"setTodos", load:todos});
         dispatch({type:"setCalendars", load:calendars});
-
         this.addIntroList(projects); 
 
         let extended = extend(this.props.limit, todos);

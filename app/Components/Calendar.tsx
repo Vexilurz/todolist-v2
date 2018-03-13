@@ -129,10 +129,13 @@ let parseEvent = (vevent:any) : CalendarEvent => {
 
 
 let sameDayEvent = (event:CalendarEvent) : boolean => {
-    assert(isEvent(event), `event is not of type CalendarEvent. sameDayEvents. ${event}`);
+    //assert(isEvent(event), `event is not of type CalendarEvent. sameDayEvents. ${event}`);
 
-    let t = timeDifferenceHours(event.start,event.end) < 24;
-    let s = sameDay(event.start,event.end);
+    let start = event.start ? new Date(event.start) : event.start;
+    let end = event.end ? new Date(event.end) : event.end;
+
+    let t = timeDifferenceHours(start,end) < 24;
+    let s = sameDay(start,end);
 
     return and(t,s);
 };
@@ -140,10 +143,13 @@ let sameDayEvent = (event:CalendarEvent) : boolean => {
 
 
 let fullDayEvent = (event:CalendarEvent) : boolean => {
-    assert(isEvent(event), `event is not of type CalendarEvent. fullDayEvents. ${event}`);
-    let d = distanceInOneDay(event.start,event.end);
-    let m = fromMidnightToMidnight(event.start, event.end);
-    let t = Math.round( timeDifferenceHours(event.start,event.end) )===24;
+    //assert(isEvent(event), `event is not of type CalendarEvent. fullDayEvents. ${event}`);
+    let start = event.start ? new Date(event.start) : new Date();
+    let end = event.end ? new Date(event.end) : new Date();
+
+    let d = distanceInOneDay(start,end);
+    let m = fromMidnightToMidnight(start, end);
+    let t = Math.round( timeDifferenceHours(start,end) )===24;
 
     return d && m && t; 
 };
@@ -151,13 +157,15 @@ let fullDayEvent = (event:CalendarEvent) : boolean => {
 
 
 let multipleDaysEvent = (event:CalendarEvent) : boolean => {
-    assert(isEvent(event), `event is not of type CalendarEvent. multipleDaysEvents. ${event}`);
+    //assert(isEvent(event), `event is not of type CalendarEvent. multipleDaysEvents. ${event}`);
+    let start = event.start ? new Date(event.start) : new Date();
+    let end = event.end ? new Date(event.end) : new Date();
     let f = fullDayEvent(event);
 
     if(f){ 
        return false; 
     }else{ 
-       return differentDays(event.start,event.end); 
+       return differentDays(start,end); 
     } 
 };
 
@@ -193,6 +201,12 @@ let splitLongEvents = (events:CalendarEvent[]) : CalendarEvent[] => {
     )(events) as CalendarEvent[];  
 };
 
+export let convertEventDate = (event:CalendarEvent) : CalendarEvent => {
+    let start = event.start ? new Date(event.start) : new Date();
+    let end = event.end ? new Date(event.end) : new Date();
+    
+    return {...event, start, end};
+};
 
 
 let groupEvents = (events:CalendarEvent[]) : CalendarEvent[] => 
@@ -202,14 +216,14 @@ let groupEvents = (events:CalendarEvent[]) : CalendarEvent[] =>
         values,
 
         evolve({
-            sameDayEvents:map((event) => ({ ...event, type:'sameDayEvents' })),
+            sameDayEvents:map((event) =>  convertEventDate({ ...event, type:'sameDayEvents' })),
 
-            fullDayEvents:map((event) => ({ ...event, type:'fullDayEvents' })),
+            fullDayEvents:map((event) =>  convertEventDate({ ...event, type:'fullDayEvents' })),
 
             multipleDaysEvents:compose(
-                map((event) => ({ ...event, type:'multipleDaysEvents' })), 
+                map((event) =>  convertEventDate({ ...event, type:'multipleDaysEvents' })), 
                 splitLongEvents,
-                map((event) => ({ ...event, end:when(timeIsMidnight, oneMinutesBefore)(event.end) })),
+                map((event) =>  convertEventDate({ ...event, end:when(timeIsMidnight, oneMinutesBefore)(event.end) })),
             )  
         }),  
         /*
@@ -348,6 +362,7 @@ let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, eve
     let getEvents = compose(  
         groupEvents, 
         reject(inPastRelativeTo(oneDayBehind())),
+        map(convertEventDate),
         flatten, 
         map(compose(setRecurrent,parseEvent)), 
         (component) => component.getAllSubcomponents("vevent"), 

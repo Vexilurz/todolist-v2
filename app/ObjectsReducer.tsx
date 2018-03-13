@@ -15,7 +15,7 @@ import {
 import { 
     adjust, cond, all, isEmpty, contains, not, remove, uniq, 
     isNil, and, complement, compose, reject, concat, map, 
-    prop, ifElse, identity, path, equals, allPass  
+    prop, ifElse, identity, path, equals, allPass, evolve  
 } from 'ramda';
 import { filter } from './Components/MainContainer';
 import { globalErrorHandler } from './utils/globalErrorHandler';
@@ -27,6 +27,7 @@ import {
 } from './utils/isSomething';
 import { setCallTimeout } from './utils/setCallTimeout';
 import { findWindowByTitle } from './utils/utils';
+import { convertEventDate } from './Components/Calendar';
 
 
 let onError = (e) => globalErrorHandler(e); 
@@ -260,8 +261,11 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
             [ 
                 typeEquals('setCalendars'),  
-                (action:{type:string,load:Calendar[]}):Store => ({...state, calendars:action.load})
-            ], 
+                (action:{type:string,load:Calendar[]}):Store => ({
+                    ...state, 
+                    calendars:map(evolve({events:map(convertEventDate)}),action.load)
+                })
+            ],  
 
             [  
                 typeEquals("addCalendar"),  

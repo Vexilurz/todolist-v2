@@ -72,15 +72,15 @@ module.exports = {
                 output: {
                     comments: false,
                 }
-            }
-        }),
+            } 
+        }),*/
         new CompressionPlugin({
             asset: "[path].gz[query]",
             algorithm: "gzip",
             test: /\.js$|\.css$|\.html$/,
             threshold: 10240,
             minRatio: 0
-        }),*/
+        }),
         new CopyWebpackPlugin([{from : './assets'}]), 
         new HtmlWebpackPlugin({
             inject:true, 
