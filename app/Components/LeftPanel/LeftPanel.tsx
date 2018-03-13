@@ -40,7 +40,7 @@ interface LeftPanelProps{
     openNewProjectAreaPopup:boolean,
     areas:Area[], 
     todos:Todo[], 
-    searchQuery:string,
+    searchQuery:string, 
     dragged:any, 
     selectedProjectId:string,
     selectedAreaId:string,
@@ -216,7 +216,8 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
         }
     
         let areasFilters = [(todo:Todo) => contains(todo._id)(ids), byNotDeleted]; 
-        
+        let selected = filter(todos,allPass(areasFilters));
+        let completed = filter(selected,byCompleted);
 
         return  <div style={{display:"flex",flexDirection:"row-reverse",height:window.innerHeight}}> 
             { 
@@ -251,7 +252,8 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
                     leftPanelWidth={this.props.leftPanelWidth}
                     leftPanelRef={this.leftPanelRef} 
                     dragged={this.props.dragged}  
-                    todos={filter(todos,allPass(areasFilters))} 
+                    todos={selected} 
+                    completed={completed}
                     dispatch={this.props.dispatch}   
                     areas={this.props.areas}
                     selectedProjectId={this.props.selectedProjectId}
@@ -299,7 +301,7 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
         super(props); 
     }
      
-
+/*
     shouldComponentUpdate(nextProps:LeftPanelFooterProps){
         let {width, collapsed} = nextProps;
         let widthChanged = width!==this.props.width;
@@ -307,7 +309,7 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
 
         return anyTrue([widthChanged, collapsedChanged]);
     };
-
+*/
     
     render(){ 
         let { collapsed, openSettings, openNewProjectAreaPopup, width, setNewProjectAnchor } = this.props; 

@@ -257,7 +257,7 @@ let parseRecEvents = (
                 let count : number = path(['options','count'],rule);
 
                 if(isNil(count)){ //never ends -> slice
-                   let dates = rule.between(oneDayBehind(),limit);
+                   let dates = rule.between(oneDayBehind(),new Date(limit));
                    return {...event, dates}; 
                 }else{ 
                    let dates = rule.all(); 

@@ -35,11 +35,34 @@ import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
 import { timeOfTheDay, inTimeRange } from '../../utils/time';
 import { groupEventsByType, byTime } from './Upcoming';
+let Perf = require('react-addons-perf');
+let p = require('react-dom/lib/ReactPerf'); 
 
+let assertShallowEquality = (items,todos,where) => {
+    let same = 0;
+    let diff = 0;
+    for(let i=0; i<items.length; i++){
+        let item = items[i];
+        if(item){
+            let target = todos.find( t => t._id===item._id)
+            if(target===item){
+                same++
+            }else diff++
+        }
+
+    }
+    //console.log(`${where} same ${same}  diff ${diff}`); 
+}
 
 export let indexToPriority = (items:any[]) : any[] => {
-    return items.map((item,index:number) => assoc("priority",index,item)) 
-}
+    return items.map(
+        (item,index:number) => {
+            item.priority = index;
+            return item; 
+        }
+        //assoc("priority",index,item)
+    ) 
+};
 
 
 class ThisEveningSeparator extends Component<{},{}>{
@@ -204,7 +227,7 @@ export class Today extends Component<TodayProps,TodayState>{
             load.push(item);
         }
  
-        console.log(`updateTodos ${measureTime(() =>  this.props.dispatch({type:"updateTodos", load}) )}`);
+        this.props.dispatch({type:"updateTodos", load}); 
     };
 
 
@@ -219,13 +242,17 @@ export class Today extends Component<TodayProps,TodayState>{
         };    
 
         let tags = getTagsFromItems(todos); 
-        let today = filter(todos,allPass([byTags(selectedTag), (t:Todo) => t.category!=="evening"]),"today"); 
-        let evening = filter(todos,allPass([byTags(selectedTag), byCategory("evening")]),"evening"); 
+        let today = filter(todos, allPass([byTags(selectedTag), (t:Todo) => t.category!=="evening"]) ); 
+        let evening = filter(todos, allPass([byTags(selectedTag), byCategory("evening")]) ); 
         
         if(isEmpty(today) && isEmpty(evening)){ return {items:[],tags} }
  
-        let items = indexToPriority([...today, separator, ...evening]); 
+
+        let items = indexToPriority(
+            [...today, separator, ...evening]
+        ); 
  
+
         return {items,tags}
     };
   
@@ -263,21 +290,10 @@ export class Today extends Component<TodayProps,TodayState>{
         }
     }; 
        
-
-    shouldCancelStart = (e) => {
-        let nodes = [].slice.call(e.path);
-
-        for(let i=0; i<nodes.length; i++){
-            if(nodes[i].preventDrag){
-               return true; 
-            }
-        }
-           
-        return false;
-    };
-
-
-    onSortStart = (oldIndex:number,event:any) => this.props.dispatch({type:"dragged",load:"todo"});  
+    onSortStart = (oldIndex:number,event:any) => {
+        //Perf.start();
+        this.props.dispatch({type:"dragged",load:"todo"});  
+    }
     
 
     onSortMove = (oldIndex:number,event:any) => { };
@@ -293,7 +309,7 @@ export class Today extends Component<TodayProps,TodayState>{
         assert(isTodo(draggedTodo), `draggedTodo is not of type Todo. onSortEnd. ${draggedTodo}`);
 
 
-        //dispatch({type:"dragged",load:null});
+        dispatch({type:"dragged",load:null});
         
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
@@ -315,10 +331,30 @@ export class Today extends Component<TodayProps,TodayState>{
  
             if(oldIndex===newIndex){ return }
 
-            console.log(`changeOrder ${measureTime(() => this.changeOrder(oldIndex,newIndex,items))}`);  
+            this.changeOrder(oldIndex,newIndex,items);  
         }     
+
+        /*Perf.stop();
+        Perf.getLastMeasurements();
+        Perf.getWasted();
+        Perf.printExclusive();
+        Perf.printWasted();*/
     };   
     
+    selectElements = (index:number,items:any[]) => [index];
+
+    shouldCancelStart = (e:any,item:any) => {
+        let nodes = [].slice.call(e.path);
+
+        for(let i=0; i<nodes.length; i++){
+            if(nodes[i].preventDrag){
+               return true; 
+            }
+        }
+           
+        return false;
+    };
+
 
     render(){ 
         let { 
@@ -343,6 +379,7 @@ export class Today extends Component<TodayProps,TodayState>{
         let empty = generateEmptyTodo(generateId(), "today", 0);  
 
 
+        /*
         if(isDev()){
             let todos = filter(items, isTodo);
             let hiddenProjects = filter(
@@ -359,6 +396,7 @@ export class Today extends Component<TodayProps,TodayState>{
                 `tags from hidden Todos still displayed ${selectedCategory}.`
             ); 
         }
+        */
 
         
         let decorators = [{
@@ -388,6 +426,11 @@ export class Today extends Component<TodayProps,TodayState>{
                 map(prop('events'))
             )(calendars);
         } 
+
+        assertShallowEquality(todos,items,'today')
+
+       
+        
         
  
         return <div 
@@ -471,8 +514,8 @@ export class Today extends Component<TodayProps,TodayState>{
                         <SortableContainer   
                             items={items}
                             scrollableContainer={this.props.rootRef}
-                            selectElements={(index:number,items:any[]) => [index]}
-                            shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
+                            selectElements={this.selectElements}
+                            shouldCancelStart={this.shouldCancelStart}  
                             decorators={decorators}
                             onSortStart={this.onSortStart}   
                             onSortMove={this.onSortMove} 

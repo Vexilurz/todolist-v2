@@ -116,13 +116,13 @@ export interface TodoInputState{
     (store,props):TodoInputProps => ({ 
         groupTodos : store.groupTodos,  
         scrolledTodo : store.scrolledTodo, 
-        moveCompletedItemsToLogbook : store.moveCompletedItemsToLogbook,  
+        moveCompletedItemsToLogbook : store.moveCompletedItemsToLogbook,   
         selectedCategory : store.selectedCategory, 
         selectedProjectId : store.selectedProjectId, 
         selectedAreaId : store.selectedAreaId, 
         projects : store.projects, 
 
-        todo : props.todo,   
+        todo : props.todo, // store.todos.find( t => t._id===props.id ),   
         rootRef : props.rootRef,  
         id : props.id,  
         onOpen : props.onOpen,
@@ -130,7 +130,7 @@ export interface TodoInputState{
         showCompleted : props.showCompleted
     }), 
     attachDispatchToProps
-)  
+)
 export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     calendar:HTMLElement; 
     deadline:HTMLElement;
@@ -214,10 +214,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             deadline,
             category,
             checklist,
-            title 
+            title   
         } = nextState;
-
-        let todoChanged = different(todo,this.props.todo);
+  
+        let todoChanged = todo!==this.props.todo;
         let projectsChanged = projects!==this.props.projects;
         let groupTodosChanged = groupTodos!==this.props.groupTodos;
         let scrolledTodoChanged = scrolledTodo!==this.props.scrolledTodo;
@@ -226,9 +226,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         let stateChanged = different(this.state,nextState);
 
+
         let should = anyTrue([
             stateChanged,
-
             todoChanged, 
             projectsChanged, 
             groupTodosChanged, 
@@ -239,7 +239,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         return should;
     }
-
 
 
     constructor(props){
@@ -991,56 +990,65 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     </IconButton> 
                 </div>  
             }  
-            <DateCalendar 
-                close={() => this.setState({showDateCalendar:false})}
-                open={showDateCalendar}
-                origin={{vertical: "center", horizontal: "right"}} 
-                point={{vertical: "center", horizontal: "right"}}  
-                anchorEl={this.calendar}
-                rootRef={this.props.rootRef}
-                reminder={todo.reminder} 
-                attachedDate={attachedDate}
-                onDayClick={this.onCalendarDayClick}
-                onSomedayClick={(e) => {
-                    e.stopPropagation();
-                    this.updateState({ 
-                        category:"someday",
-                        deadline:null,
-                        attachedDate:null,
-                        showDateCalendar:false
-                    });
-                }}
-                onTodayClick={this.onCalendarTodayClick} 
-                onRepeatTodo={canRepeat ? this.onRepeatTodo : null}
-                onThisEveningClick={this.onCalendarThisEveningClick}
-                onAddReminderClick={this.onCalendarAddReminderClick}
-                onRemoveReminderClick={this.onRemoveReminderClick}
-                onClear={this.onCalendarClear}  
-            />  
-            <TagsPopup
-                {  
-                    ...{
-                        attachTag:this.onAttachTag,
-                        close:(e) => this.setState({showTagsSelection:false}),
-                        open:this.state.showTagsSelection,   
-                        anchorEl:this.tags,
-                        origin:{vertical:"center",horizontal:"right"},
-                        point:{vertical:"center",horizontal:"right"},
-                        rootRef:rootRef
-                    } as any
-                } 
-            /> 
-            <DeadlineCalendar  
-                close={() => this.setState({showDeadlineCalendar:false})}
-                onDayClick={this.onDeadlineCalendarDayClick}
-                open={this.state.showDeadlineCalendar}
-                origin={{vertical:"center",horizontal:"right"}} 
-                point={{vertical:"center",horizontal:"right"}} 
-                anchorEl={this.deadline}
-                onClear={this.onDeadlineCalendarClear}
-                rootRef={this.props.rootRef}
-            />       
-            </div>   
+            {
+                not(open) ? null :
+                <DateCalendar 
+                    close={() => this.setState({showDateCalendar:false})}
+                    open={showDateCalendar}
+                    origin={{vertical: "center", horizontal: "right"}} 
+                    point={{vertical: "center", horizontal: "right"}}  
+                    anchorEl={this.calendar}
+                    rootRef={this.props.rootRef}
+                    reminder={todo.reminder} 
+                    attachedDate={attachedDate}
+                    onDayClick={this.onCalendarDayClick}
+                    onSomedayClick={(e) => {
+                        e.stopPropagation();
+                        this.updateState({ 
+                            category:"someday",
+                            deadline:null,
+                            attachedDate:null,
+                            showDateCalendar:false
+                        });
+                    }}
+                    onTodayClick={this.onCalendarTodayClick} 
+                    onRepeatTodo={canRepeat ? this.onRepeatTodo : null}
+                    onThisEveningClick={this.onCalendarThisEveningClick}
+                    onAddReminderClick={this.onCalendarAddReminderClick}
+                    onRemoveReminderClick={this.onRemoveReminderClick}
+                    onClear={this.onCalendarClear}  
+                />  
+            }
+            {
+                not(open) ? null :
+                <TagsPopup
+                    {  
+                        ...{
+                            attachTag:this.onAttachTag,
+                            close:(e) => this.setState({showTagsSelection:false}),
+                            open:this.state.showTagsSelection,   
+                            anchorEl:this.tags,
+                            origin:{vertical:"center",horizontal:"right"},
+                            point:{vertical:"center",horizontal:"right"},
+                            rootRef:rootRef
+                        } as any
+                    } 
+                /> 
+            }
+            {
+                not(open) ? null :
+                <DeadlineCalendar  
+                    close={() => this.setState({showDeadlineCalendar:false})}
+                    onDayClick={this.onDeadlineCalendarDayClick}
+                    open={this.state.showDeadlineCalendar}
+                    origin={{vertical:"center",horizontal:"right"}} 
+                    point={{vertical:"center",horizontal:"right"}} 
+                    anchorEl={this.deadline}
+                    onClear={this.onDeadlineCalendarClear}
+                    rootRef={this.props.rootRef}
+                />       
+            } 
+            </div>  
         }     
         </div>
     </div> 

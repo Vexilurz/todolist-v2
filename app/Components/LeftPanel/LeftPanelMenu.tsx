@@ -213,7 +213,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
         super(props);
     }
 
-
+/*
     shouldComponentUpdate(nextProps:LeftPanelMenuProps){
         let {
             dragged, dispatch, selectedCategory,
@@ -241,7 +241,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             trashChanged 
         ]);
     }
-    
+*/   
 
     render(){ 
         let {dispatch} = this.props;

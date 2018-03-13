@@ -61,7 +61,23 @@ import { debounce } from 'lodash';
 import { noteFromText } from '../utils/draftUtils';
 import { assert } from '../utils/assert';
 const Promise = require('bluebird');   
-const moment = require("moment");  
+const moment = require("moment");   
+
+export let assertShallowEquality = (items,todos,where) => {
+    let same = 0;
+    let diff = 0;
+    for(let i=0; i<items.length; i++){
+        let item = items[i];
+        if(item){
+            let target = todos.find( t => t._id===item._id)
+            if(target===item){
+                same++
+            }else diff++
+        }
+
+    }
+    //console.log(`${where} same ${same}  diff ${diff}`); 
+}
 
 
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
@@ -160,7 +176,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
             }) 
         )
     };
-
 
       
     onError = (e) => globalErrorHandler(e); 
@@ -310,6 +325,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
                this.rootRef.scrollTop=0;  
             } 
         }
+
+         
     }; 
 
     
@@ -442,6 +459,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         selectedTodos = reject((todo:Todo) => contains(todo._id)(ids),selectedTodos);
                                     };  
  
+
                                     return <Today   
                                         todos={selectedTodos}
                                         clone={clone}
@@ -473,7 +491,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         byNotDeleted 
                                     ];
 
-                                    let selectedTodos = filter(todos, allPass(somedayFilters), "");
+                                    let selectedTodos = filter(todos, allPass(somedayFilters));
 
                                     return <Someday 
                                         todos={selectedTodos}
@@ -596,10 +614,14 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                         byNotDeleted   
                                     ];
 
+                                    let filtered = filter(todos, allPass(upcomingFilters));
+
+                                    assertShallowEquality(filtered,todos,'upcoming');
+
                                     return <Upcoming  
                                         limit={this.props.limit}
                                         clone={this.props.clone}
-                                        todos={filter(todos, allPass(upcomingFilters))}
+                                        todos={filtered}
                                         groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch}
                                         selectedCategory={this.props.selectedCategory}

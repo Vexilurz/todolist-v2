@@ -66,7 +66,7 @@ const path = require('path');
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
 
-
+ 
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
     let message = [ 
@@ -78,7 +78,7 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
     ].join(' - ');  
 
     globalErrorHandler(message);
-
+    
     if(isDev()){ 
        return false; 
     }
@@ -125,7 +125,7 @@ export interface Store extends Config{
     rightClickMenuY : number,
     calendars : Calendar[],
     projects : Project[],
-    areas : Area[], 
+    areas : Area[],  
     todos : Todo[], 
     clone? : boolean,
     dispatch? : Function
@@ -179,6 +179,8 @@ export let defaultStoreItems : Store = {
     todos:[]
 };      
 
+ 
+//Perf.start();
 
 interface AppProps {
     clone:boolean,  
@@ -193,10 +195,7 @@ interface AppProps {
         areStatesEqual: (nextStore:Store, prevStore:Store) => {
             return all(
                 identity, 
-                [
-                    nextStore.clone===prevStore.clone,
-                    equals(nextStore.nextUpdateCheck,prevStore.nextUpdateCheck)
-                ]
+                [nextStore.clone===prevStore.clone,equals(nextStore.nextUpdateCheck,prevStore.nextUpdateCheck)]
             );
         }
     }
@@ -207,11 +206,19 @@ export class App extends Component<AppProps,{}>{
 
     constructor(props){  
         super(props);  
-        this.timeouts = [];
-        this.subscriptions = [];
+        this.timeouts=[];
+        this.subscriptions=[];
     }
 
 
+
+    componentDidUpdate(){
+        //Perf.stop() 
+        //Perf.printInclusive()
+        //Perf.printWasted()
+    }
+
+    
     onError = (error) => globalErrorHandler(error);
 
 
@@ -347,22 +354,20 @@ export class App extends Component<AppProps,{}>{
         this.timeouts.map(t => clearTimeout(t));
         this.timeouts = [];  
     }
-    
+     
  
     render(){     
         let { clone } = this.props;
 
-
-        return wrapMuiThemeLight( 
-            <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001}}>    
+        
+        return <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001}}>    
                 <div style={{display:"flex",width:"inherit",height:"inherit"}}>  
 
                     { clone ? null : <LeftPanel {...{} as any}/> }
 
                     <MainContainer {...{} as any}/>    
 
-                </div>       
-
+                </div> 
                 <UpdateNotification {...{} as any} />  
 
                 <SettingsPopup {...{} as any} />   
@@ -373,20 +378,21 @@ export class App extends Component<AppProps,{}>{
 
                 <LicensePopup {...{} as any} />
             </div>  
-        );  
     }           
 };    
 
    
 //render application
 ipcRenderer.once(
-    'loaded',     
+    'loaded',      
     (event, clonedStore:Store) => { 
         let defaultStore = defaultStoreItems;
         if(not(isNil(clonedStore))){ 
             let {todos,projects,areas} = clonedStore;
             defaultStore={
                 ...clonedStore,
+                nextUpdateCheck:clonedStore.nextUpdateCheck ? new Date(clonedStore.nextUpdateCheck) : new Date(),
+                limit:new Date(clonedStore.limit),
                 clone:true, 
                 todos:todos.map(convertTodoDates),
                 projects:projects.map(convertProjectDates), 
@@ -402,11 +408,11 @@ ipcRenderer.once(
         .then((config) => 
             ReactDOM.render(   
                 <Provider store={createStore(applicationReducer, {...defaultStore, ...config})}>   
-                    <App {...{} as any}/>
+                   {wrapMuiThemeLight(  <App {...{} as any}/> )}
                 </Provider>,
                 document.getElementById('application')
             ) 
-        );
+        );  
     }
 );    
 

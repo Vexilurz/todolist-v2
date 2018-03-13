@@ -1,5 +1,5 @@
 import { isNil } from 'ramda';
-import { isDate } from './isSomething';
+import { isDate, isString } from './isSomething';
 import { assert } from './assert';
 
 
@@ -10,11 +10,19 @@ export let daysRemaining = (date:Date) : number => {
 
 export let dateDiffInDays = (A : Date, B : Date) : number  => {
 
-    assert(!isNil(A), `A is Nil. dateDiffInDays.`);
+   /* assert(!isNil(A), `A is Nil. dateDiffInDays.`);
     assert(!isNil(B), `B is Nil. dateDiffInDays.`);
 
     assert(isDate(A), `A is not of type Date. dateDiffInDays.`);
-    assert(isDate(B), `B is not of type Date. dateDiffInDays.`);
+    assert(isDate(B), `B is not of type Date. dateDiffInDays.`);*/
+
+    if(isString(A))
+       A = new Date(A);
+    
+ 
+    if(isString(B))
+       B=new Date(B); 
+
    
     let _MS_PER_DAY = 1000 * 60 * 60 * 24;
 

@@ -10,7 +10,7 @@ import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import ArrowUp from 'material-ui/svg-icons/navigation/arrow-drop-up';
 import ArrowDown from 'material-ui/svg-icons/navigation/arrow-drop-down';
 
-import { byNotCompleted, byNotDeleted, typeEquals, isNotNil, anyTrue, attachDispatchToProps } from '../../utils/utils';
+import { byNotCompleted, byNotDeleted, typeEquals, isNotNil, anyTrue, attachDispatchToProps, different } from '../../utils/utils';
 import PieChart from 'react-minimal-pie-chart';
 import { 
     uniq, allPass, remove, intersection, reject, slice, prop, flatten,
@@ -108,6 +108,7 @@ interface AreasListProps{
     dispatch:Function,
     leftPanelWidth:number, 
     dragged:string, 
+    completed:Todo[],
     todos:Todo[], 
     selectedProjectId:string,
     selectedAreaId:string, 
@@ -129,7 +130,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         super(props);  
     } 
 
-
+/*
     shouldComponentUpdate(nextProps:AreasListProps){
         let {
             leftPanelWidth, 
@@ -163,7 +164,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             projectsChanged 
         ]); 
     }
-
+*/
 
     onCollapseContent = (area:Area) : void => { 
         let {dispatch} = this.props;
@@ -216,6 +217,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
     getProjectElement = (p:Project, index:number) : JSX.Element => {
         return <ProjectElement 
+            todos={this.props.todos}
+            completed={this.props.completed}
             project={p}
             index={index}
             dragged={this.props.dragged}  
@@ -494,13 +497,13 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
         this.state={highlight:false}; 
     }  
 
-
+/*
     shouldComponentUpdate(nextProps:AreaElementProps,nextState:AreaElementState){
         let {
             area,
             leftPanelWidth, 
             index,
-            hideAreaPadding,
+            hideAreaPadding, 
             selectedAreaId
         } = nextProps;
         let {highlight} = nextState;
@@ -521,7 +524,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
             selectedAreaIdChanged
         ]);
     }
-
+*/
 
     onMouseEnter = (e) => this.setState({highlight:true});  
       
@@ -644,10 +647,11 @@ interface ProjectElementProps{
     project:Project,
     index:number,
     dragged:string,
+    completed:Todo[],
     selectProject:Function,
     selectedProjectId:string,
     selectedCategory:Category,
-    todos?:Todo[]
+    todos:Todo[]
 }
 
 interface ProjectElementState{ 
@@ -655,44 +659,68 @@ interface ProjectElementState{
 } 
 
  
-@connect((store,props) => ({ ...props, todos:store.todos }), attachDispatchToProps) 
+//@connect((store,props) => ({ ...props, todos:store.todos }), attachDispatchToProps) 
 class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
     
     constructor(props){
         super(props);
         this.state={
             highlight:false 
-        }; 
+        };  
     }   
     
-
+/*
     shouldComponentUpdate(nextProps:ProjectElementProps,nextState:ProjectElementState){
         let {
             project,
             todos,
             index,
             dragged,
-            selectedProjectId
+            selectedProjectId,
+            completed
         } = nextProps;
         let {highlight} = nextState;
        
         let highlightChanged = highlight!==this.state.highlight;
         let projectChanged = project!==this.props.project;
-        let todosChanged = todos!==this.props.todos;
-        let indexChanged = index!==this.props.index;
-        let draggedChanged = dragged!==this.props.dragged;
+       
+        //et indexChanged = index!==this.props.index;
+        //let draggedChanged = dragged!==this.props.dragged;
         let selectedProjectIdChanged = selectedProjectId!==this.props.selectedProjectId;
+
+
+        let todosChanged = true;
         
-        return anyTrue([
-            highlightChanged, 
+        if(todos.length!==this.props.todos.length){
+            todosChanged = true;
+        }else if(completed.length!==this.props.completed.length){
+            todosChanged = true;
+        }
+        
+
+        let should = anyTrue([ 
+            highlightChanged,  
             projectChanged, 
             todosChanged, 
-            indexChanged,
-            draggedChanged, 
+            //indexChanged,
+            //draggedChanged, 
             selectedProjectIdChanged 
         ]);
-    }
 
+        if(should)
+        console.log(
+            ` 
+            highlightChanged : ${highlightChanged}
+            projectChanged : ${projectChanged}
+            todosChanged : ${todosChanged}
+            lselectedProjectIdChanged  : ${selectedProjectIdChanged}
+            `
+        )
+
+
+        return should
+    }
+*/
     
     onMouseOver = (e) => {  
         let {dragged} = this.props; 

@@ -39,16 +39,15 @@ module.exports = {
             test: /\.(woff|woff2|eot|ttf|svg)$/,
             loader: 'file-loader?name=fonts/[name].[ext]'
           },  
-          {      
+          {    
             enforce:"pre",  
             test:/\.js$/,       
-            exclude: [
-                path.resolve(__dirname,'production'),
-                path.resolve(__dirname,'node_modules')
-            ], 
+            exclude: path.resolve(__dirname,'node_modules'), 
             loader: 'babel-loader',
-            query: {presets: ['es2015', 'react']}  
-          }     
+            query: {
+                presets: [["es2015", { "modules": false }]]
+            }  
+          }  
         ]    
     },
     

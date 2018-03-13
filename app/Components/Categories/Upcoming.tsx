@@ -28,6 +28,8 @@ import {
     compareByDate,
     monthFromDate,
     log,
+    anyTrue,
+    different,
 } from '../../utils/utils';  
 import {
     allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, first,
@@ -490,7 +492,35 @@ interface CalendarDayState{}
 export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
     constructor(props){ super(props) }
 
+   /*
+    shouldComponentUpdate(nextProps:CalendarDayProps,nextState:CalendarDayState){
+        let {
+            scheduledProjects, 
+            selectedTodos,
+            selectedEvents,
+            groupTodos,
+            moveCompletedItemsToLogbook, 
+            selectedTag
+        } = nextProps;
+
+        let should = anyTrue([
+            different(scheduledProjects,this.props.scheduledProjects), 
+            different(selectedTodos,this.props.selectedTodos), 
+            different(selectedEvents,this.props.selectedEvents), 
+            groupTodos!==this.props.groupTodos, 
+            moveCompletedItemsToLogbook!==this.props.moveCompletedItemsToLogbook, 
+            selectedTag!==this.props.selectedTag, 
+        ]);
+
+        //if(should)
+        //console.log(`should update ${this.props.day} ${this.props.dayName}`)
+
+        return should;
+    }
+
+*/
     
+
     render(){   
         let {selectedTodos,todos,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
         let {sameDayEvents,fullDayEvents} = groupEventsByType(selectedEvents); 

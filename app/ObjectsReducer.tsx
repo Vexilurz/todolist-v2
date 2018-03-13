@@ -10,7 +10,7 @@ import { isDev } from './utils/isDev';
 import { ipcRenderer, remote } from 'electron';
 import { 
     removeDeletedProjects, removeDeletedAreas, removeDeletedTodos, byNotDeleted, isMainWindow, 
-    isNotNil, typeEquals, inFuture, byNotCompleted, measureTime 
+    isNotNil, typeEquals, inFuture, byNotCompleted, measureTime, convertTodoDates 
 } from './utils/utils';
 import { 
     adjust, cond, all, isEmpty, contains, not, remove, uniq, 
@@ -79,7 +79,7 @@ let clearScheduledReminders = (store:Store) : Store => {
 
 
 export let applicationObjectsReducer = (state:Store, action:{type:string,load:any,kind:string}) : Store => { 
-console.log(`applicationObjectsReducer ${action.type}`)
+    //console.log(`applicationObjectsReducer ${action.type}`)
     let shouldAffectDatabase : boolean =  and(actionFromQuickEntry(action),isMainWindow()) || 
                                           actionOriginIsThisWindow(action);
 
@@ -202,10 +202,10 @@ console.log(`applicationObjectsReducer ${action.type}`)
                     if(shouldAffectDatabase){ 
                        updateTodos(changedTodos,onError); 
                     }
-        
+         
                     return { ...state, todos };
                 } 
-            ],
+            ], 
             [
                 typeEquals("updateTodoById"),  
                 (action:{ type:string, load: {id:string,props:any} }) : Store => {
@@ -449,7 +449,9 @@ console.log(`applicationObjectsReducer ${action.type}`)
 
                     let idx = state.todos.findIndex((t:Todo) => action.load._id===t._id);
 
-                    if(idx===-1){
+                    let todo = convertTodoDates(action.load);
+
+                    if(idx===-1){ 
                         //if such todo does not exist add it to state
                         if(isEmpty(action.load.title)){ 
 
@@ -461,7 +463,7 @@ console.log(`applicationObjectsReducer ${action.type}`)
                                addTodo(onError, action.load); 
                             }
 
-                            return { ...state, todos:[action.load,...state.todos] };
+                            return { ...state, todos:[todo,...state.todos] };
                         }
                     }else{
                         //if todo exists and have empty title - remove
@@ -480,7 +482,7 @@ console.log(`applicationObjectsReducer ${action.type}`)
                                updateTodo(action.load._id, action.load, onError); 
                             }
 
-                            return{ ...state, todos:adjust(() => action.load, idx, state.todos) }; 
+                            return{ ...state, todos:adjust(() => todo, idx, state.todos) }; 
                         }
                     }
                 }

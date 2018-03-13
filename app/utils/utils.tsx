@@ -1296,7 +1296,7 @@ export let findWindowByTitle = (title:string) => {
     try{
         windows = remote.BrowserWindow.getAllWindows();
     }catch(e){
-        console.log(`findWindowByTitle ${e}`); 
+        //console.log(`findWindowByTitle ${e}`); 
         windows = remote.BrowserWindow.getAllWindows();
     } 
 

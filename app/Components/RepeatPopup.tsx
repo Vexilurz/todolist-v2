@@ -210,7 +210,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                 options,
                 todo, 
                 new Date(),
-                limit
+                new Date(limit)
             )
         )(
             {
