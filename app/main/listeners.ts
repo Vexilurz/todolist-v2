@@ -19,7 +19,7 @@ let initAutoUpdater = () => {
 
     autoUpdater.autoDownload = false; 
     autoUpdater.on( 
-        'error', 
+        'error',  
         (error) => { 
             if(mainWindow){ mainWindow.webContents.send("error",error) }
         }
@@ -58,43 +58,34 @@ export class Listeners{
 
       initAutoUpdater(); 
  
-      this.registeredListeners = [ 
-            {
-                name:"isMainWindow",
-                callback:(event) => { 
-                    console.log(event);
-                    event.sender.send("isMainWindow", false)
-                }
-            },
-
-
-
-
-            
+      this.registeredListeners = [
             { 
                 name:"updateQuickEntryData",
-                callback:(event,todos:any,projects:any,areas:any) => {
+                callback:(event,[todos,projects,areas]) => { 
                     let window = findWindowByTitle('Add task');
+
                     if(window){
                        window.webContents.send('data',todos,projects,areas);
                     }
-                    event.sender.send("updateQuickEntryData");
+                    event.sender.send("updateQuickEntryData");  
                 }
             },
             { 
                 name:"remind",
-                callback:(event,todo) => {
+                callback:(event,[todo]) => {
                     let notification : any = findWindowByTitle('Notification');
+
                     if(notification){ 
                        notification.webContents.send('remind',todo); 
-                    };
+                    }
                     event.sender.send("remind");
                 } 
             }, 
             { 
                 name:"updateNotificationConfig",
-                callback:(event,config:any) => {
+                callback:(event,[config]) => {
                     let window = findWindowByTitle('Notification');
+
                     if(window){
                        window.webContents.send('config',config);
                     } 
@@ -103,8 +94,9 @@ export class Listeners{
             }, 
             { 
                 name:"updateQuickEntryConfig",
-                callback:(event,config:any) => {
+                callback:(event,[config]) => {
                     let window = findWindowByTitle('Add task');
+
                     if(window){
                        window.webContents.send('config',config);
                     }
@@ -113,21 +105,26 @@ export class Listeners{
             },
             { 
                 name:"toggleShortcut",
-                callback:(event,enable:boolean,shortcut:string) => {
+                callback:(event,[enable,shortcut]) => {
+
                     toggleShortcut(enable,shortcut);
                     event.sender.send("toggleShortcut");
                 }
             },
             {
                 name:"autolaunch",
-                callback:(event,shouldEnable) => {
+                callback:(event,[shouldEnable]) => {
+                    
                     initAutoLaunch(shouldEnable);
                     event.sender.send("autolaunch");
                 } 
             },
             {
                 name:"getVersion",
-                callback:(event) => event.sender.send("getVersion",app.getVersion())
+                callback:(event) => {
+                    
+                    event.sender.send("getVersion",app.getVersion())
+                }
             },
             {
                 name:"hide",

@@ -6,7 +6,7 @@ import PouchDB from 'pouchdb-browser';
 import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist'; 
 import { Category } from '.././Components/MainContainer'; 
 import { randomArrayMember, randomInteger, randomDate, fiveMinutesLater, onHourLater, isToday, fiveMinutesBefore } from './utils';
-import { Todo, Heading, LayoutItem, Project, Area } from './../database';
+import { Todo, Heading, LayoutItem, Project, Area, initDB } from './../database';
 import { uniq, splitEvery, contains, isNil, not } from 'ramda';
 import { generateId } from './generateId';
 import { isString } from './isSomething';
@@ -14,7 +14,19 @@ import { assert } from './assert';
 import { noteFromText } from './draftUtils';
 const randomWord = require('random-word');
 let uniqid = require("uniqid"); 
- 
+
+
+let testData = (todosN:number,projectsN:number,areasN:number) => {  
+    let {dispatch} = this.props; 
+
+    let fakeData = generateRandomDatabase({todos:todosN, projects:projectsN, areas:areasN});      
+        
+    let todos = fakeData.todos; 
+    let projects = fakeData.projects; 
+    let areas = fakeData.areas;  
+         
+    return {todos,projects,areas};
+};
 
 
 let randomCategory = () : Category => {

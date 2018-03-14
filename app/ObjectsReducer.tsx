@@ -9,7 +9,7 @@ import {
 import { isDev } from './utils/isDev';
 import { ipcRenderer, remote } from 'electron';
 import { 
-    removeDeletedProjects, removeDeletedAreas, removeDeletedTodos, byNotDeleted, isMainWindow, 
+    removeDeletedProjects, removeDeletedAreas, removeDeletedTodos, byNotDeleted, 
     isNotNil, typeEquals, inFuture, byNotCompleted, measureTime, convertTodoDates, differentBy 
 } from './utils/utils';
 import { 
@@ -81,6 +81,7 @@ let refreshReminders = (prevState:Store,action:{type:String,load:any}) => (newSt
     let reminderInFuture = compose(inFuture,prop('reminder'));
     let initial = typeEquals("setTodos")(action);
     let filters = [byNotCompleted,byNotDeleted];
+    let {clone} = newState;
 
 
     if(initial){ 
@@ -110,7 +111,7 @@ let refreshReminders = (prevState:Store,action:{type:String,load:any}) => (newSt
 
 
     return ifElse(
-        (newState:Store) => shouldRefreshReminders && isMainWindow(),
+        (newState:Store) => shouldRefreshReminders && not(clone),
         compose(
             (scheduledReminders:number[]) : Store => ({...newState,scheduledReminders}),
 
@@ -124,7 +125,7 @@ let refreshReminders = (prevState:Store,action:{type:String,load:any}) => (newSt
 
             clearScheduledReminders //suspend existing timeouts
         ),  
-        identity   
+        identity    
     )(newState);
 };
 
@@ -133,12 +134,12 @@ let refreshReminders = (prevState:Store,action:{type:String,load:any}) => (newSt
 let updateQuickEntry : (newState:Store) => Store =
     when(
         isNotNil,
-        (newState:Store) => {
+        (newState:Store) => { 
             requestFromMain<any>(
                 'updateQuickEntryData', 
-                pick(["todos","projects","areas"], newState), 
+                [newState.todos,newState.projects,newState.areas], 
                 (event) => event
-            );
+            ); 
             return newState;
         }
     );
@@ -147,7 +148,8 @@ let updateQuickEntry : (newState:Store) => Store =
 
 export let applicationObjectsReducer = (state:Store, action:{type:string,load:any,kind:string}) : Store => { 
     //console.log(`applicationObjectsReducer ${action.type}`)
-    let shouldAffectDatabase : boolean =  and(actionFromQuickEntry(action),isMainWindow()) || 
+    let clone : boolean = prop('clone',state);
+    let shouldAffectDatabase : boolean =  and(actionFromQuickEntry(action),not(clone)) || 
                                           actionOriginIsThisWindow(action);
 
     

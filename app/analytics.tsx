@@ -22,7 +22,7 @@ const analytics = (() => {
         {
             userId:getMachineIdSync(),
             appName:"tasklist",
-            appVersion:'2.0.3-beta',//TODO : fix 
+            appVersion:'1.3.7-master',//TODO : fix 
             language:sysInfo.userLanguage,
             userAgent:navigator.userAgent,
             viewport:`${sysInfo.viewportSize.width}x${sysInfo.viewportSize.height}`,

@@ -74,7 +74,7 @@ export let findWindowByTitle = (title:string) => {
 
 
 
-export let getClonedWindows = () : BrowserWindow[] => 
+export let getClonedWindows = () : BrowserWindow[] =>  
             BrowserWindow
             .getAllWindows()
             .filter(

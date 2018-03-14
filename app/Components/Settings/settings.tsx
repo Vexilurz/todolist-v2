@@ -378,19 +378,18 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
         () => updateConfig(this.props.dispatch)({enableShortcutForQuickEntry:!this.props.enableShortcutForQuickEntry})
                 .then(
                     (config) => {
-                        let {disableReminder,enableShortcutForQuickEntry} = config;
-
-
                         requestFromMain<any>(
                             'autolaunch',
-                            [enableShortcutForQuickEntry && not(disableReminder)],
+                            [
+                                config.enableShortcutForQuickEntry ||
+                                not(config.disableReminder)
+                            ],
                             (event) => event
                         );
 
-                        
-                        requestFromMain<any>(
+                        requestFromMain<any>(  
                             'toggleShortcut', 
-                            [enableShortcutForQuickEntry,'Ctrl+Alt+T'], 
+                            [config.enableShortcutForQuickEntry,'Ctrl+Alt+T'], 
                             (event) => event
                         );
                     } 
@@ -1123,16 +1122,18 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
     disableReminder = (event) => {
-        let {disableReminder,dispatch} = this.props;
+        let {dispatch} = this.props;
 
-        updateConfig(dispatch)({disableReminder:not(disableReminder)})
+        updateConfig(dispatch)({disableReminder:not(this.props.disableReminder)})
         .then(
             (config) => {
-                let {enableShortcutForQuickEntry} = config;
 
-                requestFromMain<any>(
+                requestFromMain<any>( 
                     'autolaunch',
-                    [enableShortcutForQuickEntry && not(disableReminder)],
+                    [
+                        config.enableShortcutForQuickEntry || 
+                        not(config.disableReminder)
+                    ],
                     (event) => event
                 );
 

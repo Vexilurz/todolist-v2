@@ -14,7 +14,7 @@ import {
     getIntroList, printElement, inFuture, introListIds, introListLayout, 
     threeDaysAhead, byHaveAttachedDate, byAttachedToCompletedProject, 
     byNotAttachedToProject, byNotAttachedToCompletedProject, isNotEmpty, 
-    isNotNil, gtDate, isMainWindow 
+    isNotNil, gtDate, checkForUpdates, threeDaysLater, convertDates, keyFromDate, log 
 } from "../utils/utils";  
 import {isDev} from "../utils/isDev"; 
 import {connect} from "react-redux"; 
@@ -60,23 +60,15 @@ import { isNotArray, isDate, isTodo, isString } from '../utils/isSomething';
 import { debounce } from 'lodash';
 import { noteFromText } from '../utils/draftUtils';
 import { assert } from '../utils/assert';
+import { isNewVersion } from '../utils/isNewVersion';
+import { UpdateCheckResult } from 'electron-updater';
+import { setCallTimeout } from '../utils/setCallTimeout';
+import { writeJsonFile } from '../utils/jsonFile';
 const Promise = require('bluebird');   
 const moment = require("moment");   
-
-
-
-let testData = () => {  
-    let {dispatch} = this.props;
-
-    initDB(); 
-    let fakeData = generateRandomDatabase({todos:215, projects:38, areas:15});      
-        
-    let todos = fakeData.todos; 
-    let projects = fakeData.projects; 
-    let areas = fakeData.areas;  
-         
-    return {todos,projects,areas};
-};
+const os = remote.require('os'); 
+const fs = remote.require('fs'); 
+const path = require('path');
 
 
 
@@ -100,6 +92,7 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
     calendars:Calendar[]
 }> => 
     getDatabaseObjects(onError,max)
+    .then(log('getData'))
     .then(
         compose(
             evolve({ 
@@ -132,6 +125,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
     rootRef:HTMLElement;  
     limit:number;
     subscriptions:Subscription[]; 
+    timeouts:any[];
     disablePrintButton:boolean;
 
 
@@ -143,28 +137,25 @@ export class MainContainer extends Component<Store,MainContainerState>{
         this.state = { fullWindowSize:true };
     };  
 
+
       
     onError = (e) => globalErrorHandler(e); 
 
 
-    initData = () => {
-        isMainWindow()
-        .then(
-            when(
-                identity, 
-                () => getData(this.props.limit,this.onError,this.limit)
-                        .then(
-                            ({projects, areas, todos, calendars}) => this.setData({
-                                projects:defaultTo([], projects), 
-                                areas:defaultTo([], areas), 
-                                todos:defaultTo([], todos), 
-                                calendars:defaultTo([], calendars)
-                            }) 
-                        )
-            )
-        )
-    };
 
+    initData : (clone:boolean) => Promise<void> = when(
+        not, 
+        () => getData(this.props.limit,this.onError,this.limit)
+                .then(
+                    ({projects, areas, todos, calendars}) => this.setData({
+                        projects:defaultTo([], projects), 
+                        areas:defaultTo([], areas), 
+                        todos:defaultTo([], todos), 
+                        calendars:defaultTo([], calendars)
+                    }) 
+                )
+    );
+        
 
 
     addIntroList = (projects:Project[]) => {
@@ -204,6 +195,31 @@ export class MainContainer extends Component<Store,MainContainerState>{
         )(calendars); 
     };
    
+
+
+    initUpdateTimeout = () => {
+        let {dispatch, nextUpdateCheck} = this.props;
+        let check = () => checkForUpdates()  
+                            .then((updateCheckResult:UpdateCheckResult) => { 
+                                let {updateInfo} = updateCheckResult;
+                                let currentAppVersion = remote.app.getVersion(); 
+                                let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
+
+                                if(canUpdate){ 
+                                   dispatch({type:"showUpdatesNotification", load:true}) 
+                                }else{ 
+                                   updateConfig(dispatch)({nextUpdateCheck:threeDaysLater(new Date())}) 
+                                }
+                            });    
+          
+        if(isNil(nextUpdateCheck)){ 
+           check(); 
+        }else{
+           let next = isString(nextUpdateCheck) ? new Date(nextUpdateCheck) : nextUpdateCheck;
+           this.timeouts.push(setCallTimeout(() => check(), next));
+        }
+    };
+
  
 
     initObservables = () => {  
@@ -211,6 +227,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
         let minute = 1000 * 60;  
  
         this.subscriptions.push(
+
+
             Observable
                 .interval(5 * minute)
                 .flatMap(() => updateCalendars(
@@ -220,11 +238,13 @@ export class MainContainer extends Component<Store,MainContainerState>{
                 ))
                 .subscribe((calendars:Calendar[]) => dispatch({type:"setCalendars",load:calendars})),
 
+
             Observable
                 .fromEvent(window,"resize")
                 .debounceTime(100) 
                 .subscribe(() => dispatch({type:"leftPanelWidth",load:window.innerWidth/3.7})),
     
+
             Observable  
                 .fromEvent(window,"click")
                 .debounceTime(100)
@@ -256,8 +276,76 @@ export class MainContainer extends Component<Store,MainContainerState>{
                     let updated = filter(todos, (todo:Todo) => contains(todo._id)(ids));
                     
                     dispatch({type:"updateTodos",load:updated.map((t:Todo) => ({...t,reminder:null})) }); 
-                })
-        
+                }),
+
+
+            Observable.interval(2*minute).subscribe((v) => dispatch({type:'update'})), 
+
+
+            Observable
+            .interval(5*minute)
+            .subscribe(() => { 
+                let target = path.resolve(os.homedir(), "tasklist");
+
+                if(not(fs.existsSync(target))){ fs.mkdirSync(target); }
+
+                let to = path.resolve(target, `db_backup_${keyFromDate(new Date())}.json`);
+                    
+                getDatabaseObjects(this.onError,1000000)
+                .then(([calendars,projects,areas,todos]) => 
+                    writeJsonFile(
+                        { database : { todos, projects, areas, calendars } },
+                        to 
+                    )  
+                    .then((err) => ({err,to}))
+                )
+            }),  
+    
+
+            Observable
+            .fromEvent(ipcRenderer,'openTodo', (event,todo) => todo)
+            .subscribe((todo) => {
+                let window = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
+                if(isNotNil(window)){ 
+                    window.show();
+                    window.focus();
+                }
+                dispatch({type:"selectedCategory",load:"inbox"});
+                dispatch({type:"scrolledTodo",load:todo}); 
+                dispatch({type:"selectedCategory",load:"today"});
+            }), 
+
+
+            Observable  
+            .fromEvent(ipcRenderer, "action", (event,action) => action)
+            .map((action) => ({ 
+                ...action,
+                load:compose(
+                    map(convertDates),
+                    defaultTo({}),
+                    convertDates
+                )(action.load)
+            }))
+            .subscribe((action) => action.type==="@@redux/INIT" ? null : dispatch(action)),  
+
+
+            Observable 
+            .fromEvent(ipcRenderer, "error", (event,error) => error)    
+            .subscribe((error) => this.onError(error)),
+
+
+            Observable
+            .fromEvent(ipcRenderer, "progress", (event,progress) => progress)
+            .subscribe((progress) => dispatch({type:"progress",load:progress})),  
+
+            
+            Observable  
+            .fromEvent(ipcRenderer, "Ctrl+Alt+T", (event) => event)
+            .subscribe((event) => {
+                dispatch({type:"openNewProjectAreaPopup", load:false});
+                dispatch({type:"showTrashPopup", load:false}); 
+                dispatch({type:"openTodoInputPopup", load:true});
+            })   
         );
     };
   
@@ -265,7 +353,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     componentDidMount(){    
         this.initObservables(); 
-        this.initData(); 
+        this.initData(this.props.clone); 
     };      
      
 
@@ -273,6 +361,8 @@ export class MainContainer extends Component<Store,MainContainerState>{
     componentWillUnmount(){ 
         this.subscriptions.map( s => s.unsubscribe() );
         this.subscriptions = [];
+        this.timeouts.map(t => clearTimeout(t));
+        this.timeouts = [];  
     };  
  
  
@@ -287,8 +377,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                this.rootRef.scrollTop=0;  
             } 
         }
-
-         
     }; 
 
     

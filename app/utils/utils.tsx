@@ -146,14 +146,6 @@ export let addTime = (date:Date, time:number) : Date => {
 
 
 
-export let isMainWindow = () : Promise<boolean> => 
-    requestFromMain<boolean>(
-        'isMainWindow',
-        [],
-        (event,value) => value
-    );
-
-
 
 export let typeEquals = (type:string) => compose(equals(type), prop(`type`))
  
@@ -496,6 +488,8 @@ export let nDaysFromNow = (n:number) => {
     return new Date()["addDays"](n);
 };
 
+
+export let initDate : (date:any) => Date = when(isString,date => new Date(date));
 
 
 export let threeDaysLater = (date:Date) : Date => { 

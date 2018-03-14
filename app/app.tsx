@@ -14,7 +14,7 @@ import {
     convertProjectDates, convertAreaDates, timeDifferenceHours, 
     convertDates, checkForUpdates, nextMidnight,
     oneMinuteBefore, threeDaysLater, keyFromDate, isNotNil, 
-    nDaysFromNow, monthFromDate, measureTime, log  
+    nDaysFromNow, monthFromDate, measureTime, log, initDate  
 } from "./utils/utils";  
 import {wrapMuiThemeLight} from './utils/wrapMuiThemeLight'; 
 import {isNewVersion} from './utils/isNewVersion';
@@ -36,7 +36,7 @@ import {
 } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
-import { cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains, prop, equals, identity, all } from 'ramda';
+import { cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains, prop, equals, identity, all, when, evolve } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { Settings, section, SettingsPopup, LicensePopup } from './Components/Settings/settings'; 
 import { SimplePopup } from './Components/SimplePopup';
@@ -59,6 +59,7 @@ import { assert } from './utils/assert';
 import { value,text } from './utils/text';
 import { setCallTimeout } from './utils/setCallTimeout';
 import { isDev } from './utils/isDev';
+import { convertEventDate } from './Components/Calendar';
 const MockDate = require('mockdate');  
 const os = remote.require('os'); 
 const fs = remote.require('fs'); 
@@ -184,9 +185,10 @@ export let defaultStoreItems : Store = {
 
 interface AppProps {
     clone:boolean,  
-    dispatch:Function,
-    nextUpdateCheck:Date
+    //dispatch:Function,
+    //nextUpdateCheck:Date
 } // extends Store{};  
+/*
 @connect(
     (store,props) => ({clone:store.clone, nextUpdateCheck:new Date(store.nextUpdateCheck)}), 
     attachDispatchToProps,
@@ -200,27 +202,13 @@ interface AppProps {
         }
     }
 )  
-export class App extends Component<AppProps,{}>{  
-    subscriptions:Subscription[]; 
-    timeouts:any[]; 
+*/
+
+export class App extends Component<{clone:boolean},{}>{  
 
     constructor(props){  
         super(props);  
-        this.timeouts=[];
-        this.subscriptions=[];
     }
-
-
-
-    componentDidUpdate(){
-        //Perf.stop() 
-        //Perf.printInclusive()
-        //Perf.printWasted()
-    }
-
-    
-    onError = (error) => globalErrorHandler(error);
-
 
     reportStart = ({ arch, cpus, platform, release, type, timeSeconds }) => googleAnalytics.send(   
         'event',   
@@ -239,193 +227,97 @@ export class App extends Component<AppProps,{}>{
            ev:timeSeconds 
         }
     ) 
-    .catch(err => this.onError(err));
+    .catch(err => globalErrorHandler(err));
 
-    
-    initUpdateTimeout = () => {
-        let {dispatch, nextUpdateCheck} = this.props;
-        let check = () => checkForUpdates()  
-                          .then((updateCheckResult:UpdateCheckResult) => { 
-                                let {updateInfo} = updateCheckResult;
-                                let currentAppVersion = remote.app.getVersion(); 
-                                let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
-
-                                if(canUpdate){ 
-                                   dispatch({type:"showUpdatesNotification", load:true}) 
-                                }else{ 
-                                   updateConfig(dispatch)({nextUpdateCheck:threeDaysLater(new Date())}) 
-                                }
-                           })    
-          
-        if(isNil(nextUpdateCheck)){ check() }
-        else{
-            let next = isString(nextUpdateCheck) ? new Date(nextUpdateCheck) : nextUpdateCheck;
-            this.timeouts.push(setCallTimeout(() => check(), next ));
-        }
-    };
 
 
     componentDidMount(){    
         const sysInfo = collectSystemInfo();
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
-        
-        this.initObservables();  
-        this.initUpdateTimeout(); 
         this.reportStart({...sysInfo, timeSeconds} as any);
     }    
     
- 
-    initObservables = () => {  
-        let {dispatch} = this.props;
-        let minute = 1000 * 60;  
 
-        this.subscriptions.push(
-            Observable.interval(2*minute).subscribe((v) => dispatch({type:'update'})), 
-
-            Observable.interval(5*minute).subscribe(() => { 
-                let target = path.resolve(os.homedir(), "tasklist");
-
-                if(not(fs.existsSync(target))){ fs.mkdirSync(target); }
-
-                let to = path.resolve(target, `db_backup_${keyFromDate(new Date())}.json`);
-                 
-                getDatabaseObjects(this.onError,1000000)
-                .then(([calendars,projects,areas,todos]) => 
-                    writeJsonFile(
-                        { database : { todos, projects, areas, calendars } },
-                        to 
-                    )  
-                    .then((err) => ({err,to}))
-                )
-            }),  
-
-
-            Observable
-            .fromEvent(ipcRenderer,'openTodo', (event,todo) => todo)
-            .subscribe((todo) => {
-                let window = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
-                if(isNotNil(window)){ 
-                   window.show();
-                   window.focus();
-                }
-                dispatch({type:"selectedCategory",load:"inbox"});
-                dispatch({type:"scrolledTodo",load:todo}); 
-                dispatch({type:"selectedCategory",load:"today"});
-            }), 
-
-
-            Observable  
-            .fromEvent(ipcRenderer, "action", (event,action) => action)
-            .map((action) => ({ 
-                ...action,
-                load:compose(
-                    map(convertDates),
-                    defaultTo({}),
-                    convertDates
-                )(action.load)
-            }))
-            .subscribe((action) => action.type==="@@redux/INIT" ? null : dispatch(action)),  
-
-
-            Observable 
-            .fromEvent(ipcRenderer, "error", (event,error) => error)    
-            .subscribe((error) => this.onError(error)),
-
-
-            Observable
-            .fromEvent(ipcRenderer, "progress", (event,progress) => progress)
-            .subscribe((progress) => dispatch({type:"progress",load:progress})),  
-
-
-            Observable  
-            .fromEvent(ipcRenderer, "Ctrl+Alt+T", (event) => event)
-            .subscribe((event) => {
-                dispatch({type:"openNewProjectAreaPopup", load:false});
-                dispatch({type:"showTrashPopup", load:false}); 
-                dispatch({type:"openTodoInputPopup", load:true});
-            })
-        );
-    };
-
-
-    componentWillUnmount(){
-        this.subscriptions.map(s => s.unsubscribe());
-        this.subscriptions = [];
-        this.timeouts.map(t => clearTimeout(t));
-        this.timeouts = [];  
-    }
-     
  
     render(){     
-        let { clone } = this.props;
 
-        
-        return <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001}}>    
-                <div style={{display:"flex",width:"inherit",height:"inherit"}}>  
+        return <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001}}>  
 
-                    { clone ? null : <LeftPanel {...{} as any}/> }
+            <div style={{display:"flex",width:"inherit",height:"inherit"}}>
 
-                    <MainContainer {...{} as any}/>    
+                { this.props.clone ? null : <LeftPanel {...{} as any}/> }
 
-                </div> 
-                <UpdateNotification {...{} as any} />  
+                <MainContainer {...{} as any}/>    
 
-                <SettingsPopup {...{} as any} />   
+            </div> 
 
-                <ChangeGroupPopup {...{} as any} /> 
+            <TrashPopup {...{} as any} />
 
-                <TrashPopup {...{} as any} />
+            <ChangeGroupPopup {...{} as any} />
 
-                <LicensePopup {...{} as any} />
-            </div>  
+            { this.props.clone ? null : <UpdateNotification {...{} as any} />}
+
+            { this.props.clone ? null : <SettingsPopup {...{} as any} />}
+
+            { this.props.clone ? null : <LicensePopup {...{} as any} />}
+
+        </div>  
     }           
 };    
+
 
    
 //render application
 ipcRenderer.once(
     'loaded',      
     (event, clonedStore:Store) => { 
-        let defaultStore = defaultStoreItems;
-        if(not(isNil(clonedStore))){ 
-            let {todos,projects,areas} = clonedStore;
+        let app=document.createElement('div'); 
+        app.id='application';     
+        document.body.appendChild(app);   
+
+        let defaultStore = {...defaultStoreItems};
+
+        if(isNotNil(clonedStore)){ 
+            let {todos,projects,areas,calendars,limit} = clonedStore;
+
             defaultStore={
                 ...clonedStore,
-                nextUpdateCheck:clonedStore.nextUpdateCheck ? new Date(clonedStore.nextUpdateCheck) : new Date(),
-                limit:new Date(clonedStore.limit),
+                limit:initDate(limit),
                 clone:true, 
-                todos:todos.map(convertTodoDates),
-                projects:projects.map(convertProjectDates), 
-                areas:areas.map(convertAreaDates) 
+                todos:map(convertTodoDates, todos),
+                projects:map(convertProjectDates, projects), 
+                areas:map(convertAreaDates, areas), 
+                calendars:map(
+                    evolve({ events:map(convertEventDate) }),
+                    calendars
+                )
             };
         }   
    
-        let app=document.createElement('div'); 
-        app.id='application';     
-        document.body.appendChild(app);     
-   
         getConfig() 
-        .then((config) => 
-            ReactDOM.render(   
-                <Provider 
-                    store={
-                        createStore(
-                            applicationReducer, 
-                            {
-                                ...defaultStore, 
-                                ...config,  
-                                nextUpdateCheck:new Date(config.nextUpdateCheck)
-                            }
-                        )
+        .then(
+            config => {
+                let {nextUpdateCheck} = config;
+                let store = createStore(
+                    applicationReducer,
+                    {
+                        ...defaultStore,
+                        ...config,
+                        nextUpdateCheck:initDate(nextUpdateCheck)
                     }
-                >    
-                    {wrapMuiThemeLight(<App {...{} as any}/>)}
-                </Provider>,
-                document.getElementById('application')
-            ) 
+                );
+
+                ReactDOM.render(   
+                    <Provider store={store}>    
+                        {wrapMuiThemeLight(<App clone={defaultStore.clone}/>)}
+                    </Provider>,
+                    document.getElementById('application')
+                ) 
+            }
         );  
     }
 );    
+
 
 
 let reducer = (reducers) => (state:Store, action) => {
@@ -436,6 +328,7 @@ let reducer = (reducers) => (state:Store, action) => {
     return state;      
 }; 
   
+
 
 let applicationReducer = reducer([applicationStateReducer, applicationObjectsReducer]); 
   
