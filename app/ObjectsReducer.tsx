@@ -10,12 +10,12 @@ import { isDev } from './utils/isDev';
 import { ipcRenderer, remote } from 'electron';
 import { 
     removeDeletedProjects, removeDeletedAreas, removeDeletedTodos, byNotDeleted, isMainWindow, 
-    isNotNil, typeEquals, inFuture, byNotCompleted, measureTime, convertTodoDates 
+    isNotNil, typeEquals, inFuture, byNotCompleted, measureTime, convertTodoDates, differentBy 
 } from './utils/utils';
 import { 
     adjust, cond, all, isEmpty, contains, not, remove, uniq, 
-    isNil, and, complement, compose, reject, concat, map, 
-    prop, ifElse, identity, path, equals, allPass, evolve  
+    isNil, and, complement, compose, reject, concat, map, when,
+    prop, ifElse, identity, path, equals, allPass, evolve, pick  
 } from 'ramda';
 import { filter } from './Components/MainContainer';
 import { globalErrorHandler } from './utils/globalErrorHandler';
@@ -26,8 +26,8 @@ import {
     isArrayOfProjects, isArrayOfAreas, isDate, isNumber 
 } from './utils/isSomething';
 import { setCallTimeout } from './utils/setCallTimeout';
-import { findWindowByTitle } from './utils/utils';
 import { convertEventDate } from './Components/Calendar';
+import { requestFromMain } from './utils/requestFromMain';
 
 
 let onError = (e) => globalErrorHandler(e); 
@@ -49,24 +49,16 @@ let log = (append:string) => (load:any) : any => {
 };
 
 
-let notEquals = complement(equals);
-
 
 let scheduleReminder = (todo) : number => {
     assert(isDate(todo.reminder),`reminder is not of type Date. scheduleReminder. ${todo.reminder}.`);
-  
-
+   
     return setCallTimeout(
-        () => {
-            let notification : any = findWindowByTitle('Notification');
- 
-            if(notification){ 
-               notification.webContents.send('remind',todo); 
-            };
-        }, 
+        () => requestFromMain<any>('remind', [todo], (event) => event),
         todo.reminder
     ); 
 };
+
 
 
 let clearScheduledReminders = (store:Store) : Store => {
@@ -79,99 +71,89 @@ let clearScheduledReminders = (store:Store) : Store => {
 };
 
 
+
+let refreshReminders = (prevState:Store,action:{type:String,load:any}) => (newState:Store) : Store => {
+
+    if(isNil(newState)){ return newState }
+
+
+    let hasReminder = compose(isDate,prop('reminder'));
+    let reminderInFuture = compose(inFuture,prop('reminder'));
+    let initial = typeEquals("setTodos")(action);
+    let filters = [byNotCompleted,byNotDeleted];
+
+
+    if(initial){ 
+       filters.push(hasReminder); 
+    }else{
+       filters.push(reminderInFuture); 
+    }
+
+
+    let shouldRefreshReminders : boolean = cond([
+        [ typeEquals("setTodos"), (action:{type:string,load:Todo[]}) => true ],
+        [ typeEquals("removeGroup"), (action:{type:string, load:string})  => true ],
+        [ typeEquals("updateTodos"), (action:{type:string, load:Todo[]}) => true ],
+
+        [ typeEquals("updateTodoById"), compose(isDate, path(['load','props','reminder'])) ],
+        [ typeEquals("addTodo"), compose(isDate, path(['load','reminder'])) ],
+        [
+          typeEquals("updateTodo"),
+          (action:{type:string, load:Todo}) => differentBy(
+                prop(`reminder`),
+                action.load,
+                prevState.todos.find( (t:Todo) => t._id===path(['load','_id'],action) )
+           )
+        ], 
+        [() => true, () => false]
+    ])(action);
+
+
+    return ifElse(
+        (newState:Store) => shouldRefreshReminders && isMainWindow(),
+        compose(
+            (scheduledReminders:number[]) : Store => ({...newState,scheduledReminders}),
+
+            (scheduledReminders:number[]) => filter(scheduledReminders, isNotNil),     
+
+            map((todo) : number => scheduleReminder(todo)), //create timeout for each reminder
+
+            (todos:Todo[]) => filter(todos, allPass(filters)), //only todos with reminder left
+            
+            prop('todos'), //get todos from current state   
+
+            clearScheduledReminders //suspend existing timeouts
+        ),  
+        identity   
+    )(newState);
+};
+
+
+
+let updateQuickEntry : (newState:Store) => Store =
+    when(
+        isNotNil,
+        (newState:Store) => {
+            requestFromMain<any>(
+                'updateQuickEntryData', 
+                pick(["todos","projects","areas"], newState), 
+                (event) => event
+            );
+            return newState;
+        }
+    );
+
+ 
+
 export let applicationObjectsReducer = (state:Store, action:{type:string,load:any,kind:string}) : Store => { 
     //console.log(`applicationObjectsReducer ${action.type}`)
     let shouldAffectDatabase : boolean =  and(actionFromQuickEntry(action),isMainWindow()) || 
                                           actionOriginIsThisWindow(action);
 
     
-
-    let refreshReminders = (newState:Store) : Store => {
-        let hasReminder = compose(isDate,prop('reminder'));
-        let reminderInFuture = compose(inFuture,prop('reminder'));
-        let initial = typeEquals("setTodos")(action);
-        let filters = [byNotCompleted,byNotDeleted];
-
-
-        if(initial){ 
-           filters.push(hasReminder); 
-        }else{
-           filters.push(reminderInFuture); 
-        }
-
-
-        let shouldRefreshReminders : boolean = cond([
-            [ typeEquals("updateTodoById"), compose(isDate, path(['load','props','reminder'])) ],
-            [ typeEquals("setTodos"), (action:{type:string,load:Todo[]}) => true ],
-            [ typeEquals("removeGroup"), (action:{type:string, load:string})  => true ],
-            [ typeEquals("removeDeleted"), (action:{type:string}) => false ],
-            [ typeEquals("addTodo"), compose(isDate, path(['load','reminder'])) ],
-            [ typeEquals("updateTodos"), (action:{type:string, load:Todo[]}) => true ],
-            [
-                typeEquals("updateTodo"),
-                (action:{type:string, load:Todo}) => {
-                    let todo : Todo = action.load; 
-                    let previous : Todo = state.todos.find((t:Todo) => t._id===todo._id);
-    
-                    return notEquals(
-                        prop(`reminder`,todo),
-                        prop(`reminder`,previous)
-                    );
-                }
-            ],
-            [() => true, () => false]
-        ])(action);
-
-
-        return ifElse(
-            (newState:Store) => shouldRefreshReminders && isMainWindow() && isNotNil(newState),
-            compose(
-                (scheduledReminders:number[]) : Store => ({...newState,scheduledReminders}),
-
-                (scheduledReminders:number[]) => filter(scheduledReminders, isNotNil),     
-
-                map((todo) : number => scheduleReminder(todo)), //create timeout for each reminder
-
-                (todos:Todo[]) => filter(todos, allPass(filters)), //only todos with reminder left
-                
-                prop('todos'), //get todos from current state   
-
-                clearScheduledReminders //suspend existing timeouts
-            ),  
-            identity   
-        )(newState);
-    };
-
-
-
-    let updateQuickEntry = (newState:Store) : Store => {
-        let quickEntry = findWindowByTitle('Add task');
-        let shouldUpdate = true;    
-        //typeEquals("setTodos")(action) || typeEquals("setProjects")(action);
-
-        if(isNotNil(quickEntry)){ 
-            if(quickEntry.isVisible() || shouldUpdate){ 
-               
-                quickEntry.webContents.send( 
-                   "projects", 
-                   filter( state.projects, allPass([byNotDeleted,byNotCompleted]) ) 
-                );
-
-                quickEntry.webContents.send(
-                    "todos",  
-                    filter( state.todos, allPass([byNotDeleted]) ) 
-                ); 
-            }
-        }
-           
-        return newState;  
-    };
-
-    
-    
     return compose(
         updateQuickEntry,  
-        refreshReminders,
+        refreshReminders(state,action),
         (newState:Store) => {
             if(isNil(newState)){ return newState }
 

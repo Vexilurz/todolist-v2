@@ -29,7 +29,7 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { debounce } from 'lodash';
 import { Checkbox } from '../TodoInput/TodoInput';
-import { attachDispatchToProps, keyFromDate, checkForUpdates, getCompletedWhen, findWindowByTitle } from '../../utils/utils';
+import { attachDispatchToProps, keyFromDate, checkForUpdates, getCompletedWhen } from '../../utils/utils';
 import { isNewVersion } from '../../utils/isNewVersion';
 import { 
     Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, 
@@ -50,6 +50,7 @@ import { uppercase } from '../../utils/uppercase';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { generateId } from '../../utils/generateId';
 import { readJsonFile, writeJsonFile } from '../../utils/jsonFile';
+import { requestFromMain } from '../../utils/requestFromMain';
 const Promise = require('bluebird');   
 const fs = remote.require('fs');
 const path = require("path");
@@ -371,56 +372,46 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
 
     constructor(props){ super(props) }
 
-    enableQuickEntry = debounce(() => {
-        let {enableShortcutForQuickEntry,dispatch} = this.props;
 
-        updateConfig(dispatch)({enableShortcutForQuickEntry:!enableShortcutForQuickEntry})
-        .then(
-            (config) => {
-                let registered = remote.globalShortcut.isRegistered('Ctrl+Alt+T');
-                let {disableReminder} = config;
-                let enable = config.enableShortcutForQuickEntry;
-                
-                ipcRenderer.send("autolaunch", enableShortcutForQuickEntry && not(disableReminder));
 
-                if(enable && not(registered)){
-                    remote.globalShortcut.register(
-                        'Ctrl+Alt+T',  
-                        () => {
-                            let quickEntry = findWindowByTitle('Add task');
-                            if(isNil(quickEntry)){ return }    
-                            
-                            if(quickEntry.isVisible()){
-                               quickEntry.hide();
-                            }else{ 
-                               quickEntry.show();
-                               quickEntry.focus(); 
-                               quickEntry.webContents.send("focus"); 
-                            }
-                        }
-                    );
-                }else if(not(enable) && registered){
-                    if(remote.globalShortcut.isRegistered('Ctrl+Alt+T')){
-                       remote.globalShortcut.unregister('Ctrl+Alt+T');
-                    }
-                }
-            } 
-        )
-    },50);
+    enableQuickEntry = debounce(
+        () => updateConfig(this.props.dispatch)({enableShortcutForQuickEntry:!this.props.enableShortcutForQuickEntry})
+                .then(
+                    (config) => {
+                        let {disableReminder,enableShortcutForQuickEntry} = config;
+
+
+                        requestFromMain<any>(
+                            'autolaunch',
+                            [enableShortcutForQuickEntry && not(disableReminder)],
+                            (event) => event
+                        );
+
+                        
+                        requestFromMain<any>(
+                            'toggleShortcut', 
+                            [enableShortcutForQuickEntry,'Ctrl+Alt+T'], 
+                            (event) => event
+                        );
+                    } 
+                ),
+        50
+    );
     
+
 
     quickEntrySavesTo = (event) => {
         let {dispatch} = this.props;
         updateConfig(dispatch)({quickEntrySavesTo:event.target.value})
         .then(
-            (config) => {
-                let window = findWindowByTitle('Add task');
-                if(window){
-                    window.webContents.send('config',config)
-                }
-            } 
+            (config) => requestFromMain<any>(
+                'updateQuickEntryConfig',
+                [config],
+                (event) => event
+            )
         ); 
     };
+
 
     
     render(){
@@ -1139,12 +1130,13 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
             (config) => {
                 let {enableShortcutForQuickEntry} = config;
 
-                ipcRenderer.send("autolaunch", enableShortcutForQuickEntry && not(disableReminder));
+                requestFromMain<any>(
+                    'autolaunch',
+                    [enableShortcutForQuickEntry && not(disableReminder)],
+                    (event) => event
+                );
 
-                let window = findWindowByTitle('Notification');
-                if(window){
-                   window.webContents.send('config',config);
-                } 
+                requestFromMain<any>('updateNotificationConfig',[config],(event) => event);
             } 
         )
     };

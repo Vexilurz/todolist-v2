@@ -1,9 +1,11 @@
 import { loadApp, loadQuickEntry, loadNotification } from './loadApp'; 
 import fs = require('fs');     
-import {dialog,app,BrowserWindow,Menu,screen,globalShortcut,Tray,nativeImage} from 'electron';
+import { dialog,app,BrowserWindow,Menu,screen,globalShortcut,Tray,nativeImage } from 'electron';
 import { Listeners } from "./listeners";
 import { initWindow, initQuickEntry, initNotification } from "./initWindow";
-import { isNil, not, forEachObjIndexed, when, contains, compose, equals, ifElse, reject, isEmpty, defaultTo, map } from 'ramda';  
+import { 
+    isNil, not, forEachObjIndexed, when, contains, compose, equals, ifElse, reject, isEmpty, defaultTo, map, identity 
+} from 'ramda';  
 import { isDev } from './../utils/isDev';
 import { defaultTags } from '../utils/defaultTags';
 const os = require('os');
@@ -64,25 +66,30 @@ const shouldQuit = app.makeSingleInstance(
 );  
 
 
-export let getClonedWindows = () : BrowserWindow[] => {
-    let defaultWindowsTitles = ['Add task','Notification'];
-    let mainWindowId = isNil(mainWindow) ? 1 : mainWindow.id;
+
+export let findWindowByTitle = (title:string) => {
     let windows = BrowserWindow.getAllWindows();
-
-    if(isNil(windows)){ return [] }
-    
-    return windows
-            .filter(v => v)
-            .filter((window:BrowserWindow) => {
-                let title = window.getTitle();
-                let id = window.id;
-
-                let isDefaultWindow = contains(title)(defaultWindowsTitles);
-                let isMainWindow = equals(id,mainWindowId);
-
-                return not(isDefaultWindow) && not(isMainWindow);
-            }); 
+    return windows.find((w) => w.getTitle()===title); 
 };
+
+
+
+export let getClonedWindows = () : BrowserWindow[] => 
+            BrowserWindow
+            .getAllWindows()
+            .filter(
+                (window:BrowserWindow) => {
+                    let mainWindowId = isNil(mainWindow) ? 1 : mainWindow.id;
+                    let title = window.getTitle();
+                    let id = window.id;
+
+                    let isDefaultWindow = contains(title)(['Add task','Notification']);
+                    let isMainWindow = equals(id,mainWindowId);
+
+                    return not(isDefaultWindow) && not(isMainWindow);
+                }
+            ); 
+
 
 
 let shortcuts = {
@@ -106,6 +113,15 @@ let registerAllShortcuts = () : void => {
 
 
 let unregisterAllShortcuts = () => globalShortcut.unregisterAll();
+
+
+export let toggleShortcut : (enable:boolean, shortcut:string) => void =
+    ifElse(
+        identity,
+        (enable, shortcut) => globalShortcut.register(shortcut, shortcuts[shortcut]),
+        (enable, shortcut) => globalShortcut.unregister(shortcut)
+    ); 
+
 
 
 let createTray = () : Tray => {

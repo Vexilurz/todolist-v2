@@ -1,5 +1,5 @@
 import { isDev } from './../utils/isDev';
-import { mainWindow, getClonedWindows, initAutoLaunch } from './main';
+import { mainWindow, getClonedWindows, initAutoLaunch, toggleShortcut, findWindowByTitle } from './main';
 import { loadApp } from './loadApp'; 
 import { ipcMain,app,BrowserWindow,screen } from 'electron';
 import { initWindow } from './initWindow';
@@ -60,13 +60,79 @@ export class Listeners{
  
       this.registeredListeners = [ 
             {
-                name:"hide",
-                callback:(event) => BrowserWindow.getAllWindows().forEach((win:BrowserWindow) => win.hide())
-            },   
+                name:"isMainWindow",
+                callback:(event) => { 
+                    console.log(event);
+                    event.sender.send("isMainWindow", false)
+                }
+            },
+
+
+
+
+            
+            { 
+                name:"updateQuickEntryData",
+                callback:(event,todos:any,projects:any,areas:any) => {
+                    let window = findWindowByTitle('Add task');
+                    if(window){
+                       window.webContents.send('data',todos,projects,areas);
+                    }
+                    event.sender.send("updateQuickEntryData");
+                }
+            },
+            { 
+                name:"remind",
+                callback:(event,todo) => {
+                    let notification : any = findWindowByTitle('Notification');
+                    if(notification){ 
+                       notification.webContents.send('remind',todo); 
+                    };
+                    event.sender.send("remind");
+                } 
+            }, 
+            { 
+                name:"updateNotificationConfig",
+                callback:(event,config:any) => {
+                    let window = findWindowByTitle('Notification');
+                    if(window){
+                       window.webContents.send('config',config);
+                    } 
+                    event.sender.send("updateNotificationConfig");
+                } 
+            }, 
+            { 
+                name:"updateQuickEntryConfig",
+                callback:(event,config:any) => {
+                    let window = findWindowByTitle('Add task');
+                    if(window){
+                       window.webContents.send('config',config);
+                    }
+                    event.sender.send("updateQuickEntryConfig");
+                }
+            },
+            { 
+                name:"toggleShortcut",
+                callback:(event,enable:boolean,shortcut:string) => {
+                    toggleShortcut(enable,shortcut);
+                    event.sender.send("toggleShortcut");
+                }
+            },
             {
                 name:"autolaunch",
-                callback:(event,shouldEnable) => initAutoLaunch(shouldEnable)
+                callback:(event,shouldEnable) => {
+                    initAutoLaunch(shouldEnable);
+                    event.sender.send("autolaunch");
+                } 
             },
+            {
+                name:"getVersion",
+                callback:(event) => event.sender.send("getVersion",app.getVersion())
+            },
+            {
+                name:"hide",
+                callback:(event) => BrowserWindow.getAllWindows().forEach((win:BrowserWindow) => win.hide())
+            }, 
             {
                 name:"downloadUpdates",
                 callback:(event) => {

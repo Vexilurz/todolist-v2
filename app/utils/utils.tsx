@@ -10,11 +10,11 @@ import {
     contains, isNil, prepend, isEmpty, last, not, 
     when, flatten, map, compose, cond, remove, any,
     complement, equals, prop, groupBy, path, reject,
-    ifElse, identity, reduce 
+    ifElse, identity, reduce, curry 
 } from 'ramda'; 
 import { Store } from '.././app';
 import { isDev } from './isDev';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 let Promise = require('bluebird');
 import { UpdateCheckResult } from 'electron-updater';
 import { globalErrorHandler } from './globalErrorHandler';
@@ -30,6 +30,7 @@ import {
 } from './isSomething';
 import { generateEmptyTodo } from './generateEmptyTodo';
 import { noteFromText } from './draftUtils';
+import { requestFromMain } from './requestFromMain';
 const PHE = require("print-html-element");
 const domtoimage = require('retina-dom-to-image');
  
@@ -68,6 +69,12 @@ export let different = complement(equals);
 
 
 
+export let differentBy = curry(
+    (by:Function, first:any, last:any) => different(...map(by,[first,last]))
+);
+
+
+
 export let isNotNan = (n) => not(isNaN(n));
 
 
@@ -102,7 +109,6 @@ let getDateUpperLimit = (projects:Project[], todos:Todo[], currentLimit:Date) : 
         getDates
     )(projects);
 
-
     return result;
 };
 
@@ -129,10 +135,7 @@ export let addDates = (one:Date, two:Date) : Date => {
     let first = new Date(one);
     let second = new Date(two);
 
-    return new Date(
-        first.getTime() + 
-        second.getTime()
-    ); 
+    return new Date(first.getTime() + second.getTime()); 
 };
 
 
@@ -143,9 +146,12 @@ export let addTime = (date:Date, time:number) : Date => {
 
 
 
-export let isMainWindow = () => {  
-    return remote.getCurrentWindow().id===1; 
-};
+export let isMainWindow = () : Promise<boolean> => 
+    requestFromMain<boolean>(
+        'isMainWindow',
+        [],
+        (event,value) => value
+    );
 
 
 
@@ -1291,20 +1297,6 @@ export let generateEmptyProject = () : Project => ({
   
 
 
-export let findWindowByTitle = (title:string) => {
-    let windows = [];
-
-    try{
-        windows = remote.BrowserWindow.getAllWindows();
-    }catch(e){
-        //console.log(`findWindowByTitle ${e}`); 
-        windows = remote.BrowserWindow.getAllWindows();
-    } 
-
-    return windows.find((w) => w.getTitle()===title); 
-};
-
-
 
 export let generateEmptyArea = () : Area => ({
     _id : generateId(),
@@ -1544,26 +1536,22 @@ export let convertDates = (object) =>
  
 
 
-export let checkForUpdates = () : Promise<UpdateCheckResult> => {
-    return new Promise( 
-        resolve => {
-            ipcRenderer.removeAllListeners("checkForUpdates");  
-            ipcRenderer.send("checkForUpdates");
-            ipcRenderer.on("checkForUpdates", (event,updateCheckResult) => resolve(updateCheckResult));
-        }  
-    );
-}; 
+export let checkForUpdates = () : Promise<UpdateCheckResult> => 
+           requestFromMain<UpdateCheckResult>(
+               'checkForUpdates',
+               [],
+               (event,updateCheckResult) => updateCheckResult
+           );
 
 
-export let downloadUpdates = () : Promise<string> => {
-    return new Promise( 
-        resolve => {
-            ipcRenderer.removeAllListeners("downloadUpdates");  
-            ipcRenderer.send("downloadUpdates");
-            ipcRenderer.on("downloadUpdates", (event,path) => resolve(path)); 
-        } 
-    );
-};
+
+export let downloadUpdates = () : Promise<string> => 
+           requestFromMain<string>(
+               'downloadUpdates',
+               [],
+               (event,path) => path
+           );
+
 
 
 export let getIntroList = () : Project => {

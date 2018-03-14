@@ -13,7 +13,7 @@ import {
     attachDispatchToProps, transformLoadDates, yearFromNow, convertTodoDates, 
     convertProjectDates, convertAreaDates, timeDifferenceHours, 
     convertDates, checkForUpdates, nextMidnight,
-    oneMinuteBefore, threeDaysLater, findWindowByTitle, keyFromDate, isNotNil, 
+    oneMinuteBefore, threeDaysLater, keyFromDate, isNotNil, 
     nDaysFromNow, monthFromDate, measureTime, log  
 } from "./utils/utils";  
 import {wrapMuiThemeLight} from './utils/wrapMuiThemeLight'; 
@@ -419,7 +419,7 @@ ipcRenderer.once(
                         )
                     }
                 >    
-                {wrapMuiThemeLight(<App {...{} as any}/>)}
+                    {wrapMuiThemeLight(<App {...{} as any}/>)}
                 </Provider>,
                 document.getElementById('application')
             ) 

@@ -37,8 +37,8 @@ import { Provider, connect } from "react-redux";
 import List from 'material-ui/svg-icons/action/list';
 import { 
     cond, assoc, isNil, not, defaultTo, map, isEmpty, when,
-    uniq, remove, contains, append, adjust, complement,
-    compose, flatten, concat, prop, equals  
+    uniq, remove, contains, append, adjust, complement,identity,
+    compose, flatten, concat, prop, equals, evolve, allPass  
 } from 'ramda';
 let moment = require("moment");
 import Popover from 'material-ui/Popover';
@@ -69,7 +69,7 @@ import { arrayMove } from './utils/arrayMove';
 import { ChecklistItem, Checklist } from './Components/TodoInput/TodoChecklist';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { isString, isDate, isProject } from './utils/isSomething';
-import { isToday } from './utils/utils';
+import { isToday, byNotDeleted, byNotCompleted } from './utils/utils';
 import { isDev } from './utils/isDev';
 import TextareaAutosize from 'react-autosize-textarea';
 import { TodoTags } from './Components/TodoInput/TodoTags';
@@ -151,6 +151,7 @@ interface QuickEntryState{
     project:any,
     projects:any[],
     todos:any[],
+    areas:any[],
     category:string,
     title:string,  
     editorState:any,
@@ -200,6 +201,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             category:'', 
             title:'', 
             projects:[],
+            areas:[],
             editorState:noteToState(null),
             todos:[],
             deadline:undefined, 
@@ -267,19 +269,26 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             .subscribe(compose( (state) => this.setState(state), this.stateFromConfig )),
             
             Observable
-            .fromEvent(ipcRenderer,"projects", (event,projects:any[]) => projects)
-            .subscribe((projects:any[]) => this.setState({projects})),
-
-            Observable
-            .fromEvent(ipcRenderer,"todos", (event,todos:any[]) => todos)
-            .subscribe((todos:any[]) => this.setState({
-                todos,
-                defaultTags:compose(
-                    uniq,
-                    append(this.state.defaultTags),
-                    map(prop('attachedTags'))
-                )(todos),
-            })), 
+            .fromEvent(ipcRenderer,"data",(event,todos,projects,areas) => ({todos,projects,areas}))
+            .subscribe(
+                compose(
+                    ({todos,projects,areas}) => this.setState({  
+                            projects, 
+                            areas, 
+                            todos, 
+                            defaultTags:compose(
+                                uniq,
+                                append(this.state.defaultTags),
+                                map(prop('attachedTags'))
+                            )(todos) 
+                    }),
+                    evolve({
+                        todos:(todos) => todos.filter(byNotDeleted),
+                        projects:(projects) => projects.filter(allPass([byNotDeleted,byNotCompleted])),
+                        areas:(areas) => areas.filter(byNotDeleted)
+                    })
+                )
+            )
         )
     }
 

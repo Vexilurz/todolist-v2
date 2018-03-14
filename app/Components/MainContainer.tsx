@@ -14,7 +14,7 @@ import {
     getIntroList, printElement, inFuture, introListIds, introListLayout, 
     threeDaysAhead, byHaveAttachedDate, byAttachedToCompletedProject, 
     byNotAttachedToProject, byNotAttachedToCompletedProject, isNotEmpty, 
-    isNotNil, gtDate 
+    isNotNil, gtDate, isMainWindow 
 } from "../utils/utils";  
 import {isDev} from "../utils/isDev"; 
 import {connect} from "react-redux"; 
@@ -63,21 +63,21 @@ import { assert } from '../utils/assert';
 const Promise = require('bluebird');   
 const moment = require("moment");   
 
-export let assertShallowEquality = (items,todos,where) => {
-    let same = 0;
-    let diff = 0;
-    for(let i=0; i<items.length; i++){
-        let item = items[i];
-        if(item){
-            let target = todos.find( t => t._id===item._id)
-            if(target===item){
-                same++
-            }else diff++
-        }
 
-    }
-    //console.log(`${where} same ${same}  diff ${diff}`); 
-}
+
+let testData = () => {  
+    let {dispatch} = this.props;
+
+    initDB(); 
+    let fakeData = generateRandomDatabase({todos:215, projects:38, areas:15});      
+        
+    let todos = fakeData.todos; 
+    let projects = fakeData.projects; 
+    let areas = fakeData.areas;  
+         
+    return {todos,projects,areas};
+};
+
 
 
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
@@ -85,20 +85,13 @@ export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" |
                        "deadline" | "search" | "group" | "search" | "reminder";
 
 
+
 export let filter = (array:any[],f:Function,caller?:string) : any[] => lodashFilter(array,f); 
  
 
-let isMainWindow = () => { 
-    return remote.getCurrentWindow().id===1;
-}
-  
+let noteIsString = compose(isString, prop('note'));
+let assureCorrectNoteType : (todo:Todo) => Todo = when(noteIsString,evolve({note:noteFromText}));
 
-let assureCorrectNoteType : (todo:Todo) => Todo = 
-    when(
-        compose(isString, prop('note')), 
-        evolve({note:noteFromText}) 
-    );
-    
 
 export let getData = (limit:Date,onError:Function,max:number) : Promise<{
     projects:Project[],
@@ -112,9 +105,7 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
             evolve({ 
                 projects:map(convertProjectDates),
                 areas:map(convertAreaDates),
-                todos:map( 
-                    compose(assureCorrectNoteType, convertTodoDates)
-                ),  
+                todos:map(compose(assureCorrectNoteType, convertTodoDates)),  
             }),
             ([calendars,projects,areas,todos]) => ({calendars,projects,areas,todos})
         )
@@ -143,7 +134,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
     subscriptions:Subscription[]; 
     disablePrintButton:boolean;
 
-    
 
     constructor(props){ 
         super(props);  
@@ -153,58 +143,26 @@ export class MainContainer extends Component<Store,MainContainerState>{
         this.state = { fullWindowSize:true };
     };  
 
-    
-     
-    test = () => {  
-        let {dispatch} = this.props;
-
-        initDB(); 
-        let fakeData = generateRandomDatabase({todos:215, projects:38, areas:15});      
-            
-        let todos = fakeData.todos; 
-        let projects = fakeData.projects; 
-        let areas = fakeData.areas;  
-             
-        Promise.all([  
-            addTodos(this.onError,todos),    
-            addProjects(this.onError,projects), 
-            addAreas(this.onError,areas),  
-            clearStorage(this.onError)     
-        ])  
-        .then(() => getData(this.props.limit,this.onError,this.limit))  
-        .then(
-            ({projects, areas, todos, calendars}) => this.setData({ 
-                projects:defaultTo([], projects), 
-                areas:defaultTo([], areas), 
-                todos:defaultTo([], todos), 
-                calendars:defaultTo([], calendars)
-            }) 
-        )
-    };
-
       
     onError = (e) => globalErrorHandler(e); 
 
 
-
     initData = () => {
-        if(not(isMainWindow())){ return }  
-        let {dispatch} = this.props;
-
-        if(isDev()){ 
-            destroyEverything()
-            .then(this.test) 
-        }else{ 
-            getData(this.props.limit,this.onError,this.limit)   
-            .then(
-                ({projects, areas, todos, calendars}) => this.setData({
-                    projects:defaultTo([], projects), 
-                    areas:defaultTo([], areas), 
-                    todos:defaultTo([], todos), 
-                    calendars:defaultTo([], calendars)
-                }) 
+        isMainWindow()
+        .then(
+            when(
+                identity, 
+                () => getData(this.props.limit,this.onError,this.limit)
+                        .then(
+                            ({projects, areas, todos, calendars}) => this.setData({
+                                projects:defaultTo([], projects), 
+                                areas:defaultTo([], areas), 
+                                todos:defaultTo([], todos), 
+                                calendars:defaultTo([], calendars)
+                            }) 
+                        )
             )
-        } 
+        )
     };
 
 
@@ -619,8 +577,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
                                     ];
 
                                     let filtered = filter(todos, allPass(upcomingFilters));
-
-                                    assertShallowEquality(filtered,todos,'upcoming');
 
                                     return <Upcoming  
                                         limit={this.props.limit}
