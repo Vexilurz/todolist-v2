@@ -18,7 +18,7 @@ import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { allPass, isEmpty, not, assoc, isNil, flatten, contains, intersection, or, prop, compose, map, cond } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { Category, filter } from '../MainContainer';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import { CalendarEvent } from '../Calendar';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';

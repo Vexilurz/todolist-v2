@@ -9,7 +9,7 @@ import {
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
     byDeleted, byAttachedToProject, isTodayOrPast, isDeadlineTodayOrPast, byNotAttachedToCompletedProject, byNotAttachedToProject, anyTrue
 } from "../../utils/utils";  
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import { connect } from "react-redux";
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import Plus from 'material-ui/svg-icons/content/add';  

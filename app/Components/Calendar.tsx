@@ -13,7 +13,7 @@ import {
   cond, defaultTo, find
 } from 'ramda'; 
 import { Store } from './../app';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 let Promise = require('bluebird');
 import axios from 'axios';
 import { 

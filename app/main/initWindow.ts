@@ -17,8 +17,8 @@ export let initWindow = (
             center:true,
             frame:true, 
             ...options
-    });                 
- 
+    });       
+    
     handler.on('ready-to-show',() => onReady(handler));
 
     handler.on(
@@ -73,8 +73,8 @@ export let initNotification = ({width,height}:{width:number,height:number}):Brow
         title:'Notification',    
         center:false,       
         frame:false  
-    } as any);               
-  
+    } as any);    
+    
     handler.setAlwaysOnTop(true);
     handler.setResizable(false); 
     handler.setSkipTaskbar(true);

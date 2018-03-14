@@ -2,7 +2,7 @@ import './../assets/styles.css';
 import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';   
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton';  
 import { Component } from "react"; 
 import { 
@@ -63,11 +63,9 @@ import { assert } from '../utils/assert';
 import { isNewVersion } from '../utils/isNewVersion';
 import { UpdateCheckResult } from 'electron-updater';
 import { setCallTimeout } from '../utils/setCallTimeout';
-import { writeJsonFile } from '../utils/jsonFile';
+import { requestFromMain } from '../utils/requestFromMain';
 const Promise = require('bluebird');   
 const moment = require("moment");   
-const os = remote.require('os'); 
-const fs = remote.require('fs'); 
 const path = require('path');
 
 
@@ -199,19 +197,34 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
     initUpdateTimeout = () => {
         let {dispatch, nextUpdateCheck} = this.props;
-        let check = () => checkForUpdates()  
-                            .then((updateCheckResult:UpdateCheckResult) => { 
-                                let {updateInfo} = updateCheckResult;
-                                let currentAppVersion = remote.app.getVersion(); 
-                                let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
 
-                                if(canUpdate){ 
-                                   dispatch({type:"showUpdatesNotification", load:true}) 
-                                }else{ 
-                                   updateConfig(dispatch)({nextUpdateCheck:threeDaysLater(new Date())}) 
-                                }
-                            });    
+        let check = () =>
+            checkForUpdates()  
+            .then(
+                (updateCheckResult:UpdateCheckResult) =>  requestFromMain<any>(
+                    'getVersion',
+                    [],
+                    (event, currentAppVersion) => currentAppVersion
+                ).then(
+                    (currentAppVersion:string) => {
+                        assert(
+                            isString(currentAppVersion),
+                            `currentAppVersion is not of type String. ${currentAppVersion}`
+                        );
+
+                        let {updateInfo} = updateCheckResult;
+                        let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
+
+                        if(canUpdate){ 
+                            dispatch({type:"showUpdatesNotification", load:true}) 
+                        }else{ 
+                            updateConfig(dispatch)({nextUpdateCheck:threeDaysLater(new Date())}) 
+                        }
+                    }
+                )
+            );    
           
+
         if(isNil(nextUpdateCheck)){ 
            check(); 
         }else{
@@ -284,36 +297,39 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
             Observable
             .interval(5*minute)
-            .subscribe(() => { 
-                let target = path.resolve(os.homedir(), "tasklist");
-
-                if(not(fs.existsSync(target))){ fs.mkdirSync(target); }
-
-                let to = path.resolve(target, `db_backup_${keyFromDate(new Date())}.json`);
-                    
-                getDatabaseObjects(this.onError,1000000)
-                .then(([calendars,projects,areas,todos]) => 
-                    writeJsonFile(
-                        { database : { todos, projects, areas, calendars } },
-                        to 
-                    )  
-                    .then((err) => ({err,to}))
+            .subscribe(() => 
+                requestFromMain<any>(
+                    'saveBackup',
+                    [
+                        { 
+                            database : { 
+                                todos:this.props.todos, 
+                                projects:this.props.projects, 
+                                areas:this.props.areas, 
+                                calendars:this.props.calendars 
+                            } 
+                        }
+                    ],
+                    (event) => event
                 )
-            }),  
-    
+            ),  
+     
 
             Observable
-            .fromEvent(ipcRenderer,'openTodo', (event,todo) => todo)
-            .subscribe((todo) => {
-                let window = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
-                if(isNotNil(window)){ 
-                    window.show();
-                    window.focus();
-                }
-                dispatch({type:"selectedCategory",load:"inbox"});
-                dispatch({type:"scrolledTodo",load:todo}); 
-                dispatch({type:"selectedCategory",load:"today"});
-            }), 
+            .fromEvent(ipcRenderer, 'openTodo', (event,todo) => todo)
+            .subscribe(
+                (todo) => requestFromMain<any>(
+                    'focusMainWindow',
+                    [],
+                    (event) => event
+                ).then(
+                    () => { 
+                        dispatch({type:"selectedCategory",load:"inbox"});
+                        dispatch({type:"scrolledTodo",load:todo}); 
+                        dispatch({type:"selectedCategory",load:"today"});
+                    }
+                )
+            ), 
 
 
             Observable  

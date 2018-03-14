@@ -25,7 +25,7 @@ export let writeJsonFile = (obj:any,pathToFile:string) : Promise<any> =>
                 json, 
                 'utf8', 
                 (err) => {
-                    if (err){ resolve(err) }
+                    if(err){ resolve(err) }
                     else{ resolve() }
                 } 
             );

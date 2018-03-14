@@ -8,7 +8,7 @@ import IconButton from 'material-ui/IconButton';
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import { Component } from "react";  
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import {    
     attachDispatchToProps, transformLoadDates, yearFromNow, convertTodoDates, 
     convertProjectDates, convertAreaDates, timeDifferenceHours, 
@@ -52,7 +52,6 @@ import { googleAnalytics } from './analytics';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { Config, defaultConfig, updateConfig, getConfig } from './utils/config';
 import { collectSystemInfo } from './utils/collectSystemInfo';
-import { writeJsonFile } from './utils/jsonFile';
 import Clear from 'material-ui/svg-icons/content/clear';
 import { getMachineIdSync } from './utils/userid';
 import { assert } from './utils/assert';
@@ -61,9 +60,6 @@ import { setCallTimeout } from './utils/setCallTimeout';
 import { isDev } from './utils/isDev';
 import { convertEventDate } from './Components/Calendar';
 const MockDate = require('mockdate');  
-const os = remote.require('os'); 
-const fs = remote.require('fs'); 
-const path = require('path');
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
 
