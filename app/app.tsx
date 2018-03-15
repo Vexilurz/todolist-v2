@@ -237,6 +237,7 @@ export class App extends Component<AppProps,{}>{
     ) 
     .catch(err => globalErrorHandler(err));
 
+    
 
     componentDidMount(){    
         collectSystemInfo()
