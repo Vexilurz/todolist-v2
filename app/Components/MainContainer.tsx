@@ -17,7 +17,6 @@ import {
     isNotNil, gtDate, checkForUpdates, threeDaysLater, convertDates, keyFromDate, log 
 } from "../utils/utils";  
 import {isDev} from "../utils/isDev"; 
-import {connect} from "react-redux"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Hide from 'material-ui/svg-icons/navigation/arrow-drop-down';
 import { 
@@ -115,11 +114,43 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
         )
     );
 
-                       
-interface MainContainerState{ fullWindowSize:boolean }
 
-@connect((store,props) => store, attachDispatchToProps)   
-export class MainContainer extends Component<Store,MainContainerState>{
+interface MainContainerProps{
+    dispatch:Function
+
+    selectedCategory:Category,
+
+    limit:Date,
+    nextUpdateCheck:Date,
+
+    selectedTodo:Todo,
+    scrolledTodo:Todo,
+
+    hideHint:boolean,
+    firstLaunch:boolean,
+    clone:boolean,
+    showCompleted:boolean,
+    showScheduled:boolean,
+    groupTodos:boolean,
+    showRightClickMenu:boolean,
+    showCalendarEvents:boolean,
+    showTrashPopup:boolean,
+
+
+    calendars:Calendar[],
+    projects:Project[],
+    areas:Area[],
+    todos:Todo[],
+
+    selectedProjectId:string,
+    selectedAreaId:string,
+    moveCompletedItemsToLogbook:string,
+    selectedTag:string,
+    dragged:string
+}   
+interface MainContainerState{ fullWindowSize:boolean }
+  
+export class MainContainer extends Component<MainContainerProps,MainContainerState>{
     rootRef:HTMLElement;  
     limit:number;
     subscriptions:Subscription[]; 
@@ -529,6 +560,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
                                     return <Today   
                                         todos={selectedTodos}
+                                        hideHint={this.props.hideHint}
                                         clone={clone}
                                         dispatch={this.props.dispatch}
                                         scrolledTodo={this.props.scrolledTodo}

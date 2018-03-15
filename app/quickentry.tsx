@@ -33,7 +33,7 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import { ipcRenderer } from 'electron'; 
 import AutosizeInput from 'react-input-autosize';
 import { createStore } from "redux"; 
-import { Provider, connect } from "react-redux";
+import { Provider } from "react-redux";
 import List from 'material-ui/svg-icons/action/list';
 import { 
     cond, assoc, isNil, not, defaultTo, map, isEmpty, when,

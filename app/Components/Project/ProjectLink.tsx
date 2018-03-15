@@ -3,7 +3,6 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
 import { Component } from "react"; 
-import { connect } from "react-redux";
 import Popover from 'material-ui/Popover';
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import { Todo, Project } from '../../database';
@@ -13,13 +12,14 @@ import PieChart from 'react-minimal-pie-chart';
 import Restore from 'material-ui/svg-icons/content/undo';
 import { contains, isNil, allPass, not, isEmpty } from 'ramda';
 import { Store } from '../../app';
-import { filter } from '../MainContainer';
+import { filter, Category } from '../MainContainer';
 import Hide from 'material-ui/svg-icons/action/visibility-off';
 import Count from 'material-ui/svg-icons/editor/format-list-numbered';
 import { assert } from '../../utils/assert';
 import { uppercase } from '../../utils/uppercase';
 import { isDate, isString } from '../../utils/isSomething';
 import { daysRemaining } from '../../utils/daysRemaining';
+
 
 
 export let getProgressStatus = (
@@ -41,21 +41,26 @@ export let getProgressStatus = (
      
     return {done,left}; 
 }  
-
-
-interface ProjectLinkProps extends Store{
-    project:Project,
-    showMenu:boolean
-}
  
+
+
+interface ProjectLinkProps{
+    project:Project,
+    todos:Todo[],
+    dispatch:Function,
+    showMenu:boolean,
+    selectedCategory:Category
+}
+
+
 
 interface ProjectLinkState{
     openMenu:boolean 
 }   
+ 
 
 
-@connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
-export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
+export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
     actionsAnchor:HTMLElement;
 
     constructor(props){ 
@@ -325,10 +330,13 @@ export class ProjectLink extends Component<ProjectLinkProps, ProjectLinkState>{
  
 
 
-interface ProjectLinkLogbookProps extends Store{ project:Project }
+interface ProjectLinkLogbookProps{ 
+    project:Project, 
+    dispatch:Function,
+    todos:Todo[],
+    selectedCategory:Category
+}
 interface ProjectLinkLogbookState{}   
-
-@connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
 export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, ProjectLinkLogbookState>{
 
     constructor(props){ super(props) }
@@ -396,10 +404,13 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
 
 
 
-interface ProjectLinkTrashProps extends Store{ project:Project }
+interface ProjectLinkTrashProps{ 
+    project:Project,
+    dispatch:Function,
+    todos:Todo[],
+    selectedCategory:Category 
+}
 interface ProjectLinkTrashState{ openMenu:boolean }   
-
-@connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
 export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLinkTrashState>{
     actionsAnchor:HTMLElement;
 

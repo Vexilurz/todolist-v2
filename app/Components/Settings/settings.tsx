@@ -121,19 +121,10 @@ export class LicensePopup extends Component<LicensePopupProps,LicensePopupState>
 interface SettingsPopupProps{
     openSettings:boolean,
     dispatch:Function
-} //extends Store{}
+} 
 interface SettingsPopupState{}
 
-@connect(
-    (store:Store,props) =>  ({ openSettings:store.openSettings }), 
-    attachDispatchToProps,
-    null,
-    {
-        areStatesEqual:(nextStore:Store, prevStore:Store) => {
-           return nextStore.openSettings===prevStore.openSettings;
-        }
-    }   
-)  
+
 export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupState>{
     constructor(props){ super(props) }
     render(){

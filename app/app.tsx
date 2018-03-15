@@ -209,15 +209,17 @@ export let defaultStoreItems : Store = {
 };      
 
  
-interface AppProps{clone:boolean} 
+interface AppProps extends Store{}
+
+@connect((store,props) => store, attachDispatchToProps)   
 export class App extends Component<AppProps,{}>{  
 
     constructor(props){  
         super(props);  
     }
 
-    
 
+    
     reportStart = ({ arch, cpus, platform, release, type, timeSeconds }) => googleAnalytics.send(   
         'event',   
         {  
@@ -237,7 +239,7 @@ export class App extends Component<AppProps,{}>{
     ) 
     .catch(err => globalErrorHandler(err));
 
-    
+
 
     componentDidMount(){    
         collectSystemInfo()
@@ -252,27 +254,102 @@ export class App extends Component<AppProps,{}>{
 
  
     render(){     
-
         return <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001}}>  
-
             <div style={{display:"flex",width:"inherit",height:"inherit"}}>
+                { 
+                    this.props.clone ? null : 
+                    <LeftPanel 
+                        dispatch={this.props.dispatch}
+                        selectedCategory={this.props.selectedCategory}
 
-                { this.props.clone ? null : <LeftPanel {...{} as any}/> }
+                        leftPanelWidth={this.props.leftPanelWidth}
+                        openNewProjectAreaPopup={this.props.openNewProjectAreaPopup}
 
-                <MainContainer {...{} as any}/>    
+                        projects={this.props.projects}
+                        areas={this.props.areas}
+                        todos={this.props.todos}
 
+                        searchQuery={this.props.searchQuery} 
+                        dragged={this.props.dragged}
+                        selectedProjectId={this.props.selectedProjectId}
+                        selectedAreaId={this.props.selectedAreaId}
+                    /> 
+                }
+                <MainContainer 
+                    dispatch={this.props.dispatch} 
+                    selectedCategory={this.props.selectedCategory}
+
+                    limit={this.props.limit}
+                    nextUpdateCheck={this.props.nextUpdateCheck}
+                
+                    selectedTodo={this.props.selectedTodo}
+                    scrolledTodo={this.props.scrolledTodo}
+                 
+                    hideHint={this.props.hideHint}
+                    firstLaunch={this.props.firstLaunch}
+                    clone={this.props.clone}
+                    showCompleted={this.props.showCompleted}
+                    showScheduled={this.props.showScheduled}
+                    groupTodos={this.props.groupTodos}
+                    showRightClickMenu={this.props.showRightClickMenu}
+                    showCalendarEvents={this.props.showCalendarEvents}
+                    showTrashPopup={this.props.showTrashPopup}
+                
+                    calendars={this.props.calendars}
+                    projects={this.props.projects}
+                    areas={this.props.areas}
+                    todos={this.props.todos}
+                
+                    selectedProjectId={this.props.selectedProjectId}
+                    selectedAreaId={this.props.selectedAreaId}
+                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                    selectedTag={this.props.selectedTag}
+                    dragged={this.props.dragged}
+                /> 
             </div> 
 
-            <TrashPopup {...{} as any} />
-
-            <ChangeGroupPopup {...{} as any} />
-
-            { this.props.clone ? null : <UpdateNotification {...{} as any} />}
-
-            { this.props.clone ? null : <SettingsPopup {...{} as any} />}
-
-            { this.props.clone ? null : <LicensePopup {...{} as any} />}
-
+            
+            {
+                not(this.props.showTrashPopup) ? null :    
+                <TrashPopup  
+                    dispatch={this.props.dispatch}
+                    showTrashPopup={this.props.showTrashPopup}
+                />
+            }
+            {   
+                not(this.props.openChangeGroupPopup) ? null : 
+                <ChangeGroupPopup    
+                    dispatch={this.props.dispatch}
+                    openChangeGroupPopup={this.props.openChangeGroupPopup}
+                    todos={this.props.todos}
+                    rightClickedTodoId={this.props.rightClickedTodoId}
+                />
+            }
+            { 
+                this.props.clone ? null : 
+                not(this.props.showUpdatesNotification) ? null :
+                <UpdateNotification  
+                    dispatch={this.props.dispatch}
+                    showUpdatesNotification={this.props.showUpdatesNotification}
+                    progress={this.props.progress}
+                />
+            }
+            { 
+                this.props.clone ? null : 
+                not(this.props.openSettings) ? null :
+                <SettingsPopup  
+                    openSettings={this.props.openSettings}
+                    dispatch={this.props.dispatch}
+                />
+            }
+            { 
+                this.props.clone ? null : 
+                not(this.props.showLicense) ? null :
+                <LicensePopup 
+                    showLicense={this.props.showLicense}
+                    dispatch={this.props.dispatch}
+                />
+            }
         </div>  
     }           
 };    
@@ -322,7 +399,7 @@ ipcRenderer.once(
 
                 ReactDOM.render(   
                     <Provider store={store}>    
-                        {wrapMuiThemeLight(<App clone={data.clone}/>)}
+                        {wrapMuiThemeLight(<App {...{} as any}/>)}
                     </Provider>,
                     document.getElementById('application')
                 ) 

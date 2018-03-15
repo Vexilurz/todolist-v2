@@ -7,7 +7,6 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import CircularProgress from 'material-ui/CircularProgress'; 
 import { Component } from "react"; 
 import { createStore, combineReducers } from "redux"; 
-import { Provider, connect } from "react-redux"; 
 import DayPicker from 'react-day-picker';
 import { append, prepend, contains, not, isEmpty } from 'ramda';
    
@@ -18,8 +17,7 @@ interface TagsProps{
     tags:string[],
     selectedTag:string,
     show:boolean
-  } 
-  
+} 
 export class Tags extends Component<TagsProps,{}>{
 
     componentWillReceiveProps(nextProps:TagsProps){

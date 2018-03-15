@@ -44,7 +44,7 @@ import { Store } from '../app';
 import { ChecklistItem } from './TodoInput/TodoChecklist';
 import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection } from 'ramda';
 import { Category, filter } from './MainContainer';
-import { ProjectLink, getProgressStatus } from './Project/ProjectLink';
+import { getProgressStatus } from './Project/ProjectLink';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";

@@ -3,7 +3,6 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react"; 
-import { Provider, connect } from "react-redux";
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';  
 import { Transition } from 'react-transition-group';
@@ -193,7 +192,12 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                         > 
                             {
                                 isProject(value as any) ? 
-                                <ProjectLinkLogbook {...{project:value} as any}/>
+                                <ProjectLinkLogbook
+                                    project={value as Project}
+                                    dispatch={this.props.dispatch}
+                                    todos={this.props.todos}
+                                    selectedCategory={this.props.selectedCategory}
+                                /> 
                                 : 
                                 isTodo(value) ?
                                 <TodoInput     

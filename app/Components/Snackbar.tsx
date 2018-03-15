@@ -3,7 +3,7 @@ import '../assets/calendarStyle.css';
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { Provider, connect } from "react-redux";
+import { Provider } from "react-redux";
 import Popover from 'material-ui/Popover';
 import { Transition } from 'react-transition-group';
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
@@ -18,9 +18,7 @@ import { Store } from '../app';
 interface TopSnackbarProps{
     open:boolean
 }  
-
-interface TopSnackbarState{}     
-   
+interface TopSnackbarState{}  
 export class TopSnackbar extends Component<TopSnackbarProps,TopSnackbarState>{
 
     constructor(props){ 

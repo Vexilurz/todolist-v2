@@ -25,10 +25,10 @@ import { isArea, isProject, isNotArray } from '../../utils/isSomething';
 import { arrayMove } from '../../utils/arrayMove';
 import { SortableContainer } from '../CustomSortableContainer';
 import { isDev } from '../../utils/isDev';
-import { Provider, connect } from "react-redux";
 const mapIndexed = addIndex(map);
 const isSeparator = (item) => item.type==="separator"; 
       
+
 
 export let removeFromArea = (dispatch:Function, fromArea:Area, selectedProject:Project) : void => {
     let idx = fromArea.attachedProjectsIds.findIndex((id:string) => id===selectedProject._id);  
@@ -659,7 +659,6 @@ interface ProjectElementState{
 } 
 
  
-//@connect((store,props) => ({ ...props, todos:store.todos }), attachDispatchToProps) 
 class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
     
     constructor(props){

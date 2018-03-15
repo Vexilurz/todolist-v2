@@ -6,7 +6,6 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { byNotCompleted, byNotDeleted, getTagsFromItems } from "../../utils/utils";  
-import { connect } from "react-redux";
 import { Todo, Project, Area } from '../../database';
 import { TodosList } from '../TodosList';
 import { ContainerHeader } from '../ContainerHeader';

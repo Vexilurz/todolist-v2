@@ -9,7 +9,6 @@ import {
     attachDispatchToProps, byTags, byNotCompleted, byNotDeleted, byCategory, 
     getTagsFromItems, attachEmptyTodo, isToday
 } from "./../utils/utils";  
-import { connect } from "react-redux";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { 
     queryToTodos, getTodos, updateTodo, Todo, removeTodo, addTodo, 
@@ -35,7 +34,6 @@ import { uniq, allPass, isEmpty, isNil, not, any, contains, all, compose, groupB
 import { TodoInput } from './TodoInput/TodoInput';
 import { ProjectLink } from './Project/ProjectLink';
 import { Category } from './MainContainer';
-import { AreaLink } from './Area/AreaLink';
 import { TodoCreationForm } from './TodoInput/TodoCreation';
 import { generateId } from './../utils/generateId';
 import { generateEmptyTodo } from './../utils/generateEmptyTodo';
@@ -152,7 +150,13 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         
                             return dontShow ? null : 
                             <div key={`project-link-${project._id}`}>  
-                                <ProjectLink {...{project,showMenu:true} as any}/> 
+                                <ProjectLink 
+                                    project={project}
+                                    showMenu={true} 
+                                    todos={this.props.todos}
+                                    dispatch={this.props.dispatch}
+                                    selectedCategory={this.props.selectedCategory}
+                                /> 
                                 <ExpandableTodosList
                                     dispatch={this.props.dispatch}    
                                     sortBy={this.sortByLayoutOrder(project)}

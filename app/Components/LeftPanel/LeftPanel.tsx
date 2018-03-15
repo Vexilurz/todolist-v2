@@ -10,7 +10,6 @@ import {
     byDeleted, byAttachedToProject, isTodayOrPast, isDeadlineTodayOrPast, byNotAttachedToCompletedProject, byNotAttachedToProject, anyTrue
 } from "../../utils/utils";  
 import { ipcRenderer } from 'electron';
-import { connect } from "react-redux";
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import Plus from 'material-ui/svg-icons/content/add';  
 import { Todo, Project, Area } from '../../database';
@@ -32,37 +31,26 @@ import { isArrayOfStrings, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { isDev } from '../../utils/isDev';
  
-interface LeftPanelState{ collapsed:boolean }
+
 interface LeftPanelProps{
-    dispatch?:Function,
-    projects:Project[],
+    dispatch:Function,
+    selectedCategory:Category,
+
     leftPanelWidth:number,
     openNewProjectAreaPopup:boolean,
+
+    projects:Project[],
     areas:Area[], 
     todos:Todo[], 
+
     searchQuery:string, 
-    dragged:any, 
+    dragged:string, 
     selectedProjectId:string,
-    selectedAreaId:string,
-    selectedCategory:Category
+    selectedAreaId:string
 }
+interface LeftPanelState{ collapsed:boolean }
 
 
-@connect(
-    (store,props) : LeftPanelProps => ({ 
-        projects:store.projects,
-        leftPanelWidth:store.leftPanelWidth,
-        openNewProjectAreaPopup:store.openNewProjectAreaPopup,
-        areas:store.areas,
-        todos:store.todos,
-        searchQuery:store.searchQuery,
-        dragged:store.dragged,
-        selectedProjectId:store.selectedProjectId,
-        selectedAreaId:store.selectedAreaId,
-        selectedCategory:store.selectedCategory 
-    }), 
-    attachDispatchToProps 
-)  
 export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
     anchor:HTMLElement;
     subscriptions:Subscription[];

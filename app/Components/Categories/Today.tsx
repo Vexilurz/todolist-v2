@@ -8,7 +8,6 @@ import {
     generateDropStyle,  keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, 
     sameDay, byTags, byCategory, isNotNil, measureTime
 } from "../../utils/utils";  
-import { connect } from "react-redux";
 import { Todo, Project, Area, Calendar } from '../../database'; 
 import { Tags } from '../../Components/Tags';
 import { Store } from '../../app';
@@ -129,6 +128,7 @@ class ThisEveningSeparator extends Component<{},{}>{
 interface TodayProps{  
     dispatch:Function,
     clone:boolean,
+    hideHint:boolean, 
     groupTodos:boolean,
     showCalendarEvents:boolean,  
     scrolledTodo:Todo, 
@@ -468,13 +468,11 @@ export class Today extends Component<TodayProps,TodayState>{
                 <TodaySchedule show={showCalendarEvents} events={events}/>  
                 {  
                     clone ? null :
+                    this.props.hideHint ? null :
                     <Hint  
-                        {
-                            ...{
-                            text:`These are your tasks for today. 
-                            Do you also want to include the events from your calendar?`
-                            } as any  
-                        } 
+                        text={`These are your tasks for today.Do you also want to include the events from your calendar?`}
+                        dispatch={this.props.dispatch}
+                        hideHint={this.props.hideHint}          
                     /> 
                 }
             </div>
@@ -645,11 +643,12 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
 
  
 
-interface HintProps extends Store{ text : string }
-
+interface HintProps{ 
+    dispatch:Function,
+    hideHint:boolean,
+    text:string 
+}
 interface HintState{} 
- 
-@connect((store,props) => ({ ...store, ...props }), attachDispatchToProps) 
 export class Hint extends Component<HintProps,HintState>{
 
     constructor(props){ 

@@ -9,74 +9,22 @@ import { attachDispatchToProps } from '../../utils/utils';
 import Restore from 'material-ui/svg-icons/content/undo';
 import { contains, isEmpty, compose, map, flatten } from 'ramda';
 import { Store } from '../../app';
-import { connect } from "react-redux";
 import { filter } from '../MainContainer';
 import { assert } from '../../utils/assert';
 import { isArrayOfTodos, isArrayOfProjects, isString } from '../../utils/isSomething';
 
-interface AreaLinkProps extends Store{area : Area}
-interface AreaLinkState{} 
 
 
-@connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
-export class AreaLink extends Component<AreaLinkProps,AreaLinkState>{
-    
-    openArea = (e) => {
-        let {area,dispatch} = this.props;
-        e.stopPropagation();  
-        dispatch({type:"selectedCategory", load:"area"});
-        dispatch({type:"selectedAreaId", load:area._id});
-    }
-
-    render(){
-        let {area} = this.props;
-
-        return <li   
-            onClick={this.openArea} 
-            style={{width:"100%"}}
-            key={`area-link-key-${area._id}`}
-            className="listHeading"
-        >    
-            <div      
-                id = {area._id}   
-                style={{   
-                    height:"30px",
-                    width:"95%",
-                    display:"flex", 
-                    paddingLeft:"6px", 
-                    paddingRight:"6px", 
-                    alignItems:"center" 
-                }}
-            >       
-                <div style={{display:"flex",alignItems:"center"}}>
-                    <NewAreaIcon style={{color:"lightblue", width:"22px", height:"22px"}}/> 
-                </div>
-                <div style={{
-                    overflowX:"hidden",
-                    fontSize:"15px",     
-                    cursor:"default",
-                    paddingLeft:"5px", 
-                    WebkitUserSelect:"none",
-                    fontWeight:"bolder", 
-                    color:"rgba(0, 0, 0, 0.8)" 
-                }}>    
-                    { isEmpty(area.name) ? "New Area" : area.name }   
-                </div>  
-            </div>
-        </li>
-    }
-}
-  
-
-
-interface AreaTrashLinkProps extends Store{area : Area}
+interface AreaTrashLinkProps{
+    dispatch:Function,
+    projects:Project[],
+    todos:Todo[],
+    area:Area
+} 
 interface AreaTrashLinkState{}
-
-
-@connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
 export class AreaTrashLink extends Component<AreaTrashLinkProps,AreaTrashLinkState>{
     
-    restoreArea = () : void => { 
+    restoreArea = () : void => {  
         let {area, projects, todos, dispatch} = this.props;
 
         //projects attached to area

@@ -3,7 +3,6 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react';   
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { connect } from "react-redux"; 
 import { TodosList } from '../../Components/TodosList';
 import { Todo,Project, Area, Calendar, getTodos } from '../../database';
 import * as Waypoint from 'react-waypoint';
@@ -677,7 +676,13 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         scheduledProjects.map(
                             (project:Project, index:number) : JSX.Element => {
                                 return <div key={project._id}>
-                                    <ProjectLink {...{project,showMenu:false} as any}/>  
+                                    <ProjectLink 
+                                        project={project}
+                                        showMenu={false}
+                                        todos={this.props.todos}
+                                        dispatch={this.props.dispatch}
+                                        selectedCategory={this.props.selectedCategory}
+                                    />  
                                 </div>  
                             } 
                         )     

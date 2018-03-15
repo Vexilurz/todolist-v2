@@ -26,33 +26,12 @@ interface UpdateNotificationProps {
     showUpdatesNotification:boolean, 
     progress:any, 
     dispatch:Function
-} // extends Store{}
+} 
 interface UpdateNotificationState{ 
     canRestart:boolean,
     downloading:boolean 
 } 
 
-
- 
-@connect(
-    (store,props) => ({  
-        showUpdatesNotification:store.showUpdatesNotification, 
-        progress:store.progress
-    }), 
-    attachDispatchToProps,
-    null,
-    {
-        areStatesEqual: (nextStore:Store, prevStore:Store) => {
-            return all(
-                identity, 
-                [
-                    nextStore.showUpdatesNotification===prevStore.showUpdatesNotification,
-                    equals(nextStore.progress,prevStore.progress)
-                ]
-            );
-        }
-    } 
-)
 export class UpdateNotification extends Component<UpdateNotificationProps,UpdateNotificationState>{
     downloading:boolean;
     

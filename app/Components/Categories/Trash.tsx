@@ -3,7 +3,6 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { connect } from "react-redux";
 import { Todo, Project, Area } from '../../database';
 import { ContainerHeader } from '../ContainerHeader';
 import { byTags, getTagsFromItems, byDeleted, attachDispatchToProps} from '../../utils/utils';
@@ -171,7 +170,7 @@ export class Trash extends Component<TrashProps,TrashState>{
            <div style={{paddingTop:"20px", paddingBottom:"20px", position:"relative",  width:"100%"}}>
             {   
                 items.map((value:any,index:number) => 
-                    cond([
+                    cond([ 
                         [
                             isTodo, 
                             (todo:Todo) => <div
@@ -201,7 +200,12 @@ export class Trash extends Component<TrashProps,TrashState>{
                                 style={{position:"relative",display:"flex",alignItems:"center",marginLeft:"-5px"}}
                             >   
                                 <div style={{width:"100%"}}>
-                                    <ProjectLinkTrash { ...{project} as any }/>  
+                                    <ProjectLinkTrash 
+                                        project={project}
+                                        dispatch={this.props.dispatch}
+                                        todos={this.props.todos}
+                                        selectedCategory={this.props.selectedCategory}
+                                    />  
                                 </div>   
                             </div>   
                         ],
@@ -212,7 +216,12 @@ export class Trash extends Component<TrashProps,TrashState>{
                                 style={{position:"relative",display:"flex",alignItems:"center",marginLeft:"-5px"}}
                             >   
                                 <div style={{width:"100%"}}>
-                                    <AreaTrashLink {...{area} as any}/>
+                                    <AreaTrashLink
+                                        dispatch={this.props.dispatch}
+                                        projects={this.props.projects}
+                                        todos={this.props.todos}
+                                        area={area}
+                                    />
                                 </div>  
                             </div>    
                         ],
@@ -233,19 +242,10 @@ export class Trash extends Component<TrashProps,TrashState>{
 interface TrashPopupProps{
     dispatch:Function,
     showTrashPopup:boolean
-} // extends Store{}   
+}   
 interface TrashPopupState{}  
 
-@connect(
-    (store,props) => ({ showTrashPopup:store.showTrashPopup }), 
-    attachDispatchToProps,
-    null,
-    {
-        areStatesEqual: (nextStore:Store, prevStore:Store) => {
-            return nextStore.showTrashPopup===prevStore.showTrashPopup;
-        }
-    }
-)
+
 export class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
 
     onCancel = () => { 
