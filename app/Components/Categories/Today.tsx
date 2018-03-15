@@ -38,6 +38,7 @@ import { groupEventsByType, byTime } from './Upcoming';
 let Perf = require('react-addons-perf');
 let p = require('react-dom/lib/ReactPerf'); 
 
+
 let assertShallowEquality = (items,todos,where) => {
     let same = 0;
     let diff = 0;
@@ -54,13 +55,13 @@ let assertShallowEquality = (items,todos,where) => {
     //console.log(`${where} same ${same}  diff ${diff}`); 
 }
 
+
 export let indexToPriority = (items:any[]) : any[] => {
     return items.map(
         (item,index:number) => {
             item.priority = index;
             return item; 
         }
-        //assoc("priority",index,item)
     ) 
 };
 
@@ -659,19 +660,19 @@ export class Hint extends Component<HintProps,HintState>{
      
     onLoad = (e) => { 
         let {dispatch} = this.props; 
-        updateConfig(dispatch)({hideHint:true})
+
+        updateConfig({hideHint:true})
         .then(
-            () => {
+            (config) => {
+                dispatch({type:"updateConfig",load:config})
                 dispatch({type:"selectedSettingsSection",load:'CalendarEvents'});
                 dispatch({type:"openSettings",load:true}); 
             }
         );
     };
     
-    onClose = (e) => {  
-        let {dispatch} = this.props;
-        updateConfig(dispatch)({hideHint:true});
-    }; 
+    onClose = (e) => updateConfig({hideHint:true}).then( config => this.props.dispatch({type:"updateConfig",load:config}) )
+    
 
     render(){
         let {hideHint} = this.props;

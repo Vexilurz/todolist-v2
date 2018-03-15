@@ -50,7 +50,7 @@ import { UpdateNotification } from './Components/UpdateNotification';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 import { googleAnalytics } from './analytics';
 import { globalErrorHandler } from './utils/globalErrorHandler';
-import { Config, defaultConfig, updateConfig, getConfig } from './utils/config';
+import { getConfig } from './utils/config';
 import { collectSystemInfo } from './utils/collectSystemInfo';
 import Clear from 'material-ui/svg-icons/content/clear';
 import { getMachineIdSync } from './utils/userid';
@@ -59,10 +59,41 @@ import { value,text } from './utils/text';
 import { setCallTimeout } from './utils/setCallTimeout';
 import { isDev } from './utils/isDev';
 import { convertEventDate } from './Components/Calendar';
+import { defaultTags } from './utils/defaultTags';
 const MockDate = require('mockdate');  
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
 
+interface Config{
+    nextUpdateCheck:Date,
+    firstLaunch:boolean, 
+    defaultTags:string[],
+    hideHint:boolean,
+    shouldSendStatistics:boolean,
+    showCalendarEvents:boolean,
+    disableReminder:boolean,
+    groupTodos:boolean,
+    preserveWindowWidth:boolean, //when resizing sidebar
+    enableShortcutForQuickEntry:boolean,
+    quickEntrySavesTo:string, //inbox today next someday
+    moveCompletedItemsToLogbook, //immediatelly
+};
+
+
+const defaultConfig : Config = { 
+    nextUpdateCheck:new Date(),
+    firstLaunch:true,
+    hideHint:false,
+    defaultTags:defaultTags,  
+    shouldSendStatistics:true,
+    showCalendarEvents:true,
+    groupTodos:false,
+    preserveWindowWidth:true, //when resizing sidebar
+    enableShortcutForQuickEntry:true,
+    disableReminder:false,
+    quickEntrySavesTo:"inbox", //inbox today next someday
+    moveCompletedItemsToLogbook:"immediately"
+};
  
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
@@ -124,6 +155,7 @@ export interface Store extends Config{
     projects : Project[],
     areas : Area[],  
     todos : Todo[], 
+    id? : number,
     clone? : boolean,
     dispatch? : Function
 }   
@@ -177,34 +209,14 @@ export let defaultStoreItems : Store = {
 };      
 
  
-//Perf.start();
-
-interface AppProps {
-    clone:boolean,  
-    //dispatch:Function,
-    //nextUpdateCheck:Date
-} // extends Store{};  
-/*
-@connect(
-    (store,props) => ({clone:store.clone, nextUpdateCheck:new Date(store.nextUpdateCheck)}), 
-    attachDispatchToProps,
-    null,
-    {
-        areStatesEqual: (nextStore:Store, prevStore:Store) => {
-            return all(
-                identity, 
-                [nextStore.clone===prevStore.clone,equals(nextStore.nextUpdateCheck,prevStore.nextUpdateCheck)]
-            );
-        }
-    }
-)  
-*/
-
-export class App extends Component<{clone:boolean},{}>{  
+interface AppProps{clone:boolean} 
+export class App extends Component<AppProps,{}>{  
 
     constructor(props){  
         super(props);  
     }
+
+    
 
     reportStart = ({ arch, cpus, platform, release, type, timeSeconds }) => googleAnalytics.send(   
         'event',   
@@ -226,11 +238,14 @@ export class App extends Component<{clone:boolean},{}>{
     .catch(err => globalErrorHandler(err));
 
 
-
     componentDidMount(){    
-        const sysInfo = collectSystemInfo();
-        let timeSeconds = Math.round( new Date().getTime() / 1000 );
-        this.reportStart({...sysInfo, timeSeconds} as any);
+        collectSystemInfo()
+        .then( 
+            info => {
+                let timeSeconds = Math.round( new Date().getTime() / 1000 );
+                this.reportStart({...info, timeSeconds} as any);
+            }
+        );
     }    
     
 
@@ -266,7 +281,7 @@ export class App extends Component<{clone:boolean},{}>{
 //render application
 ipcRenderer.once(
     'loaded',      
-    (event, clonedStore:Store) => { 
+    (event, clonedStore:Store, id:number) => { 
         let app=document.createElement('div'); 
         app.id='application';     
         document.body.appendChild(app);   
@@ -294,18 +309,19 @@ ipcRenderer.once(
         .then(
             config => {
                 let {nextUpdateCheck} = config;
-                let store = createStore(
-                    applicationReducer,
-                    {
-                        ...defaultStore,
-                        ...config,
-                        nextUpdateCheck:initDate(nextUpdateCheck)
-                    }
-                );
+                let data = {
+                    ...defaultStore,
+                    ...config,
+                    nextUpdateCheck:initDate(nextUpdateCheck),
+                    id
+                };
+                let store = createStore(applicationReducer,data);
+
+                assert(isDate(data.nextUpdateCheck),`nextUpdateCheck is not of type Date`);
 
                 ReactDOM.render(   
                     <Provider store={store}>    
-                        {wrapMuiThemeLight(<App clone={defaultStore.clone}/>)}
+                        {wrapMuiThemeLight(<App clone={data.clone}/>)}
                     </Provider>,
                     document.getElementById('application')
                 ) 
@@ -315,7 +331,6 @@ ipcRenderer.once(
 );    
 
 
-
 let reducer = (reducers) => (state:Store, action) => {
     for(let i=0; i<reducers.length; i++){
         let newState = reducers[i](state, action);
@@ -323,7 +338,6 @@ let reducer = (reducers) => (state:Store, action) => {
     }   
     return state;      
 }; 
-  
 
 
 let applicationReducer = reducer([applicationStateReducer, applicationObjectsReducer]); 

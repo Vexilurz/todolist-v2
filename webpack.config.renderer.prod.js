@@ -59,8 +59,8 @@ module.exports = {
         new CleanWebpackPlugin(['production']),
         /*new webpack.DefinePlugin({
             'process.env.NODE_ENV': '"production"'
-        }),*/
-        /*new UglifyJsPlugin({
+        }),
+        new UglifyJsPlugin({
             uglifyOptions:{
                 mangle: true,
                 compress: {
@@ -73,7 +73,7 @@ module.exports = {
                     comments: false,
                 }
             } 
-        }),*/
+        }),
         new CompressionPlugin({
             asset: "[path].gz[query]",
             algorithm: "gzip",
@@ -81,6 +81,7 @@ module.exports = {
             threshold: 10240,
             minRatio: 0
         }),
+        */
         new CopyWebpackPlugin([{from : './assets'}]), 
         new HtmlWebpackPlugin({
             inject:true, 

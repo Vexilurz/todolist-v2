@@ -48,10 +48,10 @@ module.exports = {
     
     plugins:[ 
         new CleanWebpackPlugin(['production']),
-        new webpack.DefinePlugin({
+        /*new webpack.DefinePlugin({
             'process.env.NODE_ENV': '"production"'
         }),
-        /*new UglifyJsPlugin({
+        new UglifyJsPlugin({
             uglifyOptions:{
                 mangle: true,
                 compress: {

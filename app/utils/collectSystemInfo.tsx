@@ -1,5 +1,6 @@
 import { isNil } from 'ramda';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
+import { requestFromMain } from './requestFromMain';
 
 
 
@@ -13,31 +14,25 @@ export interface SystemInfo{
     screenResolution : {width:number,height:number},
     viewportSize : {width:number,height:number},
     documentEncoding : string,
-    userLanguage : string 
+    userLanguage : string,
+    version?:string 
 }
 
 
-export let getScreenResolution = () : {width:number,height:number} => {
-    return remote.screen.getPrimaryDisplay().workAreaSize;
-}
- 
 
-
-export let collectSystemInfo = () : SystemInfo => {
-    const os = remote.require('os'); 
-    return ({ 
-            arch : os.arch(),
-            cpus : os.cpus(),
-            hostname : os.hostname(),
-            platform : os.platform(),
-            release : os.release(),
-            type : os.type(),
-            screenResolution : getScreenResolution(),
-            viewportSize : {
+export let collectSystemInfo = () : Promise<SystemInfo> => 
+    requestFromMain<SystemInfo>(
+        'collectSystemInfo',
+        [],
+        (event,info) => info
+    ).then(
+        info => ({
+            ...info, 
+            viewportSize:{
                 width:window.innerWidth,
                 height:window.innerHeight
             },
-            documentEncoding : document.characterSet,
-            userLanguage : remote.app.getLocale()
+            documentEncoding:document.characterSet
         })
-}
+    ); 
+ 

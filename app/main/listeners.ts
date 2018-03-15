@@ -1,16 +1,62 @@
 import { isDev } from './../utils/isDev';
-import { mainWindow, getClonedWindows, initAutoLaunch, toggleShortcut, findWindowByTitle } from './main';
+import { 
+    mainWindow, getClonedWindows, initAutoLaunch, toggleShortcut, findWindowByTitle, getConfig, updateConfig, clearStorage 
+} from './main';
 import { loadApp } from './loadApp'; 
-import { ipcMain,app,BrowserWindow,screen } from 'electron';
+import { ipcMain,app,BrowserWindow,screen,dialog } from 'electron';
 import { initWindow } from './initWindow';
-import { isEmpty, when, isNil } from 'ramda';
+import { isEmpty, when, isNil, prop, path } from 'ramda';
 import { autoUpdater } from "electron-updater";
 import { isNotNil } from '../utils/utils';
 import { isProject, isString } from '../utils/isSomething';
 const fs = require('fs');
-const path = require('path');
+const pathTo = require('path');
 const log = require("electron-log");
 const os = require('os'); 
+
+
+let move = () : Promise<void> => new Promise(
+    resolve => {
+        let {finalX,finalY} = getFinalNotificationPosition();
+        const window = findWindowByTitle('Notification');
+        let currentPosition = window.getPosition();
+        let [x,y] = currentPosition;
+        let delta = 20;
+
+        if(y<=finalY){ 
+            window.setPosition(finalX, finalY);
+            resolve();
+        }else{
+            window.setPosition(x, y-delta);
+            setTimeout(() => move(), 30);   
+        }
+    }
+);
+
+
+let getFinalNotificationPosition = () : {finalX:number,finalY:number} => {
+    const window = findWindowByTitle('Notification');
+    const {width,height} = screen.getPrimaryDisplay().workAreaSize;
+    const size = window.getSize();
+    const offset = 25;
+    const finalX = width-size[0]-offset;
+    const finalY = height-size[1]-offset; 
+    return {finalX,finalY};
+};
+
+
+let getInitialNotificationPosition = () : {initialX:number,initialY:number} => {
+    const window = findWindowByTitle('Notification');
+    const {width,height} = screen.getPrimaryDisplay().workAreaSize;
+    const size = window.getSize();
+    const offset = 25; 
+    const initialX = width-size[0]-offset;
+    const initialY = height+size[1];
+    return {initialX,initialY};
+};
+
+
+
 
 //TODO remove
 let keyFromDate = (d:Date) : string => {  
@@ -35,7 +81,15 @@ let readJsonFile = (path:string) : Promise<any> =>
                 'utf8', 
                 (err, data) => {
                     if (err){ resolve(err) }
-                    else{ resolve(JSON.parse(data)) }
+                    else{ 
+                        let result = '';
+
+                        try{
+                           result = JSON.parse(data);
+                        }catch(e){}
+
+                        resolve(result); 
+                    }
                 }
             );
         }
@@ -91,13 +145,15 @@ let getClonedWindowDimensions = () => {
 };
 
 
+
 interface RegisteredListener{  
      name : string, 
      callback : (event:any,...args:any[]) => void
-}; 
-  
+};   
+ 
 
-export class Listeners{
+ 
+export class Listeners{ 
        
     registeredListeners : RegisteredListener[]; 
     
@@ -105,41 +161,246 @@ export class Listeners{
 
       initAutoUpdater(); 
  
-      this.registeredListeners = [
+      this.registeredListeners = [ 
+        {
+            name:'NremoveReminders',
+            callback:(event,[todos]) => {
+                if(mainWindow){
+                   mainWindow.webContents.send('removeReminders', todos); 
+                }
+                event.sender.send('NremoveReminders');
+            }
+        },
+        {
+            name:'openTodoInApp',
+            callback:(event,[todo]) => {
+                if(mainWindow){
+                    mainWindow.webContents.send('openTodo',todo);
+                    mainWindow.webContents.send('removeReminder',todo);
+                }
+                event.sender.send('openTodoInApp');
+            }
+        },
+        {
+            name:'Nhide',
+            callback:(event) => {
+                let window = findWindowByTitle('Notification');
+                if(window){
+                   window.hide();
+                }
+                event.sender.send('Nhide');
+            }
+        },
+        {
+            name:'Nmove',
+            callback:(event) => {
+                let window = findWindowByTitle('Notification');
+                let {initialX,initialY} = getInitialNotificationPosition();
+                window.setPosition(initialX, initialY);
+                window.show();
+                if(window){
+                   move().then(() => event.sender.send('Nmove'))
+                }
+            }
+        },
+
+ 
+
+
+
+
+
+
+
+
+
+
+        {
+            name:'QEblur',
+            callback:(event) => {
+                let window = findWindowByTitle('Add task');
+                if(window){
+                   window.blur();
+                }
+                event.sender.send('QEblur');
+            }
+        },
+        {
+            name:'QEhide',
+            callback:(event) => {
+                let window = findWindowByTitle('Add task');
+                if(window){
+                   window.hide();
+                }
+                event.sender.send('QEhide');
+            }
+        },  
+        {
+            name:'QEsetSmallSize',
+            callback:(event) => {
+                let window = findWindowByTitle('Add task');
+                let defaultWidth=500;
+                let defaultHeight=350;
+                if(window){
+                    window.setSize(defaultWidth, defaultHeight); 
+                }
+                event.sender.send('QEsetSmallSize');
+            }
+        },
+        {
+            name:'QEsetBigSize',
+            callback:(event) => {
+                let window = findWindowByTitle('Add task');
+                let defaultWidth=500;
+                let defaultHeight=350;
+                if(window){
+                    window.setSize(defaultWidth, 400); 
+                }
+                event.sender.send('QEsetBigSize');
+            }
+        },
+
+
+
+
+
+
+
+            {
+                name:'collectSystemInfo',
+                callback:(event) => {
+                    let info = { 
+                        version : app.getVersion(), 
+                        arch : os.arch(),
+                        cpus : os.cpus(),
+                        hostname : os.hostname(),
+                        platform : os.platform(),
+                        release : os.release(),
+                        type : os.type(),
+                        screenResolution : screen.getPrimaryDisplay().workAreaSize,
+                        userLanguage : app.getLocale()
+                    };
+                    event.sender.send('collectSystemInfo',info);
+                }
+            }, 
+            { 
+                name:"getConfig",
+                callback:(event) => getConfig().then(
+                    (data) => {
+                        event.sender.send("getConfig",data)
+                    }
+                )    
+            },
+            {
+                name:"updateConfig",
+                callback:(event,[load]) => updateConfig(load).then(
+                    (data) => {
+                        event.sender.send("updateConfig",data)
+                    }
+                )    
+            },
+            {
+                name:"clearStorage",
+                callback:(event) => clearStorage().then(
+                    (err) => {
+                        console.log(`clearStorage`,err);
+                        event.sender.send(`clearStorage`,err);
+                    }
+                )    
+            },
+            {
+                name:"readJsonFile",
+                callback:(event,[to]) => 
+                    readJsonFile(to)
+                    .then(
+                        (data) => {
+                            event.sender.send("readJsonFile",data)
+                        }
+                    )  
+            },
+            {
+                name:"saveDatabase",
+                callback:(event,[data,to]) => {
+                    writeJsonFile(data,to)
+                    .then(
+                        () => {
+                            event.sender.send("saveDatabase")
+                        }
+                    )  
+                }  
+            },
             {
                 name:"saveBackup",
                 callback:(event,[data]) => {
-                    let target = path.resolve(os.homedir(), "tasklist");
+                    let target = pathTo.resolve(os.homedir(), "tasklist");
 
                     if(!fs.existsSync(target)){ 
                         fs.mkdirSync(target); 
                     }
 
-                    let to = path.resolve(target, `db_backup_${keyFromDate(new Date())}.json`);
-
-
-                    console.log(
-                        `
-                        saveBackup !
-                        to:${to}
-                        todos:${data.database.todos.length}, 
-                        projects:${data.database.projects.length}, 
-                        areas:${data.database.areas.length}, 
-                        calendars:${data.database.calendars.length} 
-                        `
-                    ) 
+                    let to = pathTo.resolve(target, `db_backup_${keyFromDate(new Date())}.json`);
 
                     writeJsonFile(data, to)
                     .then(
-                        () => event.sender.send("saveBackup")
+                        () => {
+                            event.sender.send("saveBackup",to)
+                        }
                     )  
                 }  
             },
             {
+                name:"selectFolder",
+                callback:(event) => {
+                    dialog.showOpenDialog( 
+                        { 
+                            title:`Select data folder`,
+                            buttonLabel:'Select',
+                            properties:['openDirectory']
+                        },  
+                        (value) => {
+                            if(value)   
+                                event.sender.send("selectFolder",value[0]); 
+                            else
+                                event.sender.send("selectFolder",undefined);
+                        }
+                    )
+                }  
+            },
+            {
+                name:"selectJsonDatabase",
+                callback:(event) => {
+                    dialog.showOpenDialog( 
+                        { 
+                            title:`Select database file`,
+                            buttonLabel:'Select',
+                            properties:['openFile'],
+                            filters:[{extensions: ["json"], name: ""}]
+                        },  
+                        (value) => { 
+                            if(value)    
+                               event.sender.send("selectJsonDatabase",value[0]); 
+                            else
+                               event.sender.send("selectJsonDatabase",undefined); 
+                        }
+                    )
+                }  
+            },
+            { 
+                name:"action", 
+                callback : ( event, data:{ action:{type:string,load:any}, id:number } ) => {
+                    type kind = "external";
+                    let kind : kind = "external";
+                    let windows = BrowserWindow.getAllWindows();
+
+                    windows.forEach(when(
+                        (w) => w.id!==data.id, //prevent sending action back to window in which it was created
+                        (w) => w.webContents.send("action", {...data.action, kind})
+                    ));
+                }
+            },
+            {
                 name:"focusMainWindow",
                 callback:(event) => {
-                    console.log('focusMainWindow')
-
                     if(mainWindow){
                        mainWindow.show();
                        mainWindow.focus();
@@ -164,10 +425,7 @@ export class Listeners{
                 callback:(event,[todo]) => {
                     let notification : any = findWindowByTitle('Notification');
                     
-                    console.log(`notification`,notification);
-
                     if(notification){ 
-                       console.log(`remind`,todo);
                        notification.webContents.send('remind',todo); 
                     }
                     event.sender.send("remind");
@@ -254,7 +512,7 @@ export class Listeners{
                     autoUpdater.quitAndInstall(true,true);
                 })  
             }, 
-            {
+            {  
                 name:"closeClonedWindows",
                 callback : (event) => {  
                     let windows = getClonedWindows();
@@ -269,7 +527,7 @@ export class Listeners{
                     loadApp(newWindow)
                     .then(
                         () => {
-                            newWindow.webContents.send("loaded",store); 
+                            newWindow.webContents.send("loaded",store,newWindow.id); 
                             if(isDev()){
                                 newWindow.webContents.openDevTools(); 
                             }
@@ -300,20 +558,6 @@ export class Listeners{
                         }
                     }  
                 }   
-            },
-            { 
-                name:"action", 
-                callback : (event, data:{id:number, action:{type:string,load:any}} ) => {
-                    let {id,action} = data;
-                    type kind = "external";
-                    let kind : kind = "external";
-                    let windows = BrowserWindow.getAllWindows();
-
-                    windows.forEach(when(
-                        (w) => w.id!==id, //prevent sending action back to window in which it was created
-                        (w) => w.webContents.send("action", {...action, kind})
-                    ));
-                }
             }
         ];     
       

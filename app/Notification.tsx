@@ -5,7 +5,7 @@ import * as ReactDOM from 'react-dom';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import * as injectTapEventPlugin from 'react-tap-event-plugin';
 import { Component } from "react";  
-import { ipcRenderer, remote } from 'electron'; 
+import { ipcRenderer } from 'electron'; 
 import { 
     cond, assoc, isNil, not, defaultTo, map, isEmpty, 
     uniq, remove, contains, append, adjust, compose, 
@@ -25,10 +25,11 @@ import { globalErrorHandler } from './utils/globalErrorHandler';
 const pathToFile = require("path");
 import ReactAudioPlayer from 'react-audio-player';
 import { isDev } from './utils/isDev';
-import { Config, getConfig } from './utils/config';
 import { isArray } from './utils/isSomething';
+import { getConfig } from './utils/config';
+import { requestFromMain } from './utils/requestFromMain';
 injectTapEventPlugin();  
-
+ 
 
 window.onerror = (msg, url, lineNo, columnNo, error) => {
     let string = msg.toLowerCase();
@@ -49,19 +50,18 @@ window.onerror = (msg, url, lineNo, columnNo, error) => {
 
 ipcRenderer.once( 
     'loaded',      
-    (event) => { 
+    (event, id:number) => { 
         let app=document.createElement('div'); 
         app.style.width="100%"; 
         app.style.height="100%";
         app.id='application';      
         document.body.appendChild(app);  
-
         getConfig()
         .then(
-            (config:Config) => ReactDOM.render(   
+            (config) => ReactDOM.render(   
                 wrapMuiThemeLight(<Notification config={config}/>),
                 document.getElementById('application')
-            )     
+            )   
         ); 
     }
 );   
@@ -99,40 +99,40 @@ class Notification extends Component<NotificationProps,NotificationState>{
     };
 
 
+    move = () : Promise<void> => requestFromMain<any>(
+        'Nmove',
+        [],
+        (event) => event
+    ); 
+
+
+    hide = () : Promise<void> => requestFromMain<any>(
+        'Nhide',
+        [],
+        (event) => event
+    );
+
+
+    removeReminders = (todos) : Promise<void> => requestFromMain<any>(
+        'NremoveReminders',
+        [todos],
+        (event) => event
+    ); 
+
+
+    openTodoInApp = (todo:any) : Promise<void> => requestFromMain<any>(
+        'openTodoInApp',
+        [todo],
+        (event) => event
+    ); 
+
+
+
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = [];
     };
-
-
-    hide = () => {
-        const window = remote.getCurrentWindow();
-        let {initialX, initialY} = this.getInitialPosition();
-        window.setPosition(initialX, initialY);
-        window.hide();
-    };
-     
-
-    getInitialPosition = () : {initialX:number,initialY:number} => {
-        const window = remote.getCurrentWindow();
-        const {width,height} = remote.screen.getPrimaryDisplay().workAreaSize;
-        const size = window.getSize();
-        const offset = 25; 
-        const initialX = width-size[0]-offset;
-        const initialY = height+size[1];
-        return {initialX,initialY};
-    };
-
-
-    getFinalPosition = () : {finalX:number,finalY:number} => {
-        const window = remote.getCurrentWindow();
-        const {width,height} = remote.screen.getPrimaryDisplay().workAreaSize;
-        const size = window.getSize();
-        const offset = 25;
-        const finalX = width-size[0]-offset;
-        const finalY = height-size[1]-offset; 
-        return {finalX,finalY};
-    };
+   
 
 
     componentDidMount(){
@@ -170,61 +170,26 @@ class Notification extends Component<NotificationProps,NotificationState>{
     };
 
 
+
     notify = () => new Promise(resolve => { 
         this.open = true;
-
-        const window = remote.getCurrentWindow();
-        let {initialX, initialY} = this.getInitialPosition();
-        let {finalX, finalY} = this.getFinalPosition();
-
-        window.show(); 
-
         if(this.beep){ 
            this.beep.audioEl.play();
         }   
-
-        let move = () => {
-            let currentPosition = window.getPosition();
-            let [x,y] = currentPosition;
-            let delta = 20;
-
-            if(y<=finalY){ 
-                window.setPosition(finalX, finalY);
-                resolve();
-            }else{
-                window.setPosition(x, y-delta);
-                requestAnimationFrame(move);   
-            }
-        };
-
-        window.setPosition(initialX, initialY);
-        move();
+        this.move();
     });
     
 
+
     suspend = () => {
         let {todos} = this.state;
-        this.open = false;
-
-        let mainWindow = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
-        if(mainWindow){ 
-           mainWindow.webContents.send('removeReminders', todos); 
-        }
-     
-        this.setState({ todos:[] }, this.hide); 
+        this.open = false; 
+        this.removeReminders(todos)
+        .then(
+            () => this.setState({ todos:[] }, this.hide)
+        ); 
     };
  
-    
-    openTodoInApp = (todo:any) => { 
-        if(isNil(todo)){ return }
-
-        let mainWindow = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
-
-        if(mainWindow){
-           mainWindow.webContents.send('openTodo',todo);
-           mainWindow.webContents.send('removeReminder',todo);
-        }
-    };
 
 
     render(){  
@@ -311,7 +276,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
                 flexDirection:"column"  
             }}>     
                 <div style={{color:"rgba(100,100,100,0.8)"}}>{header}</div>
-                {title}
+                    {title}
                 <div style={{
                     width:"100%",
                     display:"flex",

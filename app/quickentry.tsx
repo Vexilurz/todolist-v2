@@ -30,7 +30,7 @@ import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import { ipcRenderer, remote } from 'electron'; 
+import { ipcRenderer } from 'electron'; 
 import AutosizeInput from 'react-input-autosize';
 import { createStore } from "redux"; 
 import { Provider, connect } from "react-redux";
@@ -56,7 +56,7 @@ import { Subscription } from 'rxjs/Rx';
 import Chip from 'material-ui/Chip';
 import DayPicker from 'react-day-picker'; 
 import RaisedButton from 'material-ui/RaisedButton';
-import { Config, getConfig } from './utils/config';
+import { getConfig } from './utils/config';
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight';
 import { generateId } from './utils/generateId';
 import { generateEmptyTodo } from './utils/generateEmptyTodo';
@@ -93,6 +93,7 @@ import 'draft-js/dist/Draft.css';
 import { 
     noteToState, noteFromState, RawDraftContentState, getNotePlainText,
 } from './utils/draftUtils';
+import { requestFromMain } from './utils/requestFromMain';
 
 
 const linkifyPlugin = createLinkifyPlugin({
@@ -126,14 +127,14 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 
 ipcRenderer.once( 
     'loaded',     
-    (event) => {   
+    (event, id:number) => {   
         let app=document.createElement('div'); 
         app.style.width=`${window.innerWidth}px`; 
         app.style.height=`${window.innerHeight}px`;
         app.id='application';      
         document.body.appendChild(app);    
         getConfig().then( 
-            (config:Config) => ReactDOM.render(   
+            (config) => ReactDOM.render(   
                 wrapMuiThemeLight(
                     <Provider store={createStore((state, action) =>  state, {})}>   
                         <QuickEntry config={config}/>
@@ -172,7 +173,7 @@ interface QuickEntryState{
 
 
 interface QuickEntryProps{
-    config:Config
+    config:any
 }    
  
 
@@ -183,14 +184,10 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     tags:HTMLElement;
     inputRef:HTMLElement; 
     checklist:HTMLElement; 
-    defaultWidth:number;
-    defaultHeight:number;
     subscriptions:Subscription[]; 
 
     constructor(props){
-        super(props);  
-        this.defaultWidth=500;
-        this.defaultHeight=350;
+        super(props); 
         this.subscriptions=[];
         let {config} = this.props;
         let partialState = this.stateFromConfig(config);
@@ -328,20 +325,22 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     }); 
 
 
-    setSmallSize = () => {
-        let window = remote.getCurrentWindow(); 
-        if(window){
-            window.setSize(this.defaultWidth, this.defaultHeight); 
-        }
-    };
 
 
-    setBigSize = () => {
-        let window = remote.getCurrentWindow(); 
-        if(window){
-            window.setSize(this.defaultWidth, 400); 
-        }
-    };
+    setSmallSize = () : Promise<void> => 
+        requestFromMain<any>(
+            'QEsetSmallSize',
+            [],
+            (event) => event
+        );
+
+
+    setBigSize = () : Promise<void> => 
+        requestFromMain<any>(
+            'QEsetBigSize',
+            [],
+            (event) => event
+        );
 
  
     addTodo = () => {
@@ -359,12 +358,16 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         this.addTodo();
         this.clear(); 
     };
+ 
+
+    blur = () => requestFromMain<any>('QEblur',[],(event) => event);
+
+
+    hide = () => requestFromMain<any>('QEhide',[],(event) => event);
     
 
     clear = () => {
-        let window = remote.getCurrentWindow();
-        if(window){ window.blur(); }
-
+        this.blur();
         let emptyTodo = generateEmptyTodo(generateId(), this.state.category as any, 0);
         let newState : QuickEntryState = {
             ...this.stateFromTodo(this.state,emptyTodo),
@@ -496,6 +499,12 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
     onCalendarThisEveningClick = (e) => {
         this.setState({category:"evening", attachedDate:new Date()}, () => this.closeDateCalendar()); 
+    };
+
+
+    onCancel = () => {
+        this.clear();
+        this.hide(); 
     };
 
 
@@ -737,7 +746,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     projects={this.state.projects}
                     openDeadlineCalendar={this.onFlagButtonClick}
                     openCalendar={this.onCalendarButtonClick} 
-                    onCancel={this.clear}
+                    onCancel={this.onCancel}
                     onSave={this.onSave}
                     todayCategory={todayCategory}
                     category={this.state.category}

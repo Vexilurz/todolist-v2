@@ -1,4 +1,4 @@
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 
 export let getMachineId = () : Promise<string> => new Promise(resolve => resolve(' '));
 

@@ -1,33 +1,41 @@
 import { collectSystemInfo } from './utils/collectSystemInfo';
-import { getConfig, Config } from './utils/config';
+import { getConfig } from './utils/config';
 import Analytics from 'electron-ga';
+import { isNil } from 'ramda';
 import { ipcRenderer } from 'electron';
 import { getMachineIdSync } from './utils/userid';
 
-export const googleAnalytics = ({
-    send:(type:string,load:any) => getConfig()
-                                    .then(
-                                        (config:Config) => {
-                                            if(config.shouldSendStatistics){ analytics.send(type,load) }
-                                        }            
-                                    ) 
+let analytics = null;
+
+export const googleAnalytics = ({ 
+    send:(type:string,load:any) => 
+        getConfig()
+        .then(
+            (config) => {
+                if(config.shouldSendStatistics){ 
+                    if(isNil(analytics)){
+                        collectSystemInfo()
+                        .then(
+                            (sysInfo) => {
+                                analytics = new Analytics(
+                                    'UA-113407516-1',
+                                    {
+                                        userId:getMachineIdSync(),
+                                        appName:"tasklist",
+                                        appVersion:sysInfo.version,
+                                        language:sysInfo.userLanguage,
+                                        userAgent:navigator.userAgent,
+                                        viewport:`${sysInfo.viewportSize.width}x${sysInfo.viewportSize.height}`,
+                                        screenResolution:`${sysInfo.screenResolution.width}x${sysInfo.screenResolution.height}`
+                                    }
+                                );
+                                analytics.send(type,load);
+                            }
+                        )
+                    }else{
+                        analytics.send(type,load); 
+                    }
+                }
+            }            
+        ) 
 });     
-
- 
-const analytics = (() => {
-
-    const sysInfo = collectSystemInfo();
-    return new Analytics(
-        'UA-113407516-1',
-        {
-            userId:getMachineIdSync(),
-            appName:"tasklist",
-            appVersion:'1.3.7-master',//TODO : fix 
-            language:sysInfo.userLanguage,
-            userAgent:navigator.userAgent,
-            viewport:`${sysInfo.viewportSize.width}x${sysInfo.viewportSize.height}`,
-            screenResolution:`${sysInfo.screenResolution.width}x${sysInfo.screenResolution.height}`
-        }
-    );
-
-})();

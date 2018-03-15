@@ -2,7 +2,7 @@ import '../../assets/styles.css';
 import '../../assets/calendarStyle.css';   
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
 import { Provider, connect } from "react-redux";
 import ClearArrow from 'material-ui/svg-icons/content/backspace';  
@@ -49,19 +49,14 @@ import { defaultTags } from '../../utils/defaultTags';
 import { uppercase } from '../../utils/uppercase';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { generateId } from '../../utils/generateId';
-import { readJsonFile, writeJsonFile } from '../../utils/jsonFile';
 import { requestFromMain } from '../../utils/requestFromMain';
 const Promise = require('bluebird');   
-const fs = remote.require('fs');
 const path = require("path");
-const os = remote.require('os'); 
-const dialog = remote.dialog;
-
 
 interface LicensePopupProps{
     showLicense:boolean,
     dispatch:Function
-}// extends Store{}
+}
 interface LicensePopupState{}
 @connect(
     (store:Store,props) =>  ({ showLicense:store.showLicense }), 
@@ -375,9 +370,10 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
 
 
     enableQuickEntry = debounce(
-        () => updateConfig(this.props.dispatch)({enableShortcutForQuickEntry:!this.props.enableShortcutForQuickEntry})
+        () => updateConfig({enableShortcutForQuickEntry:!this.props.enableShortcutForQuickEntry})
                 .then(
                     (config) => {
+                        this.props.dispatch({type:"updateConfig",load:config}); 
                         requestFromMain<any>(
                             'autolaunch',
                             [
@@ -386,7 +382,6 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
                             ],
                             (event) => event
                         );
-
                         requestFromMain<any>(  
                             'toggleShortcut', 
                             [config.enableShortcutForQuickEntry,'Ctrl+Alt+T'], 
@@ -401,13 +396,16 @@ class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySet
 
     quickEntrySavesTo = (event) => {
         let {dispatch} = this.props;
-        updateConfig(dispatch)({quickEntrySavesTo:event.target.value})
+        updateConfig({quickEntrySavesTo:event.target.value})
         .then(
-            (config) => requestFromMain<any>(
-                'updateQuickEntryConfig',
-                [config],
-                (event) => event
-            )
+            (config) => {
+                this.props.dispatch({type:"updateConfig",load:config}); 
+                requestFromMain<any>(
+                    'updateQuickEntryConfig',
+                    [config],
+                    (event) => event
+                );
+            }
         ); 
     };
 
@@ -534,8 +532,8 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
     onReset = () => {
         let {todos,dispatch} = this.props;
 
-        updateConfig(dispatch)({defaultTags})
-        .then(() => {
+        updateConfig({defaultTags})
+        .then((config) => {
             let updatedTodos = todos.map(
                 (todo:Todo) => ({ 
                     ...todo, 
@@ -543,6 +541,7 @@ class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>{
                 })
             );
 
+            dispatch({type:"updateConfig",load:config}); 
             dispatch({type:"updateTodos", load:updatedTodos});
         }) 
     };
@@ -693,7 +692,14 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
             (data:IcalData) => { 
                 let {calendar,events,error} = data;
                 
-                if(not(hideHint)){ updateConfig(dispatch)({hideHint:true}) };  
+                if(not(hideHint)){ 
+                    updateConfig({hideHint:true})
+                    .then( 
+                        config => {
+                            this.props.dispatch({type:"updateConfig",load:config}) 
+                        } 
+                    ) 
+                };  
                 
                 if(not(isNil(error))){  
                    this.setState({error:error.message}, () => this.onError(error));
@@ -849,43 +855,19 @@ class CalendarEventsSettings extends Component<CalendarEventsSettingsProps,Calen
 }
 
 
-let selectFolder = () => new Promise(
-    resolve => {
-        dialog.showOpenDialog( 
-            { 
-                title:`Select data folder`,
-                buttonLabel:'Select',
-                properties:['openDirectory']
-            },  
-            (value) => {
-                if(value)   
-                   resolve(value[0]); 
-                else
-                   resolve(undefined);
-            }
-        )
-    } 
-)
+let selectFolder = () => requestFromMain<any>(
+    'selectFolder',
+    [],
+    (event,folder) => folder
+);
 
 
-let selectJsonDatabase = () => new Promise(
-    resolve => {  
-        dialog.showOpenDialog( 
-            { 
-                title:`Select database file`,
-                buttonLabel:'Select',
-                properties:['openFile'],
-                filters:[{extensions: ["json"], name: ""}]
-            },  
-            (value) => { 
-                if(value)    
-                   resolve(value[0]); 
-                else
-                   resolve(undefined);
-            }
-        )
-    } 
-)
+let selectJsonDatabase = () => requestFromMain<any>(
+    'selectJsonDatabase',
+    [],
+    (event,folder) => folder
+);
+
 
 
 let closeClonedWindows = () => new Promise(resolve => {  
@@ -894,7 +876,7 @@ let closeClonedWindows = () => new Promise(resolve => {
     ipcRenderer.on("closeClonedWindows", (event) => resolve());
 })
 
-
+ 
 
 let correctFormat = (json:any) : boolean => not(isNil(json.database));
 
@@ -935,15 +917,10 @@ interface AdvancedState{
     attachDispatchToProps
 )  
 class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
-    backupFolder:string;
-    backupFilename:string;
     limit:number;
-     
-
+    
     constructor(props){
         super(props);  
-        this.backupFolder = path.resolve(os.homedir(), "Documents");
-        this.backupFilename = `backup${uniqid()}.json`;
         this.limit = 1000000;
 
         this.state = {   
@@ -952,10 +929,16 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
            exportMessage:'', 
            importPath:'',   
            exportPath:'',
-           updateStatus:`Current version is : ${remote.app.getVersion()}.`
+           updateStatus:`Current version is : .`
         };       
     };
-
+    
+    componentDidMount(){
+        requestFromMain<any>('getVersion',[],(event,version) => version)
+        .then(
+            (version) => this.setState({updateStatus:`Current version is : ${version}.`}) 
+        )
+    } 
 
     updateState = (state) => new Promise( resolve => this.setState(state, () => resolve()) );
 
@@ -1008,57 +991,70 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         let to:string = path.resolve(folder, `${keyFromDate(new Date())}-${uniqid()}.json`);
         return getDatabaseObjects(this.onError,this.limit)
         .then(
-            ([calendars,projects,areas,todos]) => 
-                writeJsonFile(
-                    { database : { todos, projects, areas, calendars } },
-                    to 
-                )
-                .then((err) => ({err,to}))
+            ([calendars,projects,areas,todos]) => requestFromMain<any>(
+                'saveDatabase',
+                [ { database : { todos, projects, areas, calendars } }, to ],
+                (event) => event
+            )
         )       
     };    
 
 
-    import = (pathToFile:string) => {  
-        if(isNil(pathToFile)){ return }
-        let {dispatch} = this.props;
-        let backupFolderExists : boolean = fs.existsSync(this.backupFolder);
-        let message = (place) => `Data was successfully imported. You can find a backup of your old database in ${place}.`;
-        let pathToBackup = backupFolderExists ? path.resolve( this.backupFilename, this.backupFolder) :
-                                                path.resolve( this.backupFilename );
-        
-        dispatch({type:"selectedCategory",load:"inbox"});
 
-        return readJsonFile(pathToFile)  
-               .then((json) => { 
-                    if(correctFormat(json)){
-                        this.export(pathToBackup) 
-                        .then(() => this.setState({importMessage:'Loading...'}))
-                        .then(() => this.replaceDatabaseObjects(json))
-                        .then(() => this.setState({importMessage:message(pathToBackup)}))
-                    }else{
-                        this.setState({importMessage:"Incorrect format."})
-                    } 
-               })   
+    backup = () => {
+        return getDatabaseObjects(this.onError,this.limit)
+        .then(
+            ([calendars,projects,areas,todos]) => requestFromMain<any>(
+                'saveBackup',
+                [ { database : { todos, projects, areas, calendars } } ],
+                (event, to) => to
+            ) 
+        )   
     };
 
+
+
+    import = (pathToFile:string) => {  
+        if(isNil(pathToFile)){ return }
+        let place = '';
+        let {dispatch} = this.props;
+        let message = (place) => `Data was successfully imported. You can find a backup of your old database in ${place}.`;
+
+        dispatch({type:"selectedCategory",load:"inbox"});
+        
+        return  requestFromMain<any>("readJsonFile",[pathToFile],(event,json) => json)  
+                .then((json) => {  
+                    if(correctFormat(json)){ 
+                        this.backup()
+                        .then( (to) => this.setState({importMessage:'Loading...'}, () => { place=to; }) )
+                        .then( () => this.replaceDatabaseObjects(json) )
+                        .then( () => this.setState({importMessage:message(place)}) )
+                    }else{
+                        this.setState({importMessage:"Incorrect format."})
+                    }   
+                })   
+    };
     
+     
+
     onSelectExportFolder = () => { 
         selectFolder()
         .then(
            (folder:string) => {
                 if(isNil(folder) || isEmpty(folder)){ return }
-
+                
                 this
                 .updateState({exportPath:folder})
                 .then(() => this.export(folder))
                 .then(({err,to}) => {
                     if(isNil(err)){ 
-                       this.updateState({exportMessage:`Data was successfully exported to ${to}.`})
+                       this.updateState({exportMessage:`Data was successfully exported to ${folder}.`})
                     }
                 })
             }
         )
     }; 
+
 
 
     onSelectImportFile = () => {  
@@ -1073,22 +1069,30 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     };
       
 
+
     checkUpdates = debounce(() => { 
         let {dispatch} = this.props;
         this.setState({updateStatus:"Loading..."});
         checkForUpdates()  
         .then( 
            (updateCheckResult:UpdateCheckResult) => {  
-                let {updateInfo} = updateCheckResult;
-                let currentAppVersion = remote.app.getVersion(); 
-                let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
 
-                if(canUpdate){  
-                   dispatch({type:"openSettings", load:false});  
-                   dispatch({type:"showUpdatesNotification", load:true});
-                }else{   
-                   this.setState({updateStatus:"Latest version is already installed."}); 
-                }; 
+            requestFromMain<any>('getVersion',[],(event,version) => version)
+            .then(
+                (version) => {
+                    console.log('current version is :',version);
+                    let {updateInfo} = updateCheckResult;
+                    let currentAppVersion = version; 
+                    let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
+    
+                    if(canUpdate){  
+                       dispatch({type:"openSettings", load:false});  
+                       dispatch({type:"showUpdatesNotification", load:true});
+                    }else{   
+                       this.setState({updateStatus:"Latest version is already installed."}); 
+                    }; 
+                }
+            )
             }       
         );  
     },100); 
@@ -1096,19 +1100,25 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
     shouldSendStatistics = debounce(() => {
         let {shouldSendStatistics,dispatch} = this.props;
-        updateConfig(dispatch)({shouldSendStatistics:!shouldSendStatistics}); 
+        updateConfig({shouldSendStatistics:!shouldSendStatistics})
+        .then(
+            config => this.props.dispatch({type:"updateConfig",load:config}) 
+        )
     },50);
 
 
     shouldGroup = debounce(() => {
         let {groupTodos,dispatch} = this.props;
-        updateConfig(dispatch)({groupTodos:!groupTodos}); 
+        updateConfig({groupTodos:!groupTodos})
+        .then(
+            config => this.props.dispatch({type:"updateConfig",load:config}) 
+        )
     },50);
 
 
     moveCompletedTo = (event) => {
         let {dispatch, todos} = this.props;
-        updateConfig(dispatch)({moveCompletedItemsToLogbook:event.target.value})
+        updateConfig({moveCompletedItemsToLogbook:event.target.value})
         .then((config) => {
             let load = todos.map((todo:Todo) => {
                 if(isNil(todo.completedSet)){ return todo; }
@@ -1116,17 +1126,17 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 return {...todo, completedWhen};
             }); 
 
+            dispatch({type:"updateConfig",load:config}); 
             dispatch({type:"updateTodos",load});
         }); 
     }; 
 
 
-    disableReminder = (event) => {
-        let {dispatch} = this.props;
-
-        updateConfig(dispatch)({disableReminder:not(this.props.disableReminder)})
+    disableReminder = (event) => 
+        updateConfig({disableReminder:not(this.props.disableReminder)})
         .then(
             (config) => {
+                this.props.dispatch({type:"updateConfig",load:config}); 
 
                 requestFromMain<any>( 
                     'autolaunch',
@@ -1139,8 +1149,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
                 requestFromMain<any>('updateNotificationConfig',[config],(event) => event);
             } 
-        )
-    };
+        );
     
 
     render(){   

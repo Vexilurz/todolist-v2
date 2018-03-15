@@ -65,7 +65,7 @@ export let initQuickEntry = ({width,height}:{width:number,height:number}) : Brow
 
 export let initNotification = ({width,height}:{width:number,height:number}):BrowserWindow => { 
     Menu.setApplicationMenu(null);   
-    let handler = new BrowserWindow({   
+    let handler = new BrowserWindow({    
         width,          
         height,      
         show:false, 
@@ -74,7 +74,7 @@ export let initNotification = ({width,height}:{width:number,height:number}):Brow
         center:false,       
         frame:false  
     } as any);    
-    
+
     handler.setAlwaysOnTop(true);
     handler.setResizable(false); 
     handler.setSkipTaskbar(true);

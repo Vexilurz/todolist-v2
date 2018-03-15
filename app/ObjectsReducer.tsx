@@ -7,7 +7,7 @@ import {
     updateTodos, addCalendar, Calendar, updateCalendar, removeCalendar 
 } from './database';
 import { isDev } from './utils/isDev';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import { 
     removeDeletedProjects, removeDeletedAreas, removeDeletedTodos, byNotDeleted, 
     isNotNil, typeEquals, inFuture, byNotCompleted, measureTime, convertTodoDates, differentBy 
@@ -19,7 +19,6 @@ import {
 } from 'ramda';
 import { filter } from './Components/MainContainer';
 import { globalErrorHandler } from './utils/globalErrorHandler';
-import { Config } from './utils/config';
 import { assert } from './utils/assert';
 import { 
     isTodo, isProject, isArea, isCalendar, isString, isArrayOfTodos, 
@@ -59,7 +58,7 @@ let scheduleReminder = (todo) : number => {
     ); 
 };
 
-
+ 
 
 let clearScheduledReminders = (store:Store) : Store => {
     let scheduledReminders = store.scheduledReminders;
@@ -74,7 +73,7 @@ let clearScheduledReminders = (store:Store) : Store => {
 
 let refreshReminders = (prevState:Store,action:{type:String,load:any}) => (newState:Store) : Store => {
 
-    if(isNil(newState)){ return newState }
+    if(isNil(newState) || prop('clone',newState)){ return newState }
 
 
     let hasReminder = compose(isDate,prop('reminder'));
@@ -100,11 +99,11 @@ let refreshReminders = (prevState:Store,action:{type:String,load:any}) => (newSt
         [ typeEquals("addTodo"), compose(isDate, path(['load','reminder'])) ],
         [
           typeEquals("updateTodo"),
-          (action:{type:string, load:Todo}) => differentBy(
+          (action:{type:string, load:Todo}) => differentBy( 
                 prop(`reminder`),
                 action.load,
                 prevState.todos.find( (t:Todo) => t._id===path(['load','_id'],action) )
-           )
+            )
         ], 
         [() => true, () => false]
     ])(action);
@@ -130,15 +129,16 @@ let refreshReminders = (prevState:Store,action:{type:String,load:any}) => (newSt
 };
 
 
+let notClone = compose(not,prop('clone'));
 
 let updateQuickEntry : (newState:Store) => Store =
     when(
-        isNotNil,
+        allPass([isNotNil,notClone]),
         (newState:Store) => { 
             requestFromMain<any>(
-                'updateQuickEntryData', 
-                [newState.todos,newState.projects,newState.areas], 
-                (event) => event
+              'updateQuickEntryData', 
+              [newState.todos,newState.projects,newState.areas], 
+              (event) => event
             ); 
             return newState;
         }
@@ -147,7 +147,6 @@ let updateQuickEntry : (newState:Store) => Store =
  
 
 export let applicationObjectsReducer = (state:Store, action:{type:string,load:any,kind:string}) : Store => { 
-    //console.log(`applicationObjectsReducer ${action.type}`)
     let clone : boolean = prop('clone',state);
     let shouldAffectDatabase : boolean =  and(actionFromQuickEntry(action),not(clone)) || 
                                           actionOriginIsThisWindow(action);
@@ -163,7 +162,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
             //update other windows only if action was initialized inside current window 
             //and action belong to ObjectsReducer (state was updated inside this function)
             if(shouldUpdateOtherInstances){
-               ipcRenderer.send("action", {id:remote.getCurrentWindow().id, action}); 
+               ipcRenderer.send("action", {action,id:newState.id}); 
             }  
   
             return newState;
@@ -229,7 +228,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
             [
                 typeEquals('updateConfig'),  
-                (action:{type:string, load: { [key in keyof Config]: any }}) : Store => ({...state, ...action.load}) 
+                (action:{type:string, load:any}) : Store => ({...state, ...action.load}) 
             ],
             
 

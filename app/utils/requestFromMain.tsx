@@ -7,7 +7,6 @@ export function requestFromMain<T>(
     args:any[],
     pick:(...args:any[]) => T
 ) : Promise<T>{
-
     return new Promise( 
         (resolve) => {
             let onDone = (...args) => {

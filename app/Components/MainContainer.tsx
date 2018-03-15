@@ -55,7 +55,7 @@ import { filter as lodashFilter } from 'lodash';
 import { CalendarProps, CalendarEvent, getIcalData, IcalData, AxiosError, updateCalendars } from './Calendar';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 import { generateRandomDatabase } from '../utils/generateRandomObjects';
-import { updateConfig, clearStorage } from '../utils/config';
+import { updateConfig } from '../utils/config';
 import { isNotArray, isDate, isTodo, isString } from '../utils/isSomething';
 import { debounce } from 'lodash';
 import { noteFromText } from '../utils/draftUtils';
@@ -189,7 +189,7 @@ export class MainContainer extends Component<Store,MainContainerState>{
 
         when(
           isNotEmpty, 
-          () => updateConfig(dispatch)({hideHint:true}) 
+          () => updateConfig({hideHint:true}).then( config => this.props.dispatch({type:"updateConfig",load:config}) ) 
         )(calendars); 
     };
    
@@ -218,7 +218,10 @@ export class MainContainer extends Component<Store,MainContainerState>{
                         if(canUpdate){ 
                             dispatch({type:"showUpdatesNotification", load:true}) 
                         }else{ 
-                            updateConfig(dispatch)({nextUpdateCheck:threeDaysLater(new Date())}) 
+                            updateConfig({nextUpdateCheck:threeDaysLater(new Date())})
+                            .then(
+                                (config) => this.props.dispatch({type:"updateConfig",load:config}) 
+                            ) 
                         }
                     }
                 )
@@ -401,8 +404,6 @@ export class MainContainer extends Component<Store,MainContainerState>{
         let {selectedCategory} = this.props;
         if(this.disablePrintButton){ return } 
 
-        //let mainWindow = remote.BrowserWindow.getAllWindows().find(w => w.id===1);
-        //mainWindow.webContents.printToPDF({}, () => {})
 
         let list = document.getElementById(`${selectedCategory}-list`); 
         if(list){  

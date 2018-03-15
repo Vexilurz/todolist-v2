@@ -48,7 +48,6 @@
   "dependencies": {
     "assert": "^1.4.1",
     "auto-launch": "^5.0.5",
-    "aws-sdk": "^2.203.0",
     "axios": "^0.17.1",
     "bluebird": "^3.5.1",
     "dom-to-image": "^2.6.0",
@@ -79,7 +78,6 @@
     "random-word": "^2.0.0",
     "randomstring": "^1.1.5",
     "rc-time-picker": "^3.3.1",
-    "rc-tooltip": "^3.7.0",
     "react": "15.6.1",
     "react-addons-perf": "^15.4.2",
     "react-addons-test-utils": "^15.6.0",
@@ -106,7 +104,6 @@
     "resize-observer-polyfill": "^1.5.0",
     "retina-dom-to-image": "^2.5.6",
     "rimraf": "^2.6.1",
-    "rmc-tooltip": "^1.0.1",
     "rrule": "^2.2.9",
     "rx-dom": "^7.0.3",
     "rxjs": "^5.5.6",

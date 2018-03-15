@@ -13,7 +13,7 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { Store } from '../app';
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import { TopSnackbar } from './Snackbar';
 import { attachDispatchToProps, downloadUpdates, threeDaysLater } from '../utils/utils';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
@@ -93,10 +93,11 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
 
             downloadUpdates() 
             .then(() => {  
-              this.downloading = false; 
+              this.downloading=false; 
               this.setState({downloading:false});
             })
-            .then( () => updateConfig(dispatch)({nextUpdateCheck:threeDaysLater(new Date())}) )
+            .then( () => updateConfig({nextUpdateCheck:threeDaysLater(new Date())}) )
+            .then( (config) => this.props.dispatch({type:"updateConfig",load:config}) )
             .then( () => this.setState({canRestart:true}) )
         } 
     } 

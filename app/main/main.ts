@@ -4,7 +4,8 @@ import { dialog,app,BrowserWindow,Menu,screen,globalShortcut,Tray,nativeImage } 
 import { Listeners } from "./listeners";
 import { initWindow, initQuickEntry, initNotification } from "./initWindow";
 import { 
-    isNil, not, forEachObjIndexed, when, contains, compose, equals, ifElse, reject, isEmpty, defaultTo, map, identity 
+    isNil, not, forEachObjIndexed, when, contains, compose, equals, 
+    ifElse, reject, isEmpty, defaultTo, map, identity, toLower 
 } from 'ramda';  
 import { isDev } from './../utils/isDev';
 import { defaultTags } from '../utils/defaultTags';
@@ -14,7 +15,41 @@ const storage = require('electron-json-storage');
 storage.setDataPath(os.tmpdir());
 
 
-let getConfigMain = () : Promise<any> => {  
+
+interface Config{
+    nextUpdateCheck:Date,
+    firstLaunch:boolean, 
+    defaultTags:string[],
+    hideHint:boolean,
+    shouldSendStatistics:boolean,
+    showCalendarEvents:boolean,
+    disableReminder:boolean,
+    groupTodos:boolean,
+    preserveWindowWidth:boolean, //when resizing sidebar
+    enableShortcutForQuickEntry:boolean,
+    quickEntrySavesTo:string, //inbox today next someday
+    moveCompletedItemsToLogbook, //immediatelly
+};
+
+
+const defaultConfig : Config = { 
+    nextUpdateCheck:new Date(),
+    firstLaunch:true,
+    hideHint:false,
+    defaultTags:defaultTags,  
+    shouldSendStatistics:true,
+    showCalendarEvents:true,
+    groupTodos:false,
+    preserveWindowWidth:true, //when resizing sidebar
+    enableShortcutForQuickEntry:true,
+    disableReminder:false,
+    quickEntrySavesTo:"inbox", //inbox today next someday
+    moveCompletedItemsToLogbook:"immediately"
+};
+
+
+
+export let getConfig = () : Promise<any> => {  
     return new Promise( 
         resolve => storage.get(   
             "config",  
@@ -43,6 +78,42 @@ let getConfigMain = () : Promise<any> => {
 }; 
 
 
+
+export let updateConfig = (load:any) : Promise<any> => {
+    return getConfig().then( 
+        (config:Config) => {
+            let updated = { ...config, ...load } as Config;
+            return new Promise(
+                resolve => storage.set(  
+                    "config", 
+                    updated, 
+                    (error) => {
+                        if(!isNil(error)){ resolve(defaultConfig) }
+                        resolve(updated as Config); 
+                    }
+                )
+            )
+        }
+    )
+};
+
+
+export let clearStorage = () : Promise<void> => {
+    return new Promise( 
+        (resolve) => storage.clear(
+            (error) => {
+                if(!isNil(error)){ 
+                    resolve(error) 
+                }else{ 
+                    resolve() 
+                }
+            }
+        )
+    )
+};
+
+
+
 export const AppName = 'Tasklist';
 export let mainWindow : BrowserWindow;   
 export let quickEntry : BrowserWindow;   
@@ -64,12 +135,15 @@ const shouldQuit = app.makeSingleInstance(
         } 
     }
 );  
-
+ 
 
 
 export let findWindowByTitle = (title:string) => {
     let windows = BrowserWindow.getAllWindows();
-    return windows.find((w) => w.getTitle()===title); 
+    let target = windows.find(
+        (w) => toLower(w.getTitle())===toLower(title)
+    ); 
+    return target;
 };
 
 
@@ -232,8 +306,9 @@ let onReady = (showTray:boolean, config:any) => {
     let shouldHideApp : boolean = contains("--hidden")(process.argv); 
 
     registerAllShortcuts(); 
+    toggleShortcut(enableShortcutForQuickEntry,'Ctrl+Alt+T');
     initAutoLaunch(enableShortcutForQuickEntry && not(disableReminder));   
-
+    
     dialog.showErrorBox = (title, content) => {}; 
     
     listeners = new Listeners(mainWindow); 
@@ -267,12 +342,12 @@ let onReady = (showTray:boolean, config:any) => {
     
 
     loadNotification(notification)
-    .then(() => notification.webContents.send("loaded"));
+    .then(() => notification.webContents.send("loaded",notification.id));
 
 
     loadQuickEntry(quickEntry) 
     .then(() => {
-        quickEntry.webContents.send("loaded"); 
+        quickEntry.webContents.send("loaded",quickEntry.id); 
  
         quickEntry.on('close',(event) => {
             event.preventDefault(); 
@@ -284,7 +359,7 @@ let onReady = (showTray:boolean, config:any) => {
 
     loadApp(mainWindow)  
     .then(() => {    
-        mainWindow.webContents.send("loaded");
+        mainWindow.webContents.send("loaded",null,mainWindow.id);
 
         if(not(shouldHideApp)){
            mainWindow.focus(); 
@@ -299,10 +374,11 @@ let onReady = (showTray:boolean, config:any) => {
 
 app.on(
     'ready', 
-    () =>  getConfigMain().then((config) => onReady(true,config))
+    () => getConfig().then((config) => onReady(true,config))
 );    
  
 
+/*
 process.on( 
     "unchaughtException" as any,
     (error) => when(
@@ -310,6 +386,7 @@ process.on(
         (error) => mainWindow.webContents.send("error", error)
     )(error)
 );
+*/
  
  
 app.on(     
