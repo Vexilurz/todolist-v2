@@ -14,22 +14,28 @@ import { insideTargetArea } from '../../utils/insideTargetArea';
 import { assert } from '../../utils/assert';
 import { isArrayOfStrings } from '../../utils/isSomething';
 import AutosizeInput from 'react-input-autosize';
+import { Store } from '../../app';
  
 interface TagsPopupProps{
     close : Function,
     open : boolean,
     attachTag:(tag:string) => void,
     origin : any,  
-    defaultTags : string[],
-    todos : any[],
     rootRef : HTMLElement, 
     anchorEl : HTMLElement,
-    point : any 
+    point : any,
+    
+    defaultTags : string[],
+    todos : any[]
 }   
 
  
 @connect(
-    (store,props) => ({ ...store, ...props }), 
+    (store:Store,props) => ({ 
+        ...props,
+        defaultTags:store.defaultTags,
+        todos:store.todos 
+    }),   
     (dispatch:Function,props) => ({...props, dispatch})
 ) 
 export class TagsPopup extends Component<TagsPopupProps,{}>{

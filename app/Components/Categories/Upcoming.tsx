@@ -491,7 +491,7 @@ interface CalendarDayState{}
 export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
     constructor(props){ super(props) }
 
-   /*
+   
     shouldComponentUpdate(nextProps:CalendarDayProps,nextState:CalendarDayState){
         let {
             scheduledProjects, 
@@ -511,14 +511,8 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
             selectedTag!==this.props.selectedTag, 
         ]);
 
-        //if(should)
-        //console.log(`should update ${this.props.day} ${this.props.dayName}`)
-
         return should;
     }
-
-*/
-    
 
     render(){   
         let {selectedTodos,todos,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
@@ -679,7 +673,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                     <ProjectLink 
                                         project={project}
                                         showMenu={false}
-                                        todos={this.props.todos}
+                                        todos={[]}
                                         dispatch={this.props.dispatch}
                                         selectedCategory={this.props.selectedCategory}
                                     />  

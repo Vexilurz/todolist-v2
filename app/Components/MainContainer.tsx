@@ -80,6 +80,9 @@ export let filter = (array:any[],f:Function,caller?:string) : any[] => lodashFil
 
 let noteIsString = compose(isString, prop('note'));
 let assureCorrectNoteType : (todo:Todo) => Todo = when(noteIsString,evolve({note:noteFromText}));
+let byHidden = (selectedCategory:Category) => 
+               (project:Project) => isNotArray(project.hide) ? false : contains(selectedCategory,project.hide);
+let byAttachedToHiddenProject = (ids:String[]) => (todo:Todo) => contains(todo._id)(ids);
 
 
 export let getData = (limit:Date,onError:Function,max:number) : Promise<{
@@ -123,9 +126,10 @@ interface MainContainerProps{
     limit:Date,
     nextUpdateCheck:Date,
 
-    selectedTodo:Todo,
+    selectedTodo:Todo, 
     scrolledTodo:Todo,
 
+    showRepeatPopup:boolean,
     hideHint:boolean,
     firstLaunch:boolean,
     clone:boolean,
@@ -468,8 +472,14 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                        flexDirection:"column"     
                     }}  
                 >  
-                <RightClickMenu {...{} as any}/> 
-                <RepeatPopup {...{} as any}/>  
+                { 
+                    not(this.props.showRightClickMenu) ? null : 
+                    <RightClickMenu {...{} as any}/> 
+                }
+                {
+                     not(this.props.showRepeatPopup) ? null : 
+                    <RepeatPopup {...{} as any}/>  
+                }
                 <div style={{display:"flex",padding:"10px"}}>   
                     <div 
                       style={{
@@ -533,35 +543,34 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             ],   
                             [ 
                                 (selectedCategory:Category) : boolean => 'today'===selectedCategory,  
-                                () => {
-                                    let {projects,groupTodos,clone,limit,dispatch} = this.props;
-
+                                () => { 
                                     let todayFilters = [   
                                         byNotAttachedToCompletedProject(projects),
                                         (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
                                         (t:Todo) => t.category!=="someday",
                                         byNotCompleted,  
                                         byNotDeleted   
-                                    ];   
+                                    ];      
 
-                                    let selectedTodos = filter(todos, allPass(todayFilters));
-
-                                    if(groupTodos){
-                                        let hidden = filter( 
-                                            projects, 
-                                           (p:Project) => isNotArray(p.hide) ? 
-                                                          false : 
-                                                          contains(selectedCategory,p.hide)
-                                        ); 
-                                        let ids : string[] = flatten(hidden.map((p:Project) => p.layout.filter(isString)));
-                                        selectedTodos = reject((todo:Todo) => contains(todo._id)(ids),selectedTodos);
-                                    };  
  
+                                    let removeHidden = (projects:Project[]) => (todos:Todo[]) : Todo[] => 
+                                        compose(
+                                            (ids) => reject(byAttachedToHiddenProject(ids), todos),
+                                            flatten,
+                                            map((p:Project) => p.layout.filter(isString)),
+                                            projects => filter(projects,byHidden(selectedCategory)) 
+                                        )(projects); 
 
+                                   
                                     return <Today   
-                                        todos={selectedTodos}
+                                        todos={
+                                            compose(
+                                                when( () => this.props.groupTodos, removeHidden(projects) ),
+                                                (todos:Todo[]) => filter( todos, allPass(todayFilters) )
+                                            )(this.props.todos)
+                                        }
                                         hideHint={this.props.hideHint}
-                                        clone={clone}
+                                        clone={this.props.clone}
                                         dispatch={this.props.dispatch}
                                         scrolledTodo={this.props.scrolledTodo}
                                         selectedTodo={this.props.selectedTodo}

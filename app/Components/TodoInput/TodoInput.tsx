@@ -72,6 +72,8 @@ const linkifyPlugin = createLinkifyPlugin({
 let moment = require("moment"); 
 let Promise = require('bluebird'); 
 
+
+
 export interface TodoInputProps{ 
     dispatch? : Function,  
     groupTodos : boolean,  
@@ -112,25 +114,7 @@ export interface TodoInputState{
 }   
  
 
-@connect(
-    (store,props):TodoInputProps => ({ 
-        groupTodos : store.groupTodos,  
-        scrolledTodo : store.scrolledTodo, 
-        moveCompletedItemsToLogbook : store.moveCompletedItemsToLogbook,   
-        selectedCategory : store.selectedCategory, 
-        selectedProjectId : store.selectedProjectId, 
-        selectedAreaId : store.selectedAreaId, 
-        projects : store.projects, 
 
-        todo : props.todo, // store.todos.find( t => t._id===props.id ),   
-        rootRef : props.rootRef,  
-        id : props.id,  
-        onOpen : props.onOpen,
-        onClose : props.onCLose,
-        showCompleted : props.showCompleted
-    }), 
-    attachDispatchToProps
-)
 export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     calendar:HTMLElement; 
     deadline:HTMLElement;
@@ -226,7 +210,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         let stateChanged = different(this.state,nextState);
 
-
         let should = anyTrue([
             stateChanged,
             todoChanged, 
@@ -236,6 +219,10 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             moveCompletedItemsToLogbookChanged,   
             showCompletedChanged
         ]);
+
+        if(should){ 
+           console.log(`should update ${todo.title}`); 
+        }
 
         return should;
     }
@@ -1022,17 +1009,16 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             {
                 not(open) ? null :
                 <TagsPopup
-                    {  
-                        ...{
-                            attachTag:this.onAttachTag,
-                            close:(e) => this.setState({showTagsSelection:false}),
-                            open:this.state.showTagsSelection,   
-                            anchorEl:this.tags,
-                            origin:{vertical:"center",horizontal:"right"},
-                            point:{vertical:"center",horizontal:"right"},
-                            rootRef:rootRef
-                        } as any
-                    } 
+                    defaultTags={[]}
+                    todos={[]}
+                     
+                    attachTag={this.onAttachTag}
+                    close={(e) => this.setState({showTagsSelection:false})}
+                    open={this.state.showTagsSelection} 
+                    anchorEl={this.tags}
+                    origin={{vertical:"center",horizontal:"right"}}
+                    point={{vertical:"center",horizontal:"right"}}
+                    rootRef={rootRef}
                 /> 
             }
             {
@@ -1646,7 +1632,7 @@ class RestoreButton extends Component<RestoreButtonProps,{}>{
     }
 };
  
-
+  
 
 interface AdditionalTagsProps{
     attachedTags:string[],

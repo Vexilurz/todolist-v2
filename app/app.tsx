@@ -285,6 +285,7 @@ export class App extends Component<AppProps,{}>{
                     selectedTodo={this.props.selectedTodo}
                     scrolledTodo={this.props.scrolledTodo}
                  
+                    showRepeatPopup={this.props.showRepeatPopup}
                     hideHint={this.props.hideHint}
                     firstLaunch={this.props.firstLaunch}
                     clone={this.props.clone}

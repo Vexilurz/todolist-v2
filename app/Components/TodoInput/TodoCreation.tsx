@@ -743,19 +743,23 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                 onRemoveReminderClick={this.onRemoveReminderClick}
                 onClear={this.onCalendarClear}  
             />  
-            <TagsPopup
-                {  
-                ...{
-                    attachTag:this.onAttachTag,
-                    close:this.closeTagsSelection,
-                    open:this.state.showTagsSelection,   
-                    anchorEl:this.tags,
-                    origin:{vertical:"center",horizontal:"right"},
-                    point:{vertical:"center",horizontal:"right"},
-                    rootRef:this.props.rootRef
-                } as any
-                } 
-            /> 
+
+            {
+                not(this.state.showTagsSelection) ? null :
+                <TagsPopup
+                    attachTag={this.onAttachTag}
+                    close={this.closeTagsSelection}
+                    open={this.state.showTagsSelection}  
+                    anchorEl={this.tags}
+                    origin={{vertical:"center",horizontal:"right"}}
+                    point={{vertical:"center",horizontal:"right"}}
+                    rootRef={this.props.rootRef}
+
+                    defaultTags={[]}
+                    todos={[]}
+                /> 
+            }
+
             <DeadlineCalendar  
                 close={this.closeDeadlineCalendar}
                 onDayClick={this.onDeadlineCalendarDayClick}

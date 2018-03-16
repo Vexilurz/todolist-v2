@@ -428,7 +428,7 @@ export class Today extends Component<TodayProps,TodayState>{
             )(calendars);
         } 
 
-        assertShallowEquality(todos,items,'today')
+        //assertShallowEquality(todos,items,'today')
 
        
         

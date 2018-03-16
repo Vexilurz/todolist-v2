@@ -19,7 +19,7 @@ import { assert } from '../../utils/assert';
 import { uppercase } from '../../utils/uppercase';
 import { isDate, isString } from '../../utils/isSomething';
 import { daysRemaining } from '../../utils/daysRemaining';
-
+import { Provider, connect } from "react-redux";
 
 
 export let getProgressStatus = (
@@ -52,14 +52,16 @@ interface ProjectLinkProps{
     selectedCategory:Category
 }
 
-
-
 interface ProjectLinkState{
     openMenu:boolean 
 }   
- 
 
-
+@connect(
+    (store:Store,props:ProjectLinkProps):ProjectLinkProps => ({...props,todos:store.todos}), 
+    attachDispatchToProps,
+    null, 
+    { areStatesEqual:(nextStore:Store, prevStore:Store) => nextStore.todos===prevStore.todos }   
+)  
 export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
     actionsAnchor:HTMLElement;
 
@@ -100,7 +102,7 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
 
 
     onShowOnlyOne = () => {
-        let {dispatch,project,todos,selectedCategory} = this.props;
+        let {dispatch,project,selectedCategory} = this.props;
         
         let expand = isNil(project.expand) ? 1 : 
                      project.expand===3 ? 1 :

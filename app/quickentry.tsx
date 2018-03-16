@@ -17,7 +17,7 @@ import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank'
 import CheckBox from 'material-ui/svg-icons/toggle/check-box';  
 import BusinessCase from 'material-ui/svg-icons/content/archive';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz'; 
+import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';  
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none'; 
 import Flag from 'material-ui/svg-icons/image/assistant-photo'; 
@@ -33,7 +33,7 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import { ipcRenderer } from 'electron'; 
 import AutosizeInput from 'react-input-autosize';
 import { createStore } from "redux"; 
-import { Provider } from "react-redux";
+import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import List from 'material-ui/svg-icons/action/list';
 import { 
     cond, assoc, isNil, not, defaultTo, map, isEmpty, when,
@@ -68,8 +68,8 @@ import { SortableContainer } from './Components/CustomSortableContainer';
 import { arrayMove } from './utils/arrayMove';
 import { ChecklistItem, Checklist } from './Components/TodoInput/TodoChecklist';
 import { globalErrorHandler } from './utils/globalErrorHandler';
-import { isString, isDate, isProject } from './utils/isSomething';
-import { isToday, byNotDeleted, byNotCompleted } from './utils/utils';
+import { isString, isDate, isProject, isArea } from './utils/isSomething';
+import { isToday, byNotDeleted, byNotCompleted, attachDispatchToProps, isNotEmpty } from './utils/utils';
 import { isDev } from './utils/isDev';
 import TextareaAutosize from 'react-autosize-textarea';
 import { TodoTags } from './Components/TodoInput/TodoTags';
@@ -79,7 +79,8 @@ import { AutoresizableText } from './Components/AutoresizableText';
 import { getProgressStatus } from './Components/Project/ProjectLink';
 import { stringToLength } from './utils/stringToLength';
 import Editor from 'draft-js-plugins-editor';
-import {shell} from 'electron'; 
+import { shell } from 'electron'; 
+import { Provider, connect } from "react-redux";
 import {
     convertToRaw,
     convertFromRaw,
@@ -94,6 +95,11 @@ import {
     noteToState, noteFromState, RawDraftContentState, getNotePlainText,
 } from './utils/draftUtils';
 import { requestFromMain } from './utils/requestFromMain';
+import { groupProjectsByArea } from './Components/Area/groupProjectsByArea';
+import {  generateLayout } from './Components/Area/generateLayout';
+import { App } from './app';
+injectTapEventPlugin();  
+
 
 
 const linkifyPlugin = createLinkifyPlugin({
@@ -103,11 +109,6 @@ const linkifyPlugin = createLinkifyPlugin({
     }
 });
 
-
-injectTapEventPlugin();  
-
-
-let isNotEmpty = complement(isEmpty);
 
 
 window.onerror = function (msg, url, lineNo, columnNo, error) {
@@ -125,24 +126,44 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 };
 
 
+
 ipcRenderer.once( 
     'loaded',     
     (event, id:number) => {   
+
         let app=document.createElement('div'); 
         app.style.width=`${window.innerWidth}px`; 
         app.style.height=`${window.innerHeight}px`;
         app.id='application';      
-        document.body.appendChild(app);    
-        getConfig().then( 
-            (config) => ReactDOM.render(   
-                wrapMuiThemeLight(
-                    <Provider store={createStore((state, action) =>  state, {})}>   
-                        <QuickEntry config={config}/>
-                    </Provider>
-                ),
-                document.getElementById('application')
-            )     
-        )
+        document.body.appendChild(app);
+        
+        let store = createStore(
+            (state, action) => when(
+                () => action.type==="data",
+                (state) => ({
+                    ...state,
+                    projects:action.load.projects, 
+                    areas:action.load.areas, 
+                    todos:action.load.todos, 
+                    defaultTags:action.load.defaultTags
+                })
+            )(state), 
+            {
+                projects:[], 
+                areas:[], 
+                todos:[], 
+                defaultTags:[]
+            }
+        );
+
+        getConfig()
+        .then( 
+            compose(
+              (el) => ReactDOM.render(el,app),  
+              wrapMuiThemeLight,
+              config => <Provider store={store}><QuickEntry {...{config} as any}/></Provider>
+            )   
+        );
     }
 );   
 
@@ -150,9 +171,6 @@ ipcRenderer.once(
 
 interface QuickEntryState{
     project:any,
-    projects:any[],
-    todos:any[],
-    areas:any[],
     category:string,
     title:string,  
     editorState:any,
@@ -162,22 +180,27 @@ interface QuickEntryState{
     attachedTags:string[],
     tag:string, 
     checklist:any[],
-    defaultTags:string[],
     showTags:boolean, 
     showDateCalendar:boolean,  
     showTagsSelection:boolean,
     showChecklist:boolean,   
     showDeadlineCalendar:boolean
-}   
+};   
   
 
 
 interface QuickEntryProps{
-    config:any
-}    
- 
+    config:any,
+    projects:any[],
+    areas:any[],
+    todos:any[],
+    defaultTags:string[],
+    dispatch?:Function
+};    
 
 
+
+@connect((store,props) => ({...store,config:props.config}), attachDispatchToProps)  
 class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     calendar:HTMLElement; 
     deadline:HTMLElement;
@@ -192,19 +215,15 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         let {config} = this.props;
         let partialState = this.stateFromConfig(config);
 
-        this.state = {    
+        this.state={    
             project:null,
             tag:'',
             category:'', 
             title:'', 
-            projects:[],
-            areas:[],
             editorState:noteToState(null),
-            todos:[],
             deadline:undefined, 
             deleted:undefined, 
             attachedDate:undefined,
-            defaultTags:[],  
             attachedTags:[],   
             checklist:[], 
             showDateCalendar:false,  
@@ -269,15 +288,18 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             .fromEvent(ipcRenderer,"data",(event,todos,projects,areas) => ({todos,projects,areas}))
             .subscribe(
                 compose(
-                    ({todos,projects,areas}) => this.setState({  
+                    ({todos,projects,areas}) => this.props.dispatch({
+                        type:"data",    
+                        load:{  
                             projects, 
                             areas, 
                             todos, 
                             defaultTags:compose(
                                 uniq,
-                                append(this.state.defaultTags),
+                                append(this.props.defaultTags),
                                 map(prop('attachedTags'))
                             )(todos) 
+                        }
                     }),
                     evolve({
                         todos:(todos) => todos.filter(byNotDeleted),
@@ -286,7 +308,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     })
                 )
             )
-        )
+        );
     }
 
     componentWillUnmount(){ 
@@ -424,7 +446,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
     categoryFromState = () : string => {
-        //inbox - next  
         let {project,category,deadline,attachedDate} = this.state;
 
         if(isDate(deadline) || isDate(attachedDate) || isProject(project)){
@@ -555,28 +576,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                 keyBindingFn={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
                 placeholder="Note"
             />
-            {
-            /*<TextareaAutosize
-                id={`always-note`}  
-                value={this.state.note} 
-                placeholder="Notes"
-                onChange={this.onNoteChange}
-                style={{
-                    resize:"none",
-                    marginTop:"-4px",
-                    width:"100%",
-                    fontSize:"14px",
-                    padding:"0px",
-                    cursor:"default", 
-                    position:"relative", 
-                    border:"none",
-                    outline:"none",
-                    backgroundColor:"rgba(0, 0, 0, 0)",
-                    color:"rgba(0, 0, 0, 0.87)" 
-                }}
-                onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); }}}
-            />*/
-            }
             </div>
                 <div 
                 ref={(e) => {this.checklist=e;}} 
@@ -645,20 +644,17 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                 />  
             } 
             {
-                <TagsPopup   
-                    {  
-                        ...{
-                            attachTag:this.onAttachTag, 
-                            close:this.closeTagsSelection,
-                            open:this.state.showTagsSelection,  
-                            anchorEl:this.tags,
-                            todos:[],
-                            defaultTags:this.state.defaultTags,
-                            origin:{vertical:"center",horizontal:"left"}, 
-                            point:{vertical:"bottom",horizontal:"right"}, 
-                            rootRef:document.body 
-                        } 
-                    }
+                not(this.state.showTagsSelection) ? null :
+                <TagsPopup  
+                    attachTag={this.onAttachTag} 
+                    close={this.closeTagsSelection}
+                    open={this.state.showTagsSelection}  
+                    anchorEl={this.tags}
+                    defaultTags={this.props.defaultTags}
+                    origin={{vertical:"center",horizontal:"left"}} 
+                    point={{vertical:"bottom",horizontal:"right"}} 
+                    rootRef={document.body} 
+                    todos={[]}
                 />
             }
             {
@@ -742,8 +738,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             <div style={{width:"100%",position:"fixed",bottom:0,right:0}}>    
                 <TodoInputPopupFooter
                     project={this.state.project}
-                    todos={this.state.todos}
-                    projects={this.state.projects}
+                    todos={this.props.todos}
+                    projects={this.props.projects}
+                    areas={this.props.areas}
                     openDeadlineCalendar={this.onFlagButtonClick}
                     openCalendar={this.onCalendarButtonClick} 
                     onCancel={this.onCancel}
@@ -756,17 +753,15 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     onRemoveUpcomingLabel={() => this.onCalendarClear()}
                     onRemoveSomedayLabel={() => this.onCalendarClear()}
                     onRemoveDeadlineLabel={() => this.onDeadlineCalendarClear()}
-                    onSelectInboxCategory={
-                        () => this.setState({
-                            project:null,
-                            category:'inbox',
-                            deadline:undefined, 
-                            attachedDate:undefined,
-                            showDateCalendar:false,  
-                            showTagsSelection:false, 
-                            showDeadlineCalendar:false
-                        })
-                    }
+                    onSelectInboxCategory={() => this.setState({
+                        project:null,
+                        category:'inbox',
+                        deadline:undefined, 
+                        attachedDate:undefined,
+                        showDateCalendar:false,  
+                        showTagsSelection:false, 
+                        showDeadlineCalendar:false
+                    })}
                     onSelectProject={(project) => this.setState({project,category:'next'})}
                 /> 
             </div> 
@@ -791,6 +786,7 @@ interface TodoInputPopupFooterProps{
     attachedDate:Date,
     deadline:Date,
     project:any,
+    areas:any[],
     projects:any[],
     todos:any[]
 }
@@ -927,6 +923,7 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
                     open={selectorPopupOpened} 
                     anchorEl={this.ref}
                     rootRef={document.body}
+                    areas={this.props.areas}
                     close={this.closeSelectorPopup}
                     projects={this.props.projects}
                     todos={this.props.todos}
@@ -1441,6 +1438,7 @@ interface SelectorPopupProps{
     projects:any[],
     rootRef:HTMLElement, 
     todos:any[],
+    areas:any[],
     selectInbox:() => void,    
     selectProject:(project:any) => void,
     category:any,
@@ -1452,7 +1450,6 @@ interface SelectorPopupState{}
  
 
 class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
-
     ref:HTMLElement;
     subscriptions:Subscription[];
 
@@ -1460,6 +1457,152 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
         super(props);
         this.subscriptions=[];         
     }
+
+
+
+    getAreaElement = (a:any) => { 
+        let {selectProject,close,todos,project} = this.props;
+
+        return <div    
+            key = {`${a._id}-area`}
+            onClick = {(e) => { }}
+            id = {`${a._id}-popup`} 
+            style={{       
+                borderRadius:"2px", 
+                color:"white",
+                height:"25px",  
+                paddingLeft:"4px", 
+                display:"flex",
+                alignItems:"center" 
+            }} 
+        >     
+                <div> <NewAreaIcon style={{width:"20px", color:"white", height:"20px"}}/> </div>
+                <div    
+                    id = {`${a._id}-popup-text`}   
+                    style={{  
+                        width:"100%",
+                        paddingLeft:"5px",
+                        fontFamily: "sans-serif",
+                        fontSize:`15px`,  
+                        whiteSpace: "nowrap",
+                        cursor: "default",
+                        color:"white",  
+                        WebkitUserSelect: "none" 
+                    }}
+                >    
+                    <AutoresizableText
+                        text={a.name}
+                        placeholder="New Area"
+                        fontSize={15}
+                        style={{}}
+                        offset={45} 
+                        placeholderStyle={{}}
+                    />
+                </div>  
+        </div>
+    };
+
+
+
+    getProjectElement = (p:any) => { 
+        let {selectProject,close,todos,project} = this.props;
+        let {done, left} = getProgressStatus(p,todos,false);
+        let totalValue = (done+left)===0 ? 1 : (done+left);
+        let currentValue = done;
+
+        return <div    
+            key = {`${p._id}-project`}
+            onClick = {(e) => {
+                let {selectProject,close} = this.props;
+                selectProject(p);
+                close(); 
+            }}
+            id = {`${p._id}-popup`} 
+            className="hoverDateType" 
+            style={{       
+                borderRadius:"2px", 
+                color:"white",
+                height:"25px",  
+                paddingLeft:"30px", 
+                display:"flex",
+                alignItems:"center" 
+            }} 
+        >     
+                <div style={{    
+                    transform: "rotate(270deg)", 
+                    width: "18px",
+                    height: "18px",
+                    position: "relative",
+                    borderRadius: "100px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    border: "1px solid rgb(170, 170, 170)",
+                    boxSizing: "border-box" 
+                }}> 
+                    <div style={{
+                        width: "18px",
+                        height: "18px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        position: "relative" 
+                    }}>  
+                        <PieChart 
+                            animate={false}    
+                            totalValue={totalValue}
+                            data={[{     
+                                value:currentValue,  
+                                key:1,    
+                                color:"white" 
+                            }]}    
+                            style={{ 
+                                color:"white",
+                                width:"12px", 
+                                height:"12px",
+                                position:"absolute",
+                                display:"flex",
+                                alignItems:"center",
+                                justifyContent:"center"  
+                            }}    
+                        />       
+                    </div>
+                </div> 
+                <div    
+                    id = {`${p._id}-popup-text`}   
+                    style={{  
+                        width:"100%",
+                        paddingLeft:"5px",
+                        fontFamily: "sans-serif",
+                        fontSize:`15px`,  
+                        whiteSpace: "nowrap",
+                        cursor: "default",
+                        color:"white",  
+                        WebkitUserSelect: "none" 
+                    }}
+                >    
+                    <AutoresizableText
+                        text={p.name}
+                        placeholder="New Project"
+                        fontSize={15}
+                        style={{}}
+                        offset={45} 
+                        placeholderStyle={{}}
+                    />
+                </div>     
+                {   
+                    isNil(project) ? null :
+                    project._id!==p._id ? null : 
+                    <Checked style={{  
+                        color:"white",
+                        paddingRight:"5px",
+                        paddingLeft:"5px",
+                    }}/> 
+                }  
+        </div>
+    };
+
+
 
     componentDidMount(){
         let {close} = this.props;
@@ -1474,13 +1617,29 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
         );  
     }
 
+
+
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = []; 
     } 
 
+
+
     render(){
         let {open,anchorEl,close,projects,todos,rootRef,project,category} = this.props;
+
+        let {table,detached} = groupProjectsByArea(
+            projects.filter(
+                allPass([
+                    byNotDeleted, 
+                    byNotCompleted
+                ])
+            ),
+            this.props.areas.filter(byNotDeleted)
+        );
+
+        let layout = generateLayout(this.props.areas,{table,detached}, true); 
     
         return <div> 
             <Popover  
@@ -1516,12 +1675,7 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                             overflowX:"hidden" 
                         }}  
                     >     
-                            <div style={{
-                                display:"flex",
-                                alignItems:"center", 
-                                paddingTop:"5px",
-                                paddingBottom:"5px",
-                            }}>
+                            <div style={{display:"flex",alignItems:"center",paddingTop:"5px",paddingBottom:"5px"}}>
                                 <div  
                                     className="hoverDateType" 
                                     onClick={() => {
@@ -1538,15 +1692,13 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                                     }} 
                                 >
                                     <div style={{display:"flex", alignItems:"center"}}>
-                                        <Inbox    
-                                            style={{  
-                                                paddingLeft:"5px",
-                                                width:"18px",
-                                                height:"18px",
-                                                color:"white", 
-                                                cursor:"default"
-                                            }}  
-                                        /> 
+                                        <Inbox style={{  
+                                            paddingLeft:"5px",
+                                            width:"18px",
+                                            height:"18px",
+                                            color:"white", 
+                                            cursor:"default"
+                                        }}/> 
                                     </div>
                                     <div  
                                         style={{
@@ -1578,7 +1730,6 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                                     </div>
                                 </div>
                             </div>
-
                             <div style={{
                                 outline: "none",
                                 color: "rgba(255, 255, 255, 1)",
@@ -1586,116 +1737,22 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                                 borderBottom: "1px solid rgba(255,255,255,0.2)"
                             }}>
                             </div> 
-                            {
-                                projects 
+                            { 
+                                layout
                                 .map( 
-                                    (p:any) => { 
-                                        let {selectProject,close} = this.props;
-                                        let {done, left} = getProgressStatus(p,todos,false);
-                                        let totalValue = (done+left)===0 ? 1 : (done+left);
-                                        let currentValue = done;
-
-                                        return <div    
-                                            key = {`${p._id}-project`}
-                                            onClick = {(e) => {
-                                                let {selectProject,close} = this.props;
-                                                selectProject(p);
-                                                close(); 
-                                            }}
-                                            id = {`${p._id}-popup`} 
-                                            className="hoverDateType" 
-                                            style={{       
-                                                borderRadius:"2px", 
-                                                color:"white",
-                                                height:"25px",  
-                                                paddingLeft:"4px", 
-                                                display:"flex",
-                                                alignItems:"center" 
-                                            }} 
-                                        >     
-                                                <div style={{    
-                                                    transform: "rotate(270deg)", 
-                                                    width: "18px",
-                                                    height: "18px",
-                                                    position: "relative",
-                                                    borderRadius: "100px",
-                                                    display: "flex",
-                                                    justifyContent: "center",
-                                                    alignItems: "center",
-                                                    border: "1px solid rgb(170, 170, 170)",
-                                                    boxSizing: "border-box" 
-                                                }}> 
-                                                    <div style={{
-                                                        width: "18px",
-                                                        height: "18px",
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        justifyContent: "center",
-                                                        position: "relative" 
-                                                    }}>  
-                                                        <PieChart 
-                                                            animate={false}    
-                                                            totalValue={totalValue}
-                                                            data={[{     
-                                                                value:currentValue,  
-                                                                key:1,    
-                                                                color:"white" 
-                                                            }]}    
-                                                            style={{ 
-                                                                color:"white",
-                                                                width:"12px", 
-                                                                height:"12px",
-                                                                position:"absolute",
-                                                                display:"flex",
-                                                                alignItems:"center",
-                                                                justifyContent:"center"  
-                                                            }}    
-                                                        />       
-                                                    </div>
-                                                </div> 
-                            
-                                                <div    
-                                                    id = {`${p._id}-popup-text`}   
-                                                    style={{  
-                                                        width:"100%",
-                                                        paddingLeft:"5px",
-                                                        fontFamily: "sans-serif",
-                                                        fontSize:`15px`,  
-                                                        whiteSpace: "nowrap",
-                                                        cursor: "default",
-                                                        color:"white",  
-                                                        WebkitUserSelect: "none" 
-                                                    }}
-                                                >    
-                                                    <AutoresizableText
-                                                        text={p.name}
-                                                        placeholder="New Project"
-                                                        fontSize={15}
-                                                        style={{}}
-                                                        offset={45} 
-                                                        placeholderStyle={{}}
-                                                    />
-                                                </div>     
-
-                                                {   
-                                                    isNil(project) ? null :
-                                                    project._id!==p._id ? null : 
-                                                    <Checked style={{  
-                                                        color:"white",
-                                                        paddingRight:"5px",
-                                                        paddingLeft:"5px",
-                                                    }}/> 
-                                                }  
-                                        </div>
-                                    }
+                                    cond([
+                                        [isProject,this.getProjectElement],
+                                        [isArea,this.getAreaElement],
+                                        [() => true, () => null]
+                                    ])                                    
                                 )
-                            }   
+                            }
                     </div>  
                 </div>  
             </Popover> 
         </div>
     }    
-}
+};
 
 
 
@@ -1715,7 +1772,7 @@ let selectButtonContent = ({category, project, attachedDate, deadline, todos}) =
             <div style={{paddingRight:"5px",paddingLeft:"5px",WebkitUserSelect:"none"}}>  
                 Inbox
             </div> 
-        </div>
+        </div>;
 
     }else if(isProject(project)){ 
         let {done, left} = getProgressStatus(project,todos,false);
@@ -1762,7 +1819,7 @@ let selectButtonContent = ({category, project, attachedDate, deadline, todos}) =
             <div style={{paddingRight:"5px",paddingLeft: "5px",WebkitUserSelect:"none",width:"100%"}}>   
                 {isEmpty(project.name) ? "New Project" : stringToLength(project.name,10)}    
             </div>    
-        </div>  
+        </div>;  
     }else{
         return <div  
             style={{
@@ -1788,6 +1845,6 @@ let selectButtonContent = ({category, project, attachedDate, deadline, todos}) =
             }}>  
                 Scheduled
             </div>
-        </div>
+        </div>;
     }
-}
+};

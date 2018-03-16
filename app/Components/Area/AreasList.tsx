@@ -6,10 +6,8 @@ import { Component } from "react";
 import IconButton from 'material-ui/IconButton'; 
 import { Project, Area, Todo } from '../../database';
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
-
 import ArrowUp from 'material-ui/svg-icons/navigation/arrow-drop-up';
 import ArrowDown from 'material-ui/svg-icons/navigation/arrow-drop-down';
-
 import { byNotCompleted, byNotDeleted, typeEquals, isNotNil, anyTrue, attachDispatchToProps, different } from '../../utils/utils';
 import PieChart from 'react-minimal-pie-chart';
 import { 
@@ -25,6 +23,8 @@ import { isArea, isProject, isNotArray } from '../../utils/isSomething';
 import { arrayMove } from '../../utils/arrayMove';
 import { SortableContainer } from '../CustomSortableContainer';
 import { isDev } from '../../utils/isDev';
+import { groupProjectsByArea } from './groupProjectsByArea';
+import {  generateLayout } from './generateLayout';
 const mapIndexed = addIndex(map);
 const isSeparator = (item) => item.type==="separator"; 
       
@@ -42,65 +42,6 @@ export let removeFromArea = (dispatch:Function, fromArea:Area, selectedProject:P
     fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
     dispatch({type:"updateArea", load:fromArea});  
 };
-
-
-
-export let groupProjectsByArea = (projects:Project[],areas:Area[]) : {
-    table : { [key: string]: Project[]; }, 
-    detached:Project[]  
-} => {
-    let table = {};
-    let detached : Project[] = [];
-
-    for(let i=0; i<areas.length; i++){
-        table[areas[i]._id] = [];
-    }  
-     
-    for(let i=0; i<projects.length; i++){
-        let projectId = projects[i]._id;
-        let haveArea = false;
-
-        for(let j=0; j<areas.length; j++){
-            let attachedProjectsIds : string[] = areas[j].attachedProjectsIds;
-
-            if(contains(projectId,attachedProjectsIds)){
-               let key = areas[j]._id;
-               table[key].push(projects[i]);
-               haveArea = true;
-               break; 
-            }
-        } 
-
-        if(not(haveArea)){
-           detached.push(projects[i]);
-        }
-    }   
-
-    return {table,detached};
-};
-
-
-
-export let generateLayout = (  
-    areas : Area[],
-    { table, detached } : { table : { [key: string]: Project[]; }, detached:Project[] } 
-) : LayoutItem[] => 
-    compose(
-        insertAll(0,detached.sort((a:Project, b:Project) => a.priority-b.priority)),
-        prepend({type:"separator", _id:"separator"}),
-        flatten,
-        (areas) => areas.map(
-            (area:Area) => compose(
-                prepend(area),
-                (projects:Project[]) => projects.sort((a:Project,b:Project) => a.priority-b.priority),
-                defaultTo([]),
-                (key) => table[key],
-                prop('_id')
-            )(area)
-        ),
-        (areas) => areas.filter(byNotDeleted),
-        (areas) => areas.sort((a:Area,b:Area) => a.priority-b.priority)
-    )(areas);
 
  
 
@@ -130,7 +71,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         super(props);  
     } 
 
-/*
+
     shouldComponentUpdate(nextProps:AreasListProps){
         let {
             leftPanelWidth, 
@@ -164,7 +105,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             projectsChanged 
         ]); 
     }
-*/
+
 
     onCollapseContent = (area:Area) : void => { 
         let {dispatch} = this.props;
@@ -497,7 +438,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
         this.state={highlight:false}; 
     }  
 
-/*
+
     shouldComponentUpdate(nextProps:AreaElementProps,nextState:AreaElementState){
         let {
             area,
@@ -524,7 +465,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
             selectedAreaIdChanged
         ]);
     }
-*/
+
 
     onMouseEnter = (e) => this.setState({highlight:true});  
       
@@ -668,7 +609,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         };  
     }   
     
-/*
+
     shouldComponentUpdate(nextProps:ProjectElementProps,nextState:ProjectElementState){
         let {
             project,
@@ -706,20 +647,10 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
             selectedProjectIdChanged 
         ]);
 
-        if(should)
-        console.log(
-            ` 
-            highlightChanged : ${highlightChanged}
-            projectChanged : ${projectChanged}
-            todosChanged : ${todosChanged}
-            lselectedProjectIdChanged  : ${selectedProjectIdChanged}
-            `
-        )
-
 
         return should
-    }
-*/
+    };
+
     
     onMouseOver = (e) => {  
         let {dragged} = this.props; 
@@ -729,14 +660,14 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                this.setState({highlight:true})  
             }  
         }  
-    } 
+    }; 
 
 
     onMouseOut = (e) => { 
         if(this.state.highlight){
            this.setState({highlight:false})
         }
-    } 
+    }; 
      
 
     render(){

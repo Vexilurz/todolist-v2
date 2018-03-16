@@ -207,7 +207,8 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
         let selected = filter(todos,allPass(areasFilters));
         let completed = filter(selected,byCompleted);
 
-        return  <div style={{display:"flex",flexDirection:"row-reverse",height:window.innerHeight}}> 
+        
+        return <div style={{display:"flex",flexDirection:"row-reverse",height:window.innerHeight}}> 
             { 
                 not(collapsed) ?
                 <ResizableHandle onDrag={this.onResizableHandleDrag}/> : 
@@ -289,7 +290,7 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
         super(props); 
     }
      
-/*
+
     shouldComponentUpdate(nextProps:LeftPanelFooterProps){
         let {width, collapsed} = nextProps;
         let widthChanged = width!==this.props.width;
@@ -297,7 +298,7 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
 
         return anyTrue([widthChanged, collapsedChanged]);
     };
-*/
+
     
     render(){ 
         let { collapsed, openSettings, openNewProjectAreaPopup, width, setNewProjectAnchor } = this.props; 

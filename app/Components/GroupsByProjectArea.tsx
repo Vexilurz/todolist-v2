@@ -33,12 +33,13 @@ import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { uniq, allPass, isEmpty, isNil, not, any, contains, all, compose, groupBy, cond, defaultTo } from 'ramda';
 import { TodoInput } from './TodoInput/TodoInput';
 import { ProjectLink } from './Project/ProjectLink';
-import { Category } from './MainContainer';
+import { Category, filter } from './MainContainer';
 import { TodoCreationForm } from './TodoInput/TodoCreation';
 import { generateId } from './../utils/generateId';
 import { generateEmptyTodo } from './../utils/generateEmptyTodo';
 import { isString, isDate, Item, isProject } from '../utils/isSomething';
-import { groupProjectsByArea, generateLayout } from './Area/AreasList';
+import { groupProjectsByArea } from './Area/groupProjectsByArea';
+import {  generateLayout } from './Area/generateLayout';
 
 
 
@@ -150,10 +151,10 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         
                             return dontShow ? null : 
                             <div key={`project-link-${project._id}`}>  
-                                <ProjectLink 
+                                <ProjectLink  
                                     project={project}
                                     showMenu={true} 
-                                    todos={this.props.todos}
+                                    todos={[]}
                                     dispatch={this.props.dispatch}
                                     selectedCategory={this.props.selectedCategory}
                                 /> 
