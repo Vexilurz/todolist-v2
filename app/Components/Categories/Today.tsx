@@ -6,7 +6,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, byNotCompleted, byNotDeleted, getTagsFromItems, 
     generateDropStyle,  keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, 
-    sameDay, byTags, byCategory, isNotNil, measureTime
+    sameDay, byTags, byCategory, isNotNil, measureTime, timeIsMidnight
 } from "../../utils/utils";  
 import { Todo, Project, Area, Calendar } from '../../database'; 
 import { Tags } from '../../Components/Tags';
@@ -34,6 +34,7 @@ import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
 import { timeOfTheDay, inTimeRange } from '../../utils/time';
 import { groupEventsByType, byTime } from './Upcoming';
+import { getSameDayEventElement } from '../../utils/getCalendarEventElement';
 let Perf = require('react-addons-perf');
 let p = require('react-dom/lib/ReactPerf'); 
 
@@ -469,11 +470,13 @@ export class Today extends Component<TodayProps,TodayState>{
                 {  
                     clone ? null :
                     this.props.hideHint ? null :
+                    <div className={`no-print`}>
                     <Hint  
                         text={`These are your tasks for today.Do you also want to include the events from your calendar?`}
                         dispatch={this.props.dispatch}
                         hideHint={this.props.hideHint}          
                     /> 
+                    </div>
                 }
             </div>
             <div id="todos">  
@@ -563,8 +566,8 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
             {
                 fullDayEvents
                 .map(  
-                    (event) => 
-                    <div key={`event-${event.name}`} style={{padding:"1px"}}>
+                    (event,index) => 
+                    <div key={`event-${event.name}-${index}`} style={{padding:"1px"}}>
                     <div style={{display:"flex",height:"20px",alignItems:"center"}}>
                         <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
                         <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
@@ -576,62 +579,12 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
             }
             {
                 sameDayEvents
-                .sort(byTime)
+                .sort(byTime) 
                 .map(   
-                    (event) =>  
-                    <div key={`event-${event.name}`} style={{padding:"1px"}}>
+                    (event,index) =>  
+                    <div key={`event-${event.name}-${index}`} style={{padding:"1px"}}>
                     {
-                        cond([
-                            [ 
-                                //end
-                                (event) => {
-                                    let {sequenceEnd,sequenceStart} = event;
-                                    return not(sequenceStart) && sequenceEnd; 
-                                },
-                                (event) => <div style={{
-                                    display:"flex",
-                                    height:"20px",
-                                    alignItems:"center"
-                                }}>
-                                    <div style={{
-                                        fontSize:"14px",
-                                        userSelect:"none",
-                                        cursor:"default",
-                                        fontWeight:500, 
-                                        paddingRight:"5px",
-                                        overflowX:"hidden"
-                                    }}>   
-                                        {event.name}   
-                                    </div>
-                                    <div style={{fontSize:"14px",fontWeight:500}}>
-                                        {`(ending ${timeOfTheDay(event.end)})`} 
-                                    </div>
-                                </div>
-                            ],
-                            [
-                                //start
-                                (event) => true,
-                                (event) => <div style={{
-                                    display:"flex",
-                                    height:"20px",
-                                    alignItems:"center"
-                                }}>
-                                    <div style={{fontSize:"14px",fontWeight:500}}>
-                                        {timeOfTheDay(event.start)} 
-                                    </div>
-                                    <div style={{
-                                        fontSize:"14px",
-                                        userSelect:"none",
-                                        cursor:"default",
-                                        fontWeight:500,
-                                        paddingLeft:"5px",
-                                        overflowX:"hidden"
-                                    }}>   
-                                        {event.name}   
-                                    </div>
-                                </div>
-                            ]
-                        ])(event)
+                        getSameDayEventElement(event,false)
                     }
                     </div> 
                 )  
@@ -641,7 +594,7 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
     }   
 } 
 
- 
+
 
 interface HintProps{ 
     dispatch:Function,

@@ -45,6 +45,7 @@ import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { timeOfTheDay } from '../../utils/time';
 import { repeat } from '../RepeatPopup';
 import { isDev } from '../../utils/isDev';
+import { getSameDayEventElement } from '../../utils/getCalendarEventElement';
 
 
 
@@ -211,6 +212,7 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
 
 interface UpcomingProps{
     limit:Date, 
+    hideHint:boolean,
     dispatch:Function,
     clone:boolean,
     showCalendarEvents:boolean,
@@ -263,10 +265,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                calendars,  
                this.onError
             ).then(
-               (result) => dispatch({
-                   type:"setCalendars",
-                   load:result
-                })
+               (load) => dispatch({type:"setCalendars",load})
             ) 
 
             let extended = extend(newLimit, todos);
@@ -279,7 +278,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         } 
     }; 
  
-
 
     onEnter = ({previousPosition, currentPosition}) => { 
         let objectsByDate = objectsToHashTableByDate(this.props);
@@ -440,16 +438,16 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                         selectedTag={selectedTag} 
                     />
                 </div>
-                {
+                {  
                     clone ? null :
+                    this.props.hideHint ? null :
                     <div className={`no-print`}>
-                        <Hint {
-                            ...{
-                                text:`These are your tasks for the next days. 
-                                Do you also want to include the events from your calendar?`
-                            } as any  
-                        }/>
-                    </div> 
+                    <Hint  
+                        text={`These are your tasks for the next days. Do you also want to include the events from your calendar?`}
+                        dispatch={this.props.dispatch}
+                        hideHint={this.props.hideHint}          
+                    /> 
+                    </div>
                 }
                 <div>{this.state.objects.map(this.objectToComponent)}</div>
                 <div className={`no-print`} style={{width:"100%", height:"1px"}}> 
@@ -559,7 +557,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             fullDayEvents
                             .map(  
                                 (event,index) => 
-                                <div  key={`event-${event.name}-${index}`} style={{padding:"1px"}}>
+                                <div key={`event-${event.name}-${index}`} style={{padding:"1px"}}>
                                 <div style={{display:"flex",height:"20px",alignItems:"center"}}>
                                     <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
                                     <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
@@ -584,62 +582,10 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         } 
                         {
                             sameDayEvents 
-                            .sort(byTime)
+                            .sort(byTime) 
                             .map((event,index) => 
                                 <div key={`event-${event.name}-${index}`} style={{paddingTop:"1px",paddingBottom:"1px"}}>
-                                    {
-                                        cond([
-                                            [ 
-                                                //end
-                                                (event) => {
-                                                    let {sequenceEnd,sequenceStart} = event;
-                                                    return not(sequenceStart) && sequenceEnd; 
-                                                },
-                                                (event) => <div style={{
-                                                    display:"flex",
-                                                    height:"20px",
-                                                    alignItems:"center"
-                                                }}>
-                                                    <div style={{
-                                                        fontSize:"14px",
-                                                        userSelect:"none",
-                                                        cursor:"default",
-                                                        fontWeight:500, 
-                                                        paddingRight:"5px",
-                                                        overflowX:"hidden"
-                                                    }}>   
-                                                        {event.name}   
-                                                    </div>
-                                                    <div style={{fontSize:"14px",fontWeight:500}}>
-                                                        {`(ending ${timeOfTheDay(event.end)})`} 
-                                                    </div>
-                                                </div>
-                                            ],
-                                            [
-                                                //start
-                                                (event) => true,
-                                                (event) => <div style={{
-                                                    display:"flex",
-                                                    height:"20px",
-                                                    alignItems:"center"
-                                                }}>
-                                                    <div style={{fontSize:"14px",fontWeight:500}}>
-                                                        {timeOfTheDay(event.start)} 
-                                                    </div>
-                                                    <div style={{
-                                                        fontSize:"14px",
-                                                        userSelect:"none",
-                                                        cursor:"default",
-                                                        fontWeight:500,
-                                                        paddingLeft:"5px",
-                                                        overflowX:"hidden"
-                                                    }}>   
-                                                        {event.name}   
-                                                    </div>
-                                                </div>
-                                            ]
-                                        ])(event)
-                                    }
+                                    { getSameDayEventElement(event,true) }
                                     { 
                                         isNil(event.description) ? null :
                                         isEmpty(event.description) ? null :

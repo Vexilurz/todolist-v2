@@ -549,18 +549,19 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                     />
                 </div>  
                 { 
-                    not(highlight) ? null :
+                    not(hideContentFromAreasList) && not(highlight) ? null :
                     <IconButton  
-                        onClick={(e) => {
+                        onClick={(e) => { 
                             e.stopPropagation();
-                            onCollapseContent(area);
-                        }}
+                            onCollapseContent(area); 
+                            this.onMouseLeave(null); 
+                        }} 
                         style={{ 
                             width:"22px",  
                             height:"22px", 
                             padding:"0px",
                             display:"flex",  
-                            alignItems:"center", 
+                            alignItems:"center",  
                             justifyContent:"center"   
                         }}    
                         iconStyle={{color:"rgba(150,150,150,1)",width:"22px",height:"22px"}}   

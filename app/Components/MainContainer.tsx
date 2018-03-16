@@ -713,7 +713,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             [ 
                                 (selectedCategory:Category) : boolean => 'upcoming'===selectedCategory,  
                                 () => {
- 
                                     let upcomingFilters = [
                                         byScheduled,
                                         byNotAttachedToCompletedProject(projects),
@@ -726,7 +725,8 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
                                     return <Upcoming  
                                         limit={this.props.limit}
-                                        clone={this.props.clone}
+                                        clone={this.props.clone} 
+                                        hideHint={this.props.hideHint}
                                         todos={filtered}
                                         groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch}
