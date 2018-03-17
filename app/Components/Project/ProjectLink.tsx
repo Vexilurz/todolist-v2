@@ -78,7 +78,7 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
 
         dispatch({type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))});
         dispatch({type:"updateProject", load:{...p,deleted:undefined}});
-    }
+    };
 
 
     onHideFrom = () => {
@@ -98,7 +98,7 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
                 load:{...project,hide}
             }) 
         );
-    }  
+    };  
 
 
     onShowOnlyOne = () => {
@@ -110,7 +110,7 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
 
         dispatch({type:"updateProject", load:{...project,expand}})
         this.setState({openMenu:false}) 
-    }
+    };
 
 
     openProject =  (e) => {
@@ -122,7 +122,7 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
             
         dispatch({type:"selectedCategory", load:"project"});
         dispatch({type:"selectedProjectId", load:project._id});
-    }
+    };
 
     
     render(){ 
@@ -133,6 +133,7 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
 
         let flagColor = "rgba(100,100,100,0.7)";
         let daysLeft = 0;  
+
 
         if(isDate(project.deadline)){      
            daysLeft = daysRemaining(project.deadline);        
@@ -339,17 +340,32 @@ interface ProjectLinkLogbookProps{
     selectedCategory:Category
 }
 interface ProjectLinkLogbookState{}   
+
+@connect(
+    (store:Store,props:ProjectLinkLogbookProps):ProjectLinkLogbookProps => ({...props,todos:store.todos}), 
+    attachDispatchToProps,
+    null, 
+    { areStatesEqual:(nextStore:Store, prevStore:Store) => nextStore.todos===prevStore.todos }   
+)  
 export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, ProjectLinkLogbookState>{
 
     constructor(props){ super(props) }
 
+
+     
     uncomplete = (e) => {
         let {project} = this.props;
         this.props.dispatch({type:"updateProject",load:{...project,completed:undefined}});
-    }
+    };
+
+
 
     render(){ 
         let { dispatch,project,todos,selectedCategory } = this.props;
+        let { done, left } = getProgressStatus(project, todos, true); 
+        let totalValue = (done+left)===0 ? 1 : (done+left);
+        let currentValue = done;
+ 
 
         return <li style={{width:"100%", overflow:"hidden"}}>      
         <div   
@@ -360,7 +376,7 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
                 paddingRight:"6px",  
                 cursor:"default",
                 width:"100%",
-                display:"flex",  
+                display:"flex",   
                 alignItems:"center" 
             }}
         >      
@@ -386,23 +402,62 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
                     />
                 </div>
             </div> 
-            <div   
-                id = {project._id}   
+
+            <div style={{display:"flex",justifyContent:"flex-start",alignItems:"center"}}>
+            <div style={{     
+                width:"18px", 
+                height:"18px",
+                position:"relative",
+                borderRadius:"100px",
+                display:"flex",
+                justifyContent:"center",
+                alignItems:"center",
+                border:"1px solid rgb(159, 159, 159)",
+                boxSizing:"border-box" 
+            }}> 
+                <div style={{
+                    width:"18px",
+                    height:"18px",
+                    transform: "rotate(270deg)",
+                    display:"flex",
+                    alignItems:"center", 
+                    justifyContent:"center",
+                    position:"relative" 
+                }}>  
+                    <PieChart 
+                        animate={false}    
+                        totalValue={totalValue}
+                        data={[{
+                            value:currentValue, 
+                            key:1,  
+                            color:"rgb(159, 159, 159)" 
+                        }]}    
+                        style={{  
+                            color:"rgb(159, 159, 159)",
+                            width:"12px",
+                            height:"12px",
+                            position:"absolute",
+                            display:"flex",
+                            alignItems:"center",
+                            justifyContent:"center"  
+                        }}
+                    />     
+                </div>
+            </div>  
+            <div    
+                id={project._id}   
                 style={{   
-                    width:"80%", 
-                    overflowX:"hidden", 
-                    fontSize:"15px",    
-                    WebkitUserSelect:"none",
-                    fontWeight:"bolder", 
-                    color:"rgba(0, 0, 0, 0.8)" 
+                    paddingLeft:"5px",
+                    overflowX:"hidden"
                 }}  
             >    
                 { isEmpty(project.name) ? "New Project" : project.name } 
             </div> 
+            </div>
         </div>   
         </li>  
     }
-}
+};
 
 
 

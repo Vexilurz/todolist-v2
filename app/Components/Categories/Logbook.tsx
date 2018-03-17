@@ -188,7 +188,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                         (value:Todo|Project,index) => 
                         <div  
                           key={value._id}
-                          style={{position:"relative", marginTop:"5px", marginBottom:"5px"}}
+                          style={{position:"relative",marginTop:"5px",marginBottom:"5px"}}
                         > 
                             {
                                 isProject(value as any) ? 
@@ -197,7 +197,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                                     dispatch={this.props.dispatch}
                                     todos={this.props.todos}
                                     selectedCategory={this.props.selectedCategory}
-                                /> 
+                                />  
                                 : 
                                 isTodo(value) ?
                                 <TodoInput     

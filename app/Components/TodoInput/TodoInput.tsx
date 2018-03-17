@@ -1463,7 +1463,7 @@ export class DueDate extends Component<DueDateProps,{}>{
                 <Star style={{...style,color:"gold"}}/> 
             </div> 
             :
-            <div style={{paddingRight:"5px"}}>
+            <div style={{paddingRight:"5px",minWidth:"70px"}}>
                 <div style={containerStyle}>     
                     <div style={{display:"flex",padding:"5px",alignItems:"center",fontSize:"11px"}}>      
                         <div style={{paddingRight:"5px"}}>{month.slice(0,3)+'.'}</div>  
@@ -1476,7 +1476,7 @@ export class DueDate extends Component<DueDateProps,{}>{
             let month = getMonthName(completed);
             let day = completed.getDate(); 
 
-            return <div style={{paddingRight:"5px"}}>
+            return <div style={{paddingRight:"5px",minWidth:"70px"}}> 
                 <div style={{
                     backgroundColor:"rgba(0, 0, 0,0)",
                     cursor:"default", 
@@ -1499,7 +1499,7 @@ export class DueDate extends Component<DueDateProps,{}>{
                             </div>
                         }   
                     </div>  
-                </div>
+                </div> 
             </div>; 
         }else{
             return null;
