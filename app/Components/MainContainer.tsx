@@ -78,6 +78,16 @@ export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" |
 export let filter = (array:any[],f:Function,caller?:string) : any[] => lodashFilter(array,f); 
  
 
+
+let removeHidden = (selectedCategory:Category,projects:Project[]) => (todos:Todo[]) : Todo[] => 
+                    compose(
+                        (ids) => reject(byAttachedToHiddenProject(ids), todos),
+                        flatten,
+                        map((p:Project) => p.layout.filter(isString)),
+                        projects => filter(projects,byHidden(selectedCategory)) 
+                    )(projects);
+
+
 let noteIsString = compose(isString, prop('note'));
 let assureCorrectNoteType : (todo:Todo) => Todo = when(noteIsString,evolve({note:noteFromText}));
 let byHidden = (selectedCategory:Category) => 
@@ -92,7 +102,6 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
     calendars:Calendar[]
 }> => 
     getDatabaseObjects(onError,max)
-    .then(log('getData'))
     .then(
         compose(
             evolve({ 
@@ -102,7 +111,8 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
             }),
             ([calendars,projects,areas,todos]) => ({calendars,projects,areas,todos})
         )
-    ).then(
+    ) 
+    .then(
         ({projects,areas,todos,calendars}) => updateCalendars(
             limit,
             calendars,
@@ -160,7 +170,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
     subscriptions:Subscription[]; 
     timeouts:any[];
     disablePrintButton:boolean;
-
 
     constructor(props){ 
         super(props);  
@@ -456,7 +465,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
     render(){    
         let { 
-            todos, projects, areas, selectedProjectId, selectedAreaId, 
+            todos, areas, selectedProjectId, selectedAreaId, 
             showCompleted, showScheduled, selectedCategory, clone 
         } = this.props; 
  
@@ -518,7 +527,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 (selectedCategory:Category) : boolean => 'inbox'===selectedCategory,  
                                 () => {
                                     let inboxFilters = [
-                                        byNotAttachedToProject(projects), 
+                                        byNotAttachedToProject(this.props.projects), 
                                         (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline), 
                                         byCategory("inbox"), 
                                         byNotCompleted,  
@@ -545,31 +554,26 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             [ 
                                 (selectedCategory:Category) : boolean => 'today'===selectedCategory,  
                                 () => { 
-                                    let todayFilters = [   
-                                        byNotAttachedToCompletedProject(projects),
+                                    let todayFilters = [     
+                                        //byNotAttachedToCompletedProject(this.props.projects),
                                         (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
                                         (t:Todo) => t.category!=="someday",
                                         byNotCompleted,  
                                         byNotDeleted   
                                     ];      
 
- 
-                                    let removeHidden = (projects:Project[]) => (todos:Todo[]) : Todo[] => 
-                                        compose(
-                                            (ids) => reject(byAttachedToHiddenProject(ids), todos),
-                                            flatten,
-                                            map((p:Project) => p.layout.filter(isString)),
-                                            projects => filter(projects,byHidden(selectedCategory)) 
-                                        )(projects); 
+
+                                    let todayTodos = compose(
+                                        when( 
+                                            () => this.props.groupTodos, 
+                                            removeHidden(this.props.selectedCategory,this.props.projects) 
+                                        ),
+                                        (todos:Todo[]) => filter( todos, allPass(todayFilters) )
+                                    )(this.props.todos);
 
                                    
                                     return <Today   
-                                        todos={
-                                            compose(
-                                                when( () => this.props.groupTodos, removeHidden(projects) ),
-                                                (todos:Todo[]) => filter( todos, allPass(todayFilters) )
-                                            )(this.props.todos)
-                                        }
+                                        todos={todayTodos}
                                         hideHint={this.props.hideHint}
                                         clone={this.props.clone}
                                         dispatch={this.props.dispatch}
@@ -593,7 +597,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 (selectedCategory:Category) : boolean => 'someday'===selectedCategory,  
                                 () => {
                                     let somedayFilters = [
-                                        byNotAttachedToCompletedProject(projects),
+                                        byNotAttachedToCompletedProject(this.props.projects),
                                         byCategory("someday"),
                                         (todo:Todo) => isNil(todo.deadline) && isNil(todo.attachedDate),
                                         byNotCompleted,   
@@ -629,26 +633,25 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     
                                     let nextFilters = [ 
                                         byNotIntroList,
-                                        byNotAttachedToCompletedProject(projects),
+                                        byNotAttachedToCompletedProject(this.props.projects),
                                         (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
                                         (t:Todo) => t.category!=="inbox" && t.category!=="someday",  
                                         byNotCompleted,   
                                         byNotDeleted    
                                     ]; 
 
-                                    let selectedTodos = filter(todos, allPass(nextFilters));
 
-                                    if(groupTodos){ 
-                                        let hidden = filter(
-                                           projects, 
-                                           (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide)
-                                        );
-                                        let ids : string[] = flatten(hidden.map((p:Project) => p.layout.filter(isString)));
-                                        selectedTodos = reject((todo:Todo) => contains(todo._id)(ids),selectedTodos);
-                                    };
+                                    let nextTodos = compose(
+                                        when( 
+                                            () => this.props.groupTodos, 
+                                            removeHidden(this.props.selectedCategory,this.props.projects) 
+                                        ),
+                                        (todos:Todo[]) => filter( todos, allPass(nextFilters) )
+                                    )(this.props.todos);
+
 
                                     return <Next   
-                                        todos={selectedTodos}
+                                        todos={nextTodos}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         dispatch={this.props.dispatch}
                                         groupTodos={this.props.groupTodos}
@@ -692,7 +695,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     let logbookFilters = [
                                         byCompleted, 
                                         byNotDeleted,
-                                        byNotAttachedToCompletedProject(projects)
+                                        byNotAttachedToCompletedProject(this.props.projects)
                                     ]; 
 
                                     return <Logbook   
@@ -716,7 +719,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 () => {
                                     let upcomingFilters = [
                                         byScheduled,
-                                        byNotAttachedToCompletedProject(projects),
+                                        byNotAttachedToCompletedProject(this.props.projects),
                                         (t:Todo) => t.category!=="someday",
                                         byNotCompleted,  
                                         byNotDeleted   
@@ -748,7 +751,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             [ 
                                 (selectedCategory:Category) : boolean => 'project'===selectedCategory,  
                                 () => {
-                                    let project = projects.find((p:Project) => selectedProjectId===p._id);
+                                    let project = this.props.projects.find((p:Project) => selectedProjectId===p._id);
 
                                     if(isNil(project)){ return null }
 

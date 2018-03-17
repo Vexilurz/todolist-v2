@@ -348,9 +348,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                    })
                } 
             }
-
         }else{
-
             dispatch({
                 type:"updateTodos", 
                 load:compose(

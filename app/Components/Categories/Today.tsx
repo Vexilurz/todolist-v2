@@ -37,33 +37,12 @@ import { groupEventsByType, byTime } from './Upcoming';
 import { getSameDayEventElement } from '../../utils/getCalendarEventElement';
 let Perf = require('react-addons-perf');
 let p = require('react-dom/lib/ReactPerf'); 
+import diff from 'deep-diff';
+ 
 
-
-let assertShallowEquality = (items,todos,where) => {
-    let same = 0;
-    let diff = 0;
-    for(let i=0; i<items.length; i++){
-        let item = items[i];
-        if(item){
-            let target = todos.find( t => t._id===item._id)
-            if(target===item){
-                same++
-            }else diff++
-        }
-
-    }
-    //console.log(`${where} same ${same}  diff ${diff}`); 
-}
-
-
-export let indexToPriority = (items:any[]) : any[] => {
-    return items.map(
-        (item,index:number) => {
-            item.priority = index;
-            return item; 
-        }
-    ) 
-};
+export let indexToPriority = (items:any[]) : any[] => items.map(
+    (item,index:number) => ({...item,priority:index})
+); 
 
 
 class ThisEveningSeparator extends Component<{},{}>{
@@ -171,6 +150,7 @@ export class Today extends Component<TodayProps,TodayState>{
     }  
 
 
+    /*
     calculateTodayAmount = (props:TodayProps) => {
         let {todos,dispatch} = this.props
 
@@ -195,10 +175,8 @@ export class Today extends Component<TodayProps,TodayState>{
             load:todos.filter((t:Todo) => allPass(hotFilters)(t as (Project & Todo))).length
         });
     };
+    */
 
-
-    onError = (error) => globalErrorHandler(error);
-    
 
     componentDidMount(){ 
         //this.calculateTodayAmount(this.props);
@@ -206,8 +184,27 @@ export class Today extends Component<TodayProps,TodayState>{
   
 
     componentWillReceiveProps(nextProps:TodayProps){
+        //let diff = require('deep-diff').diff;
+        /*
+        let ps = diff(nextProps.projects,this.props.projects);
+
+        for(let i = 0; i <this.props.projects.length; i++){
+            let target = this.props.projects[i];
+            let corr = nextProps.projects.find( p => p._id===target._id );
+            console.log( 
+                target.name,
+                diff(target,corr) 
+            )
+        }
+        console.log('projects before',this.props.projects.length);
+        console.log('projects after',nextProps.projects.length);
+        */
+
         //this.calculateTodayAmount(nextProps); 
     };
+ 
+
+    onError = (error) => globalErrorHandler(error);
 
 
     changeOrder = (oldIndex,newIndex,selected) => {
@@ -292,10 +289,11 @@ export class Today extends Component<TodayProps,TodayState>{
         }
     }; 
        
+
     onSortStart = (oldIndex:number,event:any) => {
         //Perf.start();
         this.props.dispatch({type:"dragged",load:"todo"});  
-    }
+    };
     
 
     onSortMove = (oldIndex:number,event:any) => { };

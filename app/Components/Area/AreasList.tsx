@@ -71,7 +71,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         super(props);  
     } 
 
-
+/*
     shouldComponentUpdate(nextProps:AreasListProps){
         let {
             leftPanelWidth, 
@@ -105,7 +105,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             projectsChanged 
         ]); 
     }
-
+*/
 
     onCollapseContent = (area:Area) : void => { 
         let {dispatch} = this.props;
@@ -330,11 +330,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             (area:Area) => compose(  
                 (ids) => assoc("attachedProjectsIds",ids,area),
                 uniq,
-                concat(  
-                    defaultTo([])(
-                        byArea[area._id]
-                    )
-                ),
+                concat( defaultTo([], byArea[area._id]) ),
                 (area) => area.attachedProjectsIds
             )(area)
         );
@@ -440,7 +436,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
         this.state={highlight:false}; 
     }  
 
-
+/*
     shouldComponentUpdate(nextProps:AreaElementProps,nextState:AreaElementState){
         let {
             area,
@@ -467,7 +463,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
             selectedAreaIdChanged
         ]);
     }
-
+*/
 
     onMouseEnter = (e) => this.setState({highlight:true});  
       
@@ -612,7 +608,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         };  
     }   
     
-
+/*
     shouldComponentUpdate(nextProps:ProjectElementProps,nextState:ProjectElementState){
         let {
             project,
@@ -653,7 +649,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
 
         return should
     };
-
+*/
     
     onMouseOver = (e) => {  
         let {dragged} = this.props; 

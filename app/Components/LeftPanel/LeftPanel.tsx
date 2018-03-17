@@ -290,7 +290,7 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
         super(props); 
     }
      
-
+/*
     shouldComponentUpdate(nextProps:LeftPanelFooterProps){
         let {width, collapsed} = nextProps;
         let widthChanged = width!==this.props.width;
@@ -298,7 +298,7 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
 
         return anyTrue([widthChanged, collapsedChanged]);
     };
-
+*/
     
     render(){ 
         let { collapsed, openSettings, openNewProjectAreaPopup, width, setNewProjectAnchor } = this.props; 

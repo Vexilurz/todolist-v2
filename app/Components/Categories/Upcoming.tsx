@@ -489,7 +489,7 @@ interface CalendarDayState{}
 export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
     constructor(props){ super(props) }
 
-   
+/*   
     shouldComponentUpdate(nextProps:CalendarDayProps,nextState:CalendarDayState){
         let {
             scheduledProjects, 
@@ -511,7 +511,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
         return should;
     };
-
+*/
     render(){   
         let {selectedTodos,todos,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
         let {sameDayEvents,fullDayEvents} = groupEventsByType(selectedEvents); 

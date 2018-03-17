@@ -1038,12 +1038,13 @@ export let byAttachedToCompletedProject = (projects:Project[]) => (t:Todo) : boo
         assert(isArrayOfStrings(attachedTodosIds),`attachedTodosIds is not an array of strings ${attachedTodosIds}.`); 
 
         if(contains(t._id)(attachedTodosIds)){ 
-           return isDate(project.completed); 
+           let yes = isDate(project.completed); 
+           return yes;
         }
-    }  
+    }   
 
     return false;     
-};  
+};   
 
 
 
@@ -1057,13 +1058,15 @@ export let byNotAttachedToProject = (projects:Project[]) => (t:Todo) : boolean =
 
  
 export let byNotAttachedToCompletedProject = (projects:Project[]) => (t:Todo) : boolean => {
-    return compose(
+    let notAttached = compose(
        not,
        byAttachedToCompletedProject(projects)
     )(t);
+
+    return notAttached;
 };
 
- 
+  
 
 export let generateTagElement = (tag:string,idx:number) => {
 

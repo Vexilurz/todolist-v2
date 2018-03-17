@@ -27,7 +27,7 @@ import {
 import { setCallTimeout } from './utils/setCallTimeout';
 import { convertEventDate } from './Components/Calendar';
 import { requestFromMain } from './utils/requestFromMain';
-
+import diff from 'deep-diff';
 
 let onError = (e) => globalErrorHandler(e); 
 
@@ -582,6 +582,17 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                        updateProjects(changedProjects,onError); 
                     }
         
+/*
+                    for(let i = 0; i <state.projects.length; i++){
+                        let target = state.projects[i];
+                        let corr = projects.find( p => p._id===target._id );
+                        console.log( 
+                            target.name, 
+                            diff(target,corr) 
+                        )
+                    }
+*/
+
                     return { ...state, projects };
                 }
             ],
