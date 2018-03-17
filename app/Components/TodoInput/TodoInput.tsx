@@ -753,11 +753,12 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             onContextMenu={this.onRightClickMenu}
             style={{    
                 marginTop:"0px", 
-                marginBottom:"0px",  
                 width:"100%",   
+                marginBottom:open ? "10px":"0px",  
+                backgroundColor:"rgba(255,255,255,1)", 
                 WebkitUserSelect:"none", 
                 display:this.state.display,     
-                transform:`translateX(${this.state.translateX}%)`, 
+                transform:`translateX(${this.state.translateX}%)`,  
                 alignItems:"center",    
                 justifyContent:"center"  
             }}   

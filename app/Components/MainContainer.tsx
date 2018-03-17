@@ -469,7 +469,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                        height:`${window.innerHeight}px`,     
                        position:"relative",  
                        display:"flex",     
-                       backgroundColor:"rgba(209, 209, 209, 0.1)", 
+                       backgroundColor:"rgba(255, 255, 255, 1)", 
                        flexDirection:"column"     
                     }}  
                 >  

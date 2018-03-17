@@ -521,7 +521,8 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             onContextMenu={this.onRightClickMenu} 
             style={{    
                 marginTop:"10px", 
-                marginBottom:"0px",  
+                marginBottom:open ? "10px":"0px",  
+                backgroundColor:"rgba(255,255,255,1)",  
                 width:"100%",   
                 WebkitUserSelect:"none",
                 display:this.state.display,     
