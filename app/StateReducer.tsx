@@ -6,6 +6,7 @@ import { assert } from "./utils/assert";
 import { typeEquals } from "./utils/utils";
 import { Todo } from "./database";
 import { section } from "./Components/Settings/settings";
+import { requestFromMain } from "./utils/requestFromMain";
 
  
 export let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => 
@@ -168,6 +169,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
             [
               typeEquals("selectedCategory"),
               (action:{type:string,load:Category}) : Store => {
+                  requestFromMain<any>('setWindowTitle',[state.id,`tasklist - ${action.load}`],(event) => event);
                   assert(isCategory(action.load), `Error: selectedCategory. applicationStateReducer. ${action.load}`);
                   return ({...state,selectedCategory:action.load});  
               }

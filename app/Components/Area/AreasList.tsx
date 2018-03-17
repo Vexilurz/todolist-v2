@@ -84,7 +84,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         } = nextProps;
 
 
-        let leftPanelWidthChanged =  leftPanelWidth!==this.props.leftPanelWidth;
+        let leftPanelWidthChanged = leftPanelWidth!==this.props.leftPanelWidth;
         let draggedChanged = dragged!==this.props.dragged;
 
         let selectedProjectIdChanged = selectedProjectId!==this.props.selectedProjectId;
@@ -127,6 +127,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         }
  
         dispatch({type:"selectedAreaId",load:area._id}); 
+        dispatch({type:"selectedCategory",load:"area"});
         dispatch({type:"selectedTag",load:"All"});
         dispatch({type:"searchQuery",load:""});
     };
@@ -136,6 +137,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let {dispatch} = this.props;
         
         dispatch({type:"selectedProjectId",load:p._id});
+        dispatch({type:"selectedCategory",load:"project"});
         dispatch({type:"selectedTag",load:"All"});
         dispatch({type:"searchQuery",load:""});
     };

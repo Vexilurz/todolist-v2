@@ -162,110 +162,104 @@ export class Listeners{
       initAutoUpdater(); 
  
       this.registeredListeners = [ 
-        {
-            name:'NremoveReminders',
-            callback:(event,[todos]) => {
-                if(mainWindow){
-                   mainWindow.webContents.send('removeReminders', todos); 
+            {
+                name:'setWindowTitle',
+                callback:(event,[id,title]) => {
+                    let windows = BrowserWindow.getAllWindows();
+                    let window = windows.find( w => w.id===id );
+
+                    if(window){
+                        window.setTitle(title)
+                    }
+
+                    event.sender.send('setWindowTitle');
                 }
-                event.sender.send('NremoveReminders');
-            }
-        },
-        {
-            name:'openTodoInApp',
-            callback:(event,[todo]) => {
-                if(mainWindow){
-                    mainWindow.webContents.send('openTodo',todo);
-                    mainWindow.webContents.send('removeReminder',todo);
+            },
+            {
+                name:'NremoveReminders',
+                callback:(event,[todos]) => {
+                    if(mainWindow){
+                        mainWindow.webContents.send('removeReminders', todos); 
+                    }
+                    event.sender.send('NremoveReminders');
                 }
-                event.sender.send('openTodoInApp');
-            }
-        },
-        {
-            name:'Nhide',
-            callback:(event) => {
-                let window = findWindowByTitle('Notification');
-                if(window){
-                   window.hide();
+            },
+            {
+                name:'openTodoInApp',
+                callback:(event,[todo]) => {
+                    if(mainWindow){
+                        mainWindow.webContents.send('openTodo',todo);
+                        mainWindow.webContents.send('removeReminder',todo);
+                    }
+                    event.sender.send('openTodoInApp');
                 }
-                event.sender.send('Nhide');
-            }
-        },
-        {
-            name:'Nmove',
-            callback:(event) => {
-                let window = findWindowByTitle('Notification');
-                let {initialX,initialY} = getInitialNotificationPosition();
-                window.setPosition(initialX, initialY);
-                window.show();
-                if(window){
-                   move().then(() => event.sender.send('Nmove'))
+            },
+            {
+                name:'Nhide',
+                callback:(event) => {
+                    let window = findWindowByTitle('Notification');
+                    if(window){
+                        window.hide();
+                    }
+                    event.sender.send('Nhide');
                 }
-            }
-        },
-
- 
-
-
-
-
-
-
-
-
-
-
-        {
-            name:'QEblur',
-            callback:(event) => {
-                let window = findWindowByTitle('Add task');
-                if(window){
-                   window.blur();
+            },
+            {
+                name:'Nmove',
+                callback:(event) => {
+                    let window = findWindowByTitle('Notification');
+                    let {initialX,initialY} = getInitialNotificationPosition();
+                    window.setPosition(initialX, initialY);
+                    window.show();
+                    if(window){
+                        move().then(() => event.sender.send('Nmove'))
+                    }
                 }
-                event.sender.send('QEblur');
-            }
-        },
-        {
-            name:'QEhide',
-            callback:(event) => {
-                let window = findWindowByTitle('Add task');
-                if(window){
-                   window.hide();
+            },
+            {
+                name:'QEblur',
+                callback:(event) => {
+                    let window = findWindowByTitle('Add task');
+                    if(window){
+                        window.blur();
+                    }
+                    event.sender.send('QEblur');
                 }
-                event.sender.send('QEhide');
-            }
-        },  
-        {
-            name:'QEsetSmallSize',
-            callback:(event) => {
-                let window = findWindowByTitle('Add task');
-                let defaultWidth=500;
-                let defaultHeight=350;
-                if(window){
-                    window.setSize(defaultWidth, defaultHeight); 
+            },
+            {
+                name:'QEhide',
+                callback:(event) => {
+                    let window = findWindowByTitle('Add task');
+                    if(window){
+                        window.hide();
+                    }
+                    event.sender.send('QEhide');
                 }
-                event.sender.send('QEsetSmallSize');
-            }
-        },
-        {
-            name:'QEsetBigSize',
-            callback:(event) => {
-                let window = findWindowByTitle('Add task');
-                let defaultWidth=500;
-                let defaultHeight=350;
-                if(window){
-                    window.setSize(defaultWidth, 400); 
+            },  
+            {
+                name:'QEsetSmallSize',
+                callback:(event) => {
+                    let window = findWindowByTitle('Add task');
+                    let defaultWidth=500;
+                    let defaultHeight=350;
+                    if(window){
+                        window.setSize(defaultWidth, defaultHeight); 
+                    }
+                    event.sender.send('QEsetSmallSize');
                 }
-                event.sender.send('QEsetBigSize');
-            }
-        },
-
-
-
-
-
-
-
+            },
+            {
+                name:'QEsetBigSize',
+                callback:(event) => {
+                    let window = findWindowByTitle('Add task');
+                    let defaultWidth=500;
+                    let defaultHeight=350;
+                    if(window){
+                        window.setSize(defaultWidth, 400); 
+                    }
+                    event.sender.send('QEsetBigSize');
+                }
+            },
             {
                 name:'collectSystemInfo',
                 callback:(event) => {
@@ -303,7 +297,6 @@ export class Listeners{
                 name:"clearStorage",
                 callback:(event) => clearStorage().then(
                     (err) => {
-                        console.log(`clearStorage`,err);
                         event.sender.send(`clearStorage`,err);
                     }
                 )    

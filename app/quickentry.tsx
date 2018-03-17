@@ -105,7 +105,7 @@ injectTapEventPlugin();
 const linkifyPlugin = createLinkifyPlugin({
     component:(props) => {
       const {contentState, ...rest} = props;
-      return <a {...rest} onClick={() => shell.openExternal(rest.href)}/>
+      return <a {...rest} style={{cursor:"pointer"}} onClick={() => shell.openExternal(rest.href)}/>
     }
 });
 
@@ -574,7 +574,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                 onChange={this.onNoteChange}
                 plugins={[linkifyPlugin]} 
                 keyBindingFn={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
-                placeholder="Note"
+                placeholder="Notes"
             />
             </div>
                 <div 

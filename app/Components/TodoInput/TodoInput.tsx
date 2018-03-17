@@ -66,11 +66,11 @@ import { Provider, connect } from "react-redux";
 const linkifyPlugin = createLinkifyPlugin({
     component:(props) => {
       const {contentState, ...rest} = props;
-      return <a {...rest} onClick={() => shell.openExternal(rest.href)}/>
+      return <a {...rest} style={{cursor:"pointer"}} onClick={() => shell.openExternal(rest.href)}/>
     }
-});
+});  
 let moment = require("moment"); 
-let Promise = require('bluebird'); 
+let Promise = require('bluebird');  
 
 
 
@@ -1346,7 +1346,7 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
                     onChange={this.props.onNoteChange as any} 
                     plugins={[linkifyPlugin]} 
                     keyBindingFn={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
-                    placeholder="Note"
+                    placeholder="Notes"
                 />
                 { 
                 /*

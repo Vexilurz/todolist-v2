@@ -334,78 +334,79 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
 
             Observable
-            .interval(5*minute)
-            .subscribe(() => 
-                requestFromMain<any>(
-                    'saveBackup',
-                    [
-                        { 
-                            database : { 
-                                todos:this.props.todos, 
-                                projects:this.props.projects, 
-                                areas:this.props.areas, 
-                                calendars:this.props.calendars 
-                            } 
-                        }
-                    ],
-                    (event) => event
-                )
-            ),  
-     
+                .interval(5*minute)
+                .subscribe(() => 
+                    requestFromMain<any>(
+                        'saveBackup',
+                        [
+                            { 
+                                database : { 
+                                    todos:this.props.todos, 
+                                    projects:this.props.projects, 
+                                    areas:this.props.areas, 
+                                    calendars:this.props.calendars 
+                                } 
+                            }
+                        ],
+                        (event) => event
+                    )
+                ),  
+        
 
             Observable
-            .fromEvent(ipcRenderer, 'openTodo', (event,todo) => todo)
-            .subscribe(
-                (todo) => requestFromMain<any>(
-                    'focusMainWindow',
-                    [],
-                    (event) => event
-                ).then(
-                    () => { 
-                        dispatch({type:"selectedCategory",load:"inbox"});
-                        dispatch({type:"scrolledTodo",load:todo}); 
-                        dispatch({type:"selectedCategory",load:"today"});
-                    }
-                )
-            ), 
+                .fromEvent(ipcRenderer, 'openTodo', (event,todo) => todo)
+                .subscribe(
+                    (todo) => requestFromMain<any>(
+                        'focusMainWindow',
+                        [],
+                        (event) => event
+                    ).then(
+                        () => { 
+                            dispatch({type:"selectedCategory",load:"inbox"});
+                            dispatch({type:"scrolledTodo",load:todo}); 
+                            dispatch({type:"selectedCategory",load:"today"});
+                        }
+                    )
+                ), 
 
 
             Observable  
-            .fromEvent(ipcRenderer, "action", (event,action) => action)
-            .map((action) => ({ 
-                ...action,
-                load:compose(
-                    map(convertDates),
-                    defaultTo({}),
-                    convertDates
-                )(action.load)
-            }))
-            .subscribe((action) => action.type==="@@redux/INIT" ? null : dispatch(action)),  
+                .fromEvent(ipcRenderer, "action", (event,action) => action)
+                .map((action) => ({ 
+                    ...action,
+                    load:compose(
+                        map(convertDates),
+                        defaultTo({}),
+                        convertDates
+                    )(action.load)
+                }))
+                .subscribe((action) => action.type==="@@redux/INIT" ? null : dispatch(action)),  
 
 
             Observable 
-            .fromEvent(ipcRenderer, "error", (event,error) => error)    
-            .subscribe((error) => this.onError(error)),
+                .fromEvent(ipcRenderer, "error", (event,error) => error)    
+                .subscribe((error) => this.onError(error)),
 
 
             Observable
-            .fromEvent(ipcRenderer, "progress", (event,progress) => progress)
-            .subscribe((progress) => dispatch({type:"progress",load:progress})),  
+                .fromEvent(ipcRenderer, "progress", (event,progress) => progress)
+                .subscribe((progress) => dispatch({type:"progress",load:progress})),  
 
             
             Observable  
-            .fromEvent(ipcRenderer, "Ctrl+Alt+T", (event) => event)
-            .subscribe((event) => {
-                dispatch({type:"openNewProjectAreaPopup", load:false});
-                dispatch({type:"showTrashPopup", load:false}); 
-                dispatch({type:"openTodoInputPopup", load:true});
-            })   
+                .fromEvent(ipcRenderer, "Ctrl+Alt+T", (event) => event)
+                .subscribe((event) => {
+                    dispatch({type:"openNewProjectAreaPopup", load:false});
+                    dispatch({type:"showTrashPopup", load:false}); 
+                    dispatch({type:"openTodoInputPopup", load:true});
+                })   
         );
     };
   
 
 
     componentDidMount(){    
+        this.props.dispatch({type:"selectedCategory", load:this.props.selectedCategory});
         this.initObservables(); 
         this.initData(this.props.clone); 
     };      
