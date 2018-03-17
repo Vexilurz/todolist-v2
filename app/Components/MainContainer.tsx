@@ -420,7 +420,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         this.timeouts = [];  
     };  
  
- 
+  
 
     componentDidUpdate(prevProps, prevState){
         if(

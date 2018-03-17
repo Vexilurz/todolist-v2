@@ -204,7 +204,12 @@ export let printElement = (selectedCategory:Category, list:HTMLElement) : Promis
     const clone = list.cloneNode(true) as HTMLElement;
     document.body.appendChild(clone);
     clone.style.width="100%";
-
+    clone.style.zoom="0.7";
+    
+    //clone.style.display="flex";
+    //clone.style.justifyContent="center"; 
+    //clone.style.alignItems="center";  
+    
     let hide = clone.getElementsByClassName('no-print');
 
     while(hide[0]){ hide[0].parentNode.removeChild(hide[0]) }
@@ -212,8 +217,7 @@ export let printElement = (selectedCategory:Category, list:HTMLElement) : Promis
     return domtoimage
     .toPng(clone, { quality: 1 })
     .then((dataUrl) => {
-
-        document.body.removeChild(clone);
+        document.body.removeChild(clone); 
 
         let img = document.createElement("img");
         img.src = dataUrl;

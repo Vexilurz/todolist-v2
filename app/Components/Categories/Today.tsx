@@ -581,13 +581,19 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                 sameDayEvents
                 .sort(byTime) 
                 .map(   
-                    (event,index) =>  
-                    <div key={`event-${event.name}-${index}`} style={{padding:"1px"}}>
-                    {
-                        getSameDayEventElement(event,false)
-                    }
+                    (event,index) => <div  
+                        key={`event-${event.name}-${index}`} 
+                        style={{padding:"1px",display:"flex",height:"20px",alignItems:"center"}}
+                    >
+                        {
+                            event.type!=="multipleDaysEvents" ? null :
+                            <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
+                        }
+                        <div style={{paddingLeft:event.type!=="multipleDaysEvents" ? "0px":"5px"}}>
+                            {getSameDayEventElement(event,false)}
+                        </div> 
                     </div> 
-                )  
+                )   
             }
             </div>
         </div>

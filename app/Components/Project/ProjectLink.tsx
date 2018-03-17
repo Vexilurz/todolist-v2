@@ -49,7 +49,8 @@ interface ProjectLinkProps{
     todos:Todo[],
     dispatch:Function,
     showMenu:boolean,
-    selectedCategory:Category
+    selectedCategory:Category,
+    underline?:boolean
 }
 
 interface ProjectLinkState{

@@ -510,7 +510,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
         ]);
 
         return should;
-    }
+    };
 
     render(){   
         let {selectedTodos,todos,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
@@ -556,8 +556,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         {
                             fullDayEvents
                             .map(  
-                                (event,index) => 
-                                <div key={`event-${event.name}-${index}`} style={{padding:"1px"}}>
+                                (event,index) => <div key={`event-${event.name}-${index}`} style={{padding:"1px"}}>
                                 <div style={{display:"flex",height:"20px",alignItems:"center"}}>
                                     <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
                                     <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
@@ -583,9 +582,24 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         {
                             sameDayEvents 
                             .sort(byTime) 
-                            .map((event,index) => 
-                                <div key={`event-${event.name}-${index}`} style={{paddingTop:"1px",paddingBottom:"1px"}}>
-                                    { getSameDayEventElement(event,true) }
+                            .map(
+                                (event,index) => <div 
+                                    key={`event-${event.name}-${index}`} 
+                                    style={{
+                                        paddingTop:"1px",
+                                        paddingBottom:"1px",
+                                        display:"flex",
+                                        height:"20px",
+                                        alignItems:"center"
+                                    }}  
+                                >
+                                    {
+                                        event.type!=='multipleDaysEvents' ? null :
+                                        <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
+                                    }
+                                    <div style={{paddingLeft:event.type!=="multipleDaysEvents" ? "0px":"5px"}}>
+                                        {getSameDayEventElement(event,false)}
+                                    </div>  
                                     { 
                                         isNil(event.description) ? null :
                                         isEmpty(event.description) ? null :
