@@ -568,7 +568,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                         } 
                     </div>   
                 </div>  
-                <div style={{paddingLeft:"60px", paddingRight:"60px", paddingBottom:"60px", paddingTop:"10px"}}>
+                <div style={{paddingLeft:"60px", paddingRight:"60px", paddingBottom:"140px", paddingTop:"10px"}}>
                     {    
                         cond([  
                             [ 

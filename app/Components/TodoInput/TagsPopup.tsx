@@ -15,6 +15,7 @@ import { assert } from '../../utils/assert';
 import { isArrayOfStrings } from '../../utils/isSomething';
 import AutosizeInput from 'react-input-autosize';
 import { Store } from '../../app';
+import { attachDispatchToProps } from '../../utils/utils';
  
 interface TagsPopupProps{
     close : Function,
@@ -24,19 +25,22 @@ interface TagsPopupProps{
     rootRef : HTMLElement, 
     anchorEl : HTMLElement,
     point : any,
-    
     defaultTags : string[],
     todos : any[]
 }   
 
  
 @connect(
-    (store:Store,props) => ({ 
-        ...props,
-        defaultTags:store.defaultTags,
-        todos:store.todos 
-    }),   
-    (dispatch:Function,props) => ({...props, dispatch})
+    (store:Store,props:TagsPopupProps) : TagsPopupProps => {
+        let out = {
+             ...props,
+             defaultTags:[...store.defaultTags],
+             todos:[...store.todos]
+        }; 
+        console.log(out)
+        return out; 
+    },    
+    attachDispatchToProps
 ) 
 export class TagsPopup extends Component<TagsPopupProps,{}>{
         ref:HTMLElement;

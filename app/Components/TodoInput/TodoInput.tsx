@@ -939,7 +939,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     onClear={this.onCalendarClear}  
                 />  
             }
-            {
+            { 
                 not(open) ? null :
                 <TagsPopup
                     defaultTags={[]}

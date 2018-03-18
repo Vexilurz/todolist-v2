@@ -757,7 +757,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                     rootRef={this.props.rootRef}
 
                     defaultTags={[]}
-                    todos={[]}
+                    todos={[]} 
                 /> 
             }
 
