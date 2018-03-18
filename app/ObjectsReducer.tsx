@@ -17,6 +17,9 @@ import {
     isNil, and, complement, compose, reject, concat, map, when,
     prop, ifElse, identity, path, equals, allPass, evolve, pick  
 } from 'ramda';
+
+import {clone as cloneItems} from 'ramda';
+
 import { filter } from './Components/MainContainer';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { assert } from './utils/assert';
@@ -306,7 +309,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
                     assert(isArrayOfTodos(action.load), `Error: setTodos. applicationObjectsReducer. ${action.load}`); 
                 
-                    return {...state,todos:action.load};
+                    return {...state,todos:[...action.load] };
                 }
             ], 
 
@@ -317,7 +320,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
                     assert(isArrayOfProjects(action.load), `Error: setProjects. applicationObjectsReducer. ${action.load}`); 
                     
-                    return { ...state, projects:action.load };
+                    return { ...state, projects:[...action.load] };
                 }
             ], 
 
@@ -328,7 +331,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
                     assert(isArrayOfAreas(action.load), `Error: setAreas. applicationObjectsReducer. ${action.load}`); 
                     
-                    return { ...state, areas:action.load };
+                    return { ...state, areas:[...action.load]  };
                 }
             ],
 
@@ -571,28 +574,39 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     let changedProjects = [...action.load];
                     let changedIds:string[] = changedProjects.map((p:Project) => p._id);
 
-                    let projects : Project[] = compose(
+                    let projects : Project[] = compose( 
                         concat(changedProjects),
                         reject((project:Project) => contains(project._id)(changedIds))
                     )(state.projects);
-
-                    assert(isArrayOfProjects(projects), `Error: updateProjects. objectsReducer. ${projects}`);
                     
+                    /*let two = state.projects.map((p) => {
+                        let target = changedProjects.find( t => t._id===p._id );
+                        if(target){
+                            return {...p,...target}; 
+                        }else{
+                            return p;
+                        }
+                    });
+ 
+                    for(let i = 0; i<projects.length; i++){
+                        let project = projects[i];
+                        let target = two.find(p => p._id===project._id);
+
+                        console.log(diff(target,project));
+                        assert(
+                            equals(project.completed,target.completed),
+                            `completed changed ${project.completed} -> ${target.completed}`
+                        );
+                        assert(
+                            equals(project.layout,target.layout),
+                            `layout changed ${project.layout} -> ${target.layout}`
+                        );
+                    }*/
+
                     if(shouldAffectDatabase){ 
                        updateProjects(changedProjects,onError); 
                     }
         
-/*
-                    for(let i = 0; i <state.projects.length; i++){
-                        let target = state.projects[i];
-                        let corr = projects.find( p => p._id===target._id );
-                        console.log( 
-                            target.name, 
-                            diff(target,corr) 
-                        )
-                    }
-*/
-
                     return { ...state, projects };
                 }
             ],

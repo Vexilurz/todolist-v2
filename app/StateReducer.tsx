@@ -9,9 +9,9 @@ import { section } from "./Components/Settings/settings";
 import { requestFromMain } from "./utils/requestFromMain";
 
  
-export let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => 
-        cond([
-            [
+export let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => {
+      return cond([
+            [ 
               typeEquals("selectedTodo"),
               (action:{type:string,load:Todo}) : Store => {
                 return ({...state, selectedTodo:action.load}); 
@@ -46,7 +46,7 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
 
             [
               typeEquals("limit"),
-              (action:{type:string,load:Date}) : Store => {
+              (action:{type:string,load:Date}) : Store => { 
                 assert(isDate(action.load), `Error: limit. applicationStateReducer. ${action.load}`); 
                 return ({...state,limit:action.load}); 
               }
@@ -260,5 +260,4 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
             [ () => true, () : Store => undefined ]
 
         ])(action);
-
-
+};

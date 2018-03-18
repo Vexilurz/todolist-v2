@@ -342,6 +342,8 @@ interface ProjectLinkLogbookProps{
 }
 interface ProjectLinkLogbookState{}   
 
+
+
 @connect(
     (store:Store,props:ProjectLinkLogbookProps):ProjectLinkLogbookProps => ({...props,todos:store.todos}), 
     attachDispatchToProps,
@@ -459,7 +461,7 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
         </li>  
     }
 };
-
+ 
 
 
 interface ProjectLinkTrashProps{ 
@@ -469,6 +471,13 @@ interface ProjectLinkTrashProps{
     selectedCategory:Category 
 }
 interface ProjectLinkTrashState{ openMenu:boolean }   
+
+@connect(
+    (store:Store,props:ProjectLinkTrashProps):ProjectLinkTrashProps => ({...props,todos:store.todos}), 
+    attachDispatchToProps,
+    null, 
+    { areStatesEqual:(nextStore:Store, prevStore:Store) => nextStore.todos===prevStore.todos }   
+)  
 export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLinkTrashState>{
     actionsAnchor:HTMLElement;
 
@@ -579,3 +588,4 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
         </li>  
     }
 }
+ 

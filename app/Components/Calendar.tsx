@@ -10,7 +10,7 @@ import {
   contains, isNil, all, prepend, isEmpty, last, not, values, 
   assoc, flatten, toPairs, map, compose, allPass, uniq, path,
   reject, prop, pick, evolve, when, ifElse, groupBy, and, adjust,
-  cond, defaultTo, find
+  cond, defaultTo, find, append
 } from 'ramda'; 
 import { Store } from './../app';
 import { ipcRenderer } from 'electron';
@@ -19,7 +19,8 @@ import axios from 'axios';
 import { 
     isNotNil, fiveMinutesLater, addTime, inPast, distanceInOneDay, 
     fromMidnightToMidnight, timeDifferenceHours, differentDays,
-    sameDay, timeIsMidnight, oneMinutesBefore, oneDayBehind, log, inPastRelativeTo 
+    sameDay, timeIsMidnight, oneMinutesBefore, oneDayBehind, log, 
+    inPastRelativeTo 
 } from '../utils/utils'; 
 let ical = require('ical.js'); 
 let RRule = require('rrule');
@@ -264,13 +265,14 @@ let parseRecEvents = (
     rrule:any
 }[] => compose( 
     map(
+        //(event) => ({...event, dates:[]})
         ifElse(
             (event:{name:string, rrule:any, ends:any}) => isNil(event.ends),
             (event:{name:string, rrule:any, ends:any}) => {
                 let rule = event.rrule; 
                 let count : number = path(['options','count'],rule);
 
-                if(isNil(count)){ //never ends -> slice
+                if(isNil(count)){ //never ends -> slice 
                    let dates = rule.between(oneDayBehind(),new Date(limit));
                    return {...event, dates}; 
                 }else{ 
@@ -282,9 +284,10 @@ let parseRecEvents = (
                 let rule = event.rrule;
                 let dates = rule.all();
                 return {...event, dates};
-            },
+            }, 
         )
-    ), 
+        
+    ),  
     map( 
         (e) : {name:string, rrule:any, ends:any} => ({
             name:e.summary,
@@ -318,13 +321,12 @@ let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, eve
     const calendarTimezone = "x-wr-timezone";
     const calendarDescription = "x-wr-caldesc";
     const empty = {calendar:{name:null,description:'',timezone:''}, events:[]};
-
     let jcal = ical.parse(icalData);
     let rcal : rcal = parseRecEvents(limit,icalData);
 
     let setRecurrent = (event:CalendarEvent) => {
         let target = rcal.find((e) => e.name===event.name);
-        if(isNotNil(target)){
+        if(isNotNil(target)){ 
             let {dates, ends, name, rrule} = target;
             let {start, end} = event;
             let interval = end.getTime() - start.getTime();
@@ -378,22 +380,33 @@ let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, eve
   
 
 
-export let getIcalData = (limit:Date,url:string) : Promise<IcalData> => 
-    axios.get(url)
+export let getIcalData = (limit:Date,url:string) : Promise<IcalData> => {
+    return axios
+    .get(url,{timeout:5000})  
     .then((response) => {
         let data : string = response.data;
+
         let {calendar,events} = parseCalendar(limit,data);
         
-        if(isNil(calendar.name) || isEmpty(calendar.name)){ calendar.name = url }
+
+        if(
+            isNil(calendar.name) || 
+            isEmpty(calendar.name)
+        ){ 
+            calendar.name = url;  
+        }
 
         return {calendar,events}; 
     }) 
-    .catch((error) => ({error}) as any); 
-     
+    .catch((error) => {  
+        return {error} as any; 
+    }); 
+};
+
+      
 
 
 export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function) : Promise<Calendar[]> => {
-    
     return Promise.all(
         calendars.map((c:Calendar) =>  
             getIcalData(limit, c.url)
@@ -420,4 +433,37 @@ export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function
             )    
         )
     );
-}; 
+};
+    /*let reduced = calendars.reduce(
+        (promise:any, c:Calendar) => promise.then(
+            (result:Calendar[]) => getIcalData(limit, c.url)
+                                    .then(
+                                        (data:IcalData) => {
+                                            let {calendar,events,error} = data as IcalData;
+                        
+                                            if(isNotNil(error)){  
+                                                onError(error);
+                                                return c; 
+                                            }   
+                        
+                                            return {
+                                                url:c.url,  
+                                                name:calendar.name,
+                                                description:calendar.description,
+                                                timezone:calendar.timezone,
+                                                active:c.active,
+                                                events,
+                                                type:c._id, 
+                                                _id:c._id
+                                            };
+                                        }
+                                    ).then( 
+                                        (item) => append(item,result)
+                                    ) 
+        ), 
+        new Promise(resolve => resolve())
+    ); 
+     
+    console.log('reduced',reduced);
+
+    return reduced;*/

@@ -160,7 +160,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     };
 
 
-
+/*
     shouldComponentUpdate(nextProps:TodoInputProps,nextState:TodoInputState){
         let {
             groupTodos,  
@@ -226,7 +226,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         return should;
     }
-
+*/
 
     constructor(props){
         super(props);  

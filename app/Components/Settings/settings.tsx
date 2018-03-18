@@ -29,7 +29,7 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import { debounce } from 'lodash';
 import { Checkbox } from '../TodoInput/TodoInput';
-import { attachDispatchToProps, keyFromDate, checkForUpdates, getCompletedWhen } from '../../utils/utils';
+import { attachDispatchToProps, keyFromDate, checkForUpdates, getCompletedWhen, log } from '../../utils/utils';
 import { isNewVersion } from '../../utils/isNewVersion';
 import { 
     Calendar, getCalendars, getProjects, getAreas, getTodos, Area, Project, 
@@ -880,6 +880,7 @@ let removeRev = (item) => {
 interface AdvancedProps{
     dispatch?:Function,
     clone:boolean,
+    limit:Date,
     shouldSendStatistics,
     moveCompletedItemsToLogbook:any,
     groupTodos:boolean,
@@ -899,6 +900,7 @@ interface AdvancedState{
 @connect(
     (store,props) : AdvancedProps => ({ 
         clone:store.clone,
+        limit:store.limit,
         shouldSendStatistics:store.shouldSendStatistics,
         moveCompletedItemsToLogbook:store.moveCompletedItemsToLogbook,
         groupTodos:store.groupTodos,
@@ -935,19 +937,19 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
     replaceDatabaseObjects = (json) : Promise<void> => {
-        let { todos, projects, areas, calendars, limit } = json.database;
+        let { todos, projects, areas, calendars } = json.database;
         let remRev = compose(map(removeRev), defaultTo([])); 
 
         return  closeClonedWindows()
-                .then(() => destroyEverything()) 
-                .then(() => initDB())
+                .then(() => destroyEverything())  
+                .then(() => initDB()) 
                 .then(() => Promise.all([  
                     addTodos(this.onError, remRev(todos)),      
                     addProjects(this.onError, remRev(projects)), 
                     addAreas(this.onError, remRev(areas)),
                     addCalendars(this.onError, remRev(calendars))
                 ])) 
-                .then(() => getData(limit,this.onError,this.limit))  
+                .then(() => getData(this.props.limit,this.onError,this.limit))  
                 .then(
                     ({projects, areas, todos, calendars}) => this.setData({
                         projects:defaultTo([], projects), 
@@ -956,7 +958,8 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                         calendars:defaultTo([], calendars)
                     }) 
                 )
-    };  
+                
+    };   
 
 
 
@@ -1071,7 +1074,6 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
             requestFromMain<any>('getVersion',[],(event,version) => version)
             .then(
                 (version) => {
-                    console.log('current version is :',version);
                     let {updateInfo} = updateCheckResult;
                     let currentAppVersion = version; 
                     let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);

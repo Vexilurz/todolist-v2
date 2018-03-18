@@ -14,11 +14,12 @@ import {
     getIntroList, printElement, inFuture, introListIds, introListLayout, 
     threeDaysAhead, byHaveAttachedDate, byAttachedToCompletedProject, 
     byNotAttachedToProject, byNotAttachedToCompletedProject, isNotEmpty, 
-    isNotNil, gtDate, checkForUpdates, threeDaysLater, convertDates, keyFromDate, log 
+    isNotNil, gtDate, checkForUpdates, threeDaysLater, convertDates, keyFromDate, log, different, nDaysFromNow 
 } from "../utils/utils";  
 import {isDev} from "../utils/isDev"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Hide from 'material-ui/svg-icons/navigation/arrow-drop-down';
+import { Provider, connect } from "react-redux";
 import { 
     getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects, 
     getAreas, queryToProjects, queryToAreas, Project, Area, initDB, 
@@ -40,8 +41,8 @@ import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { 
-    isEmpty, last, isNil, contains, all, not, assoc, flatten, reduce, prop, evolve,
-    toPairs, map, compose, allPass, cond, defaultTo, reject, when, ifElse, identity 
+    isEmpty, last, isNil, contains, all, not, assoc, flatten, reduce, prop, evolve,uniq,
+    toPairs, map, compose, allPass, cond, defaultTo, reject, when, ifElse, identity, and 
 } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -68,16 +69,13 @@ const moment = require("moment");
 const path = require('path');
 
 
-
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
                        "deadline" | "search" | "group" | "search" | "reminder";
 
 
-
 export let filter = (array:any[],f:Function,caller?:string) : any[] => lodashFilter(array,f); 
  
-
 
 let removeHidden = (selectedCategory:Category,projects:Project[]) => (todos:Todo[]) : Todo[] => 
                     compose(
@@ -89,10 +87,39 @@ let removeHidden = (selectedCategory:Category,projects:Project[]) => (todos:Todo
 
 
 let noteIsString = compose(isString, prop('note'));
+
+
 let assureCorrectNoteType : (todo:Todo) => Todo = when(noteIsString,evolve({note:noteFromText}));
+
+
 let byHidden = (selectedCategory:Category) => 
                (project:Project) => isNotArray(project.hide) ? false : contains(selectedCategory,project.hide);
+
+
 let byAttachedToHiddenProject = (ids:String[]) => (todo:Todo) => contains(todo._id)(ids);
+
+
+let assertLayoutUniqueness : (projects:Project[]) => Project[] = 
+    when(
+        (projects) => isDev(), 
+        (projects) => map(
+            p => evolve(
+                {
+                    layout:reject( 
+                        i => projects.find( 
+                            t => and( 
+                                contains(i)(t.layout), 
+                                different(t._id,p._id) 
+                            ) 
+                        ) 
+                    )
+                },
+                p
+            ),
+            projects
+        )
+    );
+
 
 
 export let getData = (limit:Date,onError:Function,max:number) : Promise<{
@@ -105,7 +132,7 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
     .then(
         compose(
             evolve({ 
-                projects:map(convertProjectDates),
+                projects:compose(assertLayoutUniqueness,map(convertProjectDates)),
                 areas:map(convertAreaDates),
                 todos:map(compose(assureCorrectNoteType, convertTodoDates)),  
             }),
@@ -117,11 +144,12 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
             limit,
             calendars,
             onError
-        ).then(
+        ) 
+        .then(
             (updated) => ({
                 projects,
                 areas,
-                todos,
+                todos, 
                 calendars:updated
             })
         )
@@ -164,9 +192,10 @@ interface MainContainerProps{
 }   
 interface MainContainerState{ fullWindowSize:boolean }
   
+   
 export class MainContainer extends Component<MainContainerProps,MainContainerState>{
     rootRef:HTMLElement;  
-    limit:number;
+    limit:number; 
     subscriptions:Subscription[]; 
     timeouts:any[];
     disablePrintButton:boolean;
@@ -187,7 +216,11 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
     initData : (clone:boolean) => Promise<void> = when(
         not, 
-        () => getData(this.props.limit,this.onError,this.limit)
+        () => getData(
+            defaultTo(nDaysFromNow(50), this.props.limit),
+            this.onError,
+            this.limit 
+        )
                 .then(
                     ({projects, areas, todos, calendars}) => this.setData({
                         projects:defaultTo([], projects), 
@@ -219,10 +252,10 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         
         if(this.props.clone){ return } 
 
-        dispatch({type:"setProjects", load:projects});
-        dispatch({type:"setAreas", load:areas});
-        dispatch({type:"setTodos", load:todos});
-        dispatch({type:"setCalendars", load:calendars});
+        dispatch({type:"setProjects", load:[...projects]});
+        dispatch({type:"setAreas", load:[...areas]});
+        dispatch({type:"setTodos", load:[...todos]});
+        dispatch({type:"setCalendars", load:[...calendars]});
         this.addIntroList(projects); 
 
         let extended = extend(this.props.limit, todos);
@@ -287,8 +320,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         let minute = 1000 * 60;  
  
         this.subscriptions.push(
-
-
             Observable
                 .interval(5 * minute)
                 .flatMap(() => updateCalendars(
@@ -554,15 +585,27 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             [ 
                                 (selectedCategory:Category) : boolean => 'today'===selectedCategory,  
                                 () => { 
-                                    let todayFilters = [     
-                                        //byNotAttachedToCompletedProject(this.props.projects),
+                                    if(isDev()){ 
+                                        let data = flatten( 
+                                            this.props.projects.map(p => p.layout.filter(isString)) 
+                                        );
+                                        
+                                        assert(
+                                            data.length===uniq(data).length,
+                                            `Error: repeated items ${data.length} ${uniq(data).length}`
+                                        ); 
+                                    }
+  
+
+                                    let todayFilters = [    
+                                        byNotAttachedToCompletedProject(this.props.projects), 
                                         (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
                                         (t:Todo) => t.category!=="someday",
                                         byNotCompleted,  
                                         byNotDeleted   
                                     ];      
 
-
+                                   
                                     let todayTodos = compose(
                                         when( 
                                             () => this.props.groupTodos, 
@@ -571,7 +614,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         (todos:Todo[]) => filter( todos, allPass(todayFilters) )
                                     )(this.props.todos);
 
-                                   
+
                                     return <Today   
                                         todos={todayTodos}
                                         hideHint={this.props.hideHint}
@@ -590,7 +633,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         rootRef={this.rootRef} 
                                         showCalendarEvents={this.props.showCalendarEvents}
                                         calendars={this.props.calendars}
-                                    />
+                                    /> 
                                 }
                             ], 
                             [ 

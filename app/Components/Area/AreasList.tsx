@@ -234,20 +234,23 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
-        let {dispatch,projects,areas} = this.props;
+        let {dispatch} = this.props;
 
         let {table,detached} = groupProjectsByArea(
-            projects.filter(
+            this.props.projects.filter(
                 allPass([
                     byNotDeleted, 
                     byNotCompleted,
                     this.byNotAttachedToCollapsedArea
                 ])
             ),
-            areas.filter(byNotDeleted)
+            this.props.areas.filter(byNotDeleted)
         );
 
-        let layout = generateLayout(areas,{table,detached}); 
+        let layout = generateLayout(
+            this.props.areas,
+            {table,detached}
+        ); 
  
         if(isEmpty(layout)){ return }
 

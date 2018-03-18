@@ -76,22 +76,28 @@ let keyFromDate = (d:Date) : string => {
 let readJsonFile = (path:string) : Promise<any> => 
     new Promise(
         resolve => {
-            fs.readFile(
-                path, 
-                'utf8', 
-                (err, data) => {
-                    if (err){ resolve(err) }
-                    else{ 
-                        let result = '';
+            try{
+                fs.readFile(
+                    path, 
+                    'utf8', 
+                    (err, data) => {
+                        if (err){ resolve(err) }
+                        else{ 
+                            let result = {};
 
-                        try{
-                           result = JSON.parse(data);
-                        }catch(e){}
+                            try{
+                                result = JSON.parse(data);
+                            }catch(e){
+                                resolve(result);
+                            }
 
-                        resolve(result); 
+                            resolve(result);  
+                        }
                     }
-                }
-            );
+                );
+            }catch(e){
+                resolve({});
+            }
         }
     );
 
