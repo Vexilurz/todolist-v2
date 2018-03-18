@@ -16,8 +16,7 @@ const randomWord = require('random-word');
 let uniqid = require("uniqid"); 
 
 
-let testData = (todosN:number,projectsN:number,areasN:number) => {  
-    let {dispatch} = this.props; 
+export let testData = (todosN:number,projectsN:number,areasN:number) => {  
 
     let fakeData = generateRandomDatabase({todos:todosN, projects:projectsN, areas:areasN});      
         

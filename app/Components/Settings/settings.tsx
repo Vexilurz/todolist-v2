@@ -978,7 +978,7 @@ class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
     onError = (error) => globalErrorHandler(error);
 
-
+   
 
     export = (folder:string) => {   
         if(isNil(folder)){ return }

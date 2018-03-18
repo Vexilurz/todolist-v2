@@ -71,41 +71,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         super(props);  
     } 
 
-/*
-    shouldComponentUpdate(nextProps:AreasListProps){
-        let {
-            leftPanelWidth, 
-            dragged, 
-            selectedProjectId,
-            selectedAreaId, 
-            todos,
-            areas,
-            projects   
-        } = nextProps;
-
-
-        let leftPanelWidthChanged = leftPanelWidth!==this.props.leftPanelWidth;
-        let draggedChanged = dragged!==this.props.dragged;
-
-        let selectedProjectIdChanged = selectedProjectId!==this.props.selectedProjectId;
-        let selectedAreaIdChanged = selectedAreaId!==this.props.selectedAreaId;
-
-        let todosChanged = todos!==this.props.todos;
-        let areasChanged = areas!==this.props.areas;
-        let projectsChanged = projects!==this.props.projects;
-        
-
-        return anyTrue([
-            leftPanelWidthChanged, 
-            draggedChanged,
-            selectedProjectIdChanged,
-            selectedAreaIdChanged,
-            todosChanged,
-            areasChanged,
-            projectsChanged 
-        ]); 
-    }
-*/
 
     onCollapseContent = (area:Area) : void => { 
         let {dispatch} = this.props;
@@ -439,34 +404,6 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
         this.state={highlight:false}; 
     }  
 
-/*
-    shouldComponentUpdate(nextProps:AreaElementProps,nextState:AreaElementState){
-        let {
-            area,
-            leftPanelWidth, 
-            index,
-            hideAreaPadding, 
-            selectedAreaId
-        } = nextProps;
-        let {highlight} = nextState;
-
-        let areaChanged = area!==this.props.area;
-        let leftPanelWidthChanged = leftPanelWidth!==this.props.leftPanelWidth;
-        let indexChanged = index!==this.props.index;
-        let hideAreaPaddingChanged = hideAreaPadding!==this.props.hideAreaPadding;
-        let selectedAreaIdChanged = selectedAreaId!==this.props.selectedAreaId;
-        let highlightChanged = highlight!==this.state.highlight;
-
-        return anyTrue([
-            highlightChanged,
-            areaChanged, 
-            leftPanelWidthChanged, 
-            indexChanged, 
-            hideAreaPaddingChanged,
-            selectedAreaIdChanged
-        ]);
-    }
-*/
 
     onMouseEnter = (e) => this.setState({highlight:true});  
       
@@ -611,49 +548,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         };  
     }   
     
-/*
-    shouldComponentUpdate(nextProps:ProjectElementProps,nextState:ProjectElementState){
-        let {
-            project,
-            todos,
-            index,
-            dragged,
-            selectedProjectId,
-            completed
-        } = nextProps;
-        let {highlight} = nextState;
-       
-        let highlightChanged = highlight!==this.state.highlight;
-        let projectChanged = project!==this.props.project;
-       
-        //et indexChanged = index!==this.props.index;
-        //let draggedChanged = dragged!==this.props.dragged;
-        let selectedProjectIdChanged = selectedProjectId!==this.props.selectedProjectId;
 
-
-        let todosChanged = true;
-        
-        if(todos.length!==this.props.todos.length){
-            todosChanged = true;
-        }else if(completed.length!==this.props.completed.length){
-            todosChanged = true;
-        }
-        
-
-        let should = anyTrue([ 
-            highlightChanged,  
-            projectChanged, 
-            todosChanged, 
-            //indexChanged,
-            //draggedChanged, 
-            selectedProjectIdChanged 
-        ]);
-
-
-        return should
-    };
-*/
-    
     onMouseOver = (e) => {  
         let {dragged} = this.props; 
 

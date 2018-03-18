@@ -289,16 +289,7 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
     constructor(props){
         super(props); 
     }
-     
-/*
-    shouldComponentUpdate(nextProps:LeftPanelFooterProps){
-        let {width, collapsed} = nextProps;
-        let widthChanged = width!==this.props.width;
-        let collapsedChanged = collapsed!==this.props.collapsed;
 
-        return anyTrue([widthChanged, collapsedChanged]);
-    };
-*/
     
     render(){ 
         let { collapsed, openSettings, openNewProjectAreaPopup, width, setNewProjectAnchor } = this.props; 

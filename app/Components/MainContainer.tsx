@@ -54,7 +54,7 @@ import { Search } from './Search';
 import { filter as lodashFilter } from 'lodash';
 import { CalendarProps, CalendarEvent, getIcalData, IcalData, AxiosError, updateCalendars } from './Calendar';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
-import { generateRandomDatabase } from '../utils/generateRandomObjects';
+import { generateRandomDatabase, testData } from '../utils/generateRandomObjects';
 import { updateConfig } from '../utils/config';
 import { isNotArray, isDate, isTodo, isString } from '../utils/isSomething';
 import { debounce } from 'lodash';
@@ -67,7 +67,7 @@ import { requestFromMain } from '../utils/requestFromMain';
 const Promise = require('bluebird');   
 const moment = require("moment");   
 const path = require('path');
-
+let uniqid = require("uniqid"); 
 
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
@@ -370,7 +370,24 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 }),
 
 
-            Observable.interval(2*minute).subscribe((v) => dispatch({type:'update'})), 
+            Observable
+            .interval(3*minute)
+            .subscribe((v) => {
+                /*
+                let {todos, projects, areas} = testData(500,50,20);
+
+                let to:string = path.resolve(`${keyFromDate(new Date())}-${uniqid()}.json`);
+                requestFromMain<any>(
+                    'saveDatabase',
+                    [ { database : { todos, projects, areas, calendars:[] } }, to ],
+                    (event) => event
+                ).then(
+                    () => console.log('saved',to)
+                ) 
+                */
+
+                dispatch({type:'update'});
+            }),  
 
 
             Observable

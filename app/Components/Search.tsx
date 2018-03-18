@@ -163,11 +163,6 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
         super(props)
     } 
 
-/*
-    shouldComponentUpdate(nextProps){
-        return nextProps.searchQuery!==this.props.searchQuery;
-    }   
-*/  
 
     onChange = (e) => { 
         let {dispatch} = this.props; 
