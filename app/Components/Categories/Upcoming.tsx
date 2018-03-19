@@ -167,7 +167,8 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
         compose(
             (events) => items.push(...events), 
             flatten,
-            map(prop('events'))
+            map(prop('events')),
+            (calendars) => filter(calendars, (calendar:Calendar) => calendar.active)
         )(props.calendars)
     };    
 
@@ -534,7 +535,10 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         {
                             fullDayEvents
                             .map(  
-                                (event,index) => <div key={`event-${event.name}-${index}`} style={{padding:"1px"}}>
+                                (event,index) => <div 
+                                    key={`event-${event.name}-${index}`} 
+                                    style={{paddingTop:"1px", paddingBottom:"1px"}}
+                                >
                                 <div style={{display:"flex",height:"20px",alignItems:"center"}}>
                                     <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
                                     <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   

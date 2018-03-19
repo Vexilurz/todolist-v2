@@ -14,7 +14,11 @@ import { Store } from '../../app';
 import { onDrop } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { allPass, isEmpty, not, assoc, isNil, flatten, contains, intersection, or, prop, compose, map, cond } from 'ramda';
+import { 
+    allPass, isEmpty, not, assoc, isNil, flatten, ifElse,
+    contains, intersection, or, prop, compose, map, cond,
+    identity 
+} from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { Category, filter } from '../MainContainer';
 import { ipcRenderer } from 'electron';
@@ -404,39 +408,28 @@ export class Today extends Component<TodayProps,TodayState>{
             decorator:generateDropStyle("nested"),
             id:"default"
         }];    
+  
 
 
-        let events : CalendarEvent[] = [];
-
-
-        if(showCalendarEvents){
-            let todayKey : string = keyFromDate(new Date()); 
-            events = compose(
+        let events : CalendarEvent[] = ifElse(
+            identity,
+            () => compose(
                 (events) => filter(  
                     events,
-                    (event:CalendarEvent) : boolean => todayKey===keyFromDate(event.start) 
-                    /*
-                    or(
-                        true,//inTimeRange(event.start,event.end,new Date()), 
-                        todayKey===keyFromDate(event.start) 
-                    )
-                    */
+                    event => keyFromDate(new Date())===keyFromDate(event.start) 
                 ),  
                 flatten,    
                 map(prop('events'))
-            )(calendars);
-        } 
+            )(calendars),
+            () => []
+        )(this.props.showCalendarEvents);
 
-        //assertShallowEquality(todos,items,'today')
 
-       
-        
-        
- 
+  
         return <div 
             id={`${selectedCategory}-list`}
             ref={(e) => {this.ref=e;}}             
-            style={{disaply:"flex", flexDirection:"column", width: "100%"}}
+            style={{disaply:"flex",flexDirection:"column",width:"100%"}}
         > 
             <div style={{ display:"flex", position:"relative", alignItems:"center", marginBottom:"20px"}}>   
                 <div style={{ zoom:"0.8", display:"flex", alignItems:"center" }}>
@@ -565,7 +558,7 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                 fullDayEvents
                 .map(  
                     (event,index) => 
-                    <div key={`event-${event.name}-${index}`} style={{padding:"1px"}}>
+                    <div key={`event-${event.name}-${index}`} style={{paddingTop:"1px", paddingBottom:"1px"}}>
                     <div style={{display:"flex",height:"20px",alignItems:"center"}}>
                         <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
                         <div style={{fontSize:"14px",userSelect:"none",cursor:"default",fontWeight:500,paddingLeft:"5px",overflowX:"hidden"}}>   
@@ -581,8 +574,14 @@ export class TodaySchedule extends Component<TodayScheduleProps,{}>{
                 .map(   
                     (event,index) => <div  
                         key={`event-${event.name}-${index}`} 
-                        style={{padding:"1px",display:"flex",height:"20px",alignItems:"center"}}
-                    >
+                        style={{
+                            paddingTop:"1px", 
+                            paddingBottom:"1px", 
+                            display:"flex",
+                            height:"20px",
+                            alignItems:"center"
+                        }}
+                    > 
                         {
                             event.type!=="multipleDaysEvents" ? null :
                             <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>

@@ -426,7 +426,7 @@ export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function
                         timezone:calendar.timezone,
                         active:c.active,
                         events,
-                        type:c._id, 
+                        type:"calendar", 
                         _id:c._id
                     };
                 }

@@ -33,8 +33,50 @@ import { noteFromText } from './draftUtils';
 import { requestFromMain } from './requestFromMain';
 const PHE = require("print-html-element");
 const domtoimage = require('retina-dom-to-image');
+
+
+export let isNotNil = complement(isNil);
+
+
+export let selectFolder = () => requestFromMain<any>(
+    'selectFolder',
+    [],
+    (event,folder) => folder
+);
+
+
+
+export let selectJsonDatabase = () => requestFromMain<any>(
+    'selectJsonDatabase',
+    [],
+    (event,folder) => folder
+);
+
+
+
+export let closeClonedWindows = () => requestFromMain<any>(
+    'closeClonedWindows',
+    [],
+    (event) => event
+);
+
+ 
+
+export let correctFormat : (json:any) => boolean = compose(isNotNil, prop('database'));
+
+
+
+export let removeRev = (item) => {
+    delete item["_rev"];
+    item["_rev"] = undefined;
+    return item;
+};
+
+
  
 export let anyTrue = any(identity);
+
+
 
 export let limit = (down:number,up:number) => 
             (value:number) => value<down ? down :
@@ -76,10 +118,6 @@ export let differentBy = curry(
 
 
 export let isNotNan = (n) => not(isNaN(n));
-
-
-
-export let isNotNil = complement(isNil);
 
 
 

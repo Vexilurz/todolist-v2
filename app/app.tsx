@@ -36,9 +36,11 @@ import {
 } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
-import { cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains, prop, equals, identity, all, when, evolve } from 'ramda';
+import { 
+    cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains, 
+    prop, equals, identity, all, when, evolve 
+} from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
-import { Settings, section, SettingsPopup, LicensePopup } from './Components/Settings/settings'; 
 import { SimplePopup } from './Components/SimplePopup';
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { TopSnackbar } from './Components/Snackbar';
@@ -60,9 +62,14 @@ import { setCallTimeout } from './utils/setCallTimeout';
 import { isDev } from './utils/isDev';
 import { convertEventDate } from './Components/Calendar';
 import { defaultTags } from './utils/defaultTags';
+import { section } from './Components/Settings/section';
+import { SettingsPopup } from './Components/settings/SettingsPopup';
+import { LicensePopup } from './Components/settings/LicensePopup';
 const MockDate = require('mockdate');  
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
+
+
 
 interface Config{
     nextUpdateCheck:Date,
@@ -76,8 +83,9 @@ interface Config{
     preserveWindowWidth:boolean, //when resizing sidebar
     enableShortcutForQuickEntry:boolean,
     quickEntrySavesTo:string, //inbox today next someday
-    moveCompletedItemsToLogbook, //immediatelly
+    moveCompletedItemsToLogbook:string, //immediatelly
 };
+
 
 
 const defaultConfig : Config = { 
@@ -94,7 +102,9 @@ const defaultConfig : Config = {
     quickEntrySavesTo:"inbox", //inbox today next someday
     moveCompletedItemsToLogbook:"immediately"
 };
- 
+
+
+
 window.onerror = function (msg, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
     let message = [ 
@@ -113,6 +123,7 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 
     return true;
 }; 
+
 
  
 export interface Store extends Config{
@@ -161,6 +172,7 @@ export interface Store extends Config{
 }   
 
 
+
 export let defaultStoreItems : Store = {
     ...defaultConfig,
     showLicense : false, 
@@ -207,6 +219,7 @@ export let defaultStoreItems : Store = {
     clone : false,
     todos:[]
 };      
+
 
  
 interface AppProps extends Store{}
@@ -296,10 +309,10 @@ export class App extends Component<AppProps,{}>{
                     showCalendarEvents={this.props.showCalendarEvents}
                     showTrashPopup={this.props.showTrashPopup}
                 
-                    calendars={this.props.calendars}
+                    calendars={filter(this.props.calendars, (calendar:Calendar) => calendar.active)}
                     projects={this.props.projects}
                     areas={this.props.areas}
-                    todos={this.props.todos}
+                    todos={this.props.todos} 
                 
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId}
@@ -307,9 +320,28 @@ export class App extends Component<AppProps,{}>{
                     selectedTag={this.props.selectedTag}
                     dragged={this.props.dragged}
                 /> 
-            </div> 
-
-            
+            </div>  
+            { 
+                this.props.clone ? null : 
+                not(this.props.openSettings) ? null :
+                <SettingsPopup  
+                    dispatch={this.props.dispatch}
+                    openSettings={this.props.openSettings}
+                    hideHint={this.props.hideHint}
+                    selectedSettingsSection={this.props.selectedSettingsSection}
+                    enableShortcutForQuickEntry={this.props.enableShortcutForQuickEntry}
+                    quickEntrySavesTo={this.props.quickEntrySavesTo}
+                    calendars={this.props.calendars}
+                    showCalendarEvents={this.props.showCalendarEvents}
+                    limit={this.props.limit}
+                    shouldSendStatistics={this.props.shouldSendStatistics}
+                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                    groupTodos={this.props.groupTodos}
+                    disableReminder={this.props.disableReminder}
+                    todos={this.props.todos}
+                    defaultTags={this.props.defaultTags}
+                />
+            } 
             {
                 not(this.props.showTrashPopup) ? null :    
                 <TrashPopup  
@@ -337,18 +369,10 @@ export class App extends Component<AppProps,{}>{
             }
             { 
                 this.props.clone ? null : 
-                not(this.props.openSettings) ? null :
-                <SettingsPopup  
-                    openSettings={this.props.openSettings}
-                    dispatch={this.props.dispatch}
-                />
-            }
-            { 
-                this.props.clone ? null : 
                 not(this.props.showLicense) ? null :
                 <LicensePopup 
-                    showLicense={this.props.showLicense}
                     dispatch={this.props.dispatch}
+                    showLicense={this.props.showLicense}
                 />
             }
         </div>  
