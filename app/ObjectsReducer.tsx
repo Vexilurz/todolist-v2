@@ -35,14 +35,17 @@ import diff from 'deep-diff';
 let onError = (e) => globalErrorHandler(e); 
 
 
+
 let actionOriginIsThisWindow = (action:{type:string,load:any,kind:string}) : boolean => {
     return and(action.kind!=="external", action.kind!=="quick-entry");
 };
 
 
+
 let actionFromQuickEntry = (action:{type:string,load:any,kind:string}) : boolean => {
     return action.kind==="quick-entry";
 };
+
 
 
 let log = (append:string) => (load:any) : any => {
@@ -52,103 +55,6 @@ let log = (append:string) => (load:any) : any => {
 
 
 
-let scheduleReminder = (todo) : number => {
-    assert(isDate(todo.reminder),`reminder is not of type Date. scheduleReminder. ${todo.reminder}.`);
-   
-    return setCallTimeout(
-        () => requestFromMain<any>('remind', [todo], (event) => event),
-        todo.reminder
-    ); 
-};
-
- 
-
-let clearScheduledReminders = (store:Store) : Store => {
-    let scheduledReminders = store.scheduledReminders;
-    scheduledReminders.forEach(t => {
-        assert(isNumber(t),`Error:clearScheduledReminders.`);
-        clearTimeout(t);
-    }); 
-    return {...store,scheduledReminders:[]};
-};
-
-
-
-let refreshReminders = (prevState:Store,action:{type:String,load:any}) => (newState:Store) : Store => {
-
-    if(isNil(newState) || prop('clone',newState)){ return newState }
-
-
-    let hasReminder = compose(isDate,prop('reminder'));
-    let reminderInFuture = compose(inFuture,prop('reminder'));
-    let initial = typeEquals("setTodos")(action);
-    let filters = [byNotCompleted,byNotDeleted];
-    let {clone} = newState;
-
-
-    if(initial){ 
-       filters.push(hasReminder); 
-    }else{
-       filters.push(reminderInFuture); 
-    }
-
-
-    let shouldRefreshReminders : boolean = cond([
-        [ typeEquals("setTodos"), (action:{type:string,load:Todo[]}) => true ],
-        [ typeEquals("removeGroup"), (action:{type:string, load:string})  => true ],
-        [ typeEquals("updateTodos"), (action:{type:string, load:Todo[]}) => true ],
-
-        [ typeEquals("updateTodoById"), compose(isDate, path(['load','props','reminder'])) ],
-        [ typeEquals("addTodo"), compose(isDate, path(['load','reminder'])) ],
-        [
-          typeEquals("updateTodo"),
-          (action:{type:string, load:Todo}) => differentBy( 
-                prop(`reminder`),
-                action.load,
-                prevState.todos.find( (t:Todo) => t._id===path(['load','_id'],action) )
-            )
-        ], 
-        [() => true, () => false]
-    ])(action);
-
-
-    return ifElse(
-        (newState:Store) => shouldRefreshReminders && not(clone),
-        compose(
-            (scheduledReminders:number[]) : Store => ({...newState,scheduledReminders}),
-
-            (scheduledReminders:number[]) => filter(scheduledReminders, isNotNil),     
-
-            map((todo) : number => scheduleReminder(todo)), //create timeout for each reminder
-
-            (todos:Todo[]) => filter(todos, allPass(filters)), //only todos with reminder left
-            
-            prop('todos'), //get todos from current state   
-
-            clearScheduledReminders //suspend existing timeouts
-        ),  
-        identity    
-    )(newState);
-};
-
-
-let notClone = compose(not,prop('clone'));
-
-let updateQuickEntry : (newState:Store) => Store =
-    when(
-        allPass([isNotNil,notClone]),
-        (newState:Store) => { 
-            requestFromMain<any>(
-              'updateQuickEntryData', 
-              [newState.todos,newState.projects,newState.areas], 
-              (event) => event
-            ); 
-            return newState;
-        }
-    );
-
- 
-
 export let applicationObjectsReducer = (state:Store, action:{type:string,load:any,kind:string}) : Store => { 
     let clone : boolean = prop('clone',state);
     let shouldAffectDatabase : boolean =  and(actionFromQuickEntry(action),not(clone)) || 
@@ -156,8 +62,6 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
     
     return compose(
-        updateQuickEntry,  
-        refreshReminders(state,action),
         (newState:Store) => {
             if(isNil(newState)){ return newState }
 

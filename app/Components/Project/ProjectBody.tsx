@@ -251,8 +251,16 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     moveCompletedItemsToLogbook
                 })
             );
-            dispatch({type:"updateProjects",load:updatedProjects});
-            dispatch({type:"updateTodos",load:updatedTodos});
+
+            dispatch({
+                type:"multiple",
+                load:[
+                    {type:"updateProjects",load:updatedProjects},
+                    {type:"updateTodos",load:updatedTodos}
+                ]
+            }); 
+
+            
 
         }else if(isProject(project)){
 
@@ -279,8 +287,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
         let {moveCompletedItemsToLogbook,dispatch,areas,projects,selectedProjectId} = this.props;
         let leftpanel = document.getElementById("leftpanel");
-        dispatch({type:"dragged",load:null}); 
-
+        let actions = [{type:"dragged",load:null}];
 
         let x = event.clientX;  
         let y = event.clientY;  
@@ -309,11 +316,11 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 }); 
 
                 if(updated.projects){
-                   dispatch({type:"updateProjects", load:updated.projects});
+                   actions.push({type:"updateProjects", load:updated.projects});
                 }
                 
                 if(updated.todo){
-                   dispatch({type:"updateTodo", load:updated.todo});
+                   actions.push({type:"updateTodo", load:updated.todo});
                 }
 
             }else if(isHeading(draggedTodo as Heading)){
@@ -331,7 +338,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
                this.changeHeadingsOrder(oldIndex,newIndex); 
             }
-        };   
+        };    
+
+        dispatch({type:"multiple",load:actions}); 
     };
      
 

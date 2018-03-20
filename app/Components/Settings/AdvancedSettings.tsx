@@ -129,10 +129,15 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     //cascade
     setData = ({projects, areas, todos, calendars}) : void => {
         let {dispatch} = this.props;
-        dispatch({type:"setProjects", load:projects});
-        dispatch({type:"setAreas", load:areas});
-        dispatch({type:"setTodos", load:todos});
-        dispatch({type:"setCalendars", load:calendars});
+        dispatch({
+            type:"multiple",
+            load:[
+                {type:"setProjects", load:projects},
+                {type:"setAreas", load:areas},
+                {type:"setTodos", load:todos},
+                {type:"setCalendars", load:calendars}
+            ]
+        }); 
     };
 
     
@@ -244,8 +249,13 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                             let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
             
                             if(canUpdate){  
-                               this.props.dispatch({type:"openSettings", load:false});  
-                               this.props.dispatch({type:"showUpdatesNotification", load:true});
+                                this.props.dispatch({
+                                    type:"multiple",
+                                    load:[
+                                        {type:"openSettings", load:false},  
+                                        {type:"showUpdatesNotification", load:true}
+                                    ]
+                                }); 
                             }  
 
                             return this.updateState({
@@ -293,8 +303,13 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 this.props.todos
             );
 
-            this.props.dispatch({type:"updateConfig",load:config}); 
-            this.props.dispatch({type:"updateTodos",load});
+            this.props.dispatch({
+                type:"multiple",
+                load:[
+                    {type:"updateConfig",load:config},
+                    {type:"updateTodos",load}
+                ]
+            }); 
         }
     ); 
     
@@ -319,7 +334,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 requestFromMain<any>(
                     'updateNotificationConfig',
                     [config],
-                    (event) => event
+                    (event) => event 
                 )
             ]);
         } 
@@ -472,8 +487,13 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                     {   
                         <div     
                             onClick={(e) => {
-                                this.props.dispatch({type:"openSettings",load:false});
-                                this.props.dispatch({type:"showLicense",load:true});
+                                this.props.dispatch({ 
+                                    type:"multiple",
+                                    load:[
+                                        {type:"openSettings",load:false},
+                                        {type:"showLicense",load:true}
+                                    ]
+                                }); 
                             }}
                             style={{
                                 width:"100%",

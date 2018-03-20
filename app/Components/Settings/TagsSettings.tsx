@@ -55,7 +55,7 @@ export class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>
                 findIndex((item) => item===tag)
             )(defaultTags)
         }
-
+ 
 
         this.props.dispatch({
             type:"updateTodos", 
@@ -82,9 +82,14 @@ export class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>
                     attachedTags:todo.attachedTags.filter((tag) => contains(tag)(defaultTags)) 
                 })
             );
-
-            this.props.dispatch({type:"updateConfig",load:config}); 
-            this.props.dispatch({type:"updateTodos", load:updatedTodos});
+            this.props.dispatch({
+                type:"multiple",
+                load:[
+                    {type:"updateConfig",load:config}, 
+                    {type:"updateTodos", load:updatedTodos}
+                ]
+            });  
+            
         }
     ); 
     

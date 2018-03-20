@@ -74,23 +74,28 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
         assert(isArrayOfTodos(selectedTodos),`selectedTodos is not of type Todo[]. onDeleteArea. ${selectedTodos}`);
         assert(isArrayOfProjects(selectedProjects),`selectedProjects is not of type Project[]. onDeleteArea. ${selectedProjects}`);
         
-        
-        dispatch({ 
-            type:"updateTodos", 
-            load:selectedTodos.map(
-                (t:Todo) : Todo => ({...t,reminder:null,deleted:new Date()})
-            ) 
-        });
 
-        dispatch({ 
-            type:"updateProjects", 
-            load:selectedProjects.map(
-                (p:Project) => ({...p,deleted:new Date()})
-            ) 
-        });
-
-        dispatch({ type:"updateArea", load:{...area,deleted:new Date()} });
-        dispatch({ type:"selectedCategory", load:"inbox" });
+        dispatch({
+            type:"multiple",
+            load:[
+                { 
+                    type:"updateTodos", 
+                    load:selectedTodos.map( t => ({...t,reminder:null,deleted:new Date()}) ) 
+                },
+                { 
+                    type:"updateProjects", 
+                    load:selectedProjects.map( p => ({...p,deleted:new Date()}) ) 
+                },
+                { 
+                    type:"updateArea", 
+                    load:{...area,deleted:new Date()} 
+                },
+                { 
+                    type:"selectedCategory", 
+                    load:"inbox" 
+                }
+            ]
+        }); 
     };
 
 

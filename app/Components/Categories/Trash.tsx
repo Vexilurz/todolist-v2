@@ -248,16 +248,19 @@ interface TrashPopupState{}
 
 export class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
 
-    onCancel = () => { 
-        this.props.dispatch({type:"showTrashPopup", load:false});
-    }
+    onCancel = () => this.props.dispatch({type:"showTrashPopup", load:false});
+    
       
-    onOk = (e) => { 
-        this.props.dispatch({type:"removeDeleted"});  
-        this.props.dispatch({type:"selectedCategory", load:"inbox"});
-        this.props.dispatch({type:"selectedTag", load:"All"});
-        this.props.dispatch({type:"showTrashPopup", load:false});
-    }   
+    onOk = (e) => this.props.dispatch({
+        type:"multiple",
+        load:[
+            {type:"removeDeleted"},  
+            {type:"selectedCategory", load:"inbox"},
+            {type:"selectedTag", load:"All"},
+            {type:"showTrashPopup", load:false}
+        ]
+    });
+    
 
     render(){ 
         return <SimplePopup      

@@ -37,12 +37,15 @@ import { Category, filter } from './MainContainer';
 import { TodoCreationForm } from './TodoInput/TodoCreation';
 import { generateId } from './../utils/generateId';
 import { generateEmptyTodo } from './../utils/generateEmptyTodo';
-import { isString, isDate, Item, isProject } from '../utils/isSomething';
+import { isString, isDate, Item, isProject, isNotArray } from '../utils/isSomething';
 import { groupProjectsByArea } from './Area/groupProjectsByArea';
 import {  generateLayout } from './Area/generateLayout';
 
 
+let byHidden = (selectedCategory:Category) => 
+               (project:Project) => isNotArray(project.hide) ? false : contains(selectedCategory,project.hide);
 
+               
 interface GroupsByProjectAreaProps{
     dispatch:Function, 
     selectedProjectId:string, 
@@ -83,7 +86,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         }else{
             return 0;
         }
-    };
+    }; 
 
 
     render(){
@@ -91,7 +94,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
             projects, projectsFilters, areasFilters, hideDetached, areas, todos, selectedTag, selectedCategory
         } = this.props;
  
-        let selectedProjects = projects.filter(allPass(projectsFilters));
+        let selectedProjects = projects.filter(byHidden(selectedCategory)).filter(allPass(projectsFilters));
         let selectedAreas = areas.filter(allPass(areasFilters));
              
         let conditions : [(todo:Todo) => boolean, (todo:Todo) => string][] = [

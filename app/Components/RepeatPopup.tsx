@@ -202,6 +202,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         let { todos, repeatTodo, dispatch, limit } = this.props;
         let {interval,freq,until,count,selectedOption} = this.state; 
         let todo = {...repeatTodo};
+        let actions = [];
 
 
         let repeatedTodos : Todo[] = compose(
@@ -234,13 +235,15 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
   
         //attach group to repeated todo
         compose(
-            (group) => dispatch({ type:"updateTodo", load:{...todo,group:{...group,last:false}} }),
+            (group) => actions.push({ type:"updateTodo", load:{...todo,group:{...group,last:false}} }),
             prop('group'),
             (items) => items[0]
         )(repeatedTodos) 
 
         //add repeated todos to state
-        dispatch({type:"addTodos",load:repeatedTodos});  
+        actions.push({type:"addTodos",load:repeatedTodos});  
+
+        dispatch({type:"multiple",load:actions}); 
     };    
 
 

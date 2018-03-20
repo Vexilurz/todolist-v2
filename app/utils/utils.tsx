@@ -1461,7 +1461,7 @@ export let convertAreaDates = (a:Area) : Area => ({
                a.deleted,
 });
 
-
+ 
 
 export let createHeading = (e, props:Store) : void => {
     let id : string = props.selectedProjectId;

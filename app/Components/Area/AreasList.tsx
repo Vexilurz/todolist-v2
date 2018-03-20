@@ -49,13 +49,18 @@ interface AreasListProps{
     dispatch:Function,
     leftPanelWidth:number, 
     dragged:string, 
-    completed:Todo[],
-    todos:Todo[], 
     selectedProjectId:string,
     selectedAreaId:string, 
     selectedCategory:Category, 
     areas:Area[],
     leftPanelRef:HTMLElement, 
+    indicators : { 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
     projects:Project[]    
 }  
 
@@ -72,6 +77,38 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     } 
 
 
+
+    shouldComponentUpdate(nextProps:AreasListProps){
+        let {
+            leftPanelWidth,
+            dragged,
+            selectedProjectId,
+            selectedAreaId,
+            selectedCategory,
+            areas,
+            indicators,
+            projects 
+        } = nextProps; 
+
+
+
+        let should = leftPanelWidth!==this.props.leftPanelWidth ||
+                        dragged!==this.props.dragged ||
+                        selectedProjectId!==this.props.selectedProjectId ||
+                        selectedAreaId!==this.props.selectedAreaId ||
+                        selectedCategory!==this.props.selectedCategory ||
+
+                        different(indicators,this.props.indicators) ||
+
+                        areas.length!==this.props.areas.length ||
+                        projects.length!==this.props.projects.length;
+
+        console.log(`should update AreasList ${should}`);         
+        return should;                
+    };
+
+
+
     onCollapseContent = (area:Area) : void => { 
         let {dispatch} = this.props;
         let {hideContentFromAreasList} = area; 
@@ -82,6 +119,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         });
     };
 
+
  
     selectArea = (area:Area) : void => {
         let {dispatch} = this.props;
@@ -91,21 +129,33 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
            this.onCollapseContent(area);
         }
  
-        dispatch({type:"selectedAreaId",load:area._id}); 
-        dispatch({type:"selectedCategory",load:"area"});
-        dispatch({type:"selectedTag",load:"All"});
-        dispatch({type:"searchQuery",load:""});
+        dispatch({
+            type:"multiple",
+            load:[
+                {type:"selectedAreaId",load:area._id}, 
+                {type:"selectedCategory",load:"area"},
+                {type:"selectedTag",load:"All"},
+                {type:"searchQuery",load:""}
+            ]
+        });
     };
  
 
+
     selectProject = (p:Project) : void => {
         let {dispatch} = this.props;
-        
-        dispatch({type:"selectedProjectId",load:p._id});
-        dispatch({type:"selectedCategory",load:"project"});
-        dispatch({type:"selectedTag",load:"All"});
-        dispatch({type:"searchQuery",load:""});
+
+        dispatch({
+            type:"multiple",
+            load:[
+                {type:"selectedProjectId",load:p._id},
+                {type:"selectedCategory",load:"project"},
+                {type:"selectedTag",load:"All"},
+                {type:"searchQuery",load:""}
+            ]
+        });
     };
+
 
 
     getAreaElement = (a : Area, index : number, hideAreaPadding : boolean) : JSX.Element => {
@@ -123,11 +173,11 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     };
  
 
+
     getProjectElement = (p:Project, index:number) : JSX.Element => {
         return <ProjectElement 
-            todos={this.props.todos}
-            completed={this.props.completed}
-            project={p}
+            indicator={defaultTo({completed:0,active:0})(this.props.indicators[p._id])}
+            project={p} 
             index={index}
             dragged={this.props.dragged}  
             selectProject={this.selectProject}
@@ -136,7 +186,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         />
     };
     
-
+    
+ 
     getElement = (value : LayoutItem, index : number, hideAreaPadding : boolean) : JSX.Element => 
         cond([
             [
@@ -178,10 +229,13 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     }; 
      
 
-    onSortMove = (oldIndex:number, event) : void => {} 
+
+    onSortMove = (oldIndex:number, event) : void => {}; 
 
 
-    onSortStart = (oldIndex:number, event:any) : void => {}
+
+    onSortStart = (oldIndex:number, event:any) : void => {};
+
 
 
     byNotAttachedToCollapsedArea = (project:Project) : boolean => compose(
@@ -198,6 +252,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     )(this.props);
 
 
+
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
         let {dispatch} = this.props;
 
@@ -212,10 +267,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             this.props.areas.filter(byNotDeleted)
         );
 
-        let layout = generateLayout(
-            this.props.areas,
-            {table,detached}
-        ); 
+        let layout = generateLayout(this.props.areas,{table,detached}); 
  
         if(isEmpty(layout)){ return }
 
@@ -305,9 +357,15 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
  
         //4) Update projects/areas in store/database
-        dispatch({type:"updateProjects", load:updatedProjects}); 
-        dispatch({type:"updateAreas", load:updatedAreas});  
+        dispatch({
+            type:"multiple",
+            load:[
+                {type:"updateProjects", load:updatedProjects}, 
+                {type:"updateAreas", load:updatedAreas}  
+            ]
+        }); 
     };
+
 
        
     selectElements = (index:number,items:any[]) => {
@@ -327,6 +385,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         return selected; 
     };   
  
+
 
     render(){ 
         let scrollableContainer = document.getElementById("leftpanel");
@@ -527,11 +586,10 @@ interface ProjectElementProps{
     project:Project,
     index:number,
     dragged:string,
-    completed:Todo[],
     selectProject:Function,
     selectedProjectId:string,
     selectedCategory:Category,
-    todos:Todo[]
+    indicator:{active:number,completed:number,deleted:number}
 }
 
 interface ProjectElementState{ 
@@ -568,9 +626,10 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
      
 
     render(){
-        let {project, selectedProjectId, selectedCategory, todos} = this.props;
+        let {project, selectedProjectId, selectedCategory, indicator} = this.props;
         let selected = project._id===selectedProjectId && selectedCategory==="project";
-        let {done, left} = getProgressStatus(project, todos, false);
+        let done = indicator.completed;
+        let left = indicator.active;
         let totalValue = (done+left)===0 ? 1 : (done+left);
         let currentValue = done;
         

@@ -42,11 +42,13 @@ import { getSameDayEventElement } from '../../utils/getCalendarEventElement';
 let Perf = require('react-addons-perf');
 let p = require('react-dom/lib/ReactPerf'); 
 import diff from 'deep-diff';
- 
+
+
 
 export let indexToPriority = (items:any[]) : any[] => items.map(
     (item,index:number) => ({...item,priority:index})
 ); 
+
 
 
 class ThisEveningSeparator extends Component<{},{}>{
@@ -154,60 +156,6 @@ export class Today extends Component<TodayProps,TodayState>{
     }  
 
 
-    /*
-    calculateTodayAmount = (props:TodayProps) => {
-        let {todos,dispatch} = this.props
-
-        let todayFilters = [   
-            (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
-            byNotCompleted,  
-            byNotDeleted   
-        ];    
-    
-        let hotFilters = [ 
-            (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
-            byNotCompleted,   
-            byNotDeleted  
-        ]; 
-
-        dispatch({
-            type:"todayAmount",
-            load:todos.filter((t:Todo) => allPass(todayFilters)(t)).length
-        });
-        dispatch({
-            type:"hotAmount",
-            load:todos.filter((t:Todo) => allPass(hotFilters)(t as (Project & Todo))).length
-        });
-    };
-    */
-
-
-    componentDidMount(){ 
-        //this.calculateTodayAmount(this.props);
-    };     
-  
-
-    componentWillReceiveProps(nextProps:TodayProps){
-        //let diff = require('deep-diff').diff;
-        /*
-        let ps = diff(nextProps.projects,this.props.projects);
-
-        for(let i = 0; i <this.props.projects.length; i++){
-            let target = this.props.projects[i];
-            let corr = nextProps.projects.find( p => p._id===target._id );
-            console.log( 
-                target.name,
-                diff(target,corr) 
-            )
-        }
-        console.log('projects before',this.props.projects.length);
-        console.log('projects after',nextProps.projects.length);
-        */
-
-        //this.calculateTodayAmount(nextProps); 
-    };
- 
-
     onError = (error) => globalErrorHandler(error);
 
 
@@ -295,7 +243,7 @@ export class Today extends Component<TodayProps,TodayState>{
        
 
     onSortStart = (oldIndex:number,event:any) => {
-        //Perf.start();
+        Perf.start();
         this.props.dispatch({type:"dragged",load:"todo"});  
     };
     
@@ -310,11 +258,10 @@ export class Today extends Component<TodayProps,TodayState>{
         let x = event.clientX; 
         let y = event.clientY;  
         let draggedTodo = items[oldIndex] as Todo;
+        let actions = [{type:"dragged",load:null}];
         assert(isTodo(draggedTodo), `draggedTodo is not of type Todo. onSortEnd. ${draggedTodo}`);
 
 
-        dispatch({type:"dragged",load:null});
-        
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
             let updated : { projects:Project[], todo:Todo } = onDrop({
@@ -325,27 +272,35 @@ export class Today extends Component<TodayProps,TodayState>{
             }); 
 
             if(updated.projects){
-               dispatch({type:"updateProjects", load:updated.projects});
+               actions.push({type:"updateProjects", load:updated.projects});
             }
 
             if(updated.todo){
-               dispatch({type:"updateTodo", load:updated.todo});
+               actions.push({type:"updateTodo", load:updated.todo});
             }
         }else{     
  
             if(oldIndex===newIndex){ return }
 
             this.changeOrder(oldIndex,newIndex,items);  
-        }     
+        }    
+        
 
-        /*Perf.stop();
+        
+        dispatch({type:"multiple",load:actions}); 
+
+
+
+        Perf.stop();
         Perf.getLastMeasurements();
         Perf.getWasted();
         Perf.printExclusive();
-        Perf.printWasted();*/
+        Perf.printWasted();
     };   
     
+
     selectElements = (index:number,items:any[]) => [index];
+
 
     shouldCancelStart = (e:any,item:any) => {
         let nodes = [].slice.call(e.path);
@@ -611,20 +566,21 @@ export class Hint extends Component<HintProps,HintState>{
         super(props);
     } 
 
-    onError = (error) => globalErrorHandler(error);
-     
-    onLoad = (e) => { 
-        let {dispatch} = this.props; 
 
-        updateConfig({hideHint:true})
-        .then(
-            (config) => {
-                dispatch({type:"updateConfig",load:config})
-                dispatch({type:"selectedSettingsSection",load:'CalendarEvents'});
-                dispatch({type:"openSettings",load:true}); 
-            }
-        );
-    };
+    onError = (error) => globalErrorHandler(error);
+
+     
+    onLoad = (e) => updateConfig({hideHint:true}).then(
+        (config) => this.props.dispatch({
+            type:"multiple",
+            load:[
+                {type:"updateConfig",load:config},
+                {type:"selectedSettingsSection",load:'CalendarEvents'},
+                {type:"openSettings",load:true}
+            ]
+        })  
+    );
+    
     
     onClose = (e) => updateConfig({hideHint:true}).then( config => this.props.dispatch({type:"updateConfig",load:config}) )
     

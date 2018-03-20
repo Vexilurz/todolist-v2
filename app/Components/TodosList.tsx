@@ -284,9 +284,9 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         let x = event.clientX; 
         let y = event.clientY;   
         let selected = todos.sort(sortBy);
+        let actions = [];
 
-
-        dispatch({type:"dragged",load:null}); 
+        actions.push({type:"dragged",load:null}); 
 
         let draggedTodo = item;
         
@@ -311,17 +311,19 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             }); 
 
             if(updated.projects){
-               dispatch({type:"updateProjects", load:updated.projects});
+               actions.push({type:"updateProjects", load:updated.projects});
             }
 
             if(updated.todo){
-               dispatch({type:"updateTodo", load:updated.todo});
+               actions.push({type:"updateTodo", load:updated.todo});
             }
  
         }else{     
             if(oldIndex===newIndex){ return }
             this.changeOrder(oldIndex,newIndex,selected) 
-        }      
+        }     
+        
+        dispatch({type:"multiple", load:actions}); 
     };   
      
     
@@ -360,7 +362,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             });
         }
     };  
- 
+  
         
     render(){    
         let {todos, selectedCategory, sortBy} = this.props;

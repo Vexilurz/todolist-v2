@@ -481,12 +481,17 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let {dispatch, onOpen, todo} = this.props;
 
         if(not(open)){    
-           this.setState({open:true, showAdditionalTags:false}, () => isFunction(onOpen) ? onOpen() : null);   
-           dispatch({type:"showRepeatPopup", load:false});
-           dispatch({type:"showRightClickMenu", load:false});
-           dispatch({type:"selectedTodo", load:todo});
+            this.setState({open:true, showAdditionalTags:false}, () => isFunction(onOpen) ? onOpen() : null);  
+            dispatch({
+                type:"multiple",
+                load:[
+                    {type:"showRepeatPopup", load:false},
+                    {type:"showRightClickMenu", load:false},
+                    {type:"selectedTodo", load:todo}
+                ]
+            });  
         };   
-    };   
+    };     
 
 
 
@@ -608,17 +613,21 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let {dispatch,todo,rootRef} = this.props;
 
         if(not(open)){
-            dispatch({ 
-                type:"openRightClickMenu",  
-                load:{   
-                   showRightClickMenu:true, 
-                   rightClickedTodoId:todo._id, 
-                   rightClickMenuX:e.clientX-rootRef.offsetLeft,
-                   rightClickMenuY:e.clientY+rootRef.scrollTop 
-                } 
-            });  
-
-            dispatch({type:"showRepeatPopup", load:false});
+            dispatch({
+                type:"multiple",
+                load:[
+                    { 
+                        type:"openRightClickMenu",  
+                        load:{   
+                           showRightClickMenu:true, 
+                           rightClickedTodoId:todo._id, 
+                           rightClickMenuX:e.clientX-rootRef.offsetLeft,
+                           rightClickMenuY:e.clientY+rootRef.scrollTop 
+                        } 
+                    },  
+                    {type:"showRepeatPopup", load:false}
+                ]
+            }); 
         }     
     };  
 

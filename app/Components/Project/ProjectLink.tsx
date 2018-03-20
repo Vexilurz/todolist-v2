@@ -72,14 +72,21 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
     }
     
 
+
     restoreProject = (p:Project) : void => { 
         let {dispatch, todos} = this.props;
         let relatedTodosIds : string[] = p.layout.filter(isString) as any[];
         let selectedTodos : Todo[] = filter(todos, (t:Todo) : boolean => contains(t._id)(relatedTodosIds), "restoreProject");  
 
-        dispatch({type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))});
-        dispatch({type:"updateProject", load:{...p,deleted:undefined}});
+        dispatch({
+            type:"multiple",
+            load:[
+                {type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))},
+                {type:"updateProject", load:{...p,deleted:undefined}}
+            ]
+        });
     };
+
 
 
     onHideFrom = () => {
@@ -92,14 +99,9 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
             hide = [...project.hide,selectedCategory];
         }
         
-        this.setState(
-            {openMenu:false}, 
-            () => dispatch({
-                type:"updateProject", 
-                load:{...project,hide}
-            }) 
-        );
+        this.setState( {openMenu:false}, () => dispatch({type:"updateProject", load:{...project,hide}}) );
     };  
+
 
 
     onShowOnlyOne = () => {
@@ -109,9 +111,10 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
                      project.expand===3 ? 1 :
                      3; 
 
-        dispatch({type:"updateProject", load:{...project,expand}})
-        this.setState({openMenu:false}) 
+        dispatch({type:"updateProject", load:{...project,expand}});
+        this.setState({openMenu:false}); 
     };
+
 
 
     openProject =  (e) => {
@@ -120,10 +123,16 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
 
         if(not(isNil(project.deleted))){ return }
         if(not(isNil(project.completed))){ return } 
-            
-        dispatch({type:"selectedCategory", load:"project"});
-        dispatch({type:"selectedProjectId", load:project._id});
+
+        dispatch({
+            type:"multiple",
+            load:[
+                {type:"selectedCategory", load:"project"},
+                {type:"selectedProjectId", load:project._id}
+            ]
+        });
     };
+
 
     
     render(){ 
@@ -485,17 +494,23 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
         super(props); 
         this.state={openMenu:false};
     }
-    
+     
 
     restoreProject = (p:Project) : void => { 
         let {dispatch, todos} = this.props;
         let relatedTodosIds : string[] = p.layout.filter(isString) as any[];
         let selectedTodos : Todo[] = filter(todos, (t:Todo) : boolean => contains(t._id)(relatedTodosIds), "restoreProject");  
 
-        dispatch({type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))})
-        dispatch({type:"updateProject", load:{...p,deleted:undefined}})
-    }
-
+        dispatch({
+            type:"multiple",
+            load:[
+               {type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))},
+               {type:"updateProject", load:{...p,deleted:undefined}}
+            ]
+        }); 
+    };
+ 
+ 
     render(){ 
         let { dispatch,project,todos,selectedCategory} = this.props;
         let { done, left } = getProgressStatus(project, todos, true); 

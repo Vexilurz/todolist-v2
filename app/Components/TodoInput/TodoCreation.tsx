@@ -182,8 +182,14 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                 () => { 
                     if(this.inputRef){
                         this.inputRef.focus(); 
-                        dispatch({type:"showRepeatPopup", load:false}); 
-                        dispatch({type:"showRightClickMenu", load:false});
+
+                        dispatch({
+                            type:"multiple",
+                            load:[
+                                {type:"showRepeatPopup", load:false},
+                                {type:"showRightClickMenu", load:false}
+                            ]
+                        }); 
                     } 
                 }
             ); 
@@ -230,6 +236,8 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         if(isEmpty(todo.title)){ return };
         let {selectedCategory,dispatch,selectedProjectId,selectedAreaId} = this.props;
         let timeSeconds = Math.round(new Date().getTime() / 1000);
+        let actions = [];
+
 
         googleAnalytics.send(  
             'event', 
@@ -248,19 +256,15 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
            todo.priority = todos[0].priority - 1; 
         }   
         
-        dispatch({type:"addTodo", load:todo}); 
+        actions.push({type:"addTodo", load:todo}); 
 
         if(selectedCategory==="project"){ 
-            dispatch({  
-                type:"attachTodoToProject", 
-                load:{ projectId:selectedProjectId, todoId:todo._id }
-            });    
+            actions.push({type:"attachTodoToProject", load:{ projectId:selectedProjectId, todoId:todo._id }});    
         }else if(selectedCategory==="area"){
-            dispatch({
-                type:"attachTodoToArea", 
-                load:{ areaId:selectedAreaId, todoId:todo._id }
-            });  
+            actions.push({type:"attachTodoToArea", load:{ areaId:selectedAreaId, todoId:todo._id }});  
         }
+
+        dispatch({type:"multiple",load:actions}); 
     };  
 
 
@@ -346,17 +350,21 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         let {dispatch} = this.props; 
 
         if(not(open)){ 
-            dispatch({ 
-                type:"openRightClickMenu",  
-                load:{   
-                   showRightClickMenu:true, 
-                   rightClickedTodoId:this.props.todo._id, 
-                   rightClickMenuX:e.clientX-this.props.rootRef.offsetLeft,
-                   rightClickMenuY:e.clientY+this.props.rootRef.scrollTop 
-                } 
-            });     
-
-            dispatch({type:"showRepeatPopup", load:false});
+            dispatch({
+                type:"multiple",
+                load:[
+                    { 
+                        type:"openRightClickMenu",  
+                        load:{   
+                           showRightClickMenu:true, 
+                           rightClickedTodoId:this.props.todo._id, 
+                           rightClickMenuX:e.clientX-this.props.rootRef.offsetLeft,
+                           rightClickMenuY:e.clientY+this.props.rootRef.scrollTop 
+                        } 
+                    },  
+                    {type:"showRepeatPopup", load:false}
+                ]
+            }); 
         }     
     };  
 

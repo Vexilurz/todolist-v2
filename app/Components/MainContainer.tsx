@@ -69,56 +69,46 @@ const moment = require("moment");
 const path = require('path');
 let uniqid = require("uniqid"); 
 
+
+
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
                        "logbook" | "trash" | "project" | "area" | "evening" | 
                        "deadline" | "search" | "group" | "search" | "reminder";
 
 
+
 export let filter = (array:any[],f:Function,caller?:string) : any[] => lodashFilter(array,f); 
  
 
-let removeHidden = (selectedCategory:Category,projects:Project[]) => (todos:Todo[]) : Todo[] => 
-                    compose(
-                        (ids) => reject(byAttachedToHiddenProject(ids), todos),
-                        flatten,
-                        map((p:Project) => p.layout.filter(isString)),
-                        projects => filter(projects,byHidden(selectedCategory)) 
-                    )(projects);
-
 
 let noteIsString = compose(isString, prop('note'));
-
-
 let assureCorrectNoteType : (todo:Todo) => Todo = when(noteIsString,evolve({note:noteFromText}));
 
 
-let byHidden = (selectedCategory:Category) => 
-               (project:Project) => isNotArray(project.hide) ? false : contains(selectedCategory,project.hide);
 
-
-let byAttachedToHiddenProject = (ids:String[]) => (todo:Todo) => contains(todo._id)(ids);
-
-
-let assertLayoutUniqueness : (projects:Project[]) => Project[] = 
-    when(
-        (projects) => isDev(), 
-        (projects) => map(
-            p => evolve(
-                {
-                    layout:reject( 
-                        i => projects.find( 
-                            t => and( 
-                                contains(i)(t.layout), 
-                                different(t._id,p._id) 
-                            ) 
+//TODO move to generator for testing
+let assertLayoutUniqueness : (projects:Project[]) => Project[] = identity;
+/*
+when(
+    (projects) => isDev(), 
+    (projects) => map(
+        p => evolve(
+            {
+                layout:reject( 
+                    i => projects.find( 
+                        t => and( 
+                            contains(i)(t.layout), 
+                            different(t._id,p._id) 
                         ) 
-                    )
-                },
-                p
-            ),
-            projects
-        )
-    );
+                    ) 
+                )
+            },
+            p
+        ),
+        projects
+    )
+);
+*/
 
 
 
@@ -156,6 +146,7 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
     );
 
 
+
 interface MainContainerProps{
     dispatch:Function
 
@@ -177,7 +168,16 @@ interface MainContainerProps{
     showRightClickMenu:boolean,
     showCalendarEvents:boolean,
     showTrashPopup:boolean,
-
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    },
 
     calendars:Calendar[],
     projects:Project[],
@@ -192,6 +192,7 @@ interface MainContainerProps{
 }   
 interface MainContainerState{ fullWindowSize:boolean }
   
+
    
 export class MainContainer extends Component<MainContainerProps,MainContainerState>{
     rootRef:HTMLElement;  
@@ -202,7 +203,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
     constructor(props){ 
         super(props);  
-        this.limit = 100000;
+        this.limit = 1000000;
         this.subscriptions = [];
         this.disablePrintButton=false;
         this.state = { fullWindowSize:true };
@@ -221,14 +222,14 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             this.onError,
             this.limit 
         )
-                .then(
-                    ({projects, areas, todos, calendars}) => this.setData({
-                        projects:defaultTo([], projects), 
-                        areas:defaultTo([], areas), 
-                        todos:defaultTo([], todos), 
-                        calendars:defaultTo([], calendars)
-                    }) 
-                )
+        .then(
+            ({projects, areas, todos, calendars}) => this.setData({
+                projects:defaultTo([], projects), 
+                areas:defaultTo([], areas), 
+                todos:defaultTo([], todos), 
+                calendars:defaultTo([], calendars)
+            }) 
+        )
     );
         
 
@@ -239,37 +240,44 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         if(this.props.firstLaunch){  
             let alreadyExists = projects.find( (p:Project) => p._id==="Intro List" );
             if(not(alreadyExists)){  
-               dispatch({type:"addTodos", load:introListLayout.filter(isTodo)});
-               dispatch({type:"addProject", load:getIntroList()}); 
+                dispatch({
+                    type:"multiple",
+                    load:[
+                        {type:"addTodos", load:introListLayout.filter(isTodo)},
+                        {type:"addProject", load:getIntroList()}  
+                    ]
+                }); 
             }
-        };
+        }; 
     };
  
 
 
     setData = ({projects, areas, todos, calendars}) : void => {
-        let {dispatch} = this.props;
+        let actions = [];
         
         if(this.props.clone){ return } 
 
-        dispatch({type:"setProjects", load:[...projects]});
-        dispatch({type:"setAreas", load:[...areas]});
-        dispatch({type:"setTodos", load:[...todos]});
-        dispatch({type:"setCalendars", load:[...calendars]});
+        actions.push({type:"setProjects", load:[...projects]});
+        actions.push({type:"setAreas", load:[...areas]});
+        actions.push({type:"setTodos", load:[...todos]});
+        actions.push({type:"setCalendars", load:[...calendars]});
         this.addIntroList(projects); 
 
         let extended = extend(this.props.limit, todos);
 
         if(isNotEmpty(extended)){ 
-           dispatch({type:"addTodos", load:extended}); 
+           actions.push({type:"addTodos", load:extended}); 
         }
 
         when(
           isNotEmpty, 
-          () => updateConfig({hideHint:true}).then( config => this.props.dispatch({type:"updateConfig",load:config}) ) 
+          () => updateConfig({hideHint:true}).then( config => actions.push({type:"updateConfig",load:config}) ) 
         )(calendars); 
+
+        this.props.dispatch({type:"multiple",load:actions}); 
     };
-   
+    
 
 
     initUpdateTimeout = () => {
@@ -297,7 +305,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                         }else{ 
                             updateConfig({nextUpdateCheck:threeDaysLater(new Date())})
                             .then(
-                                (config) => this.props.dispatch({type:"updateConfig",load:config}) 
+                                (config) => dispatch({type:"updateConfig",load:config}) 
                             ) 
                         }
                     }
@@ -374,16 +382,16 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             .interval(3*minute)
             .subscribe((v) => {
                 /*
-                let {todos, projects, areas} = testData(500,50,20);
+                    let {todos, projects, areas} = testData(500,50,20);
 
-                let to:string = path.resolve(`${keyFromDate(new Date())}-${uniqid()}.json`);
-                requestFromMain<any>(
-                    'saveDatabase',
-                    [ { database : { todos, projects, areas, calendars:[] } }, to ],
-                    (event) => event
-                ).then(
-                    () => console.log('saved',to)
-                ) 
+                    let to:string = path.resolve(`${keyFromDate(new Date())}-${uniqid()}.json`);
+                    requestFromMain<any>(
+                        'saveDatabase',
+                        [ { database : { todos, projects, areas, calendars:[] } }, to ],
+                        (event) => event
+                    ).then(
+                        () => console.log('saved',to)
+                    ) 
                 */
 
                 dispatch({type:'update'});
@@ -418,11 +426,14 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                         [],
                         (event) => event
                     ).then(
-                        () => { 
-                            dispatch({type:"selectedCategory",load:"inbox"});
-                            dispatch({type:"scrolledTodo",load:todo}); 
-                            dispatch({type:"selectedCategory",load:"today"});
-                        }
+                        () => dispatch({
+                            type:"multiple",
+                            load:[
+                                {type:"selectedCategory",load:"inbox"},
+                                {type:"scrolledTodo",load:todo},
+                                {type:"selectedCategory",load:"today"} 
+                            ]
+                        })  
                     )
                 ), 
 
@@ -452,11 +463,16 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             
             Observable  
                 .fromEvent(ipcRenderer, "Ctrl+Alt+T", (event) => event)
-                .subscribe((event) => {
-                    dispatch({type:"openNewProjectAreaPopup", load:false});
-                    dispatch({type:"showTrashPopup", load:false}); 
-                    dispatch({type:"openTodoInputPopup", load:true});
-                })   
+                .subscribe(
+                    (event) => dispatch({
+                        type:"multiple",
+                        load:[
+                            {type:"openNewProjectAreaPopup", load:false},
+                            {type:"showTrashPopup", load:false},
+                            {type:"openTodoInputPopup", load:true}
+                        ]
+                    })
+                )   
         );
     };
   
@@ -574,16 +590,11 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             [ 
                                 (selectedCategory:Category) : boolean => 'inbox'===selectedCategory,  
                                 () => {
-                                    let inboxFilters = [
-                                        byNotAttachedToProject(this.props.projects), 
-                                        (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline), 
-                                        byCategory("inbox"), 
-                                        byNotCompleted,  
-                                        byNotDeleted   
-                                    ];    
-                                    
+                                    let inboxFilters = this.props.filters.inbox;    
+                                    let inboxTodos = filter(this.props.todos, allPass(inboxFilters));
+
                                     return <Inbox 
-                                        todos={filter(todos, allPass(inboxFilters))} 
+                                        todos={inboxTodos} 
                                         dispatch={this.props.dispatch}
                                         selectedCategory={this.props.selectedCategory}
                                         groupTodos={this.props.groupTodos}
@@ -602,35 +613,8 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             [ 
                                 (selectedCategory:Category) : boolean => 'today'===selectedCategory,  
                                 () => { 
-                                    if(isDev()){ 
-                                        let data = flatten( 
-                                            this.props.projects.map(p => p.layout.filter(isString)) 
-                                        );
-                                        
-                                        assert(
-                                            data.length===uniq(data).length,
-                                            `Error: repeated items ${data.length} ${uniq(data).length}`
-                                        ); 
-                                    }
-  
-
-                                    let todayFilters = [    
-                                        byNotAttachedToCompletedProject(this.props.projects), 
-                                        (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
-                                        (t:Todo) => t.category!=="someday",
-                                        byNotCompleted,  
-                                        byNotDeleted   
-                                    ];      
-
-                                   
-                                    let todayTodos = compose(
-                                        when( 
-                                            () => this.props.groupTodos, 
-                                            removeHidden(this.props.selectedCategory,this.props.projects) 
-                                        ),
-                                        (todos:Todo[]) => filter( todos, allPass(todayFilters) )
-                                    )(this.props.todos);
-
+                                    let todayFilters = this.props.filters.today; 
+                                    let todayTodos = filter(this.props.todos, allPass(todayFilters));
 
                                     return <Today   
                                         todos={todayTodos}
@@ -656,15 +640,8 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             [ 
                                 (selectedCategory:Category) : boolean => 'someday'===selectedCategory,  
                                 () => {
-                                    let somedayFilters = [
-                                        byNotAttachedToCompletedProject(this.props.projects),
-                                        byCategory("someday"),
-                                        (todo:Todo) => isNil(todo.deadline) && isNil(todo.attachedDate),
-                                        byNotCompleted,   
-                                        byNotDeleted 
-                                    ];
-
-                                    let selectedTodos = filter(todos, allPass(somedayFilters));
+                                    let somedayFilters = this.props.filters.someday;
+                                    let selectedTodos = filter(this.props.todos, allPass(somedayFilters));
 
                                     return <Someday 
                                         todos={selectedTodos}
@@ -686,29 +663,11 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             [ 
                                 (selectedCategory:Category) : boolean => 'next'===selectedCategory,  
                                 () => {
-                                    let {groupTodos} = this.props;
-                                    
-                                    let byIntroList = (item : (Project | Todo)) : boolean => contains(item._id,introListIds);
-                                    let byNotIntroList = compose(not, byIntroList);
-                                    
-                                    let nextFilters = [ 
-                                        byNotIntroList,
-                                        byNotAttachedToCompletedProject(this.props.projects),
-                                        (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
-                                        (t:Todo) => t.category!=="inbox" && t.category!=="someday",  
-                                        byNotCompleted,   
-                                        byNotDeleted    
-                                    ]; 
-
-
-                                    let nextTodos = compose(
-                                        when( 
-                                            () => this.props.groupTodos, 
-                                            removeHidden(this.props.selectedCategory,this.props.projects) 
-                                        ),
-                                        (todos:Todo[]) => filter( todos, allPass(nextFilters) )
-                                    )(this.props.todos);
-
+                                    let nextFilters = this.props.filters.next; 
+                                    let nextTodos = filter(this.props.todos, allPass(nextFilters));
+                                    let projects = this.props.projects.filter(
+                                        (item:Project) : boolean => not( contains(item._id,introListIds) )
+                                    );
 
                                     return <Next   
                                         todos={nextTodos}
@@ -723,16 +682,17 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         selectedProjectId={this.props.selectedProjectId}
                                         selectedAreaId={this.props.selectedAreaId} 
                                         areas={this.props.areas} 
-                                        projects={this.props.projects.filter(byNotIntroList)} 
+                                        projects={projects} 
                                     />
                                 }
                             ],  
                             [ 
                                 (selectedCategory:Category) : boolean => 'trash'===selectedCategory,  
                                 () => {
-                                
+                                    let trashTodos = filter(this.props.todos, allPass(this.props.filters.trash));
+
                                     return <Trash    
-                                        todos={filter(todos, byDeleted)}
+                                        todos={trashTodos}
                                         groupTodos={this.props.groupTodos}  
                                         dispatch={this.props.dispatch} 
                                         scrolledTodo={this.props.scrolledTodo}
@@ -751,15 +711,10 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             [ 
                                 (selectedCategory:Category) : boolean => 'logbook'===selectedCategory,  
                                 () => {
-
-                                    let logbookFilters = [
-                                        byCompleted, 
-                                        byNotDeleted,
-                                        byNotAttachedToCompletedProject(this.props.projects)
-                                    ]; 
+                                    let logbookTodos = filter(this.props.todos, allPass(this.props.filters.logbook)); 
 
                                     return <Logbook   
-                                        todos={filter(todos, allPass(logbookFilters))} 
+                                        todos={logbookTodos} 
                                         groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch}
                                         scrolledTodo={this.props.scrolledTodo}
@@ -777,21 +732,14 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             [ 
                                 (selectedCategory:Category) : boolean => 'upcoming'===selectedCategory,  
                                 () => {
-                                    let upcomingFilters = [
-                                        byScheduled,
-                                        byNotAttachedToCompletedProject(this.props.projects),
-                                        (t:Todo) => t.category!=="someday",
-                                        byNotCompleted,  
-                                        byNotDeleted   
-                                    ];
-
-                                    let filtered = filter(todos, allPass(upcomingFilters));
+                                    let upcomingFilters = this.props.filters.upcoming;
+                                    let upcomingTodos = filter(this.props.todos, allPass(upcomingFilters));
 
                                     return <Upcoming  
                                         limit={this.props.limit}
                                         clone={this.props.clone} 
                                         hideHint={this.props.hideHint}
-                                        todos={filtered}
+                                        todos={upcomingTodos}
                                         groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch}
                                         selectedCategory={this.props.selectedCategory}
@@ -807,7 +755,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         calendars={this.props.calendars} 
                                     />
                                 }
-                            ],
+                            ], 
                             [ 
                                 (selectedCategory:Category) : boolean => 'project'===selectedCategory,  
                                 () => {
@@ -817,10 +765,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
                                     let ids = project.layout.filter(isString);
 
-                                    let projectFilters = [ 
-                                        (t:Todo) => contains(t._id)(ids), 
-                                        byNotDeleted 
-                                    ];  
+                                    let projectFilters = [(t:Todo) => contains(t._id)(ids), byNotDeleted];  
                                  
                                     let selectedTodos = filter(todos, allPass(projectFilters));
 
@@ -869,7 +814,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     /> 
                                 }   
                             ], 
-                            [ 
+                            [  
                                 (selectedCategory:Category) : boolean => 'search'===selectedCategory,  
                                 () => <Search {...{} as any}/>
                             ]

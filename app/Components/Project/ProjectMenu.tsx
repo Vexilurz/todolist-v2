@@ -33,13 +33,18 @@ export let deleteProject = (dispatch:Function, project:Project, todos:Todo[]) =>
     let relatedTodosIds : string[] = project.layout.filter(isString) as string[];
     
     let selectedTodos : Todo[] = todos.filter((t:Todo) : boolean => contains(t._id)(relatedTodosIds));   
-        
+    
     dispatch({
-        type:"updateTodos",   
-        load:selectedTodos.map((t:Todo) : Todo => ({...t,reminder:null,deleted:new Date()}))
-    });
-    dispatch({type:"updateProject", load:{...project,deleted:new Date()}});
-}
+        type:"multiple",
+        load:[
+            {
+                type:"updateTodos",   
+                load:selectedTodos.map((t:Todo) : Todo => ({...t,reminder:null,deleted:new Date()}))
+            },
+            {type:"updateProject", load:{...project,deleted:new Date()}}  
+        ]
+    }); 
+};
 
 
 
@@ -112,9 +117,14 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         let duplicate = {...project, _id:generateId(), layout:duplicatedLayout};
         delete duplicate["_rev"]; 
 
-        this.props.dispatch({type:"addProject",load:duplicate});
-        this.props.dispatch({type:"addTodos",load:duplicatedTodos});
-        
+        this.props.dispatch({
+            type:"multiple",
+            load:[
+               {type:"addProject",load:duplicate},
+               {type:"addTodos",load:duplicatedTodos}
+            ]
+        }); 
+
         this.closeMenu(); 
     };
 

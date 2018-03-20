@@ -12,7 +12,7 @@ import Logbook from 'material-ui/svg-icons/av/library-books';
 import { merge, isNil, not } from 'ramda';
 import { Category } from '../MainContainer';
 import { assert } from '../../utils/assert';
-import { isNotNil, anyTrue } from '../../utils/utils';
+import { isNotNil, anyTrue, different } from '../../utils/utils';
 
 
 let Hot = (hot:number) : JSX.Element => 
@@ -129,10 +129,6 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
 
         let selected = this.props.selected;    
         
-        if(isNotNil(hot) && isNotNil(counter)){
-           assert((counter-hot)>=0,`incorrect values counter : ${counter}; hot : ${hot};`);
-        }   
-
         return <div   
             onMouseMove={this.onMouseOver} 
             onMouseOut={this.onMouseLeave}    
@@ -174,7 +170,7 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
                     { 
                         isNil(counter) || not(showCounter) ? null : 
                         isNil(hot) ? Counter(counter) :
-                        Counter(counter-hot)  
+                        Counter(counter)  
                     } 
                 </div>
             } 
@@ -214,6 +210,33 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
     }
 
 
+
+    shouldComponentUpdate(nextProps:LeftPanelMenuProps){
+        let {
+            dragged, 
+            selectedCategory,
+            inbox,
+            today,
+            hot,
+            logbook,
+            trash
+        } = nextProps; 
+
+
+        let should = dragged!==this.props.dragged ||
+                        selectedCategory!==this.props.selectedCategory ||
+                        inbox!==this.props.inbox ||
+                        today!==this.props.today ||
+                        hot!==this.props.hot ||
+                        logbook!==this.props.logbook ||
+                        trash!==this.props.trash;
+
+        console.log(`should update LeftPanelMenu ${should}`);
+        return should;                
+    };
+
+    
+
     render(){ 
         let {dispatch} = this.props;
 
@@ -222,11 +245,16 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             <Separator />
 
             <LeftPanelMenuItem
-                onClick={() => {
-                    dispatch({type:"selectedCategory", load:"inbox"});
-                    dispatch({type:"searchQuery", load:""});
-                    dispatch({type:"selectedTag", load:"All"});
-                }}
+                onClick={
+                    () => dispatch({
+                        type:"multiple",
+                        load:[
+                            {type:"selectedCategory", load:"inbox"},
+                            {type:"searchQuery", load:""},
+                            {type:"selectedTag", load:"All"} 
+                        ]
+                    }) 
+                }
                 dragged={this.props.dragged}
                 icon={<Inbox style={{color:"dodgerblue"}}/>}
                 title={"Inbox"} 
@@ -239,11 +267,16 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             <Separator />
 
             <LeftPanelMenuItem
-                onClick={() => {
-                    dispatch({type:"selectedCategory", load:"today"});
-                    dispatch({type:"searchQuery", load:""});
-                    dispatch({type:"selectedTag", load:"All"});
-                }} 
+                onClick={
+                    () => dispatch({
+                        type:"multiple",
+                        load:[
+                            {type:"selectedCategory", load:"today"},
+                            {type:"searchQuery", load:""},
+                            {type:"selectedTag", load:"All"}
+                        ]
+                    }) 
+                } 
                 dragged={this.props.dragged}
                 icon={<Star style={{color:"gold"}}/>}
                 title={"Today"}
@@ -255,11 +288,16 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             />
 
             <LeftPanelMenuItem
-                onClick={() => {
-                    dispatch({type:"selectedCategory", load:"next"});
-                    dispatch({type:"searchQuery", load:""});
-                    dispatch({type:"selectedTag", load:"All"});
-                }} 
+                onClick={
+                    () => dispatch({
+                        type:"multiple",
+                        load:[
+                            {type:"selectedCategory", load:"next"},
+                            {type:"searchQuery", load:""},
+                            {type:"selectedTag", load:"All"}
+                        ]
+                    }) 
+                } 
                 dragged={this.props.dragged}
                 icon={<Layers style={{color:"darkgreen"}}/>}
                 title={"Next"}
@@ -270,11 +308,16 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             /> 
 
             <LeftPanelMenuItem
-                onClick={() => {
-                    dispatch({type:"selectedCategory", load:"upcoming"});
-                    dispatch({type:"searchQuery", load:""});
-                    dispatch({type:"selectedTag", load:"All"}); 
-                }}
+                onClick={
+                    () => dispatch({
+                        type:"multiple",
+                        load:[
+                            {type:"selectedCategory", load:"upcoming"},
+                            {type:"searchQuery", load:""},
+                            {type:"selectedTag", load:"All"}
+                        ]
+                    }) 
+                } 
                 dragged={this.props.dragged}
                 category={"upcoming"}
                 icon={<Calendar style={{color:"crimson"}}/>}
@@ -285,11 +328,16 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             />  
 
             <LeftPanelMenuItem
-                onClick={() => {
-                    dispatch({type:"selectedCategory", load:"someday"});
-                    dispatch({type:"searchQuery", load:""});
-                    dispatch({type:"selectedTag", load:"All"}); 
-                }} 
+                onClick={
+                    () => dispatch({
+                        type:"multiple",
+                        load:[
+                            {type:"selectedCategory", load:"someday"},
+                            {type:"searchQuery", load:""},
+                            {type:"selectedTag", load:"All"}
+                        ]
+                    }) 
+                }
                 dragged={this.props.dragged}
                 category={"someday"}
                 icon={<BusinessCase style={{color:"burlywood"}}/>}
@@ -304,11 +352,16 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             { 
                 this.props.logbook===0 ? null :
                 <LeftPanelMenuItem 
-                    onClick={() => {
-                        dispatch({type:"selectedCategory", load:"logbook"});
-                        dispatch({type:"searchQuery", load:""});
-                        dispatch({type:"selectedTag", load:"All"});
-                    }}   
+                    onClick={
+                        () => dispatch({
+                            type:"multiple",
+                            load:[
+                                {type:"selectedCategory", load:"logbook"},
+                                {type:"searchQuery", load:""},
+                                {type:"selectedTag", load:"All"}
+                            ]
+                        }) 
+                    }  
                     dragged={this.props.dragged}
                     icon={<Logbook style={{color:"limegreen"}}/>}
                     title={"Logbook"}
@@ -322,11 +375,16 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             { 
                 this.props.trash===0 ? null :    
                 <LeftPanelMenuItem
-                    onClick={() => {
-                        dispatch({type:"selectedCategory", load:"trash"});
-                        dispatch({type:"searchQuery", load:""});
-                        dispatch({type:"selectedTag", load:"All"});
-                    }}  
+                    onClick={
+                        () => dispatch({
+                            type:"multiple",
+                            load:[
+                                {type:"selectedCategory", load:"trash"},
+                                {type:"searchQuery", load:""},
+                                {type:"selectedTag", load:"All"}
+                            ]
+                        }) 
+                    }
                     dragged={this.props.dragged}
                     icon={<Trash style={{color:"darkgray"}}/>}
                     title={"Trash"}  
@@ -338,8 +396,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             }    
         </div> 
     }
-}  
- 
+}   
  
 
 

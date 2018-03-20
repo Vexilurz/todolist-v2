@@ -41,13 +41,31 @@ interface LeftPanelProps{
 
     projects:Project[],
     areas:Area[], 
-    todos:Todo[], 
+
+    amounts:{
+        inbox:number,
+        today:number,
+        hot:number,
+        next:number,
+        someday:number,
+        logbook:number,
+        trash:number
+    },
+    indicators : { 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
 
     searchQuery:string, 
     dragged:string, 
     selectedProjectId:string,
     selectedAreaId:string
 }
+
+
 interface LeftPanelState{ collapsed:boolean }
 
 
@@ -104,10 +122,16 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
         .catch(err => this.onError(err)) 
 
         let project = generateEmptyProject();
-        dispatch({type:"addProject", load:project});
-        dispatch({type:"selectedProjectId", load:project._id});
-        dispatch({type:"openNewProjectAreaPopup", load:false});
-        dispatch({type:"selectedCategory", load:"project"});
+
+        dispatch({
+            type:"multiple",
+            load:[
+                {type:"addProject", load:project},
+                {type:"selectedProjectId", load:project._id},
+                {type:"openNewProjectAreaPopup", load:false},
+                {type:"selectedCategory", load:"project"}
+            ]
+        }); 
     };   
  
          
@@ -127,11 +151,17 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
         .catch(err => this.onError(err))  
 
         let area = generateEmptyArea();
-        dispatch({type:"addArea", load:area});
-        dispatch({type:"selectedAreaId", load:area._id});
-        dispatch({type:"openNewProjectAreaPopup", load:false}); 
-        dispatch({type:"selectedCategory", load:"area"});
-    };
+
+        dispatch({
+            type:"multiple",
+            load:[
+                {type:"addArea", load:area},
+                {type:"selectedAreaId", load:area._id},
+                {type:"openNewProjectAreaPopup", load:false},
+                {type:"selectedCategory", load:"area"}
+            ]
+        }); 
+    }; 
 
 
     onResizableHandleDrag = (e,d) => this.props.dispatch({
@@ -147,73 +177,20 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
         } 
     };
 
+
+    openSettings = (e) => {  
+        e.stopPropagation();  
+        this.props.dispatch({type:"openSettings",load:true}); 
+    };
+
      
     render(){      
-        let {collapsed} = this.state; 
-        let {areas, projects, todos, leftPanelWidth, dispatch, searchQuery} = this.props; 
+        let {areas, projects, amounts, indicators, leftPanelWidth, dispatch, searchQuery} = this.props; 
 
- 
-        let inbox = filter(
-            todos, 
-            allPass([ 
-                byNotAttachedToProject(projects), 
-                (todo:Todo) => isNil(todo.attachedDate) && isNil(todo.deadline), 
-                byCategory("inbox"), 
-                byNotCompleted,  
-                byNotDeleted   
-            ])
-        );
-
-        let today = filter(
-            todos, 
-            allPass([  
-                byNotAttachedToCompletedProject(projects), 
-                (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
-                (t:Todo) => t.category!=="someday",
-                byNotCompleted,  
-                byNotDeleted   
-            ])
-        ); 
-
-        let hot = filter(
-            today, 
-            allPass([
-                (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
-                byNotAttachedToCompletedProject(projects),
-                byNotCompleted,  
-                byNotDeleted  
-            ])
-        ); 
-
-        let logbook = filter(
-            todos, 
-            allPass([
-                byNotAttachedToCompletedProject(projects),
-                byCompleted, 
-                byNotDeleted
-            ])
-        );
-
-        let trash = filter(todos, byDeleted);  
-        
-
-        let ids = flatten(projects.map((p) => p.layout.filter(isString) as string[])) as any;
-          
-        if(isDev()){
-           assert(isArrayOfStrings(ids),`ids is not an array of strings. AreasList.`); 
-        }
-    
-        let areasFilters = [(todo:Todo) => contains(todo._id)(ids), byNotDeleted]; 
-        let selected = filter(todos,allPass(areasFilters));
-        let completed = filter(selected,byCompleted);
-
-        
         return <div style={{display:"flex",flexDirection:"row-reverse",height:window.innerHeight}}> 
-            { 
-                not(collapsed) ?
-                <ResizableHandle onDrag={this.onResizableHandleDrag}/> : 
-                null 
-            } 
+
+            { not(this.state.collapsed) ? <ResizableHandle onDrag={this.onResizableHandleDrag}/> : null } 
+
             <div        
                 id="leftpanel"
                 ref={(e) => {this.leftPanelRef=e;}} 
@@ -221,53 +198,55 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
                 style={{ 
                     WebkitUserSelect:"none", 
                     transition: "width 0.2s ease-in-out", 
-                    width:collapsed ? "0px" : `${leftPanelWidth}px`,
+                    width:this.state.collapsed ? "0px" : `${leftPanelWidth}px`,
                     height:`100%`,      
                     backgroundColor:"rgb(248, 248, 248)"  
                 }}      
             >   
+
                 <SearchInput dispatch={dispatch} searchQuery={searchQuery}/>
+
                 <LeftPanelMenu   
                     dragged={this.props.dragged}
                     dispatch={this.props.dispatch} 
                     selectedCategory={this.props.selectedCategory}
-                    inbox={inbox.length} 
-                    today={today.length} 
-                    hot={hot.length} 
-                    trash={trash.length}
-                    logbook={logbook.length} 
+                    inbox={amounts.inbox} 
+                    today={amounts.today} 
+                    hot={amounts.hot} 
+                    trash={amounts.trash}
+                    logbook={amounts.logbook} 
                 />   
+
                 <AreasList   
                     leftPanelWidth={this.props.leftPanelWidth}
                     leftPanelRef={this.leftPanelRef} 
                     dragged={this.props.dragged}  
-                    todos={selected} 
-                    completed={completed}
                     dispatch={this.props.dispatch}   
+                    indicators={this.props.indicators}
                     areas={this.props.areas}
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId}
                     selectedCategory={this.props.selectedCategory}
                     projects={this.props.projects}  
                 />
+
                 <LeftPanelFooter  
-                    width={ leftPanelWidth }  
-                    collapsed={ collapsed }
-                    openSettings={(e) => {  
-                        e.stopPropagation();  
-                        this.props.dispatch({type:"openSettings",load:true}); 
-                    }}
+                    width={ this.props.leftPanelWidth }  
+                    collapsed={ this.state.collapsed }
+                    openSettings={this.openSettings}
                     openNewProjectAreaPopup={ this.openNewProjectAreaPopup }
                     setNewProjectAnchor={(e) => {this.anchor=e}}  
                 /> 
+
                 <NewProjectAreaPopup   
                     anchor={this.anchor}
                     open={this.props.openNewProjectAreaPopup}
                     close={() => this.props.dispatch({type:"openNewProjectAreaPopup",load:false})} 
                     onNewProjectClick={this.onNewProjectClick}
                     onNewAreaClick={this.onNewAreaClick}
-                />   
-        </div>    
+                />  
+                 
+            </div>    
         </div>    
     };    
 };  

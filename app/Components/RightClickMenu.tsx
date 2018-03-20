@@ -20,7 +20,7 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { attachDispatchToProps, getCompletedWhen } from '../utils/utils';
+import { attachDispatchToProps, getCompletedWhen, isNotNil } from '../utils/utils';
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { generateId } from '../utils/generateId';
 import { assert } from '../utils/assert';
@@ -97,7 +97,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
 
         if(isNil(todo)){ return }
          
-        if( not(isNil(todo.group)) ){  
+        if(isNotNil(todo.group)){  
            dispatch({type:"openChangeGroupPopup", load:true});         
         }else{ 
            dispatch({type:"updateTodo", load:{...todo,reminder:null,deleted:new Date()}});
@@ -178,11 +178,15 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
             completed : todo.completedWhen, 
             attachedTags : todo.attachedTags
         };
-        
 
-        dispatch({type:"removeTodo", load:todo._id});
-        dispatch({type:"addTodos", load:todos});
-        dispatch({type:"addProject", load:converted});
+        dispatch({
+            type:"multiple",
+            load:[
+                {type:"removeTodo", load:todo._id},
+                {type:"addTodos", load:todos},
+                {type:"addProject", load:converted}
+            ]
+        }); 
     };
  
     

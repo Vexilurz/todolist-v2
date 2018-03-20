@@ -168,11 +168,21 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
         let {dispatch} = this.props; 
         
         if(isEmpty(e.target.value)){
-           dispatch({type:"searchQuery", load:""}); 
-           dispatch({type:"selectedCategory", load:"inbox"});
+            dispatch({
+                type:"multiple",
+                load:[
+                    {type:"searchQuery", load:""}, 
+                    {type:"selectedCategory", load:"inbox"}
+                ]
+            }); 
         }else{ 
-           dispatch({type:"searchQuery", load:e.target.value});
-           dispatch({type:"selectedCategory", load:"search"});
+            dispatch({
+                type:"multiple",
+                load:[
+                    {type:"searchQuery", load:e.target.value},
+                    {type:"selectedCategory", load:"search"}
+                ]
+            }); 
         }       
     }
       

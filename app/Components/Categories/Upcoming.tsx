@@ -253,29 +253,34 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     updateLimit = (range:Date[]) => {
         let {dispatch,limit,todos,calendars} = this.props;
         let day = 1000 * 60 * 60 * 24;
-
+        
         //threshold ->>> last date in range + 10 days ahead
         let threshold = last(range).getTime() + (day*this.n);
 
         //if extended range reached limit 
         if(threshold>=limit.getTime()){
             let newLimit = yearFromDate(limit);
- 
-            updateCalendars(
-               newLimit,  
-               calendars,  
-               this.onError
-            ).then(
-               (load) => dispatch({type:"setCalendars",load})
-            ) 
-
+            let actions = [];
             let extended = extend(newLimit, todos);
 
             if(isNotEmpty(extended)){
-               dispatch({type:"addTodos", load:extended}); 
+               actions.push({type:"addTodos",load:extended}); 
             }
 
-            dispatch({type:"limit", load:newLimit}); 
+            actions.push({type:"limit", load:newLimit}); 
+
+            updateCalendars(
+                newLimit,  
+                calendars,  
+                this.onError
+            ).then(
+                (load) => {
+                    actions.push({type:"setCalendars",load});
+                    
+                    dispatch({type:"multiple",load:actions});
+                }
+            ) 
+
         } 
     }; 
  

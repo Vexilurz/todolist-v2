@@ -37,22 +37,26 @@ export class AreaTrashLink extends Component<AreaTrashLinkProps,AreaTrashLinkSta
             (selectedProjects) => selectedProjects.map((p:Project) => p.layout.filter(isString))
         )(selectedProjects);
          
-
         assert(isArrayOfTodos(selectedTodos),`selectedTodos is not of type Todo[]. restoreArea. ${selectedTodos}`);
         assert(isArrayOfProjects(selectedProjects),`selectedProjects is not of type Project[]. restoreArea. ${selectedProjects}`);
         
-
         dispatch({
-            type:"updateTodos", 
-            load:selectedTodos.map((t:Todo) : Todo => ({...t,deleted:undefined}))
-        });
-
-        dispatch({
-            type:"updateProjects", 
-            load:selectedProjects.map((p:Project) : Project => ({...p,deleted:undefined}))
-        });
-
-        dispatch({type:"updateArea", load:{...area,deleted:undefined}});
+            type:"multiple",
+            load:[
+                {
+                    type:"updateTodos", 
+                    load:selectedTodos.map(t => ({...t,deleted:undefined}))
+                },
+                {
+                    type:"updateProjects", 
+                    load:selectedProjects.map(p => ({...p,deleted:undefined}))
+                },
+                { 
+                    type:"updateArea", 
+                    load:{...area,deleted:undefined}
+                }
+            ]
+        }); 
     };
 
 
