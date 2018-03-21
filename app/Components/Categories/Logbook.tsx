@@ -11,7 +11,7 @@ import { ContainerHeader } from '.././ContainerHeader';
 import { 
   compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems
 } from '../../utils/utils';
-import { allPass, compose, or, assoc, isNil, isEmpty } from 'ramda';
+import { allPass, compose, or, assoc, isNil, isEmpty, defaultTo } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink, ProjectLinkLogbook } from '../Project/ProjectLink';
 import { Category, filter } from '../MainContainer';
@@ -69,6 +69,13 @@ interface LogbookProps{
     scrolledTodo:Todo,
     selectedProjectId:string, 
     selectedCategory:Category,  
+    indicators:{ 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
     projects:Project[],
     areas:Area[],    
     selectedTag:string,
@@ -185,18 +192,22 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                     [...todos,...projects]
                     .sort(sortByCompleted)
                     .map(  
-                        (value:Todo|Project,index) => 
-                        <div  
-                          key={value._id}
-                          style={{position:"relative",marginTop:"5px",marginBottom:"5px"}}
+                        (value:Todo|Project,index:number) => 
+                        <div   
+                           key={value._id}
+                           style={{position:"relative",marginTop:"5px",marginBottom:"5px"}}
                         > 
                             {
                                 isProject(value as any) ? 
                                 <ProjectLinkLogbook
                                     project={value as Project}
                                     dispatch={this.props.dispatch}
-                                    todos={this.props.todos}
-                                    selectedCategory={this.props.selectedCategory}
+                                    indicator={
+                                        defaultTo({completed:0, active:0})(
+                                            this.props.indicators[value._id]
+                                        )  
+                                    }
+                                    selectedCategory={this.props.selectedCategory} 
                                 />  
                                 : 
                                 isTodo(value) ?

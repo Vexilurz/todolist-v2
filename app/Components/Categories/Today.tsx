@@ -123,6 +123,13 @@ interface TodayProps{
     selectedAreaId:string, 
     selectedCategory:Category,  
     selectedTodo:Todo,
+    indicators : { 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
     areas:Area[],
     calendars:Calendar[],  
     projects:Project[],
@@ -448,7 +455,8 @@ export class Today extends Component<TodayProps,TodayState>{
                             selectedProjectId={selectedProjectId}
                             selectedAreaId={selectedAreaId}
                             selectedCategory={selectedCategory}
-                            groupTodos={groupTodos}
+                            groupTodos={groupTodos} 
+                            indicators={this.props.indicators}
                             moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}
                             selectedTag={selectedTag}
                             rootRef={rootRef}

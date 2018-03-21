@@ -9,7 +9,6 @@ import {
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
 import { adjust, allPass, uniq, isEmpty, not, isNil } from 'ramda';
-import { getProgressStatus } from './ProjectLink';
 import { filter } from '../MainContainer';
 import { bySomeday, isProject, isTodo, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
@@ -30,6 +29,11 @@ let haveScheduledTodos = (todos:Todo[]) : boolean => {
 interface ProjectComponentProps{ 
     project:Project,  
     moveCompletedItemsToLogbook:string,
+    indicator:{
+        active:number,
+        completed:number,
+        deleted:number
+    },
     todos:Todo[],
     groupTodos:boolean, 
     selectedTodo:Todo,
@@ -85,40 +89,15 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         50
     ); 
     
+
      
     updateLayoutOrder = (layout:LayoutItem[]) => {
         let { project } = this.props;
         assert(layout.length===project.layout.length,`incorrect length.updateLayoutOrder.`);    
         this.updateProject({layout});
-        
-        /*
-        let { project } = this.props; 
-        let previousLayout = [...project.layout]; 
-        let allLayoutItemsPresent : boolean = previousLayout.length===layout.length;
-      
-        if(allLayoutItemsPresent){ 
-
-            this.updateProject({layout});
-
-        }else{ 
-            let fixed = previousLayout.filter(
-                (item:LayoutItem) => -1===layout.findIndex(
-                    (updated:LayoutItem) => isString(item) ? item===updated : item["_id"]===updated["_id"]
-                ) 
-            );   
-
-            let newLayout : LayoutItem[] = [...fixed,...layout];
-            
-            assert(
-               newLayout.length===project.layout.length, 
-              `Updated layout has incorrect length.${newLayout}.${project.layout}.updateLayoutOrder.`  
-            );    
-
-            this.updateProject({layout:newLayout});
-        } 
-        */  
     };
      
+
 
     removeHeading = (heading_id:string) => {
         let {project} = this.props;
@@ -127,9 +106,11 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         );
     };
 
+
     
     updateProjectDeadline = (value:Date) => this.updateProject({deadline:value});
     
+
 
     attachTagToProject = (tag:string) => {
         let project = this.props.projects.find((p:Project) => this.props.selectedProjectId===p._id);
@@ -138,11 +119,14 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     }; 
 
 
+
     archiveHeading = (heading_id:string) => { this.removeHeading(heading_id) }; 
       
 
+
     moveHeading = (heading_id:string) => {}
     
+
       
     render(){   
         let {selectedTag, project, showCompleted, showScheduled, todos, selectedCategory} = this.props;
@@ -176,17 +160,14 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             (i:Todo) => isTodo(i) ? allPass([byTags(selectedTag),...projectFilters])(i as (Project & Todo)) : true
         ); 
 
-
-        let progress = getProgressStatus(project, todos, false);
-
   
         return <div id={`${selectedCategory}-list`}>      
                     <div className="unselectable">     
                         <ProjectHeader 
-                            project={project}
+                            project={project} 
+                            indicator={this.props.indicator}
                             rootRef={this.props.rootRef}
                             attachTagToProject={this.attachTagToProject}
-                            progress={progress}   
                             selectedTag={this.props.selectedTag}    
                             updateProjectDeadline={this.updateProjectDeadline}
                             updateProjectName={this.updateProjectName}

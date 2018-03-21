@@ -30,16 +30,12 @@ interface TagsPopupProps{
 }   
 
  
-@connect(
-    (store:Store,props:TagsPopupProps) : TagsPopupProps => {
-        let out = {
-             ...props,
-             defaultTags:[...store.defaultTags],
-             todos:[...store.todos]
-        }; 
-        console.log(out)
-        return out; 
-    },    
+@connect( 
+    (store:Store,props:TagsPopupProps) : TagsPopupProps => ({
+        ...props,
+        defaultTags:[...store.defaultTags],
+        todos:[...store.todos]
+    }),    
     attachDispatchToProps
 ) 
 export class TagsPopup extends Component<TagsPopupProps,{}>{

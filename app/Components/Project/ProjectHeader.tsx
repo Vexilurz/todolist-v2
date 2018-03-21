@@ -23,11 +23,15 @@ interface ProjectHeaderProps{
     updateProjectDescription:(value:string) => void,
     updateProjectDeadline:(value:Date) => void,
     attachTagToProject:(tag:string) => void,
+    indicator:{
+        active:number,
+        completed:number,
+        deleted:number
+    },
     project:Project,
     rootRef:HTMLElement, 
     selectedTag:string,
     todos:Todo[],  
-    progress:{done:number,left:number}, 
     dispatch:Function   
 }
 
@@ -54,7 +58,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             showTagsPopup:false,
             name:project.name,
             description:project.description    
-        };  
+        };   
     }   
  
 
@@ -112,21 +116,22 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
     render(){ 
         let {todos,project,rootRef} = this.props;
         let {showDeadlineCalendar,showTagsPopup} = this.state; 
-        let {done,left} = this.props.progress;  
+        let done = this.props.indicator.completed;
+        let left = this.props.indicator.active;  
         let tags = getTagsFromItems(todos); 
         let totalValue = (done+left)===0 ? 1 : (done+left);
-        let currentValue = done;
+        let currentValue = done;  
 
         return <div>  
             <ProjectMenuPopover 
                 {
-                ...{
-                    project,   
-                    anchorEl:this.projectMenuPopoverAnchor,
-                    rootRef,   
-                    openDeadlineCalendar:() => this.setState({showDeadlineCalendar:true}),    
-                    openTagsPopup:() => this.setState({showTagsPopup:true}) 
-                } as any
+                    ...{
+                        project,   
+                        anchorEl:this.projectMenuPopoverAnchor,
+                        rootRef,   
+                        openDeadlineCalendar:() => this.setState({showDeadlineCalendar:true}),    
+                        openTagsPopup:() => this.setState({showTagsPopup:true}) 
+                    } as any
                 }     
             />    
             {      
@@ -144,19 +149,17 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             } 
             {
                 not(showTagsPopup) ? null : 
-                <TagsPopup    
-                    {
-                        ...{
-                            attachTag:this.props.attachTagToProject, 
-                            close:() => this.setState({showTagsPopup:false}),
-                            open:this.state.showTagsPopup,    
-                            anchorEl:this.projectMenuPopoverAnchor, 
-                            origin:{vertical:"top", horizontal:"left"}, 
-                            point:{vertical:"top", horizontal:"right"}, 
-                            rootRef:this.props.rootRef
-                        } as any 
-                    } 
-                />
+                <TagsPopup  
+                    close={() => this.setState({showTagsPopup:false})}
+                    open={this.state.showTagsPopup}
+                    attachTag={this.props.attachTagToProject}
+                    origin={{vertical:"top", horizontal:"left"}}
+                    rootRef={this.props.rootRef}
+                    anchorEl={this.projectMenuPopoverAnchor}
+                    point={{vertical:"top", horizontal:"right"}}
+                    defaultTags={[]}
+                    todos={[]}
+                /> 
             } 
             <div style={{display:"flex", alignItems: "center"}}>
                 <div style={{    
@@ -286,7 +289,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             </div> 
         </div> 
     } 
-}
+}; 
  
 
 

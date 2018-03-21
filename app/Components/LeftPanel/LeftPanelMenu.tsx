@@ -224,14 +224,13 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
 
         let should = dragged!==this.props.dragged ||
-                        selectedCategory!==this.props.selectedCategory ||
-                        inbox!==this.props.inbox ||
-                        today!==this.props.today ||
-                        hot!==this.props.hot ||
-                        logbook!==this.props.logbook ||
-                        trash!==this.props.trash;
+                     selectedCategory!==this.props.selectedCategory ||
+                     inbox!==this.props.inbox ||
+                     today!==this.props.today ||
+                     hot!==this.props.hot ||
+                     logbook!==this.props.logbook ||
+                     trash!==this.props.trash;
 
-        console.log(`should update LeftPanelMenu ${should}`);
         return should;                
     };
 

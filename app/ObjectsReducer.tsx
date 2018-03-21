@@ -13,7 +13,7 @@ import {
     isNotNil, typeEquals, inFuture, byNotCompleted, measureTime, convertTodoDates, differentBy 
 } from './utils/utils';
 import { 
-    adjust, cond, all, isEmpty, contains, not, remove, uniq, 
+    adjust, cond, all, isEmpty, contains, not, remove, uniq, assoc, 
     isNil, and, complement, compose, reject, concat, map, when,
     prop, ifElse, identity, path, equals, allPass, evolve, pick  
 } from 'ramda';
@@ -432,6 +432,29 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     return {...state,projects:adjust(() => project, idx, state.projects)};
                 }
             ], 
+
+            [
+                typeEquals("restoreProject"),
+                (action:{type:string, load:string}) : Store => {
+                    let projectIndex : number = state.projects.findIndex( p => p._id===action.load );
+
+                    if(projectIndex===-1){ return state }
+
+                    let project = state.projects[projectIndex];
+                    let relatedTodosIds : string[] = project.layout.filter(isString) as any[];
+            
+                    let todos = state.todos.map(
+                        when( 
+                            t => contains(t._id)(relatedTodosIds), 
+                            t => ({...t,deleted:undefined}) 
+                        )
+                    ) as Todo[];
+
+                    let projects = adjust(assoc('deleted',undefined), projectIndex, state.projects);
+ 
+                    return {...state, projects, todos};
+                }
+            ],
 
             [ 
                 typeEquals("updateProject"),

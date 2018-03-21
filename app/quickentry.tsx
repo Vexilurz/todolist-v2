@@ -37,7 +37,7 @@ import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import List from 'material-ui/svg-icons/action/list';
 import { 
     cond, assoc, isNil, not, defaultTo, map, isEmpty, when,
-    uniq, remove, contains, append, adjust, complement,identity,
+    uniq, remove, contains, append, adjust, complement, identity,
     compose, flatten, concat, prop, equals, evolve, allPass  
 } from 'ramda';
 let moment = require("moment");
@@ -76,7 +76,6 @@ import { TodoTags } from './Components/TodoInput/TodoTags';
 import { TagsPopup } from './Components/TodoInput/TagsPopup';
 import PieChart from 'react-minimal-pie-chart';
 import { AutoresizableText } from './Components/AutoresizableText';
-import { getProgressStatus } from './Components/Project/ProjectLink';
 import { stringToLength } from './utils/stringToLength';
 import Editor from 'draft-js-plugins-editor';
 import { shell } from 'electron'; 
@@ -96,7 +95,7 @@ import {
 } from './utils/draftUtils';
 import { requestFromMain } from './utils/requestFromMain';
 import { groupProjectsByArea } from './Components/Area/groupProjectsByArea';
-import {  generateLayout } from './Components/Area/generateLayout';
+import { generateLayout } from './Components/Area/generateLayout';
 import { App } from './app';
 injectTapEventPlugin();  
 
@@ -130,7 +129,6 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 ipcRenderer.once( 
     'loaded',     
     (event, id:number) => {   
-
         let app=document.createElement('div'); 
         app.style.width=`${window.innerWidth}px`; 
         app.style.height=`${window.innerHeight}px`;
@@ -147,11 +145,12 @@ ipcRenderer.once(
                     todos:action.load.todos, 
                     defaultTags:action.load.defaultTags
                 })
-            )(state), 
+            )(state),  
             {
                 projects:[], 
                 areas:[], 
                 todos:[], 
+                indicators:{},
                 defaultTags:[]
             }
         );
@@ -194,6 +193,13 @@ interface QuickEntryProps{
     projects:any[],
     areas:any[],
     todos:any[],
+    indicators : { 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
     defaultTags:string[],
     dispatch?:Function
 };    
@@ -285,15 +291,16 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             .subscribe(compose( (state) => this.setState(state), this.stateFromConfig )),
             
             Observable
-            .fromEvent(ipcRenderer,"data",(event,todos,projects,areas) => ({todos,projects,areas}))
+            .fromEvent(ipcRenderer,"data",(event,todos,projects,areas,indicators) => ({todos,projects,areas,indicators}))
             .subscribe(
                 compose(
-                    ({todos,projects,areas}) => this.props.dispatch({
+                    ({todos,projects,areas,indicators}) => this.props.dispatch({
                         type:"data",    
                         load:{  
                             projects, 
                             areas, 
                             todos, 
+                            indicators,
                             defaultTags:compose(
                                 uniq,
                                 append(this.props.defaultTags),
@@ -738,6 +745,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             <div style={{width:"100%",position:"fixed",bottom:0,right:0}}>    
                 <TodoInputPopupFooter
                     project={this.state.project}
+                    indicators={this.props.indicators}
                     todos={this.props.todos}
                     projects={this.props.projects}
                     areas={this.props.areas}
@@ -775,6 +783,13 @@ interface TodoInputPopupFooterProps{
     onSave:Function,
     openDeadlineCalendar:Function,
     openCalendar:Function,
+    indicators:{ 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
     onRemoveTodayLabel:Function,
     onRemoveUpcomingLabel:Function,
     onRemoveSomedayLabel:Function,
@@ -920,6 +935,7 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
                     selectProject={this.props.onSelectProject}
                     category={this.props.category}
                     project={this.props.project}
+                    indicators={this.props.indicators}
                     open={selectorPopupOpened} 
                     anchorEl={this.ref}
                     rootRef={document.body}
@@ -1434,6 +1450,13 @@ class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCalendarS
 interface SelectorPopupProps{
     open:boolean
     anchorEl:HTMLElement,
+    indicators : { 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
     close:Function,
     projects:any[],
     rootRef:HTMLElement, 
@@ -1506,7 +1529,9 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
 
     getProjectElement = (p:any) => { 
         let {selectProject,close,todos,project} = this.props;
-        let {done, left} = getProgressStatus(p,todos,false);
+        let indicator = defaultTo({completed:0, active:0})(this.props.indicators[project._id]);
+        let done = indicator.completed;
+        let left = indicator.active;
         let totalValue = (done+left)===0 ? 1 : (done+left);
         let currentValue = done;
 
@@ -1775,9 +1800,12 @@ let selectButtonContent = ({category, project, attachedDate, deadline, todos}) =
         </div>;
 
     }else if(isProject(project)){ 
-        let {done, left} = getProgressStatus(project,todos,false);
+        let indicator = defaultTo({completed:0, active:0})(this.props.indicators[project._id]);
+        let done = indicator.completed;
+        let left = indicator.active;
+
         let totalValue = (done+left)===0 ? 1 : (done+left);
-        let currentValue = done;
+        let currentValue = done; 
 
         return <div style={{paddingLeft:"15px",cursor:"pointer",display:"flex",height:"25px",alignItems:"center"}}>
             <div style={{    

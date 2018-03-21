@@ -12,6 +12,8 @@ import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
 import { stringToLength } from '../utils/stringToLength';
 
+
+
 interface AutoresizableTextProps{
     text:string,
     placeholder:string, 
@@ -21,22 +23,30 @@ interface AutoresizableTextProps{
     placeholderStyle:any 
 } 
 
+
+
 interface AutoresizableTextState{
     stringLength:number
 }
 
-export class AutoresizableText extends Component<AutoresizableTextProps,AutoresizableTextState>{
 
+
+export class AutoresizableText extends Component<AutoresizableTextProps,AutoresizableTextState>{
     ref:HTMLElement;
     ro:ResizeObserver;
  
     constructor(props){
         super(props);
-        this.state={
-            stringLength:0
-        }; 
+        this.state={stringLength:0}; 
     } 
  
+
+
+    shouldComponentUpdate(nextProps:AutoresizableTextProps){
+        return this.props.text!==nextProps.text;
+    }
+
+
 
     onResize = (entries, observer) => { 
         const {left, top, width, height} = entries[0].contentRect;
@@ -47,6 +57,7 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
         this.setState({stringLength}); 
     }      
   
+
    
     initRo = () => {  
         this.ro = new ResizeObserver(this.onResize);  
@@ -54,30 +65,33 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
     }
  
 
+
     suspendRo = () => {      
         this.ro.disconnect();
         this.ro = undefined;
     }
  
 
+
     componentDidMount(){
         this.initRo();
     }
     
 
+
     componentWillUnmount(){
         this.suspendRo(); 
     } 
+
 
  
     render(){
         let {text, style, fontSize, placeholder, placeholderStyle} = this.props;
         let {stringLength} = this.state;
-         
-        let defaultStyle = { fontSize:`${fontSize}px`, whiteSpace:"nowrap", width:"inherit" };  
- 
+        let defaultStyle = {fontSize:`${fontSize}px`, whiteSpace:"nowrap", width:"inherit"};  
         let textStyle = merge(isEmpty(text) ? placeholderStyle : style, defaultStyle);  
          
+
         return <div ref={(e) => {this.ref = e;}} style={textStyle}>  
             {  stringToLength(isEmpty(text) ? placeholder : text, stringLength) }
         </div>  

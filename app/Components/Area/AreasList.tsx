@@ -17,7 +17,6 @@ import {
 } from 'ramda'; 
 import { Category } from '../MainContainer';
 import { AutoresizableText } from '../AutoresizableText';
-import { getProgressStatus } from '../Project/ProjectLink';
 import { assert } from '../../utils/assert';
 import { isArea, isProject, isNotArray } from '../../utils/isSomething';
 import { arrayMove } from '../../utils/arrayMove';
@@ -91,19 +90,16 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         } = nextProps; 
 
 
-
         let should = leftPanelWidth!==this.props.leftPanelWidth ||
-                        dragged!==this.props.dragged ||
-                        selectedProjectId!==this.props.selectedProjectId ||
-                        selectedAreaId!==this.props.selectedAreaId ||
-                        selectedCategory!==this.props.selectedCategory ||
-
-                        different(indicators,this.props.indicators) ||
-
-                        areas.length!==this.props.areas.length ||
-                        projects.length!==this.props.projects.length;
-
-        console.log(`should update AreasList ${should}`);         
+                     dragged!==this.props.dragged ||
+                     selectedProjectId!==this.props.selectedProjectId ||
+                     selectedAreaId!==this.props.selectedAreaId ||
+                     selectedCategory!==this.props.selectedCategory ||
+                     different(indicators,this.props.indicators) ||
+                     nextProps.areas!==this.props.areas ||
+                     nextProps.projects!==this.props.projects;
+      
+                     
         return should;                
     };
 
@@ -142,20 +138,16 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
  
 
 
-    selectProject = (p:Project) : void => {
-        let {dispatch} = this.props;
-
-        dispatch({
-            type:"multiple",
-            load:[
-                {type:"selectedProjectId",load:p._id},
-                {type:"selectedCategory",load:"project"},
-                {type:"selectedTag",load:"All"},
-                {type:"searchQuery",load:""}
-            ]
-        });
-    };
-
+    selectProject = (p:Project) : void => this.props.dispatch({
+        type:"multiple",
+        load:[
+            {type:"selectedProjectId",load:p._id},
+            {type:"selectedCategory",load:"project"},
+            {type:"selectedTag",load:"All"},
+            {type:"searchQuery",load:""}
+        ]
+    });
+    
 
 
     getAreaElement = (a : Area, index : number, hideAreaPadding : boolean) : JSX.Element => {
@@ -437,6 +429,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 }
 
 
+
 interface AreaElementProps{
     area:Area,
     leftPanelWidth:number, 
@@ -453,8 +446,6 @@ interface AreaElementState{
     highlight:boolean
 } 
 
- 
-
 class AreaElement extends Component<AreaElementProps,AreaElementState>{
     ref:HTMLElement;
 
@@ -464,11 +455,14 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
     }  
 
 
+
     onMouseEnter = (e) => this.setState({highlight:true});  
       
 
+
     onMouseLeave = (e) => this.setState({highlight:false});
     
+
 
     render(){      
         let {
@@ -577,9 +571,6 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
     }
 }
  
- 
-
-
 
 
 interface ProjectElementProps{
@@ -607,6 +598,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
     }   
     
 
+
     onMouseOver = (e) => {  
         let {dragged} = this.props; 
 
@@ -618,12 +610,14 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
     }; 
 
 
+
     onMouseOut = (e) => { 
         if(this.state.highlight){
            this.setState({highlight:false})
         }
     }; 
      
+
 
     render(){
         let {project, selectedProjectId, selectedCategory, indicator} = this.props;

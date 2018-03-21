@@ -9,7 +9,7 @@ import { byTags, getTagsFromItems, byDeleted, attachDispatchToProps} from '../..
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { allPass, isEmpty, cond, flatten, not, contains, reject, compose } from 'ramda';
+import { allPass, isEmpty, cond, flatten, not, contains, reject, compose, defaultTo } from 'ramda';
 import { Category, filter } from '../MainContainer';
 import { SimplePopup } from '../SimplePopup';
 import { Store } from '../../app';
@@ -45,6 +45,13 @@ interface TrashProps{
     selectedProjectId:string,
     selectedAreaId:string, 
     selectedTag:string, 
+    indicators:{ 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
     todos:Todo[],
     projects:Project[],
     areas:Area[],
@@ -202,8 +209,8 @@ export class Trash extends Component<TrashProps,TrashState>{
                                 <div style={{width:"100%"}}>
                                     <ProjectLinkTrash 
                                         project={project}
+                                        indicator={defaultTo({completed:0, active:0})(this.props.indicators[project._id])}
                                         dispatch={this.props.dispatch}
-                                        todos={this.props.todos}
                                         selectedCategory={this.props.selectedCategory}
                                     />  
                                 </div>   

@@ -64,6 +64,7 @@ import { isNewVersion } from '../utils/isNewVersion';
 import { UpdateCheckResult } from 'electron-updater';
 import { setCallTimeout } from '../utils/setCallTimeout';
 import { requestFromMain } from '../utils/requestFromMain';
+import { getData } from '../utils/getData';
 const Promise = require('bluebird');   
 const moment = require("moment");   
 const path = require('path');
@@ -79,72 +80,6 @@ export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" |
 
 export let filter = (array:any[],f:Function,caller?:string) : any[] => lodashFilter(array,f); 
  
-
-
-let noteIsString = compose(isString, prop('note'));
-let assureCorrectNoteType : (todo:Todo) => Todo = when(noteIsString,evolve({note:noteFromText}));
-
-
-
-//TODO move to generator for testing
-let assertLayoutUniqueness : (projects:Project[]) => Project[] = identity;
-/*
-when(
-    (projects) => isDev(), 
-    (projects) => map(
-        p => evolve(
-            {
-                layout:reject( 
-                    i => projects.find( 
-                        t => and( 
-                            contains(i)(t.layout), 
-                            different(t._id,p._id) 
-                        ) 
-                    ) 
-                )
-            },
-            p
-        ),
-        projects
-    )
-);
-*/
-
-
-
-export let getData = (limit:Date,onError:Function,max:number) : Promise<{
-    projects:Project[],
-    areas:Area[],
-    todos:Todo[],
-    calendars:Calendar[]
-}> => 
-    getDatabaseObjects(onError,max)
-    .then(
-        compose(
-            evolve({ 
-                projects:compose(assertLayoutUniqueness,map(convertProjectDates)),
-                areas:map(convertAreaDates),
-                todos:map(compose(assureCorrectNoteType, convertTodoDates)),  
-            }),
-            ([calendars,projects,areas,todos]) => ({calendars,projects,areas,todos})
-        )
-    ) 
-    .then(
-        ({projects,areas,todos,calendars}) => updateCalendars(
-            limit,
-            calendars,
-            onError
-        ) 
-        .then(
-            (updated) => ({
-                projects,
-                areas,
-                todos, 
-                calendars:updated
-            })
-        )
-    );
-
 
 
 interface MainContainerProps{
@@ -167,7 +102,8 @@ interface MainContainerProps{
     groupTodos:boolean,
     showRightClickMenu:boolean,
     showCalendarEvents:boolean,
-    showTrashPopup:boolean,
+    showTrashPopup:boolean, 
+
     filters:{
         inbox:((todo:Todo) => boolean)[],
         today:((todo:Todo) => boolean)[],
@@ -177,6 +113,13 @@ interface MainContainerProps{
         upcoming:((todo:Todo) => boolean)[],
         logbook:((todo:Todo) => boolean)[],
         trash:((todo:Todo) => boolean)[]
+    },
+    indicators : { 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
     },
 
     calendars:Calendar[],
@@ -196,14 +139,12 @@ interface MainContainerState{ fullWindowSize:boolean }
    
 export class MainContainer extends Component<MainContainerProps,MainContainerState>{
     rootRef:HTMLElement;  
-    limit:number; 
     subscriptions:Subscription[]; 
     timeouts:any[];
     disablePrintButton:boolean;
 
     constructor(props){ 
         super(props);  
-        this.limit = 1000000;
         this.subscriptions = [];
         this.disablePrintButton=false;
         this.state = { fullWindowSize:true };
@@ -218,9 +159,9 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
     initData : (clone:boolean) => Promise<void> = when(
         not, 
         () => getData(
-            defaultTo(nDaysFromNow(50), this.props.limit),
+            this.props.limit,
             this.onError,
-            this.limit 
+            1000000 
         )
         .then(
             ({projects, areas, todos, calendars}) => this.setData({
@@ -286,17 +227,12 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         let check = () =>
             checkForUpdates()  
             .then(
-                (updateCheckResult:UpdateCheckResult) =>  requestFromMain<any>(
+                (updateCheckResult:UpdateCheckResult) => requestFromMain<any>(
                     'getVersion',
                     [],
                     (event, currentAppVersion) => currentAppVersion
                 ).then(
                     (currentAppVersion:string) => {
-                        assert(
-                            isString(currentAppVersion),
-                            `currentAppVersion is not of type String. ${currentAppVersion}`
-                        );
-
                         let {updateInfo} = updateCheckResult;
                         let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
 
@@ -319,6 +255,21 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
            let next = isString(nextUpdateCheck) ? new Date(nextUpdateCheck) : nextUpdateCheck;
            this.timeouts.push(setCallTimeout(() => check(), next));
         }
+    };
+
+
+
+    randomDatabase = (t,p,a) => {
+        let {todos, projects, areas} = testData(t,p,a);
+        let to:string = path.resolve(`${keyFromDate(new Date())}-${uniqid()}.json`);
+
+        requestFromMain<any>(
+            'saveDatabase',
+            [ { database : { todos, projects, areas, calendars:[] } }, to ],
+            (event) => event
+        ).then(
+            () => console.log(`todos - ${t}; projects - ${p}; areas - ${a}; saved to :`,to)
+        ) 
     };
 
  
@@ -380,22 +331,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
             Observable
             .interval(3*minute)
-            .subscribe((v) => {
-                /*
-                    let {todos, projects, areas} = testData(500,50,20);
-
-                    let to:string = path.resolve(`${keyFromDate(new Date())}-${uniqid()}.json`);
-                    requestFromMain<any>(
-                        'saveDatabase',
-                        [ { database : { todos, projects, areas, calendars:[] } }, to ],
-                        (event) => event
-                    ).then(
-                        () => console.log('saved',to)
-                    ) 
-                */
-
-                dispatch({type:'update'});
-            }),  
+            .subscribe((v) => dispatch({type:'update'})),  
 
 
             Observable
@@ -487,7 +423,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
 
     componentWillUnmount(){ 
-        this.subscriptions.map( s => s.unsubscribe() );
+        this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = [];
         this.timeouts.map(t => clearTimeout(t));
         this.timeouts = [];  
@@ -509,30 +445,20 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
     
 
-    printCurrentList = () => {  
+    printCurrentList = () => {   
         let {selectedCategory} = this.props;
         if(this.disablePrintButton){ return } 
-
 
         let list = document.getElementById(`${selectedCategory}-list`); 
         if(list){  
            this.disablePrintButton = true; 
-
-           printElement(selectedCategory, list) 
-           .then(() => { 
-              this.disablePrintButton = false;
-           })
+           printElement(selectedCategory, list).then(() => { this.disablePrintButton = false; });
         } 
     };
 
     
 
-    render(){    
-        let { 
-            todos, areas, selectedProjectId, selectedAreaId, 
-            showCompleted, showScheduled, selectedCategory, clone 
-        } = this.props; 
- 
+    render(){   
         return  <div ref={(e) => { this.rootRef=e }}
                     className="scroll"  
                     id="maincontainer"  
@@ -565,7 +491,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                       }}
                     >  
                         { 
-                            clone ? null :
+                            this.props.clone ? null :
                             <IconButton  
                                 iconStyle={{color:"rgba(100,100,100,0.6)",height:"22px",width:"22px"}} 
                                 onTouchTap={this.printCurrentList}
@@ -574,7 +500,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             </IconButton>   
                         }
                         {     
-                            clone ? null :
+                            this.props.clone ? null :
                             <IconButton    
                                 iconStyle={{color:"rgba(100,100,100,0.6)",width:"18px",height:"18px"}}
                                 onClick={() => ipcRenderer.send("store", {...this.props})}   
@@ -585,7 +511,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                     </div>   
                 </div>  
                 <div style={{paddingLeft:"60px", paddingRight:"60px", paddingBottom:"140px", paddingTop:"10px"}}>
-                    {    
+                    {     
                         cond([  
                             [ 
                                 (selectedCategory:Category) : boolean => 'inbox'===selectedCategory,  
@@ -625,6 +551,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         selectedTodo={this.props.selectedTodo}
                                         groupTodos={this.props.groupTodos}
                                         selectedProjectId={this.props.selectedProjectId}
+                                        indicators={this.props.indicators}
                                         selectedAreaId={this.props.selectedAreaId} 
                                         selectedCategory={this.props.selectedCategory}
                                         selectedTag={this.props.selectedTag}
@@ -649,6 +576,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         dispatch={this.props.dispatch}
                                         selectedTodo={this.props.selectedTodo}
                                         groupTodos={this.props.groupTodos}
+                                        indicators={this.props.indicators}
                                         scrolledTodo={this.props.scrolledTodo}
                                         selectedProjectId={this.props.selectedProjectId}
                                         selectedAreaId={this.props.selectedAreaId} 
@@ -673,6 +601,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         todos={nextTodos}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         dispatch={this.props.dispatch}
+                                        indicators={this.props.indicators}
                                         groupTodos={this.props.groupTodos}
                                         selectedTodo={this.props.selectedTodo}
                                         scrolledTodo={this.props.scrolledTodo}
@@ -694,6 +623,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     return <Trash    
                                         todos={trashTodos}
                                         groupTodos={this.props.groupTodos}  
+                                        indicators={this.props.indicators}
                                         dispatch={this.props.dispatch} 
                                         scrolledTodo={this.props.scrolledTodo}
                                         selectedCategory={this.props.selectedCategory}
@@ -716,6 +646,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     return <Logbook   
                                         todos={logbookTodos} 
                                         groupTodos={this.props.groupTodos}
+                                        indicators={this.props.indicators}
                                         dispatch={this.props.dispatch}
                                         scrolledTodo={this.props.scrolledTodo}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
@@ -738,6 +669,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     return <Upcoming  
                                         limit={this.props.limit}
                                         clone={this.props.clone} 
+                                        indicators={this.props.indicators}
                                         hideHint={this.props.hideHint}
                                         todos={upcomingTodos}
                                         groupTodos={this.props.groupTodos}
@@ -759,18 +691,25 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             [ 
                                 (selectedCategory:Category) : boolean => 'project'===selectedCategory,  
                                 () => {
-                                    let project = this.props.projects.find((p:Project) => selectedProjectId===p._id);
-
+                                    let project = this.props.projects.find(
+                                        (p:Project) => this.props.selectedProjectId===p._id
+                                    );
+ 
                                     if(isNil(project)){ return null }
 
                                     let ids = project.layout.filter(isString);
 
                                     let projectFilters = [(t:Todo) => contains(t._id)(ids), byNotDeleted];  
                                  
-                                    let selectedTodos = filter(todos, allPass(projectFilters));
+                                    let selectedTodos = filter(this.props.todos, allPass(projectFilters));
+
+                                    let indicator = defaultTo({completed:0, active:0})(
+                                        this.props.indicators[project._id]
+                                    );
 
                                     return <ProjectComponent 
                                         project={project}
+                                        indicator={indicator}
                                         todos={selectedTodos}
                                         scrolledTodo={this.props.scrolledTodo}
                                         selectedTodo={this.props.selectedTodo}
@@ -793,12 +732,13 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             [  
                                 (selectedCategory:Category) : boolean => 'area'===selectedCategory,  
                                 () => {
-                                    let area = areas.find((a) => selectedAreaId===a._id);
+                                    let area = this.props.areas.find((a) => this.props.selectedAreaId===a._id);
 
                                     if(isNil(area)){ return null }
 
                                     return <AreaComponent    
                                         area={area}  
+                                        indicators={this.props.indicators}
                                         todos={this.props.todos}  
                                         scrolledTodo={this.props.scrolledTodo}
                                         groupTodos={this.props.groupTodos}
@@ -816,14 +756,16 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             ], 
                             [  
                                 (selectedCategory:Category) : boolean => 'search'===selectedCategory,  
-                                () => <Search {...{} as any}/>
-                            ]
-                        ])(selectedCategory) 
+                                () => <Search 
+                                    {...{indicators:this.props.indicators} as any}
+                                />
+                            ] 
+                        ])(this.props.selectedCategory) 
                     }  
                 </div>    
         </div> 
     }
-}   
+};   
  
 
 

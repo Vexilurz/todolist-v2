@@ -21,6 +21,10 @@ interface ResizableHandleProps{
 export class ResizableHandle extends Component<ResizableHandleProps,{}>{
     ref;
 
+    shouldComponentUpdate(nextProps){
+        return false;
+    }
+ 
     constructor(props){
         super(props);  
     }

@@ -27,6 +27,13 @@ interface SomedayProps{
     selectedProjectId:string, 
     selectedAreaId:string, 
     selectedTag:string,
+    indicators:{ 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
     rootRef:HTMLElement, 
     todos:Todo[],
     groupTodos:boolean,
@@ -87,8 +94,9 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                 {
                     groupTodos ? 
                     <GroupsByProjectArea
-                        dispatch={this.props.dispatch}  
+                        dispatch={this.props.dispatch}   
                         selectedProjectId={this.props.selectedProjectId}
+                        indicators={this.props.indicators}
                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                         selectedAreaId={this.props.selectedAreaId}
                         scrolledTodo={this.props.scrolledTodo}

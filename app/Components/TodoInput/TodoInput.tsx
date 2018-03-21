@@ -59,10 +59,6 @@ import {
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import 'draft-js/dist/Draft.css';
 import { noteToState, noteFromState, RawDraftContentState, getNotePlainText } from '../../utils/draftUtils';
-//import Tooltip from 'rc-tooltip'; remove
-import { Provider, connect } from "react-redux";
-
-
 const linkifyPlugin = createLinkifyPlugin({
     component:(props) => {
       const {contentState, ...rest} = props;
@@ -75,7 +71,7 @@ let Promise = require('bluebird');
 
 
 export interface TodoInputProps{ 
-    dispatch? : Function,  
+    dispatch : Function,  
     groupTodos : boolean,  
     scrolledTodo : Todo,
     moveCompletedItemsToLogbook : string, 
@@ -124,40 +120,44 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     subscriptions:Subscription[]; 
 
 
-    componentWillReceiveProps(nextProps:TodoInputProps){
-        let notEquals = complement(equals);
-        let { open } = this.state;
-        let closed = not(open);
+    shouldComponentUpdate(nextProps:TodoInputProps,nextState:TodoInputState){
+        let {
+            groupTodos, 
+            scrolledTodo,
+            moveCompletedItemsToLogbook, 
+            selectedCategory, 
+            selectedProjectId, 
+            selectedAreaId, 
+            projects,
+            todo,
+            rootRef, 
+            id, 
+            showCompleted
+        } = nextProps;
 
-        if(notEquals(nextProps.todo, this.props.todo) && closed){
-            let {attachedDate,deadline,category,checklist,title, note} = nextProps.todo;
-            this.setState({
-               attachedDate, 
-               deadline, 
-               category, 
-               checklist, 
-               title, 
-               editorState:noteToState(note)
-            });
+
+        if(different(this.state,nextState)){ 
+           console.log(`state changed ${todo.title}`); 
+           return true; 
         }
-    };
 
-
-    onClose = () => {
-        let {dispatch,onClose,todo} = this.props;
-        let {attachedDate,deadline,category,title,editorState,checklist} = this.state;
-
-        this.update({
-            attachedDate,
-            deadline,
-            category,
-            title,
-            note:noteFromState(editorState),
-            checklist
-        });
-
-        if(isFunction(onClose)){ onClose() } 
-    };
+        let should = 
+            groupTodos!==this.props.groupTodos ||
+            scrolledTodo!==this.props.scrolledTodo ||
+            moveCompletedItemsToLogbook!==this.props.moveCompletedItemsToLogbook ||
+            showCompleted!==this.props.showCompleted || 
+            different(todo,this.props.todo); 
+            //selectedCategory!==this.props.selectedCategory ||
+            //selectedProjectId!==this.props.selectedProjectId ||
+            //selectedAreaId!==this.props.selectedAreaId ||
+            //projects!==this.props.projects 
+            
+        if(should){
+           console.log(`props changed ${todo.title}`); 
+        }    
+        
+        return should;
+    }
 
 
     constructor(props){
@@ -165,7 +165,16 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         this.subscriptions = [];
          
-        let {checklist,attachedDate,deadline,category,reminder,title,note,attachedTags} = this.props.todo;
+        let {
+            checklist,
+            attachedDate,
+            deadline,
+            category,
+            reminder,
+            title,
+            note,
+            attachedTags
+        } = this.props.todo;
 
         this.state={   
             open:false,
@@ -187,16 +196,52 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             title
         };        
     };
-
  
+
+
+    componentWillReceiveProps(nextProps:TodoInputProps){
+        let notEquals = complement(equals);
+        let { open } = this.state;
+        let closed = not(open);
+
+        if(notEquals(nextProps.todo, this.props.todo) && closed){
+            let {attachedDate,deadline,category,checklist,title, note} = nextProps.todo;
+            this.setState({
+               attachedDate, 
+               deadline, 
+               category, 
+               checklist, 
+               title, 
+               editorState:noteToState(note)
+            });
+        }
+    };
+
+
+
+    onClose = () => {
+        let {dispatch,onClose,todo} = this.props;
+        let {attachedDate,deadline,category,title,editorState,checklist} = this.state;
+
+        this.update({
+            attachedDate,
+            deadline,
+            category,
+            title,
+            note:noteFromState(editorState),
+            checklist
+        });
+
+        if(isFunction(onClose)){ onClose() } 
+    };
+
+    
 
     update = (props) : void => {
         let {todo,dispatch} = this.props;
         dispatch({type:"updateTodo",load:{...todo,...props}});
     };
 
-
-    
 
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
@@ -912,7 +957,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                             opacity: open ? 1 : 0,
                             color:"rgb(207,206,207)",
                             width:25, 
-                            height:25 
+                            height:25  
                         }}
                     >     
                         <Flag />  
@@ -1229,7 +1274,7 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                         } 
                     </div>
     } 
-}
+};
 
 
 
@@ -1290,30 +1335,6 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
                     keyBindingFn={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
                     placeholder="Notes"
                 />
-                { 
-                /*
-                <TextareaAutosize
-                    id={`note-${_id}`}  
-                    placeholder="Notes"
-                    onChange={this.props.onNoteChange as any}  //this.updateState({note:event.target.value})
-                    style={{
-                        resize:"none",
-                        marginTop:"-4px",
-                        width:"100%",
-                        fontSize:"14px",
-                        padding:"0px",
-                        cursor:"default", 
-                        position:"relative", 
-                        border:"none",
-                        outline:"none",
-                        backgroundColor:"rgba(0, 0, 0, 0)",
-                        color:"rgba(0, 0, 0, 0.87)" 
-                    }}
-                    onKeyDown={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
-                    value={note} 
-                />
-                */
-               }
             </div> 
             {    
                 not(showChecklist) ? null : 
@@ -1339,7 +1360,7 @@ export class TodoInputMiddleLevel extends Component<TodoInputMiddleLevelProps,To
             } 
         </div>   
     } 
-}  
+};  
 
 
 
@@ -1351,10 +1372,20 @@ interface DueDateProps{
 }
  
 export class DueDate extends Component<DueDateProps,{}>{
-
     constructor(props){
         super(props); 
     }
+
+
+
+    shouldComponentUpdate(nextProps:DueDateProps){
+        return  different(nextProps.date,this.props.date) ||
+                different(nextProps.completed,this.props.completed) ||
+                nextProps.selectedCategory!==this.props.selectedCategory ||
+                nextProps.category!==this.props.category;
+    };
+
+
 
     render(){   
         let {date,category,selectedCategory,completed} = this.props;
@@ -1447,7 +1478,7 @@ export class DueDate extends Component<DueDateProps,{}>{
             return null;
         }
     }
-}
+};
 
 
 
@@ -1460,6 +1491,19 @@ interface RelatedProjectLabelProps{
 interface RelatedProjectLabelState{}
 
 class RelatedProjectLabel extends Component<RelatedProjectLabelProps,RelatedProjectLabelState>{
+    constructor(props){
+        super(props); 
+    }
+
+
+
+    shouldComponentUpdate(nextProps:RelatedProjectLabelProps){
+        return nextProps.name!==this.props.name ||
+               nextProps.selectedCategory!==this.props.selectedCategory ||
+               nextProps.groupTodos!==this.props.groupTodos;
+    };
+
+
 
     render(){
         let {selectedCategory,groupTodos,name} = this.props;
@@ -1483,7 +1527,7 @@ class RelatedProjectLabel extends Component<RelatedProjectLabelProps,RelatedProj
             {isEmpty(name) ? `New Project` : name}
         </div>   
     }
-} 
+}; 
 
 
 
@@ -1499,17 +1543,29 @@ export class Checkbox extends Component<CheckboxProps,{}>{
         super(props); 
     } 
 
+
+
+    shouldComponentUpdate(nextProps:CheckboxProps){
+        return nextProps.checked!==this.props.checked;
+    }
+
+
+
     componentDidMount(){
         if(this.ref){
            this.ref["preventDrag"] = true; 
         }
     }  
+
+
     
     componentWillReceiveProps(){
         if(this.ref){
            this.ref["preventDrag"] = true; 
         }
     }
+
+
 
     render(){
         return <div    
@@ -1539,10 +1595,6 @@ export class Checkbox extends Component<CheckboxProps,{}>{
     }
 };
 
- 
-
-
-
 
 
 interface RestoreButtonProps{
@@ -1551,10 +1603,18 @@ interface RestoreButtonProps{
     onClick:Function 
 }
 class RestoreButton extends Component<RestoreButtonProps,{}>{
-
     constructor(props){
         super(props); 
     } 
+
+
+
+    shouldComponentUpdate(nextProps:RestoreButtonProps){
+        return nextProps.deleted!==this.props.deleted ||
+               nextProps.open!==this.props.open; 
+    }
+
+
  
     render(){ 
         let {deleted,open,onClick} = this.props;
@@ -1574,7 +1634,7 @@ class RestoreButton extends Component<RestoreButtonProps,{}>{
     }
 };
  
-  
+
 
 interface AdditionalTagsProps{
     attachedTags:string[],
@@ -1728,16 +1788,11 @@ class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
 
 
 
-
-
-
 interface TodoInputLabelsProps{
-
-    onRemoveTodayLabel:Function
-    onRemoveSomedayLabel:Function
-    onRemoveUpcomingLabel:Function
-    onRemoveDeadlineLabel:Function
-
+    onRemoveTodayLabel:Function,
+    onRemoveSomedayLabel:Function,
+    onRemoveUpcomingLabel:Function,
+    onRemoveDeadlineLabel:Function,
     todayCategory:boolean,
     open:boolean,
     category:Category,
@@ -1751,68 +1806,76 @@ export class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLab
         super(props);
     }
 
-    render(){ 
-        let {
-            onRemoveTodayLabel,
-            onRemoveSomedayLabel,
-            onRemoveUpcomingLabel,
-            onRemoveDeadlineLabel,
+    
 
+    shouldComponentUpdate(nextProps:TodoInputLabelsProps){
+        let { 
             todayCategory,
             open,
             category,
             attachedDate,
             deadline
-        } = this.props;
+        } = nextProps; 
+
+        return different(deadline,this.props.deadline) ||
+               different(attachedDate,this.props.attachedDate) ||
+               category!==this.props.category ||
+               open!==this.props.open ||
+               todayCategory!==this.props.todayCategory;
+    };
+
+
+
+    render(){ 
 
         return <div style={{display:"flex",flexDirection:"column",paddingLeft:"10px",paddingRight:"10px"}}>   
             {    
-                not(todayCategory) ? null :
+                not(this.props.todayCategory) ? null :
                 <div style={{transition:"opacity 0.4s ease-in-out",opacity:open ? 1 : 0,paddingLeft:"5px"}}>      
                     <TodoInputLabel 
-                        onRemove={onRemoveTodayLabel}
-                        category={category==="evening" ? "evening" : "today"} 
+                        onRemove={this.props.onRemoveTodayLabel}
+                        category={this.props.category==="evening" ? "evening" : "today"} 
                         content={ 
                             <div style={{marginLeft:"15px"}}>
-                                {category==="evening" ? "This Evening" : "Today"}   
+                                {this.props.category==="evening" ? "This Evening" : "Today"}   
                             </div>   
                         }  
                     />   
                 </div>  
             } 
             {   
-                category!=="someday" ? null :
+                this.props.category!=="someday" ? null :
                 <div style={{transition:"opacity 0.4s ease-in-out",opacity:open ? 1 : 0,paddingLeft:"5px"}}>      
                     <TodoInputLabel 
-                        onRemove={onRemoveSomedayLabel}
-                        category={category}
+                        onRemove={this.props.onRemoveSomedayLabel}
+                        category={this.props.category}
                         content={<div style={{marginLeft:"15px"}}>Someday</div>}  
                     />   
                 </div>  
             }   
             { 
-                isNil(attachedDate) || todayCategory ? null :
+                isNil(this.props.attachedDate) || this.props.todayCategory ? null :
                 <div style={{transition:"opacity 0.4s ease-in-out",opacity:open ? 1 : 0,paddingLeft:"5px"}}>    
                     <TodoInputLabel 
-                        onRemove={onRemoveUpcomingLabel}
+                        onRemove={this.props.onRemoveUpcomingLabel}
                         category={"upcoming"}
                         content={
                             <div style={{marginLeft:"15px", color:"black"}}>
-                                When : {moment(attachedDate).format('MMMM D')} 
+                                When : {moment(this.props.attachedDate).format('MMMM D')} 
                             </div>    
                         }  
                     />    
                 </div>   
             } 
             { 
-                isNil(deadline) ? null : 
+                isNil(this.props.deadline) ? null : 
                 <div style={{transition:"opacity 0.4s ease-in-out", opacity:open ? 1 : 0}}>
                     <TodoInputLabel  
-                        onRemove={onRemoveDeadlineLabel}
+                        onRemove={this.props.onRemoveDeadlineLabel}
                         category={"deadline"} 
                         content={ 
                             <div style={{marginLeft:"15px", color:"black"}}>
-                                Deadline: {moment(deadline).format('MMMM D')}
+                                Deadline: {moment(this.props.deadline).format('MMMM D')}
                             </div>
                         }
                     />     
@@ -1820,4 +1883,4 @@ export class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLab
             } 
         </div>
     }
-}
+};

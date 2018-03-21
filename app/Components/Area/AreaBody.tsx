@@ -17,6 +17,13 @@ interface AreaBodyProps{
     area:Area, 
     areas:Area[], 
     projects:Project[],
+    indicators:{ 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
     scrolledTodo:Todo, 
     moveCompletedItemsToLogbook:string, 
     selectedAreaId:string, 
@@ -39,7 +46,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
     constructor(props){
         super(props); 
     }
-     
+      
     render(){  
         let { 
             dispatch, selectedProjectId, groupTodos, moveCompletedItemsToLogbook, area,
@@ -56,21 +63,21 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                    not(contains(selectedCategory)(p.hide))
         ];
 
-        let selectedProjects = filter(projects, allPass(projectsFilters), "");
+        let selectedProjects = filter(projects, allPass(projectsFilters));
 
         let ids = flatten( selectedProjects.map((p) => p.layout.filter(isString)) ); 
 
         let selectedTodos = filter(
             todos, 
-            allPass([byNotDeleted, byNotCompleted, (todo:Todo) => contains(todo._id)(ids)]), 
-            ""
+            allPass([byNotDeleted, byNotCompleted, (todo:Todo) => contains(todo._id)(ids)])
         );
 
         return <div ref={(e) => {this.ref=e;}}> 
             <GroupsByProjectArea
                 projectsFilters={projectsFilters}
-                areasFilters={[byNotDeleted]}
+                areasFilters={[byNotDeleted]} 
                 dispatch={dispatch} 
+                indicators={this.props.indicators}
                 scrolledTodo={this.props.scrolledTodo}
                 selectedProjectId={selectedProjectId}
                 groupTodos={groupTodos}

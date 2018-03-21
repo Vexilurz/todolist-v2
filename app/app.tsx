@@ -40,7 +40,8 @@ import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
 import { 
     cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains, append, omit, path,
-    prop, equals, identity, all, when, evolve, ifElse, applyTo, reduce, add, groupBy, allPass 
+    prop, equals, identity, all, when, evolve, ifElse, applyTo, reduce, add, groupBy, allPass,
+    flatten, reject                   
 } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { SimplePopup } from './Components/SimplePopup';
@@ -188,7 +189,7 @@ export let defaultStoreItems : Store = {
     progress : null,  
     scheduledReminders : [],  
     showUpdatesNotification : false, 
-    limit:nDaysFromNow(50),//monthFromDate(new Date()), 
+    limit:nDaysFromNow(40), 
     searchQuery : "", 
     openChangeGroupPopup : false,    
     selectedSettingsSection : "QuickEntry",
@@ -228,16 +229,43 @@ export let defaultStoreItems : Store = {
 
  
 interface AppProps extends Store{}
-
+interface AppState{
+    indicators : { [key:string]:{active:number,completed:number,deleted:number}; },
+    amounts : { 
+        inbox:number,
+        today:number,
+        hot:number,
+        next:number,
+        someday:number,
+        logbook:number,
+        trash:number
+    },
+    todos : Todo[]
+}
 @connect((store,props) => store, attachDispatchToProps)   
-export class App extends Component<AppProps,{}>{  
+export class App extends Component<AppProps,AppState>{  
 
     constructor(props){  
-        super(props);  
-    }
+        super(props);
+
+        let {amounts,indicators,todos} = this.propsToState(this.props);  
+        this.state = {amounts,indicators,todos};
+    };
 
 
-    
+
+    componentDidMount(){    
+        collectSystemInfo()
+        .then( 
+            info => {
+                let timeSeconds = Math.round( new Date().getTime() / 1000 );
+                this.reportStart({...info, timeSeconds} as any);
+            }
+        );
+    };    
+
+
+
     reportStart = ({ arch, cpus, platform, release, type, timeSeconds }) => googleAnalytics.send(   
         'event',   
         {  
@@ -258,20 +286,10 @@ export class App extends Component<AppProps,{}>{
     .catch(err => globalErrorHandler(err));
 
 
-    componentDidMount(){    
-        collectSystemInfo()
-        .then( 
-            info => {
-                let timeSeconds = Math.round( new Date().getTime() / 1000 );
-                this.reportStart({...info, timeSeconds} as any);
-            }
-        );
-    }    
-    
 
-    getFilters = () => ({
+    getFilters = (props:Store) => ({
         inbox:[ 
-            byNotAttachedToProject(this.props.projects), 
+            byNotAttachedToProject(props.projects), 
             (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline), 
             byCategory("inbox"), 
             byNotCompleted,  
@@ -315,23 +333,22 @@ export class App extends Component<AppProps,{}>{
         trash:[byDeleted]
     });
 
-    removeTodosFromCompletedProjects = () => {
-        let completedProjects : Project[] = this.props.projects.filter(byCompleted);
-        let items = [];
 
-        for(let i=0; i<completedProjects.length; i++){
-            items.push(...completedProjects[i].layout);
-        }
 
-        items = filter(items,isString);
-        let todos = filter(this.props.todos, (todo:Todo) => !contains(todo._id,items));
-        return todos;
-    };
+    removeTodosFromCompletedProjects : (todos:Todo[], projects:Project[]) => Todo[] =
+    (todos, projects) => compose(
+        applyTo(todos),
+        items => reject((todo:Todo) => contains(todo._id,items)),
+        items => filter(items, isString),
+        flatten,
+        map(prop('layout')),
+        projects => filter(projects, byCompleted)
+    )(projects);
+    
 
- 
-    render(){  
-        let todos = this.removeTodosFromCompletedProjects();
 
+    propsToState = (props:Store) : AppState => {
+        let todos = this.removeTodosFromCompletedProjects(props.todos, props.projects);
 
         let filters : {
             inbox:((todo:Todo) => boolean)[],
@@ -342,8 +359,7 @@ export class App extends Component<AppProps,{}>{
             upcoming:((todo:Todo) => boolean)[],
             logbook:((todo:Todo) => boolean)[],
             trash:((todo:Todo) => boolean)[]
-        } = this.getFilters();
-
+        } = this.getFilters(props);
 
         let indicators : { 
             [key:string]:{
@@ -351,8 +367,7 @@ export class App extends Component<AppProps,{}>{
                 completed:number,
                 deleted:number
             }; 
-        } = generateIndicators(this.props.projects,todos);
-
+        } = generateIndicators(props.projects,todos);
 
         let amounts : { 
             inbox:number,
@@ -364,24 +379,54 @@ export class App extends Component<AppProps,{}>{
             trash:number
         } = generateAmounts(todos,filters);
 
+        return {amounts,indicators,todos};
+    };
 
+
+
+    componentWillReceiveProps(nextProps:Store){
+        if(
+            this.props.projects!==nextProps.projects ||
+            this.props.todos!==nextProps.todos
+        ){
+            let {amounts,indicators,todos} = this.propsToState(nextProps);
+
+            this.setState(
+                {amounts,indicators,todos}, 
+                when(
+                    () => not(nextProps.clone),
+                    () => requestFromMain<any>(
+                        'updateQuickEntryData', 
+                        [
+                            todos,
+                            nextProps.projects,
+                            nextProps.areas,
+                            indicators
+                        ],  
+                        (event) => event
+                    )
+                )
+            );
+        }
+    };
+ 
+
+ 
+    render(){
         return <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001}}>  
             <div style={{display:"flex",width:"inherit",height:"inherit"}}>
                 { 
-                    this.props.clone ? null : 
+                    this.props.clone ? null :  
                     <LeftPanel 
                         dispatch={this.props.dispatch}
                         selectedCategory={this.props.selectedCategory}
                         searchQuery={this.props.searchQuery} 
-
                         leftPanelWidth={this.props.leftPanelWidth}
                         openNewProjectAreaPopup={this.props.openNewProjectAreaPopup}
-
                         projects={this.props.projects}
                         areas={this.props.areas}
-                        amounts={amounts}
-                        indicators={indicators}
-
+                        amounts={this.state.amounts}
+                        indicators={this.state.indicators}
                         dragged={this.props.dragged}
                         selectedProjectId={this.props.selectedProjectId}
                         selectedAreaId={this.props.selectedAreaId}
@@ -390,13 +435,10 @@ export class App extends Component<AppProps,{}>{
                 <MainContainer 
                     dispatch={this.props.dispatch} 
                     selectedCategory={this.props.selectedCategory}
-
                     limit={this.props.limit}
                     nextUpdateCheck={this.props.nextUpdateCheck}
-                
                     selectedTodo={this.props.selectedTodo}
                     scrolledTodo={this.props.scrolledTodo}
-                 
                     showRepeatPopup={this.props.showRepeatPopup}
                     hideHint={this.props.hideHint}
                     firstLaunch={this.props.firstLaunch}
@@ -407,13 +449,12 @@ export class App extends Component<AppProps,{}>{
                     showRightClickMenu={this.props.showRightClickMenu}
                     showCalendarEvents={this.props.showCalendarEvents}
                     showTrashPopup={this.props.showTrashPopup}
-                
-                    filters={filters}
+                    filters={this.getFilters(this.props)}
+                    indicators={this.state.indicators}
                     calendars={filter(this.props.calendars, (calendar:Calendar) => calendar.active)}
                     projects={this.props.projects}
                     areas={this.props.areas}
-                    todos={todos} 
-                
+                    todos={this.state.todos} 
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId}
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
@@ -438,7 +479,7 @@ export class App extends Component<AppProps,{}>{
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     groupTodos={this.props.groupTodos}
                     disableReminder={this.props.disableReminder}
-                    todos={todos}
+                    todos={this.props.todos}
                     defaultTags={this.props.defaultTags}
                 />
             } 
@@ -454,7 +495,7 @@ export class App extends Component<AppProps,{}>{
                 <ChangeGroupPopup    
                     dispatch={this.props.dispatch}
                     openChangeGroupPopup={this.props.openChangeGroupPopup}
-                    todos={todos}
+                    todos={this.props.todos}
                     rightClickedTodoId={this.props.rightClickedTodoId}
                 />
             }
@@ -535,7 +576,6 @@ ipcRenderer.once(
 
 
 
-
 let scheduleReminder = (todo) : number => {
     assert(isDate(todo.reminder),`reminder is not of type Date. scheduleReminder. ${todo.reminder}.`);
    
@@ -545,7 +585,7 @@ let scheduleReminder = (todo) : number => {
     ); 
 };
 
- 
+
 
 let clearScheduledReminders = (store:Store) : Store => {
     let scheduledReminders = store.scheduledReminders;
@@ -558,105 +598,50 @@ let clearScheduledReminders = (store:Store) : Store => {
 
 
 
-let refreshReminders = (prevState:Store,action:{type:String,load:any}) => (newState:Store) : Store => {
-    if(isNil(newState) || prop('clone',newState)){ return newState }
+let refreshReminders = (prevState:Store, newState:Store) : Store => {
+    if(
+        isNil(prevState) || 
+        isNil(newState) || 
+        prop('clone',newState) ||
+        prevState.todos===newState.todos
+    ){ return newState }
 
+ 
+    return compose(
+        (scheduledReminders:number[]) : Store => ({...newState,scheduledReminders}),
 
-    let hasReminder = compose(isDate,prop('reminder'));
-    let reminderInFuture = compose(inFuture,prop('reminder'));
-    let initial = typeEquals("setTodos")(action);
-    let filters = [byNotCompleted,byNotDeleted];
-    let {clone} = newState;
+        (scheduledReminders:number[]) => filter(scheduledReminders, isNotNil),     
 
+        map((todo) : number => scheduleReminder(todo)), //create timeout for each reminder
 
-    if(initial){ 
-       filters.push(hasReminder); 
-    }else{
-       filters.push(reminderInFuture); 
-    }
+        (todos:Todo[]) => filter(
+            todos, 
+            allPass([byNotCompleted,byNotDeleted,compose(isDate,prop('reminder'))])
+        ), //only todos with reminder left
+        
+        prop('todos'), //get todos from current state   
 
-
-    let shouldRefreshReminders : boolean = cond([
-        [ typeEquals("setTodos"), (action:{type:string,load:Todo[]}) => true ],
-        [ typeEquals("removeGroup"), (action:{type:string, load:string})  => true ],
-        [ typeEquals("updateTodos"), (action:{type:string, load:Todo[]}) => true ],
-
-        [ typeEquals("updateTodoById"), compose(isDate, path(['load','props','reminder'])) ],
-        [ typeEquals("addTodo"), compose(isDate, path(['load','reminder'])) ],
-        [
-          typeEquals("updateTodo"),
-          (action:{type:string, load:Todo}) => differentBy( 
-                prop(`reminder`),
-                action.load,
-                prevState.todos.find( (t:Todo) => t._id===path(['load','_id'],action) )
-            )
-        ], 
-        [() => true, () => false]
-    ])(action);
-
-
-    return ifElse(
-        (newState:Store) => shouldRefreshReminders && not(clone),
-        compose(
-            (scheduledReminders:number[]) : Store => ({...newState,scheduledReminders}),
-
-            (scheduledReminders:number[]) => filter(scheduledReminders, isNotNil),     
-
-            map((todo) : number => scheduleReminder(todo)), //create timeout for each reminder
-
-            (todos:Todo[]) => filter(todos, allPass(filters)), //only todos with reminder left
-            
-            prop('todos'), //get todos from current state   
-
-            clearScheduledReminders //suspend existing timeouts
-        ),  
-        identity    
+        clearScheduledReminders //suspend existing timeouts
     )(newState);
 };
 
 
-let notClone = compose(not,prop('clone'));
 
-let updateQuickEntry : (prevState:Store) => (newState:Store) => Store =
-    (prevState:Store) => when(
-        (newState) => { 
-            return notClone(newState) && (
-                prevState.todos!==newState.todos ||
-                prevState.projects!==newState.projects ||
-                prevState.areas!==newState.areas
-            ); 
-        },
-        (newState) => { 
-            requestFromMain<any>(
-              'updateQuickEntryData', 
-              [newState.todos,newState.projects,newState.areas], 
-              (event) => event
-            ); 
-            return newState;
-        }
-    );
-
-  
 interface action{
     type:string,
     load:any
 };
 
 
+
 let reducer = (reducers) => ( state:Store, action:any) : Store => {
     let f = (state:Store,action:action) => {
-        
-        console.log(action.type);
-
         for(let i=0; i<reducers.length; i++){
             let newState = reducers[i](state, action);
             if(newState){ 
-                return compose(
-                    updateQuickEntry(state),  
-                    refreshReminders(state,action),
-                )(newState);  
+               return refreshReminders(state,newState);
             }  
-        }   
+        }    
         return state;
     };
 
@@ -666,6 +651,7 @@ let reducer = (reducers) => ( state:Store, action:any) : Store => {
         (action:action) => f(state,action)
     )(action);
 }; 
+
 
 
 let applicationReducer = reducer([applicationStateReducer, applicationObjectsReducer]); 

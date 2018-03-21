@@ -19,6 +19,13 @@ interface AreaComponentProps{
     scrolledTodo:Todo,
     areas:Area[],  
     selectedCategory:Category, 
+    indicators:{ 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
     groupTodos:boolean, 
     selectedAreaId:string,
     selectedTag:string, 
@@ -40,18 +47,19 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
     }  
 
 
+
     updateArea = (updatedProps) : void => { 
         let {area,dispatch} = this.props;
         let load = { ...area, ...updatedProps };
-
         assert(isArea(load), `Load is not an Area. ${load}`);
-
         dispatch({type:"updateArea", load});
     };
 
 
+
     updateAreaName = debounce((value:string) : void => this.updateArea({name:value}),150); 
  
+
 
     deleteArea = () => {
         let {area, projects, todos, dispatch} = this.props;
@@ -115,6 +123,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                 area={area}  
                 selectedCategory={this.props.selectedCategory}
                 todos={this.props.todos} 
+                indicators={this.props.indicators}
                 groupTodos={this.props.groupTodos}
                 selectedAreaId={this.props.selectedAreaId}
                 scrolledTodo={this.props.scrolledTodo}

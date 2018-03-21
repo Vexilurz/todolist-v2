@@ -55,6 +55,13 @@ interface GroupsByProjectAreaProps{
     selectedAreaId:string,
     selectedCategory:Category, 
     selectedTag:string,
+    indicators : { 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
     rootRef:HTMLElement,
     areas:Area[], 
     projects:Project[],
@@ -157,7 +164,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                                 <ProjectLink  
                                     project={project}
                                     showMenu={true} 
-                                    todos={[]}
+                                    indicator={defaultTo({completed:0, active:0})(this.props.indicators[project._id])}
                                     dispatch={this.props.dispatch}
                                     selectedCategory={this.props.selectedCategory}
                                 /> 

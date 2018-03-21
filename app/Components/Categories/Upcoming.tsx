@@ -224,6 +224,13 @@ interface UpcomingProps{
     moveCompletedItemsToLogbook:string, 
     calendars:Calendar[], 
     projects:Project[],  
+    indicators:{ 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
     selectedAreaId:string,
     selectedProjectId:string, 
     areas:Area[], 
@@ -408,7 +415,8 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
  
             <CalendarDay 
                 idx={idx} 
-                day={day} 
+                day={day}  
+                indicators={this.props.indicators}
                 dayName={getDayName(object.date)}
                 groupTodos={this.props.groupTodos}
                 selectedTodos={object.todos} 
@@ -471,6 +479,13 @@ interface CalendarDayProps{
     idx:number,
     day:number, 
     dayName:string,
+    indicators : { 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
     projects:Project[],
     scheduledProjects:Project[],
     areas:Area[], 
@@ -618,9 +633,13 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             (project:Project, index:number) : JSX.Element => {
                                 return <div key={project._id}>
                                     <ProjectLink 
-                                        project={project}
+                                        project={project} 
+                                        indicator={
+                                            defaultTo({completed:0, active:0})(
+                                                this.props.indicators[project._id]
+                                            )
+                                        }
                                         showMenu={false}
-                                        todos={[]}
                                         dispatch={this.props.dispatch}
                                         selectedCategory={this.props.selectedCategory}
                                     />  

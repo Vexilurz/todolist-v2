@@ -42,9 +42,8 @@ import {
 import { Todo, removeTodo, updateTodo,ObjectType, Area, Project, Heading } from '../database';
 import { Store } from '../app'; 
 import { ChecklistItem } from './TodoInput/TodoChecklist';
-import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection } from 'ramda';
+import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection, defaultTo } from 'ramda';
 import { Category, filter } from './MainContainer';
-import { getProgressStatus } from './Project/ProjectLink';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
@@ -55,6 +54,8 @@ import { Tags } from './Tags';
 import { isArray, isString, isDate, isNotDate } from '../utils/isSomething';
 import { chooseIcon } from '../utils/chooseIcon';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
+
+
 
 let sortByCompletedOrNot = (a:Todo,b:Todo) => {
     if(isDate(a.completedSet) && isNotDate(b.completedSet)){
@@ -67,9 +68,17 @@ let sortByCompletedOrNot = (a:Todo,b:Todo) => {
 };
 
 
-let getProjectHeading = (project:Project, todos:Todo[]) : JSX.Element => {
 
-    let {done, left} = getProgressStatus(project, todos, false);
+let getProjectHeading = (
+    project:Project, 
+    indicator:{
+        active:number,
+        completed:number,
+        deleted:number
+    }
+) : JSX.Element => {
+    let done = indicator.completed;
+    let left = indicator.active;
     let totalValue = (done+left)===0 ? 1 : (done+left);
     let currentValue = done;
 
@@ -145,7 +154,7 @@ let getProjectHeading = (project:Project, todos:Todo[]) : JSX.Element => {
             { isEmpty(project.name) ? "New Project" : project.name } 
         </div> 
     </div>
-}
+};
 
 
 interface SearchInputProps{
@@ -159,6 +168,11 @@ interface SearchInputState{}
 
 export class SearchInput extends Component<SearchInputProps,SearchInputState>{
  
+    shouldComponentUpdate(nextProps:SearchInputProps){
+        return nextProps.searchQuery!==this.props.searchQuery;
+    }
+
+
     constructor(props){ 
         super(props)
     } 
@@ -229,7 +243,16 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
 }
 
 
-interface SearchProps extends Store{}
+interface SearchProps extends Store{
+    indicators : { 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    }
+}
+
 interface SearchState{ limit:number }
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)
@@ -402,7 +425,14 @@ export class Search extends Component<SearchProps,SearchState>{
         let {project} = projectWithTodos;
          
         return <div key={`attached-${index}`}>
-            <div>{getProjectHeading(project,attachedTodos)}</div>
+            <div>
+            {
+                getProjectHeading(
+                    project,
+                    defaultTo({completed:0, active:0})(this.props.indicators[project._id])
+                )
+            }
+            </div>
             {
                 projectWithTodos
                 .todos

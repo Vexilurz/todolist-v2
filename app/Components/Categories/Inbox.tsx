@@ -41,14 +41,6 @@ export class Inbox extends Component<InboxProps, InboxState>{
 
     constructor(props){ super(props) }   
 
-    componentDidMount(){
-        //this.props.dispatch({type:"inboxAmount",load:this.props.todos.length});
-    }
-
-    componentWillReceiveProps(nextProps:InboxProps){ 
-        //this.props.dispatch({type:"inboxAmount",load:nextProps.todos.length});
-    }
-
     render(){  
         let {moveCompletedItemsToLogbook,selectedCategory} = this.props;
         let empty = generateEmptyTodo(generateId(),selectedCategory,0) as any;

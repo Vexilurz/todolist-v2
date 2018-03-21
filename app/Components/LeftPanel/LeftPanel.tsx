@@ -35,13 +35,10 @@ import { isDev } from '../../utils/isDev';
 interface LeftPanelProps{
     dispatch:Function,
     selectedCategory:Category,
-
     leftPanelWidth:number,
     openNewProjectAreaPopup:boolean,
-
     projects:Project[],
     areas:Area[], 
-
     amounts:{
         inbox:number,
         today:number,
@@ -58,7 +55,6 @@ interface LeftPanelProps{
             deleted:number
         }; 
     },
-
     searchQuery:string, 
     dragged:string, 
     selectedProjectId:string,
@@ -105,6 +101,7 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
         this.subscriptions = [];
     } 
 
+
  
     onNewProjectClick = (e:any) => {  
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
@@ -134,6 +131,7 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
         }); 
     };   
  
+
          
     onNewAreaClick = (e:any) => {    
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
@@ -164,11 +162,13 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
     }; 
 
 
+
     onResizableHandleDrag = (e,d) => this.props.dispatch({
         type:"leftPanelWidth",
         load:this.props.leftPanelWidth+d.deltaX
     });
       
+
 
     openNewProjectAreaPopup = () => {
         let {openNewProjectAreaPopup,dispatch} = this.props;
@@ -178,15 +178,15 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
     };
 
 
+
     openSettings = (e) => {  
         e.stopPropagation();  
         this.props.dispatch({type:"openSettings",load:true}); 
     };
 
+
      
     render(){      
-        let {areas, projects, amounts, indicators, leftPanelWidth, dispatch, searchQuery} = this.props; 
-
         return <div style={{display:"flex",flexDirection:"row-reverse",height:window.innerHeight}}> 
 
             { not(this.state.collapsed) ? <ResizableHandle onDrag={this.onResizableHandleDrag}/> : null } 
@@ -198,23 +198,23 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
                 style={{ 
                     WebkitUserSelect:"none", 
                     transition: "width 0.2s ease-in-out", 
-                    width:this.state.collapsed ? "0px" : `${leftPanelWidth}px`,
+                    width:this.state.collapsed ? "0px" : `${this.props.leftPanelWidth}px`,
                     height:`100%`,      
                     backgroundColor:"rgb(248, 248, 248)"  
                 }}      
             >   
 
-                <SearchInput dispatch={dispatch} searchQuery={searchQuery}/>
+                <SearchInput dispatch={this.props.dispatch} searchQuery={this.props.searchQuery}/>
 
                 <LeftPanelMenu   
                     dragged={this.props.dragged}
                     dispatch={this.props.dispatch} 
                     selectedCategory={this.props.selectedCategory}
-                    inbox={amounts.inbox} 
-                    today={amounts.today} 
-                    hot={amounts.hot} 
-                    trash={amounts.trash}
-                    logbook={amounts.logbook} 
+                    inbox={this.props.amounts.inbox} 
+                    today={this.props.amounts.today} 
+                    hot={this.props.amounts.hot} 
+                    trash={this.props.amounts.trash}
+                    logbook={this.props.amounts.logbook} 
                 />   
 
                 <AreasList   
@@ -268,6 +268,14 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
     constructor(props){
         super(props); 
     }
+
+
+
+    shouldComponentUpdate(nextProps:LeftPanelFooterProps){
+        return nextProps.width!==this.props.width || 
+               nextProps.collapsed!==this.props.collapsed;
+    }
+ 
 
     
     render(){ 
@@ -333,6 +341,6 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
             </div> 
         </div> 
     }
-}
+};
 
 

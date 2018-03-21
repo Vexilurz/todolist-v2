@@ -22,32 +22,10 @@ import { daysRemaining } from '../../utils/daysRemaining';
 import { Provider, connect } from "react-redux";
 
 
-export let getProgressStatus = (
-    project:Project, todos:Todo[], includeDeleted:boolean
-) : {done:number,left:number} => {  
-    
-    let ids = project.layout.filter(isString);
-
-    let filters = includeDeleted ? 
-                  [(todo) => contains(todo._id)(ids)] :
-                  [(todo) => contains(todo._id)(ids), byNotDeleted];
-
-    let selected = filter(todos, allPass(filters), "getProgressStatus"); 
-    let done : number = selected.filter(byCompleted).length;
-    let left : number = selected.length - done; 
-     
-    assert(done>=0, `Done - negative value. getProgressStatus.`);
-    assert(left>=0, `Left - negative value. getProgressStatus.`);
-     
-    return {done,left}; 
-}  
- 
-
-
 interface ProjectLinkProps{
     project:Project,
-    todos:Todo[],
     dispatch:Function,
+    indicator:{active:number,completed:number,deleted:number},
     showMenu:boolean,
     selectedCategory:Category,
     underline?:boolean
@@ -57,14 +35,9 @@ interface ProjectLinkState{
     openMenu:boolean 
 }   
 
-@connect(
-    (store:Store,props:ProjectLinkProps):ProjectLinkProps => ({...props,todos:store.todos}), 
-    attachDispatchToProps,
-    null, 
-    { areStatesEqual:(nextStore:Store, prevStore:Store) => nextStore.todos===prevStore.todos }   
-)  
 export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
     actionsAnchor:HTMLElement;
+
 
     constructor(props){ 
         super(props); 
@@ -73,24 +46,8 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
     
 
 
-    restoreProject = (p:Project) : void => { 
-        let {dispatch, todos} = this.props;
-        let relatedTodosIds : string[] = p.layout.filter(isString) as any[];
-        let selectedTodos : Todo[] = filter(todos, (t:Todo) : boolean => contains(t._id)(relatedTodosIds), "restoreProject");  
-
-        dispatch({
-            type:"multiple",
-            load:[
-                {type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))},
-                {type:"updateProject", load:{...p,deleted:undefined}}
-            ]
-        });
-    };
-
-
-
     onHideFrom = () => {
-        let {dispatch,project,todos,selectedCategory} = this.props;
+        let {dispatch,project,selectedCategory} = this.props;
         let hide = project.hide;
 
         if(isNil(hide)){
@@ -111,24 +68,21 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
                      project.expand===3 ? 1 :
                      3; 
 
-        dispatch({type:"updateProject", load:{...project,expand}});
-        this.setState({openMenu:false}); 
+        this.setState( {openMenu:false}, () => dispatch({type:"updateProject", load:{...project,expand}}) ); 
     };
 
 
 
     openProject =  (e) => {
-        let {dispatch,project,todos,selectedCategory} = this.props;
-        e.stopPropagation();  
+        e.stopPropagation();   
 
-        if(not(isNil(project.deleted))){ return }
-        if(not(isNil(project.completed))){ return } 
+        if(isNotNil(this.props.project.deleted) || isNotNil(this.props.project.completed)){ return } 
 
-        dispatch({
+        this.props.dispatch({
             type:"multiple",
             load:[
                 {type:"selectedCategory", load:"project"},
-                {type:"selectedProjectId", load:project._id}
+                {type:"selectedProjectId", load:this.props.project._id}
             ]
         });
     };
@@ -136,8 +90,9 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
 
     
     render(){ 
-        let { dispatch,project,todos,selectedCategory,showMenu } = this.props;
-        let { done,left } = getProgressStatus(project, todos, false); 
+        let {dispatch,project,indicator,selectedCategory,showMenu} = this.props;
+        let done = indicator.completed;
+        let left = indicator.active;
         let totalValue = (done+left)===0 ? 1 : (done+left);
         let currentValue = done;
 
@@ -343,38 +298,26 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
  
 
 
+
 interface ProjectLinkLogbookProps{ 
     project:Project, 
     dispatch:Function,
-    todos:Todo[],
+    indicator:{active:number,completed:number,deleted:number},
     selectedCategory:Category
 }
 interface ProjectLinkLogbookState{}   
-
-
-
-@connect(
-    (store:Store,props:ProjectLinkLogbookProps):ProjectLinkLogbookProps => ({...props,todos:store.todos}), 
-    attachDispatchToProps,
-    null, 
-    { areStatesEqual:(nextStore:Store, prevStore:Store) => nextStore.todos===prevStore.todos }   
-)  
 export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, ProjectLinkLogbookState>{
 
     constructor(props){ super(props) }
 
-
      
-    uncomplete = (e) => {
-        let {project} = this.props;
-        this.props.dispatch({type:"updateProject",load:{...project,completed:undefined}});
-    };
-
-
+    uncomplete = (e) => this.props.dispatch({type:"updateProject",load:{...this.props.project,completed:undefined}});
+    
 
     render(){ 
-        let { dispatch,project,todos,selectedCategory } = this.props;
-        let { done, left } = getProgressStatus(project, todos, true); 
+        let { dispatch,project,indicator,selectedCategory } = this.props;
+        let done = indicator.completed;
+        let left = indicator.active;
         let totalValue = (done+left)===0 ? 1 : (done+left);
         let currentValue = done;
  
@@ -473,20 +416,17 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
  
 
 
+
+
 interface ProjectLinkTrashProps{ 
     project:Project,
     dispatch:Function,
-    todos:Todo[],
+    indicator:{active:number,completed:number,deleted:number},
     selectedCategory:Category 
 }
-interface ProjectLinkTrashState{ openMenu:boolean }   
 
-@connect(
-    (store:Store,props:ProjectLinkTrashProps):ProjectLinkTrashProps => ({...props,todos:store.todos}), 
-    attachDispatchToProps,
-    null, 
-    { areStatesEqual:(nextStore:Store, prevStore:Store) => nextStore.todos===prevStore.todos }   
-)  
+interface ProjectLinkTrashState{ openMenu:boolean }  
+
 export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLinkTrashState>{
     actionsAnchor:HTMLElement;
 
@@ -496,24 +436,13 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
     }
      
 
-    restoreProject = (p:Project) : void => { 
-        let {dispatch, todos} = this.props;
-        let relatedTodosIds : string[] = p.layout.filter(isString) as any[];
-        let selectedTodos : Todo[] = filter(todos, (t:Todo) : boolean => contains(t._id)(relatedTodosIds), "restoreProject");  
-
-        dispatch({
-            type:"multiple",
-            load:[
-               {type:"updateTodos", load:selectedTodos.map((t:Todo) => ({...t,deleted:undefined}))},
-               {type:"updateProject", load:{...p,deleted:undefined}}
-            ]
-        }); 
-    };
- 
+    restoreProject = (p:Project) : void => this.props.dispatch({type:"restoreProject",load:p._id}); 
+    
  
     render(){ 
-        let { dispatch,project,todos,selectedCategory} = this.props;
-        let { done, left } = getProgressStatus(project, todos, true); 
+        let { dispatch,project,selectedCategory, indicator} = this.props;
+        let done = indicator.completed;
+        let left = indicator.active;
         let totalValue = (done+left)===0 ? 1 : (done+left);
         let currentValue = done;
 
@@ -602,5 +531,5 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
             </div>    
         </li>  
     }
-}
+}; 
  

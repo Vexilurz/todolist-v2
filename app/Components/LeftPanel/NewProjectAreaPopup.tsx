@@ -20,6 +20,10 @@ interface NewProjectAreaPopupProps{
  
 export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
  
+     shouldComponentUpdate(nextProps:NewProjectAreaPopupProps){
+        return nextProps.open!==this.props.open;
+     }   
+ 
      constructor(props){ 
          super(props);
      }

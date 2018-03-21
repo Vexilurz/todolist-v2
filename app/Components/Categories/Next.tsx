@@ -32,6 +32,13 @@ interface NextProps{
     selectedCategory:Category, 
     selectedTag:string,
     rootRef:HTMLElement,
+    indicators:{ 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
     areas:Area[], 
     projects:Project[], 
     todos:Todo[]
@@ -115,7 +122,7 @@ export class Next extends Component<NextProps, NextState>{
                         /> 
                     </div> 
                     <div>
-                    {
+                    { 
                         groupTodos ? 
                         <GroupsByProjectArea
                             dispatch={this.props.dispatch} 
@@ -123,6 +130,7 @@ export class Next extends Component<NextProps, NextState>{
                             selectedAreaId={this.props.selectedAreaId}
                             selectedProjectId={this.props.selectedProjectId}
                             groupTodos={this.props.groupTodos}
+                            indicators={this.props.indicators}
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             selectedCategory={this.props.selectedCategory}  
                             selectedTag={this.props.selectedTag}  

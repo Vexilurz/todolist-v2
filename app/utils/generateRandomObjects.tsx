@@ -5,27 +5,55 @@ import { ipcRenderer } from 'electron';
 import PouchDB from 'pouchdb-browser';  
 import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist'; 
 import { Category } from '.././Components/MainContainer'; 
-import { randomArrayMember, randomInteger, randomDate, fiveMinutesLater, onHourLater, isToday, fiveMinutesBefore } from './utils';
+import { randomArrayMember, randomInteger, randomDate, fiveMinutesLater, onHourLater, isToday, fiveMinutesBefore, different } from './utils';
 import { Todo, Heading, LayoutItem, Project, Area, initDB } from './../database';
-import { uniq, splitEvery, contains, isNil, not } from 'ramda';
+import { uniq, splitEvery, contains, isNil, not, and, evolve, when, map, reject } from 'ramda';
 import { generateId } from './generateId';
 import { isString } from './isSomething';
 import { assert } from './assert';
 import { noteFromText } from './draftUtils';
+import { isDev } from './isDev';
 const randomWord = require('random-word');
 let uniqid = require("uniqid"); 
 
 
-export let testData = (todosN:number,projectsN:number,areasN:number) => {  
 
+let assertLayoutUniqueness : (projects:Project[]) => Project[] = when(
+    (projects) => isDev(), 
+    (projects) => map(
+        p => evolve(
+            {
+                layout:reject( 
+                    i => projects.find( 
+                        t => and( 
+                            contains(i)(t.layout), 
+                            different(t._id,p._id) 
+                        ) 
+                    ) 
+                )
+            },
+            p
+        ),
+        projects
+    )
+);
+
+
+
+export let testData = (todosN:number,projectsN:number,areasN:number) => {  
     let fakeData = generateRandomDatabase({todos:todosN, projects:projectsN, areas:areasN});      
         
     let todos = fakeData.todos; 
     let projects = fakeData.projects; 
     let areas = fakeData.areas;  
          
-    return {todos,projects,areas};
+    return {
+        todos,
+        projects:assertLayoutUniqueness(projects),
+        areas
+    };
 };
+
 
 
 let randomCategory = () : Category => {
@@ -52,8 +80,7 @@ let fakeTags = (n) : string[] => {
         tags.push(randomWord()); 
 
     return tags;
-
-}
+};
       
 
 
@@ -74,9 +101,9 @@ let fakeCheckListItem = (idx) : ChecklistItem => {
         key : generateId(),
         _id : generateId()  
     } 
+};
+  
 
-}
-    
     
 export let fakeTodo = (tags:string[], remind = null) : Todo => {
     let checked = Math.random() > 0.5 ? true : false;
@@ -144,6 +171,7 @@ export let fakeTodo = (tags:string[], remind = null) : Todo => {
     };   
 };
     
+
     
 let fakeHeading = () : Heading => {
 
@@ -162,7 +190,7 @@ let fakeHeading = () : Heading => {
         _id : generateId(), 
         key : generateId()
     };  
-} 
+}; 
        
      
      
@@ -197,7 +225,7 @@ let fakeProject = (attachedTags:string[], layout:LayoutItem[]) : Project => {
         layout,     
         attachedTags  
     };    
-} 
+}; 
     
     
     
@@ -230,7 +258,7 @@ let fakeArea = (attachedTodosIds,attachedProjectsIds,attachedEventsIds,attachedT
         created : randomDate(new Date()["addDays"](-50), new Date()),
         attachedProjectsIds:uniq(attachedProjectsIds)
     };
-}
+};
     
     
     
@@ -254,7 +282,8 @@ let generateProjectLayout = (generateTodosIds:string[],n:number) : LayoutItem[] 
     }  
 
     return layout;
-}
+};
+
 
     
 export let generateRandomDatabase = (
@@ -324,10 +353,10 @@ export let generateRandomDatabase = (
 
     return { 
         todos : todosItems,
-        projects : projectItems,
+        projects : assertLayoutUniqueness(projectItems),
         areas : areasItems 
-    }
-}
+    };
+};
     
     
     
