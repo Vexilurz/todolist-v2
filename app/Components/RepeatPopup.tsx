@@ -186,7 +186,6 @@ const initialState : RepeatPopupState = {
  
 @connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
 export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
-
     ref:HTMLElement;  
     subscriptions:Subscription[];  
 
@@ -330,8 +329,8 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
  
         return not(showRepeatPopup) ? null : 
         <div 
-            onClick = {(e) => {e.stopPropagation(); e.preventDefault();}}  
-            ref={ e => {this.ref=e;}}
+            onClick = {e => {e.stopPropagation(); e.preventDefault();}}  
+            ref={e => {this.ref=e;}}
             style={{
                 WebkitUserSelect:"none", 
                 position:"absolute",
@@ -464,8 +463,9 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                             value={dateToDateInputValue(until)}
                             onChange={(event) => { 
                                 let until = new Date(event.target.value);
-                                 
-                                if(isDate(until)){ this.setState({until}) } 
+                                if(isDate(until)){ 
+                                   this.setState({until}); 
+                                } 
                             }} 
                             style={{         
                                outline:"none",  

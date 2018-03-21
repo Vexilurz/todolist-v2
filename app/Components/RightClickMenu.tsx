@@ -243,10 +243,29 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
     };
 
 
-    onWhen = (e) => {}; 
+
+    onWhen = (e) => {
+        let {rightClickMenuX,rightClickMenuY,dispatch} = this.props;   
+        let whenTodo : Todo = this.getRightClickedTodo();
+        
+        dispatch({
+            type : "openWhenCalendar", 
+            load : {
+                showWhenCalendar : true, 
+                whenTodo,
+                whenCalendarPopupX : rightClickMenuX, 
+                whenCalendarPopupY : rightClickMenuY,
+                showRightClickMenu : false
+            } 
+        }); 
+    };  
+
+
+
     onMove = (e) => {};
     onShortcuts = (e) => {};
     onShare = (e) => {};
+
 
  
     render(){ 
@@ -259,14 +278,15 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         let projectSelected : boolean = and( equals(selectedCategory,"project"), not(isNil(selectedProjectId)) );
         let areaSelected : boolean = and( equals(selectedCategory,"area"), not(isNil(selectedAreaId)) );    
 
-        let canComplete = isNil(todo.deleted) && isNil(todo.completedWhen);
+        let canComplete = isNil(todo.deleted) && isNil(todo.completedSet);
         let canRepeat = isNil(todo.deleted) && isNil(todo.group);
         let canDuplicate = isNil(todo.deleted); 
         let canConvert = isNil(todo.deleted);
         let canDelete = isNil(todo.deleted); 
         let canRemoveFromProjectArea = isNil(todo.deleted) && (projectSelected || areaSelected);
         
-        let canWhen = false; 
+        let canWhen = isNil(todo.deleted) && isNil(todo.completedSet); 
+        
         let canMove = false;  
         let canShortcuts = false;  
         let canShare = false;  
@@ -309,6 +329,8 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             disabled={!canWhen}
                             icon={null}
                         />
+                        {
+                        /*    
                         <RightClickMenuItem  
                             title={"Move..."}
                             dispatch={this.props.dispatch}
@@ -316,6 +338,8 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             disabled={!canMove}
                             icon={null}
                         />
+                        */
+                        }
                         <RightClickMenuItem 
                             title={"Complete"} 
                             dispatch={this.props.dispatch}
@@ -323,6 +347,8 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             disabled={!canComplete}
                             icon={null}
                         />
+                        {
+                        /*
                         <RightClickMenuItem 
                             title={"Shortcuts"}
                             dispatch={this.props.dispatch}
@@ -330,6 +356,8 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             disabled={!canShortcuts}
                             icon={null}
                         />
+                        */
+                        }
                         
                         <div style={{border:"1px solid rgba(200,200,200,0.5)", marginTop:"5px",marginBottom:"5px"}}></div>  
 
@@ -371,7 +399,8 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             disabled={not(canRemoveFromProjectArea)}
                             icon={null} 
                         />
-
+                        { 
+                        /*       
                         <div style={{border:"1px solid rgba(200,200,200,0.5)", marginTop:"5px",marginBottom:"5px"}}></div>  
 
                         <RightClickMenuItem 
@@ -381,10 +410,13 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                             disabled={not(canShare)}
                             icon={null} 
                         />
+                        */
+                        }
                        </div> 
                </div>
            };
-}
+};
+
  
 
 interface RightClickMenuItemProps{
@@ -410,9 +442,9 @@ export class RightClickMenuItem extends Component<RightClickMenuItemProps,RightC
          return <div  
             onClick = {
                 (e) => {
-                    if(!this.props.disabled){
-                        this.props.onClick(e);
-                        this.props.dispatch({type:"showRightClickMenu",load:false});
+                    if(not(disabled)){
+                       this.props.onClick(e);
+                       this.props.dispatch({type:"showRightClickMenu",load:false});
                     } 
                 }
             } 
@@ -430,15 +462,15 @@ export class RightClickMenuItem extends Component<RightClickMenuItemProps,RightC
                 paddingBottom: "2px" 
             }}
         >  
-            <div style={{color: not(disabled) ? "rgba(70,70,70,1)" : disabledColor}}>
+            <div style={{color:not(disabled) ? "rgba(70,70,70,1)" : disabledColor}}>
                 {this.props.title} 
             </div>
             <div style={{
-                height: "14px",
-                display: "flex", 
-                alignItems: "center",   
-                margin: "0px", 
-                fontWeight: 600 
+                height:"14px",
+                display:"flex", 
+                alignItems:"center",   
+                margin:"0px", 
+                fontWeight:600 
             }}>
                 {this.props.icon}
             </div>

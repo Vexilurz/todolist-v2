@@ -74,7 +74,29 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
   
             return newState;
         },  
-        cond([  
+        cond([ 
+            [
+                typeEquals("openWhenCalendar"),
+                (
+                    action:{
+                        type:string, 
+                        load:{
+                            showWhenCalendar : boolean, 
+                            whenTodo : Todo,
+                            whenCalendarPopupX : number, 
+                            whenCalendarPopupY : number,
+                            showRightClickMenu : boolean
+                        } 
+                    }
+                ) : Store => ({
+                    ...state,
+                    showWhenCalendar : action.load.showWhenCalendar, 
+                    whenTodo : action.load.whenTodo,
+                    whenCalendarPopupX : action.load.whenCalendarPopupX, 
+                    whenCalendarPopupY : action.load.whenCalendarPopupY,
+                    showRightClickMenu : action.load.showRightClickMenu
+                })
+            ],  
             [ 
                 typeEquals("updateTodos"),
                 (action:{type:string, load:Todo[]}) : Store => {

@@ -65,6 +65,7 @@ import { UpdateCheckResult } from 'electron-updater';
 import { setCallTimeout } from '../utils/setCallTimeout';
 import { requestFromMain } from '../utils/requestFromMain';
 import { getData } from '../utils/getData';
+import { WhenCalendar } from './WhenCalendar';
 const Promise = require('bluebird');   
 const moment = require("moment");   
 const path = require('path');
@@ -103,6 +104,7 @@ interface MainContainerProps{
     showRightClickMenu:boolean,
     showCalendarEvents:boolean,
     showTrashPopup:boolean, 
+    showWhenCalendar:boolean, 
 
     filters:{
         inbox:((todo:Todo) => boolean)[],
@@ -475,10 +477,14 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 { 
                     not(this.props.showRightClickMenu) ? null : 
                     <RightClickMenu {...{} as any}/> 
-                }
+                } 
                 {
                      not(this.props.showRepeatPopup) ? null : 
                     <RepeatPopup {...{} as any}/>  
+                }
+                {
+                     not(this.props.showWhenCalendar) ? null : 
+                    <WhenCalendar {...{} as any}/>  
                 }
                 <div style={{display:"flex",padding:"10px"}}>   
                     <div 

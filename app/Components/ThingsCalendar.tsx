@@ -29,6 +29,7 @@ import { isFunction, isDate } from '../utils/isSomething';
 import { timeOfTheDay } from '../utils/time';
 const moment = require("moment"); 
 import TimeInput from 'react-keyboard-time-input';
+import { Store } from '../app';
 
 
 interface DateCalendarProps{ 
@@ -280,7 +281,7 @@ interface CalendarFooterProps{
     onClear:(e:any) => void 
 }
   
-class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
+export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
 
     constructor(props){ 
         super(props);
@@ -675,5 +676,3 @@ export class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCa
         </Popover> 
     } 
 }  
-
- 

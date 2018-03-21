@@ -133,6 +133,11 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 
  
 export interface Store extends Config{
+    showWhenCalendar : boolean, 
+    whenTodo : Todo,
+    whenCalendarPopupX : number, 
+    whenCalendarPopupY : number,
+    
     showLicense : boolean,
     progress : any,
     scrolledTodo : Todo,
@@ -181,6 +186,12 @@ export interface Store extends Config{
 
 export let defaultStoreItems : Store = {
     ...defaultConfig,
+
+    showWhenCalendar : false, 
+    whenTodo : null,
+    whenCalendarPopupX : 0, 
+    whenCalendarPopupY : 0,
+
     showLicense : false, 
     selectedTodo : null, 
     scrolledTodo : null,
@@ -220,10 +231,10 @@ export let defaultStoreItems : Store = {
     rightClickedTodoId : null,
     rightClickMenuX : 0,
     rightClickMenuY : 0,
-    projects:[],
-    areas:[],  
+    projects : [],
+    areas : [],  
     clone : false,
-    todos:[]
+    todos : []
 };      
 
 
@@ -244,7 +255,6 @@ interface AppState{
 }
 @connect((store,props) => store, attachDispatchToProps)   
 export class App extends Component<AppProps,AppState>{  
-
     constructor(props){  
         super(props);
 
@@ -443,7 +453,8 @@ export class App extends Component<AppProps,AppState>{
                     hideHint={this.props.hideHint}
                     firstLaunch={this.props.firstLaunch}
                     clone={this.props.clone}
-                    showCompleted={this.props.showCompleted}
+                    showCompleted={this.props.showCompleted} 
+                    showWhenCalendar={this.props.showWhenCalendar}
                     showScheduled={this.props.showScheduled}
                     groupTodos={this.props.groupTodos}
                     showRightClickMenu={this.props.showRightClickMenu}

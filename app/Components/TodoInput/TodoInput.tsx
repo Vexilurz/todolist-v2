@@ -531,6 +531,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 type:"multiple",
                 load:[
                     {type:"showRepeatPopup", load:false},
+                    {type:"showWhenCalendar", load:false},
                     {type:"showRightClickMenu", load:false},
                     {type:"selectedTodo", load:todo}
                 ]
