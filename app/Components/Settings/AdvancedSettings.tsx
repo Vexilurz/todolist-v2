@@ -19,13 +19,14 @@ import {
     Area, Project, Todo, destroyEverything, initDB, addTodos, 
     addProjects, addAreas, addCalendars, getDatabaseObjects, Calendar  
 } from '../../database';
-import { filter, getData } from '../MainContainer';
+import { filter } from '../MainContainer';
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 import { updateConfig } from '../../utils/config';
 import { isArrayOfTodos } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { requestFromMain } from '../../utils/requestFromMain';
+import { getData } from '../../utils/getData';
 let uniqid = require("uniqid");   
 const Promise = require('bluebird');   
 const path = require("path");
@@ -126,7 +127,6 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
 
-    //cascade
     setData = ({projects, areas, todos, calendars}) : void => {
         let {dispatch} = this.props;
         dispatch({
