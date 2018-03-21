@@ -1515,6 +1515,7 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                 >    
                     <AutoresizableText
                         text={a.name}
+                        width={200}
                         placeholder="New Area"
                         fontSize={15}
                         style={{}}
@@ -1608,6 +1609,7 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                 >    
                     <AutoresizableText
                         text={p.name}
+                        width={200}
                         placeholder="New Project"
                         fontSize={15}
                         style={{}}

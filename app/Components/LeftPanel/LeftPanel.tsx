@@ -206,7 +206,7 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
 
                 <SearchInput dispatch={this.props.dispatch} searchQuery={this.props.searchQuery}/>
 
-                <LeftPanelMenu   
+                <LeftPanelMenu    
                     dragged={this.props.dragged}
                     dispatch={this.props.dispatch} 
                     selectedCategory={this.props.selectedCategory}

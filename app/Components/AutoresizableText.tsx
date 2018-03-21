@@ -17,6 +17,7 @@ import { stringToLength } from '../utils/stringToLength';
 interface AutoresizableTextProps{
     text:string,
     placeholder:string, 
+    width:number,
     fontSize:number,
     style:any,
     offset:number,
@@ -42,8 +43,10 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
  
 
 
-    shouldComponentUpdate(nextProps:AutoresizableTextProps){
-        return this.props.text!==nextProps.text;
+    shouldComponentUpdate(nextProps:AutoresizableTextProps,nextState:AutoresizableTextState){
+        return this.props.text!==nextProps.text || 
+               this.props.width!==nextProps.width ||
+               this.state.stringLength!==nextState.stringLength;
     }
 
 
@@ -55,33 +58,33 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
         let name = isEmpty(text) ? placeholder : text;
         let stringLength = stringToContainer(containerWidth, name, fontSize); 
         this.setState({stringLength}); 
-    }      
+    };      
   
 
    
     initRo = () => {  
         this.ro = new ResizeObserver(this.onResize);  
         this.ro.observe(this.ref);   
-    }
+    };
  
 
 
     suspendRo = () => {      
         this.ro.disconnect();
         this.ro = undefined;
-    }
+    };
  
 
 
     componentDidMount(){
         this.initRo();
-    }
+    };
     
 
 
     componentWillUnmount(){
         this.suspendRo(); 
-    } 
+    }; 
 
 
  
@@ -112,11 +115,6 @@ export let stringToContainer = (containerWidth:number, s:string, fontSize:number
        let remainderLength = remainder / widthOfSingleLetter;
        return length - remainderLength;
     }
-     
-    /*
-        let factor = length===0 ? 1 : textWidth/length;
-        return factor===0 ? 1 : containerWidth/factor;
-    */
 };  
 
 

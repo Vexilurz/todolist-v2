@@ -360,7 +360,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         let objects = [];
 
         for(let i = 0; i<range.length; i++){
-
             let object = {
                 date : range[i], 
                 todos : [], 
@@ -395,7 +394,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         let showMonth = idx===0 || day===1;
 
         return <div  style={{WebkitUserSelect:"none"}} key={idx}>
-
             { 
                 not(showMonth) ? null :  
                 <div 
@@ -412,7 +410,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                     {month}  
                 </div>
             }
- 
             <CalendarDay 
                 idx={idx} 
                 day={day}  
@@ -421,7 +418,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 groupTodos={this.props.groupTodos}
                 selectedTodos={object.todos} 
                 selectedEvents={object.events}
-                todos={this.props.todos}
                 areas={this.props.areas}
                 scheduledProjects={object.projects}  
                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
@@ -493,7 +489,6 @@ interface CalendarDayProps{
     scrolledTodo:Todo, 
     groupTodos:boolean,
     selectedEvents:CalendarEvent[],
-    todos:Todo[], 
     moveCompletedItemsToLogbook:string, 
     dispatch:Function, 
     selectedAreaId:string,
@@ -512,7 +507,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
     
     render(){   
-        let {selectedTodos,todos,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
+        let {selectedTodos,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
         let {sameDayEvents,fullDayEvents} = groupEventsByType(selectedEvents); 
 
         return <div style={{

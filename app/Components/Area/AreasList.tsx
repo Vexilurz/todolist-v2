@@ -171,6 +171,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             indicator={defaultTo({completed:0,active:0})(this.props.indicators[p._id])}
             project={p} 
             index={index}
+            leftPanelWidth={this.props.leftPanelWidth}
             dragged={this.props.dragged}  
             selectProject={this.selectProject}
             selectedProjectId={this.props.selectedProjectId}
@@ -532,6 +533,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                 }}>  
                     <AutoresizableText
                         text={area.name}
+                        width={this.props.leftPanelWidth}
                         placeholder="New Area" 
                         fontSize={15}
                         offset={45} 
@@ -577,6 +579,7 @@ interface ProjectElementProps{
     project:Project,
     index:number,
     dragged:string,
+    leftPanelWidth:number,
     selectProject:Function,
     selectedProjectId:string,
     selectedCategory:Category,
@@ -621,7 +624,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
 
     render(){
         let {project, selectedProjectId, selectedCategory, indicator} = this.props;
-        let selected = project._id===selectedProjectId && selectedCategory==="project";
+        let selected = (project._id===selectedProjectId) && (selectedCategory==="project");
         let done = indicator.completed;
         let left = indicator.active;
         let totalValue = (done+left)===0 ? 1 : (done+left);
@@ -702,6 +705,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     >    
                         <AutoresizableText
                             text={project.name}
+                            width={this.props.leftPanelWidth}
                             placeholder="New Project"
                             fontSize={15}
                             style={{}}
