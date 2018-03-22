@@ -169,7 +169,6 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
             [
               typeEquals("selectedCategory"),
               (action:{type:string,load:Category}) : Store => {
-                  requestFromMain<any>('setWindowTitle',[state.id,`tasklist - ${action.load}`],(event) => event);
                   assert(isCategory(action.load), `Error: selectedCategory. applicationStateReducer. ${action.load}`);
                   return ({...state,selectedCategory:action.load});  
               }

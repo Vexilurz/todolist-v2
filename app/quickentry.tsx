@@ -36,7 +36,7 @@ import { createStore } from "redux";
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import List from 'material-ui/svg-icons/action/list';
 import { 
-    cond, assoc, isNil, not, defaultTo, map, isEmpty, when,
+    cond, assoc, isNil, not, defaultTo, map, isEmpty, when, path,
     uniq, remove, contains, append, adjust, complement, identity,
     compose, flatten, concat, prop, equals, evolve, allPass  
 } from 'ramda';
@@ -45,7 +45,7 @@ import Popover from 'material-ui/Popover';
 import Alert from 'material-ui/svg-icons/alert/add-alert';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import Inbox from 'material-ui/svg-icons/content/inbox';
-import getMuiTheme from 'material-ui/styles/getMuiTheme';
+import getMuiTheme from 'material-ui/styles/getMuiTheme'; 
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 let uniqid = require("uniqid"); 
 import Clear from 'material-ui/svg-icons/content/clear';
@@ -135,32 +135,32 @@ ipcRenderer.once(
         app.id='application';      
         document.body.appendChild(app);
         
-        let store = createStore(
-            (state, action) => when(
-                () => action.type==="data",
-                (state) => ({
-                    ...state,
-                    projects:action.load.projects, 
-                    areas:action.load.areas, 
-                    todos:action.load.todos, 
-                    defaultTags:action.load.defaultTags
-                })
-            )(state),  
-            {
-                projects:[], 
-                areas:[], 
-                todos:[], 
-                indicators:{},
-                defaultTags:[]
-            }
-        );
+        
 
         getConfig()
         .then( 
             compose(
-              (el) => ReactDOM.render(el,app),  
-              wrapMuiThemeLight,
-              config => <Provider store={store}><QuickEntry {...{config} as any}/></Provider>
+                el => ReactDOM.render(el,app),  
+                wrapMuiThemeLight,
+                config => {
+                    let store = createStore(
+                        (state, action) => when(
+                            () => action.type==="data",
+                            (state) => ({...state,...action.load})
+                        )(state),  
+                        {
+                            config,
+                            projects:[], 
+                            areas:[], 
+                            defaultTags:prop('defaultTags',config),
+                            indicators:{},
+                            todos:[],
+                            dispatch:null
+                        }
+                    );   
+                
+                    return <Provider store={store}><QuickEntry {...{} as any}/></Provider>
+                }
             )   
         );
     }
@@ -192,7 +192,6 @@ interface QuickEntryProps{
     config:any,
     projects:any[],
     areas:any[],
-    todos:any[],
     indicators : { 
         [key:string]:{
             active:number,
@@ -201,12 +200,15 @@ interface QuickEntryProps{
         }; 
     },
     defaultTags:string[],
-    dispatch?:Function
+    dispatch:Function
 };    
 
 
 
-@connect((store,props) => ({...store,config:props.config}), attachDispatchToProps)  
+@connect(
+    (store:QuickEntryProps,props) : QuickEntryProps => ({...store}), 
+    attachDispatchToProps
+)  
 class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     calendar:HTMLElement; 
     deadline:HTMLElement;
@@ -274,6 +276,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     };
 
 
+
     componentDidMount(){
         this.resize(); 
 
@@ -291,7 +294,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             .subscribe(compose( (state) => this.setState(state), this.stateFromConfig )),
             
             Observable
-            .fromEvent(ipcRenderer,"data",(event,todos,projects,areas,indicators) => ({todos,projects,areas,indicators}))
+            .fromEvent(ipcRenderer, "data", (event,data) => data)
             .subscribe(
                 compose(
                     ({todos,projects,areas,indicators}) => this.props.dispatch({
@@ -299,17 +302,11 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                         load:{  
                             projects, 
                             areas, 
-                            todos, 
                             indicators,
-                            defaultTags:compose(
-                                uniq,
-                                append(this.props.defaultTags),
-                                map(prop('attachedTags'))
-                            )(todos) 
+                            todos
                         }
                     }),
                     evolve({
-                        todos:(todos) => todos.filter(byNotDeleted),
                         projects:(projects) => projects.filter(allPass([byNotDeleted,byNotCompleted])),
                         areas:(areas) => areas.filter(byNotDeleted)
                     })
@@ -318,10 +315,13 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         );
     }
 
+
+
     componentWillUnmount(){ 
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions=[];
     }
+
 
 
     stateFromTodo = (state,todo) : QuickEntryState => ({   
@@ -337,6 +337,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         checklist:todo.checklist  
     });
     
+
 
     todoFromState = () : any => ({
         _id:generateId(),
@@ -355,7 +356,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
 
-
     setSmallSize = () : Promise<void> => 
         requestFromMain<any>(
             'QEsetSmallSize',
@@ -364,12 +364,14 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         );
 
 
+
     setBigSize = () : Promise<void> => 
         requestFromMain<any>(
             'QEsetBigSize',
             [],
             (event) => event
         );
+
 
  
     addTodo = () => {
@@ -383,17 +385,21 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     };
     
 
+
     onSave = () => {
         this.addTodo();
         this.clear(); 
     };
- 
+
+    
 
     blur = () => requestFromMain<any>('QEblur',[],(event) => event);
 
 
+
     hide = () => requestFromMain<any>('QEhide',[],(event) => event);
     
+
 
     clear = () => {
         this.blur();
@@ -409,11 +415,13 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         this.setState(newState);
     };
 
+
     
     onAttachTag = (tag) => { 
         if(isEmpty(tag)){ return }
         this.setState({tag:'', attachedTags:uniq([...this.state.attachedTags, tag])})
     };  
+
 
 
     onRemoveTag = (tag) => {
@@ -425,31 +433,41 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     }; 
 
 
+
     onNoteChange = (editorState) : void => this.setState({editorState}); 
+
 
 
     onTitleChange = (event:any) : void => this.setState({title:event.target.value});  
 
 
+
     onChecklistButtonClick = (e) => this.setState({showChecklist:true});
 
       
+
     onFlagButtonClick = (e) => this.setState({showDeadlineCalendar:true}, () => this.setBigSize());
+
 
 
     closeDeadlineCalendar = () => this.setState({showDeadlineCalendar:false}, () => this.setSmallSize());
 
  
+
     onCalendarButtonClick = (e) => this.setState({showDateCalendar:true}, () => this.setBigSize());
 
     
+
     closeDateCalendar = () => this.setState({showDateCalendar:false}, () => this.setSmallSize());
+
 
 
     onTagsButtonClick = (e) => this.setState({showTagsSelection:true, showTags:true});
 
 
+
     closeTagsSelection = (e) => this.setState({showTagsSelection:false});
+
 
 
     categoryFromState = () : string => {
@@ -467,12 +485,14 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     };
 
 
+
     onCalendarClear = () => {
         this.setState(
             {attachedDate:null}, 
             () => this.setState({category:this.categoryFromState()})
         ); 
     }; 
+
 
 
     onDeadlineCalendarClear = () : void => {
@@ -486,6 +506,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     };
  
 
+
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         this.setState(
             {attachedDate:day},
@@ -497,6 +518,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     }; 
 
 
+
     onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         this.setState(
             {deadline:day}, 
@@ -506,6 +528,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             }
         );
     };   
+
 
 
     onCalendarSomedayClick = (e) => { 
@@ -520,9 +543,11 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     }; 
 
 
+
     onCalendarTodayClick = (e) => {
         this.setState({category:"today", attachedDate:new Date()}, () => this.closeDateCalendar()); 
     };
+
 
 
     onCalendarThisEveningClick = (e) => {
@@ -530,10 +555,12 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     };
 
 
+
     onCancel = () => {
         this.clear();
         this.hide(); 
     };
+
 
 
     render(){  
@@ -657,7 +684,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     close={this.closeTagsSelection}
                     open={this.state.showTagsSelection}  
                     anchorEl={this.tags}
-                    defaultTags={this.props.defaultTags}
+                    defaultTags={[]}
                     origin={{vertical:"center",horizontal:"left"}} 
                     point={{vertical:"bottom",horizontal:"right"}} 
                     rootRef={document.body} 
@@ -746,7 +773,6 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                 <TodoInputPopupFooter
                     project={this.state.project}
                     indicators={this.props.indicators}
-                    todos={this.props.todos}
                     projects={this.props.projects}
                     areas={this.props.areas}
                     openDeadlineCalendar={this.onFlagButtonClick}
@@ -802,8 +828,7 @@ interface TodoInputPopupFooterProps{
     deadline:Date,
     project:any,
     areas:any[],
-    projects:any[],
-    todos:any[]
+    projects:any[]
 }
 
 
@@ -832,8 +857,8 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
             category,
             attachedDate,
             deadline,
-            project,
-            todos
+            indicators,
+            project
         } = this.props;
 
         return <div style={{
@@ -856,7 +881,7 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
                         cursor:"default"   
                     }}  
                 >  
-                    { selectButtonContent({category,project,attachedDate,deadline,todos}) } 
+                    { selectButtonContent({category,project,attachedDate,deadline,indicators}) } 
                 </div> 
                 <div 
                     ref={e => {this.ref=e;}}
@@ -942,7 +967,6 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
                     areas={this.props.areas}
                     close={this.closeSelectorPopup}
                     projects={this.props.projects}
-                    todos={this.props.todos}
                 />
         </div>
     }
@@ -1460,7 +1484,6 @@ interface SelectorPopupProps{
     close:Function,
     projects:any[],
     rootRef:HTMLElement, 
-    todos:any[],
     areas:any[],
     selectInbox:() => void,    
     selectProject:(project:any) => void,
@@ -1484,7 +1507,7 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
 
 
     getAreaElement = (a:any) => { 
-        let {selectProject,close,todos,project} = this.props;
+        let {selectProject,close,project} = this.props;
 
         return <div    
             key = {`${a._id}-area`}
@@ -1529,8 +1552,8 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
 
 
     getProjectElement = (p:any) => { 
-        let {selectProject,close,todos,project} = this.props;
-        let indicator = defaultTo({completed:0, active:0})(this.props.indicators[project._id]);
+        let {selectProject,close,project} = this.props;
+        let indicator = defaultTo({completed:0, active:0})(this.props.indicators[p._id]);
         let done = indicator.completed;
         let left = indicator.active;
         let totalValue = (done+left)===0 ? 1 : (done+left);
@@ -1654,7 +1677,7 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
 
 
     render(){
-        let {open,anchorEl,close,projects,todos,rootRef,project,category} = this.props;
+        let {open,anchorEl,close,projects,rootRef,project,category} = this.props;
 
         let {table,detached} = groupProjectsByArea(
             projects.filter(
@@ -1783,7 +1806,7 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
 
 
 
-let selectButtonContent = ({category, project, attachedDate, deadline, todos}) => { 
+let selectButtonContent = ({category, project, attachedDate, deadline, indicators}) => { 
 
     if(category==="inbox" && isNil(attachedDate) && isNil(project) && isNil(deadline)){
         return <div   
@@ -1799,10 +1822,10 @@ let selectButtonContent = ({category, project, attachedDate, deadline, todos}) =
             <div style={{paddingRight:"5px",paddingLeft:"5px",WebkitUserSelect:"none"}}>  
                 Inbox
             </div> 
-        </div>;
+        </div>
 
     }else if(isProject(project)){ 
-        let indicator = defaultTo({completed:0, active:0})(this.props.indicators[project._id]);
+        let indicator = defaultTo({completed:0, active:0})(indicators[project._id]);
         let done = indicator.completed;
         let left = indicator.active;
 
@@ -1849,7 +1872,7 @@ let selectButtonContent = ({category, project, attachedDate, deadline, todos}) =
             <div style={{paddingRight:"5px",paddingLeft: "5px",WebkitUserSelect:"none",width:"100%"}}>   
                 {isEmpty(project.name) ? "New Project" : stringToLength(project.name,10)}    
             </div>    
-        </div>;  
+        </div>  
     }else{
         return <div  
             style={{
@@ -1875,6 +1898,6 @@ let selectButtonContent = ({category, project, attachedDate, deadline, todos}) =
             }}>  
                 Scheduled
             </div>
-        </div>;
+        </div>
     }
 };

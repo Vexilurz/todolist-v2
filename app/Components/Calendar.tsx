@@ -316,7 +316,7 @@ let parseRecEvents = (
 
 
 
-let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, events:CalendarEvent[]} => {
+export let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, events:CalendarEvent[]} => {
     const calendarName = "x-wr-calname";
     const calendarTimezone = "x-wr-timezone";
     const calendarDescription = "x-wr-caldesc";
@@ -385,9 +385,22 @@ export let getIcalData = (limit:Date,url:string) : Promise<IcalData> => {
     .get(url,{timeout:5000})  
     .then((response) => {
         let data : string = response.data;
+        let parsed = {
+            calendar:{
+                name:'Error. Incorrect format.',
+                description:'',
+                timezone:''
+            }, 
+            events:[]
+        };
 
-        let {calendar,events} = parseCalendar(limit,data);
-        
+        try{
+            parsed = parseCalendar(limit,data);
+        }catch(e){
+            parsed.calendar.description=e.message;
+        }
+
+        let {calendar,events} = parsed;
 
         if(
             isNil(calendar.name) || 

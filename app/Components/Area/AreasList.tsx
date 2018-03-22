@@ -24,6 +24,8 @@ import { SortableContainer } from '../CustomSortableContainer';
 import { isDev } from '../../utils/isDev';
 import { groupProjectsByArea } from './groupProjectsByArea';
 import {  generateLayout } from './generateLayout';
+import { requestFromMain } from '../../utils/requestFromMain';
+import { uppercase } from '../../utils/uppercase';
 const mapIndexed = addIndex(map);
 const isSeparator = (item) => item.type==="separator"; 
       
@@ -117,36 +119,51 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 
  
-    selectArea = (area:Area) : void => {
-        let {dispatch} = this.props;
-        let {hideContentFromAreasList} = area; 
+    selectArea = (area:Area) : Promise<void> => {
+        let {hideContentFromAreasList,name} = area; 
 
         if(hideContentFromAreasList){
            this.onCollapseContent(area);
         }
  
-        dispatch({
-            type:"multiple",
-            load:[
-                {type:"selectedAreaId",load:area._id}, 
-                {type:"selectedCategory",load:"area"},
-                {type:"selectedTag",load:"All"},
-                {type:"searchQuery",load:""}
-            ]
-        });
+
+        return requestFromMain<any>(
+            'setWindowTitle',
+            [`tasklist - ${uppercase(isEmpty(name) ? 'New Area' : name)}`],
+            (event) => event
+        )
+        .then(
+            () => this.props.dispatch({
+                type:"multiple",
+                load:[
+                    {type:"selectedAreaId",load:area._id}, 
+                    {type:"selectedCategory",load:"area"},
+                    {type:"selectedTag",load:"All"},
+                    {type:"searchQuery",load:""}
+                ]
+            })
+        ); 
     };
  
 
 
-    selectProject = (p:Project) : void => this.props.dispatch({
-        type:"multiple",
-        load:[
-            {type:"selectedProjectId",load:p._id},
-            {type:"selectedCategory",load:"project"},
-            {type:"selectedTag",load:"All"},
-            {type:"searchQuery",load:""}
-        ]
-    });
+    selectProject = (p:Project) : Promise<void> => 
+        requestFromMain<any>(
+            'setWindowTitle',
+            [`tasklist - ${uppercase( isEmpty(p.name) ? 'New Project' : p.name )}`],
+            (event) => event
+        )
+        .then(
+            () => this.props.dispatch({
+                type:"multiple",
+                load:[
+                    {type:"selectedProjectId",load:p._id},
+                    {type:"selectedCategory",load:"project"},
+                    {type:"selectedTag",load:"All"},
+                    {type:"searchQuery",load:""}
+                ]
+            })
+        );
     
 
 
@@ -236,7 +253,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             isNil,
             () => true,
             compose(
-                not,
+                not, 
                 prop('hideContentFromAreasList')
             )
         ),
@@ -427,7 +444,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             </SortableContainer> 
          </div> 
     }
-}
+};
 
 
 

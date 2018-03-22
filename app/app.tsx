@@ -41,7 +41,7 @@ import { applicationObjectsReducer } from './ObjectsReducer';
 import { 
     cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains, append, omit, path,
     prop, equals, identity, all, when, evolve, ifElse, applyTo, reduce, add, groupBy, allPass,
-    flatten, reject                   
+    flatten, reject, uniq                   
 } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { SimplePopup } from './Components/SimplePopup';
@@ -63,7 +63,7 @@ import { assert } from './utils/assert';
 import { value,text } from './utils/text';
 import { setCallTimeout } from './utils/setCallTimeout';
 import { isDev } from './utils/isDev';
-import { convertEventDate } from './Components/Calendar';
+import { convertEventDate, parseCalendar } from './Components/Calendar';
 import { defaultTags } from './utils/defaultTags';
 import { section } from './Components/Settings/section';
 import { SettingsPopup } from './Components/settings/SettingsPopup';
@@ -71,7 +71,9 @@ import { LicensePopup } from './Components/settings/LicensePopup';
 import { generateIndicators } from './utils/generateIndicators';
 import { generateAmounts } from './utils/generateAmounts';
 import { requestFromMain } from './utils/requestFromMain';
-const MockDate = require('mockdate');   
+import { generateId } from './utils/generateId';
+const MockDate = require('mockdate');  
+let pathTo = require('path'); 
 let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
 
@@ -272,9 +274,76 @@ export class App extends Component<AppProps,AppState>{
                 this.reportStart({...info, timeSeconds} as any);
             }
         );
+
+
+        if(isDev()){
+            let dir = 'C:\\Users\\Anatoly\\Desktop\\ical';
+            requestFromMain<any>(
+                'getFilenames',   
+                [ dir ],  
+                (event, files) => files.filter( name => pathTo.extname(name)==='.ics' ) 
+            )
+            .then(
+                files => files 
+                .reduce( 
+                    (promise,file) => promise.then(
+                        (list) => requestFromMain<any>(
+                            "readFile",   
+                            [ pathTo.join(dir,file) ],  
+                            (event, data) => data
+                        ).then(
+                            (data) => {
+                                console.log(file,data);
+                                return [data,...list];
+                            }
+                        )
+                    ),
+                    new Promise(resolve => resolve([])) 
+                )
+            ).then(
+                raw => Promise.all(
+                    raw.map(
+                        d => {
+                            let data = {
+                                calendar:{
+                                    name:'Error. Incorrect format.',
+                                    description:'',
+                                    timezone:''
+                                }, 
+                                events:[]
+                            };
+
+                            try{
+                                data = parseCalendar(this.props.limit,d);
+                            }catch(e){
+                                data.calendar.description=e.message;
+                            }
+  
+                            return data;
+                        }   
+                    )
+                )
+            ).then(
+                calendars => calendars.map( 
+                    (calendar:any) => this.props.dispatch({
+                        type:'addCalendar', 
+                        load:{
+                            url:'', 
+                            active:true,
+                            _id:generateId(),
+                            name:calendar.name, 
+                            description:calendar.description,
+                            timezone:calendar.timezone,
+                            events:calendar.events,
+                            type:"calendar"
+                        }
+                    }) 
+                )
+            )
+        }
     };    
 
-
+ 
 
     reportStart = ({ arch, cpus, platform, release, type, timeSeconds }) => googleAnalytics.send(   
         'event',   
@@ -377,7 +446,7 @@ export class App extends Component<AppProps,AppState>{
                 completed:number,
                 deleted:number
             }; 
-        } = generateIndicators(props.projects,todos);
+        } = generateIndicators(props.projects,props.todos);
 
         let amounts : { 
             inbox:number,
@@ -408,10 +477,12 @@ export class App extends Component<AppProps,AppState>{
                     () => requestFromMain<any>(
                         'updateQuickEntryData', 
                         [
-                            todos,
-                            nextProps.projects,
-                            nextProps.areas,
-                            indicators
+                            {
+                                todos,
+                                projects:nextProps.projects,
+                                areas:nextProps.areas,
+                                indicators
+                            }
                         ],  
                         (event) => event
                     )

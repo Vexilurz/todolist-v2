@@ -36,7 +36,7 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
             ([calendars,projects,areas,todos]) => ({calendars,projects,areas,todos})
         )
     ) 
-    .then(
+    .then( 
         ({projects,areas,todos,calendars}) => updateCalendars(
             limit,
             calendars,

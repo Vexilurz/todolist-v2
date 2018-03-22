@@ -73,6 +73,22 @@ let keyFromDate = (d:Date) : string => {
 };
 
 
+let readFile = (path:string) : Promise<any> => 
+    new Promise(
+        resolve => fs.readFile(
+            path, 
+            'utf8', 
+            (err, data) => {
+                if(err){ 
+                   resolve(null); 
+                }else{ 
+                   resolve(data);  
+                }
+            }
+        )
+    );
+
+
 let readJsonFile = (path:string) : Promise<any> => 
     new Promise(
         resolve => {
@@ -169,15 +185,30 @@ export class Listeners{
  
       this.registeredListeners = [ 
             {
-                name:'setWindowTitle',
-                callback:(event,[id,title]) => {
-                    let windows = BrowserWindow.getAllWindows();
-                    let window = windows.find( w => w.id===id );
+                name:'getFilenames',
+                callback:(event,[dir]) => {
 
-                    if(window){
-                        window.setTitle(title)
+                    if(fs.existsSync(dir)){ 
+                        fs.readdir(
+                            dir, 
+                            (err,files) => {
+                                if(isNil(err)){    
+                                   event.sender.send('getFilenames',files);
+                                }
+                            } 
+                        );
+                    }else{
+                        event.sender.send('getFilenames',[]);
                     }
 
+                }
+            },
+            {
+                name:'setWindowTitle',
+                callback:(event,[title]) => {
+                    if(mainWindow){
+                       mainWindow.setTitle(title);
+                    }
                     event.sender.send('setWindowTitle');
                 }
             },
@@ -317,6 +348,10 @@ export class Listeners{
                         }
                     )  
             },
+            { 
+                name:"readFile",
+                callback:(event,[to]) => readFile(to).then((data) => event.sender.send("readFile",data))  
+            },
             {
                 name:"saveDatabase",
                 callback:(event,[data,to]) => {
@@ -410,11 +445,10 @@ export class Listeners{
             },
             { 
                 name:"updateQuickEntryData",
-                callback:(event,[todos,projects,areas]) => { 
+                callback:(event,[data]) => { 
                     let window = findWindowByTitle('Add task');
-
                     if(window){
-                       window.webContents.send('data',todos,projects,areas);
+                       window.webContents.send('data',data);
                     }
                     event.sender.send("updateQuickEntryData");  
                 }

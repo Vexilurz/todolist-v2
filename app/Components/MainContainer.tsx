@@ -286,7 +286,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 .flatMap(() => updateCalendars(
                     this.props.limit, 
                     this.props.calendars, 
-                    this.onError
+                    this.onError 
                 ))
                 .subscribe((calendars:Calendar[]) => dispatch({type:"setCalendars",load:calendars})),
 
