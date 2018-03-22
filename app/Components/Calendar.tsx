@@ -190,7 +190,6 @@ let splitLongEvents = (events:CalendarEvent[]) : CalendarEvent[] => {
                 map((date:Date) => ({...event,start:date})),
 
                 () => {
-                    //getRangeDays(event.start,event.end,1,true)
                     let rule = new RRule({
                         freq:RRule.DAILY,
                         interval:1,
@@ -277,6 +276,50 @@ let groupEvents = (events:CalendarEvent[]) : CalendarEvent[] =>
             )
         )
     )(events);
+
+
+let normalize = (dates:Date[]) : Date[]  => {
+    let result = [];
+    let interval = null;
+
+    if(isEmpty(dates)){ return result }
+
+    for(let i=0; i<dates.length; i++){
+        let current = dates[i];
+        let next = dates[i+1];
+
+        if(isNil(next)){  
+           result.push(new Date(current)); 
+           continue; 
+        }
+
+        if(isNil(interval)){ 
+           result.push(new Date(current)); 
+           interval = next.getTime() - current.getTime(); 
+           continue;
+        }
+
+        let nextInterval = next.getTime() - current.getTime(); 
+        console.log(nextInterval); 
+         
+        if(nextInterval===0){
+            console.log(`skip ${current}`);
+            continue;
+        }else if(nextInterval > interval){
+            console.log(`add ${new Date( current.getTime() + nextInterval/2 )}`);
+            
+            result.push( new Date(current) );
+            result.push( new Date( current.getTime() + nextInterval/2 ) );
+        }else{
+            result.push( new Date(current) );
+        }
+
+        interval = nextInterval;
+      
+    }
+
+    return result;
+}   
  
 
 let parseRecEvents = (
@@ -298,6 +341,14 @@ let parseRecEvents = (
 
                 if(isNil(count)){ //never ends -> slice 
                    let dates = rule.between(oneDayBehind(),new Date(limit));
+
+                   //try{
+                       dates = normalize(dates)
+                       //console.log('normalized',dates);
+                   //}catch(e){
+                   //     console.log(e);
+                   //}
+
                    return {...event, dates}; 
                 }else{ 
                    let dates = rule.all(); 
@@ -320,13 +371,26 @@ let parseRecEvents = (
                 evolve({ 
                     dtstart:when(isNotNil,(date) => new Date(date)),
                     until:when(isNotNil,(date) => new Date(date))
-                }),
-                pick([
-                    'byeaster','byhour','byminute','bymonth',
-                    'bymonthday','bynmonthday','bynweekday','bysecond',
-                    'bysetpos','byweekday','byweekno','byyearday',
-                    'count','dtstart','freq','interval',
-                    'until'//,'wkst' 
+                }), 
+                pick([ 
+                    'byeaster',
+                    'byhour',
+                    'byminute',
+                    'bymonth',
+                    'bymonthday',
+                    'bynmonthday',
+                    'bynweekday',
+                    'bysecond',
+                    'bysetpos',
+                    'byweekday',
+                    'byweekno',
+                    'byyearday',
+                    'count',
+                    'dtstart',
+                    'freq',
+                    'interval',
+                    'until',
+                    //'wkst' 
                 ]),
                 path(['rrule','options'])
             )(e), 
