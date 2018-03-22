@@ -234,7 +234,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
     checkUpdates : () => Promise<void> =
-    () =>  this.updateState({updateStatus:"Loading..."})
+    () => this.updateState({updateStatus:"Loading..."})
                .then(() => checkForUpdates())  
                .then(
                    (updateCheckResult:UpdateCheckResult) => requestFromMain<any>(
@@ -490,10 +490,10 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                                 this.props.dispatch({ 
                                     type:"multiple",
                                     load:[
-                                        {type:"openSettings",load:false},
+                                       //{type:"openSettings",load:false},
                                         {type:"showLicense",load:true}
                                     ]
-                                }); 
+                                });  
                             }}
                             style={{
                                 width:"100%",

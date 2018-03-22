@@ -173,21 +173,22 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
             [ 
                 typeEquals('setCalendars'),  
-                (action:{type:string,load:Calendar[]}):Store => ({
-                    ...state, 
-                    calendars:map(evolve({events:map(convertEventDate)}),action.load)
-                })
+                (action:{type:string,load:Calendar[]}):Store => {
+                    return {
+                        ...state, 
+                        calendars:action.load
+                    }
+                }
             ],  
 
             [  
                 typeEquals("addCalendar"),  
                 (action:{type:string,load:Calendar}):Store => { 
-
                     assert(isCalendar(action.load), `Error: addCalendar. applicationObjectsReducer. ${action.load}`); 
-               
+                
                     if(shouldAffectDatabase){ 
                        addCalendar(onError,action.load) 
-                    }  
+                    }   
 
                     return {...state, calendars:[action.load,...state.calendars]};
                 }

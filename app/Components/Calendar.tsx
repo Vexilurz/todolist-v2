@@ -10,7 +10,7 @@ import {
   contains, isNil, all, prepend, isEmpty, last, not, values, 
   assoc, flatten, toPairs, map, compose, allPass, uniq, path,
   reject, prop, pick, evolve, when, ifElse, groupBy, and, adjust,
-  cond, defaultTo, find, append
+  cond, defaultTo, find, append, anyPass
 } from 'ramda'; 
 import { Store } from './../app';
 import { ipcRenderer } from 'electron';
@@ -20,13 +20,16 @@ import {
     isNotNil, fiveMinutesLater, addTime, inPast, distanceInOneDay, 
     fromMidnightToMidnight, timeDifferenceHours, differentDays,
     sameDay, timeIsMidnight, oneMinutesBefore, oneDayBehind, log, 
-    inPastRelativeTo 
+    inPastRelativeTo, 
+    subtractTime,
+    subtractDays
 } from '../utils/utils'; 
 let ical = require('ical.js'); 
 let RRule = require('rrule');
 import * as icalR from '../ical/index.js'; 
 import { isDate, isEvent } from '../utils/isSomething';
 import { assert } from '../utils/assert';
+import { filter } from './MainContainer';
 
 
 type vcalPropsInitial = [string,Object,string,string];
@@ -202,11 +205,32 @@ let splitLongEvents = (events:CalendarEvent[]) : CalendarEvent[] => {
     )(events) as CalendarEvent[];  
 };
 
+
+
 export let convertEventDate = (event:CalendarEvent) : CalendarEvent => {
-    let start = event.start ? new Date(event.start) : new Date();
-    let end = event.end ? new Date(event.end) : new Date();
+    let minute = 1000 * 60;
     
-    return {...event, start, end};
+    if(isNil(event.start) && isNil(event.end)){
+        return {
+            ...event, 
+            end:subtractDays(new Date(), 49),
+            start:subtractDays(new Date(), 50)
+        };
+    }else if(isNil(event.start) && isNotNil(event.end)){
+        return {  
+            ...event,
+            end:new Date(event.end),
+            start:subtractTime(new Date(event.end), minute)
+        }; 
+    }else if(isNotNil(event.start) && isNil(event.end)){
+        return {  
+            ...event,
+            end:addTime(new Date(event.start), minute),
+            start:new Date(event.start)
+        }; 
+    }else{
+        return event;
+    }
 };
 
 
@@ -363,7 +387,10 @@ export let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarPro
     // -> jcal
     let getEvents = compose(  
         groupEvents, 
-        reject(inPastRelativeTo(oneDayBehind())),
+        (events:CalendarEvent[]) => filter(
+            events, 
+            event => isNotNil(event) && !inPastRelativeTo(oneDayBehind())(event.end)
+        ),
         map(convertEventDate),
         flatten, 
         map(compose(setRecurrent,parseEvent)), 
@@ -373,8 +400,8 @@ export let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarPro
 
     return ifElse(
         isNil,
-        (jcal) => empty, 
-        (jcal) => ({ calendar:getCalendar(jcal),events:getEvents(jcal) })
+        jcal => empty, 
+        jcal => ({calendar:getCalendar(jcal), events:getEvents(jcal)})
     )(jcal);
 };   
   
@@ -387,7 +414,7 @@ export let getIcalData = (limit:Date,url:string) : Promise<IcalData> => {
         let data : string = response.data;
         let parsed = {
             calendar:{
-                name:'Error. Incorrect format.',
+                name:'Error. Incorrect calendar format.',
                 description:'',
                 timezone:''
             }, 
@@ -416,34 +443,38 @@ export let getIcalData = (limit:Date,url:string) : Promise<IcalData> => {
     }); 
 };
 
-      
 
 
 export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function) : Promise<Calendar[]> => {
     return Promise.all(
-        calendars.map((c:Calendar) =>  
-            getIcalData(limit, c.url)
-            .then(
-                (data:IcalData) => {
-                    let {calendar,events,error} = data as IcalData;
-
-                    if(isNotNil(error)){  
-                       onError(error);
-                       return c; 
-                    }   
- 
-                    return{
-                        url:c.url,  
-                        name:calendar.name,
-                        description:calendar.description,
-                        timezone:calendar.timezone,
-                        active:c.active,
-                        events,
-                        type:"calendar", 
-                        _id:c._id
-                    };
+        calendars.map(
+            (c:Calendar) => {  
+                if(isNil(c.url) || isEmpty(c.url)){ 
+                   return new Promise(resolve => resolve(c)); 
                 }
-            )    
+
+                return getIcalData(limit, c.url).then(
+                    (data:IcalData) => {
+                        let {calendar,events,error} = data as IcalData;
+                        
+                        if(isNotNil(error)){  
+                           onError(error);
+                           return c; 
+                        }   
+    
+                        return{
+                            url:c.url,  
+                            name:calendar.name,
+                            description:calendar.description,
+                            timezone:calendar.timezone,
+                            active:c.active,
+                            events,
+                            type:"calendar", 
+                            _id:c._id
+                        };
+                    }
+                )   
+            } 
         )
     );
 };

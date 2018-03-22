@@ -21,8 +21,6 @@ export function requestFromMain<T>(
     ).catch(
         (e) => {  
             if(isNotNil(e)){ 
-               console.log(e);
-               console.log(type,args,pick);
                return null;   
             }
         }

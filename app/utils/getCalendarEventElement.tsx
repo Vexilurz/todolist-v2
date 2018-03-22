@@ -28,9 +28,12 @@ export let getSameDayEventElement : (event:CalendarEvent, showDescription:boolea
                         }}>   
                             {event.name}   
                         </div>
-                        <div style={{fontSize:"14px",fontWeight:500}}>
-                            {`(ending ${timeOfTheDay(event.end)})`} 
-                        </div>
+                        {
+                            timeOfTheDay(event.end)==='23:59' ? null :
+                            <div style={{fontSize:"14px",fontWeight:500}}>
+                                {`(ending ${timeOfTheDay(event.end)})`} 
+                            </div>
+                        }
                     </div>
                 ],
                 [

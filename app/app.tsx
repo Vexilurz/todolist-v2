@@ -274,8 +274,8 @@ export class App extends Component<AppProps,AppState>{
                 this.reportStart({...info, timeSeconds} as any);
             }
         );
-
-
+    };
+    /*    
         if(isDev()){
             let dir = 'C:\\Users\\Anatoly\\Desktop\\ical';
             requestFromMain<any>(
@@ -293,7 +293,6 @@ export class App extends Component<AppProps,AppState>{
                             (event, data) => data
                         ).then(
                             (data) => {
-                                console.log(file,data);
                                 return [data,...list];
                             }
                         )
@@ -322,26 +321,30 @@ export class App extends Component<AppProps,AppState>{
                             return data;
                         }   
                     )
-                )
-            ).then(
-                calendars => calendars.map( 
-                    (calendar:any) => this.props.dispatch({
-                        type:'addCalendar', 
-                        load:{
-                            url:'', 
-                            active:true,
-                            _id:generateId(),
-                            name:calendar.name, 
-                            description:calendar.description,
-                            timezone:calendar.timezone,
-                            events:calendar.events,
-                            type:"calendar"
-                        }
-                    }) 
-                )
+                ) 
+            )
+            .then(
+                calendars => this.props.dispatch({ 
+                        type:"multiple",
+                        load:calendars.map( 
+                            (calendar:any) => ({
+                                type:'addCalendar', 
+                                load:{
+                                    url:'', 
+                                    active:true,
+                                    _id:generateId(),
+                                    name:calendar.name, 
+                                    description:calendar.description,
+                                    timezone:calendar.timezone,
+                                    events:calendar.events,
+                                    type:"calendar"
+                                }
+                            })
+                        )
+                }) 
             )
         }
-    };    
+    */    
 
  
 
@@ -489,6 +492,7 @@ export class App extends Component<AppProps,AppState>{
                 )
             );
         }
+
     };
  
 

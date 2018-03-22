@@ -146,7 +146,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
 
  
     onAddHeading = (e) => {
-        createHeading(e, this.props); 
+        let project = createHeading(e, this.props); 
+        this.props.dispatch({ type:"updateProject", load:project });
         this.closeMenu(); 
     }; 
 
@@ -238,6 +239,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             Add heading 
                         </div>     
                     </div>
+                    {
+                    /*
                     <div  
                         onClick={this.onMove} 
                         className={"tagItem"} 
@@ -248,6 +251,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             Move 
                         </div>     
                     </div>
+                    */
+                    }
                     <div style={{border:"1px solid rgba(200,200,200,0.1)",marginTop: "5px",marginBottom: "5px"}}></div>
                     {
                         <div  
@@ -330,7 +335,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             Delete project  
                         </div>     
                     </div>
-
+                    {
+                    /*    
                     <div  
                         onClick={this.onShare} 
                         className={"tagItem"} 
@@ -341,6 +347,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             Share
                         </div>     
                     </div>
+                    */
+                    }
             </div> 
         </Popover> 
     }

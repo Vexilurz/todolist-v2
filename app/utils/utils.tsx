@@ -184,6 +184,11 @@ export let addTime = (date:Date, time:number) : Date => {
 
 
 
+export let subtractTime = (date:Date, time:number) : Date => {
+    return new Date(date.getTime() - time);
+};
+
+
 
 export let typeEquals = (type:string) => compose(equals(type), prop(`type`))
  
@@ -1173,6 +1178,21 @@ export let addDays = (date:Date, days:number) => {
  
 
 
+export let subtractDays = (date:Date, days:number) => {
+ 
+    assert(isDate(date), `date is not a Date. ${date}. addDays.`);
+
+    assert(!isNaN(days), `days is not a number. ${days}. addDays.`);
+
+    let next = new Date();
+        
+    next.setDate(date.getDate() - days);
+
+    return next; 
+};
+
+
+
 export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
  
     if(hide){ return null } 
@@ -1463,7 +1483,7 @@ export let convertAreaDates = (a:Area) : Area => ({
 
  
 
-export let createHeading = (e, props:Store) : void => {
+export let createHeading = (e, props:Store) : Project => {
     let id : string = props.selectedProjectId;
 
     assert(
@@ -1506,8 +1526,7 @@ export let createHeading = (e, props:Store) : void => {
         key : generateId()
     }; 
 
-    let load = {...project, layout:[heading,...project.layout]};
-    props.dispatch({ type:"updateProject", load });
+    return {...project, layout:[heading,...project.layout]};
 };
 
 

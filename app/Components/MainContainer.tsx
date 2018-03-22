@@ -52,7 +52,7 @@ import { RightClickMenu } from './RightClickMenu';
 import { RepeatPopup } from './RepeatPopup';
 import { Search } from './Search';
 import { filter as lodashFilter } from 'lodash';
-import { CalendarProps, CalendarEvent, getIcalData, IcalData, AxiosError, updateCalendars } from './Calendar';
+import { CalendarProps, CalendarEvent, getIcalData, IcalData, AxiosError, updateCalendars, convertEventDate } from './Calendar';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 import { generateRandomDatabase, testData } from '../utils/generateRandomObjects';
 import { updateConfig } from '../utils/config';
@@ -202,10 +202,17 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         if(this.props.clone){ return } 
 
         actions.push({type:"setProjects", load:[...projects]});
+        
         actions.push({type:"setAreas", load:[...areas]});
+
         actions.push({type:"setTodos", load:[...todos]});
-        actions.push({type:"setCalendars", load:[...calendars]});
-        this.addIntroList(projects); 
+
+        actions.push({
+            type:"setCalendars", 
+            load:map(evolve({events:map(convertEventDate)}),calendars)
+        });
+
+        this.addIntroList(projects);  
 
         let extended = extend(this.props.limit, todos);
 
@@ -230,7 +237,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             checkForUpdates()  
             .then(
                 (updateCheckResult:UpdateCheckResult) => requestFromMain<any>(
-                    'getVersion',
+                   'getVersion',
                     [],
                     (event, currentAppVersion) => currentAppVersion
                 ).then(
@@ -283,12 +290,20 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         this.subscriptions.push(
             Observable
                 .interval(5 * minute)
-                .flatMap(() => updateCalendars(
-                    this.props.limit, 
-                    this.props.calendars, 
-                    this.onError 
-                ))
-                .subscribe((calendars:Calendar[]) => dispatch({type:"setCalendars",load:calendars})),
+                .flatMap(
+                    () => {
+                        return updateCalendars(
+                            this.props.limit, 
+                            this.props.calendars, 
+                            this.onError 
+                        )
+                    }
+                )
+                .subscribe(
+                    (calendars:Calendar[]) => {
+                        dispatch({type:"setCalendars",load:calendars}); 
+                    }
+                ),
 
 
             Observable
@@ -332,8 +347,8 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
 
             Observable
-            .interval(3*minute)
-            .subscribe((v) => dispatch({type:'update'})),  
+                .interval(3*minute)
+                .subscribe((v) => dispatch({type:'update'})),  
 
 
             Observable

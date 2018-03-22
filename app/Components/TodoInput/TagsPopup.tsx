@@ -32,7 +32,6 @@ interface TagsPopupProps{
  
 @connect( 
     (store:Store,props:TagsPopupProps) : TagsPopupProps => { 
-        console.log(props)
         return {
            ...props,
            defaultTags:[...store.defaultTags],
