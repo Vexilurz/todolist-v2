@@ -2,6 +2,7 @@ import './assets/styles.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { ipcRenderer } from 'electron';
+import { debounce } from 'lodash'; 
 import PouchDB from 'pouchdb-browser';   
 import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
 import { Category } from './Components/MainContainer';
@@ -11,7 +12,6 @@ import { isDev } from './utils/isDev';
 import { assert } from './utils/assert';
 import { isArea, isString, isProject, isTodo } from './utils/isSomething';
 import { RawDraftContentState } from './utils/draftUtils';
-import { debounce } from 'lodash';
 import { RepeatOptions } from './Components/RepeatPopup';
 
 let uniqid = require("uniqid"); 

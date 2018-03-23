@@ -1,7 +1,7 @@
 import 'react-tippy/dist/tippy.css'
-//import '../../assets/bootstrap_white.css';
 import '../../assets/styles.css';  
 import '../../assets/calendarStyle.css';  
+import { debounce } from 'lodash';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
 import IconButton from 'material-ui/IconButton';   
@@ -43,7 +43,6 @@ import { daysRemaining } from '../../utils/daysRemaining';
 import Alert from 'material-ui/svg-icons/alert/add-alert';
 import { stringToLength } from '../../utils/stringToLength';
 import { assert } from '../../utils/assert';
-import { debounce } from 'lodash';    
 import TextareaAutosize from 'react-autosize-textarea';
 import {Tooltip,withTooltip} from 'react-tippy';
 import {shell} from 'electron'; 

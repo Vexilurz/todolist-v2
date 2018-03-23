@@ -174,19 +174,22 @@ let shortcuts = {
         quickEntry.setSkipTaskbar(false); 
         quickEntry.webContents.send("focus"); 
     },
-    'Ctrl+D':() => mainWindow.webContents.openDevTools(),
+    'Ctrl+Alt+D+P':() => mainWindow.webContents.openDevTools(),
     'Ctrl+B':() => mainWindow.webContents.send("toggle")
 };
 
 
+ 
 let registerAllShortcuts = () : void => {
     forEachObjIndexed(
         (value:Function,key:string) => globalShortcut.register(key, value)  
     )(shortcuts)
 }; 
+ 
 
 
 let unregisterAllShortcuts = () => globalShortcut.unregisterAll();
+
 
 
 export let toggleShortcut : (enable:boolean, shortcut:string) => void =

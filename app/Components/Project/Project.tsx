@@ -3,9 +3,8 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
-import { 
- byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNotNil 
-} from '../../utils/utils'; 
+import { debounce } from 'lodash';
+import { byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNotNil } from '../../utils/utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
 import { adjust, allPass, uniq, isEmpty, not, isNil } from 'ramda';
@@ -13,7 +12,6 @@ import { filter } from '../MainContainer';
 import { bySomeday, isProject, isTodo, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { daysRemaining } from '../../utils/daysRemaining';
-import {debounce} from 'lodash'; 
 
 
 let haveScheduledTodos = (todos:Todo[]) : boolean => {

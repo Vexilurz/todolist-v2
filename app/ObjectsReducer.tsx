@@ -173,7 +173,6 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
             [ 
                 typeEquals('setCalendars'),  
                 (action:{type:string,load:Calendar[]}):Store => {
-                    console.log('setCalendars',action.load);
                     return {
                         ...state, 
                         calendars:action.load

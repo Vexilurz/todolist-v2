@@ -439,7 +439,6 @@ export let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarPro
 
     // -> jcal
     let getEvents = compose(  
-        log('events'),
         groupEvents, 
         (events:CalendarEvent[]) => filter(
             events, 

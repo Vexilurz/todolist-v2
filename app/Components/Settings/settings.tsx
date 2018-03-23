@@ -8,7 +8,6 @@ import Clear from 'material-ui/svg-icons/content/clear';
 import QuickEntry from 'material-ui/svg-icons/content/add-box';  
 import CalendarEvents from 'material-ui/svg-icons/action/date-range';  
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import { debounce } from 'lodash';
 import { Checkbox } from '../TodoInput/TodoInput';
 import { attachDispatchToProps, keyFromDate, checkForUpdates, getCompletedWhen, log } from '../../utils/utils';
 import { isNewVersion } from '../../utils/isNewVersion';

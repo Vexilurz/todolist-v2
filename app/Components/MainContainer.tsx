@@ -60,7 +60,9 @@ export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" |
 
 
 
-export let filter = (array:any[],f:Function,caller?:string) : any[] => lodashFilter(array,f); 
+export let filter = (array:any[],f:Function,caller?:string) : any[] => {
+    return lodashFilter(array,f); 
+}
  
 
 

@@ -13,7 +13,7 @@ import {
     attachDispatchToProps, getMonthName, dateToYearMonthDay, getRangeDays, getRangeRepetitions, 
     daysInMonth, getRangeMonthUntilDate, getRangeMonthRepetitions, getRangeYearUntilDate, 
     getRangeYearRepetitions, dateToDateInputValue, dateInputUpperLimit, isNotNil, 
-    limitDate, isNotNan, limitInput
+    limitDate, isNotNan, limitInput, isNotEmpty, sameDay
 } from '../utils/utils'; 
 import { Todo, removeTodo, addTodo,  Project, Area, LayoutItem, Group } from '../database';
 import { Store } from '../app'; 
@@ -124,7 +124,7 @@ export let repeat = (options:RepeatOptions, todo:Todo, start:Date, limit:Date) :
                     equals('on'), 
                     () : Date[] => {
                         let rule = new RRule({freq:getFreq(freq),interval,dtstart,until});
-                        let dates = rule.between(start,limit);  
+                        let dates = rule.between(start,limit,false);  
 
                         if(
                             path(['options','interval'],rule)===1 &&
@@ -139,7 +139,7 @@ export let repeat = (options:RepeatOptions, todo:Todo, start:Date, limit:Date) :
                 [ 
                     equals('after'), 
                     () : Date[] => {
-                        let rule = new RRule({freq:getFreq(freq),interval,dtstart,count:count,until:null});
+                        let rule = new RRule({freq:getFreq(freq),interval,dtstart,count:count+1,until:null});
                         let dates = rule.all();
 
                         if(
@@ -148,15 +148,19 @@ export let repeat = (options:RepeatOptions, todo:Todo, start:Date, limit:Date) :
                         ){
                             dates = normalize(dates);
                         }
+
+                        if(isNotEmpty(dates) && sameDay(dtstart,dates[0])){
+                            dates = drop(1)(dates);
+                        }
                         
                         return dates;
-                    } 
+                    }  
                 ],
                 [ 
                     equals('never'), 
                     () => {
                         let rule = new RRule({freq:getFreq(freq),interval,dtstart,until:null});
-                        let dates = rule.between(start,limit);
+                        let dates = rule.between(start,limit,false);
 
                         if(
                             path(['options','interval'],rule)===1 &&
@@ -178,16 +182,13 @@ export let repeat = (options:RepeatOptions, todo:Todo, start:Date, limit:Date) :
 
 
 
-
 //gtDate
 let isBeforeLimit = (limit:Date) => (todo:Todo) => isNil(todo.attachedDate) ? false : 
                                      todo.attachedDate.getTime() < limit.getTime();  
 
 
-    
 
 interface RepeatPopupProps extends Store{}
-
 
 
 
@@ -240,26 +241,24 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         let todo = {...repeatTodo};
         let actions = [];
 
-
-        let repeatedTodos : Todo[] = compose(
-            when(() => equals(selectedOption,'after'), drop(1)),
-            (options) => repeat(  
-                options,
-                todo, 
-                new Date(),
-                new Date(limit)
-            )
-        )(
+        let repeatedTodos : Todo[] = repeat(  
             {
                 interval, 
                 freq, 
                 until, 
                 count, 
                 selectedOption 
-            }
+            },
+            todo, 
+            new Date(),
+            new Date(limit)
         );
+        
 
-         
+        console.log('repeat todo',todo.attachedDate);
+        console.log('repeat todos',repeatedTodos.map( t => t.attachedDate ));
+        
+
         if(isEmpty(repeatedTodos)){ return }
 
         assert(isArrayOfTodos(repeatedTodos),'repeatedTodos is not of type array of todos.');
