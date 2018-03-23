@@ -7,7 +7,8 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
-    byDeleted, byAttachedToProject, isTodayOrPast, isDeadlineTodayOrPast, byNotAttachedToCompletedProject, byNotAttachedToProject, anyTrue
+    byDeleted, byAttachedToProject, isTodayOrPast, isDeadlineTodayOrPast, 
+    anyTrue
 } from "../../utils/utils";  
 import { ipcRenderer } from 'electron';
 import Adjustments from 'material-ui/svg-icons/image/tune';

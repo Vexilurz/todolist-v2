@@ -5,7 +5,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { 
-    remove, isNil, not, isEmpty, compose, toPairs, map, findIndex, equals, ifElse,
+    remove, isNil, not, isEmpty, compose, toPairs, map, findIndex, equals, ifElse, evolve,
     contains, last, cond, defaultTo, flatten, uniq, concat, all, identity, when, prop 
 } from 'ramda';
 import { Checkbox } from '../TodoInput/TodoInput';
@@ -27,6 +27,7 @@ import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { requestFromMain } from '../../utils/requestFromMain';
 import { getData } from '../../utils/getData';
+import { convertEventDate } from '../Calendar';
 let uniqid = require("uniqid");   
 const Promise = require('bluebird');   
 const path = require("path");
@@ -120,8 +121,11 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                         projects:defaultTo([], projects), 
                         areas:defaultTo([], areas), 
                         todos:defaultTo([], todos), 
-                        calendars:defaultTo([], calendars)
-                    }) 
+                        calendars:map(
+                            evolve({ events:map(convertEventDate) }),
+                            defaultTo([], calendars)
+                        )
+                    })  
                 );
     };   
 

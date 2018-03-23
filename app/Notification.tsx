@@ -28,6 +28,7 @@ import { isDev } from './utils/isDev';
 import { isArray } from './utils/isSomething';
 import { getConfig } from './utils/config';
 import { requestFromMain } from './utils/requestFromMain';
+const Promise = require('bluebird'); 
 injectTapEventPlugin();  
  
 

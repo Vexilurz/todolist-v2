@@ -1,16 +1,9 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom'; 
+import { Calendar } from './../database';
 import { 
-  getTodos, queryToTodos, Todo, updateTodo, Project, Area, 
-  removeTodos, removeProjects, removeAreas, updateProjects, 
-  updateTodos, updateAreas, Heading, LayoutItem, Calendar 
-} from './../database';
-import Moon from 'material-ui/svg-icons/image/brightness-3';
-import { 
-  contains, isNil, all, prepend, isEmpty, last, not, values, 
-  assoc, flatten, toPairs, map, compose, allPass, uniq, path,
-  reject, prop, pick, evolve, when, ifElse, groupBy, and, adjust,
-  cond, defaultTo, find, append, anyPass
+  contains, isNil, isEmpty, values, 
+  assoc, flatten, map, compose, uniq, path,
+  reject, prop, pick, evolve, when, ifElse, 
+  groupBy, and, adjust, cond, defaultTo, find
 } from 'ramda'; 
 import { Store } from './../app';
 import { ipcRenderer } from 'electron';
@@ -19,23 +12,25 @@ import axios from 'axios';
 import { 
     isNotNil, fiveMinutesLater, addTime, inPast, distanceInOneDay, 
     fromMidnightToMidnight, timeDifferenceHours, differentDays,
-    sameDay, timeIsMidnight, oneMinutesBefore, oneDayBehind, log, 
-    inPastRelativeTo, 
-    subtractTime,
-    subtractDays
+    sameDay, timeIsMidnight, oneMinutesBefore, oneDayBehind, 
+    log, inPastRelativeTo, subtractTime, subtractDays
 } from '../utils/utils'; 
 let ical = require('ical.js'); 
 let RRule = require('rrule');
 import * as icalR from '../ical/index.js'; 
-import { isDate, isEvent } from '../utils/isSomething';
+import { isEvent } from '../utils/isSomething';
 import { assert } from '../utils/assert';
+import { normalize } from '../utils/normalize';
 import { filter } from './MainContainer';
+ 
 
 
 type vcalPropsInitial = [string,Object,string,string];
 
 
+
 type rcal = {dates:Date[],ends:Date,name:string,rrule:any}[];
+
 
 
 interface vcalProps{
@@ -44,6 +39,7 @@ interface vcalProps{
     type:string,
     value:string
 }
+
 
 
 export interface CalendarEvent{ 
@@ -57,11 +53,13 @@ export interface CalendarEvent{
 }
 
 
+
 export interface CalendarProps{ 
     name:string,
     description:string,
     timezone:string
 } 
+
 
 
 export interface AxiosError{
@@ -70,11 +68,13 @@ export interface AxiosError{
 }
 
 
+
 export type IcalData = {
     calendar : CalendarProps, 
     events : CalendarEvent[],
     error? : AxiosError
 } 
+
 
 
 interface rrule{
@@ -133,7 +133,7 @@ let parseEvent = (vevent:any) : CalendarEvent => {
 
 
 let sameDayEvent = (event:CalendarEvent) : boolean => {
-    //assert(isEvent(event), `event is not of type CalendarEvent. sameDayEvents. ${event}`);
+    assert(isEvent(event), `event is not of type CalendarEvent. sameDayEvents. ${event}`);
 
     let start = event.start ? new Date(event.start) : event.start;
     let end = event.end ? new Date(event.end) : event.end;
@@ -147,7 +147,8 @@ let sameDayEvent = (event:CalendarEvent) : boolean => {
 
 
 let fullDayEvent = (event:CalendarEvent) : boolean => {
-    //assert(isEvent(event), `event is not of type CalendarEvent. fullDayEvents. ${event}`);
+    assert(isEvent(event), `event is not of type CalendarEvent. fullDayEvents. ${event}`);
+
     let start = event.start ? new Date(event.start) : new Date();
     let end = event.end ? new Date(event.end) : new Date();
 
@@ -161,7 +162,7 @@ let fullDayEvent = (event:CalendarEvent) : boolean => {
 
 
 let multipleDaysEvent = (event:CalendarEvent) : boolean => {
-    //assert(isEvent(event), `event is not of type CalendarEvent. multipleDaysEvents. ${event}`);
+    assert(isEvent(event), `event is not of type CalendarEvent. multipleDaysEvents. ${event}`);
     let start = event.start ? new Date(event.start) : new Date();
     let end = event.end ? new Date(event.end) : new Date();
     let f = fullDayEvent(event);
@@ -185,7 +186,7 @@ let splitLongEvents = (events:CalendarEvent[]) : CalendarEvent[] => {
 
                 (range) => adjust(assoc('sequenceEnd', true), range.length-1, range), 
 
-                adjust(assoc('sequenceStart', true), 0 ),
+                adjust(assoc('sequenceStart', true), 0),
  
                 map((date:Date) => ({...event,start:date})),
 
@@ -197,7 +198,16 @@ let splitLongEvents = (events:CalendarEvent[]) : CalendarEvent[] => {
                         until:event.end
                     });
 
-                    return rule.all(); 
+                    let dates = rule.all(); 
+
+                    if(
+                        path(['options','interval'],rule)===1 &&
+                        path(['options','freq'],rule)===3
+                    ){
+                        dates = normalize(dates);
+                    }
+                    
+                    return dates;
                 }, 
             )()
         ) 
@@ -228,9 +238,14 @@ export let convertEventDate = (event:CalendarEvent) : CalendarEvent => {
             start:new Date(event.start)
         }; 
     }else{
-        return event;
+        return {  
+            ...event,
+            end:new Date(event.end),
+            start:new Date(event.start)
+        }; 
     }
 };
+
 
 
 let groupEvents = (events:CalendarEvent[]) : CalendarEvent[] => 
@@ -278,49 +293,6 @@ let groupEvents = (events:CalendarEvent[]) : CalendarEvent[] =>
     )(events);
 
 
-let normalize = (dates:Date[]) : Date[]  => {
-    let result = [];
-    let interval = null;
-
-    if(isEmpty(dates)){ return result }
-
-    for(let i=0; i<dates.length; i++){
-        let current = dates[i];
-        let next = dates[i+1];
-
-        if(isNil(next)){  
-           result.push(new Date(current)); 
-           continue; 
-        }
-
-        if(isNil(interval)){ 
-           result.push(new Date(current)); 
-           interval = next.getTime() - current.getTime(); 
-           continue;
-        }
-
-        let nextInterval = next.getTime() - current.getTime(); 
-        console.log(nextInterval); 
-         
-        if(nextInterval===0){
-            console.log(`skip ${current}`);
-            continue;
-        }else if(nextInterval > interval){
-            console.log(`add ${new Date( current.getTime() + nextInterval/2 )}`);
-            
-            result.push( new Date(current) );
-            result.push( new Date( current.getTime() + nextInterval/2 ) );
-        }else{
-            result.push( new Date(current) );
-        }
-
-        interval = nextInterval;
-      
-    }
-
-    return result;
-}   
- 
 
 let parseRecEvents = (
     limit:Date,
@@ -332,32 +304,49 @@ let parseRecEvents = (
     rrule:any
 }[] => compose( 
     map(
-        //(event) => ({...event, dates:[]})
         ifElse(
             (event:{name:string, rrule:any, ends:any}) => isNil(event.ends),
             (event:{name:string, rrule:any, ends:any}) => {
                 let rule = event.rrule; 
                 let count : number = path(['options','count'],rule);
 
-                if(isNil(count)){ //never ends -> slice 
-                   let dates = rule.between(oneDayBehind(),new Date(limit));
 
-                   //try{
-                       dates = normalize(dates)
-                       //console.log('normalized',dates);
-                   //}catch(e){
-                   //     console.log(e);
-                   //}
+                if(isNil(count)){ //never ends -> slice 
+                    let dates = rule.between(oneDayBehind(),new Date(limit));
+
+                    if(
+                        path(['options','interval'],rule)===1 &&
+                        path(['options','freq'],rule)===3
+                    ){
+                        dates = normalize(dates);
+                    }
 
                    return {...event, dates}; 
                 }else{ 
-                   let dates = rule.all(); 
+                    let dates = rule.all(); 
+
+                    if(
+                        path(['options','interval'],rule)===1 &&
+                        path(['options','freq'],rule)===3
+                    ){
+                        dates = normalize(dates);
+                    }
+                
                    return {...event, dates};
                 }
             },
             (event:{name:string, rrule:any, ends:any}) => {
                 let rule = event.rrule;
                 let dates = rule.all();
+
+                if(
+                    path(['options','interval'],rule)===1 &&
+                    path(['options','freq'],rule)===3
+                ){
+                    dates = normalize(dates);
+                }
+                 
+
                 return {...event, dates};
             }, 
         )
@@ -450,6 +439,7 @@ export let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarPro
 
     // -> jcal
     let getEvents = compose(  
+        log('events'),
         groupEvents, 
         (events:CalendarEvent[]) => filter(
             events, 
@@ -465,7 +455,7 @@ export let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarPro
     return ifElse(
         isNil,
         jcal => empty, 
-        jcal => ({calendar:getCalendar(jcal), events:getEvents(jcal)})
+        jcal => ({calendar:getCalendar(jcal),events:getEvents(jcal)})
     )(jcal);
 };   
   
@@ -473,7 +463,7 @@ export let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarPro
 
 export let getIcalData = (limit:Date,url:string) : Promise<IcalData> => {
     return axios
-    .get(url,{timeout:5000})  
+    .get(url,{timeout:5000})   
     .then((response) => {
         let data : string = response.data;
         let parsed = {
@@ -542,36 +532,36 @@ export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function
         )
     );
 };
-    /*let reduced = calendars.reduce(
-        (promise:any, c:Calendar) => promise.then(
-            (result:Calendar[]) => getIcalData(limit, c.url)
-                                    .then(
-                                        (data:IcalData) => {
-                                            let {calendar,events,error} = data as IcalData;
-                        
-                                            if(isNotNil(error)){  
-                                                onError(error);
-                                                return c; 
-                                            }   
-                        
-                                            return {
-                                                url:c.url,  
-                                                name:calendar.name,
-                                                description:calendar.description,
-                                                timezone:calendar.timezone,
-                                                active:c.active,
-                                                events,
-                                                type:c._id, 
-                                                _id:c._id
-                                            };
-                                        }
-                                    ).then( 
-                                        (item) => append(item,result)
-                                    ) 
-        ), 
-        new Promise(resolve => resolve())
-    ); 
-     
-    console.log('reduced',reduced);
+    
+/*let reduced = calendars.reduce(
+    (promise:any, c:Calendar) => promise.then(
+        (result:Calendar[]) => getIcalData(limit, c.url)
+                                .then(
+                                    (data:IcalData) => {
+                                        let {calendar,events,error} = data as IcalData;
+                    
+                                        if(isNotNil(error)){  
+                                            onError(error);
+                                            return c; 
+                                        }   
+                    
+                                        return {
+                                            url:c.url,  
+                                            name:calendar.name,
+                                            description:calendar.description,
+                                            timezone:calendar.timezone,
+                                            active:c.active,
+                                            events,
+                                            type:c._id, 
+                                            _id:c._id
+                                        };
+                                    }
+                                ).then( 
+                                    (item) => append(item,result)
+                                ) 
+    ), 
+    new Promise(resolve => resolve())
+); 
 
-    return reduced;*/
+return reduced;
+*/

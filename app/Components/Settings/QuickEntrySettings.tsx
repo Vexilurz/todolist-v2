@@ -10,7 +10,7 @@ import { requestFromMain } from '../../utils/requestFromMain';
 import { updateConfig } from '../../utils/config';
 import { not } from 'ramda';
 import { Checkbox } from '../TodoInput/TodoInput';
-
+const Promise = require('bluebird'); 
 
 interface QuickEntrySettingsProps{
     enableShortcutForQuickEntry:boolean, 

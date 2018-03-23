@@ -166,6 +166,17 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
     if(showCalendarEvents && isNotNil(props.calendars)){
         compose(
             (events) => items.push(...events), 
+            (events) => {
+                
+                if(isDev()){
+                    assert(
+                       all(event => isDate(event.start) && isDate(event.end),events),
+                       'Error: Events - incorrect type.'
+                    ) 
+                }
+
+                return events;
+            },
             flatten,
             map(prop('events')),
             (calendars) => filter(calendars, (calendar:Calendar) => calendar.active)

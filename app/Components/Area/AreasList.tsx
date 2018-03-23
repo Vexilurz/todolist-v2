@@ -15,7 +15,7 @@ import {
     isEmpty, contains, assoc, isNil, not, merge, map, concat, ifElse, 
     addIndex, compose, cond, defaultTo, last, insertAll, prepend, find  
 } from 'ramda'; 
-import { Category } from '../MainContainer';
+import { Category, filter } from '../MainContainer';
 import { AutoresizableText } from '../AutoresizableText';
 import { assert } from '../../utils/assert';
 import { isArea, isProject, isNotArray } from '../../utils/isSomething';
@@ -247,7 +247,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     onSortStart = (oldIndex:number, event:any) : void => {};
 
 
-
+    /*
     byNotAttachedToCollapsedArea = (project:Project) : boolean => compose(
         ifElse(
             isNil,
@@ -260,18 +260,28 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         find((area:Area) => contains(project._id)(area.attachedProjectsIds)),
         prop('areas')
     )(this.props);
+    */
+
+
+
+    projectsAttachedToCollapsedAreaIDs = () : string[] => {
+        let collapsedAreas = filter(this.props.areas, (area:Area) => area.hideContentFromAreasList);
+        let ids = flatten( collapsedAreas.map( (area:Area) => area.attachedProjectsIds ) );
+        return ids;
+    };
 
 
 
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
         let {dispatch} = this.props;
+        let ids = this.projectsAttachedToCollapsedAreaIDs();
 
         let {table,detached} = groupProjectsByArea(
             this.props.projects.filter(
                 allPass([
                     byNotDeleted, 
                     byNotCompleted,
-                    this.byNotAttachedToCollapsedArea
+                    (project:Project) => !contains(project._id)(ids)
                 ])
             ),
             this.props.areas.filter(byNotDeleted)
@@ -400,15 +410,15 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     render(){ 
         let scrollableContainer = document.getElementById("leftpanel");
         let {projects,areas} = this.props;
-
+        let ids = this.projectsAttachedToCollapsedAreaIDs();
         let {table,detached} = groupProjectsByArea(
             projects.filter(
                 allPass([
                     byNotDeleted,
                     byNotCompleted,
-                    this.byNotAttachedToCollapsedArea
+                    (project:Project) => !contains(project._id)(ids)
                 ])
-            ),
+            ), 
             areas.filter(byNotDeleted)
         );
 

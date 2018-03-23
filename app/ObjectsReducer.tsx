@@ -28,7 +28,6 @@ import {
     isArrayOfProjects, isArrayOfAreas, isDate, isNumber 
 } from './utils/isSomething';
 import { setCallTimeout } from './utils/setCallTimeout';
-import { convertEventDate } from './Components/Calendar';
 import { requestFromMain } from './utils/requestFromMain';
 import diff from 'deep-diff';
 
@@ -174,6 +173,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
             [ 
                 typeEquals('setCalendars'),  
                 (action:{type:string,load:Calendar[]}):Store => {
+                    console.log('setCalendars',action.load);
                     return {
                         ...state, 
                         calendars:action.load

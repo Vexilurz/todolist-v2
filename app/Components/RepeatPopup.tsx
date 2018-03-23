@@ -34,6 +34,7 @@ import { isDate, isTodo, isArrayOfTodos, isNotDate } from '../utils/isSomething'
 import { assert } from '../utils/assert';
 import { isDev } from '../utils/isDev';
 import { insideTargetArea } from '../utils/insideTargetArea';
+import { normalize } from '../utils/normalize';
 let RRule = require('rrule');
 
 
@@ -119,18 +120,54 @@ export let repeat = (options:RepeatOptions, todo:Todo, start:Date, limit:Date) :
         selectedDatesToTodos(todo),
         cond(
             [
-                [ equals('on'), () : Date[] => {
-                    let rule = new RRule({freq:getFreq(freq),interval,dtstart,until});
-                    return rule.between(start,limit);  
-                } ],
-                [ equals('after'), () : Date[] => {
-                    let rule = new RRule({freq:getFreq(freq),interval,dtstart,count:count,until:null});
-                    return rule.all();
-                } ],
-                [ equals('never'), () => {
-                    let rule = new RRule({freq:getFreq(freq),interval,dtstart,until:null});
-                    return rule.between(start,limit);
-                } ],
+                [ 
+                    equals('on'), 
+                    () : Date[] => {
+                        let rule = new RRule({freq:getFreq(freq),interval,dtstart,until});
+                        let dates = rule.between(start,limit);  
+
+                        if(
+                            path(['options','interval'],rule)===1 &&
+                            path(['options','freq'],rule)===3
+                        ){
+                            dates = normalize(dates);
+                        }
+                        
+                        return dates;
+                    } 
+                ], 
+                [ 
+                    equals('after'), 
+                    () : Date[] => {
+                        let rule = new RRule({freq:getFreq(freq),interval,dtstart,count:count,until:null});
+                        let dates = rule.all();
+
+                        if(
+                            path(['options','interval'],rule)===1 &&
+                            path(['options','freq'],rule)===3
+                        ){
+                            dates = normalize(dates);
+                        }
+                        
+                        return dates;
+                    } 
+                ],
+                [ 
+                    equals('never'), 
+                    () => {
+                        let rule = new RRule({freq:getFreq(freq),interval,dtstart,until:null});
+                        let dates = rule.between(start,limit);
+
+                        if(
+                            path(['options','interval'],rule)===1 &&
+                            path(['options','freq'],rule)===3
+                        ){
+                            dates = normalize(dates);
+                        }
+                        
+                        return dates; 
+                    } 
+                ],
                 [ () => true, () => [] ],
             ]
         ) 

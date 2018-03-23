@@ -1,4 +1,5 @@
 import './assets/styles.css';  
+import './assets/fonts/index.css'; 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
@@ -10,60 +11,40 @@ import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import { Component } from "react";  
 import { ipcRenderer } from 'electron';
 import {    
-    attachDispatchToProps, transformLoadDates, yearFromNow, convertTodoDates, 
-    convertProjectDates, convertAreaDates, timeDifferenceHours, 
-    convertDates, checkForUpdates, nextMidnight,
-    oneMinuteBefore, threeDaysLater, keyFromDate, isNotNil, 
-    nDaysFromNow, monthFromDate, measureTime, log, initDate, byDeleted, byNotAttachedToCompletedProject, 
-    byNotDeleted, byCompleted, byNotCompleted, byCategory, introListIds, isDeadlineTodayOrPast, 
-    isTodayOrPast, byNotAttachedToProject, byScheduled, typeEquals, differentBy, inFuture  
+    attachDispatchToProps, convertTodoDates, 
+    convertProjectDates, convertAreaDates, 
+    nextMidnight, oneMinuteBefore, isNotNil, 
+    nDaysFromNow, initDate, byDeleted, 
+    byNotDeleted, byCompleted, byNotCompleted, 
+    byCategory, introListIds, isDeadlineTodayOrPast, 
+    isTodayOrPast, byScheduled, typeEquals,
+    measureTime, log 
 } from "./utils/utils";  
-import {wrapMuiThemeLight} from './utils/wrapMuiThemeLight'; 
-import {isNewVersion} from './utils/isNewVersion';
-import {
-    isTodo, isProject, isArea, isArrayOfAreas, 
-    isArrayOfProjects, isArrayOfTodos, isArray, 
-    isString, isFunction, isDate, isNumber
-} from './utils/isSomething';
+import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight'; 
+import { isString, isDate, isNumber } from './utils/isSomething';
 import { createStore } from "redux"; 
 import { Provider, connect } from "react-redux";
-import './assets/fonts/index.css'; 
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer, Category, filter } from './Components/MainContainer';
-import { 
-    Project, Area, Todo, removeProject, addProject, removeArea, updateProject, 
-    addTodo, updateArea, updateTodo, addArea, removeTodo, removeAreas, removeTodos, 
-    removeProjects, updateAreas, updateProjects, addTodos, Calendar, Heading, 
-    getDatabaseObjects
-} from './database';
+import { Project, Area, Todo, addTodos, Calendar } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
 import { 
-    cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains, append, omit, path,
-    prop, equals, identity, all, when, evolve, ifElse, applyTo, reduce, add, groupBy, allPass,
-    flatten, reject, uniq                   
+    isNil, not, map, isEmpty, compose, contains,
+    prop, when, evolve, ifElse, applyTo, allPass,
+    flatten, reject                 
 } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
-import { SimplePopup } from './Components/SimplePopup';
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
-import { TopSnackbar } from './Components/Snackbar';
-import { Observable } from 'rxjs/Rx';
-import * as Rx from 'rxjs/Rx';
-import { Subscriber } from "rxjs/Subscriber"; 
-import { Subscription } from 'rxjs/Rx';
 import { UpdateNotification } from './Components/UpdateNotification';
-import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
 import { googleAnalytics } from './analytics';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { getConfig } from './utils/config';
 import { collectSystemInfo } from './utils/collectSystemInfo';
-import Clear from 'material-ui/svg-icons/content/clear';
-import { getMachineIdSync } from './utils/userid';
 import { assert } from './utils/assert';
-import { value,text } from './utils/text';
 import { setCallTimeout } from './utils/setCallTimeout';
 import { isDev } from './utils/isDev';
-import { convertEventDate, parseCalendar } from './Components/Calendar';
+import { convertEventDate } from './Components/Calendar';
 import { defaultTags } from './utils/defaultTags';
 import { section } from './Components/Settings/section';
 import { SettingsPopup } from './Components/settings/SettingsPopup';
@@ -71,11 +52,36 @@ import { LicensePopup } from './Components/settings/LicensePopup';
 import { generateIndicators } from './utils/generateIndicators';
 import { generateAmounts } from './utils/generateAmounts';
 import { requestFromMain } from './utils/requestFromMain';
-import { generateId } from './utils/generateId';
-const MockDate = require('mockdate');  
 let pathTo = require('path'); 
-let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 injectTapEventPlugin();  
+
+
+
+/*
+const MockDate = require('mockdate');  
+let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
+*/
+
+
+
+window.onerror = function (msg, url, lineNo, columnNo, error) {
+    let string = msg.toLowerCase();
+    let message = [ 
+        'Message:' + msg, 
+        'URL:' + url,
+        'Line:' + lineNo,
+        'Column:' + columnNo,
+        'Error object:' + JSON.stringify(error)
+    ].join(' - ');  
+
+    globalErrorHandler(message);
+    
+    if(isDev()){ 
+       return false; 
+    }
+
+    return true;
+}; 
 
 
 
@@ -110,27 +116,6 @@ const defaultConfig : Config = {
     quickEntrySavesTo:"inbox", //inbox today next someday
     moveCompletedItemsToLogbook:"immediately"
 };
-
-
-
-window.onerror = function (msg, url, lineNo, columnNo, error) {
-    let string = msg.toLowerCase();
-    let message = [ 
-        'Message:' + msg, 
-        'URL:' + url,
-        'Line:' + lineNo,
-        'Column:' + columnNo,
-        'Error object:' + JSON.stringify(error)
-    ].join(' - ');  
-
-    globalErrorHandler(message);
-    
-    if(isDev()){ 
-       return false; 
-    }
-
-    return true;
-}; 
 
 
  
@@ -275,6 +260,9 @@ export class App extends Component<AppProps,AppState>{
             }
         );
     };
+
+
+
     /*    
         if(isDev()){
             let dir = 'C:\\Users\\Anatoly\\Desktop\\ical';
@@ -371,7 +359,10 @@ export class App extends Component<AppProps,AppState>{
 
     getFilters = (props:Store) => ({
         inbox:[ 
-            byNotAttachedToProject(props.projects), 
+            (() => {
+                let ids = flatten( props.projects.map(p => p.layout.filter(isString)) );
+                return (t:Todo) => !contains(t._id)(ids); 
+            })(),
             (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline), 
             byCategory("inbox"), 
             byNotCompleted,  
@@ -434,7 +425,7 @@ export class App extends Component<AppProps,AppState>{
 
         let filters : {
             inbox:((todo:Todo) => boolean)[],
-            today:((todo:Todo) => boolean)[],
+            today:((todo:Todo) => boolean)[], 
             hot:((todo:Todo) => boolean)[],
             next:((todo:Todo) => boolean)[],
             someday:((todo:Todo) => boolean)[],
@@ -460,6 +451,7 @@ export class App extends Component<AppProps,AppState>{
             logbook:number,
             trash:number
         } = generateAmounts(todos,filters);
+
 
         return {amounts,indicators,todos};
     };
@@ -492,7 +484,6 @@ export class App extends Component<AppProps,AppState>{
                 )
             );
         }
-
     };
  
 
@@ -516,7 +507,7 @@ export class App extends Component<AppProps,AppState>{
                         selectedProjectId={this.props.selectedProjectId}
                         selectedAreaId={this.props.selectedAreaId}
                     /> 
-                }
+                } 
                 <MainContainer 
                     dispatch={this.props.dispatch} 
                     selectedCategory={this.props.selectedCategory}

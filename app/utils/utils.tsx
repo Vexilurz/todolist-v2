@@ -1091,7 +1091,7 @@ export let byAttachedToCompletedProject = (projects:Project[]) => (t:Todo) : boo
 
 
 
-export let byNotAttachedToProject = (projects:Project[]) => (t:Todo) : boolean => {
+let byNotAttachedToProject = (projects:Project[]) => (t:Todo) : boolean => {
     return compose(
         not,
         byAttachedToProject(projects)
@@ -1100,7 +1100,7 @@ export let byNotAttachedToProject = (projects:Project[]) => (t:Todo) : boolean =
 
 
  
-export let byNotAttachedToCompletedProject = (projects:Project[]) => (t:Todo) : boolean => {
+let byNotAttachedToCompletedProject = (projects:Project[]) => (t:Todo) : boolean => {
     let notAttached = compose(
        not,
        byAttachedToCompletedProject(projects)
@@ -1112,7 +1112,6 @@ export let byNotAttachedToCompletedProject = (projects:Project[]) => (t:Todo) : 
   
 
 export let generateTagElement = (tag:string,idx:number) => {
-
     return <div key={String(idx)}>  
         <div style={{ 
                 transition:"opacity 0.4s ease-in-out", 
@@ -1139,6 +1138,7 @@ export let generateTagElement = (tag:string,idx:number) => {
 };
 
 
+
 export let getMonthName = (d:Date) : string => {
 
     assert(isDate(d),`d is not a Date ${d}. getMonthName.`);
@@ -1150,6 +1150,7 @@ export let getMonthName = (d:Date) : string => {
  
     return monthNames[d.getMonth()];
 };
+
 
  
 export let getDayName = (d:Date) : string => { 
@@ -1228,6 +1229,7 @@ export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
     return <p style={style}>{ Math.abs(daysLeft) }{ attachedText }</p>  
 }; 
 
+
  
 export let isToday = (date : Date) => {
     if(isNil(date)){ return false }; 
@@ -1245,6 +1247,7 @@ export let isToday = (date : Date) => {
   
     return false;
 };    
+
 
 
 //Returns true if the first argument is greater than the second (first in future)
@@ -1354,7 +1357,6 @@ export let generateEmptyProject = () : Project => ({
     attachedTags : []
 });
   
-
 
 
 export let generateEmptyArea = () : Area => ({
@@ -1629,6 +1631,7 @@ export let getIntroList = () : Project => {
         attachedTags : [] 
     };
 };        
+
 
 
 export const introListIds : string[] = [

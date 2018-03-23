@@ -5,45 +5,22 @@ import * as ReactDOM from 'react-dom';
 import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton';  
 import { Component } from "react"; 
-import { 
-    attachDispatchToProps, byTags, byCategory, oneDayBehind, 
-    convertTodoDates, convertProjectDates, convertAreaDates, 
-    oneDayMore, measureTime, byAttachedToProject, byNotCompleted, 
-    byNotDeleted, isTodayOrPast, byDeleted, byCompleted, isToday, 
-    byNotSomeday, byScheduled, yearFromNow, timeDifferenceHours, 
-    getIntroList, printElement, inFuture, introListIds, introListLayout, 
-    threeDaysAhead, byHaveAttachedDate, byAttachedToCompletedProject, 
-    byNotAttachedToProject, byNotAttachedToCompletedProject, isNotEmpty, 
-    isNotNil, gtDate, checkForUpdates, threeDaysLater, convertDates, keyFromDate, log, different, nDaysFromNow 
-} from "../utils/utils";  
 import {isDev} from "../utils/isDev"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Hide from 'material-ui/svg-icons/navigation/arrow-drop-down';
 import { Provider, connect } from "react-redux";
-import { 
-    getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects, 
-    getAreas, queryToProjects, queryToAreas, Project, Area, initDB, 
-    removeArea, removeProject, destroyEverything, addArea, addProject, 
-    addTodos, addProjects, addAreas, Heading, LayoutItem, getCalendars, 
-    Calendar, getDatabaseObjects
-} from '.././database';
-import { Store } from '.././app';    
-import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
+import { Todo, Project, Area, Calendar } from '.././database';
 import Print from 'material-ui/svg-icons/action/print'; 
 import { AreaComponent } from './Area/Area';
 import { ProjectComponent } from './Project/Project';
-import { Trash, TrashPopup } from './Categories/Trash';
+import { Trash } from './Categories/Trash';
 import { Logbook } from './Categories/Logbook';
 import { Someday } from './Categories/Someday';
 import { Next } from './Categories/Next';  
 import { Upcoming, extend } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
-import { FadeBackgroundIcon } from './FadeBackgroundIcon';
-import { 
-    isEmpty, last, isNil, contains, all, not, assoc, flatten, reduce, prop, evolve,uniq,
-    toPairs, map, compose, allPass, cond, defaultTo, reject, when, ifElse, identity, and 
-} from 'ramda';
+import { isNil, contains, not, assoc, evolve, map, compose, allPass, cond, defaultTo, when} from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber"; 
@@ -52,13 +29,11 @@ import { RightClickMenu } from './RightClickMenu';
 import { RepeatPopup } from './RepeatPopup';
 import { Search } from './Search';
 import { filter as lodashFilter } from 'lodash';
-import { CalendarProps, CalendarEvent, getIcalData, IcalData, AxiosError, updateCalendars, convertEventDate } from './Calendar';
+import { updateCalendars, convertEventDate } from './Calendar';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
-import { generateRandomDatabase, testData } from '../utils/generateRandomObjects';
+import { testData } from '../utils/generateRandomObjects';
 import { updateConfig } from '../utils/config';
 import { isNotArray, isDate, isTodo, isString } from '../utils/isSomething';
-import { debounce } from 'lodash';
-import { noteFromText } from '../utils/draftUtils';
 import { assert } from '../utils/assert';
 import { isNewVersion } from '../utils/isNewVersion';
 import { UpdateCheckResult } from 'electron-updater';
@@ -66,6 +41,12 @@ import { setCallTimeout } from '../utils/setCallTimeout';
 import { requestFromMain } from '../utils/requestFromMain';
 import { getData } from '../utils/getData';
 import { WhenCalendar } from './WhenCalendar';
+import { 
+    getIntroList, introListLayout, isNotEmpty, 
+    checkForUpdates, keyFromDate, isNotNil, 
+    convertDates, printElement, introListIds, 
+    byNotDeleted, threeDaysLater 
+} from '../utils/utils';
 const Promise = require('bluebird');   
 const moment = require("moment");   
 const path = require('path');
@@ -170,7 +151,10 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 projects:defaultTo([], projects), 
                 areas:defaultTo([], areas), 
                 todos:defaultTo([], todos), 
-                calendars:defaultTo([], calendars)
+                calendars:map(
+                    evolve({events:map(convertEventDate)}),
+                    defaultTo([], calendars)
+                )
             }) 
         )
     );
@@ -181,7 +165,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         let {dispatch} = this.props;
 
         if(this.props.firstLaunch){  
-            let alreadyExists = projects.find( (p:Project) => p._id==="Intro List" );
+            let alreadyExists = projects.find((p:Project) => p._id==="Intro List");
             if(not(alreadyExists)){  
                 dispatch({
                     type:"multiple",
@@ -207,10 +191,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
         actions.push({type:"setTodos", load:[...todos]});
 
-        actions.push({
-            type:"setCalendars", 
-            load:map(evolve({events:map(convertEventDate)}),calendars)
-        });
+        actions.push({type:"setCalendars", load:calendars});
 
         this.addIntroList(projects);  
 
