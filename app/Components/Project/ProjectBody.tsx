@@ -126,6 +126,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     };
 
 
+
     shouldCancelStart = (e) => {
         let nodes = [].slice.call(e.path);
         for(let i=0; i<nodes.length; i++){
@@ -135,6 +136,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         }
         return false; 
     };
+
 
 
     changeOrder = (oldIndex:number,newIndex:number) => { 
@@ -162,6 +164,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let changed = arrayMove(layout, fromIndex, toIndex); 
         this.props.updateLayoutOrder(changed);    
     };  
+
 
     
     changeHeadingsOrder = (oldIndex:number,newIndex:number) => {
@@ -214,6 +217,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     };
 
        
+
     onSortStart = (oldIndex:number, event:any) : void => {
         let {dispatch, items} = this.props;
         let item = items[oldIndex];
@@ -223,8 +227,10 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         dispatch({type:"dragged",load:item.type});
     }; 
     
+
     
     onSortMove = (oldIndex:number, event) : void => {}; 
+
 
 
     onDropMany = (event:any,heading:Heading,todos:Todo[]) => {
@@ -284,6 +290,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     };
     
  
+
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
         let {moveCompletedItemsToLogbook,dispatch,areas,projects,selectedProjectId} = this.props;
         let leftpanel = document.getElementById("leftpanel");
@@ -344,6 +351,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
     };
      
 
+
     selectElements = (index:number,items:any[]) => {
         let selected = [index];
         let item = items[index];
@@ -364,6 +372,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         return selected; 
     };   
 
+    
     
     render(){  
         let {selectedCategory} = this.props;

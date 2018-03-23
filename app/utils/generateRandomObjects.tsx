@@ -46,7 +46,9 @@ export let testData = (todosN:number,projectsN:number,areasN:number) => {
     let todos = fakeData.todos; 
     let projects = fakeData.projects; 
     let areas = fakeData.areas;  
-         
+    
+    console.log('fake data', fakeData); 
+
     return {
         todos,
         projects:assertLayoutUniqueness(projects),
@@ -304,7 +306,7 @@ export let generateRandomDatabase = (
         
 } => { 
       
-    let tags = fakeTags(30);
+    let tags = fakeTags(50);
     let tagsChunks = splitEvery(10, tags); 
     let todosItems : Todo[] = [];
  

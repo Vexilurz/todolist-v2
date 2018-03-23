@@ -202,7 +202,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
           isNotEmpty, 
           () => updateConfig({hideHint:true}).then( config => actions.push({type:"updateConfig",load:config}) ) 
         )(calendars); 
-
+ 
         this.props.dispatch({type:"multiple",load:actions}); 
     };
     
@@ -250,7 +250,9 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         let {todos, projects, areas} = testData(t,p,a);
         let to:string = path.resolve(`${keyFromDate(new Date())}-${uniqid()}.json`);
 
-        requestFromMain<any>(
+        console.log('ready to save in',to);
+ 
+        return requestFromMain<any>(
             'saveDatabase',
             [ { database : { todos, projects, areas, calendars:[] } }, to ],
             (event) => event
@@ -755,9 +757,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             ], 
                             [  
                                 (selectedCategory:Category) : boolean => 'search'===selectedCategory,  
-                                () => <Search 
-                                    {...{indicators:this.props.indicators} as any}
-                                />
+                                () => <Search {...{indicators:this.props.indicators} as any}/>
                             ] 
                         ])(this.props.selectedCategory) 
                     }  

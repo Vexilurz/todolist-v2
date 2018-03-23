@@ -4,24 +4,30 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react"; 
 import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
 import { debounce } from 'lodash';
-import { byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNotNil } from '../../utils/utils'; 
+import { byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNotNil, isNotEmpty } from '../../utils/utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
-import { adjust, allPass, uniq, isEmpty, not, isNil } from 'ramda';
+import { adjust, allPass, uniq, isEmpty, not, isNil, compose, defaultTo } from 'ramda';
 import { filter } from '../MainContainer';
-import { bySomeday, isProject, isTodo, isString } from '../../utils/isSomething';
+import { bySomeday, isProject, isTodo, isString, isDate } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { daysRemaining } from '../../utils/daysRemaining';
+import { isDev } from '../../utils/isDev';
 
 
-let haveScheduledTodos = (todos:Todo[]) : boolean => {
-    let filtered : Todo[] = filter(
-        todos, 
-        (todo:Todo) => byScheduled(todo) || bySomeday(todo), 
-        "haveScheduledTodos"
-    );
-    return not(isEmpty(filtered));  
-} 
+let log = (append:string) => (load:any) : any => {
+    console.log(append,load); 
+    return load;
+};
+
+
+let byNotHaveScheduledTodos : (todos:Todo[]) => boolean = 
+compose(
+    isEmpty,
+    (todos:Todo[]) => filter(todos, (todo:Todo) => byScheduled(todo) || bySomeday(todo)),
+    defaultTo([])
+); 
+
 
 
 interface ProjectComponentProps{ 
@@ -50,14 +56,17 @@ interface ProjectComponentProps{
 }
   
 
+
 interface ProjectComponentState{}   
  
+
  
 export class ProjectComponent extends Component<ProjectComponentProps,ProjectComponentState>{
 
     constructor(props){
         super(props); 
     }   
+
 
 
     updateProject = (updatedProps) : void => { 
@@ -67,10 +76,13 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     }; 
  
 
+
     updateProjectName = debounce((value:string) : void => this.updateProject({name:value}),150);
+
 
      
     updateProjectDescription = debounce((value:string) : void => this.updateProject({description:value}),150);
+
 
     
     updateHeading = debounce(
@@ -124,7 +136,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     moveHeading = (heading_id:string) => {}
     
-
+ 
       
     render(){   
         let {selectedTag, project, showCompleted, showScheduled, todos, selectedCategory} = this.props;
@@ -145,6 +157,26 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                     .filter(isNotNil);  
                  
 
+
+        if(isDev()){
+            let todos = filter(layout, item => item.type==="todo");
+            let completed = filter(todos, (item:Todo) => isDate(item.completedSet));
+            let active = filter(todos, (item:Todo) => isNil(item.completedSet));
+            
+            assert(
+                (
+                 completed.length===this.props.indicator.completed &&
+                 active.length===this.props.indicator.active
+                ), 
+                `Tasks count does not match indicator.
+                ${completed.length} : ${this.props.indicator.completed};
+                ${active.length} : ${this.props.indicator.active};
+                `
+            );
+        }      
+        
+        
+        
         //this items will go to project header, dont filter them by tag, 
         //because available tags will be derived from them        
         let toProjectHeader = filter(
@@ -158,6 +190,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             (i:Todo) => isTodo(i) ? allPass([byTags(selectedTag),...projectFilters])(i as (Project & Todo)) : true
         ); 
 
+        
   
         return <div id={`${selectedCategory}-list`}>      
                     <div className="unselectable">     
@@ -199,7 +232,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         dispatch={this.props.dispatch} 
                     />    
                     {  
-                        not(haveScheduledTodos(toProjectBody as Todo[])) ? null:
+                        byNotHaveScheduledTodos(toProjectBody as Todo[]) ? null:
                         <div 
                             className="noselection"
                             style={{   

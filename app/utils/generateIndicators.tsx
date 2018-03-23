@@ -8,6 +8,7 @@ import {
     isString, isFunction, isDate
 } from '../utils/isSomething';
 import { Project, Todo } from '../database';
+import { isNotNil } from './utils';
 
 export let generateIndicators : 
 (projects:Project[], todos:Todo[]) => { [key:string]:{active:number,completed:number,deleted:number}; } = 
@@ -18,16 +19,20 @@ export let generateIndicators :
             (acc,val) => cond(
                 [
                     [ 
-                        t => isDate(t.deleted), 
+                        t => isNotNil(t.deleted), 
                         t => evolve({deleted:add(1)}, acc) 
                     ],
                     [ 
-                        t => isDate(t.completedSet), 
+                        t => isNotNil(t.completedSet), 
                         t => evolve({completed:add(1)}, acc) 
                     ],
-                    [ 
-                        t => true, 
+                    [  
+                        t => isNil(t.completedSet) && isNil(t.deleted), 
                         t => evolve({active:add(1)}, acc) 
+                    ], 
+                    [
+                        t => true,
+                        t => acc
                     ]
                 ]
             )(val),  

@@ -393,7 +393,7 @@ export class App extends Component<AppProps,AppState>{
         logbook:[
             byCompleted, 
             byNotDeleted
-        ],
+        ], 
         trash:[byDeleted]
     });
 
@@ -431,7 +431,10 @@ export class App extends Component<AppProps,AppState>{
                 completed:number,
                 deleted:number
             }; 
-        } = generateIndicators(props.projects,props.todos);
+        } = generateIndicators(
+            props.projects,
+            props.todos
+        );
 
         let amounts : { 
             inbox:number,

@@ -127,6 +127,7 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
                     width:"18px",
                     height:"18px",
                     position:"relative",
+                    transform: "rotate(270deg)",
                     borderRadius:"100px",
                     display:"flex",
                     justifyContent:"center",
@@ -137,7 +138,6 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
                     <div style={{
                         width:"18px",
                         height:"18px",
-                        transform: "rotate(270deg)",
                         display:"flex",
                         alignItems:"center", 
                         justifyContent:"center",
@@ -364,6 +364,7 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
                 height:"18px",
                 position:"relative",
                 borderRadius:"100px",
+                transform: "rotate(270deg)",
                 display:"flex",
                 justifyContent:"center",
                 alignItems:"center",
@@ -373,7 +374,6 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
                 <div style={{
                     width:"18px",
                     height:"18px",
-                    transform: "rotate(270deg)",
                     display:"flex",
                     alignItems:"center", 
                     justifyContent:"center",
@@ -477,6 +477,7 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
                     width:"18px",
                     height:"18px",
                     position:"relative",
+                    transform: "rotate(270deg)",
                     borderRadius:"100px",
                     display:"flex",
                     justifyContent:"center",
@@ -487,7 +488,6 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
                     <div style={{
                         width:"18px",
                         height:"18px",
-                        transform: "rotate(270deg)",
                         display:"flex",
                         alignItems:"center", 
                         justifyContent:"center",
