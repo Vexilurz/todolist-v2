@@ -488,7 +488,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                         alignItems:"center", 
                         position:"fixed", 
                         top:0, 
-                        right:0 
+                        right:"15px"
                       }}
                     >  
                         { 

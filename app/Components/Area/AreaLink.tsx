@@ -96,16 +96,20 @@ export class AreaTrashLink extends Component<AreaTrashLinkProps,AreaTrashLinkSta
                     <Restore style={{width:"20px", height:"20px"}}/> 
                 </div>  
                 <div style={{display:"flex",alignItems:"center"}}>
-                    <NewAreaIcon style={{color:"lightblue", width:"22px", height:"22px"}}/> 
+                    <NewAreaIcon
+                        style={{
+                           color:"rgb(159, 159, 159)", //"lightblue", 
+                           width:"22px", 
+                           height:"22px"
+                        }}
+                    /> 
                 </div>
-                <div style={{
+                <div style={{ 
                     overflowX:"hidden",
-                    fontSize:"15px",     
+                    fontSize:"16px",
                     cursor:"default",
-                    paddingLeft:"5px", 
-                    WebkitUserSelect:"none",
-                    fontWeight:"bolder", 
-                    color:"rgba(0, 0, 0, 0.8)" 
+                    paddingLeft:"3px",
+                    userSelect:"none"
                 }}>    
                     { isEmpty(area.name) ? "New Area" : area.name }   
                 </div>  

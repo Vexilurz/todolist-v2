@@ -189,7 +189,10 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
             </div> 
             <div style={{position:"relative", width:"100%"}}>
                 {
-                    [...todos,...projects]
+                    [
+                        ...todos,
+                        ...projects
+                    ]
                     .sort(sortByCompleted)
                     .map(  
                         (value:Todo|Project,index:number) => 

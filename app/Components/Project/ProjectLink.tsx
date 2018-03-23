@@ -399,13 +399,7 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
                     />     
                 </div>
             </div>  
-            <div    
-                id={project._id}   
-                style={{   
-                    paddingLeft:"5px",
-                    overflowX:"hidden"
-                }}  
-            >    
+            <div id={project._id} style={{paddingLeft:"5px",overflowX:"hidden"}}>    
                 { isEmpty(project.name) ? "New Project" : project.name } 
             </div> 
             </div>
@@ -447,18 +441,18 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
         let currentValue = done;
 
         return <li style={{width:"100%", overflow:"hidden"}}>      
-        <div   
-            id = {project._id}        
-            style={{    
-                height:"30px",   
-                paddingLeft:"6px", 
-                paddingRight:"6px",  
-                cursor:"default",
-                width:"100%",
-                display:"flex",  
-                alignItems:"center" 
-            }}
-        >     
+            <div   
+                id = {project._id}        
+                style={{    
+                    height:"30px",   
+                    paddingLeft:"6px", 
+                    paddingRight:"6px",  
+                    cursor:"default",
+                    width:"100%",
+                    display:"flex",  
+                    alignItems:"center" 
+                }}
+            >      
                 <div       
                     onClick={(e) => this.restoreProject(project)}  
                     style={{ 
@@ -472,17 +466,17 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
                 >  
                     <Restore style={{width:"20px", height:"20px"}}/> 
                 </div>  
-
-                <div style={{    
-                    width:"18px",
+                <div style={{     
+                    width:"18px", 
                     height:"18px",
                     position:"relative",
-                    transform: "rotate(270deg)",
                     borderRadius:"100px",
+                    transform: "rotate(270deg)",
                     display:"flex",
                     justifyContent:"center",
                     alignItems:"center",
-                    border:"1px solid rgb(108, 135, 222)",
+                    marginLeft:"2px", 
+                    border:"1px solid rgb(159, 159, 159)",
                     boxSizing:"border-box" 
                 }}> 
                     <div style={{
@@ -498,11 +492,11 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
                             totalValue={totalValue}
                             data={[{
                                 value:currentValue, 
-                                key:1,   
-                                color:"rgb(108, 135, 222)" 
+                                key:1,  
+                                color:"rgb(159, 159, 159)" 
                             }]}    
                             style={{  
-                                color:"rgb(108, 135, 222)",
+                                color:"rgb(159, 159, 159)",
                                 width:"12px",
                                 height:"12px",
                                 position:"absolute",
@@ -512,20 +506,8 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
                             }}
                         />     
                     </div>
-                </div> 
-
-                <div   
-                    id = {project._id}   
-                    style={{   
-                        width:"80%", 
-                        overflowX:"hidden", 
-                        fontSize:"15px",    
-                        paddingLeft:"5px", 
-                        WebkitUserSelect:"none",
-                        fontWeight:"bolder", 
-                        color:"rgba(0, 0, 0, 0.8)" 
-                    }}  
-                >    
+                </div>  
+                <div id={project._id} style={{paddingLeft:"5px",overflowX:"hidden"}}>    
                     { isEmpty(project.name) ? "New Project" : project.name } 
                 </div> 
             </div>    

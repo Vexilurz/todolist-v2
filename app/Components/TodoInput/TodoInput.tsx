@@ -136,7 +136,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
         if(different(this.state,nextState)){ 
-           console.log(`state changed ${todo.title}`); 
+           //console.log(`state changed ${todo.title}`); 
            return true; 
         }
 
@@ -152,7 +152,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             //projects!==this.props.projects 
             
         if(should){
-           console.log(`props changed ${todo.title}`); 
+           //console.log(`props changed ${todo.title}`); 
         }    
         
         return should;
@@ -733,6 +733,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            flagColor = daysLeft <= 1 ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
         }     
 
+        let shouldHighlightOnHover = not(open) && selectedCategory!=="logbook" && selectedCategory!=="trash";
+
         return <div        
             id={id}    
             onKeyDown={this.onWindowEnterPress}  
@@ -761,7 +763,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             }}     
         >         
             <div 
-                className={open ? "" : "tasklist"}
+                className={shouldHighlightOnHover ? "tasklist" : ""}
                 style={{    
                     paddingLeft:"20px", 
                     paddingRight:"20px",   
@@ -1419,13 +1421,23 @@ export class DueDate extends Component<DueDateProps,{}>{
         if(isNil(completed) && showSomeday){
             return <div style={{height:"18px",marginTop:"-2px"}}>
                 <BusinessCase style={{...style,color:"burlywood"}}/>
-            </div>; 
+            </div>
         }else if(
-            isNotNil(date) && 
+            isNotNil(date) && isNil(completed) &&
+            (
+                selectedCategory==="next" ||
+                selectedCategory==="someday" ||
+                selectedCategory==="trash" ||
+                selectedCategory==="project" ||
+                selectedCategory==="area" ||
+                selectedCategory==="search" 
+            )                 
+            /*
             selectedCategory!=="logbook" && 
             selectedCategory!=="search" &&
             selectedCategory!=="upcoming" &&
             selectedCategory!=="today"
+            */
         ){
 
             let month = getMonthName(date); 
@@ -1443,7 +1455,7 @@ export class DueDate extends Component<DueDateProps,{}>{
                         <div>{day}</div>
                     </div> 
                 </div>
-            </div>;  
+            </div> 
  
         }else if(isNotNil(completed) && ( selectedCategory==="logbook" || selectedCategory==="search" )){ 
             let month = getMonthName(completed);
@@ -1451,7 +1463,7 @@ export class DueDate extends Component<DueDateProps,{}>{
 
             return <div style={{paddingRight:"5px",minWidth:"70px"}}> 
                 <div style={{
-                    backgroundColor:"rgba(0, 0, 0,0)",
+                    backgroundColor:"rgba(0,0,0,0)",
                     cursor:"default", 
                     WebkitUserSelect:"none", 
                     display:"flex",
@@ -1473,9 +1485,9 @@ export class DueDate extends Component<DueDateProps,{}>{
                         }   
                     </div>  
                 </div> 
-            </div>; 
+            </div>
         }else{
-            return null;
+            return null
         }
     }
 };
