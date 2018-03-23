@@ -143,12 +143,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
     initData : (clone:boolean) => Promise<void> = when(
         not, 
-        () => getData(
-            this.props.limit,
-            this.onError,
-            1000000 
-        )
-        .then(
+        () => getData(this.props.limit,this.onError,100000).then(
             ({projects, areas, todos, calendars}) => this.setData({
                 projects:defaultTo([], projects), 
                 areas:defaultTo([], areas), 

@@ -93,13 +93,13 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
         let {stringLength} = this.state;
         let defaultStyle = {fontSize:`${fontSize}px`, whiteSpace:"nowrap", width:"inherit"};  
         let textStyle = merge(isEmpty(text) ? placeholderStyle : style, defaultStyle);  
-         
-
+        
         return <div ref={(e) => {this.ref = e;}} style={textStyle}>  
-            {  stringToLength(isEmpty(text) ? placeholder : text, stringLength) }
+            { stringToLength(isEmpty(text) ? placeholder : text, stringLength) }
         </div>  
     } 
-}
+};
+
 
 
 export let stringToContainer = (containerWidth:number, s:string, fontSize:number) : number => {
@@ -118,6 +118,7 @@ export let stringToContainer = (containerWidth:number, s:string, fontSize:number
 };  
 
 
+
 export let getStringWidth = (s:string, fontSize:number) : number => {
     let container = document.createElement("div");
     container.style.position="absolute";
@@ -133,5 +134,5 @@ export let getStringWidth = (s:string, fontSize:number) : number => {
     let width = box.width;
     container.remove();
     return width;       
-}
+};
 

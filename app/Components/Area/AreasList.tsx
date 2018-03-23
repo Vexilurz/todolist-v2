@@ -28,23 +28,8 @@ import { requestFromMain } from '../../utils/requestFromMain';
 import { uppercase } from '../../utils/uppercase';
 const mapIndexed = addIndex(map);
 const isSeparator = (item) => item.type==="separator"; 
-      
 
 
-export let removeFromArea = (dispatch:Function, fromArea:Area, selectedProject:Project) : void => {
-    let idx = fromArea.attachedProjectsIds.findIndex((id:string) => id===selectedProject._id);  
-
-    if(isDev()){
-       assert(idx!==-1,`selectedProject is not attached to fromArea. ${selectedProject} ${fromArea}`);
-       assert(selectedProject.type==="project",`selectedProject is not of type project.  ${selectedProject}. removeFromArea.`);
-       assert(fromArea.type==="area",`fromArea is not of type Area. ${fromArea}. removeFromArea.`);
-    }
-     
-    fromArea.attachedProjectsIds = remove(idx, 1, fromArea.attachedProjectsIds); 
-    dispatch({type:"updateArea", load:fromArea});  
-};
-
- 
 
 interface AreasListProps{   
     dispatch:Function,
@@ -245,22 +230,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 
     onSortStart = (oldIndex:number, event:any) : void => {};
-
-
-    /*
-    byNotAttachedToCollapsedArea = (project:Project) : boolean => compose(
-        ifElse(
-            isNil,
-            () => true,
-            compose(
-                not, 
-                prop('hideContentFromAreasList')
-            )
-        ),
-        find((area:Area) => contains(project._id)(area.attachedProjectsIds)),
-        prop('areas')
-    )(this.props);
-    */
 
 
 

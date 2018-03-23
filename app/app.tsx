@@ -2,18 +2,14 @@ import './assets/styles.css';
 import './assets/fonts/index.css'; 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import * as injectTapEventPlugin from 'react-tap-event-plugin';
-import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import IconButton from 'material-ui/IconButton'; 
-import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme';
-import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
 import { Component } from "react";  
 import { ipcRenderer } from 'electron';
 import {    
     attachDispatchToProps, convertTodoDates, 
     convertProjectDates, convertAreaDates, 
-    nextMidnight, oneMinuteBefore, isNotNil, 
+    oneMinuteBefore, isNotNil, 
     nDaysFromNow, initDate, byDeleted, 
     byNotDeleted, byCompleted, byNotCompleted, 
     byCategory, introListIds, isDeadlineTodayOrPast, 
@@ -28,11 +24,7 @@ import { MainContainer, Category, filter } from './Components/MainContainer';
 import { Project, Area, Todo, addTodos, Calendar } from './database';
 import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
-import { 
-    isNil, not, map, isEmpty, compose, contains,
-    prop, when, evolve, ifElse, applyTo, allPass,
-    flatten, reject                 
-} from 'ramda';
+import { isNil, not, map, compose, contains, prop, when, evolve, ifElse, applyTo, flatten, reject } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { UpdateNotification } from './Components/UpdateNotification';
@@ -41,7 +33,6 @@ import { globalErrorHandler } from './utils/globalErrorHandler';
 import { getConfig } from './utils/config';
 import { collectSystemInfo } from './utils/collectSystemInfo';
 import { assert } from './utils/assert';
-import { setCallTimeout } from './utils/setCallTimeout';
 import { isDev } from './utils/isDev';
 import { convertEventDate } from './Components/Calendar';
 import { defaultTags } from './utils/defaultTags';
@@ -51,6 +42,7 @@ import { LicensePopup } from './Components/settings/LicensePopup';
 import { generateIndicators } from './utils/generateIndicators';
 import { generateAmounts } from './utils/generateAmounts';
 import { requestFromMain } from './utils/requestFromMain';
+import { refreshReminders } from './utils/reminderUtils';
 let pathTo = require('path'); 
 injectTapEventPlugin();  
 
@@ -597,11 +589,8 @@ export class App extends Component<AppProps,AppState>{
 };    
 
 
-   
-//render application
-ipcRenderer.once(
-    'loaded',      
-    (event, clonedStore:Store, id:number) => { 
+
+let renderApp = (event, clonedStore:Store, id:number) : void => { 
         let app=document.createElement('div'); 
         app.id='application';     
         document.body.appendChild(app);   
@@ -646,69 +635,17 @@ ipcRenderer.once(
                     document.getElementById('application')
                 ) 
             }
-        );  
-    }
-);    
+        ); 
+};
 
 
-
-let scheduleReminder = (todo) : number => {
-    assert(isDate(todo.reminder),`reminder is not of type Date. scheduleReminder. ${todo.reminder}.`);
    
-    return setCallTimeout(
-        () => requestFromMain<any>('remind', [todo], (event) => event),
-        todo.reminder
-    ); 
-};
+//render application
+ipcRenderer.once('loaded',renderApp);    
 
 
 
-let clearScheduledReminders = (store:Store) : Store => {
-    let scheduledReminders = store.scheduledReminders;
-    scheduledReminders.forEach(t => {
-        assert(isNumber(t),`Error:clearScheduledReminders.`);
-        clearTimeout(t);
-    }); 
-    return {...store,scheduledReminders:[]};
-};
-
-
-
-let refreshReminders = (prevState:Store, newState:Store) : Store => {
-    if(
-        isNil(prevState) || 
-        isNil(newState) || 
-        prop('clone',newState) ||
-        prevState.todos===newState.todos
-    ){ return newState }
-
- 
-    return compose(
-        (scheduledReminders:number[]) : Store => ({...newState,scheduledReminders}),
-
-        (scheduledReminders:number[]) => filter(scheduledReminders, isNotNil),     
-
-        map((todo) : number => scheduleReminder(todo)), //create timeout for each reminder
-
-        (todos:Todo[]) => filter(
-            todos, 
-            allPass([byNotCompleted,byNotDeleted,compose(isDate,prop('reminder'))])
-        ), //only todos with reminder left
-        
-        prop('todos'), //get todos from current state   
-
-        clearScheduledReminders //suspend existing timeouts
-    )(newState);
-};
-
-
-
-interface action{
-    type:string,
-    load:any
-};
-
-
+interface action{ type:string, load:any };
 
 let reducer = (reducers) => ( state:Store, action:any) : Store => {
     let f = (state:Store,action:action) => {

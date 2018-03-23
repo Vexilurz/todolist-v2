@@ -21,9 +21,15 @@ interface AreaTrashLinkProps{
     todos:Todo[],
     area:Area
 } 
+
+
 interface AreaTrashLinkState{}
+
+
 export class AreaTrashLink extends Component<AreaTrashLinkProps,AreaTrashLinkState>{
     
+
+
     restoreArea = () : void => {  
         let {area, projects, todos, dispatch} = this.props;
 
@@ -58,6 +64,7 @@ export class AreaTrashLink extends Component<AreaTrashLinkProps,AreaTrashLinkSta
             ]
         }); 
     };
+
 
 
     render(){
@@ -105,6 +112,6 @@ export class AreaTrashLink extends Component<AreaTrashLinkProps,AreaTrashLinkSta
             </div>
         </li>
     }
-}
+};
  
   

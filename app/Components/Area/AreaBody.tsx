@@ -54,23 +54,25 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
             rootRef, projects, todos, scrolledTodo 
         } = this.props;
 
+        
         let projectsFilters=[
             byNotCompleted, 
             byNotDeleted,
-            (p) => contains(p._id)(area.attachedProjectsIds),
-            (p) => isNil(p.hide) ? true : 
-                   isEmpty(p.hide) ? true : 
-                   not(contains(selectedCategory)(p.hide))
+            (p) => contains(p._id)(area.attachedProjectsIds)
         ];
+
 
         let selectedProjects = filter(projects, allPass(projectsFilters));
 
+
         let ids = flatten( selectedProjects.map((p) => p.layout.filter(isString)) ); 
+
 
         let selectedTodos = filter(
             todos, 
             allPass([byNotDeleted, byNotCompleted, (todo:Todo) => contains(todo._id)(ids)])
         );
+
 
         return <div ref={(e) => {this.ref=e;}}> 
             <GroupsByProjectArea
