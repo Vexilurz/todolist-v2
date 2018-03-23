@@ -10,7 +10,7 @@ import { isDev } from './utils/isDev';
 import { ipcRenderer } from 'electron';
 import { 
     removeDeletedProjects, removeDeletedAreas, removeDeletedTodos, byNotDeleted, 
-    isNotNil, typeEquals, inFuture, byNotCompleted, measureTime, convertTodoDates, differentBy 
+    isNotNil, typeEquals, inFuture, byNotCompleted, convertTodoDates, differentBy 
 } from './utils/utils';
 import { 
     adjust, cond, all, isEmpty, contains, not, remove, uniq, assoc, 

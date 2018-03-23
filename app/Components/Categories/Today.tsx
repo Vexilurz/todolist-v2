@@ -6,7 +6,7 @@ import { Component } from "react";
 import { 
     attachDispatchToProps, byNotCompleted, byNotDeleted, getTagsFromItems, 
     generateDropStyle,  keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, 
-    sameDay, byTags, byCategory, isNotNil, measureTime, timeIsMidnight
+    sameDay, byTags, byCategory, isNotNil, timeIsMidnight
 } from "../../utils/utils";  
 import { Todo, Project, Area, Calendar } from '../../database'; 
 import { Tags } from '../../Components/Tags';
@@ -141,8 +141,6 @@ interface TodayProps{
 
  
 interface TodayState{}
- 
- 
 type Evening = "evening";
 type Separator = "separator";
 
@@ -163,7 +161,9 @@ export class Today extends Component<TodayProps,TodayState>{
     }  
 
 
+
     onError = (error) => globalErrorHandler(error);
+
 
 
     changeOrder = (oldIndex,newIndex,selected) => {
@@ -187,6 +187,7 @@ export class Today extends Component<TodayProps,TodayState>{
  
         this.props.dispatch({type:"updateTodos", load}); 
     };
+
 
 
     getItems = () : { items:(Todo|TodaySeparator)[], tags:string[] } => {
@@ -214,6 +215,7 @@ export class Today extends Component<TodayProps,TodayState>{
         return {items,tags}
     };
   
+
 
     getElement = (value:Todo | TodaySeparator, index:number) => {
         if(value.type==="separator"){ 
@@ -249,17 +251,21 @@ export class Today extends Component<TodayProps,TodayState>{
     }; 
        
 
+
     onSortStart = (oldIndex:number,event:any) => {
+        console.log('start');
         Perf.start();
         this.props.dispatch({type:"dragged",load:"todo"});  
     };
     
 
+
     onSortMove = (oldIndex:number,event:any) => { };
+
 
  
     onSortEnd = (oldIndex:number,newIndex:number,event:any) => { 
-        let {todos, dispatch, areas, projects, moveCompletedItemsToLogbook} = this.props;
+        let {todos, areas, projects, moveCompletedItemsToLogbook} = this.props;
         let leftpanel = document.getElementById("leftpanel");
         let {items, tags} = this.getItems();
         let x = event.clientX; 
@@ -267,7 +273,6 @@ export class Today extends Component<TodayProps,TodayState>{
         let draggedTodo = items[oldIndex] as Todo;
         let actions = [{type:"dragged",load:null}];
         assert(isTodo(draggedTodo), `draggedTodo is not of type Todo. onSortEnd. ${draggedTodo}`);
-
 
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 
@@ -292,12 +297,10 @@ export class Today extends Component<TodayProps,TodayState>{
             this.changeOrder(oldIndex,newIndex,items);  
         }    
         
-
         
-        dispatch({type:"multiple",load:actions}); 
+        this.props.dispatch({type:"multiple",load:actions}); 
 
-
-
+        console.log('stop');
         Perf.stop();
         Perf.getLastMeasurements();
         Perf.getWasted();
@@ -306,7 +309,9 @@ export class Today extends Component<TodayProps,TodayState>{
     };   
     
 
+
     selectElements = (index:number,items:any[]) => [index];
+
 
 
     shouldCancelStart = (e:any,item:any) => {
@@ -320,6 +325,7 @@ export class Today extends Component<TodayProps,TodayState>{
            
         return false;
     };
+
 
 
     render(){ 

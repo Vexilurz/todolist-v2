@@ -17,8 +17,7 @@ import {
     nDaysFromNow, initDate, byDeleted, 
     byNotDeleted, byCompleted, byNotCompleted, 
     byCategory, introListIds, isDeadlineTodayOrPast, 
-    isTodayOrPast, byScheduled, typeEquals,
-    measureTime, log 
+    isTodayOrPast, byScheduled, typeEquals, log 
 } from "./utils/utils";  
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight'; 
 import { isString, isDate, isNumber } from './utils/isSomething';

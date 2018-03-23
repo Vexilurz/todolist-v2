@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, byTags, byNotCompleted, byNotDeleted, byCategory, 
-    getTagsFromItems, attachEmptyTodo, isToday
+    getTagsFromItems, attachEmptyTodo, isToday, log
 } from "./../utils/utils";  
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import { 
@@ -30,7 +30,7 @@ import { TodosList } from './TodosList';
 import { ContainerHeader } from './ContainerHeader';
 import { Tags } from './Tags';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
-import { uniq, allPass, isEmpty, isNil, not, any, contains, all, compose, groupBy, cond, defaultTo } from 'ramda';
+import { uniq, allPass, isEmpty, isNil, not, any, contains, all, compose, groupBy, cond, defaultTo, reject } from 'ramda';
 import { TodoInput } from './TodoInput/TodoInput';
 import { ProjectLink } from './Project/ProjectLink';
 import { Category, filter } from './MainContainer';
@@ -101,9 +101,16 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
             projects, projectsFilters, areasFilters, hideDetached, areas, todos, selectedTag, selectedCategory
         } = this.props;
  
-        let selectedProjects = projects.filter(byHidden(selectedCategory)).filter(allPass(projectsFilters));
+
+        let selectedProjects = compose(
+            (projects) => filter(projects,allPass(projectsFilters)),
+            reject(byHidden(selectedCategory))
+        )(projects);
+        
+
         let selectedAreas = areas.filter(allPass(areasFilters));
              
+
         let conditions : [(todo:Todo) => boolean, (todo:Todo) => string][] = [
             ...selectedProjects.map(
                 (project:Project) : [(todo:Todo) => boolean,(todo:Todo) => string] => [
@@ -122,11 +129,14 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
             () => groupProjectsByArea(selectedProjects,selectedAreas)
         )();
 
+
         //Filtered todos grouped by areas and projects
         let result : {[key: string]: Todo[];} = groupBy(cond(conditions),todos.filter(byTags(selectedTag)));
 
+
         //Filtered todos which doesnt belong to any area or project
         let detached = defaultTo([])(result.detached); 
+
 
         return <div> 
             {
