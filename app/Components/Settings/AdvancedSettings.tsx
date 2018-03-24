@@ -10,24 +10,21 @@ import {
 } from 'ramda';
 import { Checkbox } from '../TodoInput/TodoInput';
 import { 
-    keyFromDate, checkForUpdates, getCompletedWhen, 
-    log, removeRev, closeClonedWindows, correctFormat, selectFolder,
-    selectJsonDatabase, isNotNil 
+    checkForUpdates, getCompletedWhen, log, removeRev, 
+    closeClonedWindows, correctFormat, selectFolder, selectJsonDatabase 
 } from '../../utils/utils';
 import { isNewVersion } from '../../utils/isNewVersion';
-import { 
-    Area, Project, Todo, destroyEverything, initDB, addTodos, 
-    addProjects, addAreas, addCalendars, getDatabaseObjects, Calendar  
-} from '../../database';
-import { filter } from '../MainContainer';
-import { UpdateInfo, UpdateCheckResult } from 'electron-updater';
+import { destroyEverything, initDB, addTodos, addProjects, addAreas, addCalendars, getDatabaseObjects } from '../../database';
+import { Area, Project, Todo, Calendar } from '../../types'; 
+import { UpdateInfo, UpdateCheckResult } from 'electron-updater'; 
 import { updateConfig } from '../../utils/config';
-import { isArrayOfTodos } from '../../utils/isSomething';
+import { isArrayOfTodos, isNotNil } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { requestFromMain } from '../../utils/requestFromMain';
 import { getData } from '../../utils/getData';
 import { convertEventDate } from '../Calendar';
+import { keyFromDate } from '../../utils/time';
 let uniqid = require("uniqid");   
 const Promise = require('bluebird');   
 const path = require("path");

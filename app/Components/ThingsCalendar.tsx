@@ -16,7 +16,7 @@ import DayPicker from 'react-day-picker';
 import Popover from 'material-ui/Popover';
 import BusinessCase from 'material-ui/svg-icons/content/archive';  
 import RaisedButton from 'material-ui/RaisedButton';
-import { Category } from './MainContainer';  
+import { Category } from './../types';  
 import Clear from 'material-ui/svg-icons/content/clear'; 
 import { isNil, not } from 'ramda';
 import * as Rx from 'rxjs/Rx';
@@ -29,7 +29,6 @@ import { isFunction, isDate } from '../utils/isSomething';
 import { timeOfTheDay } from '../utils/time';
 const moment = require("moment"); 
 import TimeInput from 'react-keyboard-time-input';
-import { Store } from '../app';
 
 
 interface DateCalendarProps{ 

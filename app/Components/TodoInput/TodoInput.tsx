@@ -18,10 +18,12 @@ import Popover from 'material-ui/Popover';
 import ChecklistIcon from 'material-ui/svg-icons/action/assignment-turned-in'; 
 import NotesIcon from 'material-ui/svg-icons/action/subject'; 
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
-import { daysLeftMark, isToday, getMonthName, getCompletedWhen, getTime, setTime, isNotNil, different, isNotEmpty, log, anyTrue, attachDispatchToProps } from '../../utils/utils'; 
-import { Todo, Project, Group } from '../../database';
-import { Checklist, ChecklistItem } from './TodoChecklist';
-import { Category } from '../MainContainer'; 
+import { 
+    daysLeftMark, getMonthName, getCompletedWhen, different, 
+    isNotEmpty, log, anyTrue, attachDispatchToProps 
+} from '../../utils/utils'; 
+import { Todo, Project, Group, ChecklistItem, Category, RawDraftContentState } from '../../types';
+import { Checklist } from './TodoChecklist';
 import { TodoTags } from './TodoTags';
 import { TagsPopup } from './TagsPopup';
 import { TodoInputLabel } from './TodoInputLabel'; 
@@ -38,7 +40,7 @@ import { Observable } from 'rxjs/Rx';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { googleAnalytics } from '../../analytics';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
-import { isFunction, isDate, isString } from '../../utils/isSomething';
+import { isFunction, isDate, isString, isNotNil, isToday } from '../../utils/isSomething';
 import { daysRemaining } from '../../utils/daysRemaining';
 import Alert from 'material-ui/svg-icons/alert/add-alert';
 import { stringToLength } from '../../utils/stringToLength';
@@ -57,7 +59,8 @@ import {
 } from 'draft-js';
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import 'draft-js/dist/Draft.css';
-import { noteToState, noteFromState, RawDraftContentState, getNotePlainText } from '../../utils/draftUtils';
+import { noteToState, noteFromState, getNotePlainText } from '../../utils/draftUtils';
+import { getTime, setTime } from '../../utils/time';
 const linkifyPlugin = createLinkifyPlugin({
     component:(props) => {
       const {contentState, ...rest} = props;
@@ -872,7 +875,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                      }else{
                         this.updateState({category:"next", deadline:null});
                      }
-                }}
+                }} 
                 todayCategory={isToday(attachedDate) || isToday(deadline)}
                 open={open} 
                 category={category}

@@ -1,13 +1,13 @@
 import { isDev } from './../utils/isDev';
 import { 
-    mainWindow, getClonedWindows, initAutoLaunch, toggleShortcut, findWindowByTitle, getConfig, updateConfig, clearStorage 
+    mainWindow, getClonedWindows, initAutoLaunch, toggleShortcut, 
+    findWindowByTitle, getConfig, updateConfig, clearStorage 
 } from './main';
 import { loadApp } from './loadApp'; 
 import { ipcMain,app,BrowserWindow,screen,dialog } from 'electron';
 import { initWindow } from './initWindow';
 import { isEmpty, when, isNil, prop, path } from 'ramda';
 import { autoUpdater } from "electron-updater";
-import { isNotNil } from '../utils/utils';
 import { isProject, isString } from '../utils/isSomething';
 const fs = require('fs');
 const pathTo = require('path');

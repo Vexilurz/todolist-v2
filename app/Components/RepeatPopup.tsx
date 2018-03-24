@@ -12,13 +12,11 @@ import Popover from 'material-ui/Popover';
 import {  
     attachDispatchToProps, getMonthName, dateToYearMonthDay, getRangeDays, getRangeRepetitions, 
     daysInMonth, getRangeMonthUntilDate, getRangeMonthRepetitions, getRangeYearUntilDate, 
-    getRangeYearRepetitions, dateToDateInputValue, dateInputUpperLimit, isNotNil, 
-    limitDate, isNotNan, limitInput, isNotEmpty, sameDay
+    getRangeYearRepetitions, dateToDateInputValue, dateInputUpperLimit, limitDate, isNotNan, 
+    limitInput, isNotEmpty
 } from '../utils/utils'; 
-import { Todo, removeTodo, addTodo,  Project, Area, LayoutItem, Group } from '../database';
-import { Store } from '../app'; 
-import { ChecklistItem } from './TodoInput/TodoChecklist'; 
-import { Category, filter } from './MainContainer';
+import { removeTodo, addTodo } from '../database';
+import { RepeatOptions, Category, ChecklistItem, Todo, Project, Area, LayoutItem, Group, Store } from '../types';
 import { 
     remove, isNil, not, isEmpty, last, compose, map, cond, defaultTo,
     equals, all, when, prop, first, complement, adjust, path, drop, add 
@@ -30,11 +28,12 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import FlatButton from 'material-ui/FlatButton';
 import { generateId } from '../utils/generateId';
-import { isDate, isTodo, isArrayOfTodos, isNotDate } from '../utils/isSomething';
+import { isDate, isTodo, isArrayOfTodos, isNotDate, isNotNil } from '../utils/isSomething';
 import { assert } from '../utils/assert';
 import { isDev } from '../utils/isDev';
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { normalize } from '../utils/normalize';
+import { sameDay } from '../utils/time';
 let RRule = require('rrule');
 
 
@@ -189,16 +188,6 @@ let isBeforeLimit = (limit:Date) => (todo:Todo) => isNil(todo.attachedDate) ? fa
 
 
 interface RepeatPopupProps extends Store{}
-
-
-
-export interface RepeatOptions{
-    interval : number,
-    freq : 'week' | 'day' | 'month' | 'year',
-    until : Date,
-    count : number,
-    selectedOption : 'on' | 'after' | 'never',
-};
 
 
 

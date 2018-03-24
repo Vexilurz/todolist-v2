@@ -1,9 +1,8 @@
 import {not,cond} from "ramda";
-import { timeOfTheDay, inTimeRange } from './time';
-import { CalendarEvent } from "../Components/Calendar";
-import { timeIsMidnight } from "./utils";
+import { timeOfTheDay, inTimeRange, timeIsMidnight } from './time';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
+import { CalendarEvent } from "../types";
 
 export let getSameDayEventElement : (event:CalendarEvent, showDescription:boolean) => JSX.Element =
            (event,showDescription) => cond([

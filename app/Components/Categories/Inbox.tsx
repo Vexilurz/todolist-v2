@@ -3,13 +3,12 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react";  
-import { Todo, Project, Area } from '../../database';
+import { Todo, Project, Area, Category } from '../../types';
 import { TodosList } from '.././TodosList';
-import { ContainerHeader } from '.././ContainerHeader';
+import { ContainerHeader } from '.././ContainerHeader'; 
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { isEmpty } from 'ramda';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
-import { Category } from '../MainContainer';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
 

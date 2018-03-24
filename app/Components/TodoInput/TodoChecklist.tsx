@@ -9,6 +9,8 @@ import { adjust, append, isEmpty } from 'ramda';
 import { SortableContainer } from '../CustomSortableContainer';
 import { arrayMove } from '../../utils/arrayMove';
 import { generateId } from '../../utils/generateId';
+import { ChecklistItem } from '../../types';
+
 
 
 let shouldUpdateChecklist = (
@@ -39,17 +41,9 @@ let shouldUpdateChecklist = (
 
     
     return should;
-}
+};
  
 
-export interface ChecklistItem{
-    text : string, 
-    checked : boolean,
-    idx : number,
-    key : string,
-    _id : string  
-}   
- 
 
 interface ChecklistProps{
     checklist : ChecklistItem[],
@@ -58,11 +52,12 @@ interface ChecklistProps{
 }
 
 
+
 interface ChecklistState{} 
 
 
-export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
+export class Checklist extends Component<ChecklistProps,ChecklistState>{
     ref:HTMLElement; 
     inputRef:HTMLElement;
 
@@ -71,11 +66,13 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
     }
 
   
+    
     shouldComponentUpdate(nextProps:ChecklistProps, nextState:ChecklistState){    
         let checklistChanged = shouldUpdateChecklist(nextProps.checklist, this.props.checklist);
         return checklistChanged;  
     }; 
  
+
 
     onChecklistItemChange = (key:string, event, newText:string) => {  
         let idx : number = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
@@ -97,6 +94,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
     };    
    
 
+
     onChecklistItemCheck = (e, key:string) => {
         let idx = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
             
@@ -113,13 +111,17 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
     }; 
 
 
+
     selectElements = (index:number,items:any[]) => [index];
+
 
 
     onSortMove = (oldIndex:number, event) : void => {}; 
 
+
     
     onSortStart = (oldIndex:number, event:any) : void => {};
+
 
 
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
@@ -137,6 +139,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         this.props.updateChecklist(checklist); 
     };  
       
+
     
     getCheckListItem = (value:ChecklistItem, index:number) => { 
 
@@ -231,6 +234,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
     }; 
 
 
+
     onBlankBlur = (event) => {
         if(event.target.value===''){ return } 
 
@@ -245,6 +249,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         let checklist = append(newItem)(this.props.checklist);
         this.props.updateChecklist(checklist); 
     };
+
 
 
     onBlankEnterPress = (event) => { 
@@ -274,11 +279,13 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
     }; 
 
 
+
     componentDidMount(){
         if(this.inputRef){
            this.inputRef.focus();  
         } 
     }
+
 
     
     componentDidUpdate(){
@@ -286,6 +293,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
            this.inputRef.focus();  
         }  
     }
+
 
 
     render(){  
@@ -366,4 +374,4 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
             }
         </div>
     }
-}
+};

@@ -6,7 +6,7 @@ import { Component } from "react";
 import Popover from 'material-ui/Popover';
 import { Tags } from '../../Components/Tags';  
 import { Transition } from 'react-transition-group';
-import { Todo, Project, Area } from '../../database';
+import { Todo, Project, Area, Category } from '../../types';
 import { ContainerHeader } from '.././ContainerHeader';
 import { 
   compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems
@@ -14,10 +14,10 @@ import {
 import { allPass, compose, or, assoc, isNil, isEmpty, defaultTo } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink, ProjectLinkLogbook } from '../Project/ProjectLink';
-import { Category, filter } from '../MainContainer';
+import { filter } from 'lodash';
 import { isTodo, isProject, isDate } from '../../utils/isSomething';
 
-
+ 
 
 let getDateFromObject = (i : Todo & Project) => { 
     if(isNil(i)){ return new Date() }
@@ -236,7 +236,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                 }   
             </div>      
         </div> 
-    }
+    };
     
 
 
@@ -247,7 +247,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
  
         return isNil(groups) ? null :
                isEmpty(groups) ? null : 
-                <div id={`${selectedCategory}-list`} >
+                <div id={`${selectedCategory}-list`}>
                     <ContainerHeader 
                         selectedCategory={selectedCategory} 
                         dispatch={dispatch}  
@@ -259,11 +259,10 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                         {   
                         groups.map( 
                             (group:any[], index:number) : JSX.Element => {
-                             let todos:Todo[] = filter(group, isTodo, "");
-                             let projects:Project[] = filter(group, isProject, "");
-                             let month:string = getMonthName(getDateFromObject(group[0]));
-                                    
-                             return <div key={index}> {this.getComponent(month, todos, projects)} </div>   
+                                let todos:Todo[] = filter(group, isTodo);
+                                let projects:Project[] = filter(group, isProject);
+                                let month:string = getMonthName(getDateFromObject(group[0]));
+                                return <div key={index}>{this.getComponent(month, todos, projects)}</div>   
                             }   
                         )   
                         }  

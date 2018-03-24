@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron';
 import { compose } from 'ramda';
-import { isNotNil } from './utils';
+import { isNotNil } from './isSomething';
 
 export function requestFromMain<T>(
     type:string,
@@ -21,7 +21,7 @@ export function requestFromMain<T>(
     ).catch(
         (e) => {  
             if(isNotNil(e)){ 
-               return null;   
+               return null;    
             }
         }
     );

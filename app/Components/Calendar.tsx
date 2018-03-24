@@ -1,109 +1,24 @@
-import { Calendar } from './../database';
 import { 
-  contains, isNil, isEmpty, values, 
-  assoc, flatten, map, compose, uniq, path,
-  reject, prop, pick, evolve, when, ifElse, 
-  groupBy, and, adjust, cond, defaultTo, find
+  contains, isNil, isEmpty, values, assoc, flatten, map, compose, uniq, path,
+  reject, prop, pick, evolve, when, ifElse, groupBy, and, adjust, cond, defaultTo, find
 } from 'ramda'; 
-import { Store } from './../app';
-import { ipcRenderer } from 'electron';
-let Promise = require('bluebird');
+import { filter } from 'lodash';
 import axios from 'axios';
-import { 
-    isNotNil, fiveMinutesLater, addTime, inPast, distanceInOneDay, 
-    fromMidnightToMidnight, timeDifferenceHours, differentDays,
-    sameDay, timeIsMidnight, oneMinutesBefore, oneDayBehind, 
-    log, inPastRelativeTo, subtractTime, subtractDays
-} from '../utils/utils'; 
 let ical = require('ical.js'); 
 let RRule = require('rrule');
+let Promise = require('bluebird');
 import * as icalR from '../ical/index.js'; 
-import { isEvent } from '../utils/isSomething';
-import { assert } from '../utils/assert';
 import { normalize } from '../utils/normalize';
-import { filter } from './MainContainer';
+import { assert } from '../utils/assert';
+import { Calendar, CalendarEvent, CalendarProps, rcal, vcalProps, vcalPropsInitial, IcalData } from './../types';
+import { isEvent, isNotNil } from '../utils/isSomething';
+import { 
+    inPast, timeDifferenceHours, sameDay, distanceInOneDay, fromMidnightToMidnight, 
+    differentDays, subtractDays, subtractTime, addTime, timeIsMidnight, oneMinutesBefore, 
+    oneDayBehind, inPastRelativeTo 
+} from '../utils/time';
+
  
-
-
-type vcalPropsInitial = [string,Object,string,string];
-
-
-
-type rcal = {dates:Date[],ends:Date,name:string,rrule:any}[];
-
-
-
-interface vcalProps{
-    name:string,
-    object:Object,
-    type:string,
-    value:string
-}
-
-
-
-export interface CalendarEvent{ 
-    name:string,
-    start:Date, 
-    end:Date, 
-    description:string,
-    type?:string
-    sequenceEnd?:boolean, 
-    sequenceStart?:boolean
-}
-
-
-
-export interface CalendarProps{ 
-    name:string,
-    description:string,
-    timezone:string
-} 
-
-
-
-export interface AxiosError{
-    name:string,
-    message:string 
-}
-
-
-
-export type IcalData = {
-    calendar : CalendarProps, 
-    events : CalendarEvent[],
-    error? : AxiosError
-} 
-
-
-
-interface rrule{
-    options:{
-        byeaster:any,
-        byhour:any,
-        byminute:any,
-        bymonth:any,
-        bymonthday:any,
-        bynmonthday:any,
-        bynweekday:any,
-        bysecond:any,
-        bysetpos:any,
-        byweekday:any,
-        byweekno:any,
-        byyearday:any,
-        count:any,
-        dtstart:Date,
-        freq:number,
-        interval:number,
-        until:Date,
-        wkst:0
-    },
-    origOptions:any
-    timeset:any[]
-    _cache:any
-};
-
-
 
 let eventInPast = (event:CalendarEvent) : boolean => inPast(event.start) && inPast(event.end);
 

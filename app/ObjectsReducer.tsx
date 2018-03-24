@@ -1,26 +1,23 @@
-import { Store } from './app';
+import { Project, Area, Todo, Calendar, Store } from './types';
 import {  
-    Project, Area, Todo, removeProject, addProject, 
-    removeArea, updateProject, addTodo, updateArea, updateTodo, 
-    addArea, removeTodo, removeAreas, removeTodos, removeProjects, 
-    updateAreas, updateProjects, addTodos, addProjects, addAreas, 
-    updateTodos, addCalendar, Calendar, updateCalendar, removeCalendar 
+    removeProject, addProject, removeArea, updateProject, addTodo, 
+    updateArea, updateTodo, addArea, removeTodo, removeAreas, 
+    removeTodos, removeProjects, updateAreas, updateProjects, addTodos, 
+    addProjects, addAreas, updateTodos, addCalendar, updateCalendar, 
+    removeCalendar 
 } from './database';
 import { isDev } from './utils/isDev';
 import { ipcRenderer } from 'electron';
 import { 
     removeDeletedProjects, removeDeletedAreas, removeDeletedTodos, byNotDeleted, 
-    isNotNil, typeEquals, inFuture, byNotCompleted, convertTodoDates, differentBy 
+    typeEquals, byNotCompleted, convertTodoDates, differentBy 
 } from './utils/utils';
 import { 
     adjust, cond, all, isEmpty, contains, not, remove, uniq, assoc, 
     isNil, and, complement, compose, reject, concat, map, when,
     prop, ifElse, identity, path, equals, allPass, evolve, pick  
-} from 'ramda';
-
-import {clone as cloneItems} from 'ramda';
-
-import { filter } from './Components/MainContainer';
+} from 'ramda'; 
+import { filter } from 'lodash';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { assert } from './utils/assert';
 import { 
@@ -30,6 +27,8 @@ import {
 import { setCallTimeout } from './utils/setCallTimeout';
 import { requestFromMain } from './utils/requestFromMain';
 import diff from 'deep-diff';
+
+
 
 let onError = (e) => globalErrorHandler(e); 
 
@@ -326,9 +325,9 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                         projects = removeDeletedProjects(state.projects);
                         areas = removeDeletedAreas(state.areas); 
                     }else{
-                        todos = filter(state.todos, byNotDeleted, "");
-                        projects = filter(state.projects, byNotDeleted, ""); 
-                        areas = filter(state.areas, byNotDeleted, ""); 
+                        todos = filter(state.todos, byNotDeleted);
+                        projects = filter(state.projects, byNotDeleted); 
+                        areas = filter(state.areas, byNotDeleted); 
                     }
 
                     return {...state,todos,projects,areas}; 

@@ -27,7 +27,7 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import CalendarIco from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import Audiotrack from 'material-ui/svg-icons/image/audiotrack';
-import { Category } from '../Components/MainContainer';
+import { Category } from '../types';
 import Alert from 'material-ui/svg-icons/alert/add-alert';
 import SearchIcon from 'material-ui/svg-icons/action/search'; 
 

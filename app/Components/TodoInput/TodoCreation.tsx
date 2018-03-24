@@ -9,10 +9,10 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import List from 'material-ui/svg-icons/action/list';
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
-import { isToday, getTime, setTime, different, isNotEmpty } from '../../utils/utils'; 
-import { Todo, removeTodo, updateTodo, Project } from '../../database';
-import { Checklist, ChecklistItem } from './TodoChecklist';
-import { Category } from '../MainContainer'; 
+import { different, isNotEmpty } from '../../utils/utils'; 
+import { Todo, Project, ChecklistItem, Category, RawDraftContentState } from '../../types';
+import { removeTodo, updateTodo } from '../../database';
+import { Checklist } from './TodoChecklist';
 import { TodoTags } from './TodoTags';
 import { TagsPopup } from './TagsPopup';
 import { TodoInputLabel } from './TodoInputLabel'; 
@@ -27,8 +27,9 @@ import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { googleAnalytics } from '../../analytics';
-import { isDate, isTodo } from '../../utils/isSomething';
-import { RawDraftContentState, noteToState, noteFromState, getNotePlainText } from '../../utils/draftUtils';
+import { isDate, isTodo, isToday } from '../../utils/isSomething';
+import { noteToState, noteFromState, getNotePlainText } from '../../utils/draftUtils';
+import { getTime, setTime } from '../../utils/time';
   
 
 export interface TodoCreationFormState{  

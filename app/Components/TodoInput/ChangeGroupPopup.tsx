@@ -5,10 +5,11 @@ import * as ReactDOM from 'react-dom';
 import { equals } from 'ramda';
 import { ipcRenderer } from 'electron'; 
 import { Component } from "react";   
-import { isToday, getMonthName, attachDispatchToProps } from '../../utils/utils'; 
-import { Todo } from '../../database';
-import { Store } from '../../app';
+import { getMonthName, attachDispatchToProps } from '../../utils/utils'; 
+import { Todo, Store } from '../../types';
 import { SimplePopup } from '../SimplePopup';
+
+
 
 interface ChangeGroupPopupProps{
     dispatch:Function,
@@ -16,8 +17,13 @@ interface ChangeGroupPopupProps{
     todos:Todo[],
     rightClickedTodoId:string
 } 
-            
+
+
+
 interface ChangeGroupPopupState{}
+
+
+
 export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGroupPopupState>{
     ref:HTMLElement; 
 

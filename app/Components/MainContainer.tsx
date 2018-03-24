@@ -9,8 +9,8 @@ import {isDev} from "../utils/isDev";
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
 import Hide from 'material-ui/svg-icons/navigation/arrow-drop-down';
 import { Provider, connect } from "react-redux";
-import { Todo, Project, Area, Calendar } from '.././database';
-import Print from 'material-ui/svg-icons/action/print'; 
+import { Todo, Project, Area, Calendar, Category } from '.././types';
+import Print from 'material-ui/svg-icons/action/print';  
 import { AreaComponent } from './Area/Area';
 import { ProjectComponent } from './Project/Project';
 import { Trash } from './Categories/Trash';
@@ -28,12 +28,11 @@ import { Subscription } from 'rxjs/Rx';
 import { RightClickMenu } from './RightClickMenu';
 import { RepeatPopup } from './RepeatPopup';
 import { Search } from './Search';
-import { filter as lodashFilter } from 'lodash';
+import { filter } from 'lodash';
 import { updateCalendars, convertEventDate } from './Calendar';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
-import { testData } from '../utils/generateRandomObjects';
 import { updateConfig } from '../utils/config';
-import { isNotArray, isDate, isTodo, isString } from '../utils/isSomething';
+import { isNotArray, isDate, isTodo, isString, isNotNil } from '../utils/isSomething';
 import { assert } from '../utils/assert';
 import { isNewVersion } from '../utils/isNewVersion';
 import { UpdateCheckResult } from 'electron-updater';
@@ -42,28 +41,15 @@ import { requestFromMain } from '../utils/requestFromMain';
 import { getData } from '../utils/getData';
 import { WhenCalendar } from './WhenCalendar';
 import { 
-    getIntroList, introListLayout, isNotEmpty, 
-    checkForUpdates, keyFromDate, isNotNil, 
-    convertDates, printElement, introListIds, 
-    byNotDeleted, threeDaysLater 
+    getIntroList, introListLayout, isNotEmpty, checkForUpdates, 
+    convertDates, printElement, introListIds, byNotDeleted
 } from '../utils/utils';
+import { threeDaysLater } from '../utils/time';
 const Promise = require('bluebird');   
 const moment = require("moment");   
 const path = require('path');
 let uniqid = require("uniqid"); 
 
-
-
-export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
-                       "logbook" | "trash" | "project" | "area" | "evening" | 
-                       "deadline" | "search" | "group" | "search" | "reminder";
-
-
-
-export let filter = (array:any[],f:Function,caller?:string) : any[] => {
-    return lodashFilter(array,f); 
-}
- 
 
 
 interface MainContainerProps{
@@ -116,7 +102,9 @@ interface MainContainerProps{
     selectedAreaId:string,
     moveCompletedItemsToLogbook:string,
     selectedTag:string,
-    dragged:string
+    dragged:string,
+
+    cloneWindow:() => void
 }   
 interface MainContainerState{ fullWindowSize:boolean }
   
@@ -245,23 +233,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
     };
 
 
-
-    randomDatabase = (t,p,a) => {
-        let {todos, projects, areas} = testData(t,p,a);
-        let to:string = path.resolve(`${keyFromDate(new Date())}-${uniqid()}.json`);
-
-        console.log('ready to save in',to);
- 
-        return requestFromMain<any>(
-            'saveDatabase',
-            [ { database : { todos, projects, areas, calendars:[] } }, to ],
-            (event) => event
-        ).then(
-            () => console.log(`todos - ${t}; projects - ${p}; areas - ${a}; saved to :`,to)
-        ) 
-    };
-
- 
 
     initObservables = () => {  
         let {dispatch} = this.props; 
@@ -438,6 +409,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                this.rootRef.scrollTop=0;  
             } 
         }
+
     }; 
 
     
@@ -504,7 +476,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             this.props.clone ? null :
                             <IconButton    
                                 iconStyle={{color:"rgba(100,100,100,0.6)",width:"18px",height:"18px"}}
-                                onClick={() => ipcRenderer.send("store", {...this.props})}   
+                                onClick={this.props.cloneWindow}   
                             >     
                                 <OverlappingWindows />
                             </IconButton> 

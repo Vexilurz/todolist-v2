@@ -5,10 +5,11 @@ import {
 import {
     isTodo, isProject, isArea, isArrayOfAreas, 
     isArrayOfProjects, isArrayOfTodos, isArray, 
-    isString, isFunction, isDate
+    isString, isFunction, isDate, isNotNil
 } from '../utils/isSomething';
-import { Project, Todo } from '../database';
-import { isNotNil } from './utils';
+import { Project, Todo } from '../types';
+
+
 
 export let generateIndicators : 
 (projects:Project[], todos:Todo[]) => { [key:string]:{active:number,completed:number,deleted:number}; } = 
@@ -17,7 +18,7 @@ export let generateIndicators :
     map( 
         reduce(
             (acc,val) => cond(
-                [
+                [ 
                     [ 
                         t => isNotNil(t.deleted), 
                         t => evolve({deleted:add(1)}, acc) 

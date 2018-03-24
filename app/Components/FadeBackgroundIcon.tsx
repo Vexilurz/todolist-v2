@@ -11,9 +11,9 @@ import BusinessCase from 'material-ui/svg-icons/content/archive';
 import Layers from 'material-ui/svg-icons/maps/layers';
 import Trash from 'material-ui/svg-icons/action/delete';
 import Logbook from 'material-ui/svg-icons/av/library-books';
-import { Category } from './MainContainer';
+import { Category } from './../types';
  
-
+ 
 
 
 

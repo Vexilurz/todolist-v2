@@ -3,13 +3,12 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react";  
-import { Project, Area, Todo } from '../../database';
+import { Project, Area, Todo, Store } from '../../types';
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import { attachDispatchToProps } from '../../utils/utils'; 
 import Restore from 'material-ui/svg-icons/content/undo';
 import { contains, isEmpty, compose, map, flatten } from 'ramda';
-import { Store } from '../../app';
-import { filter } from '../MainContainer';
+import { filter } from 'lodash';
 import { assert } from '../../utils/assert';
 import { isArrayOfTodos, isArrayOfProjects, isString } from '../../utils/isSomething';
 

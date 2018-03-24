@@ -6,12 +6,12 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { byNotCompleted, byNotDeleted, getTagsFromItems } from "../../utils/utils";  
-import { Todo, Project, Area } from '../../database';
+import { Todo, Project, Area, Category } from '../../types';
 import { TodosList } from '../TodosList';
 import { ContainerHeader } from '../ContainerHeader';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { isEmpty, isNil, contains, intersection, flatten } from 'ramda';
-import { Category, filter } from '../MainContainer';
+import { filter } from 'lodash';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { generateId } from '../../utils/generateId';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
@@ -19,9 +19,9 @@ import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
 import { isNotArray, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
+ 
 
-
-interface NextProps{
+interface NextProps{ 
     dispatch:Function, 
     groupTodos:boolean,
     selectedTodo:Todo,

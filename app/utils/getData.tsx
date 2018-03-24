@@ -4,12 +4,12 @@ import {
 } from 'ramda';
 import { isNotArray, isDate, isTodo, isString } from '../utils/isSomething';
 import { 
-    getTodos, updateTodo, Todo, removeTodo, addTodo, getProjects, 
-    getAreas, queryToProjects, queryToAreas, Project, Area, initDB, 
+    getTodos, updateTodo, removeTodo, addTodo, getProjects, 
+    getAreas, queryToProjects, queryToAreas, initDB, 
     removeArea, removeProject, destroyEverything, addArea, addProject, 
-    addTodos, addProjects, addAreas, Heading, LayoutItem, getCalendars, 
-    Calendar, getDatabaseObjects
+    addTodos, addProjects, addAreas, getCalendars, getDatabaseObjects
 } from '.././database';
+import { Heading, LayoutItem, Calendar, Todo, Project, Area } from '.././types';
 import { noteFromText } from './draftUtils';
 import { convertProjectDates, convertAreaDates, convertTodoDates } from './utils';
 import { updateCalendars } from '../Components/Calendar';

@@ -16,7 +16,7 @@ import DayPicker from 'react-day-picker';
 import Popover from 'material-ui/Popover';
 import BusinessCase from 'material-ui/svg-icons/content/archive';  
 import RaisedButton from 'material-ui/RaisedButton';
-import { Category } from './MainContainer';  
+import { Category, Store } from './../types';  
 import Clear from 'material-ui/svg-icons/content/clear'; 
 import { isNil, not } from 'ramda';
 import * as Rx from 'rxjs/Rx';
@@ -25,13 +25,12 @@ import { Subscription } from 'rxjs/Rx';
 import ResizeObserver from 'resize-observer-polyfill';
 import { Observable } from 'rxjs/Rx';
 import { insideTargetArea } from '../utils/insideTargetArea';
-import { isFunction, isDate } from '../utils/isSomething';
-import { timeOfTheDay } from '../utils/time';
+import { isFunction, isDate, isToday } from '../utils/isSomething';
+import { timeOfTheDay, getTime, setTime } from '../utils/time';
 const moment = require("moment"); 
 import { Provider, connect } from "react-redux";
 import TimeInput from 'react-keyboard-time-input';
-import { Store } from '../app';
-import { attachDispatchToProps, getTime, setTime, isToday } from '../utils/utils';
+import { attachDispatchToProps } from '../utils/utils';
 import { CalendarFooter } from './ThingsCalendar';
 
 
@@ -39,7 +38,7 @@ interface WhenCalendarProps extends Store{}
 
 @connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
 export class WhenCalendar extends Component<WhenCalendarProps,{}>{
-    ref:HTMLElement; 
+    ref:HTMLElement;  
     subscriptions:Subscription[];  
 
     constructor(props){
@@ -188,7 +187,7 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
 
         this.props.dispatch({ 
             type:"updateTodo", 
-            load:{ 
+            load:{  
                 ...whenTodo, 
                 category:isToday(attachedDate) ? "today" : category,
                 attachedDate,

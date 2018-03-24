@@ -13,8 +13,7 @@ import {
 import { ipcRenderer } from 'electron';
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import Plus from 'material-ui/svg-icons/content/add';  
-import { Todo, Project, Area } from '../../database';
-import { Store } from '../../app'; 
+import { Todo, Project, Area, Category, Store } from '../../types';
 import { AreasList } from './../Area/AreasList';
 import { ResizableHandle } from './../ResizableHandle';
 import { LeftPanelMenu } from './LeftPanelMenu';
@@ -24,7 +23,6 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { filter, Category } from '../MainContainer';
 import { SearchInput } from '../Search';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { googleAnalytics } from '../../analytics';

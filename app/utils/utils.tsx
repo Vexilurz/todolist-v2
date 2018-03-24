@@ -1,18 +1,15 @@
-import './../assets/styles.css';     
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { cyan500, cyan700, pinkA200, grey100, grey300, grey400, grey500, white, darkBlack, fullBlack } from 'material-ui/styles/colors'; 
 import { fade } from 'material-ui/utils/colorManipulator';
-import { Todo, Project, Area, removeTodos, removeProjects, removeAreas, Heading, LayoutItem } from './../database';
-import { Category, filter } from '.././Components/MainContainer';
-import { ChecklistItem } from '.././Components/TodoInput/TodoChecklist';
+import { removeTodos, removeProjects, removeAreas } from './../database';
+import { Todo, Project, Area, Category, ChecklistItem, Heading, LayoutItem, Item, Store } from './../types'; 
 import { 
     contains, isNil, prepend, isEmpty, last, not, 
     when, flatten, map, compose, cond, remove, any,
     complement, equals, prop, groupBy, path, reject,
     ifElse, identity, reduce, curry 
 } from 'ramda'; 
-import { Store } from '.././app';
 import { isDev } from './isDev';
 import { ipcRenderer } from 'electron';
 let Promise = require('bluebird');
@@ -21,21 +18,21 @@ import { globalErrorHandler } from './globalErrorHandler';
 import { generateId } from './generateId';
 import { assert }  from './assert';
 import { daysRemaining } from './daysRemaining'; 
+import { filter } from 'lodash';
 import { stringToLength } from './stringToLength';
-import {
+import { 
     isItem,isArray,isDate,isFunction,isString,  
     isCategory,bySomeday,isTodo,isArrayOfTodos, 
-    isProject,isArrayOfProjects,isArea, 
-    isArrayOfAreas,isArrayOfStrings,Item, isNotDate
+    isProject,isArrayOfProjects,isArea,isNotNil, 
+    isArrayOfAreas,isArrayOfStrings,isNotDate
 } from './isSomething';
 import { generateEmptyTodo } from './generateEmptyTodo';
 import { noteFromText } from './draftUtils';
 import { requestFromMain } from './requestFromMain';
+import { inPast, fiveMinutesLater, onHourLater, oneDayMore } from './time'; 
 const PHE = require("print-html-element");
 const domtoimage = require('retina-dom-to-image');
 
-
-export let isNotNil = complement(isNil);
 
 
 export let selectFolder = () => requestFromMain<any>(
@@ -178,69 +175,8 @@ export let addDates = (one:Date, two:Date) : Date => {
 
 
 
-export let addTime = (date:Date, time:number) : Date => {
-    return new Date(date.getTime() + time);
-};
-
-
-
-export let subtractTime = (date:Date, time:number) : Date => {
-    return new Date(date.getTime() - time);
-};
-
-
-
 export let typeEquals = (type:string) => compose(equals(type), prop(`type`))
- 
 
-
-export let getTime = (date:Date) : {minutes : number,hours : number} => {
-
-    let defaultValue = {minutes:0,hours:0};
-
-    if(isDate(date)){
-        return {
-            minutes:date.getMinutes(),
-            hours:date.getHours()
-        };
-    }else if(isString(date)){
-        let target = new Date(date);
-
-        if(isDate(target)){
-            return {
-                minutes:target.getMinutes(),
-                hours:target.getHours()
-            };     
-        }
-    }
-
-    return defaultValue;
-};
-
-
-
-export let setTime = (date:Date, time:{minutes:number,hours:number}) : Date => {
-
-    let {minutes,hours} = time;
-
-    if(isDate(date)){
-        let updated = new Date(date.getTime());
-        updated.setHours(hours);
-        updated.setMinutes(minutes); 
-        return updated;
-    }else if(isString(date)){ 
-        let target = new Date(date);
-
-        if(isDate(target)){
-            target.setHours(hours);
-            target.setMinutes(minutes);
-            return target;
-        }
-    }
-
-    return date;
-};
- 
 
 
 export let printElement = (selectedCategory:Category, list:HTMLElement) : Promise<void> => {
@@ -371,7 +307,7 @@ export let getCompletedWhen = (moveCompletedItemsToLogbook:string,date:Date) => 
             () => oneDayMore(date)
         ],
         [
-            () => true,
+            () => true, 
             () => date,
         ]
     ])(moveCompletedItemsToLogbook);
@@ -539,95 +475,6 @@ export let nDaysFromNow = (n:number) => {
 export let initDate : (date:any) => Date = when(isString,date => new Date(date));
 
 
-export let threeDaysLater = (date:Date) : Date => { 
-    if(isNotDate(date)){ return date }
-
-    Date.prototype["addDays"] = function(days) {
-        let date = new Date(this.valueOf());
-        date.setDate(date.getDate() + days);
-        return date;   
-    };
-      
-    return new Date(date.getTime())["addDays"](3);
-}; 
-
-
-
-export let oneDayMore = (date:Date) : Date => { 
-    if(isNotDate(date)){ return date }
-
-    Date.prototype["addDays"] = function(days) {
-        let date = new Date(this.valueOf());
-        date.setDate(date.getDate() + days);
-        return date;    
-    };
-      
-    return new Date(date.getTime())["addDays"](1);
-}; 
-
-
-
-export let threeDaysAhead = (date:Date) : Date => { 
-    if(isNotDate(date)){ return date }
-
-    Date.prototype["addDays"] = function(days) {
-        let date = new Date(this.valueOf());
-        date.setDate(date.getDate() + days);
-        return date;   
-    };
-      
-    return new Date(date.getTime())["addDays"](3);
-}; 
-
-
-
-export let oneMinutesBefore = (date:Date) : Date => { 
-    if(isNotDate(date)){ return date }
-
-    let oneMinuteMs = 1000 * 60;
-    return new Date(date.getTime() - oneMinuteMs);
-}; 
-
-
-
-export let fiveMinutesLater = (date:Date) : Date => { 
-    if(isNotDate(date)){ return date }
-
-    let fiveMinutesMs = 1000 * 60 * 5;
-    return new Date(date.getTime() + fiveMinutesMs);
-}; 
-
-
-
-export let fiveMinutesBefore = (date:Date) : Date => { 
-    if(isNotDate(date)){ return date }
-
-    let fiveMinutesMs = 1000 * 60 * 5;
-    return new Date(date.getTime() - fiveMinutesMs);
-}; 
-
-
-
-export let onHourLater = (date:Date) : Date => {  
-    if(isNotDate(date)){ return date }
-
-    let oneHourMs = 1000 * 60 * 60; 
-    return new Date(date.getTime() + oneHourMs);
-}; 
-
-
-
-export let oneDayBehind = () : Date => { 
-    Date.prototype["addDays"] = function(days) {
-        let date = new Date(this.valueOf());
-        date.setDate(date.getDate() + days);
-        return date;   
-    };
-      
-    return new Date()["addDays"](-1);
-}; 
-
-
 
 export let dateToDateInputValue = (date:Date) : string => {
     let month = date.getUTCMonth() + 1; 
@@ -640,40 +487,6 @@ export let dateToDateInputValue = (date:Date) : string => {
     return year + "-" + month + "-" + d;
 };
 
-
-export let sameDay = (a:Date,b:Date) : boolean => {
-    if(isNotDate(a) || isNotDate(b)){
-       return false; 
-    }
-
-    return keyFromDate(a)===keyFromDate(b); 
-};
-
-
-export let differentDays = (a:Date,b:Date) : boolean => not(sameDay(a,b));
-
-
-export let distanceInOneDay = (a:Date,b:Date) : boolean => {
-    let distance = Math.abs(a.getDate() - b.getDate());
-    return distance === 1;
-};
-
- 
-export let keyFromDate = (d:Date) : string => {  
-    //assert(isDate(date), `keyFromDate. input is not a date. ${date}`);
-    
-    if(isNil(d)){ return '' }
-    let date = isString(d) ? new Date(d) : d;
-
-    let year = date.getFullYear();
-    let day = date.getDate(); 
-    let month = date.getMonth();
-
-    return [year,month+1,day].join('-'); 
-};
-
-
-export type ItemWithPriority = Area | Project | Todo | Heading; 
 
 
 let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {
@@ -766,44 +579,8 @@ export let getTagsFromItems = (items:Item[]) : string[] => {
 
 
 
-export let timeIsMidnight = (date:Date) : boolean => {
-    if(isNotDate(date)){ return false }
-
-    return (date.getHours()===0) &&  
-           (date.getMinutes()===0) &&   
-           (date.getSeconds()===0); 
-}; 
-
-
-
-export let fromMidnightToMidnight = (start:Date, end:Date) : boolean => {
-    if(isNotDate(start) || isNotDate(end)){ return false }
-    return timeIsMidnight(start) && timeIsMidnight(end);
-};
-
-
-
 export let attachDispatchToProps = (dispatch:Function,props) => ({...props, dispatch});
 
-
-export let inPast = (date:Date) : boolean => {
-    if(isNil(date)){ return false }
-    
-    return new Date().getTime()>new Date(date).getTime();
-};
-
-
-export let inPastRelativeTo = (to:Date) => (date:Date) : boolean => {
-    if(isNil(date)){ return false }
-
-    return to.getTime()>new Date(date).getTime();
-};
-
-  
-export let inFuture =  (date:Date) : boolean => {
-    if(isNil(date)){ return false }
-    return new Date().getTime()<new Date(date).getTime();
-};
 
 
 export let byNotSomeday = (t:Todo) : boolean => t.category!=="someday"; 
@@ -1163,36 +940,6 @@ export let getDayName = (d:Date) : string => {
 };
 
    
-    
-export let addDays = (date:Date, days:number) => {
- 
-    assert(isDate(date), `date is not a Date. ${date}. addDays.`);
-
-    assert(!isNaN(days), `days is not a number. ${days}. addDays.`);
-
-    let next = new Date();
-        
-    next.setDate(date.getDate() + days);
-
-    return next; 
-};
- 
-
-
-export let subtractDays = (date:Date, days:number) => {
- 
-    assert(isDate(date), `date is not a Date. ${date}. addDays.`);
-
-    assert(!isNaN(days), `days is not a number. ${days}. addDays.`);
-
-    let next = new Date();
-        
-    next.setDate(date.getDate() - days);
-
-    return next; 
-};
-
-
 
 export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
  
@@ -1228,25 +975,6 @@ export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
 
     return <p style={style}>{ Math.abs(daysLeft) }{ attachedText }</p>  
 }; 
-
-
- 
-export let isToday = (date : Date) => {
-    if(isNil(date)){ return false }; 
-
-    if(isDate(date)){ 
-       return daysRemaining(date)===0;
-    } 
-
-    if(isString(date)){
-       let maybeDate = new Date(date);
-       if(isDate(maybeDate)){
-          return daysRemaining(date)===0;
-       }
-    } 
-  
-    return false;
-};    
 
 
 
@@ -1323,23 +1051,7 @@ export let getDatesRange = (
 
 
 
-export let randomInteger = (n:number) : number => {
-    return Math.round(Math.random() * n);
-}; 
 
-
-
-export let randomDate = (start, end) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-
-
-    
-export let randomArrayMember = (array : any[]) => {
-    assert(!isEmpty(array), `randomArrayMember. array empty.`);
-    let range = array.length - 1;
-    let idx = randomInteger(range);
-    let member = array[idx]; 
-    return member;
-}; 
 
 
 
@@ -1370,15 +1082,6 @@ export let generateEmptyArea = () : Area => ({
     attachedTags : [], 
     attachedProjectsIds : [],
 });
-
-
-
-export let timeDifferenceHours = (from:Date,to:Date) : number => {
-    let first = isString(from) ? new Date(from).getTime() : from.getTime();
-    let second = isString(to) ? new Date(to).getTime() : to.getTime();
-    let diff = (second - first)/(1000*60*60);
-    return Math.abs(diff);  
-};
 
 
 

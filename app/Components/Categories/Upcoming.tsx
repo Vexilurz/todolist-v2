@@ -4,14 +4,14 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { TodosList } from '../../Components/TodosList';
-import { Todo,Project, Area, Calendar, getTodos } from '../../database';
+import { getTodos } from '../../database';
+import { Todo,Project, Area, Calendar, Category, CalendarEvent } from '../../types';
 import * as Waypoint from 'react-waypoint';
 import { ContainerHeader } from '.././ContainerHeader';
 import {  
     byTags, 
     getDayName, 
     getDatesRange, 
-    keyFromDate, 
     byNotCompleted,
     byNotDeleted,
     getTagsFromItems, 
@@ -19,9 +19,6 @@ import {
     yearFromDate,
     convertTodoDates,
     getRangeDays,
-    timeDifferenceHours,
-    isNotNil, 
-    setTime,
     isNotEmpty,
     typeEquals,
     compareByDate,
@@ -36,13 +33,13 @@ import {
     mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass
 } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
-import { Category, filter } from '../MainContainer';
+import { filter } from 'lodash'; 
 import { Hint } from './Today'; 
-import { CalendarEvent, updateCalendars } from '../Calendar';
-import { isDate, isArray, isArrayOfTodos } from '../../utils/isSomething';
+import { updateCalendars } from '../Calendar';
+import { isDate, isArray, isArrayOfTodos, isNotNil } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
-import { timeOfTheDay } from '../../utils/time';
+import { timeOfTheDay, keyFromDate } from '../../utils/time';
 import { repeat } from '../RepeatPopup';
 import { isDev } from '../../utils/isDev';
 import { getSameDayEventElement } from '../../utils/getCalendarEventElement';

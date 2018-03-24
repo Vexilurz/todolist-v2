@@ -14,7 +14,7 @@ import { insideTargetArea } from '../../utils/insideTargetArea';
 import { assert } from '../../utils/assert';
 import { isArrayOfStrings } from '../../utils/isSomething';
 import AutosizeInput from 'react-input-autosize';
-import { Store } from '../../app';
+import { Store } from '../../types';
 import { attachDispatchToProps } from '../../utils/utils';
  
 interface TagsPopupProps{

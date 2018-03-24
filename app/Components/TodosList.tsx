@@ -2,7 +2,7 @@ import './../assets/styles.css';
 import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { Todo, Project, Area } from '../database';
+import { Category, Todo, Project, Area } from '../types';
 import { Component } from 'react';
 import { getCompletedWhen, generateDropStyle } from '../utils/utils';  
 import { insideTargetArea } from '../utils/insideTargetArea';
@@ -11,7 +11,6 @@ import { isNil, isEmpty, findIndex, cond, find,
     compose, map, contains, remove, not, equals, all, 
     intersection, path, prop, adjust, reject
 } from 'ramda';
-import { Category } from './MainContainer';
 import { indexToPriority } from './Categories/Today'; 
 import { SortableContainer } from './CustomSortableContainer';
 import { 

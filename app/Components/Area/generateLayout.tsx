@@ -3,7 +3,7 @@ import {
     isEmpty, contains, assoc, isNil, not, merge, map, concat, ifElse, identity, 
     addIndex, compose, cond, defaultTo, last, insertAll, prepend, find  
 } from 'ramda'; 
-import { byNotCompleted, byNotDeleted, typeEquals, isNotNil, anyTrue, attachDispatchToProps, different, isNotEmpty } from '../../utils/utils';
+import { byNotCompleted, byNotDeleted, typeEquals, anyTrue, attachDispatchToProps, different, isNotEmpty } from '../../utils/utils';
 
 let byNotEmpty = (table) => (area) => compose((id) => isNotEmpty(table[id]),prop('_id')) 
 

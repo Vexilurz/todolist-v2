@@ -4,10 +4,10 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Provider } from "react-redux";
 import { Component } from "react";  
-import { Todo, Project, Area } from '../../database';
+import { Todo, Project, Area, Category } from '../../types';
 import { byNotCompleted, byNotDeleted } from '../../utils/utils'; 
 import { allPass, isNil, not, contains, isEmpty, flatten } from 'ramda';
-import { Category, filter } from '../MainContainer';
+import { filter } from 'lodash';
 import { isArrayOfProjects, isString } from '../../utils/isSomething';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
 

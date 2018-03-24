@@ -3,14 +3,13 @@ import {
     prop, when, evolve, ifElse, applyTo, allPass,
     flatten, reject                 
 } from 'ramda';
-import { isString, isDate, isNumber } from './isSomething';
+import { isString, isDate, isNumber, isNotNil } from './isSomething';
 import { requestFromMain } from './requestFromMain';
 import { assert } from './assert';
 import { setCallTimeout } from './setCallTimeout';
-import { Store } from '../app';
-import { filter } from '../Components/MainContainer';
-import { Todo } from '../database';
-import { byNotCompleted, byNotDeleted, isNotNil } from './utils';
+import { filter } from 'lodash';
+import { Store,Todo } from '../types';
+import { byNotCompleted, byNotDeleted } from './utils';
 
 
 

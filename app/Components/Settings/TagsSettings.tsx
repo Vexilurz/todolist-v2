@@ -4,8 +4,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import Clear from 'material-ui/svg-icons/content/clear';
-import { section } from './section';
-import { Calendar, Area, Project, Todo } from '../../database';
+import { Calendar, Area, Project, Todo, section } from '../../types';
 import { requestFromMain } from '../../utils/requestFromMain';
 import { updateConfig } from '../../utils/config';
 import { 
@@ -14,7 +13,7 @@ import {
 } from 'ramda';
 import { Checkbox } from '../TodoInput/TodoInput';
 import { isArrayOfTodos } from '../../utils/isSomething';
-import { filter } from '../MainContainer';
+import { filter } from 'lodash';
 import { assert } from '../../utils/assert';
 import { defaultTags } from '../../utils/defaultTags';
 import { uppercase } from '../../utils/uppercase';

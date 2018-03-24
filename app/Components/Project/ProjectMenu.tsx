@@ -14,11 +14,10 @@ import Show from 'material-ui/svg-icons/action/visibility';
 import Hide from 'material-ui/svg-icons/action/visibility-off';
 import Flag from 'material-ui/svg-icons/image/assistant-photo'; 
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
-import { Todo, Project, Heading, LayoutItem } from '../../database';
+import { Category, Todo, Project, Heading, LayoutItem, Store } from '../../types';
 import { attachDispatchToProps, createHeading } from '../../utils/utils';
-import { Store } from '../../app'; 
 import { contains, not, isNil, isEmpty, remove } from 'ramda';
-import { Category, filter } from '../MainContainer';
+import { filter } from 'lodash';
 import { assert } from '../../utils/assert';
 import { generateId } from '../../utils/generateId';
 import { uppercase } from '../../utils/uppercase';
@@ -99,7 +98,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
     onDuplicate = (e) => {   
         let {project,todos} = this.props;
         let todosIDs = project.layout.filter(isString);
-        let relatedTodos = filter(todos, (todo:Todo) => contains( todo._id, todosIDs ), "onDuplicate");
+        let relatedTodos = filter(todos, (todo:Todo) => contains( todo._id, todosIDs ));
         let duplicatedTodos:Todo[] = [];
         let duplicatedLayout:LayoutItem[] = project.layout.map((item) => {
             if(isString(item)){

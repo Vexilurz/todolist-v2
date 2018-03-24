@@ -5,7 +5,7 @@ import * as ReactDOM from 'react-dom';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { Tags } from './Tags';
-import { Category } from './MainContainer';
+import { Category } from '../types';
 import { chooseIcon } from '../utils/chooseIcon';
 import { uppercase } from '../utils/uppercase';
 

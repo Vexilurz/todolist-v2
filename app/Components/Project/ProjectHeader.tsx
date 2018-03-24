@@ -6,7 +6,7 @@ import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react";  
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
-import { Todo, Project } from '../../database';
+import { Todo, Project } from '../../types';
 import { getTagsFromItems, daysLeftMark, getMonthName } from '../../utils/utils';
 import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';

@@ -6,17 +6,17 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
 import { byNotCompleted, byNotDeleted, getTagsFromItems } from "../../utils/utils";  
-import { Todo, Project, Area } from '../../database';
+import { Todo, Project, Area, Category } from '../../types';
 import { ContainerHeader } from '.././ContainerHeader';
 import { TodosList } from '.././TodosList';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { isEmpty } from 'ramda';
-import { Category } from '../MainContainer';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
   
+
  
 interface SomedayProps{
     dispatch:Function,

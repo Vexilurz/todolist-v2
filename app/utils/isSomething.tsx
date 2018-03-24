@@ -1,9 +1,29 @@
-import { all, isNil, contains, not, has, compose, and } from 'ramda';
-import { Area, Project, Todo, Heading } from './../database';
-import { Category } from '.././Components/MainContainer';
-export type Item = Area | Project | Todo; 
+import { all, isNil, contains, not, has, compose, and, complement } from 'ramda';
+import { Area, Project, Todo, Heading, Category, Item } from './../types';
+import { daysRemaining } from './daysRemaining';
 
- 
+
+export let isNotNil = complement(isNil);
+
+
+export let isToday = (date : Date) => {
+    if(isNil(date)){ return false }; 
+
+    if(isDate(date)){ 
+       return daysRemaining(date)===0;
+    } 
+
+    if(isString(date)){
+       let maybeDate = new Date(date);
+       if(isDate(maybeDate)){
+          return daysRemaining(date)===0;
+       }
+    } 
+  
+    return false;
+};  
+
+
 export let isDomElement = (element:any) => element instanceof Element;
  
 

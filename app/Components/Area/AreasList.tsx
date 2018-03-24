@@ -4,18 +4,18 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react"; 
 import IconButton from 'material-ui/IconButton'; 
-import { Project, Area, Todo } from '../../database';
+import { Project, Area, Todo, Category } from '../../types';
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import ArrowUp from 'material-ui/svg-icons/navigation/arrow-drop-up';
 import ArrowDown from 'material-ui/svg-icons/navigation/arrow-drop-down';
-import { byNotCompleted, byNotDeleted, typeEquals, isNotNil, anyTrue, attachDispatchToProps, different } from '../../utils/utils';
+import { byNotCompleted, byNotDeleted, typeEquals, different } from '../../utils/utils';
 import PieChart from 'react-minimal-pie-chart';
 import { 
-    uniq, allPass, remove, intersection, reject, slice, prop, flatten,
-    isEmpty, contains, assoc, isNil, not, merge, map, concat, ifElse, 
-    addIndex, compose, cond, defaultTo, last, insertAll, prepend, find  
+    uniq, allPass, remove, reject, slice, prop, flatten,
+    isEmpty, contains, assoc, isNil, not, map, concat, ifElse, 
+    addIndex, compose, cond, defaultTo, last, insertAll
 } from 'ramda'; 
-import { Category, filter } from '../MainContainer';
+import { filter } from 'lodash';
 import { AutoresizableText } from '../AutoresizableText';
 import { assert } from '../../utils/assert';
 import { isArea, isProject, isNotArray } from '../../utils/isSomething';
@@ -23,7 +23,7 @@ import { arrayMove } from '../../utils/arrayMove';
 import { SortableContainer } from '../CustomSortableContainer';
 import { isDev } from '../../utils/isDev';
 import { groupProjectsByArea } from './groupProjectsByArea';
-import {  generateLayout } from './generateLayout';
+import { generateLayout } from './generateLayout';
 import { requestFromMain } from '../../utils/requestFromMain';
 import { uppercase } from '../../utils/uppercase';
 const mapIndexed = addIndex(map);
@@ -50,11 +50,15 @@ interface AreasListProps{
     projects:Project[]    
 }  
 
+
 interface AreasListState{} 
+
 
 interface Separator{ type:string, _id:string }; 
  
+
 type LayoutItem = Project | Area | Separator;  
+
 
 export class AreasList extends Component<AreasListProps,AreasListState>{
 
@@ -567,7 +571,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
             </div> 
         </li>
     }
-}
+};
  
 
 
@@ -712,7 +716,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
             </div>
         </li>  
     }
-}
+};
 
  
 

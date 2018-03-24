@@ -1,12 +1,8 @@
 import { 
     cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains, append, omit, 
-    prop, equals, identity, all, when, evolve, ifElse, applyTo, reduce, add, groupBy, 
-    //allPass 
+    prop, equals, identity, all, when, evolve, ifElse, applyTo, reduce, add, groupBy
 } from 'ramda';
-import {Project, Area, Todo} from '../database';
-import { filter } from '../Components/MainContainer';
-
-
+import { Project, Area, Todo } from '../types';
 
 export let generateAmounts : (
     todos:Todo[],

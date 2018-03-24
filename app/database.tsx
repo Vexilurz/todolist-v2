@@ -4,26 +4,30 @@ import * as ReactDOM from 'react-dom';
 import { ipcRenderer } from 'electron';
 import { debounce } from 'lodash'; 
 import PouchDB from 'pouchdb-browser';   
-import { ChecklistItem } from './Components/TodoInput/TodoChecklist';
-import { Category } from './Components/MainContainer';
-import { randomArrayMember, randomInteger, randomDate, convertTodoDates } from './utils/utils';
+import { convertTodoDates } from './utils/utils';
 import { isNil, all, map, isEmpty, not } from 'ramda'; 
 import { isDev } from './utils/isDev';
 import { assert } from './utils/assert';
 import { isArea, isString, isProject, isTodo } from './utils/isSomething';
-import { RawDraftContentState } from './utils/draftUtils';
-import { RepeatOptions } from './Components/RepeatPopup';
+import { 
+    Calendar, ChecklistItem, Category, RawDraftContentState, RepeatOptions,
+    Todo, Project, Area, Query 
+} from './types';
+
 
 let uniqid = require("uniqid"); 
 let path = require('path');
 let Promise = require('bluebird');
  
+
 export let todos_db;
 export let projects_db; 
 export let areas_db;
 export let calendars_db;
  
-const limit = 1000000;
+
+const limit = 100000;
+
  
 export let initDB = () => { 
   calendars_db = new PouchDB('calendars'); 
@@ -42,107 +46,6 @@ Date.prototype["addDays"] = function(days){
     return dat; 
 }; 
 
-
-export type ObjectType = "heading" | "project" | "todo" | "area" | "calendar"; 
-
-
-export interface Calendar{
-  url:string, 
-  name:string,
-  description:string,
-  timezone:string,
-  active:boolean,
-  events:any[],
-  type:ObjectType, 
-  _id:string
-};  
-
- 
-export interface Heading{
-  title : string, 
-  priority : number,
-  type : ObjectType,
-  _id : string, 
-  key : string 
-};
-
-
-export type LayoutItem = string | Heading;
-
-
-export interface Project{
-  _id : string,  
-  type : ObjectType, 
-  name : string,   
-  priority : number,
-  description : string, 
-  layout : LayoutItem[], 
-  created : Date, 
-  deadline : Date,
-  deleted : Date,
-  completed : Date, 
-  attachedTags : string[], 
-  hide?:Category[],
-  expand?:number 
-};
-
- 
-export interface Area{
-  _id : string, 
-  name : string,  
-  type : ObjectType,
-  priority : number,
-  created : Date,
-  deleted : Date, 
-  description : string,
-  attachedTags : string[], 
-  attachedProjectsIds : string[], 
-  hideContentFromAreasList? : boolean
-};  
-
-
-export interface Group{
-   _id:string,  
-   type:'never'|'on'|'after',
-   options?:RepeatOptions,  
-   last?:boolean
-}; 
- 
-
-export interface Todo{ 
-  _id : string,
-  category : Category, 
-  type : ObjectType,
-  title : string,
-  priority : number,
-  note : RawDraftContentState,  
-  checklist : ChecklistItem[],
-  reminder : Date,  
-  deadline : Date,
-  created : Date,
-  deleted : Date, 
-  attachedDate : Date,  
-  attachedTags : string[], 
-  completedSet : Date,
-  completedWhen : Date, 
-  group?:Group,
-  completed?:Date 
-}; 
-  
-
-export interface Query<T>{
-  total_rows: number, 
-  offset: number,  
-  rows: QueryResult<T>[]
-};
-
-
-export interface QueryResult<T>{
-  doc:T,
-  id:string, 
-  key:string,
-  value:Object 
-};
 
 
   

@@ -11,13 +11,14 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { Store } from '../app';
+import { Store } from '../types';
 import { ipcRenderer } from 'electron';
 import { TopSnackbar } from './Snackbar';
-import { attachDispatchToProps, downloadUpdates, threeDaysLater } from '../utils/utils';
+import { attachDispatchToProps, downloadUpdates } from '../utils/utils';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 import { googleAnalytics } from '../analytics';
 import { updateConfig } from '../utils/config';
+import { threeDaysLater } from '../utils/time';
  
 
 
@@ -77,7 +78,7 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
             .then( () => updateConfig({nextUpdateCheck:threeDaysLater(new Date())}) )
             .then( (config) => this.props.dispatch({type:"updateConfig",load:config}) )
             .then( () => this.setState({canRestart:true}) )
-        } 
+        }  
     } 
   
     render(){ 

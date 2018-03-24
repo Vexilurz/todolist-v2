@@ -1,13 +1,10 @@
-import { Store } from "./app";
-import { Category } from "./Components/MainContainer";
 import { adjust, cond, all, equals, isEmpty, contains, not, remove, uniq, isNil, defaultTo } from 'ramda';
 import { isTodo, isBoolean, isDate, isString, isNumber, isCategory, isProject, isArea } from "./utils/isSomething";
 import { assert } from "./utils/assert";
 import { typeEquals } from "./utils/utils";
-import { Todo } from "./database";
+import { Store, Category, Todo, section } from "./types";
 import { requestFromMain } from "./utils/requestFromMain";
-import { section } from "./Components/Settings/section";
-
+ 
  
 export let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => {
       return cond([

@@ -12,7 +12,7 @@ interface SectionProps{
     selected:boolean
 }
 
-export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags';
+
 export class Section extends Component<SectionProps,{}>{
 
     render(){

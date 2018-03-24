@@ -10,11 +10,12 @@ import Trash from 'material-ui/svg-icons/action/delete';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import { merge, isNil, not } from 'ramda';
-import { Category } from '../MainContainer';
+import { Category } from '../../types';
 import { assert } from '../../utils/assert';
-import { isNotNil, anyTrue, different } from '../../utils/utils';
+import { anyTrue, different } from '../../utils/utils';
 import { requestFromMain } from '../../utils/requestFromMain';
 import { uppercase } from '../../utils/uppercase';
+
 
 
 let Hot = (hot:number) : JSX.Element => 
@@ -41,6 +42,7 @@ let Hot = (hot:number) : JSX.Element =>
     </div> 
 
 
+
 let Counter = (counter:number) : JSX.Element =>
     counter===0 ? null :    
     <div style={{
@@ -54,6 +56,7 @@ let Counter = (counter:number) : JSX.Element =>
     }}>
         {counter}
     </div> 
+
 
 
 interface LeftPanelMenuItemProps{

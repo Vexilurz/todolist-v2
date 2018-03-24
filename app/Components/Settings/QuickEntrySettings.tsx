@@ -4,20 +4,27 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { section } from './section';
-import { Calendar, Area, Project, Todo } from '../../database';
+import { Calendar, Area, Project, Todo, section } from '../../types';
 import { requestFromMain } from '../../utils/requestFromMain';
 import { updateConfig } from '../../utils/config';
 import { not } from 'ramda';
 import { Checkbox } from '../TodoInput/TodoInput';
 const Promise = require('bluebird'); 
 
+
+
 interface QuickEntrySettingsProps{
     enableShortcutForQuickEntry:boolean, 
     quickEntrySavesTo:string,
     dispatch:Function
 } 
+
+
+
 interface QuickEntrySettingsState{}
+
+
+
 export class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickEntrySettingsState>{
 
     constructor(props){ super(props) }

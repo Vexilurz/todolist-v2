@@ -4,18 +4,17 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { section } from './section';
-import { Calendar, Area, Project, Todo } from '../../database';
+import { Calendar, Area, Project, Todo, section } from '../../types';
 import { requestFromMain } from '../../utils/requestFromMain';
 import { updateConfig } from '../../utils/config';
 import { not, ifElse, when } from 'ramda';
 import { Checkbox } from '../TodoInput/TodoInput';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { isEmpty, contains, last } from 'ramda';
-import { getIcalData, IcalData } from '../Calendar';
+import { getIcalData } from '../Calendar';
 import { generateId } from '../../utils/generateId';
-import { isNotNil } from '../../utils/utils';
 import Clear from 'material-ui/svg-icons/content/clear';
+import { isNotNil } from '../../utils/isSomething';
 
 
 interface CalendarEventsSettingsProps{

@@ -1,24 +1,26 @@
 import '../../assets/styles.css';  
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
-import { Component } from "react"; 
-import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
+import { Component } from "react";  
+import { Todo, Project, Heading, LayoutItem, Area } from '../../types'; 
 import { debounce } from 'lodash';
-import { byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNotNil, isNotEmpty } from '../../utils/utils'; 
+import { byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNotEmpty } from '../../utils/utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
 import { adjust, allPass, uniq, isEmpty, not, isNil, compose, defaultTo } from 'ramda';
-import { filter } from '../MainContainer';
-import { bySomeday, isProject, isTodo, isString, isDate } from '../../utils/isSomething';
+import { filter } from 'lodash';
+import { bySomeday, isProject, isTodo, isString, isDate, isNotNil } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { daysRemaining } from '../../utils/daysRemaining';
 import { isDev } from '../../utils/isDev';
+
 
 
 let log = (append:string) => (load:any) : any => {
     console.log(append,load); 
     return load;
 };
+
 
 
 let byNotHaveScheduledTodos : (todos:Todo[]) => boolean = 

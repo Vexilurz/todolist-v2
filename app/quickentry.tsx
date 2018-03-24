@@ -66,10 +66,10 @@ import { chooseIcon } from './utils/chooseIcon';
 import { uppercase } from './utils/uppercase';
 import { SortableContainer } from './Components/CustomSortableContainer';
 import { arrayMove } from './utils/arrayMove';
-import { ChecklistItem, Checklist } from './Components/TodoInput/TodoChecklist';
+import { Checklist } from './Components/TodoInput/TodoChecklist';
 import { globalErrorHandler } from './utils/globalErrorHandler';
-import { isString, isDate, isProject, isArea } from './utils/isSomething';
-import { isToday, byNotDeleted, byNotCompleted, attachDispatchToProps, isNotEmpty } from './utils/utils';
+import { isString, isDate, isProject, isArea, isToday } from './utils/isSomething';
+import { byNotDeleted, byNotCompleted, attachDispatchToProps, isNotEmpty } from './utils/utils';
 import { isDev } from './utils/isDev';
 import TextareaAutosize from 'react-autosize-textarea';
 import { TodoTags } from './Components/TodoInput/TodoTags';
@@ -91,8 +91,9 @@ import {
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import 'draft-js/dist/Draft.css';
 import { 
-    noteToState, noteFromState, RawDraftContentState, getNotePlainText,
+    noteToState, noteFromState, getNotePlainText,
 } from './utils/draftUtils';
+import { RawDraftContentState, Todo, ChecklistItem, Project, Area, Category, Config } from './types';
 import { requestFromMain } from './utils/requestFromMain';
 import { groupProjectsByArea } from './Components/Area/groupProjectsByArea';
 import { generateLayout } from './Components/Area/generateLayout';
@@ -169,8 +170,8 @@ ipcRenderer.once(
 
 
 interface QuickEntryState{
-    project:any,
-    category:string,
+    project:Project,
+    category:Category,
     title:string,  
     editorState:any,
     deadline:Date,
@@ -178,7 +179,7 @@ interface QuickEntryState{
     attachedDate:Date, 
     attachedTags:string[],
     tag:string, 
-    checklist:any[],
+    checklist:ChecklistItem[],
     showTags:boolean, 
     showDateCalendar:boolean,  
     showTagsSelection:boolean,
@@ -189,9 +190,9 @@ interface QuickEntryState{
 
 
 interface QuickEntryProps{
-    config:any,
-    projects:any[],
-    areas:any[],
+    config:Config,
+    projects:Project[],
+    areas:Area[],
     indicators : { 
         [key:string]:{
             active:number,
@@ -244,6 +245,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     } 
 
 
+
     stateFromConfig = (config) => { 
         let { quickEntrySavesTo, defaultTags } = config;
         let category = isNil(quickEntrySavesTo) ? "inbox" : quickEntrySavesTo.toLowerCase();
@@ -262,7 +264,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     };
 
 
-    tagsFromTodos = (todos:any[]) => flatten(todos.map((todo) => todo.attachedTags));
+
+    tagsFromTodos = (todos:Todo[]) => flatten(todos.map((todo:Todo) => todo.attachedTags));
+
 
 
     resize = () => {
@@ -324,7 +328,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
 
-    stateFromTodo = (state,todo) : QuickEntryState => ({   
+    stateFromTodo = (state,todo:Todo) : QuickEntryState => ({   
         ...state,
         category:todo.category, 
         title:todo.title,
@@ -339,9 +343,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     
 
 
-    todoFromState = () : any => ({
+    todoFromState = () : Todo => ({
         _id:generateId(),
-        category:this.state.category as any, 
+        category:this.state.category as Category, 
         type:"todo", 
         title:this.state.title,
         priority:0,
@@ -349,6 +353,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         checklist:this.state.checklist,
         deadline:this.state.deadline, 
         created:new Date(),
+        completedSet:null,
+        completedWhen:null,
+        reminder:null,
         deleted:this.state.deleted, 
         attachedDate:this.state.category==="today" ? new Date() : this.state.attachedDate,  
         attachedTags:this.state.attachedTags
@@ -405,7 +412,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         this.blur();
         let emptyTodo = generateEmptyTodo(generateId(), this.state.category as any, 0);
         let newState : QuickEntryState = {
-            ...this.stateFromTodo(this.state,emptyTodo),
+            ...this.stateFromTodo(this.state,emptyTodo as Todo),
             showDateCalendar:false,     
             showTagsSelection:false, 
             showTags:false, 
@@ -470,9 +477,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
 
-    categoryFromState = () : string => {
+    categoryFromState = () : Category => {
         let {project,category,deadline,attachedDate} = this.state;
-
+ 
         if(isDate(deadline) || isDate(attachedDate) || isProject(project)){
             if(isToday(deadline) || isToday(attachedDate)){
                 return "today"; 
@@ -821,14 +828,14 @@ interface TodoInputPopupFooterProps{
     onRemoveSomedayLabel:Function,
     onRemoveDeadlineLabel:Function,
     onSelectInboxCategory:() => void,
-    onSelectProject:(project:any) => void,
+    onSelectProject:(project:Project) => void,
     todayCategory:boolean,
-    category:string,
+    category:Category,
     attachedDate:Date,
     deadline:Date,
-    project:any,
-    areas:any[],
-    projects:any[]
+    project:Project,
+    areas:Area[],
+    projects:Project[]
 }
 
 
@@ -1482,13 +1489,13 @@ interface SelectorPopupProps{
         }; 
     },
     close:Function,
-    projects:any[],
+    projects:Project[],
     rootRef:HTMLElement, 
-    areas:any[],
+    areas:Area[],
     selectInbox:() => void,    
-    selectProject:(project:any) => void,
-    category:any,
-    project:any 
+    selectProject:(project:Project) => void,
+    category:Category,
+    project:Project 
 }
 
 
@@ -1506,7 +1513,7 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
 
 
 
-    getAreaElement = (a:any) => { 
+    getAreaElement = (a:Area) => { 
         let {selectProject,close,project} = this.props;
 
         return <div    
@@ -1551,7 +1558,7 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
 
 
 
-    getProjectElement = (p:any) => { 
+    getProjectElement = (p:Project) => { 
         let {selectProject,close,project} = this.props;
         let indicator = defaultTo({completed:0, active:0})(this.props.indicators[p._id]);
         let done = indicator.completed;

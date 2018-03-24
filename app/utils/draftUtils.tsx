@@ -13,23 +13,8 @@ import {
     RichUtils
 } from 'draft-js';
 import { isString } from './isSomething';
+import { RawDraftContentState } from '../types';
 
-
-export interface Block{
-    data:any,
-    depth:number,
-    entityRanges:any[],
-    inlineStyleRanges:any[],
-    key:string,
-    text:string,
-    type:string
-}; 
-
-
-export interface RawDraftContentState{
-    blocks:Block[],
-    entityMap:any
-};
 
 
 let getEmptyRaw : () => RawDraftContentState = 

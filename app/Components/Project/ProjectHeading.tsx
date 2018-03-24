@@ -8,11 +8,10 @@ import TrashIcon from 'material-ui/svg-icons/action/delete';
 import Duplicate from 'material-ui/svg-icons/content/content-copy';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward'; 
 import { TextField } from 'material-ui';
-import { Heading } from '../../database';
+import { Heading } from '../../types'; 
 import { isEmpty, isNil, equals, complement, when, prop } from 'ramda';
 import { uppercase } from '../../utils/uppercase';
-import { isNotNil } from '../../utils/utils';
-import { isFunction } from '../../utils/isSomething';
+import { isFunction, isNotNil } from '../../utils/isSomething'; 
 let notEquals = complement(equals);
  
 

@@ -9,20 +9,21 @@ import { ipcRenderer } from 'electron';
 import {    
     attachDispatchToProps, convertTodoDates, 
     convertProjectDates, convertAreaDates, 
-    oneMinuteBefore, isNotNil, 
-    nDaysFromNow, initDate, byDeleted, 
+    oneMinuteBefore, nDaysFromNow, initDate, byDeleted, 
     byNotDeleted, byCompleted, byNotCompleted, 
     byCategory, introListIds, isDeadlineTodayOrPast, 
     isTodayOrPast, byScheduled, typeEquals, log 
 } from "./utils/utils";  
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight'; 
-import { isString, isDate, isNumber } from './utils/isSomething';
+import { isString, isDate, isNumber, isNotNil } from './utils/isSomething';
 import { createStore } from "redux"; 
 import { Provider, connect } from "react-redux";
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
-import { MainContainer, Category, filter } from './Components/MainContainer';
-import { Project, Area, Todo, addTodos, Calendar } from './database';
-import { applicationStateReducer } from './StateReducer';
+import { MainContainer } from './Components/MainContainer';
+import { filter } from 'lodash';
+import { addTodos } from './database'; 
+import { Project, Area, Category, Todo, Calendar, Config, Store } from './types';
+import { applicationStateReducer } from './StateReducer'; 
 import { applicationObjectsReducer } from './ObjectsReducer';
 import { isNil, not, map, compose, contains, prop, when, evolve, ifElse, applyTo, flatten, reject } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
@@ -36,13 +37,13 @@ import { assert } from './utils/assert';
 import { isDev } from './utils/isDev';
 import { convertEventDate } from './Components/Calendar';
 import { defaultTags } from './utils/defaultTags';
-import { section } from './Components/Settings/section';
 import { SettingsPopup } from './Components/settings/SettingsPopup';
 import { LicensePopup } from './Components/settings/LicensePopup';
 import { generateIndicators } from './utils/generateIndicators';
 import { generateAmounts } from './utils/generateAmounts';
 import { requestFromMain } from './utils/requestFromMain';
 import { refreshReminders } from './utils/reminderUtils';
+import { uppercase } from './utils/uppercase';
 let pathTo = require('path'); 
 injectTapEventPlugin();  
 
@@ -76,20 +77,6 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 
 
 
-interface Config{
-    nextUpdateCheck:Date,
-    firstLaunch:boolean, 
-    defaultTags:string[],
-    hideHint:boolean,
-    shouldSendStatistics:boolean,
-    showCalendarEvents:boolean,
-    disableReminder:boolean,
-    groupTodos:boolean,
-    preserveWindowWidth:boolean, //when resizing sidebar
-    enableShortcutForQuickEntry:boolean,
-    quickEntrySavesTo:string, //inbox today next someday
-    moveCompletedItemsToLogbook:string, //immediatelly
-};
 
 
 
@@ -107,58 +94,6 @@ const defaultConfig : Config = {
     quickEntrySavesTo:"inbox", //inbox today next someday
     moveCompletedItemsToLogbook:"immediately"
 };
-
-
- 
-export interface Store extends Config{
-    showWhenCalendar : boolean, 
-    whenTodo : Todo,
-    whenCalendarPopupX : number, 
-    whenCalendarPopupY : number,
-    
-    showLicense : boolean,
-    progress : any,
-    scrolledTodo : Todo,
-    selectedTodo : Todo, 
-    showUpdatesNotification : boolean, 
-    scheduledReminders : number[],
-    limit : Date, 
-    searchQuery : string,  
-    openChangeGroupPopup : boolean,
-    selectedSettingsSection : section, 
-    openSettings : boolean,
-    showScheduled : boolean,
-    showCompleted : boolean, 
-    openSearch : boolean, 
-    openTodoInputPopup : boolean, 
-    openRightClickMenu : any, 
-    openRepeatPopup : any, 
-    showRepeatPopup : boolean,
-    repeatTodo : Todo,
-    repeatPopupX : number,
-    repeatPopupY : number,
-    showRightClickMenu : boolean, 
-    openNewProjectAreaPopup : boolean,
-    showProjectMenuPopover : boolean,
-    showTrashPopup : boolean,
-    selectedCategory : Category,
-    selectedTag : string, 
-    leftPanelWidth : number,
-    closeAllItems : any, 
-    dragged : string,
-    selectedProjectId : string, 
-    selectedAreaId : string,
-    rightClickedTodoId : string,
-    rightClickMenuX : number,
-    rightClickMenuY : number,
-    calendars : Calendar[],
-    projects : Project[],
-    areas : Area[],  
-    todos : Todo[], 
-    id? : number,
-    clone? : boolean,
-    dispatch? : Function
-}   
 
 
 
@@ -250,6 +185,12 @@ export class App extends Component<AppProps,AppState>{
                 this.reportStart({...info, timeSeconds} as any);
             }
         );
+
+        requestFromMain<any>(
+            'setWindowTitle',
+            [`tasklist - ${uppercase('Inbox')}`],
+            (event) => event
+        ); 
     };
 
 
@@ -325,7 +266,11 @@ export class App extends Component<AppProps,AppState>{
         }
     */    
 
+
  
+    cloneWindow = () => ipcRenderer.send("store", {...this.props});
+
+
 
     reportStart = ({ arch, cpus, platform, release, type, timeSeconds }) => googleAnalytics.send(   
         'event',   
@@ -531,6 +476,7 @@ export class App extends Component<AppProps,AppState>{
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     selectedTag={this.props.selectedTag}
                     dragged={this.props.dragged}
+                    cloneWindow={this.cloneWindow}
                 /> 
             </div>   
             { 
@@ -600,7 +546,7 @@ let renderApp = (event, clonedStore:Store, id:number) : void => {
 
         let defaultStore = {...defaultStoreItems};
 
-        if(isNotNil(clonedStore)){ 
+        if(isNotNil(clonedStore)){  
             let {todos,projects,areas,calendars,limit} = clonedStore;
 
             defaultStore={
@@ -610,10 +556,7 @@ let renderApp = (event, clonedStore:Store, id:number) : void => {
                 todos:map(convertTodoDates,todos),
                 projects:map(convertProjectDates, projects), 
                 areas:map(convertAreaDates, areas), 
-                calendars:map(
-                    evolve({ events:map(convertEventDate) }),
-                    calendars
-                )
+                calendars:map( evolve({events:map(convertEventDate)}), calendars )
             };
         }   
    
@@ -639,8 +582,8 @@ let renderApp = (event, clonedStore:Store, id:number) : void => {
                 ) 
             }
         ); 
-};
-
+}; 
+ 
 
    
 //render application

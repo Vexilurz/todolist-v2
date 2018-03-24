@@ -9,10 +9,8 @@ import ClearArrow from 'material-ui/svg-icons/content/backspace';
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { Todo, removeTodo, addTodo, Project, Area, LayoutItem } from '../database';
-import { Store } from '../app';
-import { ChecklistItem } from './TodoInput/TodoChecklist';
-import { Category } from './MainContainer';
+import { removeTodo, addTodo, } from '../database';
+import { Category, ChecklistItem, Todo, Project, Area, LayoutItem, Store } from '../types';
 import { remove, isNil, not, and, equals } from 'ramda';
 let uniqid = require("uniqid");    
 import { isDev } from '../utils/isDev'; 
@@ -20,14 +18,13 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { attachDispatchToProps, getCompletedWhen, isNotNil } from '../utils/utils';
+import { attachDispatchToProps, getCompletedWhen } from '../utils/utils';
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { generateId } from '../utils/generateId';
 import { assert } from '../utils/assert';
 import { noteFromState, getNotePlainTextFromRaw } from '../utils/draftUtils';
+import { isNotNil } from '../utils/isSomething';
  
-   
-
 
  
 interface RightClickMenuState{

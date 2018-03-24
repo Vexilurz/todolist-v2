@@ -3,8 +3,8 @@ import '../../assets/styles.css';
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { Todo, Project, Heading, LayoutItem, Area } from '../../database'; 
-import { generateDropStyle, hideChildrens, removeHeading, typeEquals, isNotNil } from '../../utils/utils'; 
+import { Category, Todo, Project, Heading, LayoutItem, Area } from '../../types'; 
+import { generateDropStyle, hideChildrens, removeHeading, typeEquals } from '../../utils/utils'; 
 import { ProjectHeading } from './ProjectHeading';  
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { 
@@ -16,12 +16,11 @@ import { onDrop, removeTodosFromProjects, dropTodoOnCategory, findDropTarget } f
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { arrayMove } from '../../utils/arrayMove';
 import { assert } from '../../utils/assert';
-import { isTodo, isString, isHeading, isArrayOfTodos, isCategory, isArea, isProject } from '../../utils/isSomething';
+import { isTodo, isString, isHeading, isArrayOfTodos, isCategory, isArea, isProject, isNotNil } from '../../utils/isSomething';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
 import { SortableContainer } from '../CustomSortableContainer';
-import { Category } from '../MainContainer';
 
 
 let log = (msg) => (item) => {

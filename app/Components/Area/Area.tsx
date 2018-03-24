@@ -4,14 +4,14 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react"; 
 import { debounce } from 'lodash';
-import { Area, Project, Todo } from '../../database'; 
+import { Area, Project, Todo, Category } from '../../types'; 
 import { AreaHeader } from './AreaHeader';
 import { AreaBody } from './AreaBody';
-import { Category, filter } from '../MainContainer';
+import { filter } from 'lodash'; 
 import { isNil, contains, flatten, compose, map } from 'ramda'; 
 import { isArea, isArrayOfTodos, isArrayOfProjects, isTodo, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
-   
+    
   
 interface AreaComponentProps{
     area:Area,
@@ -69,11 +69,11 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
         if(isNil(area)){ return }
 
         //projects attached to area
-        let selectedProjects : Project[] = filter(projects,(p) => contains(p._id)(area.attachedProjectsIds),""); 
+        let selectedProjects : Project[] = filter(projects,(p) => contains(p._id)(area.attachedProjectsIds)); 
 
         //todos attached to projects which attached to area to be removed
         let selectedTodos : Todo[] = compose(
-            (ids:string[]) => filter(todos, (t) => contains(t._id)(ids), ""),
+            (ids:string[]) => filter(todos, (t) => contains(t._id)(ids)),
             flatten,
             map((p:Project) => p.layout.filter(isString))
         )(selectedProjects);

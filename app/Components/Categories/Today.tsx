@@ -5,12 +5,10 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react"; 
 import { 
     attachDispatchToProps, byNotCompleted, byNotDeleted, getTagsFromItems, 
-    generateDropStyle,  keyFromDate, isDeadlineTodayOrPast, isTodayOrPast, 
-    sameDay, byTags, byCategory, isNotNil, timeIsMidnight
+    generateDropStyle, isDeadlineTodayOrPast, isTodayOrPast, byTags, byCategory
 } from "../../utils/utils";  
-import { Todo, Project, Area, Calendar } from '../../database'; 
+import { Todo, Project, Area, Calendar, Category, Store, CalendarEvent } from '../../types'; 
 import { Tags } from '../../Components/Tags';
-import { Store } from '../../app';
 import { onDrop } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
@@ -20,9 +18,8 @@ import {
     identity 
 } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput'; 
-import { Category, filter } from '../MainContainer';
+import { filter } from 'lodash'; 
 import { ipcRenderer } from 'electron';
-import { CalendarEvent } from '../Calendar';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { arrayMove } from '../../utils/arrayMove';
@@ -36,12 +33,12 @@ import { SortableContainer } from '../CustomSortableContainer';
 import { updateConfig } from '../../utils/config';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
-import { timeOfTheDay, inTimeRange } from '../../utils/time';
+import { timeOfTheDay, inTimeRange, keyFromDate } from '../../utils/time';
 import { groupEventsByType, byTime } from './Upcoming';
 import { getSameDayEventElement } from '../../utils/getCalendarEventElement';
+import diff from 'deep-diff';
 let Perf = require('react-addons-perf');
 let p = require('react-dom/lib/ReactPerf'); 
-import diff from 'deep-diff';
 
 
 

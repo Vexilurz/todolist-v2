@@ -3,10 +3,10 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { section } from './section';
-import { Calendar, Area, Project, Todo } from '../../database';
+import { Calendar, Area, Project, Todo, section } from '../../types';
 import { SimplePopup } from '../SimplePopup';
 import { Settings, SettingsProps } from './settings';
+
 
 
 interface SettingsPopupProps extends SettingsProps{
@@ -14,7 +14,9 @@ interface SettingsPopupProps extends SettingsProps{
 }
 
 
+
 interface SettingsPopupState{}
+
 
 
 export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupState>{

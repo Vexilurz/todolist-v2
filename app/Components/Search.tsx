@@ -38,12 +38,11 @@ import {
     todoToKeywords,
     getTagsFromItems,
     byTags
-} from '../utils/utils';
-import { Todo, removeTodo, updateTodo,ObjectType, Area, Project, Heading } from '../database';
-import { Store } from '../app'; 
-import { ChecklistItem } from './TodoInput/TodoChecklist';
+} from '../utils/utils'; 
+import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../types';
+import { removeTodo, updateTodo } from '../database';
 import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection, defaultTo } from 'ramda';
-import { Category, filter } from './MainContainer';
+import { filter } from 'lodash'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
