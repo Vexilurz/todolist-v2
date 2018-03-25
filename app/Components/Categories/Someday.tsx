@@ -63,6 +63,8 @@ export class Someday extends Component<SomedayProps, SomedayState>{
 
         let tags = getTagsFromItems(todos);
         let empty = generateEmptyTodo(generateId(),selectedCategory,0);   
+
+        
           
         return <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}>
             <ContainerHeader  
@@ -121,8 +123,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         groupTodos={this.props.groupTodos}
                         dispatch={this.props.dispatch}   
                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                        selectedCategory={selectedCategory}  
-                        selectedTag={this.props.selectedTag}  
+                        selectedCategory={selectedCategory}    
                         rootRef={this.props.rootRef}
                         todos={todos}  
                     />

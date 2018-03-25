@@ -10,7 +10,7 @@ import { byNotDeleted, byCompleted, attachDispatchToProps, daysLeftMark } from '
 import { Checkbox, DueDate } from '../TodoInput/TodoInput';
 import PieChart from 'react-minimal-pie-chart';
 import Restore from 'material-ui/svg-icons/content/undo'; 
-import { contains, isNil, allPass, not, isEmpty } from 'ramda';
+import { contains, isNil, allPass, not, isEmpty, defaultTo } from 'ramda';
 import Hide from 'material-ui/svg-icons/action/visibility-off';
 import Count from 'material-ui/svg-icons/editor/format-list-numbered';
 import { assert } from '../../utils/assert';
@@ -424,7 +424,7 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
 interface ProjectLinkTrashProps{ 
     project:Project,
     dispatch:Function,
-    indicator:{active:number,completed:number,deleted:number},
+    indicator:{active:number,completed:number,deleted:number, trash?:any},
     selectedCategory:Category 
 }
 
@@ -444,8 +444,9 @@ export class ProjectLinkTrash extends Component<ProjectLinkTrashProps, ProjectLi
  
     render(){ 
         let { dispatch,project,selectedCategory, indicator} = this.props;
-        let done = indicator.completed;
-        let left = indicator.active;
+        let source = defaultTo({completed:0,active:0})(indicator.trash);
+        let done = source.completed;
+        let left = source.active;
         let totalValue = (done+left)===0 ? 1 : (done+left);
         let currentValue = done;
 

@@ -7,7 +7,7 @@ import { debounce } from 'lodash';
 import { byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNotEmpty } from '../../utils/utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
-import { adjust, allPass, uniq, isEmpty, not, isNil, compose, defaultTo, ifElse } from 'ramda';
+import { adjust, allPass, uniq, isEmpty, not, isNil, compose, defaultTo, ifElse, all, contains } from 'ramda';
 import { filter } from 'lodash';
 import { bySomeday, isProject, isTodo, isString, isDate, isNotNil } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
@@ -202,7 +202,18 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             (i:Todo) => isTodo(i) ? allPass([byTags(selectedTag),...projectFilters])(i as (Project & Todo)) : true
         ); 
 
+
+
+        if(isDev()){
+            if(selectedTag!=="All"){ 
+                assert( 
+                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),toProjectBody.filter(isTodo)),
+                    `missing tag. Project. ${selectedTag}`
+                ) 
+            }
+        };
         
+
   
         return <div id={`${selectedCategory}-list`}>      
                     <div className="unselectable">     

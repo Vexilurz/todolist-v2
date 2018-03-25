@@ -15,7 +15,7 @@ import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { 
     allPass, isEmpty, not, assoc, isNil, flatten, ifElse,
     contains, intersection, or, prop, compose, map, cond,
-    identity 
+    identity, all 
 } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput'; 
 import { filter } from 'lodash'; 
@@ -209,7 +209,7 @@ export class Today extends Component<TodayProps,TodayState>{
         ); 
  
 
-        return {items,tags}
+        return {items,tags};
     };
   
 
@@ -347,26 +347,6 @@ export class Today extends Component<TodayProps,TodayState>{
         let { items, tags } = this.getItems();
         let empty = generateEmptyTodo(generateId(), "today", 0);  
 
-
-        /*
-        if(isDev()){
-            let todos = filter(items, isTodo);
-            let hiddenProjects = filter(
-                projects, 
-                (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide),
-                ""
-            );
-            let ids : string[] = flatten(hiddenProjects.map((p:Project) => filter(p.layout,isString)));
-            let hiddenTodos = filter(todos, (todo:Todo) => contains(todo._id)(ids));
-            let tagsFromTodos : string[] = flatten(hiddenTodos.map((todo:Todo) => todo.attachedTags));
-
-            assert(
-                isEmpty(intersection(tags,tagsFromTodos)),
-                `tags from hidden Todos still displayed ${selectedCategory}.`
-            ); 
-        }
-        */
-
         
         let decorators = [{
             area:document.getElementById("leftpanel"),
@@ -374,7 +354,6 @@ export class Today extends Component<TodayProps,TodayState>{
             id:"default"
         }];    
   
-
 
         let events : CalendarEvent[] = ifElse(
             identity,
@@ -390,6 +369,35 @@ export class Today extends Component<TodayProps,TodayState>{
         )(this.props.showCalendarEvents);
 
 
+
+        if(isDev()){
+            let todos = filter(items, isTodo);
+            let hiddenProjects = filter(
+                projects, 
+                (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide)
+            );
+            let ids : string[] = flatten(hiddenProjects.map((p:Project) => filter(p.layout,isString)));
+            let hiddenTodos = filter(todos, (todo:Todo) => contains(todo._id)(ids));
+            let tagsFromTodos : string[] = flatten(hiddenTodos.map((todo:Todo) => todo.attachedTags));
+
+            assert(
+                isEmpty(intersection(tags,tagsFromTodos)),
+                `tags from hidden Todos still displayed ${selectedCategory}.`
+            ); 
+        }
+        
+
+
+        if(isDev()){
+            if(selectedTag!=="All"){ 
+                assert(
+                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),filter(items, isTodo)),
+                    `missing tag. Today. ${selectedTag}`
+                ) 
+            }
+        }
+
+        
   
         return <div 
             id={`${selectedCategory}-list`}

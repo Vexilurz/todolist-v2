@@ -209,13 +209,12 @@ interface TodosListProps{
     groupTodos:boolean, 
     moveCompletedItemsToLogbook:string, 
     selectedCategory:Category,
-    selectedTag:string,  
     selectedProjectId:string,
     selectedAreaId:string,  
     rootRef:HTMLElement,   
     todos:Todo[],  
     disabled?:boolean,
-    reorderLayout?:boolean     
+    reorderLayout?:boolean  
 }    
 
 

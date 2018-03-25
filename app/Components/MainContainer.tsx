@@ -92,6 +92,15 @@ interface MainContainerProps{
             deleted:number
         }; 
     },
+    amounts:{
+        inbox:number,
+        today:number,
+        hot:number,
+        next:number,
+        someday:number,
+        logbook:number,
+        trash:number
+    },
 
     calendars:Calendar[],
     projects:Project[],
@@ -105,11 +114,12 @@ interface MainContainerProps{
     dragged:string,
 
     cloneWindow:() => void
-}   
+} 
+
+
 interface MainContainerState{ fullWindowSize:boolean }
   
-
-   
+ 
 export class MainContainer extends Component<MainContainerProps,MainContainerState>{
     rootRef:HTMLElement;  
     subscriptions:Subscription[]; 
@@ -492,6 +502,13 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     let inboxFilters = this.props.filters.inbox;    
                                     let inboxTodos = filter(this.props.todos, allPass(inboxFilters));
 
+                                    if(isDev()){
+                                        assert(
+                                           inboxTodos.length===this.props.amounts.inbox,
+                                           `Amounts dont match. Inbox. ${inboxTodos.length}:${this.props.amounts.inbox}.`
+                                        ) 
+                                    }
+
                                     return <Inbox 
                                         todos={inboxTodos} 
                                         dispatch={this.props.dispatch}
@@ -514,6 +531,17 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 () => { 
                                     let todayFilters = this.props.filters.today; 
                                     let todayTodos = filter(this.props.todos, allPass(todayFilters));
+
+                                    if(isDev()){
+                                        assert(
+                                            todayTodos.length===(this.props.amounts.today+this.props.amounts.hot),
+                                           `
+                                           Amounts dont match. 
+                                           Today. 
+                                           ${todayTodos.length}:${(this.props.amounts.today+this.props.amounts.hot)}.
+                                           `
+                                        ) 
+                                    }
 
                                     return <Today   
                                         todos={todayTodos}
@@ -543,6 +571,13 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     let somedayFilters = this.props.filters.someday;
                                     let selectedTodos = filter(this.props.todos, allPass(somedayFilters));
 
+                                    if(isDev()){
+                                        assert(
+                                            selectedTodos.length===this.props.amounts.someday,
+                                           `Amounts dont match. Someday. ${selectedTodos.length}:${this.props.amounts.someday}.`
+                                        ) 
+                                    }
+
                                     return <Someday 
                                         todos={selectedTodos}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
@@ -570,6 +605,13 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         (item:Project) : boolean => not( contains(item._id,introListIds) )
                                     );
 
+                                    if(isDev()){
+                                        assert(
+                                            nextTodos.length===this.props.amounts.next,
+                                           `Amounts dont match. Next. ${nextTodos.length}:${this.props.amounts.next}.`
+                                        ) 
+                                    }
+
                                     return <Next   
                                         todos={nextTodos}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
@@ -593,6 +635,15 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 () => {
                                     let trashTodos = filter(this.props.todos, allPass(this.props.filters.trash));
 
+
+                                    if(isDev()){
+                                        assert(
+                                            trashTodos.length===this.props.amounts.trash,
+                                           `Amounts dont match. Trash. ${trashTodos.length}:${this.props.amounts.trash}.`
+                                        ) 
+                                    }
+
+
                                     return <Trash    
                                         todos={trashTodos}
                                         groupTodos={this.props.groupTodos}  
@@ -615,6 +666,13 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 (selectedCategory:Category) : boolean => 'logbook'===selectedCategory,  
                                 () => {
                                     let logbookTodos = filter(this.props.todos, allPass(this.props.filters.logbook)); 
+
+                                    if(isDev()){
+                                        assert(
+                                            logbookTodos.length===this.props.amounts.logbook,
+                                           `Amounts dont match. Logbook. ${logbookTodos.length}:${this.props.amounts.logbook}.`
+                                        ) 
+                                    }
 
                                     return <Logbook   
                                         todos={logbookTodos} 
@@ -735,7 +793,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                     }  
                 </div>    
         </div> 
-    }
+    } 
 };   
  
 

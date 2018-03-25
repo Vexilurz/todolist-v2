@@ -28,7 +28,7 @@ import {
     different,
 } from '../../utils/utils';  
 import {
-    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, first,
+    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, first, contains,
     map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy,
     mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass
 } from 'ramda';
@@ -153,7 +153,7 @@ type Item = Project | Todo | CalendarEvent;
 
 interface objectsByDate{ [key:string]:Item[] }  
 
-
+ 
 let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {  
     let {showCalendarEvents,todos,projects} = props;
     let filters = [haveDate, byTags(props.selectedTag), byNotCompleted, byNotDeleted];    
@@ -515,8 +515,17 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
     
     render(){   
-        let {selectedTodos,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
+        let {selectedTodos,selectedTag,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
         let {sameDayEvents,fullDayEvents} = groupEventsByType(selectedEvents); 
+
+        if(isDev()){
+            if(selectedTag!=="All"){ 
+                assert(
+                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),selectedTodos),
+                    `missing tag. CalendarDay. ${selectedTag}`
+                )  
+            }
+        }
 
         return <div style={{
             display:"flex",
@@ -672,7 +681,6 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             selectedAreaId={this.props.selectedAreaId}
                             selectedProjectId={this.props.selectedProjectId}
-                            selectedTag={this.props.selectedTag}  
                             areas={this.props.areas}
                             projects={this.props.projects}
                             rootRef={this.props.rootRef}

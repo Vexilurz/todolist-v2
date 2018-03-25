@@ -1,5 +1,5 @@
 import { 
-    cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains, append, omit,
+    cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains, append, omit, concat,
     prop, equals, identity, all, when, evolve, ifElse, applyTo, reduce, add, groupBy 
 } from 'ramda';
 import {
@@ -11,18 +11,27 @@ import { Project, Todo } from '../types';
 
 
 
+
 export let generateIndicators : 
 (projects:Project[], todos:Todo[]) => { [key:string]:{active:number,completed:number,deleted:number}; } = 
  
 (projects:Project[], todos:Todo[]) => compose(
     map( 
         reduce(
-            (acc,val) => cond(
-                [ 
-                    [ 
+            (acc,val) => cond([
+                    [
                         t => isNotNil(t.deleted), 
-                        t => evolve({deleted:add(1)}, acc) 
-                    ],
+                        t => evolve(
+                                {
+                                    deleted:add(1),
+                                    trash:{
+                                        completed:when(() => isNotNil(t.completedSet), add(1)), 
+                                        active:when(() => isNil(t.completedSet), add(1)) 
+                                    }
+                                }, 
+                                acc
+                            )
+                    ],  
                     [ 
                         t => isNotNil(t.completedSet), 
                         t => evolve({completed:add(1)}, acc) 
@@ -34,10 +43,17 @@ export let generateIndicators :
                     [
                         t => true,
                         t => acc
-                    ]
-                ]
-            )(val),  
-            { active:0, completed:0, deleted:0 }
+                    ]  
+            ])(val),
+            { 
+                active:0, 
+                completed:0, 
+                deleted:0,
+                trash:{
+                    completed:0,
+                    active:0 
+                }
+            }
         )
     ), 
 

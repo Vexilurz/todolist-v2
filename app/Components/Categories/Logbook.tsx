@@ -11,11 +11,13 @@ import { ContainerHeader } from '.././ContainerHeader';
 import { 
   compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems
 } from '../../utils/utils';
-import { allPass, compose, or, assoc, isNil, isEmpty, defaultTo } from 'ramda';
+import { allPass, compose, or, assoc, isNil, isEmpty, defaultTo, all, contains } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink, ProjectLinkLogbook } from '../Project/ProjectLink';
 import { filter } from 'lodash';
 import { isTodo, isProject, isDate } from '../../utils/isSomething';
+import { isDev } from '../../utils/isDev';
+import { assert } from '../../utils/assert';
 
  
 
@@ -111,15 +113,12 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
         let completedTodos : Todo[] = filter(
             todos,
-            byTags(props.selectedTag),
-            "completedTodos"
+            byTags(props.selectedTag)
         );
 
-        //TODO should projects be filtered by tags ? 
         let completedProjects : Project[] = filter(
             projects, 
-            allPass([ byCompleted, byNotDeleted ]),
-            "completedProjects"
+            allPass([ byCompleted, byNotDeleted ])
         );  
          
         let compare = compareByDate(getDateFromObject);
@@ -260,6 +259,18 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                         groups.map( 
                             (group:any[], index:number) : JSX.Element => {
                                 let todos:Todo[] = filter(group, isTodo);
+
+
+                                if(isDev()){
+                                    if(selectedTag!=="All"){ 
+                                        assert(
+                                            all((todo:Todo) => contains(selectedTag)(todo.attachedTags),todos),
+                                            `missing tag. Logbook. ${selectedTag}`
+                                        ) 
+                                    }
+                                }
+
+
                                 let projects:Project[] = filter(group, isProject);
                                 let month:string = getMonthName(getDateFromObject(group[0]));
                                 return <div key={index}>{this.getComponent(month, todos, projects)}</div>   

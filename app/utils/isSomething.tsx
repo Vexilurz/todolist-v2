@@ -99,7 +99,7 @@ export let isBoolean = (variable:any) : boolean => {
 
 export let isTodo = (todo:any) : boolean => { 
     if(isNil(todo)){ return false } 
-    return todo.type==="todo";
+    return todo.type==="todo" && isArrayOfStrings(todo.attachedTags);
 };
 
 

@@ -9,13 +9,15 @@ import { byTags, getTagsFromItems, byDeleted, attachDispatchToProps} from '../..
 import Restore from 'material-ui/svg-icons/navigation/refresh'; 
 import { TodoInput } from '../TodoInput/TodoInput';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { allPass, isEmpty, cond, flatten, not, contains, reject, compose, defaultTo } from 'ramda';
+import { allPass, isEmpty, cond, flatten, not, contains, reject, compose, defaultTo, all, prop } from 'ramda';
 import { filter } from 'lodash'; 
 import { SimplePopup } from '../SimplePopup';
 import { ProjectLinkTrash } from '../Project/ProjectLink';
 import { AreaTrashLink } from '../Area/AreaLink';
 import { chooseIcon } from '../../utils/chooseIcon';
 import { isDate, isTodo, isProject, isArea, isString } from '../../utils/isSomething';
+import { isDev } from '../../utils/isDev';
+import { assert } from '../../utils/assert';
 
 
 let sortByDeleted = (a:(Todo & Project & Area),b:(Todo & Project & Area)) => {
@@ -105,7 +107,7 @@ export class Trash extends Component<TrashProps,TrashState>{
         } = this.props;   
 
 
-        let deletedAreas = filter(areas, allPass([byDeleted,byTags(selectedTag)])); 
+        let deletedAreas = filter(areas, byDeleted); 
 
 
         let deletedProjects = compose(
@@ -114,18 +116,16 @@ export class Trash extends Component<TrashProps,TrashState>{
                     (area:Area) => contains(project._id)(area.attachedProjectsIds) 
                 )
             ),
-            (projects:Project[]) => filter(projects, allPass([byDeleted,byTags(selectedTag)]))
+            (projects:Project[]) => filter(projects, byDeleted)
         )(projects);
 
 
         let deletedTodos = compose( 
-            (deletedProjects:Project[]) => reject(
-                (todo:Todo) => deletedProjects.find( 
-                    (project:Project) => contains(todo._id)(project.layout) 
-                ),
-                todos
-            ),
-            (projects:Project[]) => filter(projects, allPass([byDeleted,byTags(selectedTag)]))
+            (deletedProjects:Project[]) => {
+                let ids = flatten( deletedProjects.map(p => p.layout.filter(isString)) );
+                return reject((todo:Todo) =>  contains(todo._id)(ids),todos);
+            },
+            (projects:Project[]) => filter(projects, byDeleted)
         )(projects);
 
 
@@ -133,7 +133,21 @@ export class Trash extends Component<TrashProps,TrashState>{
         let empty = isEmpty(deletedTodos) && isEmpty(deletedProjects) && isEmpty(deletedAreas);
 
 
-        let items = [...deletedTodos,...deletedProjects,...deletedAreas].sort(sortByDeleted); 
+        let items = [
+            ...deletedTodos.filter(byTags(selectedTag)),
+            ...deletedProjects,
+            ...deletedAreas
+        ].sort(sortByDeleted); 
+
+
+        if(isDev()){
+            if(selectedTag!=="All"){ 
+                assert( 
+                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),filter(items,isTodo)),
+                    `missing tag. Trash. ${selectedTag}`
+                ) 
+            }
+        }
 
 
         return <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}> 
@@ -246,7 +260,7 @@ export class Trash extends Component<TrashProps,TrashState>{
       
 
 interface TrashPopupProps{
-    dispatch:Function,
+    dispatch:Function, 
     showTrashPopup:boolean
 }   
 interface TrashPopupState{}  

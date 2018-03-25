@@ -87,7 +87,6 @@ export class Inbox extends Component<InboxProps, InboxState>{
                         dispatch={this.props.dispatch}     
                         selectedCategory={this.props.selectedCategory} 
                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                        selectedTag={this.props.selectedTag}  
                         rootRef={this.props.rootRef}
                         todos={this.props.todos}   
                     />

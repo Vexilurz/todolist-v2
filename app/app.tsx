@@ -376,6 +376,7 @@ export class App extends Component<AppProps,AppState>{
                 } 
                 <MainContainer 
                     dispatch={this.props.dispatch} 
+                    amounts={this.state.amounts}
                     selectedCategory={this.props.selectedCategory}
                     limit={this.props.limit}
                     nextUpdateCheck={this.props.nextUpdateCheck}

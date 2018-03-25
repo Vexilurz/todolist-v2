@@ -615,15 +615,16 @@ export let byCompleted = (item:Project & Todo) : boolean => {
 export let byNotCompleted = (item:Project & Todo) : boolean => not(byCompleted(item));
 
    
-export let byTags = (selectedTag:string) => (item:Item) : boolean => { 
-    assert(isString(selectedTag), `selectedTag is not a string. ${selectedTag}. byTags.`); 
-    assert(selectedTag.length!==0, `selectedTag is empty. byTags.`);
-
+export let byTags = (selectedTag:string) => (item:Todo) : boolean => { 
     if(selectedTag==="All"){ return true };
 
     if(isNil(item)){ return false };  
-  
-    return item.attachedTags.indexOf(selectedTag)!==-1;
+
+    if(isTodo(item)){
+        return item.attachedTags.indexOf(selectedTag)!==-1;
+    }else{
+        return true;
+    } 
 }; 
 
     

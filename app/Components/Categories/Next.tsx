@@ -5,12 +5,12 @@ import * as ReactDOM from 'react-dom';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { byNotCompleted, byNotDeleted, getTagsFromItems } from "../../utils/utils";  
+import { byNotCompleted, byNotDeleted, getTagsFromItems, byTags } from "../../utils/utils";  
 import { Todo, Project, Area, Category } from '../../types';
 import { TodosList } from '../TodosList';
 import { ContainerHeader } from '../ContainerHeader';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { isEmpty, isNil, contains, intersection, flatten } from 'ramda';
+import { isEmpty, isNil, contains, intersection, flatten, all } from 'ramda';
 import { filter } from 'lodash';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { generateId } from '../../utils/generateId';
@@ -79,6 +79,9 @@ export class Next extends Component<NextProps, NextState>{
  
         let empty = generateEmptyTodo(generateId(), selectedCategory, 0);  
 
+        let nextTodos = filter(todos,byTags(selectedTag));
+
+
         if(isDev()){
             let hiddenProjects = filter(
                 projects, 
@@ -94,6 +97,17 @@ export class Next extends Component<NextProps, NextState>{
                 `tags from hidden Todos still displayed in ${selectedCategory}.`
             ); 
         }
+
+
+        if(isDev()){
+            if(selectedTag!=="All"){ 
+                assert(
+                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),nextTodos),
+                    `missing tag. Next. ${selectedTag}`
+                ) 
+            }
+        }
+
 
         return  <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}>
                         <ContainerHeader 
@@ -153,9 +167,8 @@ export class Next extends Component<NextProps, NextState>{
                             selectedCategory={this.props.selectedCategory} 
                             selectedAreaId={this.props.selectedAreaId}
                             selectedProjectId={this.props.selectedProjectId}
-                            selectedTag={this.props.selectedTag}  
                             rootRef={this.props.rootRef}
-                            todos={todos}  
+                            todos={nextTodos}  
                         />  
                     } 
                     </div> 

@@ -41,7 +41,7 @@ import {
 } from '../utils/utils'; 
 import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../types';
 import { removeTodo, updateTodo } from '../database';
-import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection, defaultTo } from 'ramda';
+import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection, defaultTo, all } from 'ramda';
 import { filter } from 'lodash'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -53,6 +53,8 @@ import { Tags } from './Tags';
 import { isArray, isString, isDate, isNotDate } from '../utils/isSomething';
 import { chooseIcon } from '../utils/chooseIcon';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
+import { isDev } from '../utils/isDev';
+import { assert } from '../utils/assert';
 
 
 
@@ -475,6 +477,17 @@ export class Search extends Component<SearchProps,SearchState>{
 
         let searchedTodos = flatten([suggestions.detached, suggestions.attached.map(i => i.todos)]);
         let tags = getTagsFromItems(searchedTodos); 
+
+ 
+        if(isDev()){
+            if(selectedTag!=="All"){ 
+                assert(
+                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),selectedTodos),
+                    `missing tag. Search. ${selectedTag}`
+                )  
+            }
+        }
+
 
         return <div id={`${selectedCategory}-list`}>   
             <div style={{ display:"flex", position:"relative", alignItems:"center", marginBottom:"20px"}}>   

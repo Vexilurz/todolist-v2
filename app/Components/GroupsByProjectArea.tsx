@@ -42,6 +42,8 @@ import { generateEmptyTodo } from './../utils/generateEmptyTodo';
 import { isString, isDate, isProject, isNotArray } from '../utils/isSomething';
 import { groupProjectsByArea } from './Area/groupProjectsByArea';
 import {  generateLayout } from './Area/generateLayout';
+import { isDev } from '../utils/isDev';
+import { assert } from '../utils/assert';
 
 
 let byHidden = (selectedCategory:Category) => 
@@ -131,13 +133,24 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
             () => groupProjectsByArea(selectedProjects,selectedAreas)
         )();
 
+        let byTag = filter(todos, byTags(selectedTag));
 
         //Filtered todos grouped by areas and projects
-        let result : {[key: string]: Todo[];} = groupBy(cond(conditions),todos.filter(byTags(selectedTag)));
+        let result : {[key: string]: Todo[];} = groupBy(cond(conditions),byTag);
 
 
         //Filtered todos which doesnt belong to any area or project
         let detached = defaultTo([])(result.detached); 
+
+
+        if(isDev()){ 
+            if(selectedTag!=="All"){ 
+                assert( 
+                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),byTag),
+                    `missing tag. GroupsByProjectArea. ${selectedTag}`
+                ) 
+            }
+        }
 
 
         return <div> 
@@ -155,7 +168,6 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                     selectedCategory={this.props.selectedCategory} 
                     selectedAreaId={this.props.selectedAreaId}
                     selectedProjectId={this.props.selectedProjectId}
-                    selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}
                     todos={detached}  
                 /> 
@@ -266,7 +278,6 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                     selectedAreaId={this.props.selectedAreaId}
                     selectedProjectId={this.props.selectedProjectId}
                     projects={this.props.projects}
-                    selectedTag={this.props.selectedTag}  
                     rootRef={this.props.rootRef}
                     reorderLayout={true}
                 />  
