@@ -4,7 +4,7 @@
   "description": "random-database",
   "main": "randomDatabase.js",
   "scripts": {
-    "start": "node randomDatabase.js 200 30 10 4",
+    "start": "node randomDatabase.js 1000 30 10 1",
     "build": "start webpack -w --config webpack.config.js"
   },
   "repository": "",
@@ -13,7 +13,7 @@
   "license": "",
   "devDependencies": {
     "@types/node": "^8.5.2",
-    "awesome-typescript-loader": "^3.2.2",
+    "awesome-typescript-loader": "4.0.1",
     "babel-core": "^6.25.0",
     "babel-loader": "^7.1.1",
     "babel-preset-env": "^1.6.0",
@@ -21,9 +21,16 @@
     "clean-webpack-plugin": "^0.1.17",
     "compression-webpack-plugin": "^1.1.7",
     "copy-webpack-plugin": "^4.0.1",
+    "electron": "2.0.0-beta.5",
     "source-map-loader": "^0.2.1",
+    "ts-loader": "^4.1.0",
+    "uglify-es": "3.3.9",
+    "uglifyjs-webpack-plugin": "1.2.4",
     "typescript": "^2.4.2",
-    "webpack": "^3.11.0",
+    "webpack": "4.2.0",
+    "@babel/core": "^7.0.0-beta.42",
+    "@babel/preset-env": "^7.0.0-beta.42",
+    "webpack-cli": "^2.0.13",
     "webpack-node-externals": "^1.6.0"
   },
   "dependencies": {

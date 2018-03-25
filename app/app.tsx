@@ -35,7 +35,7 @@ import { getConfig } from './utils/config';
 import { collectSystemInfo } from './utils/collectSystemInfo';
 import { assert } from './utils/assert';
 import { isDev } from './utils/isDev';
-import { convertEventDate } from './Components/Calendar';
+import { convertEventDate, parseCalendar } from './Components/Calendar';
 import { defaultTags } from './utils/defaultTags';
 import { SettingsPopup } from './Components/settings/SettingsPopup';
 import { LicensePopup } from './Components/settings/LicensePopup';
@@ -192,79 +192,6 @@ export class App extends Component<AppProps,AppState>{
             (event) => event
         ); 
     };
-
-
-
-    /*    
-        if(isDev()){
-            let dir = 'C:\\Users\\Anatoly\\Desktop\\ical';
-            requestFromMain<any>(
-                'getFilenames',   
-                [ dir ],  
-                (event, files) => files.filter( name => pathTo.extname(name)==='.ics' ) 
-            )
-            .then(
-                files => files 
-                .reduce( 
-                    (promise,file) => promise.then(
-                        (list) => requestFromMain<any>(
-                            "readFile",   
-                            [ pathTo.join(dir,file) ],  
-                            (event, data) => data
-                        ).then(
-                            (data) => {
-                                return [data,...list];
-                            }
-                        )
-                    ),
-                    new Promise(resolve => resolve([])) 
-                )
-            ).then(
-                raw => Promise.all(
-                    raw.map(
-                        d => {
-                            let data = {
-                                calendar:{
-                                    name:'Error. Incorrect format.',
-                                    description:'',
-                                    timezone:''
-                                }, 
-                                events:[]
-                            };
-
-                            try{
-                                data = parseCalendar(this.props.limit,d);
-                            }catch(e){
-                                data.calendar.description=e.message;
-                            }
-  
-                            return data;
-                        }   
-                    )
-                ) 
-            )
-            .then(
-                calendars => this.props.dispatch({ 
-                        type:"multiple",
-                        load:calendars.map( 
-                            (calendar:any) => ({
-                                type:'addCalendar', 
-                                load:{
-                                    url:'', 
-                                    active:true,
-                                    _id:generateId(),
-                                    name:calendar.name, 
-                                    description:calendar.description,
-                                    timezone:calendar.timezone,
-                                    events:calendar.events,
-                                    type:"calendar"
-                                }
-                            })
-                        )
-                }) 
-            )
-        }
-    */    
 
 
  

@@ -32,14 +32,17 @@ let randomDatabase = (t:number,p:number,a:number,c:number) : Promise<void> => {
     let calendars = range(0,c)
                     .map(
                         () => ({
-                            NsameDay:randomInteger(10),
-                            NfullDay:randomInteger(10),
-                            NmultipleDays:randomInteger(10),
-                            Nrecurrent:randomInteger(5),
+                            NsameDay:randomInteger(10) + 1,
+                            NfullDay:randomInteger(10) + 1,
+                            NmultipleDays:randomInteger(10) + 1,
+                            Nrecurrent:randomInteger(5) + 1,
                         })
-                    )
-                    .map(randomCalendar)
-                    .map(parseCalendar)
+                    ) 
+                    .map((c) => {
+                       let text = randomCalendar(c);
+                       let parsed = parseCalendar(new Date()["addDays"](50),text);
+                       return parsed;
+                    })
                     .map(
                         (data:IcalData) => ({
                             url:'',  
@@ -51,7 +54,8 @@ let randomDatabase = (t:number,p:number,a:number,c:number) : Promise<void> => {
                             type:"calendar", 
                             _id:generateId()
                         })
-                    );
+                    ); 
+                    
 
 
     let to:string = path.resolve(`${keyFromDate(new Date())}-${uniqid()}.json`);
@@ -121,7 +125,7 @@ let assertLayoutUniqueness : (projects:Project[]) => Project[] = when(
 
 
 
-let randomCalendar = ({
+export let randomCalendar = ({
     NsameDay,
     NfullDay,
     NmultipleDays,

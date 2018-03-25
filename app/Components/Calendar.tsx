@@ -236,7 +236,7 @@ let parseRecEvents = (
                         dates = normalize(dates);
                     }
 
-                   return {...event, dates}; 
+                    return {...event, dates}; 
                 }else{ 
                     let dates = rule.all(); 
 
@@ -247,7 +247,7 @@ let parseRecEvents = (
                         dates = normalize(dates);
                     }
                 
-                   return {...event, dates};
+                    return {...event, dates};
                 }
             },
             (event:{name:string, rrule:any, ends:any}) => {
@@ -260,7 +260,7 @@ let parseRecEvents = (
                 ){
                     dates = normalize(dates);
                 }
-                 
+                    
 
                 return {...event, dates};
             }, 
@@ -306,8 +306,8 @@ let parseRecEvents = (
     (data) => icalR.parseICS(data)
 )(icalData);
 
-
-
+    
+    
 export let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarProps, events:CalendarEvent[]} => {
     const calendarName = "x-wr-calname";
     const calendarTimezone = "x-wr-timezone";
@@ -372,7 +372,9 @@ export let parseCalendar = (limit:Date, icalData:string) : {calendar:CalendarPro
         jcal => ({calendar:getCalendar(jcal),events:getEvents(jcal)})
     )(jcal);
 };   
-  
+    
+
+
 
 
 export let getIcalData = (limit:Date,url:string) : Promise<IcalData> => {

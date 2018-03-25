@@ -10,7 +10,7 @@ module.exports = {
 
     output: {              
         filename : '[name].js' ,
-        path : path.resolve(__dirname,"s3clean"),
+        path : path.resolve(__dirname),
         devtoolModuleFilenameTemplate: '[absolute-resource-path]' 
     }, 
 
@@ -42,6 +42,11 @@ module.exports = {
           }    
         ]    
     },
+
+    plugins:[ 
+        new CleanWebpackPlugin(['./s3clean.js']),
+    ], 
+
   
     target: 'node',
 
