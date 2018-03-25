@@ -82,7 +82,7 @@ module.exports = {
 	},
 */  
     plugins:[ 
-        new CleanWebpackPlugin(['./randomDatabase.js'])
+        new CleanWebpackPlugin(['./randomDatabase.js','databases'])
     ], 
 
     target: "electron-main",

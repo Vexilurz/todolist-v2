@@ -179,6 +179,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                                     indicator={defaultTo({completed:0, active:0})(this.props.indicators[project._id])}
                                     dispatch={this.props.dispatch}
                                     selectedCategory={this.props.selectedCategory}
+                                    underline={true}
                                 /> 
                                 <ExpandableTodosList
                                     dispatch={this.props.dispatch}    

@@ -7,7 +7,7 @@ import { debounce } from 'lodash';
 import { byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNotEmpty } from '../../utils/utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
-import { adjust, allPass, uniq, isEmpty, not, isNil, compose, defaultTo } from 'ramda';
+import { adjust, allPass, uniq, isEmpty, not, isNil, compose, defaultTo, ifElse } from 'ramda';
 import { filter } from 'lodash';
 import { bySomeday, isProject, isTodo, isString, isDate, isNotNil } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
@@ -20,15 +20,6 @@ let log = (append:string) => (load:any) : any => {
     console.log(append,load); 
     return load;
 };
-
-
-
-let byNotHaveScheduledTodos : (todos:Todo[]) => boolean = 
-compose(
-    isEmpty,
-    (todos:Todo[]) => filter(todos, (todo:Todo) => byScheduled(todo) || bySomeday(todo)),
-    defaultTo([])
-); 
 
 
 
@@ -153,12 +144,29 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             showScheduled ? null : byNotSomeday 
         ].filter( f => f );
 
+
+
         let layout = project
                     .layout
                     .map((item:LayoutItem) => isString(item) ? todos.find(todo => todo._id===item) : item)
                     .filter(isNotNil);  
-                 
 
+
+
+        let noScheduledTodos : boolean = compose(
+            isEmpty,
+            (todos:Todo[]) => filter(
+                todos, 
+                ifElse(
+                    isTodo,
+                    (todo:Todo) => byScheduled(todo) || bySomeday(todo),
+                    () => false
+                )
+            ),
+            defaultTo([]) 
+        )(layout);  
+        
+        
 
         if(isDev()){
             let todos = filter(layout, item => item.type==="todo");
@@ -177,7 +185,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             );
         }      
         
-        
+         
         
         //this items will go to project header, dont filter them by tag, 
         //because available tags will be derived from them        
@@ -186,6 +194,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             (i:Todo) => isTodo(i) ? allPass(projectFilters)(i as (Project & Todo)) : false
         );
         
+        
+
         //filter by tag & by selected filters  
         let toProjectBody = filter(
             layout,
@@ -234,19 +244,15 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         dispatch={this.props.dispatch} 
                     />    
                     {  
-                        byNotHaveScheduledTodos(toProjectBody as Todo[]) ? null:
+                        noScheduledTodos ? null:
                         <div 
                             className="noselection"
-                            style={{   
-                                cursor:"default", display:"flex", 
-                                paddingTop:"20px", height:"auto", 
-                                width:"100%"
-                            }} 
+                            style={{cursor:"default", display:"flex", paddingTop:"20px", height:"auto", width:"100%"}} 
                         >        
                             <div  
-                              className="unselectable"
-                              onClick={()=>this.props.dispatch({type:"showScheduled",load:!this.props.showScheduled})}  
-                              style={{color:"rgba(100,100,100,0.7)",fontSize:"13px"}}
+                               className="unselectable"
+                               onClick={()=>this.props.dispatch({type:"showScheduled",load:!this.props.showScheduled})}  
+                               style={{color:"rgba(100,100,100,0.7)",fontSize:"13px",cursor:"pointer"}}
                             > 
                               {`${this.props.showScheduled ? 'Hide' : 'Show'} later tasks`}
                             </div>      

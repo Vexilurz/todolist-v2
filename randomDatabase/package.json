@@ -4,7 +4,7 @@
   "description": "random-database",
   "main": "randomDatabase.js",
   "scripts": {
-    "start": "node randomDatabase.js 1000 30 10 1",
+    "start": "node randomDatabase.js 150 10 5 3",
     "build": "start webpack -w --config webpack.config.js"
   },
   "repository": "",

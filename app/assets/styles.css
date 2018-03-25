@@ -188,23 +188,41 @@ ul {
 }
 
 
-.upcomingListHeading{
-  transition: background-color 0.5s ease;
-  border-bottom : 1px solid rgba(100, 100, 100, 0.3);
+
+.upcomingListHeadingBorder:hover{ 
+  background-color: rgba(228,230,233,1);  
+  border-radius: 5px; 
+  border:none;
 } 
+
+
+.upcomingListHeadingBorder{
+  transition: background-color 0.5s ease;
+  border-bottom:1px solid rgba(100, 100, 100, 0.3);
+} 
+
+
+.upcomingListHeadingBorder:active{   
+  background-color: rgba(228,230,233,1);
+  border-radius: 5px; 
+  border:none;
+}
 
 
 .upcomingListHeading:hover{ 
   background-color: rgba(228,230,233,1);  
   border-radius: 5px; 
-  border-bottom : 1px solid rgba(100, 100, 100, 0);
+} 
+
+
+.upcomingListHeading{
+  transition: background-color 0.5s ease;
 } 
 
 
 .upcomingListHeading:active{   
   background-color: rgba(228,230,233,1);
   border-radius: 5px; 
-  border-bottom: none;
 }
 
 

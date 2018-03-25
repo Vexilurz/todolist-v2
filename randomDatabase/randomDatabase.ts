@@ -28,15 +28,17 @@ Date.prototype["addDays"] = function(days){
 
 let randomDatabase = (t:number,p:number,a:number,c:number) : Promise<void> => { 
     let {todos, projects, areas} = generateRandomDatabase({todos:t, projects:p, areas:a});      
-     
+    
+    
+
     let calendars = range(0,c)
                     .map(
                         () => ({
-                            NsameDay:randomInteger(10) + 1,
-                            NfullDay:randomInteger(10) + 1,
-                            NmultipleDays:randomInteger(10) + 1,
-                            Nrecurrent:randomInteger(5) + 1,
-                        })
+                                NsameDay:randomInteger(10) + 1,
+                                NfullDay:randomInteger(10) + 1,
+                                NmultipleDays:randomInteger(10) + 1,
+                                Nrecurrent:randomInteger(5) + 1,
+                        }) 
                     ) 
                     .map((c) => {
                        let text = randomCalendar(c);
@@ -58,7 +60,13 @@ let randomDatabase = (t:number,p:number,a:number,c:number) : Promise<void> => {
                     
 
 
-    let to:string = path.resolve(`${keyFromDate(new Date())}-${uniqid()}.json`);
+
+    if(!fs.existsSync("databases")){ 
+        fs.mkdirSync("databases"); 
+    }
+
+    let to:string = path.resolve("databases",`${keyFromDate(new Date())}-${uniqid()}.json`);
+
     let data = { database : { todos, projects, areas, calendars } };
   
     return writeJsonFile(data,to);
@@ -131,8 +139,8 @@ export let randomCalendar = ({
     NmultipleDays,
     Nrecurrent
 }) => {
-    let from = -50;
-    let to = 70;
+    let from = 0;
+    let to = 50;
 
     let sameDay = range(0,NsameDay).map(randomEventsameDay({from,to}));
     let fullDay = range(0,NfullDay).map(randomEventfullDay({from,to}));
@@ -152,10 +160,10 @@ export let randomCalendar = ({
 
 //sameDay
 let randomEventsameDay = ({from,to}:{from:number,to:number}) => () => {
-    let title : string[] = ['sameDay'];
+    let title : string[] = ['R sameDay'];
     let note : string[] = [];
-    let k = randomInteger(3) + 2;
-    let n = randomInteger(6) + 2;
+    let k = randomInteger(2) + 1;
+    let n = randomInteger(2) + 1;
 
     for(let i=0; i<k; i++){ title.push(randomWord()) }
     for(let i=0; i<n; i++){ note.push(randomWord()) }
@@ -187,10 +195,10 @@ let randomEventsameDay = ({from,to}:{from:number,to:number}) => () => {
 
 //fullDay
 let randomEventfullDay = ({from,to}:{from:number,to:number}) => () => {
-    let title : string[] = ['fullDay'];
+    let title : string[] = ['R fullDay'];
     let note : string[] = [];
-    let k = randomInteger(6) + 2;
-    let n = randomInteger(15) + 2;
+    let k = randomInteger(2) + 1;
+    let n = randomInteger(2) + 1;
 
     for(let i=0; i<k; i++){ title.push(randomWord()) }
     for(let i=0; i<n; i++){ note.push(randomWord()) }
@@ -214,10 +222,10 @@ let randomEventfullDay = ({from,to}:{from:number,to:number}) => () => {
 
 
 let randomEventmultipleDays = ({from,to}:{from:number,to:number}) => () => {
-    let title : string[] = [];
+    let title : string[] = ['R multipleDays'];
     let note : string[] = [];
-    let k = randomInteger(3) + 2;
-    let n = randomInteger(6) + 2;
+    let k = randomInteger(2) + 1;
+    let n = randomInteger(2) + 1;
 
     for(let i=0; i<k; i++){ title.push(randomWord()) }
     for(let i=0; i<n; i++){ note.push(randomWord()) }
@@ -244,10 +252,11 @@ let randomEventrecurrent = ({from,to}:{from:number,to:number}) => () => {
     let event = randomEventsameDay({from,to})();
     let never = Math.random() > 0.7;
 
+    event.summary = 'R recurrent ' + event.summary; 
 
     let repeating = {
-        freq: randomArrayMember(['YEARLY','MONTHLY','WEEKLY','DAILY','HOURLY','MINUTELY','SECONDLY']), // required
-        count: never ? 0 : (randomInteger(100) + 1),
+        freq: randomArrayMember(['YEARLY','MONTHLY','WEEKLY','DAILY']), // required
+        count: never ? 0 : (randomInteger(15) + 1),
         interval: randomInteger(10) + 1,
         until: never ? undefined :  randomDate( new Date(), new Date()["addDays"](to) ),
         //byDay: ['su', 'mo'], // repeat only sunday and monday

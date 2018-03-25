@@ -559,7 +559,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             fullDayEvents
                             .map(  
                                 (event,index) => <div 
-                                    key={`event-${event.name}-${index}`} 
+                                    key={`event-${event.name}-${index}`}
                                     style={{paddingTop:"1px", paddingBottom:"1px"}}
                                 >
                                 <div style={{display:"flex",height:"20px",alignItems:"center"}}>
@@ -568,7 +568,8 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                         {event.name}  
                                     </div>
                                 </div>
-                                { 
+                                
+                                {/* 
                                     isNil(event.description) ? null :
                                     isEmpty(event.description) ? null :
                                     <div style={{
@@ -580,7 +581,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                     }}> 
                                         {event.description} 
                                     </div>
-                                }
+                                */}
                                 </div>  
                             )  
                         } 
@@ -605,7 +606,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                     <div style={{paddingLeft:event.type!=="multipleDaysEvents" ? "0px":"5px"}}>
                                         {getSameDayEventElement(event,false)}
                                     </div>  
-                                    { 
+                                    {/* 
                                         isNil(event.description) ? null :
                                         isEmpty(event.description) ? null :
                                         <div style={{
@@ -616,7 +617,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                         }}> 
                                             {event.description} 
                                         </div>
-                                    }
+                                    */}
                                 </div> 
                             )  
                         }

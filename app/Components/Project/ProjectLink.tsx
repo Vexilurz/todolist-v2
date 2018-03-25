@@ -104,13 +104,23 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
         }     
 
 
-        return <li  
+        return <div
+            style={{
+                width:"100%",
+                paddingBottom:this.props.underline ? "10px" : "0px"
+            }}  
+        >
+        <li  
             onClick={this.openProject}    
             style={{width:"100%"}}   
-            className="upcomingListHeading"
+            className={
+                this.props.underline ? 
+                "upcomingListHeadingBorder" : 
+                "upcomingListHeading"
+            }
         >      
         <div   
-            id = {project._id}        
+            id={project._id}        
             style={{    
                 height:"30px",   
                 paddingRight:"6px",  
@@ -119,13 +129,13 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
                 width:"100%",
                 display:"flex",  
                 alignItems:"center"
-            }}
+            }}  
         >     
                 <div style={{     
                     width:"18px",
                     height:"18px",
                     position:"relative",
-                    transform: "rotate(270deg)",
+                    transform:"rotate(270deg)",
                     borderRadius:"100px",
                     display:"flex",
                     justifyContent:"center",
@@ -291,6 +301,7 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
                 </Popover> 
             </div>
         </li>  
+        </div>
     }
 }
  
