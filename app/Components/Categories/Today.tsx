@@ -112,6 +112,16 @@ interface TodayProps{
     dispatch:Function,
     clone:boolean,
     hideHint:boolean, 
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    }, 
     groupTodos:boolean,
     showCalendarEvents:boolean,  
     scrolledTodo:Todo, 
@@ -262,7 +272,7 @@ export class Today extends Component<TodayProps,TodayState>{
 
  
     onSortEnd = (oldIndex:number,newIndex:number,event:any) => { 
-        let {todos, areas, projects, moveCompletedItemsToLogbook} = this.props;
+        let {todos, areas, projects, moveCompletedItemsToLogbook, filters} = this.props;
         let leftpanel = document.getElementById("leftpanel");
         let {items, tags} = this.getItems();
         let x = event.clientX; 
@@ -277,7 +287,8 @@ export class Today extends Component<TodayProps,TodayState>{
                 event, 
                 draggedTodo, 
                 projects, 
-                config:{moveCompletedItemsToLogbook}
+                config:{moveCompletedItemsToLogbook},
+                filters
             }); 
 
             if(updated.projects){
@@ -384,11 +395,7 @@ export class Today extends Component<TodayProps,TodayState>{
                 isEmpty(intersection(tags,tagsFromTodos)),
                 `tags from hidden Todos still displayed ${selectedCategory}.`
             ); 
-        }
-        
 
-
-        if(isDev()){
             if(selectedTag!=="All"){ 
                 assert(
                     all((todo:Todo) => contains(selectedTag)(todo.attachedTags),filter(items, isTodo)),
@@ -396,7 +403,7 @@ export class Today extends Component<TodayProps,TodayState>{
                 ) 
             }
         }
-
+        
         
   
         return <div 
@@ -462,6 +469,7 @@ export class Today extends Component<TodayProps,TodayState>{
                         groupTodos ? 
                         <GroupsByProjectArea
                             dispatch={dispatch}
+                            filters={this.props.filters}
                             scrolledTodo={this.props.scrolledTodo}
                             selectedProjectId={selectedProjectId}
                             selectedAreaId={selectedAreaId}

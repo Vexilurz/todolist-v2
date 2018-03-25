@@ -312,10 +312,10 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             )
         )(layout);
         
- 
-        assert(layout.length===layoutAfterSort.length, `incorrect logic. Areas List.`);
-        assert(layout[oldIndex]._id===layoutAfterSort[newIndex]._id, `incorrect order. Areas List.`);
-    
+        if(isDev()){
+           assert(layout.length===layoutAfterSort.length, `incorrect logic. Areas List.`);
+           assert(layout[oldIndex]._id===layoutAfterSort[newIndex]._id, `incorrect order. Areas List.`);
+        }    
 
         //2) Based on new order, generate hash table of form { areaId : projectId[] }
         let target = undefined;
@@ -365,7 +365,9 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let selected = [index];
         let item = items[index];
 
-        assert(not(isNil(item)),`item is Nil. selectElements. index ${index}`);
+        if(isDev()){
+           assert(not(isNil(item)),`item is Nil. selectElements. index ${index}`);
+        }
 
         if(isArea(item)){
             for(let i=index+1; i<items.length; i++){

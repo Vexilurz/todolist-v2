@@ -24,6 +24,16 @@ interface AreaBodyProps{
             deleted:number
         }; 
     },
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    },
     scrolledTodo:Todo, 
     moveCompletedItemsToLogbook:string, 
     selectedAreaId:string, 
@@ -71,7 +81,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
         let selectedTodos = filter(
             todos, 
             allPass([byNotDeleted, byNotCompleted, (todo:Todo) => contains(todo._id)(ids)])
-        );
+        ); 
 
 
         return <div ref={(e) => {this.ref=e;}}> 
@@ -88,6 +98,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 selectedCategory={selectedCategory}
                 selectedTag={selectedTag}
                 rootRef={rootRef}
+                filters={this.props.filters}
                 areas={[]}
                 projects={projects} 
                 todos={selectedTodos}

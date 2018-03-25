@@ -118,13 +118,16 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                 } 
             ], 
             [
-                typeEquals("updateTodoById"),  
+                typeEquals("updateTodoById"),
                 (action:{ type:string, load: {id:string,props:any} }) : Store => {
 
                     let idx = state.todos.findIndex((t:Todo) => action.load.id===t._id);
                     let todo = state.todos[idx]; 
 
-                    assert(isString(action.load.id),`id is not of type String. updateTodoById.`);
+                    if(isDev()){
+                       assert(isString(action.load.id),`id is not of type String. updateTodoById.`);
+                       assert(isTodo(todo),`Todo is not of type Todo. updateTodoById.`);
+                    }
 
                     if(isNil(todo)){
                        return {...state}; 

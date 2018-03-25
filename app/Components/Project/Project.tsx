@@ -31,6 +31,16 @@ interface ProjectComponentProps{
         completed:number,
         deleted:number
     },
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[] 
+    },
     todos:Todo[],
     groupTodos:boolean, 
     selectedTodo:Todo,
@@ -235,6 +245,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         project={project}
                         dragged={this.props.dragged}
                         groupTodos={this.props.groupTodos}
+                        filters={this.props.filters}
                         selectedCategory={this.props.selectedCategory}
                         scrolledTodo={this.props.scrolledTodo}
                         selectedTodo={this.props.selectedTodo}

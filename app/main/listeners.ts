@@ -213,6 +213,15 @@ export class Listeners{
                 }
             },
             {
+                name:"receive",
+                callback:(event,[todo]) => {
+                    if(mainWindow){
+                        mainWindow.webContents.send("receive", todo); 
+                    }
+                    event.sender.send("receive");  
+                } 
+            },
+            {
                 name:'NremoveReminders',
                 callback:(event,[todos]) => {
                     if(mainWindow){
@@ -226,7 +235,6 @@ export class Listeners{
                 callback:(event,[todo]) => {
                     if(mainWindow){
                         mainWindow.webContents.send('openTodo',todo);
-                        mainWindow.webContents.send('removeReminder',todo);
                     }
                     event.sender.send('openTodoInApp');
                 }

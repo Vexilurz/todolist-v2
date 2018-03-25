@@ -32,6 +32,16 @@ interface NextProps{
     selectedCategory:Category, 
     selectedTag:string,
     rootRef:HTMLElement,
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    },
     indicators:{ 
         [key:string]:{
             active:number,
@@ -96,10 +106,7 @@ export class Next extends Component<NextProps, NextState>{
                 isEmpty(intersection(tags,tagsFromTodos)),
                 `tags from hidden Todos still displayed in ${selectedCategory}.`
             ); 
-        }
 
-
-        if(isDev()){
             if(selectedTag!=="All"){ 
                 assert(
                     all((todo:Todo) => contains(selectedTag)(todo.attachedTags),nextTodos),
@@ -107,6 +114,7 @@ export class Next extends Component<NextProps, NextState>{
                 ) 
             }
         }
+
 
 
         return  <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}>
@@ -135,12 +143,13 @@ export class Next extends Component<NextProps, NextState>{
                             todo={empty as any}  
                         /> 
                     </div> 
-                    <div>
+                    <div> 
                     { 
                         groupTodos ? 
                         <GroupsByProjectArea
                             dispatch={this.props.dispatch} 
                             scrolledTodo={this.props.scrolledTodo}
+                            filters={this.props.filters}
                             selectedAreaId={this.props.selectedAreaId}
                             selectedProjectId={this.props.selectedProjectId}
                             groupTodos={this.props.groupTodos}
@@ -158,6 +167,7 @@ export class Next extends Component<NextProps, NextState>{
                         :
                         <TodosList            
                             dispatch={this.props.dispatch}     
+                            filters={this.props.filters}
                             scrolledTodo={this.props.scrolledTodo}
                             sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                             areas={this.props.areas}

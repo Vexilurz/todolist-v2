@@ -11,6 +11,7 @@ import { contains, isEmpty, compose, map, flatten } from 'ramda';
 import { filter } from 'lodash';
 import { assert } from '../../utils/assert';
 import { isArrayOfTodos, isArrayOfProjects, isString } from '../../utils/isSomething';
+import { isDev } from '../../utils/isDev';
 
 
 
@@ -42,9 +43,11 @@ export class AreaTrashLink extends Component<AreaTrashLinkProps,AreaTrashLinkSta
             (selectedProjects) => selectedProjects.map((p:Project) => p.layout.filter(isString))
         )(selectedProjects);
          
-        assert(isArrayOfTodos(selectedTodos),`selectedTodos is not of type Todo[]. restoreArea. ${selectedTodos}`);
-        assert(isArrayOfProjects(selectedProjects),`selectedProjects is not of type Project[]. restoreArea. ${selectedProjects}`);
-        
+        if(isDev()){
+           assert(isArrayOfTodos(selectedTodos),`selectedTodos is not of type Todo[]. restoreArea. ${selectedTodos}`);
+           assert(isArrayOfProjects(selectedProjects),`selectedProjects is not of type Project[]. restoreArea. ${selectedProjects}`);
+        }
+
         dispatch({
             type:"multiple",
             load:[

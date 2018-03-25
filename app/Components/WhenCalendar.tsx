@@ -16,7 +16,7 @@ import DayPicker from 'react-day-picker';
 import Popover from 'material-ui/Popover';
 import BusinessCase from 'material-ui/svg-icons/content/archive';  
 import RaisedButton from 'material-ui/RaisedButton';
-import { Category, Store } from './../types';  
+import { Category, Store, Todo } from './../types';  
 import Clear from 'material-ui/svg-icons/content/clear'; 
 import { isNil, not } from 'ramda';
 import * as Rx from 'rxjs/Rx';
@@ -35,15 +35,28 @@ import { CalendarFooter } from './ThingsCalendar';
 
 
 interface WhenCalendarProps extends Store{}
+interface WhenCalendarState{
+    todo:Todo
+}
+
 
 @connect((store,props) => ({...store, ...props}), attachDispatchToProps) 
-export class WhenCalendar extends Component<WhenCalendarProps,{}>{
+export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>{
     ref:HTMLElement;  
     subscriptions:Subscription[];  
 
     constructor(props){
         super(props);
+
         this.subscriptions = [];
+
+        let {whenTodo} = this.props;
+    
+        if(isNil(whenTodo)){ return }
+
+        let todo = this.props.todos.find( t => t._id===whenTodo._id );
+
+        this.state = {todo};
     }   
 
 
@@ -54,6 +67,16 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
             .fromEvent(window, "click")
             .subscribe(this.onOutsideClick) 
         ); 
+
+        let {whenTodo} = this.props;
+    
+        if(isNil(whenTodo)){ return }
+
+        let todo = this.props.todos.find( t => t._id===whenTodo._id );
+       
+        if(isNil(todo)){ return }
+
+        this.setState({todo});
     }   
 
 
@@ -62,6 +85,27 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = [];
     } 
+
+
+
+    componentWillReceiveProps(nextProps:WhenCalendarProps){
+    
+        let {
+            showWhenCalendar, 
+            whenTodo,
+            whenCalendarPopupX, 
+            whenCalendarPopupY,
+            showRightClickMenu
+        } = nextProps;
+    
+        if(isNil(whenTodo)){ return }
+
+        let todo = nextProps.todos.find( t => t._id===whenTodo._id );
+       
+        if(isNil(todo)){ return }
+
+        this.setState({todo}); 
+    }
 
 
 
@@ -94,18 +138,12 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
 
     onTodayClick = (e) => {
         e.stopPropagation();
-        let {
-            showWhenCalendar, 
-            whenTodo,
-            whenCalendarPopupX, 
-            whenCalendarPopupY,
-            showRightClickMenu
-        } = this.props;
 
-        if(isNil(whenTodo)){ return }
+        if(isNil(this.state.todo)){ return }
+
 
         let attachedDate = new Date();
-        let reminder = whenTodo.reminder;
+        let reminder = this.state.todo.reminder;
 
         if(isDate(reminder)){
             let time = getTime(reminder);
@@ -116,7 +154,7 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
         this.props.dispatch({ 
             type:"updateTodo", 
             load:{ 
-                ...whenTodo, 
+                ...this.state.todo, 
                 attachedDate,
                 reminder
             } 
@@ -129,18 +167,11 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
 
     onThisEveningClick = (e) => {
         e.stopPropagation();
-        let {
-            showWhenCalendar, 
-            whenTodo,
-            whenCalendarPopupX, 
-            whenCalendarPopupY,
-            showRightClickMenu
-        } = this.props;
 
-        if(isNil(whenTodo)){ return }
+        if(isNil(this.state.todo)){ return }
 
         let attachedDate = new Date();
-        let reminder = whenTodo.reminder;
+        let reminder = this.state.todo.reminder;
 
         if(isDate(reminder)){
            let time = getTime(reminder);
@@ -151,7 +182,7 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
         this.props.dispatch({ 
             type:"updateTodo", 
             load:{ 
-                ...whenTodo, 
+                ...this.state.todo, 
                 category:"evening",
                 attachedDate,
                 reminder
@@ -165,19 +196,12 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
 
     onDayClick = (day:Date, modifiers:Object, e:any) => {
         e.stopPropagation(); 
-        let {
-            showWhenCalendar, 
-            whenTodo,
-            whenCalendarPopupX, 
-            whenCalendarPopupY,
-            showRightClickMenu
-        } = this.props;
 
-        if(isNil(whenTodo)){ return }
+        if(isNil(this.state.todo)){ return }
 
         let attachedDate = new Date(day.getTime());
-        let reminder = whenTodo.reminder;
-        let category = whenTodo.category;
+        let reminder = this.state.todo.reminder;
+        let category = this.state.todo.category;
 
         if(isDate(reminder)){
            let time = getTime(reminder);
@@ -188,7 +212,7 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
         this.props.dispatch({ 
             type:"updateTodo", 
             load:{  
-                ...whenTodo, 
+                ...this.state.todo, 
                 category:isToday(attachedDate) ? "today" : category,
                 attachedDate,
                 reminder
@@ -201,21 +225,14 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
 
 
     onSomedayClick = (e) => {
-        e.stopPropagation(); 
-        let {
-            showWhenCalendar, 
-            whenTodo,
-            whenCalendarPopupX, 
-            whenCalendarPopupY,
-            showRightClickMenu
-        } = this.props;
+        e.stopPropagation();
 
-        if(isNil(whenTodo)){ return }
+        if(isNil(this.state.todo)){ return }
 
         this.props.dispatch({ 
             type:"updateTodo", 
             load:{ 
-                ...whenTodo, 
+                ...this.state.todo, 
                 category:"someday",
                 deadline:null,
                 attachedDate:null
@@ -230,19 +247,18 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
     onRepeatTodo = () => {   
         let {
             showWhenCalendar, 
-            whenTodo,
             whenCalendarPopupX, 
             whenCalendarPopupY,
             showRightClickMenu
         } = this.props;
 
-        if(isNil(whenTodo)){ return }
+        if(isNil(this.state.todo)){ return }
 
         this.props.dispatch({
             type : "openRepeatPopup",
             load : {  
                 showRepeatPopup : true, 
-                repeatTodo : {...whenTodo}, 
+                repeatTodo : {...this.state.todo}, 
                 repeatPopupX : whenCalendarPopupX,    
                 repeatPopupY : whenCalendarPopupY
             }
@@ -253,18 +269,12 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
 
 
     onAddReminderClick = (reminder:Date) => {
-        let {
-            showWhenCalendar, 
-            whenTodo,
-            whenCalendarPopupX, 
-            whenCalendarPopupY,
-            showRightClickMenu
-        } = this.props;
-
+        if(isNil(this.state.todo)){ return }
+        
         this.props.dispatch({ 
             type:"updateTodo", 
             load:{ 
-                ...whenTodo, 
+                ...this.state.todo, 
                 attachedDate:reminder,
                 reminder
             } 
@@ -274,26 +284,23 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
 
 
     onRemoveReminderClick = () => {
-        let {whenTodo} = this.props;
-        
+        if(isNil(this.state.todo)){ return }
+
         this.props.dispatch({ 
-            type:"updateTodo", 
-            load:{ 
-                ...whenTodo, 
-                reminder:null
-            } 
+            type:"updateTodoById", 
+            load:{id:this.state.todo._id,props:{reminder:null}}
         });
     };
 
 
 
     onClear = (e) => {
-        let {whenTodo} = this.props;
-
+        if(isNil(this.state.todo)){ return }
+        
         this.props.dispatch({ 
             type:"updateTodo", 
             load:{ 
-                ...whenTodo, 
+                ...this.state.todo, 
                 attachedDate:null,
                 reminder:null
             } 
@@ -308,7 +315,6 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
         let hideRepeatButton = false;
         let {
             showWhenCalendar, 
-            whenTodo,
             whenCalendarPopupX, 
             whenCalendarPopupY,
             showRightClickMenu
@@ -317,9 +323,9 @@ export class WhenCalendar extends Component<WhenCalendarProps,{}>{
         let offsetX = 0.1*213.6;
         let offsetY = 0.1*(hideRepeatButton ? 368.8 : 391.2);
 
-        if(isNil(whenTodo)){ return null }
+        if(isNil(this.state.todo)){ return }
     
-        let { attachedDate, reminder } = whenTodo; 
+        let { attachedDate, reminder } = this.state.todo; 
  
         return not(showWhenCalendar) ? null : 
         <div 

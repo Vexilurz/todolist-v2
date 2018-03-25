@@ -8,14 +8,12 @@ import { Tags } from '../../Components/Tags';
 import { Transition } from 'react-transition-group';
 import { Todo, Project, Area, Category } from '../../types';
 import { ContainerHeader } from '.././ContainerHeader';
-import { 
-  compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems
-} from '../../utils/utils';
-import { allPass, compose, or, assoc, isNil, isEmpty, defaultTo, all, contains } from 'ramda';
+import { compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems } from '../../utils/utils';
+import { allPass, compose, or, assoc, isNil, isEmpty, defaultTo, all, contains, flatten } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink, ProjectLinkLogbook } from '../Project/ProjectLink';
 import { filter } from 'lodash';
-import { isTodo, isProject, isDate } from '../../utils/isSomething';
+import { isTodo, isProject, isDate, isString } from '../../utils/isSomething';
 import { isDev } from '../../utils/isDev';
 import { assert } from '../../utils/assert';
 
@@ -243,6 +241,26 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
         let { selectedCategory, dispatch, selectedTag } = this.props;
         let tags = getTagsFromItems(this.props.todos);
         let groups = this.init(this.props);  
+
+
+        if(isDev()){
+            let completedTodos = flatten( groups.map((group:any[]) => filter(group, isTodo)) );
+            let completedProjects = flatten( groups.map((group:any[]) => filter(group, isProject)) );
+            let ids = flatten( completedProjects.map( p => p.layout.filter(isString) ) );
+
+            if(selectedTag!=="All"){ 
+                assert(
+                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags), completedTodos),
+                    `missing tag. Logbook. ${selectedTag}`
+                ) 
+            }
+            
+            assert(
+                all((todo:Todo) => !contains(todo._id,ids), completedTodos), 
+                `Error: Completed todos from completed projects.`
+            );
+        }
+
  
         return isNil(groups) ? null :
                isEmpty(groups) ? null : 
@@ -259,18 +277,6 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                         groups.map( 
                             (group:any[], index:number) : JSX.Element => {
                                 let todos:Todo[] = filter(group, isTodo);
-
-
-                                if(isDev()){
-                                    if(selectedTag!=="All"){ 
-                                        assert(
-                                            all((todo:Todo) => contains(selectedTag)(todo.attachedTags),todos),
-                                            `missing tag. Logbook. ${selectedTag}`
-                                        ) 
-                                    }
-                                }
-
-
                                 let projects:Project[] = filter(group, isProject);
                                 let month:string = getMonthName(getDateFromObject(group[0]));
                                 return <div key={index}>{this.getComponent(month, todos, projects)}</div>   

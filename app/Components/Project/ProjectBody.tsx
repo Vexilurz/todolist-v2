@@ -38,6 +38,16 @@ interface ProjectBodyProps{
     archiveHeading:(heading_id:string) => void,
     moveHeading:(heading_id:string) => void,  
     removeHeading:(heading_id:string) => void,
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    },
     showCompleted:boolean,
     selectedCategory:string, 
     todos:Todo[],  
@@ -236,7 +246,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         assert(isArrayOfTodos(todos), `onDropMany. todos is not of type array of todos.`);
         assert(isHeading(heading), `onDropMany. heading is not of type Heading.`);
 
-        let { projects, selectedProjectId, dispatch, moveCompletedItemsToLogbook } = this.props;
+        let { projects, selectedProjectId, dispatch, moveCompletedItemsToLogbook, filters } = this.props;
         let selectedProjectIdx = findIndex((p:Project) => p._id===selectedProjectId, projects);
         let { project, category } = findDropTarget(event,projects);
 
@@ -253,7 +263,8 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     draggedTodo:todo, 
                     projects:updatedProjects,
                     category, 
-                    moveCompletedItemsToLogbook
+                    moveCompletedItemsToLogbook,
+                    filters
                 })
             );
 
@@ -291,7 +302,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
  
 
     onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
-        let {moveCompletedItemsToLogbook,dispatch,areas,projects,selectedProjectId} = this.props;
+        let {moveCompletedItemsToLogbook,dispatch,areas,projects,selectedProjectId,filters} = this.props;
         let leftpanel = document.getElementById("leftpanel");
         let actions = [{type:"dragged",load:null}];
 
@@ -316,9 +327,10 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
                 let updated : { projects:Project[], todo:Todo } = onDrop({
                     event, 
-                    draggedTodo, 
+                    draggedTodo : draggedTodo as Todo, 
                     projects, 
-                    config:{moveCompletedItemsToLogbook}
+                    config:{moveCompletedItemsToLogbook},
+                    filters
                 }); 
 
                 if(updated.projects){

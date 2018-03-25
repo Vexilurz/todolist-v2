@@ -18,6 +18,16 @@ interface InboxProps{
     dispatch:Function,
     selectedProjectId:string, 
     groupTodos:boolean, 
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    },
     scrolledTodo:Todo,
     selectedTodo:Todo, 
     selectedAreaId:string,  
@@ -63,7 +73,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 style={{marginBottom:"100px"}} 
             >    
                 <div className={`no-print`}>
-                    <TodoCreationForm  
+                    <TodoCreationForm   
                         dispatch={this.props.dispatch}  
                         selectedTodo={this.props.selectedTodo}
                         selectedCategory={this.props.selectedCategory} 
@@ -78,6 +88,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 <div>
                     <TodosList          
                         selectedAreaId={this.props.selectedAreaId}
+                        filters={this.props.filters}
                         sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                         selectedProjectId={this.props.selectedProjectId}
                         areas={this.props.areas}

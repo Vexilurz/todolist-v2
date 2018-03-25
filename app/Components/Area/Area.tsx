@@ -11,6 +11,7 @@ import { filter } from 'lodash';
 import { isNil, contains, flatten, compose, map } from 'ramda'; 
 import { isArea, isArrayOfTodos, isArrayOfProjects, isTodo, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
+import { isDev } from '../../utils/isDev';
     
   
 interface AreaComponentProps{
@@ -25,6 +26,16 @@ interface AreaComponentProps{
             completed:number,
             deleted:number
         }; 
+    },
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
     },
     groupTodos:boolean, 
     selectedAreaId:string,
@@ -51,7 +62,11 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
     updateArea = (updatedProps) : void => { 
         let {area,dispatch} = this.props;
         let load = { ...area, ...updatedProps };
-        assert(isArea(load), `Load is not an Area. ${load}`);
+
+        if(isDev()){
+           assert(isArea(load), `Load is not an Area. ${load}`);
+        }
+
         dispatch({type:"updateArea", load});
     };
 
@@ -64,7 +79,9 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
     deleteArea = () => {
         let {area, projects, todos, dispatch} = this.props;
 
-        assert(isArea(area),`area is not of type Area. onDeleteArea. ${area}`);
+        if(isDev()){
+           assert(isArea(area),`area is not of type Area. onDeleteArea. ${area}`);
+        }
         
         if(isNil(area)){ return }
 
@@ -78,10 +95,10 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
             map((p:Project) => p.layout.filter(isString))
         )(selectedProjects);
         
-          
-        assert(isArrayOfTodos(selectedTodos),`selectedTodos is not of type Todo[]. onDeleteArea. ${selectedTodos}`);
-        assert(isArrayOfProjects(selectedProjects),`selectedProjects is not of type Project[]. onDeleteArea. ${selectedProjects}`);
-        
+        if(isDev()){
+           assert(isArrayOfTodos(selectedTodos),`selectedTodos is not of type Todo[]. onDeleteArea. ${selectedTodos}`);
+           assert(isArrayOfProjects(selectedProjects),`selectedProjects is not of type Project[]. onDeleteArea. ${selectedProjects}`);
+        }
 
         dispatch({
             type:"multiple",
@@ -121,6 +138,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
             />   
             <AreaBody  
                 area={area}  
+                filters={this.props.filters}
                 selectedCategory={this.props.selectedCategory}
                 todos={this.props.todos} 
                 indicators={this.props.indicators}

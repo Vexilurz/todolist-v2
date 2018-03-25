@@ -148,11 +148,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             scrolledTodo!==this.props.scrolledTodo ||
             moveCompletedItemsToLogbook!==this.props.moveCompletedItemsToLogbook ||
             showCompleted!==this.props.showCompleted || 
-            different(todo,this.props.todo); 
+            different(todo,this.props.todo) ||
+            projects!==this.props.projects; 
             //selectedCategory!==this.props.selectedCategory ||
             //selectedProjectId!==this.props.selectedProjectId ||
             //selectedAreaId!==this.props.selectedAreaId ||
-            //projects!==this.props.projects 
             
         if(should){
            //console.log(`props changed ${todo.title}`); 

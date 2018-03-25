@@ -66,6 +66,16 @@ interface GroupsByProjectAreaProps{
             deleted:number
         }; 
     },
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    },
     rootRef:HTMLElement,
     areas:Area[], 
     projects:Project[],
@@ -160,6 +170,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                 <TodosList            
                     dispatch={this.props.dispatch}     
                     areas={this.props.areas}
+                    filters={this.props.filters}
                     sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                     groupTodos={this.props.groupTodos}
                     scrolledTodo={this.props.scrolledTodo}
@@ -196,6 +207,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                                 <ExpandableTodosList
                                     dispatch={this.props.dispatch}    
                                     sortBy={this.sortByLayoutOrder(project)}
+                                    filters={this.props.filters}
                                     selectedTag={this.props.selectedTag} 
                                     scrolledTodo={this.props.scrolledTodo}
                                     selectedAreaId={this.props.selectedAreaId}
@@ -223,6 +235,16 @@ interface ExpandableTodosListProps{
     dispatch:Function,   
     sortBy:(a:Todo,b:Todo) => number,
     moveCompletedItemsToLogbook:string,
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    },
     scrolledTodo:Todo,
     selectedAreaId:string,
     selectedCategory:Category,
@@ -269,6 +291,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                 <TodosList  
                     todos={sortedSliced}
                     dispatch={this.props.dispatch}    
+                    filters={this.props.filters}
                     scrolledTodo={this.props.scrolledTodo} 
                     sortBy={this.props.sortBy}
                     selectedCategory={this.props.selectedCategory} 

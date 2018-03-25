@@ -10,14 +10,23 @@ import { setCallTimeout } from './setCallTimeout';
 import { filter } from 'lodash';
 import { Store,Todo } from '../types';
 import { byNotCompleted, byNotDeleted } from './utils';
-
+import { isDev } from './isDev';
+import { ipcRenderer } from 'electron';
 
 
 let scheduleReminder = (todo) : number => {
-    assert(isDate(todo.reminder),`reminder is not of type Date. scheduleReminder. ${todo.reminder}.`);
-   
+    if(isDev()){
+        assert(
+           isDate(todo.reminder),
+           `reminder is not of type Date. scheduleReminder. ${todo.reminder}.`
+        );
+    }
+    
     return setCallTimeout(
-        () => requestFromMain<any>('remind', [todo], (event) => event),
+        () => {
+            ipcRenderer.send('remind',[todo]); 
+            if(isDev()){ console.log(`1) emit:${todo.title}`); }
+        },
         todo.reminder
     ); 
 };
@@ -47,7 +56,11 @@ export let refreshReminders = (prevState:Store, newState:Store) : Store => {
     return compose(
         (scheduledReminders:number[]) : Store => ({...newState,scheduledReminders}),
 
-        (scheduledReminders:number[]) => filter(scheduledReminders, isNotNil),     
+        (scheduledReminders:number[]) => {
+           let timers = filter(scheduledReminders, isNotNil);
+           if(isDev()){ console.log(`scheduled reminders : ${timers.length}`) }
+           return timers;
+        },     
 
         map((todo) : number => scheduleReminder(todo)), //create timeout for each reminder
 

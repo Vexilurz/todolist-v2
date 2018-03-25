@@ -147,6 +147,18 @@ export class Trash extends Component<TrashProps,TrashState>{
                     `missing tag. Trash. ${selectedTag}`
                 ) 
             }
+
+            let todosIds = flatten( deletedProjects.map( p => p.layout.filter(isString) ) );
+            assert(
+                all((todo:Todo) => !contains(todo._id,todosIds), deletedTodos), 
+                `Error: Deleted todos from deleted projects.`
+            );
+
+            let projectsIds = flatten( deletedAreas.map( a => a.attachedProjectsIds ) );
+            assert(
+                all((project:Project) => !contains(project._id,projectsIds), deletedProjects), 
+                `Error: Deleted projects from deleted areas.`
+            );
         }
 
 
@@ -186,73 +198,72 @@ export class Trash extends Component<TrashProps,TrashState>{
                     </div>  
                 </div>  
             </div>   
-
-           <div style={{paddingTop:"20px", paddingBottom:"20px", position:"relative",  width:"100%"}}>
-            {   
-                items.map((value:any,index:number) => 
-                    cond([ 
-                        [
-                            isTodo, 
-                            (todo:Todo) => <div
-                                key={todo._id}
-                                style={{position:"relative",marginTop:"5px",marginBottom:"5px"}}
-                            >
-                                <TodoInput    
-                                    id={todo._id}
+            <div style={{paddingTop:"20px", paddingBottom:"20px", position:"relative",  width:"100%"}}>
+                {   
+                    items.map((value:any,index:number) => 
+                        cond([ 
+                            [
+                                isTodo, 
+                                (todo:Todo) => <div
                                     key={todo._id}
-                                    projects={projects}  
-                                    scrolledTodo={this.props.scrolledTodo}
-                                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                                    dispatch={dispatch}  
-                                    selectedProjectId={selectedProjectId}
-                                    groupTodos={this.props.groupTodos}
-                                    selectedAreaId={selectedAreaId} 
-                                    selectedCategory={selectedCategory}
-                                    rootRef={rootRef}  
-                                    todo={todo}
-                                />     
-                            </div>
-                        ],
-                        [
-                            isProject, 
-                            (project:Project) : JSX.Element => <div 
-                                key={`deletedProject-${index}`}  
-                                style={{position:"relative",display:"flex",alignItems:"center",marginLeft:"-5px"}}
-                            >   
-                                <div style={{width:"100%"}}>
-                                    <ProjectLinkTrash 
-                                        project={project}
-                                        indicator={defaultTo({completed:0, active:0})(this.props.indicators[project._id])}
-                                        dispatch={this.props.dispatch}
-                                        selectedCategory={this.props.selectedCategory}
-                                    />  
+                                    style={{position:"relative",marginTop:"5px",marginBottom:"5px"}}
+                                >
+                                    <TodoInput    
+                                        id={todo._id}
+                                        key={todo._id}
+                                        projects={projects}  
+                                        scrolledTodo={this.props.scrolledTodo}
+                                        moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                                        dispatch={dispatch}  
+                                        selectedProjectId={selectedProjectId}
+                                        groupTodos={this.props.groupTodos}
+                                        selectedAreaId={selectedAreaId} 
+                                        selectedCategory={selectedCategory}
+                                        rootRef={rootRef}  
+                                        todo={todo}
+                                    />     
+                                </div>
+                            ],
+                            [
+                                isProject, 
+                                (project:Project) : JSX.Element => <div 
+                                    key={`deletedProject-${index}`}  
+                                    style={{position:"relative",display:"flex",alignItems:"center",marginLeft:"-5px"}}
+                                >   
+                                    <div style={{width:"100%"}}>
+                                        <ProjectLinkTrash 
+                                            project={project}
+                                            indicator={defaultTo({completed:0, active:0})(this.props.indicators[project._id])}
+                                            dispatch={this.props.dispatch}
+                                            selectedCategory={this.props.selectedCategory}
+                                        />  
+                                    </div>   
                                 </div>   
-                            </div>   
-                        ],
-                        [
-                            isArea,
-                            (area:Area) : JSX.Element => <div 
-                                key={`deletedArea-${index}`} 
-                                style={{position:"relative",display:"flex",alignItems:"center",marginLeft:"-5px"}}
-                            >   
-                                <div style={{width:"100%"}}>
-                                    <AreaTrashLink
-                                        dispatch={this.props.dispatch}
-                                        projects={this.props.projects}
-                                        todos={this.props.todos}
-                                        area={area}
-                                    />
-                                </div>  
-                            </div>    
-                        ],
-                        [
-                            () => true, 
-                            () => null
-                        ]
-                    ])(value)
-                )
-            }
-            </div>   
+                            ],
+                            [
+                                isArea,
+                                (area:Area) : JSX.Element => <div 
+                                    key={`deletedArea-${index}`} 
+                                    style={{position:"relative",display:"flex",alignItems:"center",marginLeft:"-5px"}}
+                                >   
+                                    <div style={{width:"100%"}}>
+                                        <AreaTrashLink
+                                            dispatch={this.props.dispatch}
+                                            projects={this.props.projects}
+                                            todos={this.props.todos}
+                                            area={area}
+                                        />
+                                    </div>  
+                                </div>    
+                            ],
+                            [
+                                () => true, 
+                                () => null
+                            ]
+                        ])(value)
+                    )
+                }
+                </div>   
         </div> 
     }
 } 

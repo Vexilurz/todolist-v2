@@ -239,6 +239,16 @@ interface UpcomingProps{
             deleted:number
         }; 
     },
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    },
     selectedAreaId:string,
     selectedProjectId:string, 
     areas:Area[], 
@@ -307,7 +317,9 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
         if(isNil(from)){ return }
 
-        assert(isDate(from.date), `from.date is not Date. ${from}. onEnter.`);
+        if(isDev()){
+           assert(isDate(from.date), `from.date is not Date. ${from}. onEnter.`);
+        }
 
         let range = getDatesRange(from.date, this.n, false, true);
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
@@ -423,6 +435,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 day={day}  
                 indicators={this.props.indicators}
                 dayName={getDayName(object.date)}
+                filters={this.props.filters}
                 groupTodos={this.props.groupTodos}
                 selectedTodos={object.todos} 
                 selectedEvents={object.events}
@@ -490,6 +503,16 @@ interface CalendarDayProps{
             deleted:number
         }; 
     },
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    },
     projects:Project[],
     scheduledProjects:Project[],
     areas:Area[], 
@@ -513,7 +536,7 @@ interface CalendarDayState{}
 export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
     constructor(props){ super(props) }
 
-    
+     
     render(){   
         let {selectedTodos,selectedTag,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
         let {sameDayEvents,fullDayEvents} = groupEventsByType(selectedEvents); 
@@ -674,6 +697,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                     }}>   
                         <TodosList    
                             dispatch={this.props.dispatch}  
+                            filters={this.props.filters}
                             groupTodos={this.props.groupTodos}
                             sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                             selectedCategory={this.props.selectedCategory}

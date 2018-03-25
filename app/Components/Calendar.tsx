@@ -17,6 +17,7 @@ import {
     differentDays, subtractDays, subtractTime, addTime, timeIsMidnight, oneMinutesBefore, 
     oneDayBehind, inPastRelativeTo 
 } from '../utils/time';
+import { isDev } from '../utils/isDev';
 
  
 
@@ -48,7 +49,9 @@ let parseEvent = (vevent:any) : CalendarEvent => {
 
 
 let sameDayEvent = (event:CalendarEvent) : boolean => {
-    assert(isEvent(event), `event is not of type CalendarEvent. sameDayEvents. ${event}`);
+    if(isDev()){
+       assert(isEvent(event), `event is not of type CalendarEvent. sameDayEvents. ${event}`);
+    }
 
     let start = event.start ? new Date(event.start) : event.start;
     let end = event.end ? new Date(event.end) : event.end;
@@ -62,7 +65,9 @@ let sameDayEvent = (event:CalendarEvent) : boolean => {
 
 
 let fullDayEvent = (event:CalendarEvent) : boolean => {
-    assert(isEvent(event), `event is not of type CalendarEvent. fullDayEvents. ${event}`);
+    if(isDev()){
+       assert(isEvent(event), `event is not of type CalendarEvent. fullDayEvents. ${event}`);
+    }
 
     let start = event.start ? new Date(event.start) : new Date();
     let end = event.end ? new Date(event.end) : new Date();
@@ -77,7 +82,10 @@ let fullDayEvent = (event:CalendarEvent) : boolean => {
 
 
 let multipleDaysEvent = (event:CalendarEvent) : boolean => {
-    assert(isEvent(event), `event is not of type CalendarEvent. multipleDaysEvents. ${event}`);
+    if(isDev()){
+       assert(isEvent(event), `event is not of type CalendarEvent. multipleDaysEvents. ${event}`);
+    }
+    
     let start = event.start ? new Date(event.start) : new Date();
     let end = event.end ? new Date(event.end) : new Date();
     let f = fullDayEvent(event);

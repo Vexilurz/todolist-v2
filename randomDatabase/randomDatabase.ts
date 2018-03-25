@@ -5,7 +5,7 @@ import {
 } from 'ramda';
 import { parseCalendar } from '../app/Components/Calendar';
 import { isToday, isString } from '../app/utils/isSomething';
-import { keyFromDate, getTime, setTime, fiveMinutesBefore, fiveMinutesLater } from '../app/utils/time';
+import { keyFromDate, getTime, setTime, fiveMinutesBefore, fiveMinutesLater, onHourLater } from '../app/utils/time';
 import { Project, Calendar, Area, Todo, Category, ChecklistItem, Heading, LayoutItem, IcalData } from '../app/types';
 import { generateId } from '../app/utils/generateId';
 import { noteFromText } from '../app/utils/draftUtils';
@@ -26,8 +26,8 @@ Date.prototype["addDays"] = function(days){
 
 
 
-let randomDatabase = (t:number,p:number,a:number,c:number) : Promise<void> => { 
-    let {todos, projects, areas} = generateRandomDatabase({todos:t, projects:p, areas:a});      
+let randomDatabase = (t:number,p:number,a:number,c:number,withReminder:number) : Promise<void> => { 
+    let {todos, projects, areas} = generateRandomDatabase({todos:t, projects:p, areas:a}, withReminder);      
     
     
 
@@ -58,7 +58,6 @@ let randomDatabase = (t:number,p:number,a:number,c:number) : Promise<void> => {
                         })
                     ); 
                     
-
 
 
     if(!fs.existsSync("databases")){ 
@@ -322,7 +321,7 @@ let fakeCheckListItem = (idx) : ChecklistItem => {
   
 
     
-let fakeTodo = (tags:string[], remind = null) : Todo => {
+let fakeTodo = (tags:string[], withReminder:number) : Todo => {
     let checked = Math.random() > 0.5 ? true : false;
     
     let title : string[] = [];
@@ -360,10 +359,10 @@ let fakeTodo = (tags:string[], remind = null) : Todo => {
                    randomDate(new Date(), fiveMinutesBefore(new Date())) : 
                    null; */
 
-    let reminder = isToday(attachedDate) && isNil(deleted) && not(checked) ?  
-                   randomDate(fiveMinutesBefore(new Date()), fiveMinutesLater(new Date())) :  
+    let reminder = (isToday(attachedDate) && isNil(deleted) && not(checked)) ?  
+                   randomDate(fiveMinutesBefore(new Date()), onHourLater(new Date())) :  
                    null; //onHourLater(date) //fiveMinutesLater(date);
-    
+     
     //reminder = randomDate(new Date(), new Date()["addDays"](-50)); 
     
     return {   
@@ -374,7 +373,7 @@ let fakeTodo = (tags:string[], remind = null) : Todo => {
         priority:Math.random()*999999999,
         note:noteFromText(note.join(' ')), 
         checklist:checklist,   
-        reminder:null,  
+        reminder, //:null,  
         attachedTags:tags,   
         deadline:Math.random() < 0.3 ? null :
                  Math.random() > 0.5 ?
@@ -511,7 +510,9 @@ let generateRandomDatabase = (
         todos : number, 
         projects : number, 
         areas : number  
-    }
+    },
+
+    withReminder : number
     
 ) : { 
     
@@ -526,7 +527,7 @@ let generateRandomDatabase = (
     let todosItems : Todo[] = [];
  
     for(let i=0; i<todos; i++)
-        todosItems.push(fakeTodo(randomArrayMember(tagsChunks)));
+        todosItems.push(fakeTodo(randomArrayMember(tagsChunks),withReminder));
 
     let generateTodosIds = todosItems.map( (t:Todo) => t._id );
     let generateTodosIdsChunks = [];
@@ -579,7 +580,8 @@ randomDatabase(
     Number( process.argv[2] ),
     Number( process.argv[3] ),
     Number( process.argv[4] ),
-    Number( process.argv[5] )
+    Number( process.argv[5] ),
+    Number( process.argv[6] )
 ).then(
     () => console.log(
         `

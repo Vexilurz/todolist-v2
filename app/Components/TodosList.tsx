@@ -2,14 +2,14 @@ import './../assets/styles.css';
 import './../assets/calendarStyle.css';  
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
-import { Category, Todo, Project, Area } from '../types';
+import { Category, Todo, Project, Area, Config } from '../types';
 import { Component } from 'react';
 import { getCompletedWhen, generateDropStyle } from '../utils/utils';  
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { TodoInput } from './TodoInput/TodoInput';
 import { isNil, isEmpty, findIndex, cond, find,
     compose, map, contains, remove, not, equals, all, 
-    intersection, path, prop, adjust, reject
+    intersection, path, prop, adjust, reject, allPass
 } from 'ramda';
 import { indexToPriority } from './Categories/Today'; 
 import { SortableContainer } from './CustomSortableContainer';
@@ -77,82 +77,151 @@ export let removeTodosFromProjects =  (projects:Project[], todos:Todo[]) : Proje
 
 
 
-export let dropTodoOnCategory = ({draggedTodo,projects,category,moveCompletedItemsToLogbook}) : Todo => 
+export let dropTodoOnCategory = ({
+    draggedTodo,
+    projects,
+    category,
+    moveCompletedItemsToLogbook,
+    filters
+} : {
+    draggedTodo:Todo,
+    projects:Project[],
+    category:Category,
+    moveCompletedItemsToLogbook:string,
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    }
+}) : Todo => 
         cond([
             [
                 equals("inbox"),
-                () : Todo => ({
-                    ...draggedTodo, 
-                    category:"inbox", 
-                    attachedDate:undefined,
-                    deadline:undefined, 
-                    reminder:null,
-                    deleted:undefined,
-                    completedSet:null,
-                    completedWhen:null,
-                    completed:null
-                }) 
+                () : Todo => {
+                    let todo = {
+                        ...draggedTodo, 
+                        category:"inbox" as Category, 
+                        attachedDate:undefined,
+                        deadline:undefined, 
+                        reminder:null,
+                        deleted:undefined,
+                        completedSet:null,
+                        completedWhen:null,
+                        completed:null
+                    };
+
+                    if(isDev()){
+                       assert(allPass(filters.inbox)(todo),`Error : dropTodoOnCategory. Inbox.`);
+                    }
+
+                    return todo; 
+                }
             ],
             [
                 equals("today"),
-                () : Todo => ({
-                    ...draggedTodo, 
-                    category:"today",
-                    attachedDate:new Date(),
-                    deleted:undefined,
-                    reminder:null,
-                    completedSet:null,
-                    completedWhen:null,
-                    completed:null
-                })
+                () : Todo => {
+                    let todo = {
+                        ...draggedTodo, 
+                        category:"today" as Category,
+                        attachedDate:new Date(),
+                        deleted:undefined,
+                        reminder:null,
+                        completedSet:null,
+                        completedWhen:null,
+                        completed:null
+                    }; 
+
+                    if(isDev()){
+                       assert(allPass(filters.today)(todo),`Error : dropTodoOnCategory. Today.`);
+                    }
+
+                    return todo;
+                }
             ],
             [
                 equals("next"),
-                () : Todo => ({
-                    ...draggedTodo, 
-                    category:"next",
-                    deadline:undefined,
-                    attachedDate:undefined,
-                    reminder:null,
-                    deleted:undefined,
-                    completedSet:null,
-                    completedWhen:null,
-                    completed:null
-                })
+                () : Todo => {
+                    let todo = {
+                        ...draggedTodo, 
+                        category:"next" as Category,
+                        deadline:undefined,
+                        attachedDate:undefined,
+                        reminder:null,
+                        deleted:undefined,
+                        completedSet:null,
+                        completedWhen:null,
+                        completed:null
+                    };
+
+                    if(isDev()){
+                       assert(allPass(filters.next)(todo),`Error : dropTodoOnCategory. Next.`);
+                    }
+
+                    return todo;
+                }
             ],
-            [
+            [ 
                 equals("someday"),
-                () : Todo => ({
-                    ...draggedTodo, 
-                    category:"someday",
-                    attachedDate:undefined,
-                    deadline:undefined, 
-                    deleted:undefined,
-                    completedSet:null,
-                    completedWhen:null,
-                    completed:null
-                })
+                () : Todo => {
+                    let todo = {
+                        ...draggedTodo, 
+                        category:"someday" as Category,
+                        attachedDate:undefined,
+                        deadline:undefined, 
+                        deleted:undefined,
+                        completedSet:null,
+                        completedWhen:null,
+                        completed:null
+                    };
+
+                    if(isDev()){
+                       assert(allPass(filters.someday)(todo),`Error : dropTodoOnCategory. Someday.`);
+                    }
+
+                    return todo;
+                }
             ],
             [
                 equals("trash"),
-                () : Todo => ({...draggedTodo, reminder:null, deleted:new Date()})
+                () : Todo => {
+                    let todo = {...draggedTodo, reminder:null, deleted:new Date()};
+
+                    if(isDev()){
+                       assert(allPass(filters.trash)(todo),`Error : dropTodoOnCategory. Trash.`);
+                    }
+
+                    return todo;
+                }
             ],
             [
                 equals("logbook"),
-                () : Todo => ({
-                    ...draggedTodo,
-                    completedSet:new Date(),
-                    reminder:null,
-                    completedWhen:getCompletedWhen(moveCompletedItemsToLogbook,new Date()),
-                    deleted:undefined
-                })
+                () : Todo => {
+                    let todo = {
+                        ...draggedTodo,
+                        completedSet:new Date(),
+                        reminder:null,
+                        completedWhen:getCompletedWhen(moveCompletedItemsToLogbook,new Date()),
+                        deleted:undefined
+                    };
+
+                    if(isDev()){
+                        assert(allPass(filters.logbook)(todo),`Error : dropTodoOnCategory. Logbook.`);
+                    }
+
+                    return todo;
+                }
             ],
             [   
                 () => true, 
                 () : Todo => ({...draggedTodo}) 
             ]
         ])(category);
-
+ 
 
 
 export let findDropTarget = (event,projects:Project[]) : {project:Project,category:Category} => {
@@ -167,7 +236,29 @@ export let findDropTarget = (event,projects:Project[]) : {project:Project,catego
 
 
 
-export let onDrop = ({event,draggedTodo,config,projects}) : { projects:Project[], todo:Todo } => { 
+export let onDrop = ({
+    filters,
+    event,
+    draggedTodo,
+    config,
+    projects
+} : {
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    },
+    event:any, 
+    draggedTodo:Todo,
+    config:any,
+    projects:Project[]
+
+}) : { projects:Project[], todo:Todo } => { 
     let { moveCompletedItemsToLogbook } = config;
     let { project, category } = findDropTarget(event,projects);
     let updatedProjects = removeTodoFromProjects(projects,draggedTodo);
@@ -179,11 +270,16 @@ export let onDrop = ({event,draggedTodo,config,projects}) : { projects:Project[]
                 draggedTodo, 
                 projects:updatedProjects,
                 category, 
-                moveCompletedItemsToLogbook
+                moveCompletedItemsToLogbook,
+                filters
             })
         };
     }else if(isProject(project)){
         let idx = findIndex((p:Project) => project._id===p._id, updatedProjects);
+
+        if(isDev()){
+            assert(idx!==-1,`Drop on non existing project. ${project}`);
+        }
 
         return {
             projects:adjust(
@@ -205,6 +301,16 @@ interface TodosListProps{
     projects:Project[],
     sortBy:(a:Todo,b:Todo) => number,  
     scrolledTodo:Todo,
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    },
     areas:Area[],
     groupTodos:boolean, 
     moveCompletedItemsToLogbook:string, 
@@ -278,7 +384,7 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
     
     onSortEnd = (oldIndex:number,newIndex:number,event:any,item?:any) => { 
 
-        let {todos, dispatch, areas, sortBy, projects,moveCompletedItemsToLogbook} = this.props;
+        let {todos, dispatch, areas, sortBy, projects,moveCompletedItemsToLogbook,filters} = this.props;
         let x = event.clientX; 
         let y = event.clientY;   
         let selected = todos.sort(sortBy);
@@ -305,7 +411,8 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                 event, 
                 draggedTodo, 
                 projects, 
-                config:{moveCompletedItemsToLogbook}
+                config:{moveCompletedItemsToLogbook},
+                filters
             }); 
 
             if(updated.projects){
@@ -315,10 +422,11 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             if(updated.todo){
                actions.push({type:"updateTodo", load:updated.todo});
             }
- 
         }else{     
+
             if(oldIndex===newIndex){ return }
-            this.changeOrder(oldIndex,newIndex,selected) 
+
+            this.changeOrder(oldIndex,newIndex,selected); 
         }     
         
         dispatch({type:"multiple", load:actions}); 

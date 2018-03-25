@@ -169,7 +169,7 @@ interface AppState{
 @connect((store,props) => store, attachDispatchToProps)   
 export class App extends Component<AppProps,AppState>{  
     constructor(props){  
-        super(props);
+        super(props); 
 
         let {amounts,indicators,todos} = this.propsToState(this.props);  
         this.state = {amounts,indicators,todos};
@@ -500,7 +500,9 @@ let renderApp = (event, clonedStore:Store, id:number) : void => {
                 };
                 let store = createStore(applicationReducer,data);
 
-                assert(isDate(data.nextUpdateCheck),`nextUpdateCheck is not of type Date`);
+                if(isDev()){
+                   assert(isDate(data.nextUpdateCheck),`nextUpdateCheck is not of type Date`);
+                }
 
                 ReactDOM.render(   
                     <Provider store={store}>    
@@ -526,17 +528,20 @@ let reducer = (reducers) => ( state:Store, action:any) : Store => {
         for(let i=0; i<reducers.length; i++){
             let newState = reducers[i](state, action);
             if(newState){ 
-               return refreshReminders(state,newState);
+               return newState;
             }  
         }    
         return state;
     };
 
-    return ifElse(
-        typeEquals("multiple"), 
-        (action:action) => action.load.reduce((state,action) => f(state,action), state),
-        (action:action) => f(state,action)
-    )(action);
+    return refreshReminders(
+        state,
+        ifElse(
+            typeEquals("multiple"), 
+            (action:action) => action.load.reduce((state,action) => f(state,action), state),
+            (action:action) => f(state,action)
+        )(action)
+    );
 }; 
 
 

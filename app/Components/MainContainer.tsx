@@ -284,27 +284,28 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
 
             Observable 
-                .fromEvent(ipcRenderer, 'removeReminder', (event,todo) => todo)    
+                .fromEvent(ipcRenderer, 'receive', (event,todo) => todo) 
                 .subscribe((todo:Todo) => {
-                    assert(isTodo(todo), `todo is not of type todo. removeReminder. ${todo}`);
-                    let {todos,dispatch} = this.props; 
-                    let target = todos.find((t:Todo) => t._id===todo._id);
-                    if(target){ 
-                        let updated:Todo = {...target,reminder:null};
-                        dispatch({type:"updateTodo",load:updated}); 
-                    }  
-                }),
-
-
+                    if(isDev()){ console.log(`2) receive:${todo.title}`); }
+                }), 
+ 
+                
             Observable 
-                .fromEvent(ipcRenderer, 'removeReminders', (event,todos) => todos)    
+                .fromEvent(ipcRenderer, 'removeReminders', (event,todos) => todos) 
                 .subscribe((items:Todo[]) => {
-                    let {todos,dispatch} = this.props; 
-                    let ids = items.filter(isNotNil).map((t:Todo) => t._id);
-                    let updated = filter(todos, (todo:Todo) => contains(todo._id)(ids));
-                    
-                    dispatch({type:"updateTodos",load:updated.map((t:Todo) => ({...t,reminder:null})) }); 
-                }),
+                    let ids : string[] = items.filter(isNotNil).map((t:Todo) => t._id);
+
+                    if(isDev()){ items.forEach( todo => console.log(`3) erase ${todo.title}`) ) }
+
+                    let load = ids.map( 
+                        id => ({ 
+                            type:"updateTodoById", 
+                            load:{id,props:{reminder:null}}
+                        })
+                    );
+                      
+                    if(isNotEmpty(load)){ dispatch({type:"multiple",load}); }
+                }), 
 
 
             Observable
@@ -511,6 +512,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
                                     return <Inbox 
                                         todos={inboxTodos} 
+                                        filters={this.props.filters}
                                         dispatch={this.props.dispatch}
                                         selectedCategory={this.props.selectedCategory}
                                         groupTodos={this.props.groupTodos}
@@ -545,6 +547,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
                                     return <Today   
                                         todos={todayTodos}
+                                        filters={this.props.filters}
                                         hideHint={this.props.hideHint}
                                         clone={this.props.clone}
                                         dispatch={this.props.dispatch}
@@ -580,6 +583,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
                                     return <Someday 
                                         todos={selectedTodos}
+                                        filters={this.props.filters}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         dispatch={this.props.dispatch}
                                         selectedTodo={this.props.selectedTodo}
@@ -614,6 +618,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
                                     return <Next   
                                         todos={nextTodos}
+                                        filters={this.props.filters}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         dispatch={this.props.dispatch}
                                         indicators={this.props.indicators}
@@ -700,6 +705,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     return <Upcoming  
                                         limit={this.props.limit}
                                         clone={this.props.clone} 
+                                        filters={this.props.filters}
                                         indicators={this.props.indicators}
                                         hideHint={this.props.hideHint}
                                         todos={upcomingTodos}
@@ -738,9 +744,10 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         this.props.indicators[project._id]
                                     );
 
-                                    return <ProjectComponent 
+                                    return <ProjectComponent  
                                         project={project}
                                         indicator={indicator}
+                                        filters={this.props.filters}
                                         todos={selectedTodos}
                                         scrolledTodo={this.props.scrolledTodo}
                                         selectedTodo={this.props.selectedTodo}
@@ -768,7 +775,8 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     if(isNil(area)){ return null }
 
                                     return <AreaComponent    
-                                        area={area}  
+                                        area={area}   
+                                        filters={this.props.filters}
                                         indicators={this.props.indicators}
                                         todos={this.props.todos}  
                                         scrolledTodo={this.props.scrolledTodo}

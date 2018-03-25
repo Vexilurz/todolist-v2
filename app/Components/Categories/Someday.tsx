@@ -34,6 +34,16 @@ interface SomedayProps{
             deleted:number
         }; 
     },
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    },
     rootRef:HTMLElement, 
     todos:Todo[],
     groupTodos:boolean,
@@ -97,6 +107,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                     groupTodos ? 
                     <GroupsByProjectArea
                         dispatch={this.props.dispatch}   
+                        filters={this.props.filters}
                         selectedProjectId={this.props.selectedProjectId}
                         indicators={this.props.indicators}
                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
@@ -115,6 +126,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                     :
                     <TodosList      
                         areas={this.props.areas}
+                        filters={this.props.filters}
                         selectedAreaId={this.props.selectedAreaId}
                         sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
                         selectedProjectId={this.props.selectedProjectId}

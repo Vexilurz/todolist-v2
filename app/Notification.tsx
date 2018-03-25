@@ -10,7 +10,7 @@ import {
     cond, assoc, isNil, not, defaultTo, map, isEmpty, 
     uniq, remove, contains, append, adjust, compose, 
     flatten, concat, prop, ifElse, last, path, uniqBy,
-    identity
+    identity, clone
 } from 'ramda';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import lightBaseTheme from 'material-ui/styles/baseThemes/lightBaseTheme';
@@ -156,17 +156,18 @@ class Notification extends Component<NotificationProps,NotificationState>{
 
             Observable 
                 .fromEvent(ipcRenderer,"remind",(event,todo) => todo)
+                .do((todo) => requestFromMain<any>("receive",[todo],(event) => event))
                 .buffer(Observable.interval(5000).switchMap(shouldNotify))
                 .subscribe(
                     ifElse(
                         isEmpty,
                         identity,
                         compose( 
-                            (todos:any[]) => this.setState({todos},this.notify),
-                            uniqBy(prop('_id'))
+                          (todos:any[]) => this.setState({todos},this.notify),
+                           uniqBy(prop('_id'))
                         )   
-                    ) 
-                )
+                    )  
+                )  
         );
     };
 
@@ -182,14 +183,17 @@ class Notification extends Component<NotificationProps,NotificationState>{
     
 
 
-    suspend = () => {
-        let {todos} = this.state;
-        this.open = false; 
-        this.removeReminders(todos)
-        .then(
-            () => this.setState({ todos:[] }, this.hide)
-        ); 
-    };
+    suspend = () => new Promise( 
+        resolve => {
+            let {todos} = this.state;
+            let remove = [...todos];
+            this.open = false; 
+            this.setState(
+                { todos:[] }, 
+                () => this.removeReminders(remove).then(() => this.hide()).then( () => resolve() )
+            )
+        }
+    );
  
 
 
@@ -288,8 +292,8 @@ class Notification extends Component<NotificationProps,NotificationState>{
                 }}>
                     <div  
                         onClick={() => {
-                            this.openTodoInApp(todos[0]);
-                            this.suspend(); 
+                            let todo = clone(todos[0]);
+                            this.suspend().then(() => this.openTodoInApp(todo));
                         }} 
                         style={{      
                             display:"flex",
