@@ -2,63 +2,59 @@ const path = require("path");
 const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');  
 const CleanWebpackPlugin = require('clean-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {     
-    context: __dirname + "/app",
-    
-    entry: { 
-        'main':'./main/main.ts'
-    }, 
+    context: __dirname + "/app",  
 
+    mode:'development',
+
+    entry: { 
+        'main':'./main/main.ts',    
+    },    
+     
     output: {              
         filename : '[name].js' ,
-        path : path.resolve(__dirname,"dist"),
-        devtoolModuleFilenameTemplate: '[absolute-resource-path]' 
-    }, 
-
+        path : path.resolve(__dirname,"dist")
+    },      
+ 
     resolve: { 
-        extensions: [".ts", ".tsx", ".js", ".json"]
-    },  
-
+        extensions: [".ts", ".tsx", ".js"]
+    },        
+                 
     module: {
         rules: [ 
-          {   
-            test:/\.(css|scss)$/,   
-            use:[ 'style-loader', 'css-loader']
-          },  
           {  
             test:/\.(ts|tsx)?$/,  
-            exclude:  [
-                path.resolve(__dirname,'production'),
-                path.resolve(__dirname,'node_modules')
-            ], 
+            exclude: /(node_modules)/, 
             loader:"awesome-typescript-loader"
           },     
-          {      
-            enforce:"pre", 
-            test:/\.js$/,       
-            exclude:[
-                path.resolve(__dirname,'production'),
-                path.resolve(__dirname,'node_modules')
-            ], 
-            loader:'babel-loader', 
-            query:{presets: ['es2015']}  
+          {     
+            test: /\.js$/,
+            exclude: /(node_modules|bower_components)/,
+            loader:'babel-loader',
+            options: {
+              presets: ['@babel/preset-env']
+            },
+          },
+          {   
+            test: /\.(css|scss)$/,   
+            exclude: /(node_modules)/, 
+            use: [ 'style-loader', 'css-loader']
           }    
         ]    
     },
-  
-    devtool: 'sourcemap', 
+ 
+    target: "electron-main",     
 
     plugins:[ 
-        new CleanWebpackPlugin(['production']),
+        new CleanWebpackPlugin(['dist']),
         new webpack.DefinePlugin({
-          'process.env.NODE_ENV':JSON.stringify('development')
-        }), 
+            NODE_ENV: JSON.stringify('development')
+        })
     ], 
 
-    target: "electron",      
- 
-    node: { 
+    node:{ 
         __dirname: false, 
         __filename: false
     }       

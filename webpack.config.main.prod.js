@@ -2,11 +2,13 @@ const path = require("path");
 const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');  
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
-const CompressionPlugin = require("compression-webpack-plugin");
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const env = process.env.NODE_ENV || 'production';
 
 module.exports = {     
     context: __dirname + "/app",  
+
+    mode:'production',
 
     entry: { 
         'main':'./main/main.ts',    
@@ -14,68 +16,83 @@ module.exports = {
      
     output: {              
         filename : '[name].js' ,
-        path : path.resolve(__dirname,"production"),
-        devtoolModuleFilenameTemplate: '[absolute-resource-path]' 
+        path : path.resolve(__dirname,"production")
     },      
  
     resolve: { 
-        extensions: [".ts", ".tsx", ".js", ".json"]
+        extensions: [".ts", ".tsx", ".js"]
     },        
                  
     module: {
         rules: [ 
-          {   
-            test: /\.(css|scss)$/,   
-            use: [ 'style-loader', 'css-loader']
-          },  
           {  
             test:/\.(ts|tsx)?$/,  
-            exclude: path.resolve(__dirname,'node_modules'), 
+            exclude: /(node_modules)/, 
             loader:"awesome-typescript-loader"
           },     
           {     
-            test:/\.js$/,       
-            exclude: path.resolve(__dirname,'node_modules'), 
-            loader: 'babel', 
-            query: {presets: ['es2015']}  
+            test: /\.js$/,
+            exclude: /(node_modules|bower_components)/,
+            loader:'babel-loader',
+            options: {
+              presets: ['@babel/preset-env']
+            },
+          },
+          {   
+            test: /\.(css|scss)$/,   
+            exclude: /(node_modules)/, 
+            use: [ 'style-loader', 'css-loader']
           }    
         ]    
     },
  
-    devtool: 'cheap-module-source-map',
-
-    target: "electron",      
+    target: "electron-main",     
+    
+    optimization: {
+		minimize: true,
+		minimizer: [
+			new UglifyJsPlugin({
+                uglifyOptions:{
+                    output:{
+                        comments:false
+                    },
+                    compress:{
+                        unsafe_comps:true,
+                        properties:true,
+                        keep_fargs:false,
+                        pure_getters:true,
+                        collapse_vars:true,
+                        //unsafe:true,
+                        warnings:false,
+                        sequences:true,
+                        dead_code:true,
+                        drop_debugger:true,
+                        comparisons:true,
+                        conditionals:true,
+                        evaluate:true,
+                        booleans:true,
+                        loops:true,
+                        unused:true,
+                        hoist_funs:true,
+                        if_return:true,
+                        join_vars:true,
+                        drop_console:true
+                    }
+                }
+            })
+		]
+	},
     
     plugins:[ 
         new CleanWebpackPlugin(['production']),
-        /*
         new webpack.DefinePlugin({
-            'process.env.NODE_ENV': '"production"'
-        }),
-        new UglifyJsPlugin({
-            uglifyOptions:{
-                mangle: true,
-                compress: {
-                    warnings: true, // Suppress uglification warnings
-                    pure_getters: true
-                }, 
-                output: {
-                    comments: false
-                }
-            }
-        }),
-        new CompressionPlugin({
-            asset: "[path].gz[query]",
-            algorithm: "gzip",
-            test: /\.js$|\.css$|\.html$/,
-            threshold: 10240,
-            minRatio: 0
+            PRODUCTION: JSON.stringify(true),
+            NODE_ENV: JSON.stringify('production')
         })
-        */
     ], 
 
-    node: { 
-        __dirname: false,
+    node:{ 
+        __dirname: false, 
         __filename: false
     }       
 };

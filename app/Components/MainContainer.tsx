@@ -468,9 +468,10 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                     <div 
                       style={{
                         display:"flex", 
+                        zIndex:20000,
                         alignItems:"center", 
                         position:"fixed", 
-                        top:0, 
+                        top:0,  
                         right:"15px"
                       }}
                     >  

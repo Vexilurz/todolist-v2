@@ -162,7 +162,7 @@ ipcRenderer.once(
                 
                     return <Provider store={store}><QuickEntry {...{} as any}/></Provider>
                 }
-            )   
+            ) as (value: any) => any   
         );
     }
 );   
@@ -295,7 +295,11 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
             Observable
             .fromEvent(ipcRenderer,"config", (event,config) => config) 
-            .subscribe(compose( (state) => this.setState(state), this.stateFromConfig )),
+            .subscribe(
+                compose( 
+                    (state) => this.setState(state), this.stateFromConfig 
+                ) as (value: any) => void
+            ),
             
             Observable
             .fromEvent(ipcRenderer, "data", (event,data) => data)
@@ -314,7 +318,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                         projects:(projects) => projects.filter(allPass([byNotDeleted,byNotCompleted])),
                         areas:(areas) => areas.filter(byNotDeleted)
                     })
-                )
+                ) as (value: any) => void
             )
         );
     }

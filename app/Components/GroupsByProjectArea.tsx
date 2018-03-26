@@ -30,8 +30,8 @@ import { ContainerHeader } from './ContainerHeader';
 import { Tags } from './Tags';
 import { FadeBackgroundIcon } from './FadeBackgroundIcon';
 import { 
-    uniq, allPass, isEmpty, isNil, not, any, contains, all, 
-    compose, groupBy, cond, defaultTo, reject 
+    uniq, allPass, isEmpty, isNil, not, any, contains, all, applyTo,
+    compose, groupBy, cond, defaultTo, reject, flatten, map 
 } from 'ramda';
 import { TodoInput } from './TodoInput/TodoInput';
 import { ProjectLink } from './Project/ProjectLink';
@@ -107,34 +107,61 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         }else{
             return 0;
         }
-    }; 
+    };
+    
+    
+
+    getHiddenIds = compose(
+        flatten, 
+        map( (p:Project) => p.layout.filter(isString) ),
+        projects => filter(projects, byHidden(this.props.selectedCategory))
+    );
 
 
-    render(){
-        let {
-            projects, projectsFilters, areasFilters, hideDetached, areas, todos, selectedTag, selectedCategory
-        } = this.props;
- 
 
-        let selectedProjects = compose(
-            (projects) => filter(projects,allPass(projectsFilters)),
-            reject(byHidden(selectedCategory))
-        )(projects);
-        
+    selectProjects = compose(
+        projects => filter(projects,allPass(this.props.projectsFilters)),
+        reject(byHidden(this.props.selectedCategory))
+    );
 
-        let selectedAreas = areas.filter(allPass(areasFilters));
-             
 
-        let conditions : [(todo:Todo) => boolean, (todo:Todo) => string][] = [
-            ...selectedProjects.map(
+
+    selectTodos = (hiddenIds:string[]) : Todo[] => filter(
+        this.props.todos, 
+        allPass([ byTags(this.props.selectedTag), todo => !contains(todo._id)(hiddenIds) ])
+    );
+
+
+
+    groupByProject = (projects:Project[]) => (todos:Todo[]) => compose(
+        applyTo(todos),
+        groupBy,
+        cond,
+        projects => [
+            ...projects.map(
                 (project:Project) : [(todo:Todo) => boolean,(todo:Todo) => string] => [
                    (todo:Todo) : boolean => contains(todo._id)(project.layout),
                    (todo:Todo) : string => project._id
                 ]
             ),
             [() => true, () => `detached`]
-        ];  
+        ]
+    )(projects);
 
+
+
+    render(){
+        let { 
+            projects, projectsFilters, areasFilters, hideDetached, 
+            areas, todos, selectedTag, selectedCategory
+        } = this.props;
+
+ 
+        let hiddenIds = this.getHiddenIds(projects);
+        let selectedProjects = this.selectProjects(projects);
+        let selectedAreas = areas.filter(allPass(areasFilters));
+        let selectedTodos = this.selectTodos(hiddenIds);
+       
 
         //Projects sorted according to order in LeftPanel -> AreasList component
         let sortedProjects : Project[] = compose(
@@ -142,13 +169,8 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
             ({table,detached}) => generateLayout(selectedAreas,{table, detached}),
             () => groupProjectsByArea(selectedProjects,selectedAreas)
         )();
-
-        let byTag = filter(todos, byTags(selectedTag));
-
         //Filtered todos grouped by areas and projects
-        let result : {[key: string]: Todo[];} = groupBy(cond(conditions),byTag);
-
-
+        let result : {[key: string]: Todo[];} = this.groupByProject(selectedProjects)(selectedTodos);
         //Filtered todos which doesnt belong to any area or project
         let detached = defaultTo([])(result.detached); 
 
@@ -156,12 +178,11 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         if(isDev()){ 
             if(selectedTag!=="All"){ 
                 assert( 
-                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),byTag),
+                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),selectedTodos),
                     `missing tag. GroupsByProjectArea. ${selectedTag}`
                 ) 
             }
         }
-
 
         return <div> 
             {

@@ -260,8 +260,9 @@ export class Today extends Component<TodayProps,TodayState>{
 
 
     onSortStart = (oldIndex:number,event:any) => {
-        console.log('start');
-        Perf.start();
+        if(isDev()){
+           Perf.start();
+        }
         this.props.dispatch({type:"dragged",load:"todo"});  
     };
     
@@ -308,12 +309,13 @@ export class Today extends Component<TodayProps,TodayState>{
         
         this.props.dispatch({type:"multiple",load:actions}); 
 
-        console.log('stop');
-        Perf.stop();
-        Perf.getLastMeasurements();
-        Perf.getWasted();
-        Perf.printExclusive();
-        Perf.printWasted();
+        if(isDev()){
+            Perf.stop();
+            Perf.getLastMeasurements();
+            Perf.getWasted();
+            Perf.printExclusive();
+            Perf.printWasted();
+        }
     };   
     
 

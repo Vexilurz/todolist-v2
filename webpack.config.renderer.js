@@ -1,62 +1,65 @@
 const path = require("path");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
-const webpackTargetElectronRenderer = require('webpack-target-electron-renderer');   
-const CopyWebpackPlugin = require('copy-webpack-plugin');    
+const CopyWebpackPlugin = require('copy-webpack-plugin');      
+const CleanWebpackPlugin = require('clean-webpack-plugin');   
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+
 module.exports = {     
     context: __dirname + "/app",
+
+    mode:'development',
     
-    entry: {     
+    entry:{    
         'app':'./app.tsx',
         'quickentry':'./quickentry.tsx',
         'notification':'./notification.tsx'
     },  
 
-    output: {            
-        filename : '[name].js' , 
-        path : path.resolve(__dirname,"dist") 
+    output:{             
+        filename:'[name].js', 
+        path:path.resolve(__dirname,"dist") 
     },     
      
     resolve: { 
         extensions: [".ts", ".tsx", ".js", ".json", ".css"]
     }, 
-                  
+                   
     module: { 
         rules: [ 
           {   
-            test: /\.(css|scss)$/,   
+            test: /\.(css|scss)$/,  
+            exclude: /node_modules\/(?!(draft-js)\/).*/,  
             use: [ 'style-loader', 'css-loader']
           },  
           {  
             test:/\.(ts|tsx)?$/,  
-            exclude: [
-                path.resolve(__dirname,'production'),
-                path.resolve(__dirname,'node_modules')
-            ], 
+            exclude: /(node_modules)/, 
             loader:"awesome-typescript-loader"
-          },      
-          {
-            test: /\.(woff|woff2|eot|ttf|svg)$/,
-            loader: 'file-loader?name=fonts/[name].[ext]'
-          },  
-          {    
-            enforce:"pre",  
-            test:/\.js$/,       
-            exclude: path.resolve(__dirname,'node_modules'), 
+          },       
+          {   
+            test   : /\.(ttf|eot|svg|woff(2)?)(\?[a-z0-9=&.]+)?$/,
+            exclude: /(node_modules)/, 
+            loader: 'file-loader'  
+          }, 
+          {     
+            test: /\.js$/,
+            exclude: /(node_modules|bower_components)/,
             loader: 'babel-loader',
-            query: {
-                presets: [["es2015", { "modules": false }]]
-            }  
-          }  
+            options: {
+              presets: ['env']
+            },
+          },   
         ]    
-    },
+    }, 
     
-    target:'electron', 
-
-    devtool: 'sourcemap', 
-        
-    plugins :[
-        new CopyWebpackPlugin([{from : './assets'}]),   
+    target: "electron-renderer",     
+    
+    plugins : [
+        new webpack.DefinePlugin({
+            NODE_ENV: JSON.stringify('development')
+        }),
+        new CopyWebpackPlugin([{from : './assets'}]), 
         new HtmlWebpackPlugin({
             inject:true, 
             title:'tasklist',     
@@ -76,7 +79,8 @@ module.exports = {
             filename: 'notification.html' 
         })        
     ],  
-    
+
+
     node: { 
         __dirname: false, 
         __filename: false
