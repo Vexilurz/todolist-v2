@@ -11,9 +11,7 @@ module.exports = {
     mode:'production',
     
     entry:{    
-        'app':'./app.tsx',
         'quickentry':'./quickentry.tsx',
-        'notification':'./notification.tsx'
     },  
 
     output:{             
@@ -58,69 +56,51 @@ module.exports = {
     optimization: {
 		minimize: true,
 		minimizer: [
-			new UglifyJsPlugin(
-                /*{
-                    sourceMap:false,
-                    parallel:false,
-                    uglifyOptions:{
-                        output:{
-                            comments:false
-                        },
-                        compress:{
-                            //unsafe_comps:true,
-                            properties:true,
-                            keep_fargs:false,
-                            pure_getters:true,
-                            collapse_vars:true,
-                            //unsafe:true,
-                            warnings:false,
-                            sequences:true,
-                            dead_code:true,
-                            drop_debugger:true,
-                            comparisons:true,
-                            conditionals:true,
-                            evaluate:true,
-                            booleans:true,
-                            loops:true,
-                            unused:true,
-                            hoist_funs:true,
-                            if_return:true,
-                            join_vars:true,
-                            drop_console:true
-                        }
-                    }
-                }*/
-            )
+			new UglifyJsPlugin({
+                sourceMap:false,
+                uglifyOptions:{
+                    output:{
+                        comments:false
+                    },
+                    compress:false
+                    /*{
+                        //unsafe_comps:true,
+                        properties:true,
+                        keep_fargs:false,
+                        pure_getters:true,
+                        collapse_vars:true,
+                        //unsafe:true,
+                        warnings:false,
+                        sequences:true,
+                        dead_code:true,
+                        drop_debugger:true,
+                        comparisons:true,
+                        conditionals:true,
+                        evaluate:true,
+                        booleans:true,
+                        loops:true,
+                        unused:true,
+                        hoist_funs:true,
+                        if_return:true,
+                        join_vars:true,
+                        drop_console:true
+                    }*/
+                }
+            })
 		]
     },
     
-          
     plugins : [
         new webpack.DefinePlugin({
-            PRODUCTION: JSON.stringify(true),
-            NODE_ENV: JSON.stringify('production')
-        }),
-        new CopyWebpackPlugin([{from : './assets'}]), 
-        new HtmlWebpackPlugin({
-            inject:true, 
-            title:'tasklist',     
-            chunks:['app'],
-            filename: 'app.html' 
+            'process.env.NODE_ENV': JSON.stringify('production')
         }),
         new HtmlWebpackPlugin({
             inject:true, 
             title:'Add task',     
             chunks:['quickentry'],
             filename: 'quickentry.html' 
-        }),
-        new HtmlWebpackPlugin({
-            inject:true, 
-            title:'Notification',     
-            chunks:['notification'],
-            filename: 'notification.html' 
-        })        
+        })      
     ],  
-
 
     node: { 
         __dirname: false, 

@@ -27,12 +27,12 @@ module.exports = {
         rules: [ 
           {  
             test:/\.(ts|tsx)?$/,  
-            exclude: /(node_modules)/, 
+            exclude: /(node_modules|production)/, 
             loader:"awesome-typescript-loader"
           },     
           {     
             test: /\.js$/,
-            exclude: /(node_modules|bower_components)/,
+            exclude: /(node_modules|production)/,
             loader:'babel-loader',
             options: {
               presets: ['@babel/preset-env']
@@ -40,7 +40,7 @@ module.exports = {
           },
           {   
             test: /\.(css|scss)$/,   
-            exclude: /(node_modules)/, 
+            exclude: /(node_modules|production)/, 
             use: [ 'style-loader', 'css-loader']
           }    
         ]    
@@ -86,8 +86,7 @@ module.exports = {
     plugins:[ 
         new CleanWebpackPlugin(['production']),
         new webpack.DefinePlugin({
-            PRODUCTION: JSON.stringify(true),
-            NODE_ENV: JSON.stringify('production')
+            'process.env.NODE_ENV': JSON.stringify('development')
         })
     ], 
 

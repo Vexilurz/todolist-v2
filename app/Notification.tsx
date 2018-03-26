@@ -184,7 +184,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
 
 
     suspend = () => new Promise( 
-        resolve => {
+        resolve => { 
             let {todos} = this.state;
             let remove = [...todos];
             this.open = false; 

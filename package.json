@@ -8,7 +8,12 @@
     "publish": "build --win --publish always",
     "pack": "build --win",
     "build": "start webpack -w --config webpack.config.main.js && webpack -w --config webpack.config.renderer.js",
-    "production": "start webpack --config webpack.config.main.prod.js && webpack --config webpack.config.renderer.prod.js"
+    "production" : "start webpack --config webpack.config.main.prod.js && webpack --config webpack.config.renderer.app.js && webpack --config webpack.config.renderer.quickentry.js && webpack --config webpack.config.renderer.notification.js",
+    "main": "start webpack --config webpack.config.main.prod.js",
+    "app": "start webpack --config webpack.config.renderer.app.js",
+    "quickentry": "start webpack --config webpack.config.renderer.quickentry.js",
+    "notification": "start webpack --config webpack.config.renderer.notification.js"
+    
   },
   "repository": "",
   "keywords": [],
