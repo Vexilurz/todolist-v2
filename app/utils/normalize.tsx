@@ -1,4 +1,5 @@
 import { isNil } from 'ramda';
+import { isNotNil } from './isSomething';
 
 export let normalize = (dates:Date[]) : Date[]  => { 
     let day = 1000 * 60 * 60 * 24;
@@ -9,7 +10,10 @@ export let normalize = (dates:Date[]) : Date[]  => {
         let current = dates[i];
         let next = dates[i+1];
 
-        if(isNil(next)){ continue; } //end 
+        if(isNil(next)){ 
+            if(isNotNil(current)){ list.push(current); }
+            continue; 
+        }//end 
 
         let difference = Math.round( (next.getTime() - current.getTime()) / day );
 

@@ -9,14 +9,14 @@ import { requestFromMain } from '../../utils/requestFromMain';
 import { updateConfig } from '../../utils/config';
 import { 
     remove, isNil, not, isEmpty, compose, toPairs, map, findIndex, equals, prop,
-    contains, last, cond, defaultTo, flatten, uniq, concat, all, identity 
+    contains, last, cond, defaultTo, flatten, uniq, concat, all, identity, when
 } from 'ramda';
 import { Checkbox } from '../TodoInput/TodoInput';
 import { isArrayOfTodos } from '../../utils/isSomething';
 import { filter } from 'lodash';
 import { assert } from '../../utils/assert';
-import { defaultTags } from '../../utils/defaultTags';
 import { uppercase } from '../../utils/uppercase';
+import { defaultTags } from '../../utils/defaultTags';
 
 
 
@@ -45,29 +45,26 @@ export class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>
 
 
     onRemoveTag = (tag:string) => () => {
-        if(contains(tag)(defaultTags)){
-            compose(
-                (p) => p.then( config => this.props.dispatch({type:"updateConfig",load:config}) ),
-                updateConfig,
-                (idx:number) => ({defaultTags:remove(idx,1,defaultTags)}),
-                findIndex((item) => item===tag)
-            )(defaultTags)
-        }
- 
-
-        this.props.dispatch({
-            type:"updateTodos", 
-            load:compose(
-                map( 
-                    (todo:Todo) : Todo => compose(
-                        (idx) => ({...todo,attachedTags:remove(idx,1,todo.attachedTags)}),
-                        findIndex((todoTag:string) => todoTag===tag),
-                        (todo) => todo.attachedTags
-                    )(todo)
-                ), 
-                (todos) => filter(todos, (t:Todo) => contains(tag)(t.attachedTags))
-            )(this.props.todos)
-        });
+        compose(
+            when(
+                () => contains(tag)(this.props.defaultTags),
+                () => compose(
+                    (p) => p.then( config => this.props.dispatch({type:"updateConfig",load:config}) ),
+                    updateConfig,
+                    (idx:number) => ({defaultTags:remove(idx,1,this.props.defaultTags)}),
+                    findIndex((item) => item===tag)
+                )(this.props.defaultTags)
+            ),
+            load => this.props.dispatch({type:"updateTodos",load}), 
+            map( 
+                (todo:Todo) : Todo => compose(
+                    (idx) => ({...todo,attachedTags:remove(idx,1,todo.attachedTags)}),
+                    findIndex((todoTag:string) => todoTag===tag),
+                    (todo) => todo.attachedTags
+                )(todo)
+            ), 
+            (todos) => filter(todos, (t:Todo) => contains(tag)(t.attachedTags))
+        )(this.props.todos)
     };
 
 
@@ -80,6 +77,7 @@ export class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>
                     attachedTags:todo.attachedTags.filter((tag) => contains(tag)(defaultTags)) 
                 })
             );
+            
             this.props.dispatch({
                 type:"multiple",
                 load:[
@@ -87,7 +85,6 @@ export class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>
                     {type:"updateTodos", load:updatedTodos}
                 ]
             });  
-            
         }
     ); 
     

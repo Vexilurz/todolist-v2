@@ -1,9 +1,9 @@
 import { 
     uniq, isEmpty, contains, isNil, not, multiply, remove, cond, ifElse,
-    equals, any, complement, compose, defaultTo, path, first, prop, always,
+    equals, any, complement, compose, defaultTo, path, prop, always,
     identity, anyPass
 } from 'ramda';
-import Editor from 'draft-js-plugins-editor';
+import Editor from 'draft-js-plugins-editor'; 
 import {
     convertToRaw,
     convertFromRaw,
@@ -34,7 +34,6 @@ let getText : (state:any) => string =
     ); 
 
 
-//Raw -> Content -> State
 export let noteToState : (note:RawDraftContentState) => any = 
         ifElse(
             anyPass([isNil,isString]), 

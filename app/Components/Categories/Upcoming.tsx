@@ -28,7 +28,7 @@ import {
     different,
 } from '../../utils/utils';  
 import {
-    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, first, contains,
+    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, contains,
     map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy,
     mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass
 } from 'ramda';
@@ -424,7 +424,8 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                         fontSize:"x-large",
                         width:"100%", 
                         fontWeight:"bold",
-                        paddingTop:"20px"
+                        paddingTop:"20px",
+                        paddingBottom:"15px"
                     }} 
                 >  
                     {month}  
@@ -541,6 +542,10 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
         let {selectedTodos,selectedTag,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
         let {sameDayEvents,fullDayEvents} = groupEventsByType(selectedEvents); 
 
+        let noEvents = isEmpty(fullDayEvents) && isEmpty(sameDayEvents);
+        let noProjects = isEmpty(scheduledProjects);
+        let noTodos = isEmpty(selectedTodos);
+
         if(isDev()){
             if(selectedTag!=="All"){ 
                 assert(
@@ -553,11 +558,15 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
         return <div style={{
             display:"flex",
             flexDirection:"column", 
-            paddingTop:"15px",
-            paddingBottom:"15px", 
             WebkitUserSelect:"none" 
         }}>  
-                <div style={{width:"100%",display:"flex",paddingBottom:"10px",alignItems:"center",WebkitUserSelect:"none"}}>  
+                <div style={{
+                    width:"100%",
+                    display:"flex",
+                    paddingBottom:noEvents ? "0px" : "10px",
+                    alignItems:"center",
+                    WebkitUserSelect:"none"
+                }}>  
                     <div style={{width:"50px",fontWeight:900,fontSize:"35px",userSelect:"none"}}>
                         {day} 
                     </div>  
@@ -579,14 +588,18 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                             dayName
                         }
                     </div> 
-                </div>    
-                <div style={{
-                  display:'flex', 
-                  flexDirection:"column", 
-                  alignItems:"flex-start", 
-                  justifyContent:"flex-start",
-                  marginLeft:"45px"
-                }}>  
+                </div>   
+
+                <div>
+                {
+                    noEvents ? null :  
+                    <div style={{
+                        display:'flex', 
+                        flexDirection:"column", 
+                        alignItems:"flex-start", 
+                        justifyContent:"flex-start",
+                        marginLeft:"45px"
+                    }}>  
                         {
                             fullDayEvents
                             .map(  
@@ -600,20 +613,6 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                         {event.name}  
                                     </div>
                                 </div>
-                                
-                                {/* 
-                                    isNil(event.description) ? null :
-                                    isEmpty(event.description) ? null :
-                                    <div style={{
-                                        paddingLeft:"10px",
-                                        textAlign:"left",
-                                        fontSize:"14px",
-                                        cursor:"default",
-                                        userSelect:"none" 
-                                    }}> 
-                                        {event.description} 
-                                    </div>
-                                */}
                                 </div>  
                             )  
                         } 
@@ -638,36 +637,23 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                                     <div style={{paddingLeft:event.type!=="multipleDaysEvents" ? "0px":"5px"}}>
                                         {getSameDayEventElement(event,false)}
                                     </div>  
-                                    {/* 
-                                        isNil(event.description) ? null :
-                                        isEmpty(event.description) ? null :
-                                        <div style={{
-                                            textAlign:"left",
-                                            fontSize:"14px",
-                                            cursor:"default",
-                                            userSelect:"none" 
-                                        }}> 
-                                            {event.description} 
-                                        </div>
-                                    */}
                                 </div> 
                             )  
                         }
-                </div>
+                    </div>
+                }
                 {
-                    isEmpty(scheduledProjects) ? null :
+                    noProjects ? null :
                     <div style={{
                         display:"flex", 
                         flexDirection:"column", 
                         width:"100%",
-                        paddingTop:"10px",
-                        paddingBottom:"10px",
                         paddingLeft:"25px"
                     }}>    
                     { 
                         scheduledProjects.map(
                             (project:Project, index:number) : JSX.Element => {
-                                return <div key={project._id}>
+                                return <div style={{marginTop:"5px", marginBottom:"5px"}} key={project._id}>
                                     <ProjectLink 
                                         project={project} 
                                         indicator={
@@ -686,13 +672,12 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                     </div> 
                 } 
                 {   
-                    isEmpty(selectedTodos) ? null :
+                    noTodos ? null :
                     <div style={{
                         display:"flex",
                         flexDirection:"column",
                         width:"100%",
-                        paddingTop:"10px", 
-                        //paddingBottom:"10px",
+                        //marginTop:(noProjects && noEvents) ? "-10px" : "0px",
                         paddingLeft:"20px"
                     }}>   
                         <TodosList    
@@ -712,6 +697,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         />  
                     </div> 
                 }
-      </div>   
+                </div>
+        </div>   
     }
 } 

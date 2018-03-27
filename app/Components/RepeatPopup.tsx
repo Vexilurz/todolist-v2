@@ -19,7 +19,7 @@ import { removeTodo, addTodo } from '../database';
 import { RepeatOptions, Category, ChecklistItem, Todo, Project, Area, LayoutItem, Group, Store } from '../types';
 import { 
     remove, isNil, not, isEmpty, last, compose, map, cond, defaultTo,
-    equals, all, when, prop, first, complement, adjust, path, drop, add 
+    equals, all, when, prop, complement, adjust, path, drop, add 
 } from 'ramda';
 let uniqid = require("uniqid");    
 import { Observable } from 'rxjs/Rx';

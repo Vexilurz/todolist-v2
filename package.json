@@ -1,19 +1,14 @@
 {
   "name": "tasklist",
-  "version": "1.4.2-master",
+  "version": "1.4.3-master",
   "description": "tasklist",
-  "main": "production/main.js",
+  "main": "dist/main.js",
   "scripts": {
     "start": "electron .",
     "publish": "build --win --publish always",
     "pack": "build --win",
     "build": "start webpack -w --config webpack.config.main.js && webpack -w --config webpack.config.renderer.js",
-    "production" : "start webpack --config webpack.config.main.prod.js && webpack --config webpack.config.renderer.app.js && webpack --config webpack.config.renderer.quickentry.js && webpack --config webpack.config.renderer.notification.js",
-    "main": "start webpack --config webpack.config.main.prod.js",
-    "app": "start webpack --config webpack.config.renderer.app.js",
-    "quickentry": "start webpack --config webpack.config.renderer.quickentry.js",
-    "notification": "start webpack --config webpack.config.renderer.notification.js"
-    
+    "production": "start webpack --config webpack.config.main.prod.js && webpack --config webpack.config.renderer.prod.js"
   },
   "repository": "",
   "keywords": [],
@@ -115,6 +110,7 @@
     "rrule": "^2.2.9",
     "rx-dom": "^7.0.3",
     "rxjs": "^5.5.6",
+    "ts-loader": "^4.1.0",
     "typeface-roboto": "^0.0.45",
     "uniqid": "^4.1.1",
     "url": "^0.11.0"

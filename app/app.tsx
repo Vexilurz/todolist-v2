@@ -25,7 +25,7 @@ import { addTodos } from './database';
 import { Project, Area, Category, Todo, Calendar, Config, Store } from './types';
 import { applicationStateReducer } from './StateReducer'; 
 import { applicationObjectsReducer } from './ObjectsReducer';
-import { isNil, not, map, compose, contains, prop, when, evolve, ifElse, applyTo, flatten, reject } from 'ramda';
+import { isNil, not, map, compose, contains, prop, when, evolve, ifElse, applyTo, flatten, reject, assoc } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { UpdateNotification } from './Components/UpdateNotification';
@@ -47,6 +47,10 @@ import { uppercase } from './utils/uppercase';
 let pathTo = require('path'); 
 injectTapEventPlugin();  
 
+
+if(process && !isDev()){
+   process = evolve({env:assoc('NODE_ENV','production')}, process);
+}
 
  
 /*

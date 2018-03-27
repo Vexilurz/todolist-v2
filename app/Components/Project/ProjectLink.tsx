@@ -294,7 +294,7 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
                                     isNil(project.expand) ? 'one' : 
                                     project.expand===3 ? 'one' :
                                     'three'  
-                                } todo
+                                } task
                             </div>       
                         </div>
                     </div> 

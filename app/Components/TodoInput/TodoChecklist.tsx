@@ -10,9 +10,10 @@ import { SortableContainer } from '../CustomSortableContainer';
 import { arrayMove } from '../../utils/arrayMove';
 import { generateId } from '../../utils/generateId';
 import { ChecklistItem } from '../../types';
+import TextareaAutosize from 'react-autosize-textarea';
+import { different } from '../../utils/utils';
 
-
-
+/*
 let shouldUpdateChecklist = (
     checklistBefore:ChecklistItem[],
     checklistAfter:ChecklistItem[]
@@ -42,7 +43,7 @@ let shouldUpdateChecklist = (
     
     return should;
 };
- 
+*/
 
 
 interface ChecklistProps{
@@ -68,13 +69,13 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
   
     
     shouldComponentUpdate(nextProps:ChecklistProps, nextState:ChecklistState){    
-        let checklistChanged = shouldUpdateChecklist(nextProps.checklist, this.props.checklist);
+        let checklistChanged = different(nextProps.checklist, this.props.checklist);
         return checklistChanged;  
     }; 
  
 
 
-    onChecklistItemChange = (key:string, event, newText:string) => {  
+    onChecklistItemChange = (key:string, newText:string) => {  
         let idx : number = this.props.checklist.findIndex((c:ChecklistItem) => c.key===key);
         
         if(idx!==-1){
@@ -140,15 +141,15 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
     };  
       
 
-    
     getCheckListItem = (value:ChecklistItem, index:number) => { 
 
-        let style = {display:"flex",alignItems:"center"} as any;
+        let style = {display:"flex", alignItems:"center", paddingTop:"4px"} as any;
 
         let checkedStyle = {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            paddingTop:"2px", 
             paddingRight: "3px",
             paddingLeft: "3px"
         } as any;
@@ -167,7 +168,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                     width:"100%", 
                     fontSize:"16px",
                     borderRadius:"5px",
-                    alignItems:"center", 
+                    alignItems:"flex-start", 
                     display:"flex" 
                 }} 
             >  
@@ -201,7 +202,38 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                         width:"100%",    
                         alignItems:"center"
                     }} 
-                >    
+                > 
+                    <TextareaAutosize 
+                        placeholder=""
+                        onChange={(event:any) => this.onChecklistItemChange(value.key,event.target.value)}
+                        style={{ 
+                            color:value.checked ? "rgba(100,100,100,0.7)" : "rgba(0,0,0,1)",  
+                            fontSize:"16px",
+                            textDecoration:value.checked ? "line-through" : "none",
+                            resize:"none",
+                            width:"100%",
+                            padding:"0px",
+                            cursor:"default",
+                            position:"relative",
+                            border:"none",  
+                            outline:"none",
+                            backgroundColor:"rgba(0, 0, 0, 0)"
+                        }}
+                        onClick={(e:any) => {
+                            let value = e.target.value;
+                            e.target.value = '';
+                            e.target.focus();
+                            e.target.value = value; 
+                        }}   
+                        onKeyDown={(event) => { 
+                            if(event.which == 13 || event.keyCode == 13){
+                                event.stopPropagation(); 
+                            }     
+                        }} 
+                        value={value.text}
+                    /> 
+                { 
+                    /*
                     <TextField     
                         id={value.key} 
                         fullWidth={true}   
@@ -227,7 +259,9 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                                 event.stopPropagation(); 
                             }     
                         }} 
-                    />  
+                    />
+                    */
+                }  
                 </div>  
             </div>  
         </li>     
@@ -287,11 +321,13 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
     }
 
 
-    
-    componentDidUpdate(){
-        if(this.inputRef){
-           this.inputRef.focus();  
-        }  
+
+    componentDidUpdate(prevProps:ChecklistProps){
+        let checklistItemJustAdded = prevProps.checklist.length<this.props.checklist.length;
+
+        if(this.inputRef && checklistItemJustAdded){
+            this.inputRef.focus();  
+        } 
     }
 
 

@@ -29,7 +29,7 @@ import { TagsPopup } from './TagsPopup';
 import { TodoInputLabel } from './TodoInputLabel'; 
 import {  
     uniq, isEmpty, contains, isNil, not, multiply, remove, cond, ifElse,
-    equals, any, complement, compose, defaultTo, path, first, prop, always,
+    equals, any, complement, compose, defaultTo, path, prop, always,
     identity, when
 } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
@@ -736,7 +736,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            flagColor = daysLeft <= 1 ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
         }     
 
-        let shouldHighlightOnHover = not(open) && selectedCategory!=="logbook" && selectedCategory!=="trash";
+        let shouldHighlightOnHover = not(open); // && selectedCategory!=="logbook" && selectedCategory!=="trash";
 
         return <div        
             id={id}    
@@ -1104,7 +1104,12 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
 
         return <div 
             ref={e => {this.ref=e;}} 
-            style={{display:"flex",alignItems:"flex-start",width:"100%",overflow:"hidden"}}
+            style={{
+                display:"flex",
+                alignItems:"flex-start",
+                width:"100%",
+                //overflow:"hidden"
+            }}
         >  
                         {  
                             isNil(deleted) ? null :      
@@ -1142,7 +1147,14 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                                 selectedCategory={selectedCategory}
                             />
                         }
-                        <div style={open ? {width:"100%"} : {minWidth:0}} key="form-field">  
+                        <div 
+                            style={
+                                open ? 
+                                {width:"100%", marginTop:"-4px"} : 
+                                {minWidth:0, marginTop:"-4px"}
+                            } 
+                            key="form-field"
+                        >  
                             {   
                                 open ?      
                                 <div> 
@@ -1152,7 +1164,6 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                                         onChange={this.props.onTitleChange as any} 
                                         style={{
                                             resize:"none",
-                                            marginTop:"-4px",
                                             width:"100%",
                                             fontSize:"inherit",
                                             padding:"0px",
@@ -1174,7 +1185,7 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                                     /> 
                                 </div>
                                 :
-                                <div style={{marginTop:'-4px', cursor:"default"}}>  
+                                <div style={{cursor:"default"}}>  
                                     <div style={{display:'flex'}}>  
                                         <div style={{display:'flex',flexWrap:`wrap`}}>
                                         {

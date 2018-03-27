@@ -35,7 +35,7 @@ module.exports = {
           {  
             test:/\.(ts|tsx)?$/,  
             exclude: /(node_modules)/, 
-            loader:"awesome-typescript-loader"
+            loader:"ts-loader"
           },       
           {   
             test   : /\.(ttf|eot|svg|woff(2)?)(\?[a-z0-9=&.]+)?$/,
@@ -52,6 +52,8 @@ module.exports = {
           },   
         ]    
     }, 
+
+    devtool: 'source-map',
     
     target: "electron-renderer",     
     

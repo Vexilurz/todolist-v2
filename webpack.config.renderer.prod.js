@@ -12,6 +12,8 @@ module.exports = {
     
     entry:{    
         'app':'./app.tsx',
+        'quickentry':'./quickentry.tsx',
+        'notification':'./notification.tsx'
     },  
 
     output:{             
@@ -101,7 +103,19 @@ module.exports = {
             title:'tasklist',     
             chunks:['app'],
             filename: 'app.html' 
-        })       
+        }),
+        new HtmlWebpackPlugin({
+            inject:true, 
+            title:'Add task',     
+            chunks:['quickentry'],
+            filename: 'quickentry.html' 
+        }),
+        new HtmlWebpackPlugin({
+            inject:true, 
+            title:'Notification',     
+            chunks:['notification'],
+            filename: 'notification.html' 
+        })           
     ],  
 
 

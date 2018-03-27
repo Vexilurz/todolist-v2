@@ -895,7 +895,6 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
                     { selectButtonContent({category,project,attachedDate,deadline,indicators}) } 
                 </div> 
                 <div 
-                    ref={e => {this.ref=e;}}
                     style={{
                         display:"flex", 
                         alignItems:"center",
@@ -978,7 +977,7 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
                     areas={this.props.areas}
                     close={this.closeSelectorPopup}
                     projects={this.props.projects}
-                />
+                /> 
         </div>
     }
 }
@@ -1715,7 +1714,7 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                 onRequestClose={() => {}} 
                 scrollableContainer={rootRef}
                 useLayerForClickAway={false} 
-                anchorOrigin={{vertical: "center", horizontal: "left"}} 
+                anchorOrigin={{vertical: "top", horizontal: "left"}} 
                 targetOrigin={{vertical: "bottom", horizontal: "left"}} 
             >      
                 <div    

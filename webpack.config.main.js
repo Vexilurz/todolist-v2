@@ -27,7 +27,7 @@ module.exports = {
           {  
             test:/\.(ts|tsx)?$/,  
             exclude: /(node_modules)/, 
-            loader:"awesome-typescript-loader"
+            loader:"ts-loader"
           },     
           {     
             test: /\.js$/,
@@ -45,6 +45,8 @@ module.exports = {
         ]    
     },
  
+    devtool: 'source-map',
+
     target: "electron-main",     
 
     plugins:[ 
