@@ -5,7 +5,7 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react"; 
 import { TodosList } from '../../Components/TodosList';
 import { getTodos } from '../../database';
-import { Todo,Project, Area, Calendar, Category, CalendarEvent } from '../../types';
+import { Todo,Project, Area, Calendar, Category, CalendarEvent, RepeatOptions } from '../../types';
 import * as Waypoint from 'react-waypoint';
 import { ContainerHeader } from '.././ContainerHeader';
 import {  
@@ -112,14 +112,34 @@ export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
         map(
             compose(
                (todo:Todo) => {
-                   if(isNil(todo)){ return [] }
-                   let options = compose(
-                       evolve({until:initDate}),
-                       path(['group','options']) 
-                    )(todo);
-                   let start = todo.attachedDate;
-                   let todos = !isDate(start) ? [] : repeat(options, todo, start, limit);
-                   return todos; 
+                    if(isNil(todo)){ return [] }
+
+                    let group = todo.group;
+                    let options : RepeatOptions = compose( 
+                        evolve({until:initDate}), 
+                        prop('options') 
+                    )(group);
+                    let start = defaultTo(new Date())(todo.attachedDate);
+
+                    assert(isDate(options.until), `until is not of type date. extend. ${options.until}`);
+                   
+                    let todos = repeat(options, todo, start, limit, group._id);
+
+                    if(isDev()){
+                        let withStart = [...todos.map(t => t.attachedDate), start];
+                        let by = uniqBy(d => d.toString(), withStart);
+            
+                        assert(
+                            by.length===withStart.length, 
+                            `
+                            dates repeat. extend. ${options.selectedOption}. 
+                            length : ${withStart.length}; 
+                            by : ${by.length};
+                            `
+                        ); 
+                    }
+
+                    return todos; 
                 },   
                (todos) => todos[0],
                (todos) => todos.sort(compareByAttachedDate)
@@ -129,7 +149,6 @@ export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
         (todos) => filter(todos, groupButNotAfter)
     )(todos);
 
-    console.log('extend',repeated);
 
     if(isDev()){
        assert(isArrayOfTodos(repeated),`repeated is not of type array of todos. extend.`);

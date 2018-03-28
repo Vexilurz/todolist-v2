@@ -1,6 +1,6 @@
 {
   "name": "tasklist",
-  "version": "1.4.3-master",
+  "version": "1.4.5-master",
   "description": "tasklist",
   "main": "dist/main.js",
   "scripts": {

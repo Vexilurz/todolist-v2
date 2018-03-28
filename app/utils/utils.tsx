@@ -474,12 +474,10 @@ export let nDaysFromNow = (n:number) => {
 
 
 export let initDate = (date:Date) => {
-    if(isNil(date)){
-       return new Date(); 
-    }else if(isString(date)){
+    if(isString(date)){
        return new Date(date); 
     }else{
-        return date;
+       return date;
     }
 }; 
 

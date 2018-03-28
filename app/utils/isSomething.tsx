@@ -6,6 +6,20 @@ import { daysRemaining } from './daysRemaining';
 export let isNotNil = complement(isNil);
 
 
+export let isRepeatOptions = (options:any) : boolean => {
+    if(isNil(options)){ return false }
+
+    let freq = ['week' , 'day' , 'month' , 'year'];
+    let option = ['on' , 'after' , 'never'];
+    
+    return isNumber(options.interval) && 
+           isNumber(options.count) && 
+           contains(options.freq)(freq) && 
+           contains(options.selectedOption)(option) &&
+           isDate(options.until);
+};
+
+
 export let isToday = (date : Date) => {
     if(isNil(date)){ return false }; 
 

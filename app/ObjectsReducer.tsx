@@ -601,11 +601,13 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     return { ...state, areas };
                 }
             ],
-
+ 
             [ 
                 typeEquals("addTodos"),
     
                 (action:{type:string, load:Todo[]}) : Store => {
+                    if(isEmpty(action.load)){ return { ...state }; }
+
                     if(shouldAffectDatabase){ 
                        addTodos(onError,action.load); 
                     } 

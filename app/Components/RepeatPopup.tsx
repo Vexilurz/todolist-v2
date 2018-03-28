@@ -18,17 +18,18 @@ import {
 import { removeTodo, addTodo } from '../database';
 import { RepeatOptions, Category, ChecklistItem, Todo, Project, Area, LayoutItem, Group, Store } from '../types';
 import { 
-    remove, isNil, not, isEmpty, last, compose, map, cond, defaultTo,
-    equals, all, when, prop, complement, adjust, path, drop, add 
+    remove, isNil, not, isEmpty, last, compose, map, cond, defaultTo, flatten,
+    equals, all, when, prop, complement, adjust, path, drop, add, uniqBy, reduce, range 
 } from 'ramda';
 let uniqid = require("uniqid");    
+import { extend } from './Categories/Upcoming';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import FlatButton from 'material-ui/FlatButton';
 import { generateId } from '../utils/generateId';
-import { isDate, isTodo, isArrayOfTodos, isNotDate, isNotNil, isString } from '../utils/isSomething';
+import { isDate, isTodo, isArrayOfTodos, isNotDate, isNotNil, isString, isRepeatOptions } from '../utils/isSomething';
 import { assert } from '../utils/assert';
 import { isDev } from '../utils/isDev';
 import { insideTargetArea } from '../utils/insideTargetArea';
@@ -36,6 +37,76 @@ import { normalize } from '../utils/normalize';
 import { sameDay } from '../utils/time';
 let RRule = require('rrule');
 
+
+let test = (targets : {todo:Todo,options:RepeatOptions}[], limits : Date[]) : void => {
+    let initial = limits[0];
+
+    let groups : Todo[][] = map( 
+        (target:{todo:Todo,options:RepeatOptions}) => {
+            let groupId = generateId();
+
+            let repeats = repeat(
+                target.options,
+                target.todo,
+                defaultTo(new Date)(target.todo.attachedDate),
+                initial,
+                groupId
+            );
+
+            let repeatsHaveDate = all( t => isDate(t.attachedDate) )(repeats);
+            let repeatsHaveGroup = all( t => isNotNil(t.group) )(repeats);
+            
+            assert(isArrayOfTodos(repeats), `repeats - incorrect type. test.`);
+            assert(repeatsHaveDate, `repeats - missing date. test.`);
+            assert(repeatsHaveGroup, `repeats - missing group. test.`);
+            
+            return [ 
+                { 
+                    ...target.todo, 
+                    group:{
+                        type:target.options.selectedOption, 
+                        _id:groupId, 
+                        options:target.options
+                    } 
+                },
+                ...repeats
+            ];
+        },  
+        targets 
+    );
+
+    let todos = flatten(groups);
+    let withInitial = extend(initial,todos);
+    
+    assert(isEmpty(withInitial), `extend with initial limit should be empty, have ${withInitial.length} instead.`);
+
+    let remainingLimits = drop(1)(limits);
+    let lastLimit = remainingLimits[remainingLimits.length-1];
+
+    let gradually = remainingLimits.reduce((acc,val) => [...acc, extend(val,acc)], todos); 
+    let immediately = extend(lastLimit,todos);
+
+    assert(
+        gradually.length===immediately.length, 
+       `lengths differ. gradually : ${gradually.length}; 
+        immediately : ${immediately.length};`
+    );
+
+
+    groups.forEach(
+        (g:Todo[]) => {
+            let withDates = g.filter( t => isDate(t.attachedDate) );
+            let by = uniqBy( d => d.toString(), withDates );
+
+            assert(
+                by.length===withDates.length, 
+                `dates repeat. groups.forEach. test. ${g[0].group.options.selectedOption}. 
+                length : ${withDates.length}; 
+                by : ${by.length};`
+            ); 
+        }
+    );
+};
 
 
 let oneDayMore = (date:Date) : Date => { 
@@ -49,14 +120,6 @@ let oneDayMore = (date:Date) : Date => {
       
     return new Date(date.getTime())["addDays"](1);
 }; 
-
-
-
-let getStartDate = (todo:Todo) : Date => 
-    isNil(todo.attachedDate) ? new Date() :
-    isString(todo.attachedDate) ? new Date(todo.attachedDate) :
-    isDate(todo.attachedDate) ? todo.attachedDate :
-    new Date();
 
 
 
@@ -93,13 +156,21 @@ let selectedDatesToTodos = (todo:Todo) => (dates:Date[]) : Todo[] =>
     ); 
 
 
+//let groupId : string = compose( defaultTo(generateId()), path(['group','_id']) )(todo);
+export let repeat = (
+    options:RepeatOptions, 
+    todo:Todo, 
+    start:Date, 
+    end:Date,
+    groupId:string
+) : Todo[] => {
 
-export let repeat = (options:RepeatOptions, todo:Todo, start:Date, limit:Date) : Todo[] => {
-    let groupId : string = compose( defaultTo(generateId()), path(['group','_id']) )(todo);
-     
-    assert(isTodo(todo), 'todo is not of type Todo. repeat.');
-
-    let dtstart : Date = getStartDate(todo); 
+    assert(isTodo(todo),'todo is not of type Todo. repeat.');
+    assert(isDate(start),'start is not of type Date. repeat.');
+    assert(isDate(todo.attachedDate),'attachedDate is not of type Date. repeat.');
+    assert(isDate(end),'end is not of type Date. repeat.');
+    assert(isRepeatOptions(options),`options is not of type RepeatOptions. repeat. ${JSON.stringify(options)}`);
+    
 
     let { 
         interval,
@@ -107,78 +178,65 @@ export let repeat = (options:RepeatOptions, todo:Todo, start:Date, limit:Date) :
         until,
         count,
         selectedOption //'on' | 'after' | 'never',
-    } = options;     
+    } = options;   
+    
+
+    let optionToDates = cond(
+        [
+            [ 
+                equals('on'), 
+                () : Date[] => {
+                    let rule = new RRule({freq:getFreq(freq),interval,dtstart:start,until});
+                    let dates = rule.between(start,end,false);
+                     
+                    if(path(['options','interval'],rule)===1 && path(['options','freq'],rule)===3){
+                       dates = normalize(dates);
+                    }
+
+                    return dates;
+                } 
+            ], 
+            [ 
+                equals('after'), 
+                () : Date[] => {
+                    let rule = new RRule({freq:getFreq(freq),interval,dtstart:start,count:count+1,until:null});
+                    let dates = rule.all();
+
+                    if(path(['options','interval'],rule)===1 && path(['options','freq'],rule)===3){
+                       dates = normalize(dates);
+                    }
+
+                    if(isNotEmpty(dates) && sameDay(start,dates[0])){
+                       dates = drop(1)(dates);
+                    }
+                    
+                    return dates;
+                }  
+            ],
+            [ 
+                equals('never'), 
+                () : Date[] => {
+                    let rule = new RRule({freq:getFreq(freq),interval,dtstart:start,until:null});
+                    let dates = rule.between(start,end,false);
+
+                    if(path(['options','interval'],rule)===1 && path(['options','freq'],rule)===3){
+                       dates = normalize(dates);
+                    }
+
+                    return dates; 
+                } 
+            ],
+            [ () => true, () => [] ],
+        ]
+    ); 
+
  
     let todos = compose(
-        (items) => adjust(
-            (todo:Todo) => ({ ...todo, group:{...todo.group, last:true} }), 
-            items.length-1, 
-            items
-        ),
         map((t:Todo) : Todo => ({ ...t, reminder:null, group:{type:selectedOption, _id:groupId, options} })),
         selectedDatesToTodos(todo),
-        cond(
-            [
-                [ 
-                    equals('on'), 
-                    () : Date[] => {
-                        let rule = new RRule({freq:getFreq(freq),interval,dtstart,until});
-                        let dates = rule.between(start,limit,false);  
-
-                        if(
-                            path(['options','interval'],rule)===1 &&
-                            path(['options','freq'],rule)===3
-                        ){
-                            dates = normalize(dates);
-                        }
-                        
-                        return dates;
-                    } 
-                ], 
-                [ 
-                    equals('after'), 
-                    () : Date[] => {
-                        let rule = new RRule({freq:getFreq(freq),interval,dtstart,count:count+1,until:null});
-                        let dates = rule.all();
-
-                        if(
-                            path(['options','interval'],rule)===1 &&
-                            path(['options','freq'],rule)===3
-                        ){
-                            dates = normalize(dates);
-                        }
-
-                        if(isNotEmpty(dates) && sameDay(dtstart,dates[0])){
-                            dates = drop(1)(dates);
-                        }
-                        
-                        return dates;
-                    }  
-                ],
-                [ 
-                    equals('never'), 
-                    () => {
-                        let rule = new RRule({freq:getFreq(freq),interval,dtstart,until:null});
-                        let dates = rule.between(start,limit,false);
-
-                        if(
-                            path(['options','interval'],rule)===1 &&
-                            path(['options','freq'],rule)===3
-                        ){
-                            dates = normalize(dates);
-                        }
-                        
-                        return dates; 
-                    } 
-                ],
-                [ () => true, () => [] ],
-            ]
-        ) 
+        optionToDates
     )(selectedOption); 
 
-    if(isDev()){ 
-       assert(all(t => isDate(t.attachedDate),todos),`not all repeated have date. repeat.`);
-    }
 
     return todos;
 }; 
@@ -195,23 +253,9 @@ interface RepeatPopupProps extends Store{}
 
 
 
-
 interface RepeatPopupState extends RepeatOptions{
     error:string  
 };   
-
-
-
-
-const initialState : RepeatPopupState = { 
-    interval:1,
-    freq:'day',
-    until:oneDayMore(new Date()),
-    count:1,
-    selectedOption:'never',
-    error:''
-};    
-
 
 
  
@@ -223,55 +267,102 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
     constructor(props){
         super(props);
         this.subscriptions = [];
-        this.state = {...initialState};
+        this.state = { 
+            interval:1,
+            freq:'day',
+            until:oneDayMore(new Date()),
+            count:1,
+            selectedOption:'never',
+            error:''
+        };
     }   
 
 
 
     onDone = () => {  
-        let { todos, repeatTodo, dispatch, limit } = this.props;
-        let { interval,freq,until,count,selectedOption,error } = this.state; 
-        let todo = {...repeatTodo};
-        let actions = [];
+        let {interval, freq, until, count, selectedOption, error} = this.state; 
+        let todo = {...this.props.repeatTodo};
+        let groupId : string = generateId();
+        let options = {interval, freq, until, count, selectedOption};
+
 
         let repeatedTodos : Todo[] = repeat(  
-            {
-                interval, 
-                freq, 
-                until, 
-                count, 
-                selectedOption 
-            },
+            options,
             todo, 
-            new Date(),
-            new Date(limit)
+            defaultTo(new Date())(todo.attachedDate),
+            new Date(this.props.limit),
+            groupId
         );
         
 
-        console.log('repeat todo',todo.attachedDate);
-        console.log('repeat todos',repeatedTodos.map( t => t.attachedDate ));
-        
+        if(isDev()){
+            let withStart = [
+                ...repeatedTodos.map(t => t.attachedDate),
+                defaultTo(new Date())(todo.attachedDate)
+            ];
+            let by = uniqBy(d => d.toString(), withStart);
 
-        if(isEmpty(repeatedTodos)){ return }
+            assert(
+                by.length===withStart.length, 
+               `dates repeat. onDone. ${selectedOption}. 
+                length : ${withStart.length}; 
+                by : ${by.length};`
+            ); 
 
-        assert(isArrayOfTodos(repeatedTodos),'repeatedTodos is not of type array of todos.');
-        assert(all((todo) => isDate(todo.attachedDate), repeatedTodos),'not all repeatedTodos have attachedDate.');
-        assert(
-            compose(equals(true), path(['group', 'last']), last)(repeatedTodos),
-            'last item does not have last flag.'
-        );
-  
-        //attach group to repeated todo
-        compose(
-            (group) => actions.push({ type:"updateTodo", load:{...todo,group:{...group,last:false}} }),
-            prop('group'),
-            (items) => items[0]
-        )(repeatedTodos) 
+            test(
+                [
+                    {
+                        todo : this.props.todos[ Math.round( Math.random() * (this.props.todos.length-10) ) ],
+                        options : {
+                            interval: 1,
+                            freq: "day",
+                            until: undefined,
+                            count: 0,
+                            selectedOption: "never"
+                        }
+                    }
+                    /*
+                    {
+                        interval: 2,
+                        freq: "week" | "day" | "month" | "year";
+                        until: undefined,
+                        count: 0;
+                        selectedOption: "on" | "after" | "never";
+                    },
+                    {
+                        interval: 1,
+                        freq: "week" | "day" | "month" | "year";
+                        until: undefined,
+                        count: 0;
+                        selectedOption: "on" | "after" | "never";
+                    },
+                    {
+                        interval: 1,
+                        freq: "week" | "day" | "month" | "year";
+                        until: undefined,
+                        count: 0;
+                        selectedOption: "on" | "after" | "never";
+                    },
+                    */
+                ], 
+                reduce((acc,val) => {}, range(0,10))
+            );
+        }
 
-        //add repeated todos to state
-        actions.push({type:"addTodos",load:repeatedTodos});  
 
-        dispatch({type:"multiple",load:actions}); 
+        this.props.dispatch({
+            type:"multiple",
+            load:[
+                { 
+                    type:"updateTodo", 
+                    load:{
+                        ...todo,
+                        group:{type:selectedOption, _id:groupId, options}
+                    } 
+                },
+                {type:"addTodos",load:repeatedTodos}
+            ]
+        }); 
     };    
 
 
@@ -322,76 +413,70 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
     allInputsAreValid = () => {
         let {interval,freq,until,count,selectedOption} = this.state; 
-        
         let frequency = freq.trim().toLowerCase();
-
+        let error = null;
+        let valid = true;
+        
+        let repeatEveryNValid = isNotNan(interval) && (interval > 0);
+        
         let repeatEveryIntervalValid = frequency==='week' ||
                                        frequency==='day' ||
                                        frequency==='month' ||
                                        frequency==='year';
 
-        let repeatEveryNValid = isNotNan(interval) && interval>0;
+
+        if(!repeatEveryIntervalValid)    
+            error = `Error: ${frequency} - incorrect frequency value.`;
+        else if(!repeatEveryNValid)
+            error = `Error: ${interval} - incorrect interval value.`;
 
 
+        if(selectedOption==='never'){
 
-        if(selectedOption==='on'){
+            valid = repeatEveryIntervalValid && repeatEveryNValid;
+
+        }else if(selectedOption==='on'){
 
             let now = new Date();
             let endsDateValid = isNotNil(until) && isDate(until) && ( until.getTime() > now.getTime() );
-            let valid = repeatEveryIntervalValid && repeatEveryNValid && endsDateValid;
 
-            if(!valid){
-                let error = ``;
-                if(!endsDateValid)
-                    error = `Error: ${until} - incorrect date value.`;
-                else if(!repeatEveryIntervalValid)    
-                    error = `Error: ${frequency} - incorrect frequency value.`;
-                else if(!repeatEveryNValid)
-                    error = `Error: ${interval} - incorrect interval value.`;
+            valid = repeatEveryIntervalValid && repeatEveryNValid && endsDateValid;
 
-                this.setState({error});    
+            if(!endsDateValid){
+                error = `Error: ${until} - incorrect date value.`;
             }
-
-            return valid;
 
         }else if(selectedOption==='after'){
 
             let endsAfterValid = isNotNan(count) && count>0;
-            let valid = repeatEveryIntervalValid && repeatEveryNValid && endsAfterValid;
 
-            if(!valid){
-                let error = ``;
-                if(!endsAfterValid)
-                    error = `Error: ${count} - incorrect ends after value.`;
-                else if(!repeatEveryIntervalValid)    
-                    error = `Error: ${frequency} - incorrect frequency value.`;
-                else if(!repeatEveryNValid)
-                    error = `Error: ${interval} - incorrect interval value.`;
-                    
-                this.setState({error});    
+            valid = repeatEveryIntervalValid && repeatEveryNValid && endsAfterValid;
+
+            if(!endsAfterValid){
+                error = `Error: ${count} - incorrect ends after value.`;
             }
-
-            return valid;
-        }else if(selectedOption==='never'){
-
-            let valid = repeatEveryIntervalValid && repeatEveryNValid;
-
-            if(!valid){
-                let error = ``;
-                if(!repeatEveryIntervalValid)    
-                    error = `Error: ${frequency} - incorrect frequency value.`;
-                else if(!repeatEveryNValid)
-                    error = `Error: ${interval} - incorrect interval value.`;
-                    
-                this.setState({error});    
-            }
-
-            return valid;
-        }else{
-            return false;
         }
-             
+
+        if(isNotNil(error) && isNotEmpty(error)){
+           this.setState({error});   
+        }
+           
+        return valid;
     };   
+
+
+
+    onDateChange = (event) => {
+        let now = new Date();
+        let until = new Date(event.target.value);
+        let endsDateValid = isNotNil(until) && isDate(until) && ( until.getTime() > now.getTime() );
+
+        if(endsDateValid){ 
+           this.setState({until,error:''}); 
+        }else{
+           this.setState({error:`Error: ${event.target.value} - incorrect date value.`}); 
+        } 
+    };
 
 
 
@@ -535,15 +620,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                             disabled={selectedOption!=='on'}
                             max={end} 
                             defaultValue={dateToDateInputValue(until)}
-                            onChange={(event) => { 
-                                let now = new Date();
-                                let until = new Date(event.target.value);
-                                let endsDateValid = isNotNil(until) && isDate(until) && ( until.getTime() > now.getTime() );
-                                if(endsDateValid){ 
-                                   console.log(`date is valid : ${until}`); 
-                                   this.setState({until}); 
-                                } 
-                            }} 
+                            onChange={this.onDateChange} 
                             style={{         
                                 outline:"none",  
                                 backgroundColor:"rgba(235,235,235,1)",
@@ -607,7 +684,6 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     </div> 
                 </div> 
             </div> 
-
             {      
                 isNil(this.state.error) && isEmpty(this.state.error) ? null :                 
                 <div style={{
@@ -615,13 +691,13 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     display:"flex",
                     alignItems:"center", 
                     justifyContent:"center",
+                    paddingTop:"10px",
                     color:"red",
                     fontSize:"14px",
                 }}> 
                     {this.state.error}
                 </div>       
-            }                 
-
+            }   
             <div style={{   
                 display:"flex",  
                 alignItems:"center", 
@@ -631,7 +707,19 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
             }}>
                     <div style={{padding:"2px"}}>
                         <div    
-                            onClick={() => this.setState({...initialState}, () => this.close())} 
+                            onClick={
+                                () => this.setState(
+                                    { 
+                                        interval:1,
+                                        freq:'day',
+                                        until:oneDayMore(new Date()),
+                                        count:1,
+                                        selectedOption:'never',
+                                        error:''
+                                    }, 
+                                    () => this.close()
+                                )
+                            } 
                             style={{       
                                 width:"90px",
                                 display:"flex",
@@ -650,8 +738,8 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     </div> 
                     <div style={{padding:"2px"}}>
                         <div     
-                            onClick={(e) => {
-                                this.setState(
+                            onClick={
+                                (e) => this.setState(
                                     {error:''}, 
                                     () => {
                                         if(this.allInputsAreValid()){ 
@@ -660,7 +748,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                                         }
                                     }
                                 ) 
-                            }}   
+                            }   
                             style={{     
                                 width:"90px",
                                 display:"flex",
@@ -678,7 +766,6 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                         </div> 
                     </div>
                 </div> 
- 
             </div>   
         </div>
         </div>
