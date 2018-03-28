@@ -1001,8 +1001,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             { 
                 not(open) ? null :
                 <TagsPopup
-                    defaultTags={[]}
-                    todos={[]}
+                    //defaultTags={[]}
+                    //todos={[]}
                      
                     attachTag={this.onAttachTag}
                     close={(e) => this.setState({showTagsSelection:false})}

@@ -14,8 +14,8 @@ import {
 } from './utils/utils';
 import { 
     adjust, cond, all, isEmpty, contains, not, remove, uniq, assoc, 
-    isNil, and, complement, compose, reject, concat, map, when,
-    prop, ifElse, identity, path, equals, allPass, evolve, pick  
+    isNil, and, complement, compose, reject, concat, map, when, find,
+    prop, ifElse, identity, path, equals, allPass, evolve, pick, defaultTo  
 } from 'ramda'; 
 import { filter } from 'lodash';
 import { globalErrorHandler } from './utils/globalErrorHandler';
@@ -179,6 +179,24 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                         ...state, 
                         calendars:action.load
                     }
+                }
+            ],  
+
+            [ 
+                typeEquals('updateCalendars'),  
+                (action:{type:string,load:Calendar[]}):Store => {
+                    if(isDev()){
+                       assert(all(isCalendar,action.load), `Not all items of type Calendar.`); 
+                    }
+
+                    let calendars = state.calendars.map(
+                        c => compose(
+                            defaultTo(c),
+                            find((calendar:Calendar) => calendar._id===c._id)
+                        )(action.load)
+                    );
+
+                    return {...state, calendars};
                 }
             ],  
 

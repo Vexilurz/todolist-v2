@@ -47,7 +47,8 @@ interface AreasListProps{
             deleted:number
         }; 
     },
-    projects:Project[]    
+    projects:Project[],
+    id:number     
 }  
 
 
@@ -118,7 +119,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
         return requestFromMain<any>(
             'setWindowTitle',
-            [`tasklist - ${uppercase(isEmpty(name) ? 'New Area' : name)}`],
+            [`tasklist - ${uppercase(isEmpty(name) ? 'New Area' : name)}`, this.props.id],
             (event) => event
         )
         .then(
@@ -139,7 +140,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
     selectProject = (p:Project) : Promise<void> => 
         requestFromMain<any>(
             'setWindowTitle',
-            [`tasklist - ${uppercase( isEmpty(p.name) ? 'New Project' : p.name )}`],
+            [`tasklist - ${uppercase( isEmpty(p.name) ? 'New Project' : p.name )}`,  this.props.id],
             (event) => event
         )
         .then(

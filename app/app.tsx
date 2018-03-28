@@ -192,7 +192,7 @@ export class App extends Component<AppProps,AppState>{
 
         requestFromMain<any>(
             'setWindowTitle',
-            [`tasklist - ${uppercase('Inbox')}`],
+            [`tasklist - ${uppercase(this.props.selectedCategory)}`,  this.props.id],
             (event) => event
         ); 
     };
@@ -376,8 +376,9 @@ export class App extends Component<AppProps,AppState>{
                         dragged={this.props.dragged}
                         selectedProjectId={this.props.selectedProjectId}
                         selectedAreaId={this.props.selectedAreaId}
+                        id={this.props.id}
                     /> 
-                } 
+                }  
                 <MainContainer 
                     dispatch={this.props.dispatch} 
                     amounts={this.state.amounts}

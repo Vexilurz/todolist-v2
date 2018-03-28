@@ -26,6 +26,7 @@ import {
     log,
     anyTrue,
     different,
+    initDate,
 } from '../../utils/utils';  
 import {
     allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, contains,
@@ -96,7 +97,6 @@ export let groupEventsByType = (events:CalendarEvent[]) : {
 
 
 export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
-    
     let isNotNeverGroup = compose(not, equals('never'), path(['group','type']));
     let getDate = (todo:Todo) => todo.attachedDate;
     let compareByAttachedDate = compareByDate(getDate);
@@ -113,11 +113,14 @@ export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
             compose(
                (todo:Todo) => {
                    if(isNil(todo)){ return [] }
-                   let options = path(['group','options'], todo);
+                   let options = compose(
+                       evolve({until:initDate}),
+                       path(['group','options']) 
+                    )(todo);
                    let start = todo.attachedDate;
-                   let todos = repeat(options, todo, start, limit);
+                   let todos = !isDate(start) ? [] : repeat(options, todo, start, limit);
                    return todos; 
-                },  
+                },   
                (todos) => todos[0],
                (todos) => todos.sort(compareByAttachedDate)
             )
@@ -126,8 +129,11 @@ export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
         (todos) => filter(todos, groupButNotAfter)
     )(todos);
 
+    console.log('extend',repeated);
+
     if(isDev()){
-       assert(isArrayOfTodos(repeated),`repeated is not of type array of todos. prolongateRepeated.`);
+       assert(isArrayOfTodos(repeated),`repeated is not of type array of todos. extend.`);
+       assert(all(t => isDate(t.attachedDate),repeated),`not all repeated have date. extend.`);
     }
 
     return repeated;

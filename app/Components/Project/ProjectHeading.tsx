@@ -76,7 +76,7 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
             onClick={() => this.focus(this.inputRef)}
             className="projectHeading"  
             style={{ 
-                display:"flex",
+                display:"flex", 
                 height:"30px", 
                 alignItems:"center",
                 cursor:"default",
@@ -137,12 +137,12 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                 <div    
                     className="darkscroll"
                     style={{  
-                        backgroundColor:"rgb(39, 43, 53)",
+                        backgroundColor:"rgb(238, 237, 239)", //"rgb(39, 43, 53)",
                         paddingRight:"10px",
                         paddingLeft:"10px",
                         borderRadius:"10px",
                         paddingTop:"5px",
-                        paddingBottom:"5px",
+                        paddingBottom:"5px", 
                         cursor:"pointer" 
                     }} 
                 >    
@@ -152,12 +152,16 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                         style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}}
                     >  
                         <Duplicate style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                        <div style={{
+                            color:"black",//"gainsboro",
+                            fontSize:"14px",
+                            marginLeft:"5px", 
+                            marginRight:"5px"
+                        }}>
                             Archive
                         </div>     
                     </div>
                     
-
                     <div  
                         onClick={() => this.props.onMove(this.props.heading._id) as any} 
                         className="tagItem" 
@@ -169,7 +173,12 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                         }}
                     >   
                         <Arrow style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                        <div style={{
+                            color:"black",//"gainsboro",
+                            fontSize:"14px",
+                            marginLeft:"5px", 
+                            marginRight:"5px"
+                        }}>
                             Move 
                         </div>     
                     </div> 
@@ -185,7 +194,12 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                         }}
                     >  
                         <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                        <div style={{
+                            color:"black",//"gainsboro",
+                            fontSize:"14px",
+                            marginLeft:"5px", 
+                            marginRight:"5px"
+                        }}>
                             Remove 
                         </div>     
                     </div>

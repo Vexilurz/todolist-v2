@@ -184,11 +184,13 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
 }
 
 
+
 export class Separator extends Component<{},{}>{
     render(){ 
         return <div style={{outline:"none",position:"relative",width:"100%",height:"10px"}}></div>
     } 
 }
+
 
 
 interface LeftPanelMenuProps{ 
@@ -199,7 +201,8 @@ interface LeftPanelMenuProps{
     today:number,
     hot:number,
     logbook:number,
-    trash:number 
+    trash:number,
+    id:number 
 } 
  
   
@@ -242,7 +245,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
     
     onClick = (title:string) => () => requestFromMain<any>(
         'setWindowTitle',
-        [`tasklist - ${uppercase(title)}`],
+        [`tasklist - ${uppercase(title)}`, this.props.id],
         (event) => event
     ).then(
         () => this.props.dispatch({

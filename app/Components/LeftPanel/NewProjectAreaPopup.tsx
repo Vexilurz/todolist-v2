@@ -40,7 +40,7 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
          targetOrigin={{vertical: "bottom", horizontal: "left"}}  
      >   
          <div style={{  
-             backgroundColor: "rgb(39, 43, 53)",
+             backgroundColor:"rgb(238, 237, 239)", //"rgb(39, 43, 53)",
              padding: "5px 10px",
              borderRadius: "10px",
              maxHeight: "250px",
@@ -51,47 +51,72 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
          <div 
          onClick = {this.props.onNewProjectClick}
          className="newprojectitem" 
-         style={{display:"flex",alignItems:"flex-start",padding:"7px"}}> 
-             <NewProjectIcon style={{color:"lightblue"}}/> 
+         style={{
+             display:"flex",
+             alignItems:"flex-start",
+             padding:"7px",
+             color:"black"//"aliceblue",
+         }}>   
+             <NewProjectIcon 
+                style={{
+                    color:"cadetblue" //"lightblue"
+                }}
+             /> 
              <div style={{
-                 display: "flex",
-                 flexDirection: "column",
-                 alignItems: "flex-start",
-                 paddingLeft: "5px",
-                 paddingTop: "3px" 
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                paddingLeft: "5px",
+                paddingTop: "3px" 
              }}>    
-                 <div style={{color:"aliceblue",fontFamily:"sans-serif",fontSize:"15px"}}>
-                     New Project
+                 <div style={{fontFamily:"sans-serif",fontSize:"16px"}}>
+                    New Project
                  </div>
-                 <p style={{margin:"0px",paddingTop:"10px",color:"aliceblue",fontFamily:"sans-serif"}}>
-                     Define a goal, 
-                     then work towards it 
-                     one task at a time.  
+                 <p style={{
+                    margin:"0px",
+                    fontSize:"14px",
+                    paddingTop:"10px",
+                    fontFamily:"sans-serif"
+                 }}>
+                    Define a goal, 
+                    then work towards it 
+                    one task at a time.  
                  </p> 
              </div> 
          </div>
          <div style={{border:"1px solid rgba(200,200,200,0.1)",marginTop:"5px",marginBottom:"5px"}}></div> 
          <div   
-         onClick = {this.props.onNewAreaClick}
-         className="newprojectitem" 
-         style={{display:"flex",alignItems: "flex-start",padding:"7px"}}> 
-             <NewAreaIcon style={{color:"lightblue", width:"40px", height:"25px"}}/> 
+            onClick = {this.props.onNewAreaClick}
+            className="newprojectitem" 
+            style={{display:"flex",alignItems: "flex-start",padding:"7px"}}
+         > 
+            <NewAreaIcon 
+                style={{
+                    color:"cadetblue",//"lightblue" 
+                    width:"40px", 
+                    height:"25px"
+                }}
+            /> 
              <div style={{
                  display: "flex",
                  flexDirection: "column",
+                 color:"black",//"aliceblue",
                  alignItems: "flex-start",
                  paddingLeft: "5px",
                  paddingTop: "3px" 
              }}>    
-                 <div style={{color:"aliceblue",fontFamily:"sans-serif",fontSize:"15px"}}> 
+                 <div style={{
+                    fontFamily:"sans-serif",
+                    fontSize:"16px"
+                 }}> 
                      New Area
                  </div>
                  <p style={{
-                     margin:"0px",
-                     paddingTop:"10px",
-                     color:"aliceblue",
-                     fontFamily:"sans-serif",
-                     width:"85%"  
+                    margin:"0px",
+                    paddingTop:"10px",
+                    fontSize:"14px",
+                    fontFamily:"sans-serif",
+                    width:"85%"  
                  }}>
                      Group your projects and tasks
                      based on different responsibilities,

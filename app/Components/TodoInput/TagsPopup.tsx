@@ -25,18 +25,17 @@ interface TagsPopupProps{
     rootRef : HTMLElement, 
     anchorEl : HTMLElement,
     point : any,
-    defaultTags : string[],
-    todos : any[]
-}   
+    defaultTags? : string[],
+    todos? : any[]
+}    
 
  
-@connect( 
+@connect(  
     (store:Store,props:TagsPopupProps) : TagsPopupProps => { 
-        return {
-           ...props,
-           defaultTags:[...store.defaultTags],
-           todos:[...store.todos]
-        };
+        let tagsProps = {...props};
+        tagsProps.defaultTags = [...store.defaultTags];
+        tagsProps.todos = [...store.todos];
+        return tagsProps; 
     },    
     attachDispatchToProps
 ) 
@@ -116,7 +115,7 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
                     <div    
                         className="darkscroll"
                         style={{   
-                            backgroundColor: "rgb(39, 43, 53)",
+                            backgroundColor:"rgb(238, 237, 239)", //"rgb(39, 43, 53)",
                             paddingRight: "10px",
                             paddingLeft: "10px",
                             paddingTop: "5px",
@@ -150,7 +149,8 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
                                         <TriangleLabel style={{color:"gainsboro"}}/>
                                     </div> 
                                     <div style={{
-                                        color:"gainsboro", 
+                                        color:"black",//"gainsboro",
+                                        fontSize:"14px",
                                         marginLeft:"5px", 
                                         marginRight:"5px",
                                         overflowX:"hidden",

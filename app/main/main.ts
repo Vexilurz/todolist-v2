@@ -175,7 +175,13 @@ let shortcuts = {
         quickEntry.webContents.send("focus"); 
     },
     'Ctrl+Alt+D+P':() => mainWindow.webContents.openDevTools(),
-    'Ctrl+B':() => mainWindow.webContents.send("toggle")
+    'Ctrl+B':() => {
+        if(isNil(mainWindow)){ return }
+
+        if( mainWindow.isVisible() && mainWindow.isFocused() ){  
+            mainWindow.webContents.send("toggle");
+        }
+    }
 };
 
 

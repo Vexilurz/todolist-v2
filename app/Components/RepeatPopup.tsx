@@ -28,7 +28,7 @@ import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import FlatButton from 'material-ui/FlatButton';
 import { generateId } from '../utils/generateId';
-import { isDate, isTodo, isArrayOfTodos, isNotDate, isNotNil } from '../utils/isSomething';
+import { isDate, isTodo, isArrayOfTodos, isNotDate, isNotNil, isString } from '../utils/isSomething';
 import { assert } from '../utils/assert';
 import { isDev } from '../utils/isDev';
 import { insideTargetArea } from '../utils/insideTargetArea';
@@ -54,6 +54,7 @@ let oneDayMore = (date:Date) : Date => {
 
 let getStartDate = (todo:Todo) : Date => 
     isNil(todo.attachedDate) ? new Date() :
+    isString(todo.attachedDate) ? new Date(todo.attachedDate) :
     isDate(todo.attachedDate) ? todo.attachedDate :
     new Date();
 
@@ -90,7 +91,6 @@ let selectedDatesToTodos = (todo:Todo) => (dates:Date[]) : Todo[] =>
             } as Todo
         }
     ); 
-
 
 
 
@@ -176,6 +176,10 @@ export let repeat = (options:RepeatOptions, todo:Todo, start:Date, limit:Date) :
         ) 
     )(selectedOption); 
 
+    if(isDev()){ 
+       assert(all(t => isDate(t.attachedDate),todos),`not all repeated have date. repeat.`);
+    }
+
     return todos;
 }; 
 
@@ -226,7 +230,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
     onDone = () => {  
         let { todos, repeatTodo, dispatch, limit } = this.props;
-        let {interval,freq,until,count,selectedOption} = this.state; 
+        let { interval,freq,until,count,selectedOption,error } = this.state; 
         let todo = {...repeatTodo};
         let actions = [];
 
@@ -318,30 +322,75 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
 
     allInputsAreValid = () => {
         let {interval,freq,until,count,selectedOption} = this.state; 
+        
+        let frequency = freq.trim().toLowerCase();
 
-
-        let repeatEveryIntervalValid = freq==='week' ||
-                                       freq==='day' ||
-                                       freq==='month' ||
-                                       freq==='year';
+        let repeatEveryIntervalValid = frequency==='week' ||
+                                       frequency==='day' ||
+                                       frequency==='month' ||
+                                       frequency==='year';
 
         let repeatEveryNValid = isNotNan(interval) && interval>0;
 
-        let now = new Date();
 
-        let endsDateValid = isNotNil(until) && isDate(until) && ( until.getTime() > now.getTime() );
-        
-        let endsAfterValid = isNotNan(count) && count>0;
 
-        let selectedOptionValid = selectedOption==='on' || selectedOption==='after' || selectedOption==='never';
-               
-        let valid = repeatEveryIntervalValid &&
-                    repeatEveryNValid &&
-                    endsDateValid &&
-                    endsAfterValid &&
-                    selectedOptionValid; 
-          
-        return valid;              
+        if(selectedOption==='on'){
+
+            let now = new Date();
+            let endsDateValid = isNotNil(until) && isDate(until) && ( until.getTime() > now.getTime() );
+            let valid = repeatEveryIntervalValid && repeatEveryNValid && endsDateValid;
+
+            if(!valid){
+                let error = ``;
+                if(!endsDateValid)
+                    error = `Error: ${until} - incorrect date value.`;
+                else if(!repeatEveryIntervalValid)    
+                    error = `Error: ${frequency} - incorrect frequency value.`;
+                else if(!repeatEveryNValid)
+                    error = `Error: ${interval} - incorrect interval value.`;
+
+                this.setState({error});    
+            }
+
+            return valid;
+
+        }else if(selectedOption==='after'){
+
+            let endsAfterValid = isNotNan(count) && count>0;
+            let valid = repeatEveryIntervalValid && repeatEveryNValid && endsAfterValid;
+
+            if(!valid){
+                let error = ``;
+                if(!endsAfterValid)
+                    error = `Error: ${count} - incorrect ends after value.`;
+                else if(!repeatEveryIntervalValid)    
+                    error = `Error: ${frequency} - incorrect frequency value.`;
+                else if(!repeatEveryNValid)
+                    error = `Error: ${interval} - incorrect interval value.`;
+                    
+                this.setState({error});    
+            }
+
+            return valid;
+        }else if(selectedOption==='never'){
+
+            let valid = repeatEveryIntervalValid && repeatEveryNValid;
+
+            if(!valid){
+                let error = ``;
+                if(!repeatEveryIntervalValid)    
+                    error = `Error: ${frequency} - incorrect frequency value.`;
+                else if(!repeatEveryNValid)
+                    error = `Error: ${interval} - incorrect interval value.`;
+                    
+                this.setState({error});    
+            }
+
+            return valid;
+        }else{
+            return false;
+        }
+             
     };   
 
 
@@ -395,7 +444,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     justifyContent:"flex-start"
                 }}
             >
-                Repeat task
+                Recurring task
             </div>
  
             <div style={{display:"flex", alignItems:"center"}}>
@@ -422,10 +471,10 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     value={freq}
                     onChange={(event) => this.setState({freq:event.target.value as any})}  
                 >  
-                    <option value="day"> Day </option> 
-                    <option value="week"> Week </option>
-                    <option value="month"> Month </option>
-                    <option value="year"> Year </option>
+                    <option value="day"> { `Day${this.state.interval > 1 ? 's' : ''}` } </option> 
+                    <option value="week"> { `Week${this.state.interval > 1 ? 's' : ''}` } </option>
+                    <option value="month"> { `Month${this.state.interval > 1 ? 's' : ''}` } </option>
+                    <option value="year"> { `Year${this.state.interval > 1 ? 's' : ''}` } </option>
                 </select>   
             </div> 
             
@@ -484,20 +533,23 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                             type="date"    
                             min={start}   
                             disabled={selectedOption!=='on'}
-                            max={end}
-                            value={dateToDateInputValue(until)}
+                            max={end} 
+                            defaultValue={dateToDateInputValue(until)}
                             onChange={(event) => { 
+                                let now = new Date();
                                 let until = new Date(event.target.value);
-                                if(isDate(until)){ 
+                                let endsDateValid = isNotNil(until) && isDate(until) && ( until.getTime() > now.getTime() );
+                                if(endsDateValid){ 
+                                   console.log(`date is valid : ${until}`); 
                                    this.setState({until}); 
                                 } 
                             }} 
                             style={{         
-                               outline:"none",  
-                               backgroundColor:"rgba(235,235,235,1)",
-                               border:"none",
-                               textAlign:"center", 
-                               width:"100%"    
+                                outline:"none",  
+                                backgroundColor:"rgba(235,235,235,1)",
+                                border:"none",
+                                textAlign:"center", 
+                                width:"100%"    
                             }}     
                         />
                     </div> 
@@ -548,13 +600,28 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                                     type="number" 
                                 />  
                             </div>    
-                            <div style={{paddingLeft:"5px", paddingRight:"5px", backgroundColor:"rgba(0,0,0,0)"}}>
+                            <div style={{paddingLeft:"5px", paddingRight:"5px", backgroundColor:"white"}}>
                                 repetitions
                             </div> 
                         </div>
-                    </div>
+                    </div> 
                 </div> 
             </div> 
+
+            {      
+                isNil(this.state.error) && isEmpty(this.state.error) ? null :                 
+                <div style={{
+                    width:"100%", 
+                    display:"flex",
+                    alignItems:"center", 
+                    justifyContent:"center",
+                    color:"red",
+                    fontSize:"14px",
+                }}> 
+                    {this.state.error}
+                </div>       
+            }                 
+
             <div style={{   
                 display:"flex",  
                 alignItems:"center", 
@@ -584,11 +651,16 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     <div style={{padding:"2px"}}>
                         <div     
                             onClick={(e) => {
-                                if(this.allInputsAreValid()){ 
-                                   this.onDone(); 
-                                   this.close(); 
-                                }
-                            }} 
+                                this.setState(
+                                    {error:''}, 
+                                    () => {
+                                        if(this.allInputsAreValid()){ 
+                                           this.onDone(); 
+                                           this.close(); 
+                                        }
+                                    }
+                                ) 
+                            }}   
                             style={{     
                                 width:"90px",
                                 display:"flex",

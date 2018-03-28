@@ -14,9 +14,10 @@ export function requestFromMain<T>(
                resolve(data);
             }; 
 
-            ipcRenderer.removeAllListeners(type);  
+            //ipcRenderer.removeAllListeners(type);  
+            ipcRenderer.once(type,onDone); 
             ipcRenderer.send(type,args);
-            ipcRenderer.on(type,onDone); 
+            //ipcRenderer.on(type,onDone); 
         }    
     ).catch(
         (e) => {  

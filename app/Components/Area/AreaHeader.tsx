@@ -171,22 +171,32 @@ export class AreaMenu extends Component<AreaMenuProps,AreaMenuState>{
         >   
             <div  className="darkscroll"
                   style={{  
-                        backgroundColor: "rgb(39, 43, 53)",
+                        backgroundColor: "rgb(238, 237, 239)",//"rgb(39, 43, 53)",
                         paddingRight: "10px",
                         paddingLeft: "10px",
                         borderRadius: "10px",
                         paddingTop: "5px",
                         paddingBottom: "5px",
-                        cursor:"pointer" 
+                        cursor: "pointer" 
                   }} 
             >      
                     <div    
                         onClick={this.props.onDeleteArea as any} 
                         className="tagItem" 
-                        style={{display:"flex", height:"auto", alignItems:"center", padding:"5px"}}
+                        style={{
+                            display:"flex", 
+                            height:"auto", 
+                            alignItems:"center", 
+                            padding:"5px"
+                        }}
                     >  
                         <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                        <div style={{
+                            color:"black", //"gainsboro", 
+                            fontSize:"14px", 
+                            marginLeft:"5px", 
+                            marginRight:"5px"
+                        }}>
                             Delete Area
                         </div>     
                     </div>

@@ -695,11 +695,11 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     close={this.closeTagsSelection}
                     open={this.state.showTagsSelection}  
                     anchorEl={this.tags}
-                    defaultTags={[]}
                     origin={{vertical:"center",horizontal:"left"}} 
                     point={{vertical:"bottom",horizontal:"right"}} 
                     rootRef={document.body} 
-                    todos={[]}
+                    //defaultTags={[]}
+                    //todos={[]}
                 />
             }
             {

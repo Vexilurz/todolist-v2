@@ -472,7 +472,16 @@ export let nDaysFromNow = (n:number) => {
 };
 
 
-export let initDate : (date:any) => Date = when(isString,date => new Date(date));
+
+export let initDate = (date:Date) => {
+    if(isNil(date)){
+       return new Date(); 
+    }else if(isString(date)){
+       return new Date(date); 
+    }else{
+        return date;
+    }
+}; 
 
 
 

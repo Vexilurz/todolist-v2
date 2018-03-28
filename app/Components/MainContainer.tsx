@@ -252,19 +252,18 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             Observable
                 .interval(5 * minute)
                 .flatMap(
-                    () => {
-                        return updateCalendars(
-                            this.props.limit, 
-                            this.props.calendars, 
-                            this.onError 
-                        )
-                    }
+                    () => updateCalendars(
+                        this.props.limit, 
+                        this.props.calendars, 
+                        this.onError 
+                    )
                 )
-                .subscribe(
-                    (calendars:Calendar[]) => {
-                        dispatch({type:"setCalendars",load:calendars}); 
-                    }
-                ),
+                .subscribe( 
+                    when(
+                        isNotEmpty, 
+                        load => dispatch({type:"updateCalendars",load})
+                    )
+                ), 
 
 
             Observable

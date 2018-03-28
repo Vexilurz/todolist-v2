@@ -765,8 +765,8 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                     point={{vertical:"center",horizontal:"right"}}
                     rootRef={this.props.rootRef}
 
-                    defaultTags={[]}
-                    todos={[]} 
+                    //defaultTags={[]}
+                    //todos={[]} 
                 /> 
             }
 

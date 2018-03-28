@@ -6,7 +6,7 @@ import {
 import { loadApp } from './loadApp'; 
 import { ipcMain,app,BrowserWindow,screen,dialog } from 'electron';
 import { initWindow } from './initWindow';
-import { isEmpty, when, isNil, prop, path } from 'ramda';
+import { isEmpty, when, isNil, prop, path, compose, defaultTo, find } from 'ramda';
 import { autoUpdater } from "electron-updater";
 import { isProject, isString } from '../utils/isSomething';
 const fs = require('fs');
@@ -205,14 +205,16 @@ export class Listeners{
             },
             {
                 name:'setWindowTitle',
-                callback:(event,[title]) => {
-                    if(mainWindow){
-                       mainWindow.setTitle(title);
+                callback:(event,[title,id]) => {
+                    let windows = BrowserWindow.getAllWindows();
+                    let window = compose(defaultTo(mainWindow),find((w) => w.id===id))(windows);
+                    if(window){
+                       window.setTitle(title);
                     }
                     event.sender.send('setWindowTitle');
                 }
             },
-            {
+            { 
                 name:"receive",
                 callback:(event,[todo]) => {
                     if(mainWindow){

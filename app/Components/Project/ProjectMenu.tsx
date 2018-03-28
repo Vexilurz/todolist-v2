@@ -199,7 +199,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
             <div  
                 className="darkscroll"
                 style={{  
-                    backgroundColor:"rgb(39, 43, 53)",
+                    backgroundColor:"rgb(238, 237, 239)",//"rgb(39, 43, 53)",
                     paddingRight:"10px",
                     paddingLeft:"10px",
                     borderRadius:"10px",
@@ -214,7 +214,12 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                         style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}}
                     >  
                         <CheckCircle style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                        <div style={{
+                            color:"black", //"gainsboro", 
+                            fontSize:"14px",
+                            marginLeft:"5px", 
+                            marginRight:"5px"
+                        }}>
                             Complete project   
                         </div>     
                     </div>
@@ -224,7 +229,12 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                         style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}}
                     >  
                         <Flag style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                        <div style={{
+                            color:"black", //"gainsboro", 
+                            fontSize:"14px",
+                            marginLeft:"5px",
+                            marginRight:"5px"
+                        }}>
                             Add deadline 
                         </div>     
                     </div>
@@ -234,7 +244,12 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                         style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}} 
                     >  
                         <ThreeDots style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                        <div style={{
+                            color:"black", //"gainsboro", 
+                            fontSize:"14px",
+                            marginLeft:"5px", 
+                            marginRight:"5px"
+                        }}>
                             Add heading 
                         </div>     
                     </div>
@@ -268,7 +283,12 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                                     <Hide style={{color:"rgb(69, 95, 145)"}}/>
                                 </div>
                             }
-                            <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                            <div style={{
+                                color:"black", //"gainsboro", 
+                                fontSize:"14px",
+                                marginLeft:"5px", 
+                                marginRight:"5px"
+                            }}>
                                 {`${showCompleted ? 'Hide' : 'Show'} completed tasks`}
                             </div>     
                         </div>
@@ -286,7 +306,12 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                                 <div style={{display:"flex",alignItems:"center"}}>
                                     <Show style={{color:"rgb(69, 95, 145)"}}/>
                                 </div>
-                                <div style={{color:"gainsboro",marginLeft:"5px",marginRight:"5px"}}>
+                                <div style={{
+                                    color:"black", //"gainsboro", 
+                                    fontSize:"14px",
+                                    marginLeft:"5px",
+                                    marginRight:"5px"
+                                }}>
                                     Show in {uppercase(category)} 
                                 </div>       
                             </div>
@@ -308,7 +333,12 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                                     <Hide style={{color:"rgb(69, 95, 145)"}}/>
                                 </div>
                             } 
-                            <div style={{color:"gainsboro",marginLeft:"5px",marginRight:"5px"}}>
+                            <div style={{
+                                color:"black", //"gainsboro", 
+                                fontSize:"14px",
+                                marginLeft:"5px",
+                                marginRight:"5px"
+                            }}>
                                {`${showScheduled ? 'Hide' : 'Show'} later tasks`}
                             </div>     
                         </div>
@@ -320,7 +350,12 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                         style={{display:"flex", height:"auto", alignItems:"center", padding:"5px"}}
                     >  
                         <Duplicate style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                        <div style={{
+                            color:"black", //"gainsboro", 
+                            fontSize:"14px",
+                            marginLeft:"5px", 
+                            marginRight:"5px"
+                        }}>
                              Duplicate project 
                         </div>     
                     </div>
@@ -330,7 +365,12 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                         style={{ display:"flex", height:"auto", alignItems:"center", padding:"5px"}}
                     >  
                         <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{color:"gainsboro", marginLeft:"5px", marginRight:"5px"}}>
+                        <div style={{
+                            color:"black", //"gainsboro", 
+                            fontSize:"14px",
+                            marginLeft:"5px", 
+                            marginRight:"5px"
+                        }}>
                             Delete project  
                         </div>     
                     </div>

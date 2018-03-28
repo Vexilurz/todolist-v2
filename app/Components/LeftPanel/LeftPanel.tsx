@@ -57,7 +57,8 @@ interface LeftPanelProps{
     searchQuery:string, 
     dragged:string, 
     selectedProjectId:string,
-    selectedAreaId:string
+    selectedAreaId:string,
+    id:number 
 }
 
 
@@ -82,14 +83,14 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
     initCtrlB = () => {
         this.subscriptions.push(
             Observable
-            .fromEvent(ipcRenderer,"toggle",(event) => event)
-            .subscribe(
-                () => this.setState({collapsed:!this.state.collapsed})
-            )
+            .fromEvent(ipcRenderer, "toggle", (event) => event)
+            .subscribe(() => {
+                this.setState({collapsed:!this.state.collapsed})
+            })
         ); 
     }; 
     
-    
+     
     componentDidMount(){ 
         this.initCtrlB(); 
     }  
@@ -214,6 +215,7 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
                     hot={this.props.amounts.hot} 
                     trash={this.props.amounts.trash}
                     logbook={this.props.amounts.logbook} 
+                    id={this.props.id}
                 />   
 
                 <AreasList   
@@ -227,6 +229,7 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
                     selectedAreaId={this.props.selectedAreaId}
                     selectedCategory={this.props.selectedCategory}
                     projects={this.props.projects}  
+                    id={this.props.id}
                 />
 
                 <LeftPanelFooter  

@@ -131,18 +131,18 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
                 alignItems:"center"
             }}  
         >     
-                <div style={{     
-                    width:"18px",
-                    height:"18px",
-                    position:"relative",
-                    transform:"rotate(270deg)",
-                    borderRadius:"100px",
-                    display:"flex",
-                    justifyContent:"center",
-                    alignItems:"center",
-                    border:"1px solid rgb(108, 135, 222)",
-                    boxSizing:"border-box" 
-                }}> 
+            <div style={{     
+                width:"18px",
+                height:"18px",
+                position:"relative",
+                transform:"rotate(270deg)",
+                borderRadius:"100px",
+                display:"flex",
+                justifyContent:"center",
+                alignItems:"center",
+                border:"1px solid rgb(108, 135, 222)",
+                boxSizing:"border-box" 
+            }}> 
                     <div style={{
                         width:"18px",
                         height:"18px",
@@ -170,19 +170,19 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
                             }}
                         />     
                     </div>
-                </div> 
-                <div   
-                    id={project._id}   
-                    style={{   
-                        fontSize:"15px",    
-                        paddingLeft:"5px", 
-                        WebkitUserSelect:"none",
-                        fontWeight:"bolder", 
-                        color:"rgba(0, 0, 0, 0.8)" 
-                    }}  
-                >    
-                    { isEmpty(project.name) ? "New Project" : project.name } 
-                </div> 
+            </div> 
+            <div   
+                id={project._id}   
+                style={{   
+                    fontSize:"15px",    
+                    paddingLeft:"5px", 
+                    WebkitUserSelect:"none",
+                    fontWeight:"bolder", 
+                    color:"rgba(0, 0, 0, 0.8)" 
+                }}  
+            >    
+                { isEmpty(project.name) ? "New Project" : project.name } 
+            </div> 
                 {
                     isNil(project.deadline) ? null :
                     selectedCategory!=="upcoming" ? null :
@@ -233,79 +233,88 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
                         </div> 
                     </div>  
                 }
-            </div>      
-            <div>
-                <Popover 
-                    className="nocolor"
-                    style={{
-                        marginTop:"20px", 
-                        backgroundColor:"rgba(0,0,0,0)",
-                        background:"rgba(0,0,0,0)",
-                        borderRadius:"10px"
-                    }}    
-                    scrollableContainer={document.body}
-                    useLayerForClickAway={false}   
-                    open={this.state.openMenu}
-                    onRequestClose={() => this.setState({openMenu:false})}
-                    targetOrigin={{vertical:'top', horizontal:'right'}}
-                    anchorOrigin={{vertical:'center', horizontal:'left'}}
-                    anchorEl={this.actionsAnchor} 
-                >   
-                    <div    
-                        className="darkscroll"
-                        style={{  
-                          backgroundColor:"rgb(39, 43, 53)",
-                          paddingRight:"10px",
-                          paddingLeft:"10px",
-                          borderRadius:"10px", 
-                          paddingTop:"5px",
-                          paddingBottom:"5px",
-                          cursor:"pointer" 
+        </div>      
+        <div>
+            <Popover 
+                className="nocolor"
+                style={{
+                    marginTop:"20px", 
+                    backgroundColor:"rgba(0,0,0,0)",
+                    background:"rgba(0,0,0,0)",
+                    borderRadius:"10px"
+                }}    
+                scrollableContainer={document.body}
+                useLayerForClickAway={false}   
+                open={this.state.openMenu}
+                onRequestClose={() => this.setState({openMenu:false})}
+                targetOrigin={{vertical:'top', horizontal:'right'}}
+                anchorOrigin={{vertical:'center', horizontal:'left'}}
+                anchorEl={this.actionsAnchor} 
+            >   
+                <div    
+                    className="darkscroll"
+                    style={{  
+                        backgroundColor:"rgb(238, 237, 239)",//"rgb(39, 43, 53)",
+                        paddingRight:"10px",
+                        paddingLeft:"10px",
+                        borderRadius:"10px", 
+                        paddingTop:"5px",
+                        paddingBottom:"5px",
+                        cursor:"pointer" 
+                    }} 
+                >    
+                    <div  
+                        onClick={this.onHideFrom} 
+                        className="tagItem"
+                        style={{ 
+                            display:"flex",  
+                            height:"auto",
+                            alignItems:"center",
+                            padding:"5px"
                         }} 
                     >    
-                        <div  
-                            onClick={this.onHideFrom} 
-                            className="tagItem"
-                            style={{ 
-                                display:"flex",  
-                                height:"auto",
-                                alignItems:"center",
-                                padding:"5px"
-                            }} 
-                        >    
-                            <div style={{display:"flex", alignItems:"center", justifyContent:"center"}}>
-                               <Hide style={{color:"rgb(69, 95, 145)"}}/>
-                            </div>  
-                            <div style={{color:"gainsboro",marginLeft:"5px",marginRight:"5px"}}>
-                                Hide from {uppercase(selectedCategory)}
-                            </div>        
-                        </div> 
-                    
-                        <div   
-                            onClick={this.onShowOnlyOne} 
-                            className="tagItem"
-                            style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}} 
-                        >  
-                            <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
-                                <Count style={{color:"rgb(69, 95, 145)"}}/> 
-                            </div>    
-                            <div style={{color:"gainsboro",marginLeft:"5px",marginRight:"5px"}}>
-                                Show {  
-                                    isNil(project.expand) ? 'one' : 
-                                    project.expand===3 ? 'one' :
-                                    'three'  
-                                } task
-                            </div>       
-                        </div>
+                        <div style={{display:"flex", alignItems:"center", justifyContent:"center"}}>
+                            <Hide style={{color:"rgb(69, 95, 145)"}}/>
+                        </div>  
+                        <div style={{
+                            color:"black",//"gainsboro", 
+                            marginLeft:"5px",
+                            fontSize:"14px", 
+                            marginRight:"5px"
+                        }}>
+                            Hide from {uppercase(selectedCategory)}
+                        </div>        
                     </div> 
-                </Popover> 
-            </div>
+                
+                    <div   
+                        onClick={this.onShowOnlyOne} 
+                        className="tagItem"
+                        style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}} 
+                    >  
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
+                            <Count style={{color:"rgb(69, 95, 145)"}}/> 
+                        </div>    
+                        <div style={{
+                            color:"black",//"gainsboro", 
+                            marginLeft:"5px",
+                            fontSize:"14px", 
+                            marginRight:"5px"
+                        }}>
+                            Show {  
+                                isNil(project.expand) ? 'one' : 
+                                project.expand===3 ? 'one' :
+                                'three'  
+                            } task
+                        </div>       
+                    </div>
+                </div> 
+            </Popover> 
+        </div>
         </li>  
         </div>
     }
 }
  
-
 
 
 interface ProjectLinkLogbookProps{ 
