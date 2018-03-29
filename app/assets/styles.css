@@ -238,15 +238,14 @@ ul {
 
 
 .newprojectitem:hover{
-  border-radius: 5px; 
-  color:aliceblue;
-  background-color:rgb(68,139,245);  
+  border-radius:5px; 
+  background-color:rgb(208, 217, 219);  
 }
 
 
 .rightclickmenuitem:hover{
   color:white;
-  background-color:rgb(68,139,245)
+  background-color:rgb(208, 217, 219)
 }
 
 
@@ -262,7 +261,7 @@ ul {
 
 
 .tagItem:hover{
-  background-color:rgba(33, 129, 173, 0.4);
+  background-color:rgb(208, 217, 219);
 }
 
 

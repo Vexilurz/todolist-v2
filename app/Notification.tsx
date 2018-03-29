@@ -25,16 +25,19 @@ import { globalErrorHandler } from './utils/globalErrorHandler';
 const pathToFile = require("path");
 import ReactAudioPlayer from 'react-audio-player';
 import { isDev } from './utils/isDev';
-import { isArray } from './utils/isSomething';
+import { isArray, isOneElementArray, isManyElementsArray } from './utils/isSomething';
 import { getConfig } from './utils/config';
 import { requestFromMain } from './utils/requestFromMain';
+import { Todo, Config } from './types';
 const Promise = require('bluebird'); 
 injectTapEventPlugin();  
- 
+
+
 
 window.onerror = (msg, url, lineNo, columnNo, error) => {
     let string = msg.toLowerCase();
     var message = [ 
+        'Notification Component ',
         'Message: ' + msg,
         'URL: ' + url,
         'Line: ' + lineNo,
@@ -47,6 +50,7 @@ window.onerror = (msg, url, lineNo, columnNo, error) => {
 
     return true;
 };
+
 
 
 ipcRenderer.once( 
@@ -68,20 +72,9 @@ ipcRenderer.once(
 );   
 
 
-let oneElement = (list:any[]) : boolean => {
-    if(isArray(list)){ return list.length===1; }
-    return false;
-};
 
-
-let manyElements = (list:any[]) : boolean => {
-    if(isArray(list)){ return list.length>1; }
-    return false;
-};
-
-
-interface NotificationProps{config:any}   
-interface NotificationState{todos:any[]}
+interface NotificationProps{config:Config}   
+interface NotificationState{todos:Todo[]}
 class Notification extends Component<NotificationProps,NotificationState>{
     soundPath:string;
     subscriptions:Subscription[];
@@ -89,6 +82,8 @@ class Notification extends Component<NotificationProps,NotificationState>{
     disable:boolean;
     open:boolean;
     
+
+
     constructor(props){
         super(props);  
         this.subscriptions = []; 
@@ -100,42 +95,30 @@ class Notification extends Component<NotificationProps,NotificationState>{
     };
 
 
-    move = () : Promise<void> => requestFromMain<any>(
-        'Nmove',
-        [],
-        (event) => event
-    ); 
-
-
-    hide = () : Promise<void> => requestFromMain<any>(
-        'Nhide',
-        [],
-        (event) => event
-    );
-
-
-    removeReminders = (todos) : Promise<void> => requestFromMain<any>(
-        'NremoveReminders',
-        [todos],
-        (event) => event
-    ); 
-
-
-    openTodoInApp = (todo:any) : Promise<void> => requestFromMain<any>(
-        'openTodoInApp',
-        [todo],
-        (event) => event
-    ); 
-
-
 
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = [];
     };
-   
 
 
+
+    move = () : Promise<void> => requestFromMain<any>('Nmove',[],(event) => event); 
+
+
+
+    hide = () : Promise<void> => requestFromMain<any>('Nhide',[],(event) => event);
+
+
+
+    removeReminders = (todos) : Promise<void> => requestFromMain<any>('NremoveReminders',[todos],(event) => event); 
+
+
+
+    openTodoInApp = (todo:any) : Promise<void> => requestFromMain<any>('openTodoInApp',[todo],(event) => event); 
+
+
+//?
     componentDidMount(){
         this.hide();
 
@@ -197,42 +180,78 @@ class Notification extends Component<NotificationProps,NotificationState>{
  
 
 
+    onOpen = () => {
+        let {todos} = this.state;
+        let todo = clone(todos[0]);
+        this.suspend().then(() => this.openTodoInApp(todo));
+    };
+
+
+
+    getTextElements = (todos:Todo[]) : {
+        title:JSX.Element,
+        header:string, 
+        button:string
+    } => cond([
+        [
+            isOneElementArray, 
+            (todos:Todo[]) => ({
+                title:(
+                    <div style={{
+                        fontWeight:600,
+                        fontSize:"17px",
+                        display:"flex",
+                        alignItems:"flex-start",
+                        color:"black",
+                        position:"relative"
+                    }}>
+                    { compose(defaultTo('Task'),prop('title'))(todos[0]) }
+                    </div>
+                ),
+                header:'A task is due:', 
+                button:'Open Task' 
+            })
+        ],
+
+        [
+            isManyElementsArray, 
+            (todos:Todo[]) => ({
+                title:(
+                    <div>
+                        {
+                            todos.map(
+                                (t,i) : JSX.Element => (
+                                    <div style={{
+                                        fontWeight:600,
+                                        fontSize:"17px",
+                                        display:"flex",
+                                        alignItems:"flex-start",
+                                        color:"black",
+                                        position:"relative"
+                                    }}>
+                                        {`${i+1}. ${t.title}`}
+                                    </div>
+                                )
+                            )
+                        }
+                    </div>
+                ),
+                header:`${todos.length} tasks due:`, 
+                button:'Open'
+            })
+        ]
+    ])(todos);
+
+
+
     render(){  
         let {todos} = this.state;
-
-        if(isEmpty(todos)){ return null }
-
-        let fontStyle = {
-            fontWeight:600,
-            fontSize:"17px",
-            display:"flex",
-            alignItems:"flex-start",
-            color:"black",
-            position:"relative"
-        };
-        let title = <div></div>;
-        let header = '';
-        let button = '';
-        let reminder = new Date();
-
-
-        if(oneElement(todos)){
-           let todo = todos[0];
-           reminder = isNil(todo) ? new Date() : todo.reminder;
-           header = 'A task is due:';
-           button = 'Open Task';
-           title = <div style={fontStyle as any}>{todos[0].title}</div>;
-        }else if(manyElements(todos)){
-           reminder = new Date();
-           header = `${todos.length} tasks due:`;
-           button = 'Open';
-           title = <div>{todos.map((t,i) => <div style={fontStyle as any}>{`${i+1}. ${t.title}`}</div>)}</div>;
-        }
-
+        if(isNil(todos) || isEmpty(todos)){ return null };
+        let { title, header, button }  = this.getTextElements(todos);
 
         return <div style={{display:"flex",flexDirection:"column",width:"100%",height:"100%"}}>
             <ReactAudioPlayer
-                ref={(e) => { this.beep = e; }}
+                ref={(e) => {this.beep = e;}}
                 src={this.soundPath}
                 autoPlay={false}
                 controls={false}
@@ -291,10 +310,7 @@ class Notification extends Component<NotificationProps,NotificationState>{
                     bottom:"10px"                    
                 }}>
                     <div  
-                        onClick={() => {
-                            let todo = clone(todos[0]);
-                            this.suspend().then(() => this.openTodoInApp(todo));
-                        }} 
+                        onClick={this.onOpen} 
                         style={{      
                             display:"flex",
                             alignItems:"center",

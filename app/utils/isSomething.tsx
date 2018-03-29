@@ -79,6 +79,18 @@ export let isHeading = (item:Heading) : boolean => isNil(item) ? false : item.ty
 export let isArray = (item:any[]) : boolean => Array.isArray(item); 
    
 
+export let isOneElementArray = (list:any[]) : boolean => {
+    if(isArray(list)){ return list.length===1; }
+    return false;
+};
+
+
+export let isManyElementsArray = (list:any[]) : boolean => {
+    if(isArray(list)){ return list.length>1; }
+    return false;
+};
+
+
 export let isDate = (date) : boolean => isNil(date) ? false : (date instanceof Date && isFunction(date.getTime)); 
  
 

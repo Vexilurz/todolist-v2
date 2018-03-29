@@ -57,11 +57,7 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
              padding:"7px",
              color:"black"//"aliceblue",
          }}>   
-             <NewProjectIcon 
-                style={{
-                    color:"cadetblue" //"lightblue"
-                }}
-             /> 
+             <NewProjectIcon style={{color:"rgb(69, 95, 145)"}} /> 
              <div style={{
                 display: "flex",
                 flexDirection: "column",
@@ -84,45 +80,44 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
                  </p> 
              </div> 
          </div>
-         <div style={{border:"1px solid rgba(200,200,200,0.1)",marginTop:"5px",marginBottom:"5px"}}></div> 
+         <div style={{
+            border:"1px solid rgba(200,200,200,0.5)",
+            marginTop:"5px",
+            marginBottom:"5px"
+         }}>
+         </div> 
          <div   
             onClick = {this.props.onNewAreaClick}
             className="newprojectitem" 
             style={{display:"flex",alignItems: "flex-start",padding:"7px"}}
          > 
-            <NewAreaIcon 
-                style={{
-                    color:"cadetblue",//"lightblue" 
-                    width:"40px", 
-                    height:"25px"
-                }}
-            /> 
-             <div style={{
-                 display: "flex",
-                 flexDirection: "column",
-                 color:"black",//"aliceblue",
-                 alignItems: "flex-start",
-                 paddingLeft: "5px",
-                 paddingTop: "3px" 
-             }}>    
-                 <div style={{
+            <NewAreaIcon style={{color:"rgb(69, 95, 145)",width:"40px",height:"25px"}}/> 
+            <div style={{
+                display: "flex",
+                flexDirection: "column",
+                color:"black",//"aliceblue",
+                alignItems: "flex-start",
+                paddingLeft: "5px",
+                paddingTop: "3px" 
+            }}>    
+                <div style={{
                     fontFamily:"sans-serif",
                     fontSize:"16px"
-                 }}> 
-                     New Area
-                 </div>
-                 <p style={{
+                }}> 
+                    New Area
+                </div>
+                <p style={{
                     margin:"0px",
                     paddingTop:"10px",
                     fontSize:"14px",
                     fontFamily:"sans-serif",
                     width:"85%"  
-                 }}>
-                     Group your projects and tasks
-                     based on different responsibilities,
-                     such as Family or Work. 
-                 </p> 
-             </div> 
+                }}>
+                    Group your projects and tasks
+                    based on different responsibilities,
+                    such as Family or Work. 
+                </p> 
+            </div> 
          </div>
           
          </div>   

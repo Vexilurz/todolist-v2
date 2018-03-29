@@ -267,7 +267,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                     </div>
                     */
                     }
-                    <div style={{border:"1px solid rgba(200,200,200,0.1)",marginTop: "5px",marginBottom: "5px"}}></div>
+                    <div style={{border:"1px solid rgba(200,200,200,0.5)",marginTop: "5px",marginBottom: "5px"}}></div>
                     {
                         <div  
                             onClick={this.onToggleCompleted} 
@@ -343,7 +343,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             </div>     
                         </div>
                     }   
-                    <div style={{border:"1px solid rgba(200,200,200,0.1)",marginTop:"5px",marginBottom:"5px"}}></div>
+                    <div style={{border:"1px solid rgba(200,200,200,0.5)",marginTop:"5px",marginBottom:"5px"}}></div>
                     <div  
                         onClick={this.onDuplicate} 
                         className={"tagItem"} 
@@ -356,13 +356,13 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             marginLeft:"5px", 
                             marginRight:"5px"
                         }}>
-                             Duplicate project 
+                            Duplicate project 
                         </div>     
                     </div>
                     <div   
                         onClick={this.onDelete} 
                         className={"tagItem"} 
-                        style={{ display:"flex", height:"auto", alignItems:"center", padding:"5px"}}
+                        style={{display:"flex", height:"auto", alignItems:"center", padding:"5px"}}
                     >  
                         <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
                         <div style={{
