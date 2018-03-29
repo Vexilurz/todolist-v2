@@ -15,8 +15,8 @@ export let isRepeatOptions = (options:any) : boolean => {
     return isNumber(options.interval) && 
            isNumber(options.count) && 
            contains(options.freq)(freq) && 
-           contains(options.selectedOption)(option) &&
-           isDate(options.until);
+           contains(options.selectedOption)(option) 
+           //&& isDate(options.until);
 };
 
 

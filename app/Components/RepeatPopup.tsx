@@ -13,13 +13,13 @@ import {
     attachDispatchToProps, getMonthName, dateToYearMonthDay, getRangeDays, getRangeRepetitions, 
     daysInMonth, getRangeMonthUntilDate, getRangeMonthRepetitions, getRangeYearUntilDate, 
     getRangeYearRepetitions, dateToDateInputValue, dateInputUpperLimit, limitDate, isNotNan, 
-    limitInput, isNotEmpty
+    limitInput, isNotEmpty, nDaysFromNow
 } from '../utils/utils'; 
 import { removeTodo, addTodo } from '../database';
 import { RepeatOptions, Category, ChecklistItem, Todo, Project, Area, LayoutItem, Group, Store } from '../types';
 import { 
-    remove, isNil, not, isEmpty, last, compose, map, cond, defaultTo, flatten,
-    equals, all, when, prop, complement, adjust, path, drop, add, uniqBy, reduce, range 
+    remove, isNil, not, isEmpty, last, compose, map, cond, defaultTo, flatten, groupBy, assoc, difference,
+    equals, all, when, prop, complement, adjust, path, drop, add, uniqBy, reduce, range, xprod 
 } from 'ramda';
 let uniqid = require("uniqid");    
 import { extend } from './Categories/Upcoming';
@@ -77,32 +77,71 @@ let test = (targets : {todo:Todo,options:RepeatOptions}[], limits : Date[]) : vo
 
     let todos = flatten(groups);
     let withInitial = extend(initial,todos);
+
+    let groupOne = groupBy(path(['group','_id']), todos);
+    let groupTwo = groupBy(path(['group','_id']), withInitial);
     
     assert(isEmpty(withInitial), `extend with initial limit should be empty, have ${withInitial.length} instead.`);
-
+  
     let remainingLimits = drop(1)(limits);
     let lastLimit = remainingLimits[remainingLimits.length-1];
 
-    let gradually = remainingLimits.reduce((acc,val) => [...acc, extend(val,acc)], todos); 
-    let immediately = extend(lastLimit,todos);
+    let gradually = remainingLimits.reduce((acc,val) => [...acc, ...extend(val,acc)], todos); 
+    let immediately = [...todos,...extend(lastLimit,todos)];
 
-    assert(
-        gradually.length===immediately.length, 
-       `lengths differ. gradually : ${gradually.length}; 
-        immediately : ${immediately.length};`
+    let graduallyDateUndefined = gradually.filter( t => isNil(t.attachedDate));
+    let immediatelyDateUndefined = immediately.filter( t => isNil(t.attachedDate));
+
+
+    assert( 
+        all( t => targets.find( target => target.todo._id===t._id ))(graduallyDateUndefined), 
+        `date undefined, graduallyDateUndefined, target is not a source. test.`
+    )
+    assert( 
+        all( t => targets.find( target => target.todo._id===t._id ))(immediatelyDateUndefined) , 
+        `date undefined, immediatelyDateUndefined, target is not a source. test.`
+    )
+    
+    
+    let diff = difference(
+        gradually.map((t:Todo) => isDate(t.attachedDate) ? t.attachedDate.toString() : null), 
+        immediately.map((t:Todo) => isDate(t.attachedDate) ? t.attachedDate.toString() : null)
     );
 
 
+    if(gradually.length!==immediately.length){
+        let groupGradually = groupBy(path(['group','_id']), gradually);
+        let groupImmediately = groupBy(path(['group','_id']), immediately);
+        console.log(diff); 
+        debugger;
+    }
+
+
+    assert(
+        gradually.length===immediately.length, 
+        `
+        lengths differ. gradually : ${gradually.length}; 
+        immediately : ${immediately.length};
+        diff : ${JSON.stringify(diff)}
+        `
+    );
+
+ 
     groups.forEach(
         (g:Todo[]) => {
             let withDates = g.filter( t => isDate(t.attachedDate) );
-            let by = uniqBy( d => d.toString(), withDates );
+            let by = uniqBy( 
+                t => isDate(t.attachedDate) ? t.attachedDate.toString() : null, 
+                withDates 
+            );
 
             assert(
                 by.length===withDates.length, 
-                `dates repeat. groups.forEach. test. ${g[0].group.options.selectedOption}. 
-                length : ${withDates.length}; 
-                by : ${by.length};`
+                `
+                dates repeat. groups.forEach. test. ${g[0].group.options.selectedOption}. 
+                withDates: ${JSON.stringify(withDates)}; 
+                by : ${JSON.stringify(by)};
+                `
             ); 
         }
     );
@@ -167,7 +206,6 @@ export let repeat = (
 
     assert(isTodo(todo),'todo is not of type Todo. repeat.');
     assert(isDate(start),'start is not of type Date. repeat.');
-    assert(isDate(todo.attachedDate),'attachedDate is not of type Date. repeat.');
     assert(isDate(end),'end is not of type Date. repeat.');
     assert(isRepeatOptions(options),`options is not of type RepeatOptions. repeat. ${JSON.stringify(options)}`);
     
@@ -295,11 +333,13 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         );
         
 
+
         if(isDev()){
             let withStart = [
                 ...repeatedTodos.map(t => t.attachedDate),
                 defaultTo(new Date())(todo.attachedDate)
             ];
+
             let by = uniqBy(d => d.toString(), withStart);
 
             assert(
@@ -309,47 +349,40 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                 by : ${by.length};`
             ); 
 
-            test(
-                [
-                    {
-                        todo : this.props.todos[ Math.round( Math.random() * (this.props.todos.length-10) ) ],
-                        options : {
-                            interval: 1,
-                            freq: "day",
-                            until: undefined,
-                            count: 0,
-                            selectedOption: "never"
+            for(let i = 0; i<10; i++){
+                let types = xprod(['week' , 'day' , 'month' , 'year'], ['on' , 'never']);
+                let testOptions = compose(
+                    map(
+                        (options) => ({
+                            todo : this.props.todos[ Math.round( Math.random() * (this.props.todos.length-10) ) ],
+                            options
+                        })
+                    ),
+                    map( 
+                        n => { 
+                            let idx = Math.round( Math.random() * (types.length - 1) );
+                            let options = types[idx];
+
+                            return ({
+                                interval : n,
+                                freq : options[0],
+                                until : options[1]==='on' ? nDaysFromNow(Math.round( Math.random() * 100 ) + 1) : null,
+                                count : 0,
+                                selectedOption : options[1]
+                            }) 
                         }
-                    }
-                    /*
-                    {
-                        interval: 2,
-                        freq: "week" | "day" | "month" | "year";
-                        until: undefined,
-                        count: 0;
-                        selectedOption: "on" | "after" | "never";
-                    },
-                    {
-                        interval: 1,
-                        freq: "week" | "day" | "month" | "year";
-                        until: undefined,
-                        count: 0;
-                        selectedOption: "on" | "after" | "never";
-                    },
-                    {
-                        interval: 1,
-                        freq: "week" | "day" | "month" | "year";
-                        until: undefined,
-                        count: 0;
-                        selectedOption: "on" | "after" | "never";
-                    },
-                    */
-                ], 
-                reduce((acc,val) => {}, range(0,10))
-            );
+                    ),
+                    map(n => Math.round(Math.random() * n) + 1),  
+                    range(0)  
+                )(10);
+
+                test(testOptions, compose(map(nDaysFromNow), map( n => n*20 ))(range(1,5)) );
+                console.log(`iteration : ${i}`);
+            }
         }
 
 
+ 
         this.props.dispatch({
             type:"multiple",
             load:[

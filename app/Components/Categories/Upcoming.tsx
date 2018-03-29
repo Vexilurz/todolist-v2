@@ -120,10 +120,8 @@ export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
                         prop('options') 
                     )(group);
                     let start = defaultTo(new Date())(todo.attachedDate);
-
-                    assert(isDate(options.until), `until is not of type date. extend. ${options.until}`);
-                   
                     let todos = repeat(options, todo, start, limit, group._id);
+
 
                     if(isDev()){
                         let withStart = [...todos.map(t => t.attachedDate), start];
@@ -132,17 +130,18 @@ export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
                         assert(
                             by.length===withStart.length, 
                             `
-                            dates repeat. extend. ${options.selectedOption}. 
-                            length : ${withStart.length}; 
-                            by : ${by.length};
+                                dates repeat. extend. ${options.selectedOption}. 
+                                length : ${withStart.length}; 
+                                by : ${by.length};
                             `
                         ); 
                     }
 
+                    
                     return todos; 
                 },   
                (todos) => todos[0],
-               (todos) => todos.sort(compareByAttachedDate)
+               (todos) => todos.sort(compareByAttachedDate) /*.filter(t => isDate(t.attachedDate))*/
             )
         ),
         groupBy(path(['group','_id'])),

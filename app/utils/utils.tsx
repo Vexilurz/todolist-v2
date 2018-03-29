@@ -1001,7 +1001,7 @@ export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:
     let iDate = getDateFromObject(i); 
     let jDate = getDateFromObject(j);
 
-    if(isNil(iDate) || isNil(jDate)){ return -1 }; 
+    if(isNil(iDate) || isNil(jDate)){ return 1 }; 
             
     assert(isDate(iDate), `iDate is not a Date. ${getDateFromObject}. compareByDate.`);
     assert(isDate(jDate), `jDate is not a Date. ${getDateFromObject}. compareByDate.`);
