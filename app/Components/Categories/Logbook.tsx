@@ -9,7 +9,7 @@ import { Transition } from 'react-transition-group';
 import { Todo, Project, Area, Category } from '../../types';
 import { ContainerHeader } from '.././ContainerHeader';
 import { compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems } from '../../utils/utils';
-import { allPass, compose, or, assoc, isNil, isEmpty, defaultTo, all, contains, flatten } from 'ramda';
+import { allPass, compose, or, isNil, isEmpty, defaultTo, all, contains, flatten } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink, ProjectLinkLogbook } from '../Project/ProjectLink';
 import { filter } from 'lodash';

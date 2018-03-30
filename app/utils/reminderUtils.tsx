@@ -1,7 +1,7 @@
 import { 
     isNil, not, map, isEmpty, compose, contains,
     prop, when, evolve, ifElse, applyTo, allPass,
-    flatten, reject                 
+    flatten, reject, all, concat, identity                 
 } from 'ramda';
 import { isString, isDate, isNumber, isNotNil } from './isSomething';
 import { requestFromMain } from './requestFromMain';
@@ -12,21 +12,25 @@ import { Store,Todo } from '../types';
 import { byNotCompleted, byNotDeleted } from './utils';
 import { isDev } from './isDev';
 import { ipcRenderer } from 'electron';
+import { inFuture, inPast } from './time';
+import { updateTodos } from '../database';
+import { globalErrorHandler } from './globalErrorHandler';
+import { moveReminderFromPast } from './getData';
 
 
-let scheduleReminder = (todo) : number => {
+
+let scheduleReminder = (todo:Todo) : number => {
+    if(isNil(todo)){ return null }
+
     if(isDev()){
-        assert(
-           isDate(todo.reminder),
-           `reminder is not of type Date. scheduleReminder. ${todo.reminder}.`
-        );
+       assert(isDate(todo.reminder), `reminder is not of type Date. scheduleReminder. ${todo.reminder}.`);
     }
     
     return setCallTimeout(
         () => {
-            ipcRenderer.send('remind',[todo]); 
-            if(isDev()){ console.log(`1) emit:${todo.title}`); }
-        },
+            if(isDev()){ console.log(`1) emit - ${todo.title}`) }
+            ipcRenderer.send('remind',todo);
+        }, 
         todo.reminder
     ); 
 };
@@ -35,24 +39,70 @@ let scheduleReminder = (todo) : number => {
 
 let clearScheduledReminders = (store:Store) : Store => {
     let scheduledReminders = store.scheduledReminders;
-    scheduledReminders.forEach(t => {
-        assert(isNumber(t),`Error:clearScheduledReminders.`);
-        clearTimeout(t);
-    }); 
+
+    scheduledReminders.forEach(
+        t => {
+            if(isDev()){
+               assert(isNumber(t),`t is not of type Number. ${t}. clearScheduledReminders.`);
+            }
+
+            clearTimeout(t);
+        }
+    ); 
+
     return {...store,scheduledReminders:[]};
 };
 
 
 
+let ifEnableReminders = (prevState:Store) => 
+    ifElse(
+        (state:Store) => prevState.disableReminder && !state.disableReminder,
+        (state:Store) => ({
+            ...state,
+            todos:map(
+                (todo:Todo) => {
+                   console.log(`reenable ${todo.title}`); 
+                   return moveReminderFromPast(todo);
+                }, 
+                state.todos
+            ) 
+        }),
+        identity 
+    );
+
+
+
 export let refreshReminders = (prevState:Store, newState:Store) : Store => {
+
     if(
         isNil(prevState) || 
-        isNil(newState) || 
-        prop('clone',newState) ||
-        prevState.todos===newState.todos
-    ){ return newState }
+        isNil(newState)
+    ){ 
+        return newState; 
+    }
 
- 
+    //dont emit reminders from cloned lists
+    if(
+        prop('clone',prevState) || 
+        prop('clone',newState)
+    ){ 
+        return newState; 
+    }
+    
+    //if todos and settings left unchanged do nothing
+    if(
+        prevState.todos===newState.todos && 
+        prevState.disableReminder===newState.disableReminder
+    ){  
+        return newState; 
+    }
+    
+    //if reminder disabled - clear possible scheduled reminders
+    if(newState.disableReminder){ return clearScheduledReminders(newState); }
+
+
+
     return compose(
         (scheduledReminders:number[]) : Store => ({...newState,scheduledReminders}),
 
@@ -66,11 +116,17 @@ export let refreshReminders = (prevState:Store, newState:Store) : Store => {
 
         (todos:Todo[]) => filter(
             todos, 
-            allPass([byNotCompleted,byNotDeleted,compose(isDate,prop('reminder'))])
+            allPass([ 
+                byNotCompleted,   
+                byNotDeleted, 
+                compose(inFuture,prop('reminder')) //only reminders from future
+            ])
         ), //only todos with reminder left
         
-        prop('todos'), //get todos from current state   
+        prop('todos'), //get todos from current state  
 
-        clearScheduledReminders //suspend existing timeouts
+        clearScheduledReminders, //suspend existing timeouts
+
+        ifEnableReminders(prevState)
     )(newState);
 };

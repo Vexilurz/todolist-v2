@@ -18,7 +18,7 @@ import {
 import { removeTodo, addTodo } from '../database';
 import { RepeatOptions, Category, ChecklistItem, Todo, Project, Area, LayoutItem, Group, Store } from '../types';
 import { 
-    remove, isNil, not, isEmpty, last, compose, map, cond, defaultTo, flatten, groupBy, assoc, difference,
+    remove, isNil, not, isEmpty, last, compose, map, cond, defaultTo, flatten, groupBy, difference,
     equals, all, when, prop, complement, adjust, path, drop, add, uniqBy, reduce, range, xprod 
 } from 'ramda';
 let uniqid = require("uniqid");    

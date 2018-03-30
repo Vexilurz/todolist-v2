@@ -1,6 +1,6 @@
 import { 
     uniq, allPass, remove, intersection, reject, slice, prop, flatten,
-    isEmpty, contains, assoc, isNil, not, merge, map, concat, ifElse, identity, 
+    isEmpty, contains, isNil, not, merge, map, concat, ifElse, identity, 
     addIndex, compose, cond, defaultTo, last, insertAll, prepend, find  
 } from 'ramda'; 
 import { byNotCompleted, byNotDeleted, typeEquals, anyTrue, attachDispatchToProps, different, isNotEmpty } from '../../utils/utils';

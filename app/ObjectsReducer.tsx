@@ -107,7 +107,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     )(state.todos);
 
                     if(isDev()){
-                        assert(isArrayOfTodos(todos), `Error: updateTodos. objectsReducer. ${todos}`);
+                       assert(isArrayOfTodos(todos), `Error: updateTodos. objectsReducer. ${todos}`);
                     }
 
                     if(shouldAffectDatabase){ 
@@ -492,7 +492,11 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                         )
                     ) as Todo[];
 
-                    let projects = adjust(assoc('deleted',undefined), projectIndex, state.projects);
+                    let projects = adjust(
+                        (project:Project) => assoc('deleted',undefined,project), 
+                        projectIndex, 
+                        state.projects
+                    );
  
                     return {...state, projects, todos};
                 }
@@ -547,31 +551,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                         concat(changedProjects),
                         reject((project:Project) => contains(project._id)(changedIds))
                     )(state.projects);
-                    
-                    /*let two = state.projects.map((p) => {
-                        let target = changedProjects.find( t => t._id===p._id );
-                        if(target){
-                            return {...p,...target}; 
-                        }else{
-                            return p;
-                        }
-                    });
- 
-                    for(let i = 0; i<projects.length; i++){
-                        let project = projects[i];
-                        let target = two.find(p => p._id===project._id);
-
-                        console.log(diff(target,project));
-                        assert(
-                            equals(project.completed,target.completed),
-                            `completed changed ${project.completed} -> ${target.completed}`
-                        );
-                        assert(
-                            equals(project.layout,target.layout),
-                            `layout changed ${project.layout} -> ${target.layout}`
-                        );
-                    }*/
-
+                
                     if(shouldAffectDatabase){ 
                        updateProjects(changedProjects,onError); 
                     }

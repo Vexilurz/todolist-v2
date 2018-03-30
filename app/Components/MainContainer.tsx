@@ -20,7 +20,7 @@ import { Next } from './Categories/Next';
 import { Upcoming, extend } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
-import { isNil, contains, not, assoc, evolve, map, compose, allPass, cond, defaultTo, when} from 'ramda';
+import { isNil, contains, not, evolve, map, compose, allPass, cond, defaultTo, when, prop} from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber"; 
@@ -44,7 +44,7 @@ import {
     getIntroList, introListLayout, isNotEmpty, checkForUpdates, 
     convertDates, printElement, introListIds, byNotDeleted
 } from '../utils/utils';
-import { threeDaysLater } from '../utils/time';
+import { threeDaysLater, inPast, oneMinuteLater } from '../utils/time';
 const Promise = require('bluebird');   
 const moment = require("moment");   
 const path = require('path');
@@ -172,7 +172,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             }
         }; 
     };
- 
+
 
 
     setData = ({projects, areas, todos, calendars}) : void => {
@@ -258,7 +258,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                         this.onError 
                     )
                 )
-                .subscribe( 
+                .subscribe(  
                     when(
                         isNotEmpty, 
                         load => dispatch({type:"updateCalendars",load})
@@ -279,7 +279,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                     this.props.showRightClickMenu ? 
                     dispatch({type:"showRightClickMenu", load:false}) : 
                     null
-                ),  
+                ),   
 
 
             Observable 
@@ -287,25 +287,27 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 .subscribe((todo:Todo) => {
                     if(isDev()){ console.log(`2) receive:${todo.title}`); }
                 }), 
- 
-                
+
+
             Observable 
-                .fromEvent(ipcRenderer, 'removeReminders', (event,todos) => todos) 
-                .subscribe((items:Todo[]) => {
-                    let ids : string[] = items.filter(isNotNil).map((t:Todo) => t._id);
+            .fromEvent(ipcRenderer, 'removeReminders', (event,todos) => todos) 
+            .subscribe((items:Todo[]) => {
+                let ids : string[] = items.filter(isNotNil).map((t:Todo) => t._id);
 
-                    if(isDev()){ items.forEach( todo => console.log(`3) erase ${todo.title}`) ) }
+                if(isDev()){ 
+                   items.forEach( todo => console.log(`3) erase ${todo ? todo.title : todo}`) ) 
+                }
 
-                    let load = ids.map( 
-                        id => ({ 
-                            type:"updateTodoById", 
-                            load:{id,props:{reminder:null}}
-                        })
-                    );
-                      
-                    if(isNotEmpty(load)){ dispatch({type:"multiple",load}); }
-                }), 
-
+                let load = ids.map( 
+                    id => ({ 
+                        type:"updateTodoById", 
+                        load:{id,props:{reminder:null}}
+                    })
+                );
+                    
+                if(isNotEmpty(load)){ dispatch({type:"multiple",load}); }
+            }),     
+             
 
             Observable
                 .interval(3*minute)
@@ -340,14 +342,16 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                         [],
                         (event) => event
                     ).then(
-                        () => dispatch({
-                            type:"multiple",
-                            load:[
-                                {type:"selectedCategory",load:"inbox"},
-                                {type:"scrolledTodo",load:todo},
-                                {type:"selectedCategory",load:"today"} 
-                            ]
-                        })  
+                        () => {
+                            dispatch({type:"selectedCategory",load:"inbox"});
+                            dispatch({
+                                type:"multiple",
+                                load:[
+                                   {type:"scrolledTodo",load:todo},
+                                   {type:"selectedCategory",load:"today"} 
+                                ]
+                            });  
+                        }
                     )
                 ), 
 

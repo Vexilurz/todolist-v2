@@ -1,6 +1,5 @@
 node_modules
 dist
 production
-s3clean
-randomDatabase
+randomDatabase/databases
 release

@@ -1,5 +1,5 @@
 import { 
-    cond, assoc, isNil, not, defaultTo, map, isEmpty, compose, contains, append, omit, concat,
+    cond, isNil, not, defaultTo, map, isEmpty, compose, contains, append, omit, concat,
     prop, equals, identity, all, when, evolve, ifElse, applyTo, reduce, add, groupBy 
 } from 'ramda';
 import {

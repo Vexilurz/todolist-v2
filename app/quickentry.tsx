@@ -36,7 +36,7 @@ import { createStore } from "redux";
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import List from 'material-ui/svg-icons/action/list';
 import { 
-    cond, assoc, isNil, not, defaultTo, map, isEmpty, when, path,
+    cond, isNil, not, defaultTo, map, isEmpty, when, path,
     uniq, remove, contains, append, adjust, complement, identity,
     compose, flatten, concat, prop, equals, evolve, allPass  
 } from 'ramda';

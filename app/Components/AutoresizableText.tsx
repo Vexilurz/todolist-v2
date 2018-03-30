@@ -4,7 +4,7 @@ import { Component } from "react";
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import IconButton from 'material-ui/IconButton'; 
 import { byNotCompleted, byNotDeleted } from '../utils/utils'; 
-import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains, assoc, isNil, not, all, merge } from 'ramda';
+import { uniq, allPass, remove, toPairs, intersection, isEmpty, contains, isNil, not, all, merge } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";

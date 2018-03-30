@@ -61,6 +61,15 @@ export let fiveMinutesLater = (date:Date) : Date => {
 
 
 
+export let oneMinuteLater = (date:Date) : Date => { 
+    if(isNotDate(date)){ return date }
+
+    let oneMinuteMs = 1000 * 60; 
+    return new Date(date.getTime() + oneMinuteMs);
+}; 
+
+
+
 export let fiveMinutesBefore = (date:Date) : Date => { 
     if(isNotDate(date)){ return date }
 
@@ -160,7 +169,7 @@ export let inPastRelativeTo = (to:Date) => (date:Date) : boolean => {
 
 export let inFuture =  (date:Date) : boolean => {
     if(isNil(date)){ return false }
-    return new Date().getTime()<new Date(date).getTime();
+    return new Date().getTime()<=new Date(date).getTime();
 };
 
 

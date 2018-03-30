@@ -48,9 +48,11 @@ let pathTo = require('path');
 injectTapEventPlugin();  
 
 
+
 if(process && !isDev()){
-   process = evolve({env:assoc('NODE_ENV','production')}, process);
+   process = evolve( { env:env => assoc('NODE_ENV','production',env) }, process );
 }
+
 
  
 /*
@@ -78,9 +80,6 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 
     return true;
 }; 
-
-
-
 
 
 
@@ -192,7 +191,7 @@ export class App extends Component<AppProps,AppState>{
 
         requestFromMain<any>(
             'setWindowTitle',
-            [`tasklist - ${uppercase(this.props.selectedCategory)}`,  this.props.id],
+            [`tasklist - ${uppercase(this.props.selectedCategory)}`, this.props.id],
             (event) => event
         ); 
     };
@@ -473,50 +472,50 @@ export class App extends Component<AppProps,AppState>{
 
 
 let renderApp = (event, clonedStore:Store, id:number) : void => { 
-        let app=document.createElement('div'); 
-        app.id='application';     
-        document.body.appendChild(app);   
+    let app=document.createElement('div'); 
+    app.id='application';     
+    document.body.appendChild(app);   
 
-        let defaultStore = {...defaultStoreItems};
+    let defaultStore = {...defaultStoreItems};
 
-        if(isNotNil(clonedStore)){  
-            let {todos,projects,areas,calendars,limit} = clonedStore;
+    if(isNotNil(clonedStore)){  
+        let {todos,projects,areas,calendars,limit} = clonedStore;
 
-            defaultStore={
-                ...clonedStore,
-                limit:initDate(limit),
-                clone:true, 
-                todos:map(convertTodoDates,todos),
-                projects:map(convertProjectDates, projects), 
-                areas:map(convertAreaDates, areas), 
-                calendars:map( evolve({events:map(convertEventDate)}), calendars )
+        defaultStore={
+            ...clonedStore,
+            limit:initDate(limit),
+            clone:true, 
+            todos:map(convertTodoDates,todos),
+            projects:map(convertProjectDates, projects), 
+            areas:map(convertAreaDates, areas), 
+            calendars:map( evolve({events:map(convertEventDate)}), calendars )
+        };
+    }   
+
+    getConfig() 
+    .then(
+        config => {
+            let {nextUpdateCheck} = config;
+            let data = {
+                ...defaultStore,
+                ...config,
+                nextUpdateCheck:initDate(nextUpdateCheck),
+                id
             };
-        }   
-   
-        getConfig() 
-        .then(
-            config => {
-                let {nextUpdateCheck} = config;
-                let data = {
-                    ...defaultStore,
-                    ...config,
-                    nextUpdateCheck:initDate(nextUpdateCheck),
-                    id
-                };
-                let store = createStore(applicationReducer,data);
+            let store = createStore(applicationReducer,data);
 
-                if(isDev()){
-                   assert(isDate(data.nextUpdateCheck),`nextUpdateCheck is not of type Date`);
-                }
-
-                ReactDOM.render(   
-                    <Provider store={store}>    
-                        {wrapMuiThemeLight(<App {...{} as any}/>)}
-                    </Provider>,
-                    document.getElementById('application')
-                ) 
+            if(isDev()){
+                assert(isDate(data.nextUpdateCheck),`nextUpdateCheck is not of type Date`);
             }
-        ); 
+
+            ReactDOM.render(   
+                <Provider store={store}>    
+                    {wrapMuiThemeLight(<App {...{} as any}/>)}
+                </Provider>,
+                document.getElementById('application')
+            ) 
+        }
+    ); 
 }; 
  
 

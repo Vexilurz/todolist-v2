@@ -279,7 +279,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                         [
                             isArea, //if area, remove attached projects ids (contained in current layout)
                             (area:Area) => compose(
-                                assoc("priority",index),
+                                area => assoc("priority",index,area),
                                 (ids) => assoc("attachedProjectsIds",ids,area),
                                 reject((id) => contains(id)(layoutProjectsIds)),
                                 (area) => area.attachedProjectsIds
@@ -287,7 +287,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                         ],
                         [
                             isProject, //if project, set new priority (change order according to items rearrangement)
-                            assoc("priority",index)
+                            project => assoc("priority",index,project)
                         ],
                         [
                             isSeparator,  

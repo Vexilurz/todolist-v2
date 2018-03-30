@@ -2,7 +2,6 @@ import './assets/styles.css';
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { ipcRenderer } from 'electron';
-import { debounce } from 'lodash'; 
 import PouchDB from 'pouchdb-browser';   
 import { convertTodoDates } from './utils/utils';
 import { isNil, all, map, isEmpty, not } from 'ramda'; 
@@ -47,53 +46,54 @@ Date.prototype["addDays"] = function(days){
 }; 
 
 
-
   
-export let updateProjects = debounce((projects : Project[], onError : Function) : Promise<any[]> => {
+export let updateProjects = (projects : Project[], onError : Function) : Promise<any[]> => {
     assert(
       all(isProject,projects),
       `Not all input values are of type Project ${projects}. updateProjects.`
     ); 
     return updateItemsInDatabase<Project>(onError,projects_db)(projects);
-},200);
+};
 
 
 
-export let updateArea = debounce((_id:string, replacement:Area, onError:Function) : Promise<Area> => {
+export let updateArea = (_id:string, replacement:Area, onError:Function) : Promise<Area> => {
     assert(isArea(replacement),`Input value is not of type area. ${replacement}. updateArea.`);
     return updateItemInDatabase(onError, areas_db)(_id, replacement);  
-},100);
+};
 
 
 
-export let updateAreas = debounce((areas : Area[], onError : Function) : Promise<any[]> => {
+export let updateAreas = (areas : Area[], onError : Function) : Promise<any[]> => {
     assert(all(isArea,areas),`Not all input values are of type Area ${areas}. updateAreas.`);
     return updateItemsInDatabase<Area>(onError,areas_db)(areas);
-},100);
+};
 
 
 
-export let updateProject = debounce((_id : string, replacement : Project, onError:Function) : Promise<Project> => {
+export let updateProject = (_id : string, replacement : Project, onError:Function) : Promise<Project> => {
     assert(isProject(replacement),`Input value is not of type Project ${replacement}. updateProject.`);
     return updateItemInDatabase(onError, projects_db)(_id, replacement); 
-},100);
+};
 
 
 
-export let updateTodo = debounce((_id:string, replacement:Todo, onError:Function) : Promise<Todo> => {
+export let updateTodo = (_id:string, replacement:Todo, onError:Function) : Promise<Todo> => {
     assert(
       isTodo(replacement), 
       `Input value is not of type Todo ${replacement}. updateTodo.`
     );
     return updateItemInDatabase(onError, todos_db)(_id, replacement);    
-},100); 
+}; 
 
 
 
-export let updateTodos = debounce((todos : Todo[], onError : Function) : Promise<any[]> => {
-    assert(all(isTodo,todos),`Not all input values are of type Todo ${todos}. updateTodos.`);
+export let updateTodos = (todos : Todo[], onError : Function) : Promise<any[]> => {
+    if(isDev()){
+       assert(all(isTodo,todos),`Not all input values are of type Todo ${todos}. updateTodos.`);
+    }
     return updateItemsInDatabase<Todo>(onError, todos_db)(todos);
-},100);
+};
 
 
 
@@ -176,44 +176,58 @@ function getItems<T>(
 }
 
 
-function updateItemsInDatabase<T>(
-  onError:Function, 
-  db:any
-){
-  return function(values:T[]) : Promise<T[]>{
 
-    let items = values.filter(v => v);
-    return db 
-           .allDocs({ 
-              include_docs:true,  
-              conflicts: true,
-              descending:true,
-              keys:items.map((item) => item["_id"]), 
-              limit 
-           })    
-           .then( (query:Query<T>) => queryToObjects<T>(query) )
-           .then( (result:T[]) => {
-                let itemsWithRev = result.filter(v => v);
-                let revs = {};
+function updateItemsInDatabase<T>(onError:Function, db:any){
 
-                for(let i=0; i<itemsWithRev.length; i++){
-                    let item = itemsWithRev[i];
-                    if(not(isNil(item))){
-                        revs[item["_id"]] = item["_rev"];
+    return function(values:T[]) : Promise<T[]>{
+
+        let update = (values) : Promise<T[]> => {
+            let items = values.filter(v => v);
+
+            return db 
+                .allDocs({ 
+                    include_docs:true,  
+                    conflicts: true,
+                    descending:true,
+                    keys:items.map((item) => item["_id"]), 
+                    limit 
+                })    
+                .then( (query:Query<T>) => queryToObjects<T>(query) )
+                .then( (result:T[]) => {
+                        let itemsWithRev = result.filter(v => v);
+                        let revs = {};
+
+                        for(let i=0; i<itemsWithRev.length; i++){
+                            let item = itemsWithRev[i];
+                            if(not(isNil(item))){
+                                revs[item["_id"]] = item["_rev"];
+                            }
+                        }
+
+                        for(let i=0; i<items.length; i++){
+                            let item = items[i];  
+                            if(not(isNil(item))){
+                                item[`_rev`] = revs[item["_id"]];
+                            }
+                        }    
+                        
+                        return db.bulkDocs(items).catch(onError); 
+                })
+                .catch((err) => {
+                    if(err.status===409){
+                        console.log(`409 retry`);
+                        return update(values);
+                    }else{  
+                        onError(err);
                     }
-                }
+                });    
+        };
+        
 
-                for(let i=0; i<items.length; i++){
-                    let item = items[i];  
-                    if(not(isNil(item))){
-                        item[`_rev`] = revs[item["_id"]];
-                    }
-                }    
-                 
-                return db.bulkDocs(items).catch(onError); 
-           });    
-  }  
-}
+        return update(values);
+    }  
+};
+
 
   
 function updateItemInDatabase(

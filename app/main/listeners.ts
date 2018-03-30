@@ -8,7 +8,7 @@ import { ipcMain,app,BrowserWindow,screen,dialog } from 'electron';
 import { initWindow } from './initWindow';
 import { isEmpty, when, isNil, prop, path, compose, defaultTo, find } from 'ramda';
 import { autoUpdater } from "electron-updater";
-import { isProject, isString } from '../utils/isSomething';
+import { isProject, isString, isNotNil } from '../utils/isSomething';
 const fs = require('fs');
 const pathTo = require('path');
 const log = require("electron-log");
@@ -184,6 +184,61 @@ export class Listeners{
       initAutoUpdater(); 
  
       this.registeredListeners = [ 
+        //////Notification
+            { 
+                name:"remind",
+                callback:(event,todo) => {
+                    let notification : any = findWindowByTitle('Notification');
+
+                    if(notification){ 
+                       notification.webContents.send("remind",todo); 
+                    }
+                } 
+            }, 
+            { 
+                name:"receive",
+                callback:(event,todo) => {
+                    if(mainWindow){
+                       mainWindow.webContents.send("receive", todo); 
+                    }
+                } 
+            },
+            {
+                name:'openTodoInApp',
+                callback:(event,todo) => {
+                    if(mainWindow && isNotNil(todo)){
+                       mainWindow.webContents.send('openTodo',todo);
+                    }
+                }
+            },
+            {
+                name:'NremoveReminders',
+                callback:(event,todos) => {
+                    if(mainWindow){
+                       mainWindow.webContents.send('removeReminders', todos); 
+                    }
+                }
+            },
+            {
+                name:'Nhide',
+                callback:(event) => {
+                    let window = findWindowByTitle('Notification');
+                    if(window){ window.hide(); }
+                }
+            },
+            {
+                name:'Nmove',
+                callback:(event) => {
+                    let window = findWindowByTitle('Notification');
+                    let {initialX,initialY} = getInitialNotificationPosition();
+
+                    window.setPosition(initialX, initialY);
+                    window.show();
+
+                    if(window){ move() }
+                }
+            },
+        //////
             {
                 name:'getFilenames',
                 callback:(event,[dir]) => {
@@ -212,55 +267,6 @@ export class Listeners{
                        window.setTitle(title);
                     }
                     event.sender.send('setWindowTitle');
-                }
-            },
-            { 
-                name:"receive",
-                callback:(event,[todo]) => {
-                    if(mainWindow){
-                        mainWindow.webContents.send("receive", todo); 
-                    }
-                    event.sender.send("receive");  
-                } 
-            },
-            {
-                name:'NremoveReminders',
-                callback:(event,[todos]) => {
-                    if(mainWindow){
-                        mainWindow.webContents.send('removeReminders', todos); 
-                    }
-                    event.sender.send('NremoveReminders');
-                }
-            },
-            {
-                name:'openTodoInApp',
-                callback:(event,[todo]) => {
-                    if(mainWindow){
-                        mainWindow.webContents.send('openTodo',todo);
-                    }
-                    event.sender.send('openTodoInApp');
-                }
-            },
-            {
-                name:'Nhide',
-                callback:(event) => {
-                    let window = findWindowByTitle('Notification');
-                    if(window){
-                        window.hide();
-                    }
-                    event.sender.send('Nhide');
-                }
-            },
-            {
-                name:'Nmove',
-                callback:(event) => {
-                    let window = findWindowByTitle('Notification');
-                    let {initialX,initialY} = getInitialNotificationPosition();
-                    window.setPosition(initialX, initialY);
-                    window.show();
-                    if(window){
-                        move().then(() => event.sender.send('Nmove'))
-                    }
                 }
             },
             {
@@ -463,17 +469,6 @@ export class Listeners{
                     event.sender.send("updateQuickEntryData");  
                 }
             },
-            { 
-                name:"remind",
-                callback:(event,[todo]) => {
-                    let notification : any = findWindowByTitle('Notification');
-                    
-                    if(notification){ 
-                       notification.webContents.send('remind',todo); 
-                    }
-                    event.sender.send("remind");
-                } 
-            }, 
             { 
                 name:"updateNotificationConfig",
                 callback:(event,[config]) => {

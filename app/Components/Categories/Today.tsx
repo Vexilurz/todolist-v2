@@ -13,7 +13,7 @@ import { onDrop } from '.././TodosList';
 import Moon from 'material-ui/svg-icons/image/brightness-3';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
 import { 
-    allPass, isEmpty, not, assoc, isNil, flatten, ifElse,
+    allPass, isEmpty, not, isNil, flatten, ifElse,
     contains, intersection, or, prop, compose, map, cond,
     identity, all 
 } from 'ramda';
