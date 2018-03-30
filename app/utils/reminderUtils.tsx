@@ -15,7 +15,6 @@ import { ipcRenderer } from 'electron';
 import { inFuture, inPast } from './time';
 import { updateTodos } from '../database';
 import { globalErrorHandler } from './globalErrorHandler';
-import { moveReminderFromPast } from './getData';
 
 
 
@@ -52,24 +51,6 @@ let clearScheduledReminders = (store:Store) : Store => {
 
     return {...store,scheduledReminders:[]};
 };
-
-
-
-let ifEnableReminders = (prevState:Store) => 
-    ifElse(
-        (state:Store) => prevState.disableReminder && !state.disableReminder,
-        (state:Store) => ({
-            ...state,
-            todos:map(
-                (todo:Todo) => {
-                   console.log(`reenable ${todo.title}`); 
-                   return moveReminderFromPast(todo);
-                }, 
-                state.todos
-            ) 
-        }),
-        identity 
-    );
 
 
 
@@ -125,8 +106,6 @@ export let refreshReminders = (prevState:Store, newState:Store) : Store => {
         
         prop('todos'), //get todos from current state  
 
-        clearScheduledReminders, //suspend existing timeouts
-
-        ifEnableReminders(prevState)
+        clearScheduledReminders //suspend existing timeouts
     )(newState);
 };

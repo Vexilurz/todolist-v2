@@ -321,23 +321,23 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         disableReminder:not(this.props.disableReminder)
     }).then(
         (config) => {
-            this.props.dispatch({type:"updateConfig",load:config}); 
+            let enableReminder = !config.disableReminder;
+            let load = [{type:"updateConfig",load:config}]
 
-            return Promise.all([
-                requestFromMain<any>( 
-                    'autolaunch',
-                    [
-                        config.enableShortcutForQuickEntry || 
-                        not(config.disableReminder)
-                    ],
-                    (event) => event
-                ),
-                requestFromMain<any>(
-                    'updateNotificationConfig',
-                    [config],
-                    (event) => event 
-                )
-            ]);
+            if(enableReminder){
+               load.push({type:"moveReminderFromPast", load:null});
+            }
+
+            this.props.dispatch({type:"multiple",load}); 
+
+            return requestFromMain<any>( 
+                'autolaunch',
+                [
+                    config.enableShortcutForQuickEntry || 
+                    not(config.disableReminder)
+                ],
+                (event) => event
+            );
         } 
     );
     

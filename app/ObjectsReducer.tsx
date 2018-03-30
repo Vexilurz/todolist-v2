@@ -27,6 +27,7 @@ import {
 import { setCallTimeout } from './utils/setCallTimeout';
 import { requestFromMain } from './utils/requestFromMain';
 import diff from 'deep-diff';
+import { moveReminderFromPast } from './utils/getData';
 
 
 
@@ -73,6 +74,17 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
             return newState;
         },  
         cond([ 
+            [
+                typeEquals("moveReminderFromPast"),
+                (action:{type:string, load:any}) : Store => ({
+                    ...state,
+                    todos:map(
+                        (todo:Todo) => moveReminderFromPast(todo),
+                        state.todos
+                    ) 
+                })
+            ],
+
             [
                 typeEquals("openWhenCalendar"),
                 (

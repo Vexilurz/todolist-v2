@@ -32,9 +32,7 @@ let assureCorrectNoteType : (todo:Todo) => Todo =
 export let moveReminderFromPast : (todo:Todo) => Todo =  
     when(
         compose(inPast, prop('reminder')),
-        t => {
-            return assoc('reminder', oneMinuteLater(new Date()), t);
-        }
+        t => assoc('reminder', oneMinuteLater(new Date()), t)
     );
 
 
@@ -55,7 +53,7 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
             }),
             ([calendars,projects,areas,todos]) => ({calendars,projects,areas,todos})
         )
-    ) 
+    )  
     .then( 
         ({projects,areas,todos,calendars}) => updateCalendars(
             limit,

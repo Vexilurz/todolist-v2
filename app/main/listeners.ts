@@ -470,17 +470,6 @@ export class Listeners{
                 }
             },
             { 
-                name:"updateNotificationConfig",
-                callback:(event,[config]) => {
-                    let window = findWindowByTitle('Notification');
-
-                    if(window){
-                       window.webContents.send('config',config);
-                    } 
-                    event.sender.send("updateNotificationConfig");
-                } 
-            }, 
-            { 
                 name:"updateQuickEntryConfig",
                 callback:(event,[config]) => {
                     let window = findWindowByTitle('Add task');

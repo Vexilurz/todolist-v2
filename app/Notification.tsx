@@ -116,10 +116,11 @@ class Notification extends Component<NotificationProps,NotificationState>{
                             this.setState( 
                                 {todos},
                                 () => {
-                                    if(this.beep){ 
-                                       this.beep.audioEl.play();
-                                    }   
-                                    this.move();
+                                   ipcRenderer.send('NremoveReminders',this.state.todos);
+
+                                   if(this.beep){ this.beep.audioEl.play(); }   
+
+                                   this.move();
                                 }
                             )
                         }
@@ -133,8 +134,6 @@ class Notification extends Component<NotificationProps,NotificationState>{
     suspend = () => {
         this.hide();
         
-        ipcRenderer.send('NremoveReminders',this.state.todos);
-
         setTimeout(
             () => {
                 //allow next
