@@ -443,7 +443,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                             };
                         },
                         100
-                    )  
+                    );
+                      
                     dispatch({type:"scrolledTodo",load:null}); 
                 }
             ) 
@@ -664,6 +665,19 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             dispatch({
                 type:"multiple",
                 load:[
+                    {
+                        type:"showRepeatPopup", 
+                        load:false
+                    },
+                    {
+                        type:"openWhenCalendar",
+                        load:{
+                            showWhenCalendar : false, 
+                            whenTodo : null,
+                            whenCalendarPopupX : 0, 
+                            whenCalendarPopupY : 0
+                        }
+                    },
                     { 
                         type:"openRightClickMenu",  
                         load:{   
@@ -672,9 +686,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                            rightClickMenuX:e.clientX-rootRef.offsetLeft,
                            rightClickMenuY:e.clientY+rootRef.scrollTop 
                         } 
-                    },  
-                    {type:"showRepeatPopup", load:false}
-                ]
+                    }
+                ] 
             }); 
         }     
     };  

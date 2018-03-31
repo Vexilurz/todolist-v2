@@ -16,38 +16,14 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { Category, Todo, Project, Heading, LayoutItem, Store } from '../../types';
 import { attachDispatchToProps, createHeading } from '../../utils/utils';
-import { contains, not, isNil, isEmpty, remove } from 'ramda';
+import { contains, not, isNil, isEmpty, remove, prop, compose } from 'ramda';
 import { filter } from 'lodash';
 import { assert } from '../../utils/assert';
 import { generateId } from '../../utils/generateId';
 import { uppercase } from '../../utils/uppercase';
 import { isString } from '../../utils/isSomething';
- 
 
 
-export let deleteProject = (dispatch:Function, project:Project, todos:Todo[]) => {
-    
-    assert(not(isNil(project)),`project with id selectedProjectId does not exist. ${project}. deleteProject`);
-    
-    let relatedTodosIds : string[] = project.layout.filter(isString) as string[];
-    
-    let selectedTodos : Todo[] = todos.filter((t:Todo) : boolean => contains(t._id)(relatedTodosIds));   
-    
-    dispatch({
-        type:"multiple",
-        load:[
-            {
-                type:"updateTodos",   
-                load:selectedTodos.map((t:Todo) : Todo => ({...t,reminder:null,deleted:new Date()}))
-            },
-            {type:"updateProject", load:{...project,deleted:new Date()}}  
-        ]
-    }); 
-};
-
-
-
- 
 
 interface ProjectMenuPopoverProps extends Store{
     project:Project,
@@ -66,33 +42,24 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
 
     constructor(props){ super(props) }  
   
+
+
     closeMenu = () => this.props.dispatch({type:"showProjectMenuPopover", load:false});
-      
+    
+    
+
     updateProject = (selectedProject:Project, updatedProps) : void => { 
         let {dispatch} = this.props;
         dispatch({type:"updateProject", load:{ ...selectedProject, ...updatedProps }})
-    }; 
-
-  
-    onRepeat = (e) => { 
-        this.closeMenu(); 
     };
 
-
-    onMove = (e) => { 
-        this.closeMenu(); 
-    };
-
-
-    onShare = (e) => { 
-        this.closeMenu(); 
-    };
 
 
     onAddDeadline = (e) => { 
         this.closeMenu(); 
         this.props.openDeadlineCalendar();   
     };
+
 
 
     onDuplicate = (e) => {   
@@ -128,6 +95,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
     };
 
 
+
     onComplete = (e) => { 
         let {project} = this.props;
         this.updateProject(project, {completed:new Date()});
@@ -135,13 +103,39 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         this.closeMenu() 
     };
 
+
   
     onDelete = (e) => {   
-        let {project} = this.props;
-        deleteProject(this.props.dispatch, project, this.props.todos); 
-        this.props.dispatch({type:"selectedCategory", load:"inbox"});
+        let relatedTodosIds : string[] = compose(
+            layout => filter(layout, isString), 
+            prop('layout')
+        )(this.props.project) as string[];
+
+
+        let selectedTodos : Todo[] = filter(
+            this.props.todos,
+            (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
+        );   
+        
+
+        this.props.dispatch({
+            type:"multiple", 
+            load:[
+                {
+                    type:"updateTodos", 
+                    load:selectedTodos.map(
+                        (t:Todo) : Todo => ({...t,reminder:null,deleted:new Date()})
+                    )
+                },
+                {type:"updateProject", load:{...this.props.project,deleted:new Date()}},
+                {type:"selectedCategory", load:"inbox"}  
+            ]
+        });
+
+
         this.closeMenu();           
     };
+
 
  
     onAddHeading = (e) => {
@@ -150,6 +144,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         this.closeMenu(); 
     }; 
 
+
    
     onAddTags = (e) => {
         this.props.openTagsPopup();
@@ -157,16 +152,19 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
     };
 
 
+
     onToggleCompleted = (e) => {
         this.props.dispatch({type:"showCompleted", load:!this.props.showCompleted});
         this.closeMenu(); 
     };
+
 
      
     onToggleScheduled = (e) => {
         this.props.dispatch({type:"showScheduled", load:!this.props.showScheduled});
         this.closeMenu(); 
     };
+
 
 
     onRestoreVisibility = (category:Category, project:Project) => {
@@ -179,6 +177,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
             load:{ ...project, hide:remove(idx, 1, [...project.hide]) }
         }) 
     };
+
 
      
     render(){   

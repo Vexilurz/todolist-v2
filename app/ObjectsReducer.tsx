@@ -113,6 +113,10 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     let changedTodos = action.load;
                     let changedIds:string[] = changedTodos.map((t:Todo) => t._id);
 
+                    if(isEmpty(changedIds)){ 
+                       return { ...state };  
+                    }
+                     
                     let todos : Todo[] = compose(
                         concat(changedTodos),
                         reject((todo:Todo) => contains(todo._id)(changedIds))

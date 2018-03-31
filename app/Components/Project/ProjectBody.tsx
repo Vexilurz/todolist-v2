@@ -35,9 +35,8 @@ interface ProjectBodyProps{
     project:Project,
     updateLayoutOrder:(layout:LayoutItem[]) => void,
     updateHeading:(heading_id:string, newValue:string) => void,
-    archiveHeading:(heading_id:string) => void,
-    moveHeading:(heading_id:string) => void,  
     removeHeading:(heading_id:string) => void,
+    removeHeadingWithTasks:(heading_id:string) => void,
     filters:{
         inbox:((todo:Todo) => boolean)[],
         today:((todo:Todo) => boolean)[],
@@ -121,9 +120,8 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                         heading={value as Heading}
                         rootRef={this.props.rootRef} 
                         onChange={this.props.updateHeading}
-                        onArchive={this.props.archiveHeading}
-                        onMove={this.props.moveHeading} 
-                        onRemove={this.props.removeHeading}
+                        onRemoveHeading={this.props.removeHeading}
+                        onRemoveHeadingWithTasks={this.props.removeHeadingWithTasks}
                     /> 
                 </div> 
             ],

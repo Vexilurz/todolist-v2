@@ -57,7 +57,7 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
         let todo = this.props.todos.find( t => t._id===whenTodo._id );
 
         this.state = {todo};
-    }   
+    };   
 
 
 
@@ -77,19 +77,18 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
         if(isNil(todo)){ return }
 
         this.setState({todo});
-    }   
+    };   
 
 
 
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = [];
-    } 
+    }; 
 
 
 
     componentWillReceiveProps(nextProps:WhenCalendarProps){
-    
         let {
             showWhenCalendar, 
             whenTodo,
@@ -104,8 +103,16 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
        
         if(isNil(todo)){ return }
 
+        if(
+            nextProps.selectedTodo!==this.props.selectedTodo ||
+            nextProps.selectedCategory!==this.props.selectedCategory
+        ){
+            this.close();
+            return;
+        }
+
         this.setState({todo}); 
-    }
+    };
 
 
 

@@ -5,8 +5,7 @@ import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import { Component } from "react"; 
 import Popover from 'material-ui/Popover';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
-import Duplicate from 'material-ui/svg-icons/content/content-copy';
-import Arrow from 'material-ui/svg-icons/navigation/arrow-forward'; 
+import TrashMany from 'material-ui/svg-icons/content/delete-sweep';
 import { TextField } from 'material-ui';
 import { Heading } from '../../types'; 
 import { isEmpty, isNil, equals, complement, when, prop } from 'ramda';
@@ -19,9 +18,8 @@ interface ProjectHeadingProps{
     heading : Heading,
     rootRef : HTMLElement, 
     onChange : (heading_id:string, newValue:string) => void,
-    onArchive : (heading_id:string) => void,
-    onMove : (heading_id:string) => void,  
-    onRemove : (heading_id:string) => void
+    onRemoveHeading : (heading_id:string) => void,
+    onRemoveHeadingWithTasks : (heading_id:string) => void,
 }
 
  
@@ -63,7 +61,7 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                input.focus();
                input.value = value;  
             } 
-        }
+        } 
     );
 
 
@@ -135,7 +133,6 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                 anchorEl={this.actionsAnchor} 
             >   
                 <div    
-                    className="darkscroll"
                     style={{  
                         backgroundColor:"rgb(238, 237, 239)", //"rgb(39, 43, 53)",
                         paddingRight:"10px",
@@ -147,23 +144,7 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                     }} 
                 >    
                     <div  
-                        onClick={() => this.props.onArchive(this.props.heading._id) as any} 
-                        className="tagItem"
-                        style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}}
-                    >  
-                        <Duplicate style={{color:"rgb(69, 95, 145)"}}/> 
-                        <div style={{
-                            color:"black",//"gainsboro",
-                            fontSize:"14px",
-                            marginLeft:"5px", 
-                            marginRight:"5px"
-                        }}>
-                            Archive
-                        </div>     
-                    </div>
-                    
-                    <div  
-                        onClick={() => this.props.onMove(this.props.heading._id) as any} 
+                        onClick={() => this.props.onRemoveHeading(this.props.heading._id) as any} 
                         className="tagItem" 
                         style={{
                             display:"flex",  
@@ -172,21 +153,21 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                             padding:"5px"
                         }}
                     >   
-                        <Arrow style={{color:"rgb(69, 95, 145)"}}/> 
+                        <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
                         <div style={{
-                            color:"black",//"gainsboro",
+                            color:"black",
                             fontSize:"14px",
                             marginLeft:"5px", 
                             marginRight:"5px"
                         }}>
-                            Move 
+                            Remove headline 
                         </div>     
                     </div> 
 
                     <div   
-                        onClick={() => this.props.onRemove(this.props.heading._id)  as any} 
+                        onClick={() => this.props.onRemoveHeadingWithTasks(this.props.heading._id)  as any} 
                         className="tagItem" 
-                        style={{
+                        style={{ 
                             display:"flex", 
                             height:"auto",
                             alignItems:"center",
@@ -195,12 +176,12 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                     >  
                         <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
                         <div style={{
-                            color:"black",//"gainsboro",
+                            color:"black",
                             fontSize:"14px",
                             marginLeft:"5px", 
                             marginRight:"5px"
                         }}>
-                            Remove 
+                            Remove headline and tasks  
                         </div>     
                     </div>
                 </div> 

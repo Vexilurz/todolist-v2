@@ -294,13 +294,15 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
         };     
     }  
 
- 
+    
+
     componentDidMount(){
         let {attachedDate,reminder} = this.props;
         if(isDate(reminder)){
            this.setState({openReminderInput:false}); 
         }
     }
+
 
 
     componentWillReceiveProps(nextProps){
@@ -310,6 +312,7 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
         }
     } 
 
+    
 
     render(){
         let {openReminderInput} = this.state;
@@ -371,7 +374,7 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
                                 value={this.state.time} 
                             />
                             <div  
-                            onClick={() => this.setState({time:'', timeSet:false})}
+                            onClick={() => this.setState({time:'12:00', timeSet:false})}
                             style={{ 
                               cursor:"pointer",
                               display:"flex",
@@ -385,17 +388,13 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
                     <div style={{display:"flex"}}>  
                         <div>    
                             <RaisedButton
-                                onClick={() => {
+                                onClick={() => 
                                     this.setState({
                                         timeSet:false, 
-                                        time:this.props.attachedDate ? 
-                                             this.props.attachedDate
-                                                 .toLocaleTimeString()
-                                                 .replace(/[a-z]/ig, "")
-                                                 .trim() : '',  
+                                        time:'12:00', 
                                         openReminderInput:false
-                                    })  
-                                }}
+                                    })
+                                }
                                 style={{
                                     margin:"15px",  
                                     color:"white", 
