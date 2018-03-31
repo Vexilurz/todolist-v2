@@ -84,7 +84,7 @@ export let refreshReminders = (prevState:Store, newState:Store) : Store => {
 
 
 
-    return compose(
+    let state = compose(
         (scheduledReminders:number[]) : Store => ({...newState,scheduledReminders}),
 
         (scheduledReminders:number[]) => {
@@ -108,4 +108,8 @@ export let refreshReminders = (prevState:Store, newState:Store) : Store => {
 
         clearScheduledReminders //suspend existing timeouts
     )(newState);
+
+
+    
+    return state;
 };

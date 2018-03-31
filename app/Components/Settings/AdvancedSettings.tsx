@@ -316,13 +316,12 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     
  
 
-    disableReminder : (event:any) => Promise<void> =
-    (event) => updateConfig({
-        disableReminder:not(this.props.disableReminder)
-    }).then(
+    disableReminder : (event:any) => Promise<void> = (event) => 
+    updateConfig({disableReminder:not(this.props.disableReminder)})
+    .then(
         (config) => {
             let enableReminder = !config.disableReminder;
-            let load = [{type:"updateConfig",load:config}]
+            let load = [{type:"updateConfig",load:config}];
 
             if(enableReminder){
                load.push({type:"moveReminderFromPast", load:null});
