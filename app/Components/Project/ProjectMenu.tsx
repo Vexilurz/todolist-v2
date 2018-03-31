@@ -212,7 +212,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                         className={"tagItem"} 
                         style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}}
                     >  
-                        <CheckCircle style={{color:"rgb(69, 95, 145)"}}/> 
+                        <CheckCircle style={{width:"18px",height:"18px",color:"rgb(69, 95, 145)"}}/> 
                         <div style={{
                             color:"black", //"gainsboro", 
                             fontSize:"14px",
@@ -227,7 +227,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                         className={"tagItem"} 
                         style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}}
                     >  
-                        <Flag style={{color:"rgb(69, 95, 145)"}}/> 
+                        <Flag style={{width:"18px",height:"18px",color:"rgb(69, 95, 145)"}}/> 
                         <div style={{
                             color:"black", //"gainsboro", 
                             fontSize:"14px",
@@ -242,7 +242,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                         className={"tagItem"} 
                         style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}} 
                     >  
-                        <ThreeDots style={{color:"rgb(69, 95, 145)"}}/> 
+                        <ThreeDots style={{width:"18px",height:"18px",color:"rgb(69, 95, 145)"}}/> 
                         <div style={{
                             color:"black", //"gainsboro", 
                             fontSize:"14px",
@@ -276,10 +276,10 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             {
                                 not(showCompleted) ? 
                                 <div style={{display:"flex",alignItems:"center"}}>
-                                    <Show style={{color:"rgb(69, 95, 145)"}}/>
+                                    <Show style={{width:"18px",height:"18px",color:"rgb(69, 95, 145)"}}/>
                                 </div> : 
                                 <div style={{display:"flex",alignItems:"center"}}>
-                                    <Hide style={{color:"rgb(69, 95, 145)"}}/>
+                                    <Hide style={{width:"18px",height:"18px",color:"rgb(69, 95, 145)"}}/>
                                 </div>
                             }
                             <div style={{
@@ -303,7 +303,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                                 style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}} 
                             >   
                                 <div style={{display:"flex",alignItems:"center"}}>
-                                    <Show style={{color:"rgb(69, 95, 145)"}}/>
+                                    <Show style={{width:"18px",height:"18px",color:"rgb(69, 95, 145)"}}/>
                                 </div>
                                 <div style={{
                                     color:"black", //"gainsboro", 
@@ -325,11 +325,11 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                             { 
                                 not(showScheduled) ? 
                                 <div style={{display:"flex",alignItems:"center"}}>
-                                    <Show style={{color:"rgb(69, 95, 145)"}}/>
+                                    <Show style={{width:"18px",height:"18px",color:"rgb(69, 95, 145)"}}/>
                                 </div> 
                                 : 
                                 <div style={{display:"flex",alignItems:"center"}}>
-                                    <Hide style={{color:"rgb(69, 95, 145)"}}/>
+                                    <Hide style={{width:"18px",height:"18px",color:"rgb(69, 95, 145)"}}/>
                                 </div>
                             } 
                             <div style={{
@@ -348,7 +348,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                         className={"tagItem"} 
                         style={{display:"flex", height:"auto", alignItems:"center", padding:"5px"}}
                     >  
-                        <Duplicate style={{color:"rgb(69, 95, 145)"}}/> 
+                        <Duplicate style={{width:"18px",height:"18px",color:"rgb(69, 95, 145)"}}/> 
                         <div style={{
                             color:"black", //"gainsboro", 
                             fontSize:"14px",
@@ -363,7 +363,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                         className={"tagItem"} 
                         style={{display:"flex", height:"auto", alignItems:"center", padding:"5px"}}
                     >  
-                        <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
+                        <TrashIcon style={{width:"18px",height:"18px",color:"rgb(69, 95, 145)"}}/> 
                         <div style={{
                             color:"black", //"gainsboro", 
                             fontSize:"14px",

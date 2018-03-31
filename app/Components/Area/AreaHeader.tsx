@@ -190,7 +190,11 @@ export class AreaMenu extends Component<AreaMenuProps,AreaMenuState>{
                             padding:"5px"
                         }}
                     >  
-                        <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
+                        <TrashIcon style={{
+                            width:"18px", 
+                            height:"18px", 
+                            color:"rgb(69, 95, 145)"
+                        }}/> 
                         <div style={{
                             color:"black", //"gainsboro", 
                             fontSize:"14px", 

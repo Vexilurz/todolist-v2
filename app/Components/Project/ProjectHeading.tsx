@@ -153,7 +153,11 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                             padding:"5px"
                         }}
                     >   
-                        <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
+                        <TrashIcon style={{
+                            height:"18px",
+                            width:"18px",
+                            color:"rgb(69, 95, 145)"
+                        }}/> 
                         <div style={{
                             color:"black",
                             fontSize:"14px",
@@ -174,7 +178,11 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                             padding:"5px"
                         }}
                     >  
-                        <TrashIcon style={{color:"rgb(69, 95, 145)"}}/> 
+                        <TrashIcon style={{
+                            height:"18px",
+                            width:"18px",
+                            color:"rgb(69, 95, 145)"
+                        }}/> 
                         <div style={{
                             color:"black",
                             fontSize:"14px",

@@ -57,7 +57,14 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
              padding:"7px",
              color:"black"//"aliceblue",
          }}>   
-             <NewProjectIcon style={{color:"rgb(69, 95, 145)"}} /> 
+             <NewProjectIcon 
+                style={{
+                  color:"rgb(69, 95, 145)",
+                  height:"20px",
+                  width:"20px",
+                  marginTop:"4px"
+                }} 
+             /> 
              <div style={{
                 display: "flex",
                 flexDirection: "column",
@@ -65,19 +72,19 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
                 paddingLeft: "5px",
                 paddingTop: "3px" 
              }}>    
-                 <div style={{fontFamily:"sans-serif",fontSize:"16px"}}>
+                <div style={{fontFamily:"sans-serif",fontSize:"16px"}}>
                     New Project
-                 </div>
-                 <p style={{
+                </div>
+                <p style={{
                     margin:"0px",
                     fontSize:"14px",
                     paddingTop:"10px",
                     fontFamily:"sans-serif"
-                 }}>
+                }}>
                     Define a goal, 
                     then work towards it 
                     one task at a time.  
-                 </p> 
+                </p> 
              </div> 
          </div>
          <div style={{
@@ -91,7 +98,11 @@ export class NewProjectAreaPopup extends Component<NewProjectAreaPopupProps,{}>{
             className="newprojectitem" 
             style={{display:"flex",alignItems: "flex-start",padding:"7px"}}
          > 
-            <NewAreaIcon style={{color:"rgb(69, 95, 145)",width:"40px",height:"25px"}}/> 
+            <NewAreaIcon style={{
+                color:"rgb(69, 95, 145)",    
+                height:"28px",
+                width:"28px"
+            }}/> 
             <div style={{
                 display: "flex",
                 flexDirection: "column",

@@ -105,7 +105,7 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
             >      
                 <div   
                     ref={(e) => { this.ref=e; }}
-                    className="darkscroll"
+                    className="scroll" 
                     onClick = {(e) => { 
                         e.stopPropagation();
                         e.preventDefault(); 
@@ -113,7 +113,7 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
                     style={{borderRadius:"10px", width:"180px"}}
                 > 
                     <div    
-                        className="darkscroll"
+                        className="scroll" 
                         style={{   
                             backgroundColor:"rgb(238, 237, 239)", //"rgb(39, 43, 53)",
                             paddingRight: "10px",
@@ -145,8 +145,12 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
                                         paddingRight:"10px"  
                                     }}
                                 >   
-                                    <div style={{width:"24px",height:"24px"}}>
-                                        <TriangleLabel style={{color:"gainsboro"}}/>
+                                    <div style={{width:"20px", height:"20px"}}>
+                                        <TriangleLabel style={{
+                                            width:"20px",
+                                            height:"20px",
+                                            color:"rgb(69, 95, 145)"
+                                        }}/> 
                                     </div> 
                                     <div style={{
                                         color:"black",//"gainsboro",
@@ -162,7 +166,7 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
                             }
                         )
                     } 
-                    </div>  
+                    </div>    
                 </div>  
         </Popover> 
     } 

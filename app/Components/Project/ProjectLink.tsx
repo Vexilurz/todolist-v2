@@ -274,7 +274,11 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
                         }} 
                     >    
                         <div style={{display:"flex", alignItems:"center", justifyContent:"center"}}>
-                            <Hide style={{color:"rgb(69, 95, 145)"}}/>
+                            <Hide style={{
+                               color:"rgb(69, 95, 145)",
+                               height:"18px",
+                               width:"18px"
+                            }}/>
                         </div>  
                         <div style={{
                             color:"black",//"gainsboro", 
@@ -292,7 +296,11 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
                         style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}} 
                     >  
                         <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
-                            <Count style={{color:"rgb(69, 95, 145)"}}/> 
+                            <Count style={{
+                               color:"rgb(69, 95, 145)",
+                               height:"18px",
+                               width:"18px"
+                            }}/> 
                         </div>    
                         <div style={{
                             color:"black",//"gainsboro", 

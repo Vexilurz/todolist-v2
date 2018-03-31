@@ -14,7 +14,7 @@ input[type=time]::-webkit-outer-spin-button {
 .DayPicker-wrapper {
   position: relative;
   border-radius: 20px;
-  background-color: rgb(39,43,53);
+  background-color: rgb(238, 237, 239); /*rgb(39,43,53);*/
   color: white; 
   -webkit-user-select: none;
      -moz-user-select: none;

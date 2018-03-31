@@ -149,6 +149,7 @@ export class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>
               alignItems:"center",
               cursor:"pointer",
               marginTop:"30px", 
+              marginBottom:"30px", 
               justifyContent:"center",
               width: "30%",
               height:"20px", 
