@@ -18,6 +18,8 @@ import { TagsPopup } from '../TodoInput/TagsPopup';
 import AutosizeInput from 'react-input-autosize';
 import TextareaAutosize from 'react-autosize-textarea';
 
+
+
 interface ProjectHeaderProps{
     updateProjectName:(value:string) => void,
     updateProjectDescription:(value:string) => void,
@@ -59,8 +61,9 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             name:project.name,
             description:project.description    
         };   
-    }   
+    };   
  
+
 
     componentDidMount(){ 
         let {project} = this.props; 
@@ -68,7 +71,8 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         if(this.inputRef && isEmpty(project.name)){
            this.inputRef.focus();  
         }
-    }
+    };
+
 
 
     componentWillReceiveProps(nextProps:ProjectHeaderProps,nextState:ProjectHeaderState){
@@ -83,11 +87,13 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         if(this.props.project.name!==nextProps.project.name){
            this.setState({name:nextProps.project.name}); 
         }
-    }
+    };
+
 
     
     updateProjectName = (value) => this.setState({name:value}, () => this.props.updateProjectName(value));
  
+
 
     updateProjectDescription = (newValue) => this.setState(
         {description:newValue}, 
@@ -95,10 +101,13 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
     );
  
 
+
     openMenu = (e) => this.props.dispatch({type:"showProjectMenuPopover", load:true});
     
 
+
     closeDeadlineCalendar = (e) => this.setState({showDeadlineCalendar:false});
+
 
 
     onDeadlineCalendarClear = (e) => this.setState(
@@ -107,11 +116,13 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
     );
 
 
+
     onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => this.setState(
         {showDeadlineCalendar:false}, 
         () => this.props.updateProjectDeadline(day)
     );  
-       
+      
+    
 
     render(){ 
         let {todos,project,rootRef} = this.props;
@@ -137,14 +148,14 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             {      
                 not(showDeadlineCalendar) ? null : 
                 <DeadlineCalendar  
-                    close = {this.closeDeadlineCalendar}
-                    onDayClick = {this.onDeadlineCalendarDayClick} 
-                    open = {this.state.showDeadlineCalendar}  
-                    origin = {{vertical:"top", horizontal:"left"}} 
-                    point = {{vertical:"top", horizontal:"right"}} 
-                    anchorEl = {this.projectMenuPopoverAnchor} 
-                    onClear = {this.onDeadlineCalendarClear}
-                    rootRef = {this.props.rootRef}
+                    close={this.closeDeadlineCalendar}
+                    onDayClick={this.onDeadlineCalendarDayClick} 
+                    open={this.state.showDeadlineCalendar}  
+                    origin={{vertical:"top", horizontal:"left"}} 
+                    point={{vertical:"top", horizontal:"right"}} 
+                    anchorEl={this.projectMenuPopoverAnchor} 
+                    onClear={this.onDeadlineCalendarClear}
+                    rootRef={this.props.rootRef}
                 /> 
             } 
             {
@@ -175,12 +186,12 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     marginRight:"10px"
                 }}> 
                     <div style={{ 
-                        width: "28px", 
-                        height: "28px",
-                        display: "flex", 
-                        alignItems: "center",
-                        justifyContent: "center",
-                        position: "relative"
+                        width:"28px", 
+                        height:"28px",
+                        display:"flex", 
+                        alignItems:"center",
+                        justifyContent:"center",
+                        position:"relative"
                     }}>   
                         <PieChart
                             animate={false}    
@@ -197,7 +208,10 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                         />     
                     </div>
                 </div> 
-                <div style={{overflowX:"hidden"}} className="unselectable">
+                <div 
+                    style={{overflowX:"hidden"}} 
+                    className="unselectable"
+                >
                     <AutosizeInput
                         ref={e => {this.inputRef=e;}}
                         type="text"

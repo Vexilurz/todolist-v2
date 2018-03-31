@@ -223,7 +223,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         )(layout);
     };
 
-       
+        
 
     onSortStart = (oldIndex:number, event:any) : void => {
         let {dispatch, items} = this.props;
@@ -273,9 +273,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     {type:"updateTodos",load:updatedTodos}
                 ]
             }); 
-
-            
-
         }else if(isProject(project)){
 
             let idx = findIndex((p:Project) => project._id===p._id, updatedProjects);
@@ -317,7 +314,6 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
         // dragged item -> ( todo | heading )
         let draggedTodo : (Todo | Heading) = items[oldIndex]; 
-
 
         if(insideTargetArea(null,leftpanel,x,y)){
 

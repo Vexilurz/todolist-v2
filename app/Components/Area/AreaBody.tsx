@@ -10,6 +10,8 @@ import { allPass, isNil, not, contains, isEmpty, flatten } from 'ramda';
 import { filter } from 'lodash';
 import { isArrayOfProjects, isString } from '../../utils/isSomething';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
+import { projectsToHiddenTodosIDs } from '../../utils/projectsToHiddenTodosIDs';
+import { byHidden } from '../../utils/byHidden';
 
  
 
@@ -58,55 +60,49 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
     }
       
     render(){  
-        let { 
-            dispatch, selectedProjectId, groupTodos, moveCompletedItemsToLogbook, area,
-            selectedAreaId, selectedCategory, selectedTag, 
-            rootRef, projects, todos, scrolledTodo 
-        } = this.props;
+        let areasFilters = [byNotDeleted];
 
-        
-        let projectsFilters=[
+        let projectsFilters = [
+            (project:Project) => !byHidden(this.props.selectedCategory)(project),
             byNotCompleted, 
             byNotDeleted,
-            (p) => contains(p._id)(area.attachedProjectsIds)
+            (p) => contains(p._id)(this.props.area.attachedProjectsIds)
         ];
-
-
-        let selectedProjects = filter(projects, allPass(projectsFilters));
-
-
-        let ids = flatten( selectedProjects.map((p) => p.layout.filter(isString)) ); 
-
-
+        
+        let selectedProjects = filter( this.props.projects, allPass(projectsFilters) );
+        let selectedTodosIds = flatten( selectedProjects.map((p) => p.layout.filter(isString)) ); 
         let selectedTodos = filter(
-            todos, 
-            allPass([byNotDeleted, byNotCompleted, (todo:Todo) => contains(todo._id)(ids)])
+            this.props.todos, 
+            allPass([
+                byNotDeleted, 
+                byNotCompleted, 
+                (todo:Todo) => contains(todo._id)(selectedTodosIds)
+            ])
         ); 
-
 
         return <div ref={(e) => {this.ref=e;}}> 
             <GroupsByProjectArea
                 projectsFilters={projectsFilters}
-                areasFilters={[byNotDeleted]} 
-                dispatch={dispatch} 
+                areasFilters={areasFilters} 
+                dispatch={this.props.dispatch} 
                 indicators={this.props.indicators}
                 scrolledTodo={this.props.scrolledTodo}
-                selectedProjectId={selectedProjectId}
-                groupTodos={groupTodos}
-                moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}
-                selectedAreaId={selectedAreaId}
-                selectedCategory={selectedCategory}
-                selectedTag={selectedTag}
-                rootRef={rootRef}
+                selectedProjectId={this.props.selectedProjectId}
+                groupTodos={this.props.groupTodos}
+                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                selectedAreaId={this.props.selectedAreaId}
+                selectedCategory={this.props.selectedCategory}
+                selectedTag={this.props.selectedTag}
+                rootRef={this.props.rootRef}
                 filters={this.props.filters}
                 areas={[]}
-                projects={projects} 
+                projects={this.props.projects} 
                 todos={selectedTodos}
                 hideDetached={true}
             />
         </div> 
     }
-} 
+}; 
 
 
 

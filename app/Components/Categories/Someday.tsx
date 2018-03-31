@@ -5,18 +5,19 @@ import * as ReactDOM from 'react-dom';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
-import { byNotCompleted, byNotDeleted, getTagsFromItems } from "../../utils/utils";  
+import { byNotCompleted, byNotDeleted, getTagsFromItems, byTags } from "../../utils/utils";  
 import { Todo, Project, Area, Category } from '../../types';
 import { ContainerHeader } from '.././ContainerHeader';
 import { TodosList } from '.././TodosList';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { isEmpty } from 'ramda';
+import { isEmpty, contains } from 'ramda';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
-  
-
+import { projectsToHiddenTodosIDs } from '../../utils/projectsToHiddenTodosIDs';
+import { filter } from 'lodash';
+import { byHidden } from '../../utils/byHidden';
  
 interface SomedayProps{
     dispatch:Function,
@@ -56,29 +57,36 @@ interface SomedayState{}
  
 
 export class Someday extends Component<SomedayProps, SomedayState>{
-    projectsFilters : ((p:Project) => boolean)[];
-    areasFilters : ((a:Area) => boolean)[];
 
     constructor(props){ 
         super(props);
-        this.projectsFilters = [byNotCompleted, byNotDeleted]; 
-        this.areasFilters = [byNotDeleted];
     } 
  
     render(){
-        let { 
-            projects, areas, todos, selectedTag, selectedCategory, groupTodos,
-            dispatch, selectedProjectId, selectedAreaId, rootRef, moveCompletedItemsToLogbook
-        } = this.props;
-
-        let tags = getTagsFromItems(todos);
-        let empty = generateEmptyTodo(generateId(),selectedCategory,0);   
-
+        let hiddenTodosIds : string[] = projectsToHiddenTodosIDs(this.props.selectedCategory)(this.props.projects);
+        let visibleTodos : Todo[] = filter(this.props.todos, (todo:Todo) => !contains(todo._id)(hiddenTodosIds));
         
-          
-        return <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}>
+        let selectedTodos = filter(
+            this.props.groupTodos ? visibleTodos : this.props.todos, 
+            byTags(this.props.selectedTag)
+        );
+
+        let tags : string[] = getTagsFromItems(
+            this.props.groupTodos ? visibleTodos : this.props.todos
+        );
+
+        let empty = generateEmptyTodo(generateId(), this.props.selectedCategory, 0);   
+
+        let areasFilters = [byNotDeleted];
+        let projectsFilters = [
+            (project:Project) => !byHidden(this.props.selectedCategory)(project),
+            byNotCompleted,   
+            byNotDeleted 
+        ];
+        
+        return <div id={`${this.props.selectedCategory}-list`} style={{WebkitUserSelect:"none"}}>
             <ContainerHeader  
-                selectedCategory={selectedCategory} 
+                selectedCategory={this.props.selectedCategory} 
                 dispatch={this.props.dispatch} 
                 tags={tags}
                 showTags={false} 
@@ -86,8 +94,8 @@ export class Someday extends Component<SomedayProps, SomedayState>{
             />   
             <FadeBackgroundIcon    
                 container={this.props.rootRef}  
-                selectedCategory={selectedCategory}  
-                show={isEmpty(todos)}
+                selectedCategory={this.props.selectedCategory}  
+                show={isEmpty(selectedTodos)}
             />  
             <div className={`no-print`}>
                 <TodoCreationForm   
@@ -104,7 +112,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
             </div>    
             <div id="todos">      
                 {
-                    groupTodos ? 
+                    this.props.groupTodos ? 
                     <GroupsByProjectArea
                         dispatch={this.props.dispatch}   
                         filters={this.props.filters}
@@ -118,10 +126,10 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         selectedTag={this.props.selectedTag}
                         rootRef={this.props.rootRef}
                         areas={this.props.areas}
-                        projectsFilters={[byNotCompleted, byNotDeleted]}
-                        areasFilters={[byNotDeleted]}
+                        projectsFilters={projectsFilters}
+                        areasFilters={areasFilters}
                         projects={this.props.projects}  
-                        todos={this.props.todos}
+                        todos={selectedTodos}
                     />
                     :
                     <TodosList      
@@ -135,9 +143,9 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         groupTodos={this.props.groupTodos}
                         dispatch={this.props.dispatch}   
                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                        selectedCategory={selectedCategory}    
+                        selectedCategory={this.props.selectedCategory}    
                         rootRef={this.props.rootRef}
-                        todos={todos}  
+                        todos={selectedTodos}  
                     />
                 }
             </div> 

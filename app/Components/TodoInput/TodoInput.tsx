@@ -237,11 +237,27 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         if(isFunction(onClose)){ onClose() } 
     };
 
-    
+     
 
     update = (props) : void => {
-        let {todo,dispatch} = this.props;
-        dispatch({type:"updateTodo",load:{...todo,...props}});
+        this.props.dispatch({
+            type:"multiple",
+            load:[
+                {
+                    type:"updateTodo",
+                    load:{...this.props.todo,...props}
+                },
+                {
+                    type: "openRightClickMenu",
+                    load: {
+                        showRightClickMenu:false,
+                        rightClickedTodoId:null,
+                        rightClickMenuX:0,
+                        rightClickMenuY:0
+                    }
+                }
+            ]
+        }); 
     };
 
 
@@ -1709,8 +1725,6 @@ class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
     getVisiblePortion = (attachedTags:string[]) : JSX.Element => {
         return <div 
         ref={e => {this.ref=e;}}
-        onMouseEnter={() => this.setState({showMoreTags:true})}
-        onMouseLeave={() => this.setState({showMoreTags:false})}
         style={{
             height:"25px",
             display:"flex",
@@ -1746,7 +1760,7 @@ class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
                                 }}> 
                                     {tag} 
                                 </div>  
-                            </div>    
+                            </div>     
                         </div>
                     ) 
                 }  
@@ -1794,7 +1808,60 @@ class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
                 ) 
             } 
         </div>
-    }
+    };
+
+
+
+    getTooltip = (moreTags:string[], attachedTags:string[]) => {
+        return  <div style={{display:"flex"}}>
+                {this.getVisiblePortion(attachedTags)}
+                <Tooltip  
+                    size={"small"}
+                    disabled={isEmpty(moreTags)}
+                    open={this.state.showMoreTags}
+                    //onRequestClose={() => this.setState({showMoreTags:false})}
+                    position="bottom"
+                    animateFill={false}  
+                    transitionFlip={false}
+                    theme="light"   
+                    unmountHTMLWhenHide={true}
+                    trigger="manual"
+                    //trigger="mouseenter"
+                    duration={0}
+                    animation="fade" 
+                    html={this.tooltipContent(moreTags)}
+                >
+                <div  
+                    onMouseEnter={() => this.setState({showMoreTags:true})}
+                    onMouseLeave={() => this.setState({showMoreTags:false})}
+                    style={{paddingRight:"2px", position:"relative"}}
+                >
+                    <div style={{  
+                        height:"20px",
+                        borderRadius:"15px",
+                        display:'flex',
+                        zoom: 0.8,
+                        whiteSpace:"pre",
+                        alignItems:"center", 
+                        justifyContent:"center",  
+                        border:"1px solid rgba(200,200,200,0.5)" 
+                    }}>  
+                        <div style={{ 
+                            color:"rgba(200,200,200,1)", 
+                            fontSize:"13px", 
+                            cursor:"default",
+                            padding:"5px", 
+                            WebkitUserSelect:"none"
+                        }}> 
+                            {`. . .`} 
+                        </div>  
+                    </div>    
+                </div>
+                </Tooltip>
+            </div>
+        
+    };
+
 
 
     render(){
@@ -1806,22 +1873,10 @@ class AdditionalTags extends Component<AdditionalTagsProps,AdditionalTagsState>{
 
         let moreTags = attachedTags.slice(3,attachedTags.length);
  
-        return not(this.state.showMoreTags) ? this.getVisiblePortion(attachedTags) :
-        <Tooltip 
-            size={"small"}
-            disabled={isEmpty(moreTags)}
-            position="bottom"
-            animateFill={false}  
-            transitionFlip={false}
-            theme="light"   
-            unmountHTMLWhenHide={true}
-            trigger="mouseenter"
-            duration={0}
-            animation="fade" 
-            html={this.tooltipContent(moreTags)}
-        >
-            {this.getVisiblePortion(attachedTags)}
-        </Tooltip>
+        return isEmpty(moreTags) ? 
+               this.getVisiblePortion(attachedTags) :
+               this.getTooltip(moreTags,attachedTags);
+        
     }
 };
 

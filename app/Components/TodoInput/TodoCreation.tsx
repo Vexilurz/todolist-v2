@@ -11,7 +11,6 @@ import List from 'material-ui/svg-icons/action/list';
 import { DateCalendar, DeadlineCalendar } from '.././ThingsCalendar';
 import { different, isNotEmpty } from '../../utils/utils'; 
 import { Todo, Project, ChecklistItem, Category, RawDraftContentState } from '../../types';
-import { removeTodo, updateTodo } from '../../database';
 import { Checklist } from './TodoChecklist';
 import { TodoTags } from './TodoTags';
 import { TagsPopup } from './TagsPopup';

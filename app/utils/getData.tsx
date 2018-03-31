@@ -4,7 +4,7 @@ import {
 } from 'ramda';
 import { isNotArray, isDate, isTodo, isString } from '../utils/isSomething';
 import { 
-    getTodos, updateTodo, removeTodo, addTodo, getProjects, 
+    getTodos, removeTodo, addTodo, getProjects, 
     getAreas, queryToProjects, queryToAreas, initDB, 
     removeArea, removeProject, destroyEverything, addArea, addProject, 
     addTodos, addProjects, addAreas, getCalendars, getDatabaseObjects

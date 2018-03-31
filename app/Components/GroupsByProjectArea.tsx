@@ -10,9 +10,6 @@ import {
     getTagsFromItems, attachEmptyTodo, log
 } from "./../utils/utils";  
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { 
-    queryToTodos, getTodos, updateTodo, removeTodo, addTodo
-} from './../database';
 import { Todo, Project, Area, LayoutItem, Category, Item, Store } from './../types';
 import Popover from 'material-ui/Popover';
 import TrashIcon from 'material-ui/svg-icons/action/delete';
@@ -46,10 +43,7 @@ import { isDev } from '../utils/isDev';
 import { assert } from '../utils/assert';
 
 
-let byHidden = (selectedCategory:Category) => 
-               (project:Project) => isNotArray(project.hide) ? false : contains(selectedCategory,project.hide);
 
-               
 interface GroupsByProjectAreaProps{
     dispatch:Function, 
     selectedProjectId:string, 
@@ -111,28 +105,6 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
     
     
 
-    getHiddenIds = compose(
-        flatten, 
-        map( (p:Project) => p.layout.filter(isString) ),
-        projects => filter(projects, byHidden(this.props.selectedCategory))
-    );
-
-
-
-    selectProjects = compose(
-        projects => filter(projects,allPass(this.props.projectsFilters)),
-        reject(byHidden(this.props.selectedCategory))
-    );
-
-
-
-    selectTodos = (hiddenIds:string[]) : Todo[] => filter(
-        this.props.todos, 
-        allPass([ byTags(this.props.selectedTag), todo => !contains(todo._id)(hiddenIds) ])
-    );
-
-
-
     groupByProject = (projects:Project[]) => (todos:Todo[]) => compose(
         applyTo(todos),
         groupBy,
@@ -156,11 +128,9 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
             areas, todos, selectedTag, selectedCategory
         } = this.props;
 
- 
-        let hiddenIds = this.getHiddenIds(projects);
-        let selectedProjects = this.selectProjects(projects);
         let selectedAreas = areas.filter(allPass(areasFilters));
-        let selectedTodos = this.selectTodos(hiddenIds);
+        let selectedProjects = filter(this.props.projects, allPass(this.props.projectsFilters));
+        let selectedTodos = filter(this.props.todos, byTags(this.props.selectedTag));
        
 
         //Projects sorted according to order in LeftPanel -> AreasList component
@@ -169,25 +139,24 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
             ({table,detached}) => generateLayout(selectedAreas,{table, detached}),
             () => groupProjectsByArea(selectedProjects,selectedAreas)
         )();
+
+
         //Filtered todos grouped by areas and projects
         let result : {[key: string]: Todo[];} = this.groupByProject(selectedProjects)(selectedTodos);
         //Filtered todos which doesnt belong to any area or project
         let detached = defaultTo([])(result.detached); 
 
 
-        if(isDev()){ 
-            if(selectedTag!=="All"){ 
-                assert( 
-                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),selectedTodos),
-                    `missing tag. GroupsByProjectArea. ${selectedTag}`
-                ) 
+            if(isDev()){ 
+                if(selectedTag!=="All"){ 
+                   assert(all((todo:Todo) => contains(selectedTag)(todo.attachedTags),selectedTodos),`missing tag. GroupsByProjectArea. ${selectedTag}`); 
+                }
             }
-        }
+
 
         return <div> 
             {
-                isEmpty(detached) ? null :
-                hideDetached ? null :
+                hideDetached || isEmpty(detached) ? null :
                 <TodosList            
                     dispatch={this.props.dispatch}     
                     areas={this.props.areas}
@@ -219,8 +188,8 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                             <div key={`project-link-${project._id}`}>  
                                 <ProjectLink  
                                     project={project}
-                                    showMenu={true} 
-                                    indicator={defaultTo({completed:0, active:0})(this.props.indicators[project._id])}
+                                    showMenu={this.props.selectedCategory!=="today"} 
+                                    indicator={defaultTo({completed:0, active:0})(this.props.indicators[project._id])} 
                                     dispatch={this.props.dispatch}
                                     selectedCategory={this.props.selectedCategory}
                                     underline={true}
@@ -241,6 +210,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                                     areas={this.props.areas}
                                     projects={this.props.projects}
                                     project={project}
+                                    showAll={this.props.selectedCategory==="today"}
                                 />
                             </div>
                         } 
@@ -250,6 +220,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         </div> 
     }
 }
+
 
 
 interface ExpandableTodosListProps{
@@ -276,7 +247,8 @@ interface ExpandableTodosListProps{
     projects:Project[], 
     rootRef:HTMLElement, 
     todos:Todo[], 
-    project?:Project   
+    project?:Project,
+    showAll?:boolean   
 } 
  
 
@@ -295,7 +267,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
     onToggle = () => this.setState({expanded:!this.state.expanded})
 
     render(){ 
-        let { project, sortBy, todos } = this.props;
+        let { project, sortBy, todos, showAll } = this.props;
 
         let { expanded } = this.state;
 
@@ -305,9 +277,10 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
 
         let idx = expanded ? todos.length : expand; 
         let showExpandButton = todos.length > expand;
-        let sortedSliced = todos.sort(sortBy).slice(0,idx);
+        let sortedSliced = showAll ? 
+                           todos.sort(sortBy) : 
+                           todos.sort(sortBy).slice(0,idx);
         
-
         return <div>          
                 <TodosList  
                     todos={sortedSliced}
@@ -327,6 +300,7 @@ export class ExpandableTodosList extends Component<ExpandableTodosListProps,Expa
                 />  
                 {   
                     not(showExpandButton) ? null :
+                    showAll ? null :
                     <div style={{cursor: "pointer", height: "30px"}}>
                         {   
                             <div     

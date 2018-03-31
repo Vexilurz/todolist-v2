@@ -127,6 +127,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 type:"multiple",
                 load:[
                     {type:"selectedAreaId",load:area._id}, 
+                    {type:"showProjectMenuPopover",load:false}, 
                     {type:"selectedCategory",load:"area"},
                     {type:"selectedTag",load:"All"},
                     {type:"searchQuery",load:""}
@@ -148,6 +149,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
                 type:"multiple",
                 load:[
                     {type:"selectedProjectId",load:p._id},
+                    {type:"showProjectMenuPopover",load:false}, 
                     {type:"selectedCategory",load:"project"},
                     {type:"selectedTag",load:"All"},
                     {type:"searchQuery",load:""}

@@ -115,7 +115,6 @@ class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuIt
 
 
     render(){  
-
         let selectedStyle = { borderRadius: "5px", backgroundColor: "rgba(228,230,233,1)" };
 
         let {hot,counter,showCounter} = this.props;
@@ -252,6 +251,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
             type:"multiple",
             load:[
                 {type:"selectedCategory",load:title},
+                {type:"showProjectMenuPopover",load:false}, 
                 {type:"searchQuery",load:""},
                 {type:"selectedTag",load:"All"} 
             ]

@@ -10,7 +10,7 @@ import { Todo, Project, Area, Category } from '../../types';
 import { TodosList } from '../TodosList';
 import { ContainerHeader } from '../ContainerHeader';
 import { FadeBackgroundIcon } from '../FadeBackgroundIcon';
-import { isEmpty, isNil, contains, intersection, flatten, all } from 'ramda';
+import { isEmpty, isNil, contains, intersection, flatten, all, compose, allPass, identity, ifElse } from 'ramda';
 import { filter } from 'lodash';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { generateId } from '../../utils/generateId';
@@ -19,7 +19,9 @@ import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
 import { isNotArray, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
- 
+import { byHidden } from '../../utils/byHidden';
+import { projectsToHiddenTodosIDs } from '../../utils/projectsToHiddenTodosIDs';
+
 
 interface NextProps{ 
     dispatch:Function, 
@@ -56,132 +58,105 @@ interface NextProps{
 
 
 interface NextState{}; 
- 
+
+
 type Item = Area | Project | Todo;
 
  
 export class Next extends Component<NextProps, NextState>{
-    projectsFilters : ((p:Project) => boolean)[];
-    areasFilters : ((a:Area) => boolean)[];
- 
-    constructor(props){
-        super(props);
-        this.projectsFilters = [byNotCompleted, byNotDeleted]; 
-        this.areasFilters = [byNotDeleted];
-    }
-    
+
+    constructor(props){ super(props); }
+
     render(){
-        let {    
-            dispatch, 
-            selectedProjectId, 
-            selectedAreaId,
-            selectedCategory, 
-            selectedTag,
-            rootRef,
-            areas, 
-            projects, 
-            moveCompletedItemsToLogbook,
-            todos,
-            groupTodos
-        } = this.props;
+        let hiddenTodosIds : string[] = projectsToHiddenTodosIDs(this.props.selectedCategory)(this.props.projects);
+        let visibleTodos : Todo[] = filter(this.props.todos, (todo:Todo) => !contains(todo._id)(hiddenTodosIds));
 
-        let tags = getTagsFromItems(todos);
- 
-        let empty = generateEmptyTodo(generateId(), selectedCategory, 0);  
+        let selectedTodos = filter(
+            this.props.groupTodos ? visibleTodos : this.props.todos, 
+            byTags(this.props.selectedTag)
+        );
 
-        let nextTodos = filter(todos,byTags(selectedTag));
+        let tags : string[] = getTagsFromItems(
+            this.props.groupTodos ? visibleTodos : this.props.todos
+        );
+    
+        let empty = generateEmptyTodo(generateId(), this.props.selectedCategory, 0);  
 
+        let areasFilters = [byNotDeleted];
+        let projectsFilters = [
+            (project:Project) => !byHidden(this.props.selectedCategory)(project),
+            byNotCompleted,   
+            byNotDeleted 
+        ];
 
-        if(isDev()){
-            let hiddenProjects = filter(
-                projects, 
-                (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide)
-            );
-
-            let ids : string[] = flatten(hiddenProjects.map((p:Project) => filter(p.layout,isString)));
-            let hiddenTodos = filter(todos, (todo:Todo) => contains(todo._id)(ids));
-            let tagsFromTodos : string[] = flatten(hiddenTodos.map((todo:Todo) => todo.attachedTags));
-
-            assert(
-                isEmpty(intersection(tags,tagsFromTodos)),
-                `tags from hidden Todos still displayed in ${selectedCategory}.`
-            ); 
-
-            if(selectedTag!=="All"){ 
-                assert(
-                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),nextTodos),
-                    `missing tag. Next. ${selectedTag}`
-                ) 
-            }
-        }
-
-
-
-        return  <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}>
-                        <ContainerHeader 
-                            selectedCategory={selectedCategory}  
-                            dispatch={this.props.dispatch}  
-                            tags={tags} 
-                            selectedTag={this.props.selectedTag}
-                            showTags={true} 
-                        />    
-                        <FadeBackgroundIcon    
-                            container={this.props.rootRef} 
-                            selectedCategory={selectedCategory}    
-                            show={isEmpty(todos)}  
-                        />    
-                    <div className={`no-print`}> 
-                        <TodoCreationForm   
-                            dispatch={this.props.dispatch}  
-                            selectedTodo={this.props.selectedTodo}
-                            selectedCategory={this.props.selectedCategory} 
-                            selectedProjectId={this.props.selectedProjectId}
-                            selectedAreaId={this.props.selectedAreaId} 
-                            todos={this.props.todos} 
-                            projects={this.props.projects}
-                            rootRef={this.props.rootRef} 
-                            todo={empty as any}  
-                        /> 
-                    </div> 
-                    <div> 
-                    { 
-                        groupTodos ? 
-                        <GroupsByProjectArea
-                            dispatch={this.props.dispatch} 
-                            scrolledTodo={this.props.scrolledTodo}
-                            filters={this.props.filters}
-                            selectedAreaId={this.props.selectedAreaId}
-                            selectedProjectId={this.props.selectedProjectId}
-                            groupTodos={this.props.groupTodos}
-                            indicators={this.props.indicators}
-                            moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                            selectedCategory={this.props.selectedCategory}  
-                            selectedTag={this.props.selectedTag}  
-                            rootRef={this.props.rootRef} 
-                            areas={this.props.areas}
-                            projectsFilters={[byNotCompleted, byNotDeleted]}
-                            areasFilters={[byNotDeleted]}
-                            projects={this.props.projects} 
-                            todos={todos} 
-                        />
-                        :
-                        <TodosList            
-                            dispatch={this.props.dispatch}     
-                            filters={this.props.filters}
-                            scrolledTodo={this.props.scrolledTodo}
-                            sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
-                            areas={this.props.areas}
-                            groupTodos={this.props.groupTodos}
-                            moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                            projects={this.props.projects}
-                            selectedCategory={this.props.selectedCategory} 
-                            selectedAreaId={this.props.selectedAreaId}
-                            selectedProjectId={this.props.selectedProjectId}
-                            rootRef={this.props.rootRef}
-                            todos={nextTodos}  
-                        />  
-                    } 
-                    </div> 
-                </div> 
+        return <div 
+          id={`${this.props.selectedCategory}-list`} 
+          style={{WebkitUserSelect:"none"}}
+        >
+            <ContainerHeader 
+                selectedCategory={this.props.selectedCategory}  
+                dispatch={this.props.dispatch}  
+                tags={tags} 
+                selectedTag={this.props.selectedTag}
+                showTags={true} 
+            />    
+            <FadeBackgroundIcon    
+                container={this.props.rootRef} 
+                selectedCategory={this.props.selectedCategory}    
+                show={isEmpty(selectedTodos)}  
+            />    
+            <div className={`no-print`}> 
+                <TodoCreationForm   
+                    dispatch={this.props.dispatch}  
+                    selectedTodo={this.props.selectedTodo}
+                    selectedCategory={this.props.selectedCategory} 
+                    selectedProjectId={this.props.selectedProjectId}
+                    selectedAreaId={this.props.selectedAreaId} 
+                    todos={this.props.todos} 
+                    projects={this.props.projects}
+                    rootRef={this.props.rootRef} 
+                    todo={empty as any}  
+                /> 
+            </div> 
+            <div> 
+                { 
+                    this.props.groupTodos ?
+                    <GroupsByProjectArea
+                        dispatch={this.props.dispatch} 
+                        scrolledTodo={this.props.scrolledTodo}
+                        filters={this.props.filters}
+                        selectedAreaId={this.props.selectedAreaId}
+                        selectedProjectId={this.props.selectedProjectId}
+                        groupTodos={this.props.groupTodos}
+                        indicators={this.props.indicators}
+                        moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                        selectedCategory={this.props.selectedCategory}  
+                        selectedTag={this.props.selectedTag}  
+                        rootRef={this.props.rootRef} 
+                        areas={this.props.areas}
+                        projectsFilters={projectsFilters}
+                        areasFilters={areasFilters}
+                        projects={this.props.projects} 
+                        todos={selectedTodos} 
+                    />
+                    :
+                    <TodosList            
+                        dispatch={this.props.dispatch}     
+                        filters={this.props.filters}
+                        scrolledTodo={this.props.scrolledTodo}
+                        sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
+                        areas={this.props.areas}
+                        groupTodos={this.props.groupTodos}
+                        moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                        projects={this.props.projects}
+                        selectedCategory={this.props.selectedCategory} 
+                        selectedAreaId={this.props.selectedAreaId}
+                        selectedProjectId={this.props.selectedProjectId}
+                        rootRef={this.props.rootRef}
+                        todos={selectedTodos}  
+                    />  
+                } 
+            </div> 
+        </div> 
     }
 }  

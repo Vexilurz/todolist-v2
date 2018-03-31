@@ -13,7 +13,6 @@ import { byNotCompleted, byNotDeleted } from './utils';
 import { isDev } from './isDev';
 import { ipcRenderer } from 'electron';
 import { inFuture, inPast } from './time';
-import { updateTodos } from '../database';
 import { globalErrorHandler } from './globalErrorHandler';
 
 

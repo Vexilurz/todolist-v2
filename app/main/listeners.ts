@@ -255,7 +255,6 @@ export class Listeners{
                     }else{
                         event.sender.send('getFilenames',[]);
                     }
-
                 }
             },
             {

@@ -339,28 +339,8 @@ export class Today extends Component<TodayProps,TodayState>{
 
 
     render(){ 
-        let { 
-            todos,  
-            selectedTag, 
-            areas,  
-            projects, 
-            calendars, 
-            showCalendarEvents, 
-            groupTodos, 
-            dispatch, 
-            selectedProjectId, 
-            moveCompletedItemsToLogbook,
-            selectedAreaId,
-            selectedCategory,
-            rootRef, 
-            clone  
-        } = this.props;
-
-
         let { items, tags } = this.getItems();
         let empty = generateEmptyTodo(generateId(), "today", 0);  
-
-        
         let decorators = [{
             area:document.getElementById("leftpanel"),
             decorator:generateDropStyle("nested"),
@@ -368,48 +348,13 @@ export class Today extends Component<TodayProps,TodayState>{
         }];    
   
 
-        let events : CalendarEvent[] = ifElse(
-            identity,
-            () => compose(
-                (events) => filter(  
-                    events,
-                    event => keyFromDate(new Date())===keyFromDate(event.start) 
-                ),  
-                flatten,    
-                map(prop('events'))
-            )(calendars),
-            () => []
-        )(this.props.showCalendarEvents);
-
-
-
         if(isDev()){
-            let todos = filter(items, isTodo);
-            let hiddenProjects = filter(
-                projects, 
-                (p:Project) => isNotArray(p.hide) ? false : contains(selectedCategory)(p.hide)
-            );
-            let ids : string[] = flatten(hiddenProjects.map((p:Project) => filter(p.layout,isString)));
-            let hiddenTodos = filter(todos, (todo:Todo) => contains(todo._id)(ids));
-            let tagsFromTodos : string[] = flatten(hiddenTodos.map((todo:Todo) => todo.attachedTags));
-
-            assert(
-                isEmpty(intersection(tags,tagsFromTodos)),
-                `tags from hidden Todos still displayed ${selectedCategory}.`
-            ); 
-
-            if(selectedTag!=="All"){ 
-                assert(
-                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),filter(items, isTodo)),
-                    `missing tag. Today. ${selectedTag}`
-                ) 
-            }
+           assert(this.props.selectedTag==="All" ? true : all( todo => contains(this.props.selectedTag)(todo.attachedTags),filter(items, isTodo) ), `missing tag. Today. ${this.props.selectedTag}`); 
         }
         
         
-  
         return <div 
-            id={`${selectedCategory}-list`}
+            id={`${this.props.selectedCategory}-list`}
             ref={(e) => {this.ref=e;}}             
             style={{disaply:"flex",flexDirection:"column",width:"100%"}}
         > 
@@ -429,7 +374,7 @@ export class Today extends Component<TodayProps,TodayState>{
             </div> 
             <FadeBackgroundIcon    
                 container={this.props.rootRef} 
-                selectedCategory={selectedCategory as Category}
+                selectedCategory={this.props.selectedCategory as Category}
                 show={isEmpty(items)}
             />  
             <div className={`no-print`}>
@@ -439,10 +384,20 @@ export class Today extends Component<TodayProps,TodayState>{
                     selectedTag={this.props.selectedTag}
                     show={true}  
                 />  
-                <TodaySchedule show={showCalendarEvents} events={events}/>  
+                {
+                    ifElse(
+                        identity,
+                        () => compose(
+                            events => <TodaySchedule show={true} events={events}/>,
+                            events => filter(events, event => keyFromDate(new Date())===keyFromDate(event.start)),  
+                            flatten,    
+                            map(prop('events'))
+                        )(this.props.calendars),
+                        () => null
+                    )(this.props.showCalendarEvents)
+                }
                 {  
-                    clone ? null :
-                    this.props.hideHint ? null :
+                    this.props.hideHint || this.props.clone ? null :
                     <div className={`no-print`}>
                     <Hint  
                         text={`These are your tasks for today.Do you also want to include the events from your calendar?`}
@@ -468,24 +423,24 @@ export class Today extends Component<TodayProps,TodayState>{
                 </div>
                 <div style={{position:"relative"}}>   
                     {
-                        groupTodos ? 
+                        this.props.groupTodos ?
                         <GroupsByProjectArea
-                            dispatch={dispatch}
+                            dispatch={this.props.dispatch}
                             filters={this.props.filters}
                             scrolledTodo={this.props.scrolledTodo}
-                            selectedProjectId={selectedProjectId}
-                            selectedAreaId={selectedAreaId}
-                            selectedCategory={selectedCategory}
-                            groupTodos={groupTodos} 
+                            selectedProjectId={this.props.selectedProjectId}
+                            selectedAreaId={this.props.selectedAreaId}
+                            selectedCategory={this.props.selectedCategory}
+                            groupTodos={this.props.groupTodos} 
                             indicators={this.props.indicators}
-                            moveCompletedItemsToLogbook={moveCompletedItemsToLogbook}
-                            selectedTag={selectedTag}
-                            rootRef={rootRef}
-                            areas={areas} 
+                            moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                            selectedTag={this.props.selectedTag}
+                            rootRef={this.props.rootRef}
+                            areas={this.props.areas} 
                             projectsFilters={[byNotCompleted, byNotDeleted]}
                             areasFilters={[byNotDeleted]}
-                            projects={projects} 
-                            todos={todos}
+                            projects={this.props.projects} 
+                            todos={this.props.todos}
                         />
                         :
                         <SortableContainer   
