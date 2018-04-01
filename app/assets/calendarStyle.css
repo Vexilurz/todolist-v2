@@ -14,8 +14,9 @@ input[type=time]::-webkit-outer-spin-button {
 .DayPicker-wrapper {
   position: relative;
   border-radius: 20px;
-  background-color: rgb(238, 237, 239); /*rgb(39,43,53);*/
-  color: white; 
+  outline: none;
+  background-color: white; /*rgb(39,43,53);*/
+  color: black; 
   -webkit-user-select: none;
      -moz-user-select: none;
       -ms-user-select: none;
@@ -49,8 +50,7 @@ input[type=time]::-webkit-outer-spin-button {
   margin-top: 1rem;
 }
 
-.DayPicker-NavBar {
-}
+.DayPicker-NavBar {}
 
 .DayPicker-NavButton {
   position: absolute;

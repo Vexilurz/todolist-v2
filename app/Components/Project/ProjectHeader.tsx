@@ -135,7 +135,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
 
         return <div>  
             <ProjectMenuPopover 
-                {
+                { 
                     ...{
                         project,   
                         anchorEl:this.projectMenuPopoverAnchor,
@@ -151,6 +151,7 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     close={this.closeDeadlineCalendar}
                     onDayClick={this.onDeadlineCalendarDayClick} 
                     open={this.state.showDeadlineCalendar}  
+                    deadline={project.deadline}
                     origin={{vertical:"top", horizontal:"left"}} 
                     point={{vertical:"top", horizontal:"right"}} 
                     anchorEl={this.projectMenuPopoverAnchor} 

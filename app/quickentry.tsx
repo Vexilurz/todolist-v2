@@ -38,7 +38,8 @@ import List from 'material-ui/svg-icons/action/list';
 import { 
     cond, isNil, not, defaultTo, map, isEmpty, when, path,
     uniq, remove, contains, append, adjust, complement, identity,
-    compose, flatten, concat, prop, equals, evolve, allPass  
+    compose, flatten, concat, prop, equals, evolve, allPass, 
+    ifElse, merge  
 } from 'ramda';
 let moment = require("moment");
 import Popover from 'material-ui/Popover';
@@ -94,7 +95,6 @@ import {
     noteToState, noteFromState, getNotePlainText,
 } from './utils/draftUtils';
 import { RawDraftContentState, Todo, ChecklistItem, Project, Area, Category, Config } from './types';
-import { requestFromMain } from './utils/requestFromMain';
 import { groupProjectsByArea } from './Components/Area/groupProjectsByArea';
 import { generateLayout } from './Components/Area/generateLayout';
 import { App } from './app';
@@ -367,21 +367,11 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
 
-    setSmallSize = () : Promise<void> => 
-        requestFromMain<any>(
-            'QEsetSmallSize',
-            [],
-            (event) => event
-        );
+    setSmallSize = () : void => ipcRenderer.send('QEsetSmallSize');
 
 
 
-    setBigSize = () : Promise<void> => 
-        requestFromMain<any>(
-            'QEsetBigSize',
-            [],
-            (event) => event
-        );
+    setBigSize = (size:number) : void => ipcRenderer.send('QEsetBigSize',size);
 
 
  
@@ -404,11 +394,11 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
     
 
-    blur = () => requestFromMain<any>('QEblur',[],(event) => event);
+    blur = () : void => ipcRenderer.send('QEblur'); 
 
 
 
-    hide = () => requestFromMain<any>('QEhide',[],(event) => event);
+    hide = () : void => ipcRenderer.send('QEhide'); 
     
 
 
@@ -457,15 +447,21 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
       
 
-    onFlagButtonClick = (e) => this.setState({showDeadlineCalendar:true}, () => this.setBigSize());
+    onFlagButtonClick = (e) => {
+        this.setBigSize(400);
+        setTimeout(() => this.setState({showDeadlineCalendar:true}), 200);
+    };
+    
+    
 
+    onCalendarButtonClick = (e) => {
+        this.setBigSize(500);
+        setTimeout(() => this.setState({showDateCalendar:true}), 200);
+    };
 
+    
 
     closeDeadlineCalendar = () => this.setState({showDeadlineCalendar:false}, () => this.setSmallSize());
-
- 
-
-    onCalendarButtonClick = (e) => this.setState({showDateCalendar:true}, () => this.setBigSize());
 
     
 
@@ -482,14 +478,18 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
     categoryFromState = () : Category => {
-        let {project,category,deadline,attachedDate} = this.state;
+        let {project, category, deadline, attachedDate} = this.state;
  
-        if(isDate(deadline) || isDate(attachedDate) || isProject(project)){
+        if(
+            isDate(deadline) || 
+            isDate(attachedDate) ||
+            isProject(project)
+        ){
             if(isToday(deadline) || isToday(attachedDate)){
-                return "today"; 
+               return "today"; 
             }else{ 
-                return "next";
-            }
+               return "next";
+            } 
         }else{
             return "inbox"; 
         }
@@ -499,7 +499,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
     onCalendarClear = () => {
         this.setState(
-            {attachedDate:null}, 
+            {
+                attachedDate:null
+            }, 
             () => this.setState({category:this.categoryFromState()})
         ); 
     }; 
@@ -508,7 +510,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
     onDeadlineCalendarClear = () : void => {
         this.setState(
-            {deadline:null},
+            {
+                deadline:null
+            },
             () => {
                 this.setState({category:this.categoryFromState()});
                 this.closeDeadlineCalendar();
@@ -520,7 +524,9 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
     onCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         this.setState(
-            {attachedDate:day},
+            {
+                attachedDate:day
+            },
             () => {
                 this.setState({category:this.categoryFromState()});
                 this.closeDateCalendar();
@@ -528,11 +534,13 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         );   
     }; 
 
-
+    
 
     onDeadlineCalendarDayClick = (day:Date,modifiers:Object,e:any) => {
         this.setState(
-            {deadline:day}, 
+            {
+                deadline:day
+            }, 
             () => {
                 this.setState({category:this.categoryFromState()});
                 this.closeDeadlineCalendar();
@@ -559,7 +567,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         this.setState({category:"today", attachedDate:new Date()}, () => this.closeDateCalendar()); 
     };
 
-
+    
 
     onCalendarThisEveningClick = (e) => {
         this.setState({category:"evening", attachedDate:new Date()}, () => this.closeDateCalendar()); 
@@ -709,7 +717,8 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     open={this.state.showDeadlineCalendar}
                     origin={{vertical: "center", horizontal: "left"}} 
                     point={{vertical: "bottom", horizontal: "right"}} 
-                    anchorEl={this.deadline}
+                    anchorEl={this.deadline} 
+                    deadline={this.state.deadline}
                     onClear={this.onDeadlineCalendarClear}
                     rootRef={document.body}
                 />
@@ -1058,6 +1067,7 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
     }
 
 
+
     componentDidMount(){ 
         this.subscriptions.push(
             Observable
@@ -1067,11 +1077,13 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
     }
 
 
+
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = []; 
     } 
   
+
 
     onOutsideClick = (e) => {
         let {close} = this.props;
@@ -1084,7 +1096,8 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
     
         if(not(inside)){ close() }   
     }   
-               
+     
+    
      
     render(){     
         let {close} = this.props;
@@ -1100,7 +1113,7 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
                 background:"rgba(0,0,0,0)",  
                 zIndex:40005,
                 borderRadius:"20px",  
-                transform:`scale(0.8,0.8)` 
+                transform:"scale(0.8,0.8)"  
             }}   
             canAutoPosition={true}
             onRequestClose={() => this.props.close()}
@@ -1116,13 +1129,14 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
                 style={{     
                     display:"flex",
                     flexDirection:"column",  
-                    backgroundColor:"rgb(39,43,53)",  
+                    backgroundColor:"white", //"rgb(39,43,53)",   
+                    //boxShadow:"0 0 18px rgba(0,0,0,0.5)", 
                     borderRadius: "20px",
                     overflowX:"hidden"  
                 }}
             >    
                 <div style={{
-                    color: "white",
+                    color: "black",
                     textAlign: "center",
                     padding: "5px",
                     cursor: "default"
@@ -1135,7 +1149,7 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        color: "white",
+                        color: "black",
                         marginLeft: "20px",
                         marginRight: "20px",
                         marginBottom:"2px",
@@ -1161,7 +1175,7 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        color: "white",
+                        color: "black",
                         cursor: "default",
                         marginLeft: "20px",
                         padding:"2px",
@@ -1193,7 +1207,7 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        color: "white",
+                        color: "black",
                         cursor: "default",
                         marginLeft: "20px",
                         marginRight: "20px",
@@ -1224,13 +1238,13 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
                             onClick={this.props.onClear}
                             style={{
                                 width:"100%", 
-                                margin:"15px",  
+                                margin:"15px",   
                                 color:"white",  
-                                backgroundColor:"rgb(87, 87, 87)"
+                                backgroundColor:"rgb(157, 157, 157)"
                             }} 
-                            buttonStyle={{  
+                            buttonStyle={{   
                                 color:"white",  
-                                backgroundColor:"rgb(87, 87, 87)"
+                                backgroundColor:"rgb(157, 157, 157)"
                             }}
                         >
                             Clear 
@@ -1291,7 +1305,7 @@ class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLabelsStat
         {    
             not(todayCategory) ? null :
             <div style={{ 
-                transition:"opacity 0.4s ease-in-out",
+                transition:"opacity 0.4s ease-in-out", 
                 opacity:open ? 1 : 0,
                 paddingLeft:"5px"  
             }}>      
@@ -1379,6 +1393,7 @@ interface DeadlineCalendarProps{
     point : any,    
     onDayClick : (day: Date, modifiers: Object, e : any) => void,
     onClear : (e:any) => void,
+    deadline : Date,
     rootRef : HTMLElement 
 }   
   
@@ -1443,11 +1458,11 @@ class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCalendarS
                 display:"flex",
                 overflowX:"hidden",
                 flexDirection:"column",  
-                backgroundColor:"rgb(39,43,53)", 
+                backgroundColor:"white", //"rgb(39,43,53)", 
                 borderRadius: "20px"
             }}>    
                 <div style={{
-                    color: "white",
+                    color: "black",
                     textAlign: "center",
                     padding: "5px",
                     cursor: "default"
@@ -1458,18 +1473,26 @@ class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCalendarS
                     display: "flex",
                     justifyContent: "center" 
                 }}> 
-                    <DayPicker onDayClick={this.props.onDayClick} />
+                    <DayPicker
+                    {
+                        ...ifElse(
+                            () => isDate(this.props.deadline),
+                            merge({selectedDays:[this.props.deadline]}),
+                            merge({})
+                        )({onDayClick:this.props.onDayClick})
+                    }
+                    /> 
                 </div> 
                 <RaisedButton
                     onClick={this.props.onClear}
                     style={{
                         margin:"15px",  
-                        color:"white", 
-                        backgroundColor:"rgb(49,53,63)"
+                        color:"white",
+                       backgroundColor:"rgb(157, 157, 157)"
                     }} 
                     buttonStyle={{  
-                        color:"white",  
-                        backgroundColor:"rgb(49,53,63)"
+                        color:"white",
+                        backgroundColor:"rgb(157, 157, 157)"
                     }}
                 >
                     Clear 
@@ -1532,17 +1555,17 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                 alignItems:"center" 
             }} 
         >     
-                <div> <NewAreaIcon style={{width:"20px", color:"white", height:"20px"}}/> </div>
+                <div> <NewAreaIcon style={{width:"14px",height:"14px",color:"rgb(69, 95, 145)"}}/> </div>
                 <div    
                     id = {`${a._id}-popup-text`}   
                     style={{  
                         width:"100%",
                         paddingLeft:"5px",
                         fontFamily: "sans-serif",
-                        fontSize:`15px`,  
+                        fontSize:`14px`,  
                         whiteSpace: "nowrap",
                         cursor: "default",
-                        color:"white",  
+                        color:"black",
                         WebkitUserSelect: "none" 
                     }}
                 >    
@@ -1550,14 +1573,14 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                         text={a.name}
                         width={200}
                         placeholder="New Area"
-                        fontSize={15}
+                        fontSize={14}
                         style={{}}
                         offset={45} 
                         placeholderStyle={{}}
                     />
                 </div>  
         </div>
-    };
+    };   
 
 
 
@@ -1583,25 +1606,25 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                 color:"white",
                 height:"25px",  
                 paddingLeft:"30px", 
-                display:"flex",
+                display:"flex", 
                 alignItems:"center" 
             }} 
-        >     
+        >      
                 <div style={{    
                     transform: "rotate(270deg)", 
-                    width: "18px",
-                    height: "18px",
+                    width: "14px",
+                    height: "14px",
                     position: "relative",
                     borderRadius: "100px",
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    border: "1px solid rgb(170, 170, 170)",
+                    border: "1px solid rgb(69, 95, 145)",
                     boxSizing: "border-box" 
-                }}> 
+                }}>   
                     <div style={{
-                        width: "18px",
-                        height: "18px",
+                        width: "12px",
+                        height: "12px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -1613,16 +1636,16 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                             data={[{     
                                 value:currentValue,  
                                 key:1,    
-                                color:"white" 
+                                color:"rgb(69, 95, 145)"
                             }]}    
                             style={{ 
                                 color:"white",
-                                width:"12px", 
-                                height:"12px",
+                                width:"10px", 
+                                height:"10px",
                                 position:"absolute",
                                 display:"flex",
                                 alignItems:"center",
-                                justifyContent:"center"  
+                                justifyContent:"center"   
                             }}    
                         />       
                     </div>
@@ -1633,10 +1656,10 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                         width:"100%",
                         paddingLeft:"5px",
                         fontFamily: "sans-serif",
-                        fontSize:`15px`,  
+                        fontSize:`14px`,  
                         whiteSpace: "nowrap",
                         cursor: "default",
-                        color:"white",  
+                        color:"black",  
                         WebkitUserSelect: "none" 
                     }}
                 >    
@@ -1644,7 +1667,7 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                         text={p.name}
                         width={200}
                         placeholder="New Project"
-                        fontSize={15}
+                        fontSize={14}
                         style={{}}
                         offset={45} 
                         placeholderStyle={{}}
@@ -1706,8 +1729,8 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                 open={open}
                 style={{
                     zIndex:200005,
-                    background:"rgba(39, 43, 53, 0)", 
-                    backgroundColor:"rgb(39, 43, 53, 0)"
+                    background:"rgba(0, 0, 0, 0)", 
+                    backgroundColor:"rgb(0, 0, 0, 0)"
                 }}
                 anchorEl={anchorEl} 
                 canAutoPosition={true}  
@@ -1719,14 +1742,13 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
             >      
                 <div    
                     ref={(e) => { this.ref=e; }} 
-                    className={"darkscroll"}
                     onClick = {(e) => {e.stopPropagation();}}
                     style={{borderRadius:"10px", width:"240px"}}
                 > 
                     <div    
-                        className={"darkscroll"}
+                        className={"scroll"}
                         style={{   
-                            backgroundColor:"rgb(39, 43, 53)",
+                            backgroundColor:"rgba(238,237,239,1)",
                             paddingRight:"10px",
                             paddingLeft:"10px",
                             paddingTop:"5px",
@@ -1735,7 +1757,7 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                             overflowX:"hidden" 
                         }}  
                     >     
-                            <div style={{display:"flex",alignItems:"center",paddingTop:"5px",paddingBottom:"5px"}}>
+                            <div style={{display:"flex", alignItems:"center", paddingTop:"5px", paddingBottom:"5px"}}>
                                 <div  
                                     className="hoverDateType" 
                                     onClick={() => {
@@ -1754,9 +1776,10 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                                     <div style={{display:"flex", alignItems:"center"}}>
                                         <Inbox style={{  
                                             paddingLeft:"5px",
-                                            width:"18px",
-                                            height:"18px",
-                                            color:"white", 
+                                            height:"15px",
+                                            width:"15px",
+                                            marginTop:"1px",
+                                            color:"rgb(69, 95, 145)", 
                                             cursor:"default"
                                         }}/> 
                                     </div>
@@ -1767,7 +1790,7 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                                             paddingRight:"5px", 
                                             paddingLeft:"5px", 
                                             cursor:"default",
-                                            color:"white", 
+                                            color:"black", 
                                             WebkitUserSelect:"none" 
                                         }}
                                     >   
@@ -1775,11 +1798,10 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                                     </div>
                                     <div style={{flexGrow:1,justifyContent:"flex-end",alignItems:"center"}}>
                                         <div style={{height:"20px"}}>
-
                                             {
                                                 category!=="inbox" ? null :
                                                 <Checked style={{
-                                                    color:"white",
+                                                    color:"black",
                                                     height:18,
                                                     width:18,  
                                                     paddingRight:"5px",
@@ -1792,9 +1814,9 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                             </div>
                             <div style={{
                                 outline: "none",
-                                color: "rgba(255, 255, 255, 1)",
+                                color: "rgba(155, 155, 155, 1)",
                                 width: "100%",
-                                borderBottom: "1px solid rgba(255,255,255,0.2)"
+                                borderBottom: "1px solid rgba(155,155,155,0.2)"
                             }}>
                             </div> 
                             { 

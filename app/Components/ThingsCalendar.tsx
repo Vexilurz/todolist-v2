@@ -15,10 +15,10 @@ import Moon from 'material-ui/svg-icons/image/brightness-3';
 import DayPicker from 'react-day-picker';  
 import Popover from 'material-ui/Popover';
 import BusinessCase from 'material-ui/svg-icons/content/archive';  
-import RaisedButton from 'material-ui/RaisedButton';
+import RaisedButton from 'material-ui/RaisedButton'; 
 import { Category } from './../types';  
 import Clear from 'material-ui/svg-icons/content/clear'; 
-import { isNil, not } from 'ramda';
+import { isNil, not, defaultTo, merge, ifElse } from 'ramda';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
@@ -29,6 +29,7 @@ import { isFunction, isDate } from '../utils/isSomething';
 import { timeOfTheDay } from '../utils/time';
 const moment = require("moment"); 
 import TimeInput from 'react-keyboard-time-input';
+
 
 
 interface DateCalendarProps{ 
@@ -49,10 +50,12 @@ interface DateCalendarProps{
     onClear : (e:any) => void,
     onRepeatTodo? : (top:number,left:number) => void
 }            
-  
+ 
+
  
 interface DateCalendarState{}
   
+
 
 export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
     subscriptions:Subscription[];
@@ -64,6 +67,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
     }
 
 
+
     componentDidMount(){ 
         let click = Observable
                     .fromEvent(document.body,"click")
@@ -73,11 +77,13 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
     }
 
 
+
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = []; 
     } 
   
+
 
     onOutsideClick = (e) => {
         if(isNil(this.ref)){ return }
@@ -91,7 +97,8 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
            this.props.close(); 
         }   
     };   
-               
+        
+    
      
     render(){    
         let {onRepeatTodo, close} = this.props;
@@ -123,13 +130,13 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                 style={{     
                     display:"flex",
                     flexDirection:"column",  
-                    backgroundColor:"rgb(238, 237, 239)", //"rgb(39,43,53)",  
-                    borderRadius: "20px",
+                    backgroundColor:"white", //"rgb(39,43,53)",  
+                    borderRadius:"20px",
                     overflowX:"hidden"  
                 }}
             >    
                 <div style={{
-                    color: "white",
+                    color: "black",
                     textAlign: "center",
                     padding: "5px",
                     cursor: "default"
@@ -142,7 +149,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        color: "white",
+                        color: "black",
                         marginLeft: "20px",
                         marginRight: "20px",
                         marginBottom:"2px",
@@ -167,7 +174,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        color: "white",
+                        color: "black",
                         cursor: "default",
                         marginLeft: "20px",
                         padding:"2px",
@@ -178,7 +185,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                         transform:"rotate(145deg)", 
                         color:"rgb(192,192,192)", 
                         width:"15px",
-                        height:"15px",
+                        height:"15px", 
                         cursor:"default" 
                     }}/> 
                     <div style={{marginLeft:"15px"}}>
@@ -186,7 +193,15 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                     </div>
                 </div>
                 <div style={{display:"flex",justifyContent:"center"}}> 
-                    <DayPicker onDayClick={this.props.onDayClick}/>
+                    <DayPicker 
+                        {
+                            ...ifElse(
+                                () => isDate(this.props.attachedDate),
+                                merge({selectedDays:[this.props.attachedDate]}),
+                                merge({})
+                            )({onDayClick:this.props.onDayClick})
+                        }
+                    />
                 </div> 
                 <div  
                     className="hoverDateType"
@@ -194,7 +209,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        color: "white",
+                        color: "black",
                         cursor: "default",
                         marginLeft: "20px",
                         marginRight: "20px",
@@ -231,7 +246,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                         style={{
                             display:"flex",
                             alignItems:"center",
-                            color:"white",
+                            color:"black",
                             cursor:"default",
                             marginLeft:"15px",
                             marginRight:"15px",
@@ -242,7 +257,7 @@ export class DateCalendar extends Component<DateCalendarProps,DateCalendarState>
                     >
                         <Refresh style={{  
                             paddingLeft:"2px",
-                            color:"white", 
+                            color:"black", 
                             width:"18px", 
                             height:"18px", 
                             cursor:"default"  
@@ -271,6 +286,8 @@ interface CalendarFooterState{
     time:any,
     timeSet:boolean   
 } 
+
+
  
 interface CalendarFooterProps{   
     onAddReminder:(reminder : Date) => void,
@@ -280,6 +297,8 @@ interface CalendarFooterProps{
     onClear:(e:any) => void 
 }
   
+
+
 export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooterState>{
 
     constructor(props){ 
@@ -339,19 +358,19 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
                     }}> 
                         <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
                             <div style={{zoom:"0.8",position:"relative"}}>
-                                <Alert style={{color:"rgb(192, 192, 192)", WebkitUserSelect:"none"}}/>
+                                <Alert style={{color:"rgb(157, 157, 157)",WebkitUserSelect:"none"}}/>
                                 <div style={{
                                     width:"8px",
                                     height:"8px",
                                     top:"8px",
                                     left:"8px",
                                     position:"absolute",
-                                    backgroundColor:"rgb(192, 192, 192)" 
+                                    backgroundColor:"rgb(157, 157, 157)" 
                                 }}> 
                                 </div>
                             </div>
                             <div style={{  
-                                color:"rgb(192, 192, 192)",
+                                color:"black",
                                 userSelect:"none",
                                 cursor:"default",
                                 paddingBottom:"5px",
@@ -365,7 +384,7 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
                             position:"relative", 
                             display:"flex", 
                             alignItems:"center", 
-                            backgroundColor:"rgb(87, 87, 87)",
+                            backgroundColor:"rgb(157, 157, 157)",
                             borderRadius:"5px"   
                         }}>
                             <TimeInput
@@ -381,7 +400,7 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
                               alignItems:"center", 
                               justifyContent:"center"
                             }}>
-                                <Clear style={{color:"rgb(192, 192, 192)"}}/>
+                                <Clear style={{color:"white"}}/>
                             </div> 
                         </div> 
                     </div> 
@@ -398,11 +417,11 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
                                 style={{
                                     margin:"15px",  
                                     color:"white", 
-                                    backgroundColor:"rgb(87, 87, 87)"
+                                    backgroundColor:"rgb(157, 157, 157)"
                                 }} 
                                 buttonStyle={{  
                                     color:"white",  
-                                    backgroundColor:"rgb(87, 87, 87)"
+                                    backgroundColor:"rgb(157, 157, 157)"
                                 }}
                             > 
                                 Clear 
@@ -425,11 +444,11 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
                                 style={{
                                     margin:"15px",    
                                     color:"white", 
-                                    backgroundColor:"rgb(87, 87, 87)"
+                                    backgroundColor:"rgb(157, 157, 157)"
                                 }} 
                                 buttonStyle={{  
                                     color:"white",  
-                                    backgroundColor:"rgb(87, 87, 87)"
+                                    backgroundColor:"rgb(157, 157, 157)"
                                 }}
                             >
                                 Done 
@@ -462,11 +481,11 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
                                 width:"100%", 
                                 margin:"15px",  
                                 color:"white",  
-                                backgroundColor:"rgb(87, 87, 87)"
+                                backgroundColor:"rgb(157, 157, 157)"
                             }} 
                             buttonStyle={{  
                                 color:"white",  
-                                backgroundColor:"rgb(87, 87, 87)"
+                                backgroundColor:"rgb(157, 157, 157)"
                             }}
                         >
                             Clear 
@@ -484,6 +503,7 @@ interface AddReminderButtonProps{
     openReminderInput:Function,
     disable:boolean 
 } 
+
 
 
 class AddReminderButton extends Component<AddReminderButtonProps,{}>{
@@ -508,15 +528,14 @@ class AddReminderButton extends Component<AddReminderButtonProps,{}>{
             }}   
         >       
             <Plus style={{       
-                color:disable ? "rgba(70,70,70,0.5)" : "white",    
+                color:disable ? "rgba(70,70,70,0.5)" : "",    
                 width:"25px", 
                 height:"25px"     
             }}/>   
             <div style={{
                 paddingLeft:"10px",
                 fontFamily:"sans-serif",
-                fontWeight:600, 
-                color:disable ? "rgba(70,70,70,0.5)" : "white",  
+                color:disable ? "rgba(70,70,70,0.5)" : "black",  
                 fontSize:"15px",  
                 cursor:"default",
                 WebkitUserSelect:"none"  
@@ -534,6 +553,8 @@ interface ClearReminderButtonProps{
     reminder:Date,
     disable:boolean
 }
+
+
 
 class ClearReminderButton extends Component<ClearReminderButtonProps,{}>{
 
@@ -556,15 +577,14 @@ class ClearReminderButton extends Component<ClearReminderButtonProps,{}>{
             }}  
         >       
             <Minus style={{       
-                color:disable?"rgba(70,70,70,0.5)":"white",    
+                color:disable?"rgba(70,70,70,0.5)":"",    
                 width:"25px", 
                 height:"25px"     
             }}/>   
             <div style={{
                 paddingLeft:"10px",
                 fontFamily:"sans-serif",
-                fontWeight:600, 
-                color:disable?"rgba(70,70,70,0.5)":"white",  
+                color:disable?"rgba(70,70,70,0.5)":"black",  
                 fontSize:"15px",  
                 cursor:"default",
                 WebkitUserSelect:"none"   
@@ -584,12 +604,17 @@ interface DeadlineCalendarProps{
     anchorEl : HTMLElement,
     point : any,    
     onDayClick : (day: Date, modifiers: Object, e : any) => void,
+    deadline : Date,
     onClear : (e:any) => void,
     rootRef : HTMLElement 
-}   
+} 
+
+
 
 interface DeadlineCalendarState{} 
-  
+
+
+
 export class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCalendarState>{
     subscriptions:Subscription[];
     ref:HTMLElement; 
@@ -654,19 +679,34 @@ export class DeadlineCalendar extends Component<DeadlineCalendarProps,DeadlineCa
                 display:"flex",
                 overflowX:"hidden",
                 flexDirection:"column",  
-                backgroundColor:"rgb(39,43,53)", 
+                backgroundColor:"white",//"rgb(39,43,53)", 
                 borderRadius: "20px"
             }}>    
-                <div style={{color:"white",textAlign:"center",padding:"5px",cursor:"default"}}> 
+                <div style={{color:"black",textAlign:"center",padding:"5px",cursor:"default"}}> 
                     Deadline
                 </div>
-                <div style={{display: "flex",justifyContent: "center"}}> 
-                    <DayPicker onDayClick={this.props.onDayClick} />
+                <div style={{display:"flex",justifyContent:"center"}}> 
+                    <DayPicker 
+                        {
+                            ...ifElse(
+                                () => isDate(this.props.deadline),
+                                merge({selectedDays:[this.props.deadline]}),
+                                merge({})
+                            )({onDayClick:this.props.onDayClick})
+                        }
+                    />
                 </div> 
                 <RaisedButton
                     onClick={this.props.onClear}
-                    style={{margin:"15px",color:"white",backgroundColor:"rgb(49,53,63)"}} 
-                    buttonStyle={{color:"white",backgroundColor:"rgb(49,53,63)"}}
+                    style={{
+                       margin:"15px",
+                       color:"white",
+                       backgroundColor:"rgb(157, 157, 157)"
+                    }} 
+                    buttonStyle={{ 
+                       color:"white",
+                       backgroundColor:"rgb(157, 157, 157)"
+                    }}
                 >
                     Clear 
                 </RaisedButton>

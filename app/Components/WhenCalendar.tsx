@@ -18,7 +18,7 @@ import BusinessCase from 'material-ui/svg-icons/content/archive';
 import RaisedButton from 'material-ui/RaisedButton';
 import { Category, Store, Todo } from './../types';  
 import Clear from 'material-ui/svg-icons/content/clear'; 
-import { isNil, not } from 'ramda';
+import { isNil, not, merge, compose, prop, ifElse } from 'ramda';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
@@ -316,7 +316,7 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
         this.close();
     };
 
-
+    
 
     render(){
         let hideRepeatButton = false;
@@ -355,17 +355,18 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
                 style={{    
                     display:"flex",
                     flexDirection:"column",  
-                    backgroundColor:"rgb(39,43,53)",  
-                    borderRadius:"20px", 
+                    backgroundColor:"white",  
+                    borderRadius:"20px",  
+                    boxShadow:"0 0 18px rgba(0,0,0,0.5)", 
                     overflowX:"hidden"  
                 }}
             >    
                 <div style={{
-                    color: "white",
+                    color: "black",
                     textAlign: "center",
                     padding: "5px",
                     cursor: "default"
-                }}> 
+                }}>  
                     When
                 </div>
 
@@ -374,7 +375,7 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        color: "white",
+                        color: "black",
                         marginLeft: "20px",
                         marginRight: "20px",
                         marginBottom:"2px",
@@ -399,7 +400,7 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        color: "white",
+                        color: "black",
                         cursor: "default",
                         marginLeft: "20px",
                         padding:"2px",
@@ -418,7 +419,15 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
                     </div>
                 </div>
                 <div style={{display:"flex",justifyContent:"center"}}> 
-                    <DayPicker onDayClick={this.onDayClick}/>
+                    <DayPicker 
+                    {
+                        ...ifElse(
+                            () => compose(isDate, prop('attachedDate'))(this.state.todo),
+                            merge({selectedDays:[this.state.todo.attachedDate]}),
+                            merge({})
+                        )({onDayClick:this.onDayClick})
+                    }
+                    /> 
                 </div> 
                 <div  
                     className="hoverDateType"
@@ -426,7 +435,7 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        color: "white",
+                        color: "black",
                         cursor: "default",
                         marginLeft: "20px",
                         marginRight: "20px",
@@ -434,7 +443,7 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
                         padding:"2px"  
                     }}
                 >
-                    <BusinessCase style={{  
+                    <BusinessCase style={{    
                         color:"burlywood", 
                         width:"15px",
                         height:"15px",
@@ -459,7 +468,7 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
                         style={{
                             display:"flex",
                             alignItems:"center",
-                            color:"white",
+                            color:"black",
                             cursor:"default",
                             marginLeft:"15px",
                             marginRight:"15px",
@@ -470,7 +479,7 @@ export class WhenCalendar extends Component<WhenCalendarProps,WhenCalendarState>
                     >
                         <Refresh style={{  
                             paddingLeft:"2px",
-                            color:"white", 
+                            color:"black", 
                             width:"18px", 
                             height:"18px", 
                             cursor:"default"  

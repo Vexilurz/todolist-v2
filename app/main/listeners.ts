@@ -273,9 +273,8 @@ export class Listeners{
                 callback:(event) => {
                     let window = findWindowByTitle('Add task');
                     if(window){
-                        window.blur();
+                       window.blur();
                     }
-                    event.sender.send('QEblur');
                 }
             },
             {
@@ -283,9 +282,8 @@ export class Listeners{
                 callback:(event) => {
                     let window = findWindowByTitle('Add task');
                     if(window){
-                        window.hide();
+                       window.hide();
                     }
-                    event.sender.send('QEhide');
                 }
             },  
             {
@@ -295,21 +293,19 @@ export class Listeners{
                     let defaultWidth=500;
                     let defaultHeight=350;
                     if(window){
-                        window.setSize(defaultWidth, defaultHeight); 
+                       window.setSize(defaultWidth, defaultHeight); 
                     }
-                    event.sender.send('QEsetSmallSize');
-                }
+                } 
             },
             {
                 name:'QEsetBigSize',
-                callback:(event) => {
+                callback:(event,size) => {
                     let window = findWindowByTitle('Add task');
                     let defaultWidth=500;
                     let defaultHeight=350;
                     if(window){
-                        window.setSize(defaultWidth, 400); 
+                       window.setSize(defaultWidth, size); 
                     }
-                    event.sender.send('QEsetBigSize');
                 }
             },
             {

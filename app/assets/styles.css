@@ -35,7 +35,7 @@ body{
   outline: none; 
   padding-left: 10px;
   border: none;
-  background-color: rgb(87, 87, 87);
+  background-color: rgb(157, 157, 157);
   font-size: 1.2em;
 }
 
@@ -266,7 +266,7 @@ ul {
 
 
 .hoverDateType:hover{
-  background-color:rgb(33, 129, 173); 
+  background-color:rgb(208, 217, 219);/*rgb(33, 129, 173);*/
   border-radius:5px; 
 }
 

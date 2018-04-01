@@ -1050,7 +1050,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     open={this.state.showDeadlineCalendar}
                     origin={{vertical:"center",horizontal:"right"}} 
                     point={{vertical:"center",horizontal:"right"}} 
-                    anchorEl={this.deadline}
+                    anchorEl={this.deadline} 
+                    deadline={this.state.deadline}
                     onClear={this.onDeadlineCalendarClear}
                     rootRef={this.props.rootRef}
                 />       

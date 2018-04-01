@@ -7,10 +7,11 @@ body{
     overflow-y: auto !important;
 }
 
-.scroll {   
+
+.scroll {     
     overflow-y: scroll;
 } 
-
+ 
 .DraftEditor-root{
     width:100% !important;
 }

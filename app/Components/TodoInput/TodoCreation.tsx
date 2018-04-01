@@ -772,6 +772,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             <DeadlineCalendar  
                 close={this.closeDeadlineCalendar}
                 onDayClick={this.onDeadlineCalendarDayClick}
+                deadline={this.state.deadline}  
                 open={this.state.showDeadlineCalendar}
                 origin={{vertical:"center",horizontal:"right"}} 
                 point={{vertical:"center",horizontal:"right"}} 
