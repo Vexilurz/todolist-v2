@@ -338,17 +338,14 @@ export class App extends Component<AppProps,AppState>{
                 {amounts,indicators,todos}, 
                 when(
                     () => not(nextProps.clone),
-                    () => requestFromMain<any>(
-                        'updateQuickEntryData', 
-                        [
-                            {
-                                todos,
-                                projects:nextProps.projects,
-                                areas:nextProps.areas,
-                                indicators
-                            }
-                        ],  
-                        (event) => event
+                    () => ipcRenderer.send(
+                        'updateQuickEntryData',
+                        {
+                            todos,
+                            projects:nextProps.projects,
+                            areas:nextProps.areas,
+                            indicators
+                        }
                     )
                 )
             );

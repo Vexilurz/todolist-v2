@@ -320,7 +320,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                         style={{display:"flex",flexDirection:"column"}}
                     > 
                         <RightClickMenuItem 
-                            title={"When..."} 
+                            title={"Schedule task"} 
                             dispatch={this.props.dispatch}
                             onClick={this.onWhen}
                             disabled={!canWhen}
@@ -359,7 +359,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
                         <div style={{border:"1px solid rgba(200,200,200,0.5)", marginTop:"5px",marginBottom:"5px"}}></div>  
 
                         <RightClickMenuItem 
-                            title={"Repeat..."} 
+                            title={"Repeat task"} 
                             dispatch={this.props.dispatch}
                             onClick={this.onRepeatTodo}
                             disabled={!canRepeat}

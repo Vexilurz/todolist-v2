@@ -186,6 +186,15 @@ export class Listeners{
       this.registeredListeners = [ 
         //////Notification
             { 
+                name:"updateQuickEntryData",
+                callback:(event,data) => { 
+                    let window = findWindowByTitle('Add task');
+                    if(window){
+                       window.webContents.send('data',data);
+                    } 
+                }
+            },
+            { 
                 name:"remind",
                 callback:(event,todo) => {
                     let notification : any = findWindowByTitle('Notification');
@@ -455,16 +464,6 @@ export class Listeners{
                 } 
             },
             { 
-                name:"updateQuickEntryData",
-                callback:(event,[data]) => { 
-                    let window = findWindowByTitle('Add task');
-                    if(window){
-                       window.webContents.send('data',data);
-                    }
-                    event.sender.send("updateQuickEntryData");  
-                }
-            },
-            { 
                 name:"updateQuickEntryConfig",
                 callback:(event,[config]) => {
                     let window = findWindowByTitle('Add task');
@@ -559,7 +558,7 @@ export class Listeners{
             },  
             {
                 name:"quick-entry",
-                callback : (event, todo, project, config) => { 
+                callback : (event, todo, project) => {  
                     type kind="quick-entry";
                     let kind:kind="quick-entry";
                     let action={type:"addTodo",load:todo}; 

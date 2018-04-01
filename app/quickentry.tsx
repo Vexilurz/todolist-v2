@@ -70,7 +70,7 @@ import { arrayMove } from './utils/arrayMove';
 import { Checklist } from './Components/TodoInput/TodoChecklist';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { isString, isDate, isProject, isArea, isToday } from './utils/isSomething';
-import { byNotDeleted, byNotCompleted, attachDispatchToProps, isNotEmpty } from './utils/utils';
+import { byNotDeleted, byNotCompleted, attachDispatchToProps, isNotEmpty, typeEquals } from './utils/utils';
 import { isDev } from './utils/isDev';
 import TextareaAutosize from 'react-autosize-textarea';
 import { TodoTags } from './Components/TodoInput/TodoTags';
@@ -102,16 +102,7 @@ injectTapEventPlugin();
 
 
 
-const linkifyPlugin = createLinkifyPlugin({
-    component:(props) => {
-      const {contentState, ...rest} = props;
-      return <a {...rest} style={{cursor:"pointer"}} onClick={() => shell.openExternal(rest.href)}/>
-    }
-});
-
-
-
-window.onerror = function (msg, url, lineNo, columnNo, error) {
+window.onerror = function (msg, url, lineNo, columnNo, error){
     let string = msg.toLowerCase();
     var message = [ 
         'Message: ' + msg,
@@ -127,45 +118,67 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 
 
 
-ipcRenderer.once( 
-    'loaded',     
-    (event, id:number) => {   
-        let app=document.createElement('div'); 
-        app.style.width=`${window.innerWidth}px`; 
-        app.style.height=`${window.innerHeight}px`;
-        app.id='application';      
-        document.body.appendChild(app);
-        
-        
-
-        getConfig()
-        .then( 
-            compose(
-                el => ReactDOM.render(el,app),  
-                wrapMuiThemeLight,
-                config => {
-                    let store = createStore(
-                        (state, action) => when(
-                            () => action.type==="data",
-                            (state) => ({...state,...action.load})
-                        )(state),  
-                        {
-                            config,
-                            projects:[], 
-                            areas:[], 
-                            defaultTags:prop('defaultTags',config),
-                            indicators:{},
-                            todos:[],
-                            dispatch:null
-                        }
-                    );   
-                
-                    return <Provider store={store}><QuickEntry {...{} as any}/></Provider>
-                }
-            ) as (value: any) => any   
-        );
+const linkifyPlugin = createLinkifyPlugin({
+    component:(props) => {
+      const {contentState, ...rest} = props;
+      return <a {...rest} style={{cursor:"pointer"}} onClick={() => shell.openExternal(rest.href)}/>
     }
-);   
+});
+
+
+
+let reducer = (state:QuickEntryProps, action) => cond([
+    [
+        typeEquals("data"), 
+        (action:{type:string,load:any}) : QuickEntryProps => ({...state,...action.load})
+    ],
+    [
+        typeEquals("config"), 
+        (action:{type:string,load:Config}) : QuickEntryProps => ({
+            ...state,
+            config:action.load,
+            defaultTags:prop('defaultTags',action.load)
+        })
+    ],
+    [
+        () => true, 
+        () : QuickEntryProps => ({...state})
+    ]
+])(action);
+
+
+
+let initQuickEntry = (event) => {   
+    let app=document.createElement('div'); 
+    app.style.width=`${window.innerWidth}px`; 
+    app.style.height=`${window.innerHeight}px`;
+    app.id='application';      
+    document.body.appendChild(app);
+    
+
+    getConfig()
+    .then( 
+        compose(
+            el => ReactDOM.render(el,app),  
+            wrapMuiThemeLight,
+            store => <Provider store={store}><QuickEntry {...{} as any}/></Provider>,
+            (initialState:QuickEntryProps) => createStore(reducer,initialState),
+            (config:Config) : QuickEntryProps => ({
+                config, 
+                projects:[], 
+                todos:[],
+                areas:[], 
+                defaultTags:prop('defaultTags',config),
+                indicators:{},
+                dispatch:null
+            })
+        )
+    );
+};
+ 
+
+
+ipcRenderer.once('loaded', initQuickEntry);   
 
 
 
@@ -193,6 +206,7 @@ interface QuickEntryProps{
     config:Config,
     projects:Project[],
     areas:Area[],
+    todos:Todo[],
     indicators : { 
         [key:string]:{
             active:number,
@@ -206,10 +220,7 @@ interface QuickEntryProps{
 
 
 
-@connect(
-    (store:QuickEntryProps,props) : QuickEntryProps => ({...store}), 
-    attachDispatchToProps
-)  
+@connect((store:QuickEntryProps,props) : QuickEntryProps => ({...store}), attachDispatchToProps)  
 class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
     calendar:HTMLElement; 
     deadline:HTMLElement;
@@ -220,9 +231,10 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
     constructor(props){
         super(props); 
+
         this.subscriptions=[];
-        let {config} = this.props;
-        let partialState = this.stateFromConfig(config);
+
+        let partialState = this.stateFromConfig(this.props.config);
 
         this.state={    
             project:null,
@@ -246,7 +258,19 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
 
-    stateFromConfig = (config) => { 
+    resize = () => {
+        let target = document.getElementById('application');
+        let checklist = document.getElementById('checklist');
+        
+        target.style.width=`${window.innerWidth}px`; 
+        target.style.height=`${window.innerHeight}px`;
+
+        checklist.style.height=`${window.innerHeight/2}px`;
+    };
+
+
+
+    stateFromConfig = (config:Config) : QuickEntryState => { 
         let { quickEntrySavesTo, defaultTags } = config;
         let category = isNil(quickEntrySavesTo) ? "inbox" : quickEntrySavesTo.toLowerCase();
 
@@ -269,15 +293,30 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
 
-    resize = () => {
-        let target = document.getElementById('application');
-        let checklist = document.getElementById('checklist');
-        
-        target.style.width=`${window.innerWidth}px`; 
-        target.style.height=`${window.innerHeight}px`;
+    setSmallSize = () : void => ipcRenderer.send('QEsetSmallSize');
 
-        checklist.style.height=`${window.innerHeight/2}px`;
-    };
+
+
+    setBigSize = (size:number) : void => ipcRenderer.send('QEsetBigSize',size);
+
+
+
+    componentWillReceiveProps(nextProps:QuickEntryProps){ 
+        if(this.props.config!==nextProps.config){
+           this.setState(this.stateFromConfig(nextProps.config)); 
+        }
+        
+        if(this.props.projects!==nextProps.projects){
+            if(isProject(this.state.project)){
+
+                let project = nextProps.projects.find(
+                    (project:Project) => project._id===this.state.project._id
+                );   
+     
+                if(isNil(project)){ this.setState({project:null}) }
+            }
+        }
+    };  
 
 
 
@@ -286,40 +325,38 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
         this.subscriptions.push(
             Observable
-            .fromEvent(window,"resize", (event) => event) 
-            .subscribe(this.resize),
+                .fromEvent(window,"resize", (event) => event) 
+                .subscribe(this.resize),
 
             Observable
-            .fromEvent(ipcRenderer,"focus", (event) => event) 
-            .subscribe((event) => this.inputRef ? this.inputRef.focus() : null),
+                .fromEvent(ipcRenderer,"focus", (event) => event) 
+                .subscribe((event) => this.inputRef ? this.inputRef.focus() : null),
 
             Observable
-            .fromEvent(ipcRenderer,"config", (event,config) => config) 
-            .subscribe(
-                compose( 
-                    (state) => this.setState(state), this.stateFromConfig 
-                ) as (value: any) => void
-            ),
+                .fromEvent(ipcRenderer,"config", (event,config) => config) 
+                .subscribe(
+                    (config:Config) => this.props.dispatch({type:"config",load:config})
+                ),
             
             Observable
-            .fromEvent(ipcRenderer, "data", (event,data) => data)
-            .subscribe(
-                compose(
-                    ({todos,projects,areas,indicators}) => this.props.dispatch({
-                        type:"data",    
-                        load:{  
-                            projects, 
-                            areas, 
-                            indicators,
-                            todos
-                        }
-                    }),
-                    evolve({
-                        projects:(projects) => projects.filter(allPass([byNotDeleted,byNotCompleted])),
-                        areas:(areas) => areas.filter(byNotDeleted)
-                    })
-                ) as (value: any) => void
-            )
+                .fromEvent(ipcRenderer, "data", (event,data) => data)
+                .subscribe(
+                    compose( 
+                        ({todos,projects,areas,indicators}) => this.props.dispatch({
+                            type:"data",    
+                            load:{  
+                                projects, 
+                                areas, 
+                                indicators,
+                                todos
+                            }
+                        }),
+                        evolve({
+                            projects:(projects) => projects.filter(allPass([byNotDeleted,byNotCompleted])),
+                            areas:(areas) => areas.filter(byNotDeleted)
+                        })
+                    ) as (value: any) => void
+                )
         );
     }
 
@@ -367,21 +404,12 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
 
-    setSmallSize = () : void => ipcRenderer.send('QEsetSmallSize');
-
-
-
-    setBigSize = (size:number) : void => ipcRenderer.send('QEsetBigSize',size);
-
-
- 
     addTodo = () => {
        let todo = this.todoFromState(); 
        let {project} = this.state;
-       let {config} = this.props;
 
        if(isNotEmpty(this.state.title)){
-          ipcRenderer.send("quick-entry",todo,project,config); 
+          ipcRenderer.send("quick-entry",todo,project); 
        } 
     };
     
@@ -411,7 +439,8 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             showTagsSelection:false, 
             showTags:false, 
             showChecklist:false,   
-            showDeadlineCalendar:false 
+            showDeadlineCalendar:false,
+            ...this.stateFromConfig(this.props.config) 
         };
         this.setState(newState);
     };
@@ -482,10 +511,12 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
  
         if(
             isDate(deadline) || 
-            isDate(attachedDate) ||
-            isProject(project)
+            isDate(attachedDate)
         ){
-            if(isToday(deadline) || isToday(attachedDate)){
+            if(
+               isToday(deadline) || 
+               isToday(attachedDate)
+            ){
                return "today"; 
             }else{ 
                return "next";
@@ -590,7 +621,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             display:"flex",
             flexDirection:"column",
             paddingTop:"25px", 
-            paddingLeft:"25px",
+            paddingLeft:"25px", 
             paddingRight:"5px"
         }}>  
             <div> 
@@ -631,12 +662,11 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             />
             </div>
                 <div 
-                ref={(e) => {this.checklist=e;}} 
-                className="scroll"
-                id="checklist"
-                style={{
-                    height:`${window.innerHeight/2.5}px`
-                }}>   
+                    ref={(e) => {this.checklist=e;}} 
+                    className="scroll"
+                    id="checklist"
+                    style={{height:`${window.innerHeight/2.5}px`}}
+                >   
                     {     
                         not(showChecklist) ? null :  
                         <div style={{position:"relative"}}>  
@@ -901,7 +931,7 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
                         cursor:"default"   
                     }}  
                 >  
-                    { selectButtonContent({category,project,attachedDate,deadline,indicators}) } 
+                    { selectButtonContent({project,attachedDate,deadline,indicators}) } 
                 </div> 
                 <div 
                     style={{
@@ -1677,7 +1707,7 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                     isNil(project) ? null :
                     project._id!==p._id ? null : 
                     <Checked style={{  
-                        color:"white",
+                        color:"black",
                         paddingRight:"5px",
                         paddingLeft:"5px",
                     }}/> 
@@ -1838,9 +1868,9 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
 
 
 
-let selectButtonContent = ({category, project, attachedDate, deadline, indicators}) => { 
+let selectButtonContent = ({project, attachedDate, deadline, indicators}) => { 
 
-    if(category==="inbox" && isNil(attachedDate) && isNil(project) && isNil(deadline)){
+    if(isNil(attachedDate) && isNil(project) && isNil(deadline)){
         return <div   
             style={{
                 cursor:"pointer",
@@ -1928,7 +1958,7 @@ let selectButtonContent = ({category, project, attachedDate, deadline, indicator
                 paddingLeft:"5px", 
                 WebkitUserSelect:"none"
             }}>  
-                Scheduled
+                Upcoming
             </div>
         </div>
     }
