@@ -44,6 +44,7 @@ import { generateAmounts } from './utils/generateAmounts';
 import { requestFromMain } from './utils/requestFromMain';
 import { refreshReminders } from './utils/reminderUtils';
 import { uppercase } from './utils/uppercase';
+import { getFilters } from './utils/getFilters';
 let pathTo = require('path'); 
 injectTapEventPlugin();  
 
@@ -188,7 +189,7 @@ export class App extends Component<AppProps,AppState>{
                 this.reportStart({...info, timeSeconds} as any);
             }
         );
-
+        
         requestFromMain<any>(
             'setWindowTitle',
             [`tasklist - ${uppercase(this.props.selectedCategory)}`, this.props.id],
@@ -198,7 +199,10 @@ export class App extends Component<AppProps,AppState>{
 
 
  
-    cloneWindow = () => ipcRenderer.send("store", {...this.props});
+    cloneWindow = () => {
+        ipcRenderer.send("store", {...this.props});
+        setTimeout(() => ipcRenderer.send('separateWindowsCount'), 100);
+    };
 
 
 
@@ -220,57 +224,6 @@ export class App extends Component<AppProps,AppState>{
         }
     ) 
     .catch(err => globalErrorHandler(err));
-
-
-
-    getFilters = (props:Store) => ({
-        inbox:[ 
-            (() => {
-                let ids = flatten( props.projects.map(p => p.layout.filter(isString)) );
-                return (t:Todo) => !contains(t._id)(ids); 
-            })(),
-            (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline), 
-            byCategory("inbox"), 
-            byNotCompleted,  
-            byNotDeleted   
-        ],
-        today:[    
-            (t:Todo) => isTodayOrPast(t.attachedDate) || isTodayOrPast(t.deadline), 
-            (t:Todo) => t.category!=="someday",
-            byNotCompleted,  
-            byNotDeleted   
-        ], 
-        hot:[
-            (todo:Todo) => isDeadlineTodayOrPast(todo.deadline),
-            (t:Todo) => t.category!=="someday",
-            byNotCompleted,  
-            byNotDeleted  
-        ],
-        next:[ 
-            (item : (Project | Todo)) : boolean => not( contains(item._id,introListIds) ),
-            (t:Todo) => isNil(t.attachedDate) && isNil(t.deadline),
-            (t:Todo) => t.category!=="inbox" && t.category!=="someday",  
-            byNotCompleted,   
-            byNotDeleted    
-        ],
-        upcoming:[
-            byScheduled,
-            (t:Todo) => t.category!=="someday",
-            byNotCompleted,  
-            byNotDeleted   
-        ],
-        someday:[
-            byCategory("someday"),
-            (todo:Todo) => isNil(todo.deadline) && isNil(todo.attachedDate),
-            byNotCompleted,   
-            byNotDeleted 
-        ],
-        logbook:[
-            byCompleted, 
-            byNotDeleted
-        ], 
-        trash:[byDeleted]
-    });
 
 
 
@@ -298,7 +251,7 @@ export class App extends Component<AppProps,AppState>{
             upcoming:((todo:Todo) => boolean)[],
             logbook:((todo:Todo) => boolean)[],
             trash:((todo:Todo) => boolean)[]
-        } = this.getFilters(props);
+        } = getFilters(props.projects);
 
         let indicators : { 
             [key:string]:{
@@ -394,11 +347,11 @@ export class App extends Component<AppProps,AppState>{
                     showRightClickMenu={this.props.showRightClickMenu}
                     showCalendarEvents={this.props.showCalendarEvents}
                     showTrashPopup={this.props.showTrashPopup}
-                    filters={this.getFilters(this.props)}
+                    filters={getFilters(this.props.projects)}
                     indicators={this.state.indicators}
                     calendars={filter(this.props.calendars, (calendar:Calendar) => calendar.active)}
                     projects={this.props.projects}
-                    areas={this.props.areas}
+                    areas={this.props.areas} 
                     todos={this.state.todos} 
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId}
@@ -472,10 +425,20 @@ let renderApp = (event, clonedStore:Store, id:number) : void => {
     let app=document.createElement('div'); 
     app.id='application';     
     document.body.appendChild(app);   
-
+    let isClonedWindow : boolean = isNotNil(clonedStore);
+    let isMainWindow : boolean = id===1;
     let defaultStore = {...defaultStoreItems};
 
-    if(isNotNil(clonedStore)){  
+
+    //handle window close event
+    window.onbeforeunload = ifElse(
+        () => isMainWindow,
+        () => { ipcRenderer.send('Mhide'); return false; },
+        () => { ipcRenderer.send('separateWindowsCount'); return undefined; }        
+    );
+
+
+    if(isClonedWindow){  
         let {todos,projects,areas,calendars,limit} = clonedStore;
 
         defaultStore={
@@ -487,7 +450,8 @@ let renderApp = (event, clonedStore:Store, id:number) : void => {
             areas:map(convertAreaDates, areas), 
             calendars:map( evolve({events:map(convertEventDate)}), calendars )
         };
-    }   
+    }    
+
 
     getConfig() 
     .then(

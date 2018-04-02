@@ -184,7 +184,15 @@ export class Listeners{
       initAutoUpdater(); 
  
       this.registeredListeners = [ 
-        //////Notification
+            {
+                name:'separateWindowsCount',
+                callback:(event) => { 
+                    let windows = BrowserWindow.getAllWindows();
+                    if(mainWindow){
+                       mainWindow.webContents.send('separateWindowsCount', windows.length);
+                    }
+                } 
+            }, 
             { 
                 name:"updateQuickEntryData",
                 callback:(event,data) => { 
@@ -229,6 +237,12 @@ export class Listeners{
                 }
             },
             {
+                name:'Mhide',
+                callback:(event) => {
+                    if(mainWindow){ mainWindow.hide(); }
+                }
+            },
+            {
                 name:'Nhide',
                 callback:(event) => {
                     let window = findWindowByTitle('Notification');
@@ -247,7 +261,6 @@ export class Listeners{
                     if(window){ move() }
                 }
             },
-        //////
             {
                 name:'getFilenames',
                 callback:(event,[dir]) => {

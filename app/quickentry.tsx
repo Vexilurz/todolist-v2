@@ -15,7 +15,6 @@ import Star from 'material-ui/svg-icons/toggle/star';
 import Circle from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 import CheckBoxEmpty from 'material-ui/svg-icons/toggle/check-box-outline-blank';
 import CheckBox from 'material-ui/svg-icons/toggle/check-box';  
-import BusinessCase from 'material-ui/svg-icons/content/archive';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import ThreeDots from 'material-ui/svg-icons/navigation/more-horiz';  
 import Adjustments from 'material-ui/svg-icons/image/tune';
@@ -41,8 +40,9 @@ import {
     compose, flatten, concat, prop, equals, evolve, allPass, 
     ifElse, merge  
 } from 'ramda';
-let moment = require("moment");
 import Popover from 'material-ui/Popover';
+import BusinessCase from 'material-ui/svg-icons/content/archive';
+import Layers from 'material-ui/svg-icons/maps/layers'; 
 import Alert from 'material-ui/svg-icons/alert/add-alert';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import Inbox from 'material-ui/svg-icons/content/inbox';
@@ -98,6 +98,8 @@ import { RawDraftContentState, Todo, ChecklistItem, Project, Area, Category, Con
 import { groupProjectsByArea } from './Components/Area/groupProjectsByArea';
 import { generateLayout } from './Components/Area/generateLayout';
 import { App } from './app';
+import { getFilters } from './utils/getFilters';
+let moment = require("moment");
 injectTapEventPlugin();  
 
 
@@ -308,12 +310,11 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
         
         if(this.props.projects!==nextProps.projects){
             if(isProject(this.state.project)){
-
-                let project = nextProps.projects.find(
-                    (project:Project) => project._id===this.state.project._id
-                );   
+                let project = nextProps.projects.find(p => p._id===this.state.project._id);   
      
-                if(isNil(project)){ this.setState({project:null}) }
+                if(isNil(project)){ 
+                   this.setState({...this.stateFromConfig(nextProps.config), project:null}); 
+                }
             }
         }
     };  
@@ -440,6 +441,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             showTags:false, 
             showChecklist:false,   
             showDeadlineCalendar:false,
+            project:null, 
             ...this.stateFromConfig(this.props.config) 
         };
         this.setState(newState);
@@ -847,6 +849,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                         showDeadlineCalendar:false
                     })}
                     onSelectProject={(project) => this.setState({project,category:'next'})}
+                    todoFromState={this.todoFromState()}
                 /> 
             </div> 
     </div>  
@@ -878,7 +881,8 @@ interface TodoInputPopupFooterProps{
     deadline:Date,
     project:Project,
     areas:Area[],
-    projects:Project[]
+    projects:Project[],
+    todoFromState:Todo
 }
 
 
@@ -908,7 +912,8 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
             attachedDate,
             deadline,
             indicators,
-            project
+            project,
+            todoFromState
         } = this.props;
 
         return <div style={{
@@ -918,22 +923,22 @@ class TodoInputPopupFooter extends Component<TodoInputPopupFooterProps,TodoInput
             justifyContent:"space-between",
             width:"100%"
         }}>     
-                 <div 
-                    ref = {e => {this.ref=e;}}
-                    onClick={() => this.setState({selectorPopupOpened:true})}
-                    style={{
-                        display:"flex",
-                        alignItems:"center",
-                        justifyContent:"flex-start",
-                        fontSize:"14px",
-                        fontWeight:"bold",
-                        color:"rgba(100,100,100,1)",
-                        cursor:"default"   
-                    }}  
-                >  
-                    { selectButtonContent({project,attachedDate,deadline,indicators}) } 
-                </div> 
-                <div 
+            <div 
+                ref = {e => {this.ref=e;}}
+                onClick={() => this.setState({selectorPopupOpened:true})}
+                style={{
+                    display:"flex",
+                    alignItems:"center",
+                    justifyContent:"flex-start",
+                    fontSize:"14px",
+                    fontWeight:"bold",
+                    color:"rgba(100,100,100,1)",
+                    cursor:"default"   
+                }}   
+            >  
+                { selectButtonContent(project,indicators,todoFromState) } 
+            </div> 
+                <div  
                     style={{
                         display:"flex", 
                         alignItems:"center",
@@ -1868,9 +1873,22 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
 
 
 
-let selectButtonContent = ({project, attachedDate, deadline, indicators}) => { 
+let selectButtonContent = (
+    project:Project, 
+    indicators:{ 
+        [key:string]:{
+            active:number,
+            completed:number,
+            deleted:number
+        }; 
+    },
+    todo:Todo
+) : JSX.Element => { 
 
-    if(isNil(attachedDate) && isNil(project) && isNil(deadline)){
+    let {inbox,today,hot,next,someday,upcoming} = getFilters([]);
+
+    if(allPass(inbox)(todo) && isNil(project)){
+
         return <div   
             style={{
                 cursor:"pointer",
@@ -1886,7 +1904,92 @@ let selectButtonContent = ({project, attachedDate, deadline, indicators}) => {
             </div> 
         </div>
 
+    }else if(allPass(next)(todo) && isNil(project)){
+
+        return <div  
+            style={{
+                cursor:"pointer",
+                display:"flex",
+                paddingLeft:"15px", 
+                height:"25px", 
+                alignItems:"center"
+            }}
+        >
+            <Layers
+                style={{
+                    width:"18px",
+                    height:"18px",
+                    color:"rgba(100,100,100,1)", 
+                    cursor:"default"
+                }}  
+            />
+            <div style={{ 
+                paddingRight:"5px", 
+                paddingLeft:"5px", 
+                WebkitUserSelect:"none"
+            }}>  
+                Next
+            </div>
+        </div>
+
+    }else if(allPass(someday)(todo) && isNil(project)){
+
+        return <div  
+            style={{
+                cursor:"pointer",
+                display:"flex",
+                paddingLeft:"15px", 
+                height:"25px", 
+                alignItems:"center"
+            }}
+        >
+            <BusinessCase
+                style={{
+                    width:"18px",
+                    height:"18px",
+                    color:"rgba(100,100,100,1)", 
+                    cursor:"default"
+                }}  
+            />
+            <div style={{paddingRight:"5px", paddingLeft:"5px", WebkitUserSelect:"none"}}>  
+                Someday
+            </div>
+        </div>
+
+    }else if(
+        (
+            allPass(today)(todo) || 
+            allPass(hot)(todo) || 
+            allPass(upcoming)(todo)
+        )
+        &&
+        isNil(project)
+    ){
+
+        return <div  
+            style={{
+                cursor:"pointer",
+                display:"flex",
+                paddingLeft:"15px", 
+                height:"25px", 
+                alignItems:"center"
+            }}
+        >
+            <CalendarIco 
+                style={{
+                    width:"18px",
+                    height:"18px",
+                    color:"rgba(100,100,100,1)", 
+                    cursor:"default"
+                }}  
+            />
+            <div style={{paddingRight:"5px",paddingLeft:"5px",WebkitUserSelect:"none"}}>  
+                Upcoming
+            </div>
+        </div>
+
     }else if(isProject(project)){ 
+
         let indicator = defaultTo({completed:0, active:0})(indicators[project._id]);
         let done = indicator.completed;
         let left = indicator.active;
@@ -1935,31 +2038,8 @@ let selectButtonContent = ({project, attachedDate, deadline, indicators}) => {
                 {isEmpty(project.name) ? "New Project" : stringToLength(project.name,10)}    
             </div>    
         </div>  
+
     }else{
-        return <div  
-            style={{
-                cursor:"pointer",
-                display:"flex",
-                paddingLeft:"15px", 
-                height:"25px", 
-                alignItems:"center"
-            }}
-        >
-            <CalendarIco 
-                style={{
-                    width:"18px",
-                    height:"18px",
-                    color:"rgba(100,100,100,1)", 
-                    cursor:"default"
-                }}  
-            />
-            <div style={{ 
-                paddingRight:"5px", 
-                paddingLeft:"5px", 
-                WebkitUserSelect:"none"
-            }}>  
-                Upcoming
-            </div>
-        </div>
+        return null;
     }
 };

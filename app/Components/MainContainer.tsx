@@ -117,20 +117,28 @@ interface MainContainerProps{
 } 
 
 
-interface MainContainerState{ fullWindowSize:boolean }
+interface MainContainerState{ 
+    fullWindowSize:boolean,
+    separateWindowsCount:number  
+}
   
  
 export class MainContainer extends Component<MainContainerProps,MainContainerState>{
     rootRef:HTMLElement;  
     subscriptions:Subscription[]; 
     timeouts:any[];
+    maxSepWindows:number;
     disablePrintButton:boolean;
 
     constructor(props){ 
         super(props);  
         this.subscriptions = [];
-        this.disablePrintButton=false;
-        this.state = { fullWindowSize:true };
+        this.disablePrintButton = false;
+        this.maxSepWindows = 6;
+        this.state = { 
+            fullWindowSize:true,
+            separateWindowsCount:0 
+        };
     };  
 
 
@@ -197,8 +205,8 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         }
 
         when(
-          isNotEmpty, 
-          () => updateConfig({hideHint:true}).then( config => actions.push({type:"updateConfig",load:config}) ) 
+           isNotEmpty, 
+           () => updateConfig({hideHint:true}).then( config => actions.push({type:"updateConfig",load:config}) ) 
         )(calendars); 
  
         this.props.dispatch({type:"multiple",load:actions}); 
@@ -264,8 +272,18 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                         load => dispatch({type:"updateCalendars",load})
                     )
                 ), 
+                
 
+            Observable 
+                .fromEvent(ipcRenderer, 'separateWindowsCount', (event,count) => count) 
+                .subscribe(
+                    (separateWindowsCount:number) => this.setState(
+                        {separateWindowsCount}, 
+                        () => console.log('separateWindowsCount',this.state.separateWindowsCount)
+                    )
+                ), 
 
+  
             Observable
                 .fromEvent(window,"resize")
                 .debounceTime(100) 
@@ -290,23 +308,23 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
 
             Observable 
-            .fromEvent(ipcRenderer, 'removeReminders', (event,todos) => todos) 
-            .subscribe((items:Todo[]) => {
-                let ids : string[] = items.filter(isNotNil).map((t:Todo) => t._id);
+                .fromEvent(ipcRenderer, 'removeReminders', (event,todos) => todos) 
+                .subscribe((items:Todo[]) => {
+                    let ids : string[] = items.filter(isNotNil).map((t:Todo) => t._id);
 
-                if(isDev()){ 
-                   items.forEach( todo => console.log(`3) erase ${todo ? todo.title : todo}`) ) 
-                }
+                    if(isDev()){ 
+                    items.forEach( todo => console.log(`3) erase ${todo ? todo.title : todo}`) ) 
+                    }
 
-                let load = ids.map( 
-                    id => ({ 
-                        type:"updateTodoById", 
-                        load:{id,props:{reminder:null}}
-                    })
-                );
-                    
-                if(isNotEmpty(load)){ dispatch({type:"multiple",load}); }
-            }),     
+                    let load = ids.map( 
+                        id => ({ 
+                            type:"updateTodoById", 
+                            load:{id,props:{reminder:null}}
+                        })
+                    );
+                        
+                    if(isNotEmpty(load)){ dispatch({type:"multiple",load}); }
+                }),     
              
 
             Observable
@@ -486,16 +504,18 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             > 
                                 <Print />   
                             </IconButton>   
-                        }
+                        } 
+                        
                         {     
                             this.props.clone ? null :
                             <IconButton    
                                 iconStyle={{color:"rgba(100,100,100,0.6)",width:"18px",height:"18px"}}
                                 onClick={this.props.cloneWindow}   
+                                disabled={this.state.separateWindowsCount>this.maxSepWindows}
                             >     
                                 <OverlappingWindows />
                             </IconButton> 
-                        } 
+                        }  
                     </div>   
                 </div>  
                 <div style={{paddingLeft:"60px", paddingRight:"60px", paddingBottom:"140px", paddingTop:"10px"}}>

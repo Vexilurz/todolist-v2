@@ -1,39 +1,62 @@
 import path = require("path");
 import {BrowserWindow,Menu} from 'electron';  
+import { mainWindow } from "./main";
 
 export let initWindow = (
     {width,height}:{width:number,height:number},
     options={},
     onReady=(handler) => handler.show()
-):BrowserWindow => {       
+): BrowserWindow => {       
     Menu.setApplicationMenu(null);
         
     let icon = path.resolve(__dirname,'icon.ico');
     let handler = new BrowserWindow({
-            icon,
-            width,         
-            height,   
-            title:'Tasklist',      
-            center:true,
-            frame:true, 
-            ...options
-    });       
+        icon,
+        width,         
+        height,   
+        title:'Tasklist',      
+        center:true,
+        frame:true, 
+        ...options
+    }) as any;       
     
     handler.on('ready-to-show',() => onReady(handler));
+    
+    handler.on('will-prevent-unload', (event) => { event.preventDefault() });
 
+    /*
     handler.on(
         'close', 
         (event) => {
-            event.preventDefault(); 
+            console.log(`callback ${handler.id}`)
+            
+            //hide if main window
             if(handler.id===1){ 
-               handler.hide(); 
+                console.log(`hide ${handler.id}`)
+                event.preventDefault(); 
+                handler.hide(); 
             }else{ 
-               handler.close(); 
-            }  
-        }
-    );
+                console.log(`close ${handler.id}`)
+                
+                //if separate window - close, update windows counter in main window 
+                handler.close(); 
 
-    handler.on('closed', () => {handler = null;}); 
+                //update counter
+                mainWindow.webContents.send(
+                    'separateWindowsCount', 
+                    BrowserWindow.getAllWindows().filter(w => !w.isDestroyed()).length
+                );
+            }  
+        } 
+    );
+    */
+
+    handler.on(
+        'closed', 
+        () => {
+            handler = null;
+        }
+    ); 
 
     return handler; 
 };         
@@ -41,7 +64,6 @@ export let initWindow = (
 
 export let initQuickEntry = ({width,height}:{width:number,height:number}) : BrowserWindow => { 
     Menu.setApplicationMenu(null);   
-
     let icon = path.resolve(__dirname,'icon.ico');
     let handler = new BrowserWindow({   
         width,          
