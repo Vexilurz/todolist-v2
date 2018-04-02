@@ -24,8 +24,8 @@ import { SortableContainer } from '../CustomSortableContainer';
 import { isDev } from '../../utils/isDev';
 import { groupProjectsByArea } from './groupProjectsByArea';
 import { generateLayout } from './generateLayout';
-import { requestFromMain } from '../../utils/requestFromMain';
 import { uppercase } from '../../utils/uppercase';
+import { ipcRenderer } from 'electron';
 const mapIndexed = addIndex(map);
 const isSeparator = (item) => item.type==="separator"; 
 
@@ -109,53 +109,51 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 
  
-    selectArea = (area:Area) : Promise<void> => {
+    selectArea = (area:Area) : void => {
         let {hideContentFromAreasList,name} = area; 
 
         if(hideContentFromAreasList){
            this.onCollapseContent(area);
         }
  
-
-        return requestFromMain<any>(
-            'setWindowTitle',
-            [`tasklist - ${uppercase(isEmpty(name) ? 'New Area' : name)}`, this.props.id],
-            (event) => event
-        )
-        .then(
-            () => this.props.dispatch({
-                type:"multiple",
-                load:[
-                    {type:"selectedAreaId",load:area._id}, 
-                    {type:"showProjectMenuPopover",load:false}, 
-                    {type:"selectedCategory",load:"area"},
-                    {type:"selectedTag",load:"All"},
-                    {type:"searchQuery",load:""}
-                ]
-            })
-        ); 
+        ipcRenderer.send(
+            'setWindowTitle', 
+            `tasklist - ${uppercase(isEmpty(name) ? 'New Area' : name)}`, 
+            this.props.id
+        );
+        
+        this.props.dispatch({
+            type:"multiple",
+            load:[
+                {type:"selectedAreaId",load:area._id}, 
+                {type:"showProjectMenuPopover",load:false}, 
+                {type:"selectedCategory",load:"area"},
+                {type:"selectedTag",load:"All"},
+                {type:"searchQuery",load:""}
+            ]
+        })
     };
  
 
 
-    selectProject = (p:Project) : Promise<void> => 
-        requestFromMain<any>(
-            'setWindowTitle',
-            [`tasklist - ${uppercase( isEmpty(p.name) ? 'New Project' : p.name )}`,  this.props.id],
-            (event) => event
-        )
-        .then(
-            () => this.props.dispatch({
-                type:"multiple",
-                load:[
-                    {type:"selectedProjectId",load:p._id},
-                    {type:"showProjectMenuPopover",load:false}, 
-                    {type:"selectedCategory",load:"project"},
-                    {type:"selectedTag",load:"All"},
-                    {type:"searchQuery",load:""}
-                ]
-            })
+    selectProject = (p:Project) : void => {
+        ipcRenderer.send(
+            'setWindowTitle',  
+            `tasklist - ${uppercase( isEmpty(p.name) ? 'New Project' : p.name )}`, 
+            this.props.id
         );
+
+        this.props.dispatch({
+            type:"multiple",
+            load:[
+                {type:"selectedProjectId",load:p._id},
+                {type:"showProjectMenuPopover",load:false}, 
+                {type:"selectedCategory",load:"project"},
+                {type:"selectedTag",load:"All"},
+                {type:"searchQuery",load:""}
+            ]
+        })
+    };
     
 
 

@@ -10,10 +10,11 @@ import { isDev } from './utils/isDev';
 import { ipcRenderer } from 'electron';
 import { 
     removeDeletedProjects, removeDeletedAreas, removeDeletedTodos, byNotDeleted, 
-    typeEquals, byNotCompleted, convertTodoDates, differentBy 
+    typeEquals, byNotCompleted, convertTodoDates, differentBy, compareByDate, isNotEmpty 
 } from './utils/utils';
 import { 
-    adjust, cond, all, isEmpty, contains, not, remove, uniq, assoc, 
+    adjust, cond, all, isEmpty, contains, not, 
+    remove, uniq, assoc, reverse, findIndex, splitAt, last, assocPath,
     isNil, and, complement, compose, reject, concat, map, when, find,
     prop, ifElse, identity, path, equals, allPass, evolve, pick, defaultTo  
 } from 'ramda'; 
@@ -25,9 +26,16 @@ import {
     isArrayOfProjects, isArrayOfAreas, isDate, isNumber 
 } from './utils/isSomething';
 import { setCallTimeout } from './utils/setCallTimeout';
-import { requestFromMain } from './utils/requestFromMain';
 import diff from 'deep-diff';
 import { moveReminderFromPast } from './utils/getData';
+
+
+
+let getDate = (todo:Todo) => todo.attachedDate;
+
+
+
+let compareByAttachedDate = compareByDate(getDate);
 
 
 
@@ -75,6 +83,59 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
         },  
         cond([ 
             [
+                typeEquals("removeGroupAfterDate"),
+                (action:{type:string, load:Todo}) : Store => {
+                    let todo : Todo = action.load;
+                    let group = prop('group', todo);
+
+                    
+                    if(isNil(group) || isNil(todo) || !isDate(todo.attachedDate)){ return }
+
+ 
+                    let [todosToUpdate, todosToRemove] : Todo[][] = compose(
+                        log('todosToUpdate & todosToRemove'),
+                        (todos:Todo[]) => compose( 
+                            (idx:number) => splitAt(idx)(todos), 
+                            findIndex((t:Todo) => t._id===todo._id) 
+                        )(todos), 
+                        reverse, //from past -> to future
+                        (todos:Todo[]) => todos.sort( compareByAttachedDate ), 
+                        (id:string) => filter( state.todos, (todo:Todo) => path(['group','_id'], todo)===id ),
+                        prop('_id')
+                    )(group);
+
+
+                    let todosToRemoveIds = todosToRemove.map((t:Todo) => t._id);
+                    let todosToUpdateIds = todosToUpdate.map((t:Todo) => t._id);
+ 
+
+                    let todos : Todo[] = compose(
+                        when(
+                            () => path(['group','options','selectedOption'], todo) !== 'after',
+                            map(
+                                when(
+                                    (t:Todo) => contains(t._id)(todosToUpdateIds), 
+                                    compose(
+                                        log('updated'),
+                                        assocPath(['group', 'options', 'until'], todo.attachedDate),
+                                        assocPath(['group', 'options', 'selectedOption'], 'on'),
+                                        assocPath(['group', 'type'], 'on')
+                                    )
+                                )
+                            ) 
+                        ),
+                        reject((t:Todo) => contains(t._id)(todosToRemoveIds))
+                    )(state.todos);
+
+                    if(shouldAffectDatabase){ 
+                       removeTodos(todosToRemove,onError); 
+                    } 
+
+                    return ({...state,todos});
+                }
+            ],
+
+            [ 
                 typeEquals("moveReminderFromPast"),
                 (action:{type:string, load:any}) : Store => ({
                     ...state,
@@ -314,7 +375,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     };
                 }
             ],
-
+ 
             [  
                 typeEquals("removeGroup"), 
 

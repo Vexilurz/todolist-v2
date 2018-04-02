@@ -4,7 +4,6 @@ import {
     flatten, reject, all, concat, identity                 
 } from 'ramda';
 import { isString, isDate, isNumber, isNotNil } from './isSomething';
-import { requestFromMain } from './requestFromMain';
 import { assert } from './assert';
 import { setCallTimeout } from './setCallTimeout';
 import { filter } from 'lodash';

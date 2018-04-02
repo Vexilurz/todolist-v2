@@ -277,10 +277,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             Observable 
                 .fromEvent(ipcRenderer, 'separateWindowsCount', (event,count) => count) 
                 .subscribe(
-                    (separateWindowsCount:number) => this.setState(
-                        {separateWindowsCount}, 
-                        () => console.log('separateWindowsCount',this.state.separateWindowsCount)
-                    )
+                    (separateWindowsCount:number) => this.setState({separateWindowsCount})
                 ), 
 
   
@@ -313,7 +310,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                     let ids : string[] = items.filter(isNotNil).map((t:Todo) => t._id);
 
                     if(isDev()){ 
-                    items.forEach( todo => console.log(`3) erase ${todo ? todo.title : todo}`) ) 
+                       items.forEach( todo => console.log(`3) erase ${todo ? todo.title : todo}`) ) 
                     }
 
                     let load = ids.map( 
@@ -441,7 +438,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                this.rootRef.scrollTop=0;  
             } 
         }
-
     }; 
 
     

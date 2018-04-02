@@ -122,7 +122,6 @@ export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
                     let start = defaultTo(new Date())(todo.attachedDate);
                     let todos = repeat(options, todo, start, limit, group._id);
 
-
                     if(isDev()){
                         let withStart = [...todos.map(t => t.attachedDate), start];
                         let by = uniqBy(d => d.toString(), withStart);
@@ -137,7 +136,6 @@ export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
                         ); 
                     }
 
-                    
                     return todos; 
                 },   
                (todos) => todos[0],

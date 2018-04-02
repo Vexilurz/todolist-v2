@@ -41,7 +41,6 @@ import { SettingsPopup } from './Components/settings/SettingsPopup';
 import { LicensePopup } from './Components/settings/LicensePopup';
 import { generateIndicators } from './utils/generateIndicators';
 import { generateAmounts } from './utils/generateAmounts';
-import { requestFromMain } from './utils/requestFromMain';
 import { refreshReminders } from './utils/reminderUtils';
 import { uppercase } from './utils/uppercase';
 import { getFilters } from './utils/getFilters';
@@ -189,12 +188,18 @@ export class App extends Component<AppProps,AppState>{
                 this.reportStart({...info, timeSeconds} as any);
             }
         );
-        
-        requestFromMain<any>(
-            'setWindowTitle',
-            [`tasklist - ${uppercase(this.props.selectedCategory)}`, this.props.id],
-            (event) => event
-        ); 
+
+        ipcRenderer.send(
+            'setWindowTitle', 
+            `tasklist - ${uppercase(this.props.selectedCategory)}`, 
+            this.props.id
+        );
+
+        if(isDev()){
+           //setTimeout(() => ipcRenderer.send("reloadMainWindow"), 1000*60);
+           setTimeout(() => ipcRenderer.send("reloadQuickEntry"),  1000*30);
+           //setTimeout(() => ipcRenderer.send("reloadNotification"),  1000*60);
+        }
     };
 
 
@@ -253,6 +258,7 @@ export class App extends Component<AppProps,AppState>{
             trash:((todo:Todo) => boolean)[]
         } = getFilters(props.projects);
 
+
         let indicators : { 
             [key:string]:{
                 active:number,
@@ -263,6 +269,7 @@ export class App extends Component<AppProps,AppState>{
             props.projects,
             props.todos
         );
+
 
         let amounts : { 
             inbox:number,
@@ -431,13 +438,15 @@ let renderApp = (event, clonedStore:Store, id:number) : void => {
 
 
     //handle window close event
-    window.onbeforeunload = ifElse(
-        () => isMainWindow,
-        () => { ipcRenderer.send('Mhide'); return false; },
-        () => { ipcRenderer.send('separateWindowsCount'); return undefined; }        
-    );
+    window.onbeforeunload = () => {
+        if(isMainWindow){
+            ipcRenderer.send('Mhide'); return false; 
+        }else{
+            ipcRenderer.send('separateWindowsCount'); return undefined;
+        }
+    };
 
-
+    
     if(isClonedWindow){  
         let {todos,projects,areas,calendars,limit} = clonedStore;
 
@@ -463,10 +472,11 @@ let renderApp = (event, clonedStore:Store, id:number) : void => {
                 nextUpdateCheck:initDate(nextUpdateCheck),
                 id
             };
+
             let store = createStore(applicationReducer,data);
 
             if(isDev()){
-                assert(isDate(data.nextUpdateCheck),`nextUpdateCheck is not of type Date`);
+               assert(isDate(data.nextUpdateCheck),`nextUpdateCheck is not of type Date`);
             }
 
             ReactDOM.render(   

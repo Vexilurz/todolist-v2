@@ -1,9 +1,9 @@
 import { isDev } from './../utils/isDev';
 import { 
     mainWindow, getClonedWindows, initAutoLaunch, toggleShortcut, 
-    findWindowByTitle, getConfig, updateConfig, clearStorage 
+    getConfig, updateConfig, clearStorage, quickEntry, notification 
 } from './main';
-import { loadApp } from './loadApp'; 
+import { loadApp, loadQuickEntry, loadNotification } from './loadApp'; 
 import { ipcMain,app,BrowserWindow,screen,dialog } from 'electron';
 import { initWindow } from './initWindow';
 import { isEmpty, when, isNil, prop, path, compose, defaultTo, find } from 'ramda';
@@ -18,7 +18,10 @@ const os = require('os');
 let move = () : Promise<void> => new Promise(
     resolve => {
         let {finalX,finalY} = getFinalNotificationPosition();
-        const window = findWindowByTitle('Notification');
+        const window = notification;
+
+        if(isNil(window)){ resolve(); }
+
         let currentPosition = window.getPosition();
         let [x,y] = currentPosition;
         let delta = 20;
@@ -35,7 +38,8 @@ let move = () : Promise<void> => new Promise(
 
 
 let getFinalNotificationPosition = () : {finalX:number,finalY:number} => {
-    const window = findWindowByTitle('Notification');
+    const window = notification;
+    if(isNil(window)){ return {finalX:0,finalY:0}; }
     const {width,height} = screen.getPrimaryDisplay().workAreaSize;
     const size = window.getSize();
     const offset = 25;
@@ -46,7 +50,9 @@ let getFinalNotificationPosition = () : {finalX:number,finalY:number} => {
 
 
 let getInitialNotificationPosition = () : {initialX:number,initialY:number} => {
-    const window = findWindowByTitle('Notification');
+    const window = notification;
+    if(isNil(window)){ return {initialX:0,initialY:0}; }
+
     const {width,height} = screen.getPrimaryDisplay().workAreaSize;
     const size = window.getSize();
     const offset = 25; 
@@ -184,6 +190,40 @@ export class Listeners{
       initAutoUpdater(); 
  
       this.registeredListeners = [ 
+            {  
+                name:"reloadMainWindow", 
+                callback : () => isNil(mainWindow) ? null :
+                loadApp(mainWindow)
+                .then(() => {    
+                    mainWindow.webContents.send("loaded",null,mainWindow.id);
+
+                    mainWindow.focus(); 
+
+                    if(isDev()){ 
+                       mainWindow.webContents.openDevTools(); 
+                    }  
+                }) 
+            },
+            {  
+                name:"reloadQuickEntry", 
+                callback : () => isNil(quickEntry) ? null :
+                loadQuickEntry(quickEntry)
+                .then(() => {
+                    quickEntry.webContents.send("loaded"); 
+
+                    if(isDev()){ 
+                       quickEntry.webContents.openDevTools(); 
+                    } 
+                })  
+            },
+            {  
+                name:"reloadNotification", 
+                callback : () => isNil(notification) ? null :  
+                loadNotification(notification) 
+                .then(
+                    () => notification.webContents.send("loaded")
+                )
+            },
             {
                 name:'separateWindowsCount',
                 callback:(event) => { 
@@ -193,72 +233,48 @@ export class Listeners{
                     }
                 } 
             }, 
+
+
+
             { 
                 name:"updateQuickEntryData",
-                callback:(event,data) => { 
-                    let window = findWindowByTitle('Add task');
-                    if(window){
-                       window.webContents.send('data',data);
-                    } 
-                }
+                callback:(event,data) => quickEntry ? quickEntry.webContents.send('data',data) : null
             },
             { 
                 name:"remind",
-                callback:(event,todo) => {
-                    let notification : any = findWindowByTitle('Notification');
-
-                    if(notification){ 
-                       notification.webContents.send("remind",todo); 
-                    }
-                } 
+                callback:(event,todo) => notification ? notification.webContents.send("remind", todo) : null
             }, 
             { 
                 name:"receive",
-                callback:(event,todo) => {
-                    if(mainWindow){
-                       mainWindow.webContents.send("receive", todo); 
-                    }
-                } 
+                callback:(event,todo) => mainWindow ? mainWindow.webContents.send("receive", todo) : null
             },
             {
                 name:'openTodoInApp',
-                callback:(event,todo) => {
-                    if(mainWindow && isNotNil(todo)){
-                       mainWindow.webContents.send('openTodo',todo);
-                    }
-                }
+                callback:(event,todo) => mainWindow && isNotNil(todo) ? mainWindow.webContents.send('openTodo',todo) : null
             },
             {
                 name:'NremoveReminders',
-                callback:(event,todos) => {
-                    if(mainWindow){
-                       mainWindow.webContents.send('removeReminders', todos); 
-                    }
-                }
+                callback:(event,todos) => mainWindow ? mainWindow.webContents.send('removeReminders',todos) : null
             },
             {
                 name:'Mhide',
-                callback:(event) => {
-                    if(mainWindow){ mainWindow.hide(); }
-                }
+                callback:(event) => mainWindow ? mainWindow.hide() : null
             },
             {
                 name:'Nhide',
-                callback:(event) => {
-                    let window = findWindowByTitle('Notification');
-                    if(window){ window.hide(); }
-                }
+                callback:(event) => notification ? notification.hide() : null 
             },
             {
                 name:'Nmove',
                 callback:(event) => {
-                    let window = findWindowByTitle('Notification');
+                    let window = notification;
+                    if(isNil(window)){ return; }
+
                     let {initialX,initialY} = getInitialNotificationPosition();
 
                     window.setPosition(initialX, initialY);
                     window.show();
-
-                    if(window){ move() }
+                    move();
                 }
             },
             {
@@ -281,37 +297,24 @@ export class Listeners{
             },
             {
                 name:'setWindowTitle',
-                callback:(event,[title,id]) => {
+                callback:(event,title,id) => {
                     let windows = BrowserWindow.getAllWindows();
                     let window = compose(defaultTo(mainWindow),find((w) => w.id===id))(windows);
-                    if(window){
-                       window.setTitle(title);
-                    }
-                    event.sender.send('setWindowTitle');
+                    if(window){ window.setTitle(title); }
                 }
-            },
+            }, 
             {
                 name:'QEblur',
-                callback:(event) => {
-                    let window = findWindowByTitle('Add task');
-                    if(window){
-                       window.blur();
-                    }
-                }
+                callback:(event) => quickEntry ? quickEntry.blur() : null
             },
             {
                 name:'QEhide',
-                callback:(event) => {
-                    let window = findWindowByTitle('Add task');
-                    if(window){
-                       window.hide();
-                    }
-                }
+                callback:(event) => quickEntry ? quickEntry.hide() : null
             },  
             {
                 name:'QEsetSmallSize',
                 callback:(event) => {
-                    let window = findWindowByTitle('Add task');
+                    let window = quickEntry;
                     let defaultWidth=500;
                     let defaultHeight=350;
                     if(window){
@@ -322,7 +325,7 @@ export class Listeners{
             {
                 name:'QEsetBigSize',
                 callback:(event,size) => {
-                    let window = findWindowByTitle('Add task');
+                    let window = quickEntry;
                     let defaultWidth=500;
                     let defaultHeight=350;
                     if(window){
@@ -479,29 +482,19 @@ export class Listeners{
             { 
                 name:"updateQuickEntryConfig",
                 callback:(event,[config]) => {
-                    let window = findWindowByTitle('Add task');
-
+                    let window = quickEntry;
                     if(window){
                        window.webContents.send('config',config);
                     }
-                    event.sender.send("updateQuickEntryConfig");
                 }
             },
             { 
                 name:"toggleShortcut",
-                callback:(event,[enable,shortcut]) => {
-
-                    toggleShortcut(enable,shortcut);
-                    event.sender.send("toggleShortcut");
-                }
+                callback:(event,enable,shortcut) => toggleShortcut(enable,shortcut)
             },
             {
                 name:"autolaunch",
-                callback:(event,[shouldEnable]) => {
-                    
-                    initAutoLaunch(shouldEnable);
-                    event.sender.send("autolaunch");
-                } 
+                callback:(event,shouldEnable) => initAutoLaunch(shouldEnable)
             },
             {
                 name:"getVersion",

@@ -13,7 +13,7 @@ import {
     attachDispatchToProps, getMonthName, dateToYearMonthDay, getRangeDays, getRangeRepetitions, 
     daysInMonth, getRangeMonthUntilDate, getRangeMonthRepetitions, getRangeYearUntilDate, 
     getRangeYearRepetitions, dateToDateInputValue, dateInputUpperLimit, limitDate, isNotNan, 
-    limitInput, isNotEmpty, nDaysFromNow
+    limitInput, isNotEmpty, nDaysFromNow, log
 } from '../utils/utils'; 
 import { removeTodo, addTodo } from '../database';
 import { RepeatOptions, Category, ChecklistItem, Todo, Project, Area, LayoutItem, Group, Store } from '../types';
@@ -266,12 +266,13 @@ export let repeat = (
             ],
             [ () => true, () => [] ],
         ]
-    ); 
+    );  
 
  
     let todos = compose(
         map((t:Todo) : Todo => ({ ...t, reminder:null, group:{type:selectedOption, _id:groupId, options} })),
         selectedDatesToTodos(todo),
+        log('dates'),
         optionToDates
     )(selectedOption); 
 

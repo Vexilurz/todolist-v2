@@ -5,7 +5,6 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react"; 
 import Clear from 'material-ui/svg-icons/content/clear';
 import { Calendar, Area, Project, Todo, section } from '../../types';
-import { requestFromMain } from '../../utils/requestFromMain';
 import { updateConfig } from '../../utils/config';
 import { 
     remove, isNil, not, isEmpty, compose, toPairs, map, findIndex, equals, prop,

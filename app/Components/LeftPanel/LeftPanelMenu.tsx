@@ -13,10 +13,10 @@ import { merge, isNil, not } from 'ramda';
 import { Category } from '../../types';
 import { assert } from '../../utils/assert';
 import { anyTrue, different } from '../../utils/utils';
-import { requestFromMain } from '../../utils/requestFromMain';
 import { uppercase } from '../../utils/uppercase';
+import { ipcRenderer } from 'electron'; 
 
-
+ 
 
 let Hot = (hot:number) : JSX.Element => 
     hot===0 ? null :
@@ -242,12 +242,14 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
     };
 
     
-    onClick = (title:string) => () => requestFromMain<any>(
-        'setWindowTitle',
-        [`tasklist - ${uppercase(title)}`, this.props.id],
-        (event) => event
-    ).then(
-        () => this.props.dispatch({
+    onClick = (title:string) => () => {
+        ipcRenderer.send(
+            'setWindowTitle', 
+            `tasklist - ${uppercase(title)}`, 
+            this.props.id
+        );    
+        
+        this.props.dispatch({
             type:"multiple",
             load:[
                 {type:"selectedCategory",load:title},
@@ -255,8 +257,8 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 {type:"searchQuery",load:""},
                 {type:"selectedTag",load:"All"} 
             ]
-        }) 
-    );
+        }); 
+    }
 
 
     render(){ 

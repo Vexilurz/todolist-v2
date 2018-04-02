@@ -3,7 +3,6 @@ import { isTodo, isBoolean, isDate, isString, isNumber, isCategory, isProject, i
 import { assert } from "./utils/assert";
 import { typeEquals } from "./utils/utils";
 import { Store, Category, Todo, section } from "./types";
-import { requestFromMain } from "./utils/requestFromMain";
  
  
 export let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => {

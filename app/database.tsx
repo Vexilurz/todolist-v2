@@ -421,7 +421,12 @@ export let getCalendars = (onError:Function) => (descending,limit) : Promise<Cal
 
   
 export let removeTodos = (todos:Todo[], onError:Function) : Promise<any[]> => {
+  if(isEmpty(todos)){ 
+     return new Promise(resolve => resolve([]));
+  }  
+
   assert(all(isTodo,todos),`Not all input values are of type Todo ${todos}. removeTodos.`);
+
   return updateItemsInDatabase<Todo>(onError, todos_db)(todos.map(t => ({...t, _deleted: true})))
 };     
 

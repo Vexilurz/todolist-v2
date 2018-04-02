@@ -5,7 +5,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { Calendar, Area, Project, Todo, section } from '../../types';
-import { requestFromMain } from '../../utils/requestFromMain';
+import { ipcRenderer } from 'electron';
 import { updateConfig } from '../../utils/config';
 import { not } from 'ramda';
 import { Checkbox } from '../TodoInput/TodoInput';
@@ -31,44 +31,22 @@ export class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickE
 
 
 
-    enableQuickEntry = () => updateConfig({
-        enableShortcutForQuickEntry:not(this.props.enableShortcutForQuickEntry)
-    }).then(
-        (config) => {
-            this.props.dispatch({type:"updateConfig",load:config}); 
-            return Promise.all([
-                requestFromMain<any>(
-                    'autolaunch',
-                    [
-                        config.enableShortcutForQuickEntry ||
-                        not(config.disableReminder)
-                    ],
-                    (event) => event
-                ),
-                requestFromMain<any>(  
-                    'toggleShortcut', 
-                    [
-                        config.enableShortcutForQuickEntry,
-                        'Ctrl+Alt+T'
-                    ], 
-                    (event) => event
-                )
-            ]);
-        } 
-    );
+    enableQuickEntry = () => 
+    updateConfig({enableShortcutForQuickEntry:not(this.props.enableShortcutForQuickEntry)})
+    .then((config) => {
+        ipcRenderer.send('autolaunch', config.enableShortcutForQuickEntry || not(config.disableReminder));
+        ipcRenderer.send('toggleShortcut',config.enableShortcutForQuickEntry,'Ctrl+Alt+T');
+        this.props.dispatch({type:"updateConfig",load:config});     
+    });
     
 
 
-    quickEntrySavesTo = (event) => updateConfig({
-        quickEntrySavesTo:event.target.value
-    }).then(
+    quickEntrySavesTo = (event) => 
+    updateConfig({quickEntrySavesTo:event.target.value})
+    .then(
         (config) => {
             this.props.dispatch({type:"updateConfig",load:config}); 
-            return requestFromMain<any>(
-                'updateQuickEntryConfig',
-                [config],
-                (event) => event
-            );
+            ipcRenderer.send('updateQuickEntryConfig',config)
         }
     ); 
     

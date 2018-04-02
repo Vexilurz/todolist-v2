@@ -102,6 +102,7 @@ import { getFilters } from './utils/getFilters';
 let moment = require("moment");
 injectTapEventPlugin();  
 
+console.log(`start`); 
 
 
 window.onerror = function (msg, url, lineNo, columnNo, error){
@@ -128,6 +129,13 @@ const linkifyPlugin = createLinkifyPlugin({
 });
 
 
+Observable 
+.fromEvent(ipcRenderer, 'loaded', (event) => event) 
+.subscribe(
+    (event) => initQuickEntry()
+); 
+
+  
 
 let reducer = (state:QuickEntryProps, action) => cond([
     [
@@ -150,20 +158,20 @@ let reducer = (state:QuickEntryProps, action) => cond([
 
 
 
-let initQuickEntry = (event) => {   
+let initQuickEntry = () => {   
     let app=document.createElement('div'); 
     app.style.width=`${window.innerWidth}px`; 
     app.style.height=`${window.innerHeight}px`;
     app.id='application';      
     document.body.appendChild(app);
     
-
     getConfig()
     .then( 
         compose(
-            el => ReactDOM.render(el,app),  
-            wrapMuiThemeLight,
-            store => <Provider store={store}><QuickEntry {...{} as any}/></Provider>,
+            el => ReactDOM.render(el,app), 
+            store => <Provider store={store}>{
+                wrapMuiThemeLight(<QuickEntry {...{} as any}/>)
+            }</Provider>, 
             (initialState:QuickEntryProps) => createStore(reducer,initialState),
             (config:Config) : QuickEntryProps => ({
                 config, 
@@ -178,10 +186,6 @@ let initQuickEntry = (event) => {
     );
 };
  
-
-
-ipcRenderer.once('loaded', initQuickEntry);   
-
 
 
 interface QuickEntryState{

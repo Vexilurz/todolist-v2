@@ -5,7 +5,6 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { Calendar, Area, Project, Todo, section } from '../../types';
-import { requestFromMain } from '../../utils/requestFromMain';
 import { updateConfig } from '../../utils/config';
 import { not, ifElse, when } from 'ramda';
 import { Checkbox } from '../TodoInput/TodoInput';

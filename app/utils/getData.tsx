@@ -14,8 +14,8 @@ import { noteFromText } from './draftUtils';
 import { convertProjectDates, convertAreaDates, convertTodoDates } from './utils';
 import { updateCalendars } from '../Components/Calendar';
 import { inPast, oneMinuteLater } from './time';
-
-
+import { ipcRenderer } from 'electron';
+import { generateIndicators } from './generateIndicators';
 
 let noteIsString = compose(isString, prop('note'));
 
@@ -27,13 +27,25 @@ let assureCorrectNoteType : (todo:Todo) => Todo =
         evolve({note:noteFromText})
     );
 
-
+ 
 
 export let moveReminderFromPast : (todo:Todo) => Todo =  
     when(
         compose(inPast, prop('reminder')),
         t => assoc('reminder', oneMinuteLater(new Date()), t)
-    );
+    ); 
+
+
+
+let updateQuickEntryData = (data) => {
+    let {projects,areas,todos,calendars} = data;
+
+    let indicators = generateIndicators(projects,todos);
+
+    ipcRenderer.send('updateQuickEntryData', {todos,projects,areas,indicators});
+
+    return {projects, areas, todos, calendars};
+};    
 
 
 
@@ -68,5 +80,6 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
                 calendars:updated
             })
         )
-    );
+    )
+    .then(updateQuickEntryData);
 

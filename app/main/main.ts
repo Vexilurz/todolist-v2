@@ -9,6 +9,7 @@ import {
 } from 'ramda';  
 import { isDev } from './../utils/isDev';
 import { defaultTags } from '../utils/defaultTags';
+import { isNotNil } from '../utils/isSomething';
 const os = require('os');
 const path = require("path");
 const storage = require('electron-json-storage');
@@ -140,9 +141,7 @@ const shouldQuit = app.makeSingleInstance(
 
 export let findWindowByTitle = (title:string) => {
     let windows = BrowserWindow.getAllWindows();
-    let target = windows.find(
-        (w) => toLower(w.getTitle())===toLower(title)
-    ); 
+    let target = windows.find((w) => toLower(w.getTitle())===toLower(title)); 
     return target;
 };
 
@@ -307,20 +306,20 @@ export let initAutoLaunch = (shouldEnable:boolean) : Promise<void> => {
 let onReady = (showTray:boolean, config:any) => {  
     let {disableReminder, enableShortcutForQuickEntry} = config;
 
-    if(shouldQuit){ 
-       app.exit(); 
-       return; 
-    }  
+    if(shouldQuit){ app.exit(); return; }  
 
-    let shouldHideApp : boolean = contains("--hidden")(process.argv); 
-
-    registerAllShortcuts(); 
-    toggleShortcut(enableShortcutForQuickEntry,'Ctrl+Alt+T');
-    initAutoLaunch(enableShortcutForQuickEntry && not(disableReminder));   
-    
-    dialog.showErrorBox = (title, content) => {}; 
+    let shouldHideApp : boolean = contains("--hidden")(process.argv);
     
     listeners = new Listeners(mainWindow); 
+
+    dialog.showErrorBox = (title, content) => {};
+
+    registerAllShortcuts(); 
+
+    toggleShortcut(enableShortcutForQuickEntry, 'Ctrl+Alt+T');
+    
+    initAutoLaunch(enableShortcutForQuickEntry && not(disableReminder));   
+
     
     mainWindow = initWindow(
         getWindowSize(), 
@@ -328,49 +327,40 @@ let onReady = (showTray:boolean, config:any) => {
         (handler:BrowserWindow) => shouldHideApp ? handler.hide() : handler.show() 
     );    
 
-
     quickEntry = initQuickEntry({
         width:500,
         height:300 
     });  
 
-
-    if(isDev()){
-       quickEntry.webContents.openDevTools(); 
-    } 
-    
-    
     notification = initNotification({ 
         width:250,
         height:200
     });   
-    //notification.webContents.openDevTools();  
     
-
     if(showTray){ 
        tray = createTray();
        mainWindow.on('show', () => tray.setToolTip(`Hide ${AppName}`));
        mainWindow.on('hide', () => tray.setToolTip(`Show ${AppName}`));
     }
-    
 
+    
     loadNotification(notification)
-    .then(() => notification.webContents.send("loaded",notification.id));
+    .then(
+        () => notification.webContents.send("loaded")
+    );
 
 
     loadQuickEntry(quickEntry) 
     .then(() => {
-        quickEntry.webContents.send("loaded",quickEntry.id); 
+        quickEntry.webContents.send("loaded", quickEntry.id); 
  
-        quickEntry.on('close',(event) => {
-            event.preventDefault(); 
-            quickEntry.setSkipTaskbar(true);
-            quickEntry.hide();
-        });
+        if(isDev()){ 
+           quickEntry.webContents.openDevTools(); 
+        } 
     });  
 
 
-    loadApp(mainWindow)  
+    loadApp(mainWindow)
     .then(() => {    
         mainWindow.webContents.send("loaded",null,mainWindow.id);
 
@@ -385,22 +375,20 @@ let onReady = (showTray:boolean, config:any) => {
 };               
 
 
-app.on(
-    'ready', 
-    () => getConfig().then((config) => onReady(true,config))
-);    
- 
 
-/*
+app.on('ready', () => getConfig().then((config) => onReady(true, config)));    
+
+
+
 process.on( 
     "unchaughtException" as any,
     (error) => when(
-        () => compose(not, isNil)(mainWindow),
+        () => isNotNil(mainWindow),
         (error) => mainWindow.webContents.send("error", error)
     )(error)
 );
-*/
- 
+
+
  
 app.on(     
    'window-all-closed', 

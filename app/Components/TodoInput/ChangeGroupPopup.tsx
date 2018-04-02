@@ -63,6 +63,15 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
 
 
 
+    onDeleteFutureItems = (e) => {
+        let {dispatch} = this.props; 
+        let todo = this.getRightClickedTodo(); 
+        dispatch({type:"removeGroupAfterDate", load:todo});
+        this.onClose(); 
+    };  
+
+ 
+
     onDeleteGroup = () => {
         let {dispatch} = this.props; 
         let todo = this.getRightClickedTodo();
@@ -136,7 +145,7 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
                                     justifyContent:"center", 
                                     borderRadius:"5px",
                                     height:"25px",  
-                                    border:"1px solid rgba(100,100,100,0.7)",
+                                    //border:"1px solid rgba(100,100,100,0.7)",
                                     backgroundColor:"rgb(10, 90, 250)"  
                                 }}  
                             > 
@@ -145,6 +154,28 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
                                 </div>    
                             </div>
                         </div> 
+
+                        <div style={{padding: "2px"}}>
+                            <div    
+                                onClick={this.onDeleteFutureItems} 
+                                style={{       
+                                    width:"170px",
+                                    display:"flex",
+                                    alignItems:"center",
+                                    cursor:"pointer",
+                                    justifyContent:"center",
+                                    borderRadius:"5px",
+                                    height:"25px",  
+                                    //border:"1px solid rgba(100,100,100,0.7)",
+                                    backgroundColor:"rgb(10, 90, 250)"   
+                                }}   
+                            > 
+                                <div style={{color:"white", fontSize:"14px"}}>      
+                                    Delete all future tasks
+                                </div>  
+                            </div>
+                        </div>         
+
                         <div style={{padding: "2px"}}>
                             <div    
                                 onClick={this.onDeleteGroup} 
@@ -156,7 +187,7 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
                                     justifyContent:"center",
                                     borderRadius:"5px",
                                     height:"25px",  
-                                    border:"1px solid rgba(100,100,100,0.7)",
+                                    //border:"1px solid rgba(100,100,100,0.7)",
                                     backgroundColor:"rgb(10, 90, 250)"   
                                 }}   
                             > 
@@ -176,7 +207,7 @@ export class ChangeGroupPopup extends Component<ChangeGroupPopupProps,ChangeGrou
                                     justifyContent:"center",
                                     borderRadius:"5px",
                                     height:"25px",  
-                                    border:"1px solid rgba(100,100,100,0.5)",
+                                    border:"1px solid rgba(100,100,100,0.2)",
                                     backgroundColor:"white" 
                                 }}  
                             >   

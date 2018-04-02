@@ -20,9 +20,9 @@ export let initWindow = (
         ...options
     }) as any;       
     
-    handler.on('ready-to-show',() => onReady(handler));
+    handler.on('ready-to-show', () => onReady(handler));
     
-    handler.on('will-prevent-unload', (event) => { event.preventDefault() });
+    //handler.webContents.on('will-prevent-unload', (event) => { event.preventDefault() });
 
     /*
     handler.on(
@@ -62,6 +62,7 @@ export let initWindow = (
 };         
 
 
+
 export let initQuickEntry = ({width,height}:{width:number,height:number}) : BrowserWindow => { 
     Menu.setApplicationMenu(null);   
     let icon = path.resolve(__dirname,'icon.ico');
@@ -80,9 +81,19 @@ export let initQuickEntry = ({width,height}:{width:number,height:number}) : Brow
     handler.setResizable(true); 
     handler.setMovable(true); 
     handler.setSkipTaskbar(true);
+    handler.on(
+        'close',
+        event => { 
+            event.preventDefault(); 
+            handler.setSkipTaskbar(true);
+            handler.hide();
+        }
+    ); 
+    handler.on('closed', () => {handler = null;}); 
     handler.hide(); 
     return handler;  
 };        
+
 
 
 export let initNotification = ({width,height}:{width:number,height:number}):BrowserWindow => { 
