@@ -119,10 +119,10 @@ class Notification extends Component<NotificationProps,NotificationState>{
                                    ipcRenderer.send('NremoveReminders',this.state.todos);
 
                                    if(this.beep){ this.beep.audioEl.play(); }   
-
-                                   this.move();
+ 
+                                   setTimeout(() => this.move(), 20);
                                 }
-                            )
+                            ) 
                         }
                     )  
                 )  

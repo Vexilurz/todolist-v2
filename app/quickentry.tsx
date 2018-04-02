@@ -720,7 +720,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
                     origin = {{vertical:"center", horizontal:"left"}} 
                     point = {{vertical:"bottom", horizontal:"right"}}  
                     anchorEl={this.calendar}
-                    rootRef = {document.body}
+                    rootRef = {document.body} 
                     attachedDate={this.state.attachedDate}
                     onDayClick = {this.onCalendarDayClick}
                     onSomedayClick = {this.onCalendarSomedayClick}
@@ -1234,7 +1234,15 @@ class DateCalendar extends Component<DateCalendarProps,DateCalendarState>{
                     display: "flex",
                     justifyContent: "center" 
                 }}> 
-                    <DayPicker onDayClick={this.props.onDayClick} />
+                    <DayPicker 
+                        { 
+                            ...ifElse(
+                                () => isDate(this.props.attachedDate),
+                                merge({selectedDays:[this.props.attachedDate]}),
+                                merge({})
+                            )({onDayClick:this.props.onDayClick})
+                        }
+                    />
                 </div> 
                      
                 <div  

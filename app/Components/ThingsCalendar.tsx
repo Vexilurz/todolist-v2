@@ -322,6 +322,16 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
         }
     }
 
+    
+
+    componentDidUpdate(){
+        let timeInput : any = document.getElementsByClassName("TimeInput-input")[0];
+        if(timeInput){
+           timeInput.focus();
+           console.log('focus');       
+        }
+    }
+
 
 
     componentWillReceiveProps(nextProps){
