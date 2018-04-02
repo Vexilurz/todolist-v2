@@ -107,17 +107,17 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
                     let todosToRemoveIds = todosToRemove.map((t:Todo) => t._id);
                     let todosToUpdateIds = todosToUpdate.map((t:Todo) => t._id);
- 
+                    let until = compose(prop('attachedDate'), last)(todosToUpdate);
 
                     let todos : Todo[] = compose(
                         when(
                             () => path(['group','options','selectedOption'], todo) !== 'after',
                             map(
                                 when(
-                                    (t:Todo) => contains(t._id)(todosToUpdateIds), 
+                                    (t:Todo) => contains(t._id)(todosToUpdateIds) && isDate(until), 
                                     compose(
-                                        log('updated'),
-                                        assocPath(['group', 'options', 'until'], todo.attachedDate),
+                                        log('updated'), 
+                                        assocPath(['group', 'options', 'until'], until),
                                         assocPath(['group', 'options', 'selectedOption'], 'on'),
                                         assocPath(['group', 'type'], 'on')
                                     )
