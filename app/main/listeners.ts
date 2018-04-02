@@ -475,8 +475,6 @@ export class Listeners{
                        mainWindow.show();
                        mainWindow.focus();
                     }
-
-                    event.sender.send("focusMainWindow");  
                 } 
             },
             { 
@@ -544,7 +542,6 @@ export class Listeners{
                 callback : (event) => {  
                     let windows = getClonedWindows();
                     windows.forEach((window) =>  window.destroy());
-                    event.sender.send("closeClonedWindows");  
                 }    
             }, 
             {  

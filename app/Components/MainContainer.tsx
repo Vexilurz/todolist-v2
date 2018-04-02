@@ -351,23 +351,20 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
             Observable
                 .fromEvent(ipcRenderer, 'openTodo', (event,todo) => todo)
-                .subscribe(
-                    (todo) => requestFromMain<any>(
-                        'focusMainWindow',
-                        [],
-                        (event) => event
-                    ).then(
-                        () => {
-                            dispatch({type:"selectedCategory",load:"inbox"});
-                            dispatch({
-                                type:"multiple",
-                                load:[
-                                   {type:"scrolledTodo",load:todo},
-                                   {type:"selectedCategory",load:"today"} 
-                                ]
-                            });  
-                        }
-                    )
+                .subscribe( 
+                    (todo) => {
+                        ipcRenderer.send('focusMainWindow');
+                        
+                        dispatch({type:"selectedCategory",load:"inbox"});
+                        //don't combine this actions to trigger rerender of todo input
+                        dispatch({ 
+                            type:"multiple",
+                            load:[
+                                {type:"scrolledTodo",load:todo},
+                                {type:"selectedCategory",load:"today"} 
+                            ]
+                        });  
+                    }
                 ), 
 
 

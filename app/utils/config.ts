@@ -8,6 +8,7 @@ export let getConfig = () : Promise<any> => requestFromMain<any>("getConfig", []
 
 export let updateConfig = (load:any) => requestFromMain<any>("updateConfig", [load], (event, config) => config);
 
+/*
 let clearStorage = (onError:Function) : Promise<void> => requestFromMain<any>(
     "updateConfig", 
     [], 
@@ -15,3 +16,4 @@ let clearStorage = (onError:Function) : Promise<void> => requestFromMain<any>(
 ).then(
     when(isNotNil,onError)
 );
+*/ 

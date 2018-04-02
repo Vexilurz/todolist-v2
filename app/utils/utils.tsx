@@ -35,29 +35,17 @@ const domtoimage = require('retina-dom-to-image');
 
 
 
-export let selectFolder = () => requestFromMain<any>(
-    'selectFolder',
-    [],
-    (event,folder) => folder
-);
+export let selectFolder = () => requestFromMain<any>('selectFolder', [], (event,folder) => folder);
 
 
 
-export let selectJsonDatabase = () => requestFromMain<any>(
-    'selectJsonDatabase',
-    [],
-    (event,folder) => folder
-);
+export let selectJsonDatabase = () => requestFromMain<any>('selectJsonDatabase', [], (event,folder) => folder);
 
 
 
-export let closeClonedWindows = () => requestFromMain<any>(
-    'closeClonedWindows',
-    [],
-    (event) => event
-);
+export let closeClonedWindows = () : void => ipcRenderer.send('closeClonedWindows');
 
- 
+  
 
 export let correctFormat : (json:any) => boolean = compose(isNotNil, prop('database'));
 

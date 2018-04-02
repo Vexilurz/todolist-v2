@@ -25,6 +25,7 @@ import { requestFromMain } from '../../utils/requestFromMain';
 import { getData } from '../../utils/getData';
 import { convertEventDate } from '../Calendar';
 import { keyFromDate } from '../../utils/time';
+import { ipcRenderer } from 'electron'; 
 let uniqid = require("uniqid");   
 const Promise = require('bluebird');   
 const path = require("path");
@@ -102,9 +103,9 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     (json) => {
         let { todos, projects, areas, calendars } = json.database;
         let remRev = compose(map(removeRev), defaultTo([])); 
-
-        return  closeClonedWindows()
-                .then(() => destroyEverything())  
+        closeClonedWindows();
+          
+        return  destroyEverything()  
                 .then(() => initDB()) 
                 .then(() => Promise.all([  
                     addTodos(this.onError, remRev(todos)),      
@@ -316,7 +317,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     
  
 
-    disableReminder : (event:any) => Promise<void> = (event) => 
+    disableReminder : (event:any) => void = (event) => 
     updateConfig({disableReminder:not(this.props.disableReminder)})
     .then(
         (config) => {
@@ -329,14 +330,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
             this.props.dispatch({type:"multiple",load}); 
 
-            return requestFromMain<any>( 
-                'autolaunch',
-                [
-                    config.enableShortcutForQuickEntry || 
-                    not(config.disableReminder)
-                ],
-                (event) => event
-            );
+            ipcRenderer.send('autolaunch', config.enableShortcutForQuickEntry || not(config.disableReminder));
         } 
     );
     

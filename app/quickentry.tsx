@@ -128,13 +128,6 @@ const linkifyPlugin = createLinkifyPlugin({
     }
 });
 
-
-Observable 
-.fromEvent(ipcRenderer, 'loaded', (event) => event) 
-.subscribe(
-    (event) => initQuickEntry()
-); 
-
   
 
 let reducer = (state:QuickEntryProps, action) => cond([
@@ -186,6 +179,10 @@ let initQuickEntry = () => {
     );
 };
  
+
+
+ipcRenderer.once('loaded', initQuickEntry);
+
 
 
 interface QuickEntryState{
