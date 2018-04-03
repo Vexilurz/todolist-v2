@@ -360,9 +360,9 @@ let onReady = (showTray:boolean, config:any) => {
                 mainWindow,
                 {
                     type: "none", 
-                    buttons: ["Restart", "Wait"],
-                    title: `${AppName} is not responding`,
-                    message: `${AppName} is not responding. Do you want to...`
+                    buttons: ["Restart application", "Wait"],
+                    title: `${AppName} is not responding.`,
+                    message: `${AppName} is not responding.`
                 },
                 (response) => {
                     let restart = 0;
