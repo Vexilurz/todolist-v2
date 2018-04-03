@@ -192,16 +192,6 @@ export class App extends Component<AppProps,AppState>{
             `tasklist - ${uppercase(this.props.selectedCategory)}`, 
             this.props.id
         );
-
-        setTimeout(
-            () => {
-                while(true){
-                    let x = 0;
-                    x++;
-                }
-            },
-            60000 
-        )
     }; 
 
 
