@@ -25,7 +25,7 @@ import { addTodos } from './database';
 import { Project, Area, Category, Todo, Calendar, Config, Store } from './types';
 import { applicationStateReducer } from './StateReducer'; 
 import { applicationObjectsReducer } from './ObjectsReducer';
-import { isNil, not, map, compose, contains, prop, when, evolve, ifElse, applyTo, flatten, reject, assoc } from 'ramda';
+import { isNil, not, map, compose, contains, prop, when, evolve, ifElse, applyTo, flatten, reject, assoc, range } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { UpdateNotification } from './Components/UpdateNotification';
@@ -193,12 +193,16 @@ export class App extends Component<AppProps,AppState>{
             this.props.id
         );
 
-        if(isDev()){
-           //setTimeout(() => ipcRenderer.send("reloadMainWindow"), 1000*60);
-           setTimeout(() => ipcRenderer.send("reloadQuickEntry"),  1000*30);
-           //setTimeout(() => ipcRenderer.send("reloadNotification"),  1000*60);
-        }
-    };
+        setTimeout(
+            () => {
+                while(true){
+                    let x = 0;
+                    x++;
+                }
+            },
+            60000 
+        )
+    }; 
 
 
  
@@ -436,9 +440,11 @@ let renderApp = (event, clonedStore:Store, id:number) : void => {
     //handle window close event
     window.onbeforeunload = () => {
         if(isMainWindow){
-            ipcRenderer.send('Mhide'); return false; 
+            ipcRenderer.send('Mhide'); 
+            return false; 
         }else{
-            ipcRenderer.send('separateWindowsCount'); return undefined;
+            ipcRenderer.send('separateWindowsCount'); 
+            return undefined;
         }
     };
 

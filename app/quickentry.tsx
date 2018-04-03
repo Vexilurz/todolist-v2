@@ -38,7 +38,7 @@ import {
     cond, isNil, not, defaultTo, map, isEmpty, when, path,
     uniq, remove, contains, append, adjust, complement, identity,
     compose, flatten, concat, prop, equals, evolve, allPass, 
-    ifElse, merge  
+    ifElse, merge
 } from 'ramda';
 import Popover from 'material-ui/Popover';
 import BusinessCase from 'material-ui/svg-icons/content/archive';
@@ -102,8 +102,6 @@ import { getFilters } from './utils/getFilters';
 let moment = require("moment");
 injectTapEventPlugin();  
 
-console.log(`start`); 
-
 
 window.onerror = function (msg, url, lineNo, columnNo, error){
     let string = msg.toLowerCase();
@@ -152,6 +150,8 @@ let reducer = (state:QuickEntryProps, action) => cond([
 
 
 let initQuickEntry = () => {   
+    console.log('init');
+
     let app=document.createElement('div'); 
     app.style.width=`${window.innerWidth}px`; 
     app.style.height=`${window.innerHeight}px`;

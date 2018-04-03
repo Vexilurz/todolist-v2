@@ -196,10 +196,7 @@ export class Listeners{
                 loadApp(mainWindow)
                 .then(() => {    
                     mainWindow.webContents.send("loaded",null,mainWindow.id);
-
-                    mainWindow.focus(); 
-
-                    if(isDev()){ 
+                    if(isDev()){  
                        mainWindow.webContents.openDevTools(); 
                     }  
                 }) 
@@ -215,15 +212,7 @@ export class Listeners{
                        quickEntry.webContents.openDevTools(); 
                     } 
                 })  
-            },
-            {  
-                name:"reloadNotification", 
-                callback : () => isNil(notification) ? null :  
-                loadNotification(notification) 
-                .then(
-                    () => notification.webContents.send("loaded")
-                )
-            },
+            }, 
             {
                 name:'separateWindowsCount',
                 callback:(event) => { 
@@ -232,10 +221,7 @@ export class Listeners{
                        mainWindow.webContents.send('separateWindowsCount', windows.length);
                     }
                 } 
-            }, 
-
-
-
+            },
             { 
                 name:"updateQuickEntryData",
                 callback:(event,data) => quickEntry ? quickEntry.webContents.send('data',data) : null

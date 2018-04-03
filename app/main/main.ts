@@ -304,6 +304,8 @@ export let initAutoLaunch = (shouldEnable:boolean) : Promise<void> => {
 
 
 let onReady = (showTray:boolean, config:any) => {  
+
+
     let {disableReminder, enableShortcutForQuickEntry} = config;
 
     if(shouldQuit){ app.exit(); return; }  
@@ -319,6 +321,7 @@ let onReady = (showTray:boolean, config:any) => {
     toggleShortcut(enableShortcutForQuickEntry, 'Ctrl+Alt+T');
     
     initAutoLaunch(enableShortcutForQuickEntry && not(disableReminder));   
+
 
     
     mainWindow = initWindow(
@@ -337,26 +340,90 @@ let onReady = (showTray:boolean, config:any) => {
         height:200
     });   
     
+
+
     if(showTray){ 
        tray = createTray();
        mainWindow.on('show', () => tray.setToolTip(`Hide ${AppName}`));
        mainWindow.on('hide', () => tray.setToolTip(`Show ${AppName}`));
     }
 
+
+
+    mainWindow.on(
+        'unresponsive', 
+        (e) => {
+            
+            mainWindow.webContents.send("error", `application unresponsive...`);
+
+            dialog.showMessageBox(
+                mainWindow,
+                {
+                    type: "none", 
+                    buttons: ["Restart", "Wait"],
+                    title: `${AppName} is not responding`,
+                    message: `${AppName} is not responding. Do you want to...`
+                },
+                (response) => {
+                    let restart = 0;
+                    if(response===restart){
+                       app.relaunch();
+                       app.exit(0);
+                    }
+                }   
+            )
+        }
+    )
+
+ 
+
+    mainWindow.webContents.on(
+        'crashed', 
+        (event,killed) => {
+            if(killed){ console.log('killed'); return; }
+            console.log(`CRASHED`);
+
+            mainWindow.webContents.send("error", `main window crashed...`);
+ 
+            loadApp(mainWindow)
+            .then(() => {    
+                mainWindow.webContents.send("loaded",null,mainWindow.id);
+
+                if(not(shouldHideApp)){ mainWindow.focus(); }
+
+                if(isDev()){ mainWindow.webContents.openDevTools(); }  
+            }) 
+        }
+    )
+
+
+
+    quickEntry.webContents.on(
+        'crashed', 
+        (event,killed) => {
+            if(killed){ console.log('killed'); return; }
+            console.log(`CRASHED`);
+
+            mainWindow.webContents.send("error", `quick entry crashed...`);
+
+            loadQuickEntry(quickEntry) 
+            .then(() => {
+                quickEntry.webContents.send("loaded", quickEntry.id); 
+                if(isDev()){ quickEntry.webContents.openDevTools(); } 
+            });  
+        }
+    )
     
-    loadNotification(notification)
-    .then(
-        () => notification.webContents.send("loaded")
-    );
+
+    
+    loadNotification(notification).then(() => notification.webContents.send("loaded"));
 
 
     loadQuickEntry(quickEntry) 
     .then(() => {
-        quickEntry.webContents.send("loaded", quickEntry.id); 
+        quickEntry.webContents.send("loaded"); 
  
-        if(isDev()){ 
-           quickEntry.webContents.openDevTools(); 
-        } 
+        if(isDev()){ quickEntry.webContents.openDevTools(); } 
     });  
 
 
@@ -364,17 +431,13 @@ let onReady = (showTray:boolean, config:any) => {
     .then(() => {    
         mainWindow.webContents.send("loaded",null,mainWindow.id);
 
-        if(not(shouldHideApp)){
-           mainWindow.focus(); 
-        }
+        if(not(shouldHideApp)){ mainWindow.focus(); }
 
-        if(isDev()){ 
-           mainWindow.webContents.openDevTools(); 
-        }  
+        if(isDev()){ mainWindow.webContents.openDevTools(); }  
     });  
 };               
 
-
+ 
 
 app.on('ready', () => getConfig().then((config) => onReady(true, config)));    
 
