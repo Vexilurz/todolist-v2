@@ -120,15 +120,6 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                 return ({...state,openTodoInputPopup:action.load}); 
               }
             ],
-
-            [
-              typeEquals("showCompleted"),
-              (action:{type:string,load:boolean}) : Store => {
-                assert(isBoolean(action.load), `Error: showCompleted. applicationStateReducer. ${action.load}`);
-                return ({...state,showCompleted:action.load}); 
-              }
-            ],
-
             [
               typeEquals("showTrashPopup"),
               (action:{type:string,load:boolean}) : Store => {
@@ -136,13 +127,6 @@ export let applicationStateReducer = (state:Store, action:{ type:keyof Store, lo
                 return ({...state,showTrashPopup:action.load}); 
               }
             ],
-            [
-              typeEquals("showScheduled"),
-              (action:{type:string,load:boolean}) : Store => {
-                return ({...state,showScheduled:action.load}); 
-              }
-            ],
-
             [
               typeEquals("dragged"),
               (action:{type:string,load:string}) : Store => {

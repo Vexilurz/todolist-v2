@@ -83,6 +83,47 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
         },  
         cond([ 
             [
+                typeEquals("toggleScheduled"),  
+                (action:{type:string, load:string}) : Store => {
+                    let idx = state.projects.findIndex( p => p._id===action.load );
+
+                    if(idx===-1){ return {...state} }
+
+                    let project = state.projects[idx];
+
+                    project = ({...project,showScheduled:!project.showScheduled});
+
+                    if(shouldAffectDatabase){ 
+                       updateProject(action.load, project, onError); 
+                    }
+                    
+                    return {...state, projects:adjust(() => project, idx, state.projects)};
+
+                }
+            ],
+            [
+                typeEquals("toggleCompleted"),  
+                (action:{type:string, load:string}) : Store => {
+                    let idx = state.projects.findIndex( p => p._id===action.load );
+
+                    if(idx===-1){ return {...state} }
+
+                    let project = state.projects[idx];
+
+                    project = ({...project,showCompleted:!project.showCompleted});
+
+                    if(shouldAffectDatabase){ 
+                       updateProject(action.load, project, onError); 
+                    }
+                    
+                    return {...state, projects:adjust(() => project, idx, state.projects)};
+
+                }
+            ],
+
+
+            
+            [
                 typeEquals("removeGroupAfterDate"),
                 (action:{type:string, load:Todo}) : Store => {
                     let todo : Todo = action.load;
@@ -232,7 +273,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     }
                 }
             ], 
-
+            
             [
                 typeEquals('updateConfig'),  
                 (action:{type:string, load:any}) : Store => ({...state, ...action.load}) 

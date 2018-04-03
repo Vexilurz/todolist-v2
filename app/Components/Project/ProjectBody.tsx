@@ -87,7 +87,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     style={{position:"relative",UserSelect:"none",WebkitUserSelect:"none"}}
                 >  
                     <TodoInput     
-                        id={id} 
+                        id={id}  
                         key={id} 
                         showCompleted={this.props.showCompleted}
                         scrolledTodo={this.props.scrolledTodo}
@@ -104,7 +104,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 </div> 
             ],
             [
-                typeEquals("heading"),
+                typeEquals("heading"), 
                 (value:Heading) => <div  
                     id={id}  
                     key={`${id}-heading`} 

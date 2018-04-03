@@ -103,9 +103,8 @@ export interface Store extends Config{
   whenTodo : Todo,
   whenCalendarPopupX : number, 
   whenCalendarPopupY : number,
-  
   showLicense : boolean,
-  progress : any,
+  progress : any, 
   scrolledTodo : Todo,
   selectedTodo : Todo, 
   showUpdatesNotification : boolean, 
@@ -115,8 +114,6 @@ export interface Store extends Config{
   openChangeGroupPopup : boolean,
   selectedSettingsSection : section, 
   openSettings : boolean,
-  showScheduled : boolean,
-  showCompleted : boolean, 
   openSearch : boolean, 
   openTodoInputPopup : boolean, 
   openRightClickMenu : any, 
@@ -224,10 +221,12 @@ export interface Project{
   completed : Date, 
   attachedTags : string[], 
   hide?:Category[],
-  expand?:number 
+  expand?:number,
+  showCompleted?:boolean,
+  showScheduled?:boolean
 };
 
-
+ 
  
 export interface Area{
   _id : string, 

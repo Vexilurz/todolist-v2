@@ -151,17 +151,17 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         this.closeMenu(); 
     };
 
-
+ 
 
     onToggleCompleted = (e) => {
-        this.props.dispatch({type:"showCompleted", load:!this.props.showCompleted});
+        this.props.dispatch({ type:"toggleCompleted", load:prop('_id',this.props.project) });
         this.closeMenu(); 
     };
 
-
+ 
      
     onToggleScheduled = (e) => {
-        this.props.dispatch({type:"showScheduled", load:!this.props.showScheduled});
+        this.props.dispatch({ type:"toggleScheduled", load:prop('_id',this.props.project) });
         this.closeMenu(); 
     };
 
@@ -181,7 +181,8 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
 
      
     render(){   
-        let {project, showProjectMenuPopover, rootRef, anchorEl, showCompleted, showScheduled} = this.props;
+        let { project, showProjectMenuPopover, rootRef, anchorEl } = this.props;
+        let { showCompleted, showScheduled } = project;
 
         return not(showProjectMenuPopover) ? null :
         <Popover   
@@ -280,7 +281,7 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                                 </div> : 
                                 <div style={{display:"flex",alignItems:"center"}}>
                                     <Hide style={{width:"18px",height:"18px",color:"rgb(69, 95, 145)"}}/>
-                                </div>
+                                </div> 
                             }
                             <div style={{
                                 color:"black", //"gainsboro", 

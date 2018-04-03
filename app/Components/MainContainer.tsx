@@ -66,9 +66,7 @@ interface MainContainerProps{
     showRepeatPopup:boolean,
     hideHint:boolean,
     firstLaunch:boolean,
-    clone:boolean,
-    showCompleted:boolean,
-    showScheduled:boolean,
+    clone:boolean, 
     groupTodos:boolean,
     showRightClickMenu:boolean,
     showCalendarEvents:boolean,
@@ -774,15 +772,13 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         selectedCategory={this.props.selectedCategory}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedProjectId={this.props.selectedProjectId}
-                                        dragged={this.props.dragged} 
-                                        showScheduled={this.props.showScheduled} 
-                                        showCompleted={this.props.showCompleted}
+                                        dragged={this.props.dragged}  
                                         selectedAreaId={this.props.selectedAreaId} 
                                         projects={this.props.projects}  
                                         areas={this.props.areas}
                                         rootRef={this.rootRef} 
                                     />
-                                } 
+                                }  
                             ],
                             [  
                                 (selectedCategory:Category) : boolean => 'area'===selectedCategory,  

@@ -58,9 +58,7 @@ interface ProjectComponentProps{
     scrolledTodo:Todo,
     selectedCategory:string, 
     selectedProjectId:string, 
-    selectedAreaId:string, 
-    showScheduled:boolean,
-    showCompleted:boolean,
+    selectedAreaId:string,  
     rootRef:HTMLElement,
     dispatch:Function
 }
@@ -172,11 +170,20 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
 
 
-    getProjectFilters = () => [ 
-        this.props.showCompleted ? null : byNotCompleted, 
-        this.props.showScheduled ? null : byNotFuture, 
-        this.props.showScheduled ? null : byNotSomeday 
-    ].filter( f => f );
+    getProjectFilters = () : ((todo:Todo) => boolean)[] => {
+        let {showCompleted,showScheduled} = this.props.project;
+        let filters = [];
+
+        if(!showCompleted){
+           filters.push(byNotCompleted);
+        }
+        
+        if(!showScheduled){
+           filters.push(byNotFuture,byNotSomeday);
+        }
+
+        return filters;
+    }; 
 
 
 
@@ -221,17 +228,20 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
 
 
+    toggleScheduled = () => this.props.dispatch({ type:"toggleScheduled", load:prop('_id',this.props.project) });
+
+
+
     render(){   
-        let {selectedTag, project, showCompleted, showScheduled, todos, selectedCategory} = this.props;
+        let {selectedTag, project, todos, selectedCategory} = this.props;
+        let {showCompleted, showScheduled} = project;
 
         if(isNil(project)){ return null } 
 
         let projectFilters = this.getProjectFilters();
         let layout = this.getLayout();
         let noScheduledTodos : boolean = this.noScheduledTodos(layout);  
-        
-
-        
+                
         if(isDev()){
             let todos = filter(layout, item => item.type==="todo");
             let completed = filter(todos, (item:Todo) => isDate(item.completedSet));
@@ -297,7 +307,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 selectedCategory={this.props.selectedCategory}
                 scrolledTodo={this.props.scrolledTodo}
                 selectedTodo={this.props.selectedTodo}
-                showCompleted={this.props.showCompleted}
+                showCompleted={showCompleted}
                 updateLayoutOrder={this.updateLayoutOrder}
                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                 removeHeading={this.removeHeading}
@@ -320,10 +330,10 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 >        
                     <div  
                         className="unselectable"
-                        onClick={()=>this.props.dispatch({type:"showScheduled",load:!this.props.showScheduled})}  
+                        onClick={this.toggleScheduled}  
                         style={{color:"rgba(100,100,100,0.7)",fontSize:"13px",cursor:"pointer"}}
                     > 
-                        {`${this.props.showScheduled ? 'Hide' : 'Show'} later tasks`}
+                        {`${showScheduled ? 'Hide' : 'Show'} later tasks`}
                     </div>      
                 </div> 
             }

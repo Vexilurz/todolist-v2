@@ -126,9 +126,7 @@ export let defaultStoreItems : Store = {
     repeatTodo : null, 
     repeatPopupX : 0, 
     repeatPopupY : 0,
-    showScheduled : true,
     showCalendarEvents : true,
-    showCompleted : false,
     calendars:[],
     selectedCategory : "inbox",
     showTrashPopup : false, 
@@ -346,11 +344,9 @@ export class App extends Component<AppProps,AppState>{
                     showRepeatPopup={this.props.showRepeatPopup}
                     hideHint={this.props.hideHint}
                     firstLaunch={this.props.firstLaunch}
-                    clone={this.props.clone}
-                    showCompleted={this.props.showCompleted} 
+                    clone={this.props.clone} 
                     showWhenCalendar={this.props.showWhenCalendar}
-                    showScheduled={this.props.showScheduled}
-                    groupTodos={this.props.groupTodos}
+                    groupTodos={this.props.groupTodos} 
                     showRightClickMenu={this.props.showRightClickMenu}
                     showCalendarEvents={this.props.showCalendarEvents}
                     showTrashPopup={this.props.showTrashPopup}
