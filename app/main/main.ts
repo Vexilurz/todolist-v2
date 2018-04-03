@@ -361,8 +361,8 @@ let onReady = (showTray:boolean, config:any) => {
                 {
                     type: "none", 
                     buttons: ["Restart application", "Wait"],
-                    title: `${AppName} is not responding.`,
-                    message: `${AppName} is not responding.`
+                    title: `${AppName} is not responding`,
+                    message: `${AppName} is not responding`
                 },
                 (response) => {
                     let restart = 0;

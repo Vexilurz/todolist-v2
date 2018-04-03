@@ -450,26 +450,22 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             identity,
             when(
                 idEquals(todo._id), 
-                () => {
-                    setTimeout(
-                        () => {
-                            if(isNotNil(this.ref)){ 
-                                this.setState({open:true});
-                                this.ref.scrollIntoView(); 
-                            };
-                        },
-                        100
-                    );
-                      
-                    dispatch({type:"scrolledTodo",load:null}); 
-                }
+                () => this.setState(
+                    {open:true}, 
+                    () => {
+                        if(isNotNil(this.ref)){ this.ref.scrollIntoView(); }
+                        dispatch({type:"scrolledTodo",load:null});
+                    }
+                )
             ) 
         )(scrolledTodo)
 
-        this.subscriptions.push(
-            Observable
-            .fromEvent(window,"click") 
-            .subscribe(this.onOutsideClick)
+        this.subscriptions.push( 
+            
+            Observable.fromEvent(window,"click").subscribe(this.onOutsideClick),
+
+            Observable.fromEvent(window,'beforeunload').subscribe(this.saveOnUnmount) 
+        
         ); 
     };        
  

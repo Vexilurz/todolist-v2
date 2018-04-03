@@ -1,8 +1,8 @@
 {
   "name": "tasklist",
-  "version": "1.4.9-master",
+  "version": "1.5.0-master",
   "description": "tasklist",
-  "main": "dist/main.js",
+  "main": "production/main.js",
   "scripts": {
     "start": "electron .",
     "publish": "build --win --publish always",
@@ -43,7 +43,17 @@
     "uglifyjs-webpack-plugin": "1.2.4",
     "webpack": "4.2.0",
     "webpack-cli": "^2.0.13",
+    "ts-loader": "^4.1.0",
     "webpack-node-externals": "^1.6.0",
+    "react-perf-devtool": "^3.0.5",
+    "file-loader": "1.1.11",
+    "font-loader": "^0.1.2",
+    "react-addons-perf": "^15.4.2",
+    "react-addons-test-utils": "^15.6.0",
+    "random-word": "^2.0.0",
+    "react-test-render": "^1.0.3",
+    "react-test-renderer": "^15.6.1",
+    "randomstring": "^1.1.5",
     "webpack-target-electron-renderer": "^0.4.0"
   },
   "dependencies": {
@@ -52,7 +62,6 @@
     "axios": "^0.17.1",
     "bluebird": "^3.5.1",
     "deep-diff": "^0.3.8",
-    "dom-to-image": "^2.6.0",
     "draft-js": "^0.10.5",
     "draft-js-linkify-plugin": "^2.0.1",
     "draft-js-plugins-editor": "^2.0.4",
@@ -60,9 +69,7 @@
     "electron-json-storage": "^4.0.2",
     "electron-log": "^2.2.13",
     "electron-updater": "2.20.1",
-    "file-loader": "1.1.11",
     "filereader": "^0.10.3",
-    "font-loader": "^0.1.2",
     "fs": "0.0.1-security",
     "ical": "^0.5.0",
     "ical-generator": "^0.2.10",
@@ -78,12 +85,8 @@
     "prop-types": "^15.6.0",
     "raf": "^3.4.0",
     "ramda": "^0.25.0",
-    "random-word": "^2.0.0",
-    "randomstring": "^1.1.5",
     "rc-time-picker": "^3.3.1",
     "react": "15.6.1",
-    "react-addons-perf": "^15.4.2",
-    "react-addons-test-utils": "^15.6.0",
     "react-audio-player": "^0.9.0",
     "react-autosize-textarea": "^3.0.2",
     "react-color": "^2.13.8",
@@ -93,11 +96,8 @@
     "react-input-autosize": "^2.2.1",
     "react-keyboard-time-input": "^2.1.1",
     "react-minimal-pie-chart": "^3.0.1",
-    "react-perf-devtool": "^3.0.5",
     "react-redux": "^5.0.6",
     "react-tap-event-plugin": "^2.0.1",
-    "react-test-render": "^1.0.3",
-    "react-test-renderer": "^15.6.1",
     "react-time-input": "^0.0.17",
     "react-tippy": "^1.2.2",
     "react-transition-group": "^2.2.1",
@@ -110,7 +110,6 @@
     "rrule": "^2.2.9",
     "rx-dom": "^7.0.3",
     "rxjs": "^5.5.6",
-    "ts-loader": "^4.1.0",
     "typeface-roboto": "^0.0.45",
     "uniqid": "^4.1.1",
     "url": "^0.11.0"
@@ -121,8 +120,11 @@
     "productName": "tasklist",
     "appId": "org.tasklist.app",
     "files": [
-      "production/**/*"
-    ],
+      "production/**/*",
+      "!node_modules/electron-ga/node_modules${/*}",
+      "!s3clean${/*}",
+      "!randomDatabase${/*}"
+    ], 
     "win": {
       "target": [
         {
