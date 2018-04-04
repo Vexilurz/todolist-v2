@@ -42,9 +42,9 @@ import { getData } from '../utils/getData';
 import { WhenCalendar } from './WhenCalendar';
 import { 
     getIntroList, introListLayout, isNotEmpty, checkForUpdates, 
-    convertDates, printElement, introListIds, byNotDeleted
+    convertDates, printElement, introListIds, byNotDeleted, log
 } from '../utils/utils';
-import { threeDaysLater, inPast, oneMinuteLater } from '../utils/time';
+import { threeDaysLater, inPast, oneMinuteLater, fourteenDaysLater, fiveMinutesLater } from '../utils/time';
 const Promise = require('bluebird');   
 const moment = require("moment");   
 const path = require('path');
@@ -53,12 +53,13 @@ let uniqid = require("uniqid");
 
 
 interface MainContainerProps{
-    dispatch:Function
+    dispatch:Function, 
 
     selectedCategory:Category,
 
     limit:Date,
     nextUpdateCheck:Date,
+    nextBackupCleanup:Date,
 
     selectedTodo:Todo, 
     scrolledTodo:Todo,
@@ -131,12 +132,10 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
     constructor(props){ 
         super(props);  
         this.subscriptions = [];
+        this.timeouts = [];
         this.disablePrintButton = false;
         this.maxSepWindows = 6;
-        this.state = { 
-            fullWindowSize:true,
-            separateWindowsCount:0 
-        };
+        this.state = {fullWindowSize:true, separateWindowsCount:0};
     };  
 
 
@@ -183,6 +182,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
     setData = ({projects, areas, todos, calendars}) : void => {
         let actions = [];
+        let showHint = not(this.props.hideHint);
         
         if(this.props.clone){ return } 
 
@@ -202,18 +202,25 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
            actions.push({type:"addTodos", load:extended}); 
         }
 
-        when(
-           isNotEmpty, 
-           () => updateConfig({hideHint:true}).then( config => actions.push({type:"updateConfig",load:config}) ) 
-        )(calendars); 
- 
-        this.props.dispatch({type:"multiple",load:actions}); 
+        this.props.dispatch({type:"multiple",load:actions});
+
+        //if calendars not empty - hide hint
+        if(isNotEmpty(calendars) && showHint){
+           updateConfig({hideHint:true})
+           .then( 
+                config => this.props.dispatch({type:"updateConfig",load:config}) 
+           ) 
+        }  
     };
     
+    
 
-
-    initUpdateTimeout = () => {
+    initUpdateTimeout = () : void => {
         let {dispatch, nextUpdateCheck} = this.props;
+
+        if(isDev()){
+           console.log(`nextUpdateCheck - ${nextUpdateCheck}`);
+        }
 
         let check = () =>
             checkForUpdates()  
@@ -221,40 +228,115 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 (updateCheckResult:UpdateCheckResult) => requestFromMain<any>(
                    'getVersion',
                     [],
-                    (event, currentAppVersion) => currentAppVersion
-                ).then(
-                    (currentAppVersion:string) => {
-                        let {updateInfo} = updateCheckResult;
-                        let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
-
-                        if(canUpdate){ 
-                            dispatch({type:"showUpdatesNotification", load:true}) 
-                        }else{ 
-                            updateConfig({nextUpdateCheck:threeDaysLater(new Date())})
-                            .then(
-                                (config) => dispatch({type:"updateConfig",load:config}) 
-                            ) 
-                        }
-                    }
+                    (event, currentAppVersion) => [updateCheckResult, currentAppVersion]
                 )
-            );    
-          
+            )
+            .then( 
+                ([updateCheckResult, currentAppVersion]) => {
+                    let {updateInfo} = updateCheckResult;
+                    let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
+                    let next = isDev() ? fiveMinutesLater(new Date()) : threeDaysLater(new Date());
 
-        if(isNil(nextUpdateCheck)){ 
-           check(); 
+                    return updateConfig({nextUpdateCheck:next}).then( config => [config,canUpdate] );
+                }
+            )
+            .then(
+                ([config,canUpdate]) => {
+                    let actions = [{type:"updateConfig",load:config}];
+                    
+                    if(canUpdate){ 
+                       actions.push({type:"showUpdatesNotification", load:true});
+                    } 
+
+                    dispatch({type:"multiple",load:actions}); 
+
+                    this.initUpdateTimeout();
+                }
+            );   
+          
+ 
+        if(
+            isNil(nextUpdateCheck) || 
+            inPast(new Date(nextUpdateCheck))
+        ){ 
+            check(); 
         }else{
-           let next = isString(nextUpdateCheck) ? new Date(nextUpdateCheck) : nextUpdateCheck;
-           this.timeouts.push(setCallTimeout(() => check(), next));
+            this.timeouts.push(
+                 setCallTimeout( () => check(), new Date(nextUpdateCheck) )
+            );
         }
     };
 
 
 
+    initBackupCleanupTimeout = () : void => {
+        let {dispatch, nextBackupCleanup} = this.props;
+
+        if(isDev()){
+           console.log(` nextBackupCleanup - ${nextBackupCleanup} `);
+        }
+ 
+        let cleanup = () => 
+        requestFromMain<any>(
+            'backupCleanup',
+            [],
+            (event) => event
+        )
+        .then(() => {
+            let next = isDev() ? fiveMinutesLater(new Date()) : fourteenDaysLater(new Date());
+
+            return updateConfig({nextBackupCleanup:next});
+        })
+        .then(
+            config => {
+                dispatch({type:"updateConfig",load:config});
+
+                this.initBackupCleanupTimeout(); 
+            }
+        );
+
+
+        if(
+            isNil(nextBackupCleanup)  || 
+            inPast(new Date(nextBackupCleanup))
+        ){ 
+            cleanup(); 
+        }else{
+            this.timeouts.push(
+                setCallTimeout(
+                    () => cleanup(), 
+                    new Date(nextBackupCleanup)
+                )
+            );
+        }
+    };
+
+ 
+
     initObservables = () => {  
         let {dispatch} = this.props; 
         let minute = 1000 * 60;  
  
-        this.subscriptions.push(
+        this.subscriptions.push( 
+            Observable
+                .interval(5*minute)
+                .subscribe(() => 
+                    requestFromMain<any>(
+                        'saveBackup',
+                        [
+                            { 
+                                database : { 
+                                    todos:this.props.todos, 
+                                    projects:this.props.projects, 
+                                    areas:this.props.areas, 
+                                    calendars:this.props.calendars 
+                                } 
+                            }
+                        ],
+                        (event) => event
+                    )
+                ),   
+        
             Observable
                 .interval(5 * minute)
                 .flatMap(
@@ -311,14 +393,11 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                        items.forEach( todo => console.log(`3) erase ${todo ? todo.title : todo}`) ) 
                     }
 
-                    let load = ids.map( 
-                        id => ({ 
-                            type:"updateTodoById", 
-                            load:{id,props:{reminder:null}}
-                        })
-                    );
+                    let load = ids.map( id => ({ type:"updateTodoById", load:{id,props:{reminder:null}} }) );
                         
-                    if(isNotEmpty(load)){ dispatch({type:"multiple",load}); }
+                    if(isNotEmpty(load)){ 
+                       dispatch({type:"multiple",load}); 
+                    }
                 }),     
              
 
@@ -327,25 +406,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 .subscribe((v) => dispatch({type:'update'})),  
 
 
-            Observable
-                .interval(5*minute)
-                .subscribe(() => 
-                    requestFromMain<any>(
-                        'saveBackup',
-                        [
-                            { 
-                                database : { 
-                                    todos:this.props.todos, 
-                                    projects:this.props.projects, 
-                                    areas:this.props.areas, 
-                                    calendars:this.props.calendars 
-                                } 
-                            }
-                        ],
-                        (event) => event
-                    )
-                ),  
-        
 
             Observable
                 .fromEvent(ipcRenderer, 'openTodo', (event,todo) => todo)
@@ -408,8 +468,11 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
     componentDidMount(){    
         this.props.dispatch({type:"selectedCategory", load:this.props.selectedCategory});
+
         this.initObservables(); 
         this.initData(this.props.clone); 
+        this.initUpdateTimeout();
+        this.initBackupCleanupTimeout();
     };      
      
 

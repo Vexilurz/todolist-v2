@@ -398,7 +398,10 @@ export class Today extends Component<TodayProps,TodayState>{
                 }
                 {  
                     this.props.hideHint || this.props.clone ? null :
-                    <div className={`no-print`}>
+                    <div 
+                        style={{paddingTop:"10px", paddingBottom:"10px"}}
+                        className={`no-print`}
+                    >
                     <Hint  
                         text={`These are your tasks for today.Do you also want to include the events from your calendar?`}
                         dispatch={this.props.dispatch}

@@ -437,9 +437,13 @@ let onReady = (showTray:boolean, config:any) => {
     });  
 };               
 
- 
 
-app.on('ready', () => getConfig().then((config) => onReady(true, config)));    
+
+app.on(
+    'ready', 
+    () => getConfig().then( config => onReady(true, config) )
+    //clearStorage().then( () => getConfig() ).then( (config) => onReady(true, config) )
+);    
 
 
 

@@ -148,6 +148,7 @@ export interface Store extends Config{
 
 
 export interface Config{
+    nextBackupCleanup:Date,
     nextUpdateCheck:Date,
     firstLaunch:boolean, 
     defaultTags:string[],

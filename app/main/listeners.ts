@@ -13,6 +13,12 @@ const fs = require('fs');
 const pathTo = require('path');
 const log = require("electron-log");
 const os = require('os'); 
+const rimraf = require('rimraf');
+
+
+
+let backupFolder = pathTo.resolve(os.homedir(), "Documents", "tasklist");
+
 
 
 let move = () : Promise<void> => new Promise(
@@ -37,6 +43,7 @@ let move = () : Promise<void> => new Promise(
 );
 
 
+
 let getFinalNotificationPosition = () : {finalX:number,finalY:number} => {
     const window = notification;
     if(isNil(window)){ return {finalX:0,finalY:0}; }
@@ -47,6 +54,7 @@ let getFinalNotificationPosition = () : {finalX:number,finalY:number} => {
     const finalY = height-size[1]-offset; 
     return {finalX,finalY};
 };
+
 
 
 let getInitialNotificationPosition = () : {initialX:number,initialY:number} => {
@@ -60,7 +68,6 @@ let getInitialNotificationPosition = () : {initialX:number,initialY:number} => {
     const initialY = height+size[1];
     return {initialX,initialY};
 };
-
 
 
 
@@ -79,6 +86,7 @@ let keyFromDate = (d:Date) : string => {
 };
 
 
+
 let readFile = (path:string) : Promise<any> => 
     new Promise(
         resolve => fs.readFile(
@@ -94,6 +102,7 @@ let readFile = (path:string) : Promise<any> =>
         )
     );
 
+   
 
 let readJsonFile = (path:string) : Promise<any> => 
     new Promise(
@@ -124,6 +133,7 @@ let readJsonFile = (path:string) : Promise<any> =>
     );
 
 
+
 let writeJsonFile = (obj:any,pathToFile:string) : Promise<any> => 
     new Promise(
         resolve => {
@@ -139,6 +149,7 @@ let writeJsonFile = (obj:any,pathToFile:string) : Promise<any> =>
             );
         }
     );
+ 
 
 
 let initAutoUpdater = () => {
@@ -161,6 +172,7 @@ let initAutoUpdater = () => {
         }  
     );
 };     
+
 
 
 let getClonedWindowDimensions = () => {
@@ -190,6 +202,17 @@ export class Listeners{
       initAutoUpdater(); 
  
       this.registeredListeners = [ 
+            {
+                name:"backupCleanup",
+                callback: (event) => {
+                    rimraf(
+                        backupFolder, 
+                        () => { 
+                            event.sender.send("backupCleanup");
+                        }
+                    );
+                }
+            },
             {  
                 name:"reloadMainWindow", 
                 callback : () => isNil(mainWindow) ? null :
@@ -388,16 +411,12 @@ export class Listeners{
             {
                 name:"saveBackup",
                 callback:(event,[data]) => {
-                    let target = pathTo.resolve(os.homedir(), "tasklist");
+                    if(!fs.existsSync(backupFolder)){ fs.mkdirSync(backupFolder); }
 
-                    if(!fs.existsSync(target)){ 
-                        fs.mkdirSync(target); 
-                    }
+                    let to = pathTo.resolve(backupFolder, `db_backup_${keyFromDate(new Date())}.json`);
 
-                    let to = pathTo.resolve(target, `db_backup_${keyFromDate(new Date())}.json`);
-
-                    writeJsonFile(data, to)
-                    .then(
+                    writeJsonFile(data, to) 
+                    .then( 
                         () => {
                             event.sender.send("saveBackup",to)
                         }

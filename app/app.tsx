@@ -84,7 +84,8 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 
 
 const defaultConfig : Config = { 
-    nextUpdateCheck:new Date(),
+    nextUpdateCheck:undefined,
+    nextBackupCleanup:undefined,
     firstLaunch:true,
     hideHint:false,
     defaultTags:defaultTags,  
@@ -97,7 +98,7 @@ const defaultConfig : Config = {
     quickEntrySavesTo:"inbox", //inbox today next someday
     moveCompletedItemsToLogbook:"immediately"
 };
-
+ 
 
 
 export let defaultStoreItems : Store = {
@@ -333,6 +334,7 @@ export class App extends Component<AppProps,AppState>{
                     selectedCategory={this.props.selectedCategory}
                     limit={this.props.limit}
                     nextUpdateCheck={this.props.nextUpdateCheck}
+                    nextBackupCleanup={this.props.nextBackupCleanup}
                     selectedTodo={this.props.selectedTodo}
                     scrolledTodo={this.props.scrolledTodo}
                     showRepeatPopup={this.props.showRepeatPopup}

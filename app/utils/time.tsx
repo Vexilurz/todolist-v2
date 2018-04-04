@@ -1,6 +1,22 @@
 import {isDate,isString, isNotDate} from './isSomething';
 import {compose,equals,prop,not,isNil} from 'ramda';
 
+
+
+export let fourteenDaysLater = (date:Date) : Date => { 
+    if(isNotDate(date)){ return date }
+    
+    Date.prototype["addDays"] = function(days) {
+        let date = new Date(this.valueOf());
+        date.setDate(date.getDate() + days);
+        return date;   
+    };
+      
+    return new Date(date.getTime())["addDays"](14);
+}; 
+
+
+
 export let threeDaysLater = (date:Date) : Date => { 
     if(isNotDate(date)){ return date }
 
