@@ -119,26 +119,31 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             showChecklist:checklist.length>0,  
             showDeadlineCalendar:false
         };       
-    }
+    };
+
 
 
     onError = (error) => globalErrorHandler(error);
     
+
     
     componentDidMount(){  
         this.subscriptions.push(
-            Observable.fromEvent(window,"click").subscribe(this.onOutsideClick)
+            Observable.fromEvent(window,"click").subscribe(this.onOutsideClick),
+            Observable.fromEvent(window,'beforeunload').subscribe(this.onOutsideClick) 
         );
 
         this.resetCreationForm(false);
         this.preventDragOfThisItem(); 
-    }          
+    };          
  
+
 
     componentDidUpdate(prevProps:TodoCreationFormProps,prevState:TodoCreationFormState){
         let { open } = this.state; 
         this.preventDragOfThisItem();
-    }   
+    };   
+
 
 
     resetCreationForm = (open) => {
@@ -156,6 +161,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     };    
  
 
+
     componentWillReceiveProps(nextProps:TodoCreationFormProps){
         let todo = path(['selectedTodo'],this.props);
         let nextTodo = path(['selectedTodo'],nextProps);   
@@ -167,7 +173,8 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         ){
             this.setState({open:false}) 
         }
-    } 
+    }; 
+
 
 
     onFieldsContainerClick = (e) => {    
@@ -196,6 +203,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         }    
     };   
       
+
     
     onWindowEnterPress = (e) => {   
         if(e){ if(e.keyCode!==13){ return } }
@@ -204,7 +212,8 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
             this.addTodo();
             this.resetCreationForm(true);
         }
-    };        
+    };   
+
     
 
     onOutsideClick = (e) => {
@@ -228,12 +237,15 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                 }
             ); 
         }   
-    };    
+    };  
+      
 
 
     addTodo = () => {
         let todo : Todo = this.todoFromState(); 
+
         if(isEmpty(todo.title)){ return };
+
         let {selectedCategory,dispatch,selectedProjectId,selectedAreaId} = this.props;
         let timeSeconds = Math.round(new Date().getTime() / 1000);
         let actions = [];
@@ -246,7 +258,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                 ea:`Todo Created ${new Date().toString()}`, 
                 el:'Todo Created', 
                 ev:timeSeconds 
-            }
+            } 
         )  
         .catch(err => this.onError(err)); 
 
@@ -271,6 +283,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = []; 
+        this.addTodo(); 
     };
 
   

@@ -65,7 +65,10 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
     onDuplicate = (e) => {   
         let {project,todos} = this.props;
         let todosIDs = project.layout.filter(isString);
-        let relatedTodos = filter(todos, (todo:Todo) => contains( todo._id, todosIDs ));
+        let relatedTodos = filter(
+            todos, 
+            (todo:Todo) => contains( todo._id, todosIDs )
+        );
         let duplicatedTodos:Todo[] = [];
         let duplicatedLayout:LayoutItem[] = project.layout.map((item) => {
             if(isString(item)){
