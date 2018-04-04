@@ -4,12 +4,12 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react";  
 import { Todo, Project, Heading, LayoutItem, Area } from '../../types'; 
 import { debounce } from 'lodash';
-import { byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNotEmpty } from '../../utils/utils'; 
+import { byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNotEmpty, byCompleted } from '../../utils/utils'; 
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
 import { 
     adjust, allPass, uniq, isEmpty, not, isNil, map, prop, takeWhile, splitAt,
-    compose, defaultTo, ifElse, all, contains, findIndex, equals, last 
+    compose, defaultTo, ifElse, all, contains, findIndex, equals, last, reject, when 
 } from 'ramda';
 import { filter } from 'lodash';
 import { bySomeday, isProject, isTodo, isString, isDate, isNotNil } from '../../utils/isSomething';
@@ -206,11 +206,12 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 (todo:Todo) => byScheduled(todo) || bySomeday(todo),
                 () => false
             )
-        ),
+        ), 
+        reject(when(isTodo,byCompleted)),
         defaultTo([]) 
     )(layout);  
-
-
+  
+   
 
     getToProjectHeader = (projectFilters:Function[], layout:any[]) => filter(
         layout,
