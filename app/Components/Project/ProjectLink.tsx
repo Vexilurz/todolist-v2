@@ -96,8 +96,10 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
 
         let flagColor = "rgba(100,100,100,0.7)";
         let daysLeft = 0;  
-
-
+        let howMany = isNil(project.expand) ? 'one' : 
+                      project.expand===3 ? 'one' :
+                      'three';  
+                      
         if(isDate(project.deadline)){      
            daysLeft = daysRemaining(project.deadline);        
            flagColor = daysLeft <= 1 ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
@@ -308,11 +310,7 @@ export class ProjectLink extends Component<ProjectLinkProps,ProjectLinkState>{
                             fontSize:"14px", 
                             marginRight:"5px"
                         }}>
-                            Show {  
-                                isNil(project.expand) ? 'one' : 
-                                project.expand===3 ? 'one' :
-                                'three'  
-                            } task
+                            Show {howMany} {howMany==='three' ? 'tasks' : 'task'}
                         </div>       
                     </div>
                 </div> 
