@@ -422,7 +422,7 @@ let fakeProject = (attachedTags:string[], layout:LayoutItem[]) : Project => {
         name.push(randomWord()); 
         
     let description : string[] = [];
-            
+             
     let l = randomInteger(3) + 2;
     
     for(let i=0; i<l; i++)
@@ -434,7 +434,7 @@ let fakeProject = (attachedTags:string[], layout:LayoutItem[]) : Project => {
         name : name.join(' '),  
         priority : Math.random()*999999999,
         deleted : Math.random() < 0.2 ? randomDate(new Date(), new Date()["addDays"](-50)) : undefined,
-        description : description.join(' '), 
+        description : noteFromText(description.join(' ')), 
         created : randomDate(new Date()["addDays"](-50), new Date()),
         deadline : randomDate(new Date(), new Date()["addDays"](50)),
         completed : checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,

@@ -209,12 +209,12 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         if(notEquals(nextProps.todo, this.props.todo) && closed){
             let {attachedDate,deadline,category,checklist,title, note} = nextProps.todo;
             this.setState({
-               attachedDate, 
-               deadline, 
-               category, 
-               checklist, 
-               title, 
-               editorState:noteToState(note)
+                attachedDate, 
+                deadline, 
+                category, 
+                checklist, 
+                title, 
+                editorState:noteToState(note)
             });
         }
     };

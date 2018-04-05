@@ -15,13 +15,13 @@ import Hide from 'material-ui/svg-icons/action/visibility-off';
 import Flag from 'material-ui/svg-icons/image/assistant-photo'; 
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { Category, Todo, Project, Heading, LayoutItem, Store } from '../../types';
-import { attachDispatchToProps, createHeading } from '../../utils/utils';
-import { contains, not, isNil, isEmpty, remove, prop, compose } from 'ramda';
+import { attachDispatchToProps, createHeading, byNotCompleted, byNotDeleted } from '../../utils/utils';
+import { contains, not, isNil, isEmpty, remove, prop, compose, allPass } from 'ramda';
 import { filter } from 'lodash';
 import { assert } from '../../utils/assert';
 import { generateId } from '../../utils/generateId';
 import { uppercase } from '../../utils/uppercase';
-import { isString } from '../../utils/isSomething';
+import { isString, isHeading } from '../../utils/isSomething';
 
 
 
@@ -67,7 +67,11 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         let todosIDs = project.layout.filter(isString);
         let relatedTodos = filter(
             todos, 
-            (todo:Todo) => contains( todo._id, todosIDs )
+            allPass([
+                (todo:Todo) => contains( todo._id, todosIDs ),
+                byNotCompleted,  
+                byNotDeleted   
+            ])
         );
         let duplicatedTodos:Todo[] = [];
         let duplicatedLayout:LayoutItem[] = project.layout.map((item) => {
@@ -78,10 +82,12 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                 delete duplicate['_rev']; 
                 duplicatedTodos.push(duplicate);
                 return duplicate._id;
-            }else{
-                return item;
+            }else if(isHeading(item as Heading)){
+                let heading = {...item as Heading};
+                heading._id = generateId();
+                return heading;
             }
-        }); 
+        });  
 
         let duplicate = {...project, _id:generateId(), layout:duplicatedLayout};
         delete duplicate["_rev"]; 

@@ -17,17 +17,23 @@ import { inPast, oneMinuteLater } from './time';
 import { ipcRenderer } from 'electron';
 import { generateIndicators } from './generateIndicators';
 
-let noteIsString = compose(isString, prop('note'));
 
 
-
-let assureCorrectNoteType : (todo:Todo) => Todo = 
+let assureCorrectNoteTypeTodo : (todo:Todo) => Todo = 
     when(
-        noteIsString,
+        compose(isString, prop('note')),
         evolve({note:noteFromText})
     );
 
- 
+
+
+let assureCorrectNoteTypeProject : (project:Project) => Project = 
+    when(
+        compose(isString, prop('description')),
+        evolve({description:noteFromText})
+    );   
+    
+
 
 export let moveReminderFromPast : (todo:Todo) => Todo =  
     when(
@@ -59,9 +65,9 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
     .then(
         compose(
             evolve({  
-                projects:map(convertProjectDates),
+                projects:map(compose(assureCorrectNoteTypeProject,convertProjectDates)),
                 areas:map(convertAreaDates),
-                todos:map(compose(moveReminderFromPast,assureCorrectNoteType,convertTodoDates)),  
+                todos:map(compose(moveReminderFromPast,assureCorrectNoteTypeTodo,convertTodoDates)),  
             }),
             ([calendars,projects,areas,todos]) => ({calendars,projects,areas,todos})
         )

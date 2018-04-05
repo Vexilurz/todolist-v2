@@ -75,6 +75,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         super(props);
     }  
     
+    
 
     getElement = (value:Heading | Todo, index:number) : JSX.Element => { 
         let id = prop('_id',value);

@@ -1055,7 +1055,7 @@ export let generateEmptyProject = () : Project => ({
     _id : generateId(), 
     type : "project", 
     name : "", 
-    description : "",
+    description : undefined,
     layout : [], 
     priority : Math.random() * 9999999999,
     deleted : undefined,
@@ -1318,11 +1318,11 @@ export let getIntroList = () : Project => {
 
     return {    
         _id : "Intro List",    
-        type : "project", 
+        type : "project",  
         name : "Intro List",  
         priority : 1,
         deleted : undefined,
-        description : `This project shows you everything you need to know to hit the ground running. Don't hesistate to play around in it - you can always create a new one from the help menu.`, 
+        description :  noteFromText(`This project shows you everything you need to know to hit the ground running. Don't hesistate to play around in it - you can always create a new one from the help menu.`), 
         created : new Date(),
         deadline : null,
         completed : null,

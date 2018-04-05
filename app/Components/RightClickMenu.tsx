@@ -44,18 +44,20 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
     }
     
 
+
     componentDidMount(){  
-        let click = Observable 
-                    .fromEvent(window, "click")
-                    .subscribe(this.onOutsideClick);
-        this.subscriptions.push(click); 
+        this.subscriptions.push(
+            Observable.fromEvent(window, "click").subscribe(this.onOutsideClick)
+        ); 
     }   
+
 
 
     componentWillUnmount(){
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = [];
     } 
+
 
 
     onOutsideClick = (e) => {
@@ -81,11 +83,13 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
     };
 
 
+
     getRightClickedTodo = () : Todo => {
         let { todos, dispatch, rightClickedTodoId } = this.props; 
         let todo : Todo = todos.find( (t:Todo) => t._id===rightClickedTodoId );
         return todo;
     };
+
 
 
     onDeleteToDo = (e) => {
@@ -99,7 +103,8 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         }else{ 
            dispatch({type:"updateTodo", load:{...todo,reminder:null,deleted:new Date()}});
         } 
-    };  
+    };
+    
 
 
     onDuplicate = (e) => {
@@ -114,6 +119,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
  
         dispatch({type:"addTodo", load:duplicate}); 
     }; 
+
 
 
     onComplete = (e) => {
@@ -166,7 +172,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
             _id : generateId(),  
             type : "project", 
             name : todo.title,   
-            description : getNotePlainTextFromRaw(todo.note), 
+            description : todo.note, 
             layout,   
             priority : todo.priority, 
             created : todo.created, 
@@ -186,6 +192,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         }); 
     };
  
+
     
     removeFromProject = () => {
         let {projects, dispatch, selectedProjectId, rightClickedTodoId} = this.props;
@@ -207,6 +214,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
         }
     };
 
+
  
     onRemoveFromProjectArea = (e) => {
         let {selectedCategory, selectedProjectId, selectedAreaId} = this.props;
@@ -220,6 +228,7 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
            this.removeFromProject();
         }
     };  
+
 
 
     onRepeatTodo = (e) => {
@@ -256,12 +265,6 @@ export class RightClickMenu extends Component<Store,RightClickMenuState>{
             } 
         }); 
     };  
-
-
-
-    onMove = (e) => {};
-    onShortcuts = (e) => {};
-    onShare = (e) => {};
 
 
  

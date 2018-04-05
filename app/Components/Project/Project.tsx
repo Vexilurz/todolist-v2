@@ -2,7 +2,7 @@ import '../../assets/styles.css';
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react";  
-import { Todo, Project, Heading, LayoutItem, Area } from '../../types'; 
+import { Todo, Project, Heading, LayoutItem, Area, RawDraftContentState } from '../../types'; 
 import { debounce } from 'lodash';
 import { byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNotEmpty, byCompleted } from '../../utils/utils'; 
 import { ProjectHeader } from './ProjectHeader';
@@ -16,6 +16,7 @@ import { bySomeday, isProject, isTodo, isString, isDate, isNotNil } from '../../
 import { assert } from '../../utils/assert';
 import { daysRemaining } from '../../utils/daysRemaining';
 import { isDev } from '../../utils/isDev';
+import { noteFromState } from '../../utils/draftUtils';
 
 
 
@@ -85,13 +86,19 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
  
 
 
-    updateProjectName = debounce((value:string) : void => this.updateProject({name:value}),150);
-
-
+    updateProjectName = debounce(
+        (value:string) : void => this.updateProject({name:value}),
+        250
+    );
+ 
+ 
      
-    updateProjectDescription = debounce((value:string) : void => this.updateProject({description:value}),150);
-
-
+    updateProjectDescription = debounce(
+        (editorState:any) : void => this.updateProject({description:noteFromState(editorState)}),
+        250
+    );
+ 
+ 
     
     updateHeading = debounce(
         (headingId:string, newValue:string) => { 
@@ -104,7 +111,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             let updatedLayout = adjust(() => ({...layout[idx] as Heading, title:newValue}), idx, layout);
             this.updateProject({layout:updatedLayout});
         },
-        50
+        150
     ); 
     
 

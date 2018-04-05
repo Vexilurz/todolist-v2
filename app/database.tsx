@@ -180,6 +180,7 @@ function getItems<T>(
 function updateItemsInDatabase<T>(onError:Function, db:any){
 
     return function(values:T[]) : Promise<T[]>{
+        let count = 0;
 
         let update = (values) : Promise<T[]> => {
             let items = values.filter(v => v);
@@ -214,13 +215,15 @@ function updateItemsInDatabase<T>(onError:Function, db:any){
                         return db.bulkDocs(items).catch(onError); 
                 })
                 .catch((err) => {
-                    if(err.status===409){
+                    if(err.status===409 && count<5){
                         console.log(`409 retry`);
+                        count++;
                         return update(values);
                     }else{  
-                        onError(err);
-                    }
-                });    
+                        //onError(err);
+                        return new Promise(resolve => resolve([]));
+                    } 
+                });     
         };
         
 
@@ -234,6 +237,8 @@ function updateItemInDatabase(
   onError:Function, 
   db:any
 ){
+  let count = 0;  
+
   let update = function(_id:string, changed:any) : Promise<any>{
     return db.get(_id)
              .then((doc) => {   
@@ -245,12 +250,14 @@ function updateItemInDatabase(
                 }
              })
              .catch((err) => {
-                  if(err.status===409){
+                  if(err.status===409 && count<5){
                      console.log(`409 retry`);
+                     count++;
                      return update(_id,changed);
                   }else {  
-                      onError(err);
-                  }
+                     //onError(err);
+                     return new Promise( resolve => resolve([]) )
+                  } 
             }); 
   }; 
   

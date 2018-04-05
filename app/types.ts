@@ -214,7 +214,7 @@ export interface Project{
   type : ObjectType, 
   name : string,   
   priority : number,
-  description : string, 
+  description : RawDraftContentState, 
   layout : LayoutItem[], 
   created : Date, 
   deadline : Date,

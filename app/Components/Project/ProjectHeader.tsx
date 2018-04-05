@@ -6,23 +6,45 @@ import { ipcRenderer } from 'electron';
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react";  
 import Flag from 'material-ui/svg-icons/image/assistant-photo';
-import { Todo, Project } from '../../types';
-import { getTagsFromItems, daysLeftMark, getMonthName } from '../../utils/utils';
+import { Todo, Project, RawDraftContentState } from '../../types';
+import { getTagsFromItems, daysLeftMark, getMonthName, different } from '../../utils/utils';
 import { ProjectMenuPopover } from './ProjectMenu';
 import PieChart from 'react-minimal-pie-chart';
 import Checked from 'material-ui/svg-icons/navigation/check';
 import { DeadlineCalendar } from '../ThingsCalendar'; 
-import { isNil, isEmpty, not } from 'ramda';
+import { isNil, isEmpty, not, compose } from 'ramda';
 import { Tags } from '../Tags';
 import { TagsPopup } from '../TodoInput/TagsPopup';
 import AutosizeInput from 'react-input-autosize';
-import TextareaAutosize from 'react-autosize-textarea';
+import {shell} from 'electron'; 
+import Editor from 'draft-js-plugins-editor';
+import {
+    convertToRaw,
+    convertFromRaw,
+    CompositeDecorator,
+    ContentState,
+    EditorState,
+    RichUtils
+} from 'draft-js';
+import createLinkifyPlugin from 'draft-js-linkify-plugin';
+import 'draft-js/dist/Draft.css';
+import { noteToState, noteFromState, getNotePlainText } from '../../utils/draftUtils';
+import { getTime, setTime } from '../../utils/time';
+
+
+
+const linkifyPlugin = createLinkifyPlugin({
+    component:(props) => {
+      const {contentState, ...rest} = props;
+      return <a {...rest} style={{cursor:"pointer"}} onClick={() => shell.openExternal(rest.href)}/>
+    }
+});  
 
 
 
 interface ProjectHeaderProps{
     updateProjectName:(value:string) => void,
-    updateProjectDescription:(value:string) => void,
+    updateProjectDescription:(editorState:any) => void,
     updateProjectDeadline:(value:Date) => void,
     attachTagToProject:(tag:string) => void,
     indicator:{
@@ -41,9 +63,9 @@ interface ProjectHeaderProps{
   
 interface ProjectHeaderState{
     showTagsPopup:boolean,
+    editorState:any,
     showDeadlineCalendar:boolean,
-    name:string,
-    description:string  
+    name:string
 }
   
 
@@ -57,9 +79,9 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
         let {project} = this.props;
         this.state={
             showDeadlineCalendar:false,
+            editorState:noteToState(project.description),
             showTagsPopup:false,
-            name:project.name,
-            description:project.description    
+            name:project.name
         };   
     };   
  
@@ -76,31 +98,34 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
 
 
     componentWillReceiveProps(nextProps:ProjectHeaderProps,nextState:ProjectHeaderState){
-        if(this.props.project.description!==nextProps.project.description){
-           this.setState({description:nextProps.project.description}); 
+        if(this.props.project._id!==nextProps.project._id){
+           this.setState({editorState:noteToState(nextProps.project.description)}); 
+        } 
+  
+        if(this.props.project.name!==nextProps.project.name){
+           this.setState({name:nextProps.project.name}); 
         }
 
         if(this.inputRef && isEmpty(nextProps.project.name)){
            this.inputRef.focus();  
         }
-
-        if(this.props.project.name!==nextProps.project.name){
-           this.setState({name:nextProps.project.name}); 
-        }
     };
 
 
-    
-    updateProjectName = (value) => this.setState({name:value}, () => this.props.updateProjectName(value));
- 
 
-
-    updateProjectDescription = (newValue) => this.setState(
-        {description:newValue}, 
-        () => this.props.updateProjectDescription(newValue)
+    updateEditorState = (editorState) => this.setState(
+        {editorState}, 
+        () => this.props.updateProjectDescription(editorState)
     );
  
 
+    
+    updateProjectName = (value) => this.setState(
+        {name:value}, 
+        () => this.props.updateProjectName(value)
+    );
+ 
+     
 
     openMenu = (e) => this.props.dispatch({type:"showProjectMenuPopover", load:true});
     
@@ -271,28 +296,24 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
                     <div style={{paddingTop:"5px"}}> 
                         {daysLeftMark(false, project.deadline, 15)}
                     </div>    
-                </div> 
+                </div>  
             }    
-            <div style={{paddingTop:"10px",paddingBottom:"10px"}} className={`no-print`}>        
-                <TextareaAutosize
-                    id={"project_notes"}
-                    placeholder="Notes"
-                    onChange={(event:any) => this.updateProjectDescription(event.target.value)} 
-                    value={this.state.description}  
-                    style={{
-                        resize:"none",
-                        marginTop:"-4px", 
-                        width:"100%",
-                        fontSize:"14px",
-                        padding:"0px",
-                        cursor:"default",  
-                        position:"relative", 
-                        border:"none",
-                        outline:"none",
-                        backgroundColor:"rgba(0, 0, 0, 0)",
-                        color:"rgba(0, 0, 0, 0.87)" 
-                    }}
-                /> 
+            <div style={{paddingTop:"10px",paddingBottom:"10px"}} className={`no-print`}> 
+                <div style={{
+                    display:"flex",
+                    paddingTop:"10px", 
+                    fontSize:"14px",
+                    color:"rgba(10,10,10,0.9)",
+                    paddingBottom:"10px"
+                }}> 
+                    <Editor
+                        editorState={this.state.editorState}
+                        onChange={this.updateEditorState}
+                        plugins={[linkifyPlugin]}  
+                        keyBindingFn={(e) => { if(e.keyCode===13){ e.stopPropagation(); } }}
+                        placeholder="Notes"
+                    />
+                </div>   
             </div>
             <div className={`no-print`}>  
                 <Tags  
@@ -306,6 +327,3 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
     } 
 }; 
  
-
-
-
