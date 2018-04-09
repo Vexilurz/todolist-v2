@@ -354,6 +354,9 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
         //If dragging cycle was not initialized - quit.
         if(isNil(this.initial.initialRect)){ return } 
 
+        //stop scrolling
+        this.scroll = null;
+
         this.setState({showPlaceholder:false}); //Hide placeholder
 
         let {items} = this.props;
@@ -429,7 +432,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                 }
             ),
             this.shouldDecorate
-        )(event);
+        )(event)
     };
     
 
@@ -575,7 +578,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
          
         let {scrollTop, scrollHeight} = container;
         let {height} = container.getBoundingClientRect(); 
-        let speed = 2;
+        let speed = 8;
 
         if(this.scroll==="up"){ 
 
@@ -772,7 +775,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                 >    
                     {this.props.children}    
                 </div>
-        </div>;
+        </div>
     }
 } 
 

@@ -1,6 +1,6 @@
 {
   "name": "tasklist",
-  "version": "1.5.2-master",
+  "version": "1.5.3-master",
   "description": "tasklist",
   "main": "production/main.js",
   "scripts": {
