@@ -562,6 +562,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                         
                         {     
                             this.props.clone ? null :
+                            this.state.separateWindowsCount>this.maxSepWindows ? null :
                             <IconButton    
                                 iconStyle={{color:"rgba(100,100,100,0.6)",width:"18px",height:"18px"}}
                                 onClick={this.props.cloneWindow}   

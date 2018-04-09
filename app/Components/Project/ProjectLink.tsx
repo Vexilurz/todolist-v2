@@ -434,12 +434,10 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
  
 
 
-
-
 interface ProjectLinkTrashProps{ 
     project:Project,
     dispatch:Function,
-    indicator:{active:number,completed:number,deleted:number, trash?:any},
+    indicator:{ active:number,completed:number,deleted:number,trash?:any },
     selectedCategory:Category 
 }
 

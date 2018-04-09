@@ -1,8 +1,8 @@
 {
   "name": "tasklist",
-  "version": "1.5.0-master",
+  "version": "1.5.2-master",
   "description": "tasklist",
-  "main": "dist/main.js",
+  "main": "production/main.js",
   "scripts": {
     "start": "electron .",
     "publish": "build --win --publish always",
@@ -123,6 +123,7 @@
       "production/**/*",
       "!node_modules/electron-ga/node_modules${/*}",
       "!s3clean${/*}",
+      "!credentials",
       "!randomDatabase${/*}"
     ], 
     "win": {

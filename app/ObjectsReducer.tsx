@@ -602,6 +602,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
                     let project = state.projects[projectIndex];
                     let relatedTodosIds : string[] = project.layout.filter(isString) as any[];
+                    let undeleted = filter( state.todos,  t => contains(t._id)(relatedTodosIds) );
             
                     let todos = state.todos.map(
                         when( 
@@ -611,10 +612,23 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     ) as Todo[];
 
                     let projects = adjust(
-                        (project:Project) => assoc('deleted',undefined,project), 
+                        (project:Project) : Project => ({...project,deleted:undefined}), 
                         projectIndex, 
                         state.projects
                     );
+
+                    if(shouldAffectDatabase){ 
+                       updateProject(
+                           project._id, 
+                           {...project,deleted:undefined}, 
+                           onError
+                        ); 
+
+                        updateTodos(
+                            undeleted.map(t => ({...t,deleted:undefined}) ),
+                            onError
+                        ); 
+                    }
  
                     return {...state, projects, todos};
                 }

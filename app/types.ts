@@ -221,10 +221,10 @@ export interface Project{
   deleted : Date,
   completed : Date, 
   attachedTags : string[], 
-  hide?:Category[],
-  expand?:number,
-  showCompleted?:boolean,
-  showScheduled?:boolean
+  hide? : Category[],
+  expand? : number,
+  showCompleted? : boolean,
+  showScheduled? : boolean
 };
 
  

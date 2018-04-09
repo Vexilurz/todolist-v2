@@ -1062,7 +1062,9 @@ export let generateEmptyProject = () : Project => ({
     created : new Date(), 
     deadline : null, 
     completed : null, 
-    attachedTags : []
+    attachedTags : [],
+    showCompleted : false,
+    showScheduled : true
 });
   
 
