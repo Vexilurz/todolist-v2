@@ -29,7 +29,7 @@ interface Config{
     preserveWindowWidth:boolean, //when resizing sidebar
     enableShortcutForQuickEntry:boolean,
     quickEntrySavesTo:string, //inbox today next someday
-    moveCompletedItemsToLogbook, //immediatelly
+    moveCompletedItemsToLogbook, //immediately
 };
 
 

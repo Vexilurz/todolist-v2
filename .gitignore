@@ -3,3 +3,5 @@ dist
 production
 randomDatabase/databases
 release
+tasklist-server/node_modules
+tasklist-server/dist
