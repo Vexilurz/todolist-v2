@@ -27,35 +27,39 @@ export let calendars_db;
 
 const limit = 100000;
 
+
+let syncDatabase = (db) => {
+    //retry 
+    //live
+    //check all params
+    db.sync( 
+        new PouchDB(
+          'https://couchdb-604ef9.smileupps.com/todos', 
+          {
+              auth:{
+                  username:'admin',
+                  password:'54957bed1593'
+              }
+          }
+       ) 
+    )
+    .on(
+        'complete',  
+        function () {
+             console.log('done');
+        }
+    )
+    .on('error', function (err) {
+              console.log('error', err);
+    });
+}; 
+
   
 export let initDB = () => { 
   calendars_db = new PouchDB('calendars'); 
   todos_db = new PouchDB('todos');   
   projects_db = new PouchDB('projects');
   areas_db = new PouchDB('areas'); 
-
-  todos_db
-  .sync( 
-      new PouchDB(
-        'https://couchdb-604ef9.smileupps.com/todos', 
-        {
-            auth:{
-                username:'admin',
-                password:'54957bed1593'
-            }
-        }
-     ) 
-  )
-  .on(
-      'complete',  
-      function () {
-        console.log('done');
-      }
-  )
-  .on('error', function (err) {
-    console.log('error', err);
-  });
-
 }  
 
    

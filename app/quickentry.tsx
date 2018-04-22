@@ -103,7 +103,7 @@ let moment = require("moment");
 injectTapEventPlugin();  
 
 
-window.onerror = function (msg, url, lineNo, columnNo, error){
+window.onerror = function (msg:any, url, lineNo, columnNo, error){
     let string = msg.toLowerCase();
     var message = [ 
         'Message: ' + msg,
@@ -1605,12 +1605,13 @@ class SelectorPopup extends Component<SelectorPopupProps,SelectorPopupState>{
                     style={{  
                         width:"100%",
                         paddingLeft:"5px",
-                        fontFamily: "sans-serif",
-                        fontSize:`14px`,  
-                        whiteSpace: "nowrap",
-                        cursor: "default",
-                        color:"black",
-                        WebkitUserSelect: "none" 
+                        fontFamily:"sans-serif",
+                        fontSize:"14px",   
+                        fontWeight:"bolder",
+                        color:"rgba(0, 0, 0, 0.8)",
+                        whiteSpace:"nowrap",
+                        cursor:"default",
+                        WebkitUserSelect:"none" 
                     }}
                 >    
                     <AutoresizableText

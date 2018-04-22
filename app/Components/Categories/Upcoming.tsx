@@ -585,7 +585,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                 <div style={{
                     width:"100%",
                     display:"flex",
-                    paddingBottom:noEvents ? "0px" : "10px",
+                    paddingBottom:noEvents ? "0px" : noTodos ? "0px" : "10px",
                     alignItems:"center",
                     WebkitUserSelect:"none"
                 }}>  

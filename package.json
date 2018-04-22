@@ -1,8 +1,8 @@
 {
   "name": "tasklist",
-  "version": "1.5.3-master",
+  "version": "1.5.4-master",
   "description": "tasklist",
-  "main": "dist/main.js",
+  "main": "production/main.js",
   "scripts": {
     "start": "electron .",
     "publish": "build --win --publish always",
@@ -125,16 +125,14 @@
       "!node_modules/electron-ga/node_modules${/*}",
       "!s3clean${/*}",
       "!credentials",
-      "!randomDatabase${/*}"
+      "!randomDatabase${/*}",
+      "!tasklist-server${/*}"
     ],
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
+          "arch": ["x64","ia32"]
         }
       ],
       "icon": "./icon.ico"

@@ -393,10 +393,12 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
         actions.push({type:"dragged",load:null}); 
         let draggedTodo = item;
 
-
         assert(
-            item._id===selected[oldIndex]._id, 
-            `incorrect index. ${newIndex} ${item} ${selected} onSortEnd. TodosList.` 
+            draggedTodo._id===selected[oldIndex]._id, 
+           `incorrect index. ${newIndex}; 
+            draggedTodo : ${JSON.stringify(draggedTodo)};
+            selected[oldIndex] : ${selected[oldIndex]}; 
+            onSortEnd. TodosList.` 
         );
 
 
