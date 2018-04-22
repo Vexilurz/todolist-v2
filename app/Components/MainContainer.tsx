@@ -181,22 +181,24 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
 
     setData = ({projects, areas, todos, calendars}) : void => {
+        
         let actions = [];
         let showHint = not(this.props.hideHint);
-        
+        let selectedTodos = filter(todos, isTodo);
+
         if(this.props.clone){ return } 
 
         actions.push({type:"setProjects", load:[...projects]});
         
         actions.push({type:"setAreas", load:[...areas]});
 
-        actions.push({type:"setTodos", load:[...todos]});
+        actions.push({type:"setTodos", load:[...selectedTodos]});
 
         actions.push({type:"setCalendars", load:calendars});
 
         this.addIntroList(projects);  
 
-        let extended = extend(this.props.limit, todos);
+        let extended = extend(this.props.limit, selectedTodos);
 
         if(isNotEmpty(extended)){ 
            actions.push({type:"addTodos", load:extended}); 
@@ -205,12 +207,16 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         this.props.dispatch({type:"multiple",load:actions});
 
         //if calendars not empty - hide hint
-        if(isNotEmpty(calendars) && showHint){
+        if(
+           isNotEmpty(calendars) && 
+           showHint
+        ){
            updateConfig({hideHint:true})
            .then( 
                 config => this.props.dispatch({type:"updateConfig",load:config}) 
            ) 
-        }  
+        }
+
     };
     
     

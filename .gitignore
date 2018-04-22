@@ -2,6 +2,8 @@ node_modules
 dist
 production
 randomDatabase/databases
+randomDatabase/node_modules
 release
 tasklist-server/node_modules
+s3clean/node_modules
 tasklist-server/dist

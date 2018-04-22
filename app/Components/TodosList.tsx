@@ -384,25 +384,39 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
     
     onSortEnd = (oldIndex:number,newIndex:number,event:any,item?:any) => { 
 
-        let {todos, dispatch, areas, sortBy, projects,moveCompletedItemsToLogbook,filters} = this.props;
+        let {dispatch,areas,projects,moveCompletedItemsToLogbook,filters} = this.props;
         let x = event.clientX; 
         let y = event.clientY;   
-        let selected = todos.sort(sortBy);
+        let selected = this.props.todos.sort(this.props.sortBy);
         let actions = [];
 
         actions.push({type:"dragged",load:null}); 
-
         let draggedTodo = item;
-        
+
+
         assert(
             item._id===selected[oldIndex]._id, 
             `incorrect index. ${newIndex} ${item} ${selected} onSortEnd. TodosList.` 
         );
 
-        assert(isTodo(draggedTodo), `draggedTodo is not of type Todo ${draggedTodo}. TodosList.`);
 
-        if(isEmpty(draggedTodo.title)){ return }
-  
+        assert(
+            isTodo(draggedTodo), 
+            `draggedTodo is not of type Todo ${draggedTodo}. TodosList.`
+        );
+
+
+        if(
+            isNil(draggedTodo) || 
+            draggedTodo._id!==selected[oldIndex]._id || 
+            !isTodo(draggedTodo) || 
+            isEmpty(draggedTodo.title)
+        ){
+           dispatch({type:"multiple", load:actions}); 
+           return; 
+        }
+        
+
         let leftpanel = document.getElementById("leftpanel");
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){  
@@ -471,29 +485,27 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
   
         
     render(){    
-        let {todos, selectedCategory, sortBy} = this.props;
-
         let decorators = [{  
             area:document.getElementById("leftpanel"),  
             decorator:generateDropStyle("nested"),
             id:"default"
         }];       
 
-        let selected = todos.sort(sortBy);  
+        let selected = this.props.todos.sort(this.props.sortBy);  
         
         return <div style={{WebkitUserSelect:"none",position:"relative"}}>   
-                <SortableContainer
-                    items={selected}
-                    scrollableContainer={this.props.rootRef}
-                    selectElements={(index:number,items:any[]) => [index]}
-                    shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
-                    decorators={decorators}
-                    onSortStart={this.onSortStart}   
-                    onSortMove={this.onSortMove} 
-                    onSortEnd={this.onSortEnd}  
-                >   
-                    {selected.map((todo:Todo,index) => this.getTodoElement(todo, index))} 
-                </SortableContainer> 
+            <SortableContainer
+                items={selected}
+                scrollableContainer={this.props.rootRef}
+                selectElements={(index:number,items:any[]) => [index]}
+                shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
+                decorators={decorators}
+                onSortStart={this.onSortStart}   
+                onSortMove={this.onSortMove} 
+                onSortEnd={this.onSortEnd}  
+            >   
+                {selected.map((todo:Todo,index) => this.getTodoElement(todo, index))} 
+            </SortableContainer> 
         </div>  
     }   
 }    
