@@ -63,9 +63,9 @@ module.exports = {
                 uglifyOptions:{
                     output:{
                         comments:false
-                    }//,
-                    //compress:false
-                    /*{
+                    }/*,
+                    compress:true
+                    {
                         //unsafe_comps:true,
                         properties:true,
                         keep_fargs:false,

@@ -52,10 +52,11 @@ module.exports = {
 		minimize: true,
 		minimizer: [
 			new UglifyJsPlugin({
+                sourceMap:false,
                 uglifyOptions:{
                     output:{
                         comments:false
-                    },
+                    }/*,
                     compress:{
                         unsafe_comps:true,
                         properties:true,
@@ -77,10 +78,10 @@ module.exports = {
                         if_return:true,
                         join_vars:true,
                         drop_console:true
-                    }
+                    }*/
                 }
             })
-		]
+		] 
 	},
     
     plugins:[ 
