@@ -13,7 +13,7 @@ import { attachDispatchToProps, checkForUpdates, getCompletedWhen, log } from '.
 import { isNewVersion } from '../../utils/isNewVersion';
 import { 
     getCalendars, getProjects, getAreas, getTodos, destroyEverything, 
-    initDB, addTodos, addProjects, addAreas, addCalendars
+    initDB, addTodos, addProjects, addAreas
 } from '../../database';
 import { section, Calendar, Area, Project, Todo } from '../../types';
 import { Section } from './section';

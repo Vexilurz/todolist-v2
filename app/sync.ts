@@ -18,3 +18,33 @@ var sync = PouchDB.sync('mydb', 'http://localhost:5984/mydb', {
 
 sync.cancel(); 
 */
+
+
+
+/*
+let syncDatabase = (db) => {
+    //retry 
+    //live
+    //check all params
+    db.sync( 
+        new PouchDB(
+          'https://couchdb-604ef9.smileupps.com/todos', 
+          {
+              auth:{
+                  username:'admin',
+                  password:'54957bed1593'
+              }
+          }
+       ) 
+    )
+    .on(
+        'complete',  
+        function () {
+             console.log('done');
+        }
+    )
+    .on('error', function (err) {
+              console.log('error', err);
+    });
+}; 
+*/

@@ -1,6 +1,8 @@
 import { ipcRenderer } from 'electron';
 import { compose } from 'ramda';
 import { isNotNil } from './isSomething';
+const Promise = require('bluebird');
+
 
 export function requestFromMain<T>(
     type:string,

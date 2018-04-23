@@ -209,6 +209,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     showRightClickMenu : action.load.showRightClickMenu
                 })
             ],  
+
             [ 
                 typeEquals("updateTodos"),
                 (action:{type:string, load:Todo[]}) : Store => {
@@ -235,6 +236,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     return { ...state, todos };
                 } 
             ], 
+            
             [
                 typeEquals("updateTodoById"),
                 (action:{ type:string, load: {id:string,props:any} }) : Store => {
@@ -321,8 +323,10 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
             [  
                 typeEquals("addCalendar"),  
                 (action:{type:string,load:Calendar}):Store => { 
-                    assert(isCalendar(action.load), `Error: addCalendar. applicationObjectsReducer. ${action.load}`); 
-                
+                    if(isDev()){
+                       assert(isCalendar(action.load), `Error: addCalendar. applicationObjectsReducer. ${action.load}`); 
+                    }
+
                     if(shouldAffectDatabase){ 
                        addCalendar(onError,action.load) 
                     }   

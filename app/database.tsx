@@ -29,7 +29,7 @@ export let initDB = () => {
     todos_db = new PouchDB('todos');   
     projects_db = new PouchDB('projects');
     areas_db = new PouchDB('areas'); 
-}  
+};  
 
 
    
@@ -37,40 +37,11 @@ initDB();
  
 
 
-/*
-let syncDatabase = (db) => {
-    //retry 
-    //live
-    //check all params
-    db.sync( 
-        new PouchDB(
-          'https://couchdb-604ef9.smileupps.com/todos', 
-          {
-              auth:{
-                  username:'admin',
-                  password:'54957bed1593'
-              }
-          }
-       ) 
-    )
-    .on(
-        'complete',  
-        function () {
-             console.log('done');
-        }
-    )
-    .on('error', function (err) {
-              console.log('error', err);
-    });
-}; 
-*/
-  
-
-  
 export let updateProjects = (projects : Project[], onError : Function) : Promise<any[]> => {
     if(isDev()){
        assert(all(isProject,projects),`Not all input values are of type Project ${projects}. updateProjects.`); 
     }
+
     return updateItemsInDatabase(onError,projects_db)(projects);
 };
 
@@ -80,6 +51,7 @@ export let updateArea = (_id:string, replacement:Area, onError:Function) : Promi
     if(isDev()){
        assert(isArea(replacement),`Input value is not of type area. ${replacement}. updateArea.`);
     }
+
     return updateItemInDatabase(onError, areas_db)(_id, replacement);  
 };
 
@@ -89,6 +61,7 @@ export let updateAreas = (areas : Area[], onError : Function) : Promise<any[]> =
     if(isDev()){
        assert(all(isArea,areas),`Not all input values are of type Area ${areas}. updateAreas.`);
     }
+
     return updateItemsInDatabase(onError,areas_db)(areas);
 };
 
@@ -98,6 +71,7 @@ export let updateProject = (_id : string, replacement : Project, onError:Functio
     if(isDev()){
        assert(isProject(replacement),`Input value is not of type Project ${replacement}. updateProject.`);
     }
+
     return updateItemInDatabase(onError, projects_db)(_id, replacement); 
 };
 
@@ -107,6 +81,7 @@ export let updateTodo = (_id:string, replacement:Todo, onError:Function) : Promi
     if(isDev()){
        assert(isTodo(replacement),`Input value is not of type Todo ${replacement}. updateTodo.`);
     }
+
     return updateItemInDatabase(onError, todos_db)(_id, replacement);    
 }; 
 
@@ -116,6 +91,7 @@ export let updateTodos = (todos : Todo[], onError : Function) : Promise<any[]> =
     if(isDev()){
        assert(all(isTodo,todos),`Not all input values are of type Todo ${todos}. updateTodos.`);
     }
+
     return updateItemsInDatabase(onError, todos_db)(todos);
 };
 
@@ -165,30 +141,29 @@ let updateItemsInDatabase = (onError:Function, db:any) => {
             return db 
                 .allDocs({ 
                     include_docs:true,  
-                    conflicts: true,
-                    descending:true,
+                    //descending:true,
                     keys:items.map((item) => item["_id"])
                 })    
                 .then( (query:Query<any>) => queryToObjects(query) )
                 .then( (result:any[]) => {
-                        let itemsWithRev = result.filter(v => v);
-                        let revs = {};
+                    let itemsWithRev = result.filter(v => v);
+                    let revs = {};
 
-                        for(let i=0; i<itemsWithRev.length; i++){
-                            let item = itemsWithRev[i];
-                            if(not(isNil(item))){
-                                revs[item["_id"]] = item["_rev"];
-                            }
+                    for(let i=0; i<itemsWithRev.length; i++){
+                        let item = itemsWithRev[i];
+                        if(not(isNil(item))){
+                            revs[item["_id"]] = item["_rev"];
                         }
+                    }
 
-                        for(let i=0; i<items.length; i++){
-                            let item = items[i];  
-                            if(not(isNil(item))){
-                                item[`_rev`] = revs[item["_id"]];
-                            }
-                        }    
-                        
-                        return db.bulkDocs(items).catch(onError); 
+                    for(let i=0; i<items.length; i++){
+                        let item = items[i];  
+                        if(not(isNil(item))){
+                            item[`_rev`] = revs[item["_id"]];
+                        }
+                    }    
+                    
+                    return db.bulkDocs(items).catch(onError); 
                 })
                 .catch((err) => {
                     if(err.status===409 && count<5){
@@ -265,7 +240,10 @@ export let removeArea = (onError:Function,_id:string) : Promise<void> => {
 
 
 export let getAreaById = (onError:Function, _id : string) : Promise<Area> => {
-    assert(isString(_id), `_id is not of type String.getAreaById. ${_id}`);
+    if(isDev()){
+       assert(isString(_id), `_id is not of type String.getAreaById. ${_id}`);
+    }
+
     return getItemFromDatabase(onError,areas_db)(_id); 
 };
 
@@ -278,35 +256,50 @@ export let getAreas = (onError:Function) => (descending,limit) : Promise<Area[]>
 
 
 export let removeAreas = (areas : Area[], onError : Function) : Promise<any[]> => {
-    assert(all(isArea,areas),`Not all input values are of type Area ${areas}. removeAreas.`);
+    if(isDev()){
+       assert(all(isArea,areas),`Not all input values are of type Area ${areas}. removeAreas.`);
+    }
+
     return updateItemsInDatabase(onError,areas_db)(areas.map( a => ({...a, _deleted: true}) ));
 };   
 
 
 
 export let addProject = (onError:Function, project : Project) : Promise<void> => {
-    assert(isProject(project),`Input value is not of type project. ${project}. addProject.`);
+    if(isDev()){
+       assert(isProject(project),`Input value is not of type project. ${project}. addProject.`);
+    }
+
     return setItemToDatabase(onError, projects_db)(project);
 };
 
 
 
 export let addProjects = (onError:Function, projects:Project[]) : Promise<void> => {
-    assert(all(isProject,projects),`Not all input values are of type Project ${projects}. addProjects.`);
+    if(isDev()){
+       assert(all(isProject,projects),`Not all input values are of type Project ${projects}. addProjects.`);
+    }
+
     return setItemsToDatabase(onError, projects_db)(projects); 
 };
 
 
 
 export let removeProject = (_id:string, onError:Function) : Promise<void> => {
-    assert(isString(_id), `_id is not a string. ${_id}. removeProject.`);
+    if(isDev()){
+       assert(isString(_id), `_id is not a string. ${_id}. removeProject.`);
+    }
+
     return removeObject(onError,projects_db)(_id); 
 };
 
 
 
 export let getProjectById = (onError:Function, _id : string) : Promise<Project> => {
-    assert(isString(_id), `_id is not a string. ${_id}. getProjectById.`);
+    if(isDev()){
+       assert(isString(_id), `_id is not a string. ${_id}. getProjectById.`);
+    }
+
     return getItemFromDatabase(onError, projects_db)(_id);
 };
 
@@ -332,10 +325,7 @@ export let removeProjects = (projects : Project[], onError:Function) : Promise<a
        assert(all(isProject,projects),`Not all input values are of type Project ${projects}. removeProjects.`);
     }
    
-    return updateItemsInDatabase(
-      onError,
-      projects_db 
-    )(projects.map( p => ({...p, _deleted: true}) ))
+    return updateItemsInDatabase(onError, projects_db)( projects.map(p => ({...p, _deleted: true})) )
 };    
 
 
@@ -351,6 +341,10 @@ export let addTodo = (onError:Function, todo : Todo) : Promise<void> => {
 
 
 export let addCalendar = (onError:Function, calendar:Calendar) : Promise<void> => {
+    //for performance reason dont save events data into database
+    //they will be requested anyway from url on application startup or url submit
+    calendar.events = [];
+
     return setItemToDatabase(onError,calendars_db)(calendar);
 };
  
@@ -432,15 +426,15 @@ export let getCalendars = (onError:Function) => (descending,limit) : Promise<Cal
 
   
 export let removeTodos = (todos:Todo[], onError:Function) : Promise<any[]> => {
-  if(isDev()){
-     assert(all(isTodo,todos),`Not all input values are of type Todo ${todos}. removeTodos.`);
-  }  
+    if(isDev()){
+        assert(all(isTodo,todos),`Not all input values are of type Todo ${todos}. removeTodos.`);
+    }  
 
-  if(isEmpty(todos)){ 
-     return new Promise(resolve => resolve([]));
-  }  
-  
-  return updateItemsInDatabase(onError, todos_db)(todos.map(t => ({...t, _deleted: true})))
+    if(isEmpty(todos)){ 
+        return new Promise(resolve => resolve([]));
+    }  
+    
+    return updateItemsInDatabase(onError, todos_db)(todos.map(t => ({...t, _deleted: true})));
 };     
 
 

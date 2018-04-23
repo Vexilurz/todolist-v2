@@ -14,7 +14,7 @@ const pathTo = require('path');
 const log = require("electron-log");
 const os = require('os'); 
 const rimraf = require('rimraf');
-
+const Promise = require('bluebird');
 
 
 let backupFolder = pathTo.resolve(os.homedir(), "Documents", "tasklist");

@@ -17,6 +17,7 @@ import {
     oneDayBehind, inPastRelativeTo 
 } from '../utils/time';
 import { isDev } from '../utils/isDev';
+const Promise = require('bluebird');
 
  
 
