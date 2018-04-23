@@ -12,8 +12,8 @@ import { Checkbox } from '../TodoInput/TodoInput';
 import { attachDispatchToProps, checkForUpdates, getCompletedWhen, log } from '../../utils/utils';
 import { isNewVersion } from '../../utils/isNewVersion';
 import { 
-     getCalendars, getProjects, getAreas, getTodos, destroyEverything, 
-     initDB, addTodos, addProjects, addAreas, addCalendars, getDatabaseObjects  
+    getCalendars, getProjects, getAreas, getTodos, destroyEverything, 
+    initDB, addTodos, addProjects, addAreas, addCalendars
 } from '../../database';
 import { section, Calendar, Area, Project, Todo } from '../../types';
 import { Section } from './section';

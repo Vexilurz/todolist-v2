@@ -210,14 +210,16 @@ export let measureTime = (f:() => void) => {
 
 
 
-export let measureTimePromise = (f:(...args) => Promise<any>) => 
+export let measureTimePromise = (f:(...args) => Promise<any>, name?:string) => 
     (...args) : Promise<any> => {
         let start : number = performance.now();
 
         return f.apply(null,args)
                 .then((data) => {
                     let finish : number = performance.now();
-                    console.log(`${f.name} - time of execution : ${finish - start} ms`);
+                    if(isDev()){
+                       console.log(`${name ? name : f.name} - time of execution : ${finish - start} ms`);
+                    } 
                     return data;
                 }); 
     }; 

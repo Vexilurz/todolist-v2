@@ -2,7 +2,7 @@ import {
     isEmpty, last, isNil, contains, all, not, assoc, flatten, reduce, prop, evolve, uniq,
     toPairs, map, compose, allPass, cond, defaultTo, reject, when, ifElse, identity, and 
 } from 'ramda';
-import { isNotArray, isDate, isTodo, isString } from '../utils/isSomething';
+import { isNotArray, isDate, isTodo, isString, isNotNil } from '../utils/isSomething';
 import { 
     getTodos, removeTodo, addTodo, getProjects, 
     getAreas, queryToProjects, queryToAreas, initDB, 
@@ -18,6 +18,12 @@ import { ipcRenderer } from 'electron';
 import { generateIndicators } from './generateIndicators';
 
 
+export let moveReminderFromPast : (todo:Todo) => Todo =  
+    when(
+        compose(inPast, prop('reminder')),
+        (t:Todo) => assoc('reminder', oneMinuteLater(new Date()), t)
+    ); 
+
 
 let assureCorrectNoteTypeTodo : (todo:Todo) => Todo = 
     when(
@@ -26,22 +32,12 @@ let assureCorrectNoteTypeTodo : (todo:Todo) => Todo =
     );
 
 
-
 let assureCorrectNoteTypeProject : (project:Project) => Project = 
     when(
         compose(isString, prop('description')),
         evolve({description:noteFromText})
     );   
     
-
-
-export let moveReminderFromPast : (todo:Todo) => Todo =  
-    when(
-        compose(inPast, prop('reminder')),
-        t => assoc('reminder', oneMinuteLater(new Date()), t)
-    ); 
-
-
 
 let updateQuickEntryData = (data) => {
     let {projects,areas,todos,calendars} = data;
@@ -54,8 +50,15 @@ let updateQuickEntryData = (data) => {
 };    
 
 
+let assureCorrectCompletedTypeTodo : (todo:Todo) => Todo =  
+    when(
+      compose(isNotNil, prop('completed')),
+      (t:Todo) => ({...t, completedSet:t.completed, completedWhen:t.completed})
+    ); 
 
-export let getData = measureTimePromise( (limit:Date,onError:Function,max:number) : Promise<{
+
+
+export let getData =  (limit:Date,onError:Function,max:number) : Promise<{
     projects:Project[],
     areas:Area[],
     todos:Todo[],
@@ -65,9 +68,21 @@ export let getData = measureTimePromise( (limit:Date,onError:Function,max:number
     .then(
         data => compose(
             evolve({  
-                projects:map(compose(assureCorrectNoteTypeProject,convertProjectDates)),
+                projects:map(
+                    compose(
+                        assureCorrectNoteTypeProject,
+                        convertProjectDates
+                    )
+                ),
                 areas:map(convertAreaDates),
-                todos:map(compose(moveReminderFromPast,assureCorrectNoteTypeTodo,convertTodoDates)),  
+                todos:map(
+                    compose(
+                        moveReminderFromPast, 
+                        assureCorrectCompletedTypeTodo, 
+                        assureCorrectNoteTypeTodo,
+                        convertTodoDates
+                    )
+                ),  
             }),
             ([calendars,projects,areas,todos]) => ({calendars,projects,areas,todos})
         )(data)
@@ -88,5 +103,5 @@ export let getData = measureTimePromise( (limit:Date,onError:Function,max:number
         )
     )
     .then(updateQuickEntryData)
-)
+
 
