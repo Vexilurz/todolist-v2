@@ -63,14 +63,14 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
 }> => 
     getDatabaseObjects(onError,max)
     .then(
-        compose(
+        data => compose(
             evolve({  
                 projects:map(compose(assureCorrectNoteTypeProject,convertProjectDates)),
                 areas:map(convertAreaDates),
                 todos:map(compose(moveReminderFromPast,assureCorrectNoteTypeTodo,convertTodoDates)),  
             }),
             ([calendars,projects,areas,todos]) => ({calendars,projects,areas,todos})
-        )
+        )(data)
     )  
     .then( 
         ({projects,areas,todos,calendars}) => updateCalendars(

@@ -422,7 +422,7 @@ export let getIcalData = (limit:Date,url:string) : Promise<IcalData> => {
 
 
 
-export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function) : Promise<Calendar[]> => {
+export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function) : Promise<any[]> => {
     return Promise.all(
         calendars.map(
             (c:Calendar) => {  
@@ -430,8 +430,9 @@ export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function
                    return new Promise(resolve => resolve(c)); 
                 }
 
-                return getIcalData(limit, c.url).then(
-                    (data:IcalData) => {
+                return getIcalData(limit, c.url)
+                .then(
+                    (data:IcalData) : Calendar => {
                         let {calendar,events,error} = data as IcalData;
                         
                         if(isNotNil(error)){  
@@ -439,7 +440,7 @@ export let updateCalendars = (limit:Date, calendars:Calendar[], onError:Function
                            return c; 
                         }   
     
-                        return{
+                        return {
                             url:c.url,  
                             name:calendar.name,
                             description:calendar.description,

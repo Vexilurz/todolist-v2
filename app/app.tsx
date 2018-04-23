@@ -62,7 +62,7 @@ let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 
 
 
-window.onerror = function (msg, url, lineNo, columnNo, error) {
+window.onerror = function (msg:any, url, lineNo, columnNo, error) {
     let string = msg.toLowerCase();
     let message = [ 
         'Message:' + msg, 
@@ -308,7 +308,7 @@ export class App extends Component<AppProps,AppState>{
 
  
     render(){
-        return <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001}}>  
+        return <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001} as any}>  
             <div style={{display:"flex",width:"inherit",height:"inherit"}}>
                 { 
                     this.props.clone ? null :  

@@ -85,7 +85,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 (value:Todo) => <div   
                     id={id}
                     key={`${id}-todo`}  
-                    style={{position:"relative",UserSelect:"none",WebkitUserSelect:"none"}}
+                    style={{position:"relative",UserSelect:"none",WebkitUserSelect:"none"} as any}
                 >  
                     <TodoInput     
                         id={id}  
@@ -115,7 +115,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                         paddingTop:"5px",    
                         UserSelect:"none",  
                         WebkitUserSelect:"none"    
-                    }}               
+                    } as any}               
                 > 
                     <ProjectHeading   
                         heading={value as Heading}

@@ -555,15 +555,15 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
 
-    onTitleChange = (event) : void => this.updateState({title:event.target.value});
+    onTitleChange = (event) => this.updateState({title:event.target.value});
     
 
 
-    onNoteChange = (editorState) : void => this.updateState({editorState}); 
+    onNoteChange = (editorState) => this.updateState({editorState}); 
       
     
 
-    updateChecklist = (checklist:ChecklistItem[]) : void => this.updateState({checklist});
+    updateChecklist = (checklist:ChecklistItem[]) => this.updateState({checklist});
 
 
 

@@ -356,7 +356,7 @@ export class Today extends Component<TodayProps,TodayState>{
         return <div 
             id={`${this.props.selectedCategory}-list`}
             ref={(e) => {this.ref=e;}}             
-            style={{disaply:"flex",flexDirection:"column",width:"100%"}}
+            style={{disaply:"flex",flexDirection:"column",width:"100%"} as any}
         > 
             <div style={{ display:"flex", position:"relative", alignItems:"center", marginBottom:"20px"}}>   
                 <div style={{ zoom:"0.8", display:"flex", alignItems:"center" }}>
