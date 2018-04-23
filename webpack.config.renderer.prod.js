@@ -63,9 +63,8 @@ module.exports = {
                 uglifyOptions:{
                     output:{
                         comments:false
-                    }/*,
-                    compress:true
-                    {
+                    }
+                    /*,compress:{
                         //unsafe_comps:true,
                         properties:true,
                         keep_fargs:false,
@@ -94,7 +93,10 @@ module.exports = {
     
           
     plugins : [
-        new CopyWebpackPlugin([{from : './assets'}]),
+        new CopyWebpackPlugin([
+            {from : './assets/icon.ico'},
+            {from : './assets/sound.wav'}
+        ]), 
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': JSON.stringify('production')
         }),

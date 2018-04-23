@@ -56,9 +56,9 @@ module.exports = {
                 uglifyOptions:{
                     output:{
                         comments:false
-                    }/*,
+                    },
                     compress:{
-                        unsafe_comps:true,
+                        //unsafe_comps:true,
                         properties:true,
                         keep_fargs:false,
                         pure_getters:true,
@@ -78,7 +78,7 @@ module.exports = {
                         if_return:true,
                         join_vars:true,
                         drop_console:true
-                    }*/
+                    }
                 }
             })
 		] 
