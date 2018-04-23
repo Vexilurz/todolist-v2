@@ -91,6 +91,13 @@ export let log = (append:string) => (load:any) : any => {
 
 
 
+export let sideEffect = (f:Function) => (data:any) : any => {
+    f(data);
+    return data;
+};
+
+
+
 export let different = complement(equals);
 
 
@@ -200,6 +207,20 @@ export let measureTime = (f:() => void) => {
     let finish : number = performance.now();
     return finish - start; 
 }; 
+
+
+
+export let measureTimePromise = (f:(...args) => Promise<any>) => 
+    (...args) : Promise<any> => {
+        let start : number = performance.now();
+
+        return f.apply(null,args)
+                .then((data) => {
+                    let finish : number = performance.now();
+                    console.log(`${f.name} - time of execution : ${finish - start} ms`);
+                    return data;
+                }); 
+    }; 
 
 
 

@@ -475,20 +475,20 @@ export let queryToProjects = (query:Query<Project>) : Project[] => queryToObject
 export let queryToAreas = (query:Query<Area>) : Area[] => queryToObjects<Area>(query); 
 
 export let getDatabaseObjects = (onError:Function,max:number) => {
-        return Promise.all([
-          getCalendars(onError)(true,max), 
-          getProjects(onError)(true,max),
-          getAreas(onError)(true,max),
-          getTodos(onError)(true,max)
-        ]); 
+    return Promise.all([
+        getCalendars(onError)(true,max), 
+        getProjects(onError)(true,max),
+        getAreas(onError)(true,max),
+        getTodos(onError)(true,max)
+    ]); 
 };
 
 export let destroyEverything = () : Promise<void[]> => 
-        Promise.all([ 
-            calendars_db.destroy(),
-            todos_db.destroy(),
-            projects_db.destroy(),
-            areas_db.destroy()
-        ]); 
+    Promise.all([ 
+        calendars_db.destroy(),
+        todos_db.destroy(),
+        projects_db.destroy(),
+        areas_db.destroy()
+    ]); 
 
 

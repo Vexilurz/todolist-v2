@@ -7,9 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import {isDev} from "../utils/isDev"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import Hide from 'material-ui/svg-icons/navigation/arrow-drop-down';
-import { Provider, connect } from "react-redux";
-import { Todo, Project, Area, Calendar, Category } from '.././types';
+import { Todo, Project, Area, Calendar, Category, action } from '.././types';
 import Print from 'material-ui/svg-icons/action/print';  
 import { AreaComponent } from './Area/Area';
 import { ProjectComponent } from './Project/Project';
@@ -20,10 +18,11 @@ import { Next } from './Categories/Next';
 import { Upcoming, extend } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
-import { isNil, contains, not, evolve, map, compose, allPass, cond, defaultTo, when, prop} from 'ramda';
+import { 
+    isNil, contains, not, evolve, map, compose, allPass, cond, defaultTo, when, prop, concat, append, isEmpty
+} from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
-import { Subscriber } from "rxjs/Subscriber"; 
 import { Subscription } from 'rxjs/Rx';
 import { RightClickMenu } from './RightClickMenu';
 import { RepeatPopup } from './RepeatPopup';
@@ -32,7 +31,7 @@ import { filter } from 'lodash';
 import { updateCalendars, convertEventDate } from './Calendar';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 import { updateConfig } from '../utils/config';
-import { isNotArray, isDate, isTodo, isString, isNotNil } from '../utils/isSomething';
+import { isTodo, isString, isNotNil } from '../utils/isSomething';
 import { assert } from '../utils/assert';
 import { isNewVersion } from '../utils/isNewVersion';
 import { UpdateCheckResult } from 'electron-updater';
@@ -42,27 +41,22 @@ import { getData } from '../utils/getData';
 import { WhenCalendar } from './WhenCalendar';
 import { 
     getIntroList, introListLayout, isNotEmpty, checkForUpdates, 
-    convertDates, printElement, introListIds, byNotDeleted, log
+    convertDates, printElement, introListIds, byNotDeleted, log, sideEffect
 } from '../utils/utils';
-import { threeDaysLater, inPast, oneMinuteLater, fourteenDaysLater, fiveMinutesLater } from '../utils/time'; 
-const moment = require("moment");   
-const path = require('path');
-let uniqid = require("uniqid"); 
+import { 
+    threeDaysLater, inPast, oneMinuteLater, fourteenDaysLater, fiveMinutesLater 
+} from '../utils/time'; 
 
 
 
 interface MainContainerProps{
     dispatch:Function, 
-
     selectedCategory:Category,
-
     limit:Date,
     nextUpdateCheck:Date,
     nextBackupCleanup:Date,
-
     selectedTodo:Todo, 
     scrolledTodo:Todo,
-
     showRepeatPopup:boolean,
     hideHint:boolean,
     firstLaunch:boolean,
@@ -72,7 +66,6 @@ interface MainContainerProps{
     showCalendarEvents:boolean,
     showTrashPopup:boolean, 
     showWhenCalendar:boolean, 
-
     filters:{
         inbox:((todo:Todo) => boolean)[],
         today:((todo:Todo) => boolean)[],
@@ -99,27 +92,25 @@ interface MainContainerProps{
         logbook:number,
         trash:number
     },
-
     calendars:Calendar[],
     projects:Project[],
     areas:Area[],
     todos:Todo[],
-
     selectedProjectId:string,
     selectedAreaId:string,
     moveCompletedItemsToLogbook:string,
     selectedTag:string,
     dragged:string,
-
     cloneWindow:() => void
 } 
 
 
+
 interface MainContainerState{ 
-    fullWindowSize:boolean,
     separateWindowsCount:number  
 }
   
+
  
 export class MainContainer extends Component<MainContainerProps,MainContainerState>{
     rootRef:HTMLElement;  
@@ -128,13 +119,20 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
     maxSepWindows:number;
     disablePrintButton:boolean;
 
+
+
     constructor(props){ 
         super(props);  
+
         this.subscriptions = [];
+
         this.timeouts = [];
+
         this.disablePrintButton = false;
+
         this.maxSepWindows = 6;
-        this.state = {fullWindowSize:true, separateWindowsCount:0};
+
+        this.state = { separateWindowsCount:0 };
     };  
 
 
@@ -145,77 +143,99 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
     initData : (clone:boolean) => Promise<void> = when(
         not, 
-        () => getData(this.props.limit,this.onError,100000).then(
-            ({projects, areas, todos, calendars}) => this.setData({
-                projects:defaultTo([], projects), 
-                areas:defaultTo([], areas), 
-                todos:defaultTo([], todos), 
-                calendars:map(
-                    evolve({events:map(convertEventDate)}),
-                    defaultTo([], calendars)
-                )
-            }) 
-        )
+        () => getData(this.props.limit,this.onError,100000)
+              .then(
+                ({
+                    projects, 
+                    areas,  
+                    todos, 
+                    calendars
+                }) => this.setData({
+
+                    projects:defaultTo([], projects), 
+
+                    areas:defaultTo([], areas), 
+
+                    todos:defaultTo([], todos), 
+
+                    calendars:map(
+                        evolve({events:map(convertEventDate)}),
+                        defaultTo([], calendars)
+                    )
+                }) 
+              )
     );
         
 
 
-    addIntroList = (projects:Project[]) => {
-        let {dispatch} = this.props;
-
-        if(this.props.firstLaunch){  
-            let alreadyExists = projects.find((p:Project) => p._id==="Intro List");
-            if(not(alreadyExists)){  
-                dispatch({
-                    type:"multiple",
-                    load:[
-                        {type:"addTodos", load:introListLayout.filter(isTodo)},
-                        {type:"addProject", load:getIntroList()}  
-                    ]
-                }); 
-            }
-        }; 
-    };
-
-
-
     setData = ({projects, areas, todos, calendars}) : void => {
-        
-        let actions = [];
-        let showHint = not(this.props.hideHint);
-        let selectedTodos = filter(todos, isTodo);
-
         if(this.props.clone){ return } 
 
-        actions.push({type:"setProjects", load:[...projects]});
         
-        actions.push({type:"setAreas", load:[...areas]});
+        let showHint = not(this.props.hideHint);
+        let selectedTodos = todos; //filter(todos, isTodo);
+        
 
-        actions.push({type:"setTodos", load:[...selectedTodos]});
+        let displayData = () => 
+            this.props.dispatch({
+                type:"multiple",
+                load:[
+                    {type:"setProjects", load:projects},
+            
+                    {type:"setAreas", load:areas},
+        
+                    {type:"setTodos", load:selectedTodos},
+        
+                    {type:"setCalendars", load:calendars}
+                ]
+            });
 
-        actions.push({type:"setCalendars", load:calendars});
 
-        this.addIntroList(projects);  
+        let addExtendedTodos = (actions:action[]) : action[] => {
+            let extended : Todo[] = extend(this.props.limit, todos);
 
-        let extended = extend(this.props.limit, selectedTodos);
+            return when(  
+                () => isNotEmpty(extended), 
+                append({type:"addTodos", load:extended}) 
+            )(actions);
+        };
 
-        if(isNotEmpty(extended)){ 
-           actions.push({type:"addTodos", load:extended}); 
-        }
 
-        this.props.dispatch({type:"multiple",load:actions});
+        let addIntroList = (projects:Project[]) => (actions:action[]) : action[] => {
+            let {firstLaunch} = this.props;
 
-        //if calendars not empty - hide hint
-        if(
-           isNotEmpty(calendars) && 
-           showHint
-        ){
-           updateConfig({hideHint:true})
-           .then( 
-                config => this.props.dispatch({type:"updateConfig",load:config}) 
-           ) 
-        }
+            if(not(firstLaunch)){ return actions; }
+                
+            let introListAlreadyExists = projects.find((p:Project) => p._id==="Intro List");
 
+            return when( 
+                () => not(introListAlreadyExists), 
+                concat([
+                    {type:"addTodos", load:introListLayout.filter(isTodo)},
+                    {type:"addProject", load:getIntroList()}  
+                ]) 
+            )(actions);
+        };
+
+
+        let hideImportCalendarsHint : (actions:action[]) => action[] =
+            when( 
+                () => isNotEmpty(calendars) && showHint, //if calendars not empty - hide hint
+                compose( 
+                    sideEffect(() => updateConfig({hideHint:true})), 
+                    append({type:"updateConfig", load:{hideHint:true}}) 
+                )
+            );
+       
+
+        compose(
+            (actions:action[]) => this.props.dispatch({type:"multiple", load:actions}),
+            hideImportCalendarsHint,
+            addExtendedTodos,
+            addIntroList(projects),
+            () => [],
+            displayData
+        )()
     };
     
     
@@ -537,11 +557,11 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                     <RightClickMenu {...{} as any}/> 
                 } 
                 {
-                     not(this.props.showRepeatPopup) ? null : 
+                    not(this.props.showRepeatPopup) ? null : 
                     <RepeatPopup {...{} as any}/>  
                 }
                 {
-                     not(this.props.showWhenCalendar) ? null : 
+                    not(this.props.showWhenCalendar) ? null : 
                     <WhenCalendar {...{} as any}/>  
                 }
                 <div style={{display:"flex",padding:"10px"}}>   
@@ -724,14 +744,12 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 () => {
                                     let trashTodos = filter(this.props.todos, allPass(this.props.filters.trash));
 
-
                                     if(isDev()){
                                         assert(
                                             trashTodos.length===this.props.amounts.trash,
                                            `Amounts dont match. Trash. ${trashTodos.length}:${this.props.amounts.trash}.`
                                         ) 
                                     }
-
 
                                     return <Trash    
                                         todos={trashTodos}

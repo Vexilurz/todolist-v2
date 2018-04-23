@@ -11,7 +11,7 @@ import {
 } from '.././database';
 import { Heading, LayoutItem, Calendar, Todo, Project, Area } from '.././types';
 import { noteFromText } from './draftUtils';
-import { convertProjectDates, convertAreaDates, convertTodoDates } from './utils';
+import { convertProjectDates, convertAreaDates, convertTodoDates, measureTimePromise } from './utils';
 import { updateCalendars } from '../Components/Calendar';
 import { inPast, oneMinuteLater } from './time';
 import { ipcRenderer } from 'electron';
@@ -55,7 +55,7 @@ let updateQuickEntryData = (data) => {
 
 
 
-export let getData = (limit:Date,onError:Function,max:number) : Promise<{
+export let getData = measureTimePromise( (limit:Date,onError:Function,max:number) : Promise<{
     projects:Project[],
     areas:Area[],
     todos:Todo[],
@@ -87,5 +87,6 @@ export let getData = (limit:Date,onError:Function,max:number) : Promise<{
             })
         )
     )
-    .then(updateQuickEntryData);
+    .then(updateQuickEntryData)
+)
 

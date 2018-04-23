@@ -2,6 +2,13 @@ export type ItemWithPriority = Area | Project | Todo | Heading;
 
 
 
+export interface action{
+     type:string,
+     load:any
+}
+
+
+
 export type vcalPropsInitial = [string,Object,string,string];
 
 
