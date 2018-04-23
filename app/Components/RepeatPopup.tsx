@@ -272,7 +272,7 @@ export let repeat = (
     let todos = compose(
         map((t:Todo) : Todo => ({ ...t, reminder:null, group:{type:selectedOption, _id:groupId, options} })),
         selectedDatesToTodos(todo),
-        log('dates'),
+        //log('dates'),
         optionToDates
     )(selectedOption); 
 

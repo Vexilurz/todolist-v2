@@ -134,7 +134,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
 
  
                     let [todosToUpdate, todosToRemove] : Todo[][] = compose(
-                        log('todosToUpdate & todosToRemove'),
+                        //log('todosToUpdate & todosToRemove'),
                         (todos:Todo[]) => compose( 
                             (idx:number) => splitAt(idx)(todos), 
                             findIndex((t:Todo) => t._id===todo._id) 
@@ -157,7 +157,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                                 when(
                                     (t:Todo) => contains(t._id)(todosToUpdateIds) && isDate(until), 
                                     compose(
-                                        log('updated'), 
+                                        //log('updated'), 
                                         assocPath(['group', 'options', 'until'], until),
                                         assocPath(['group', 'options', 'selectedOption'], 'on'),
                                         assocPath(['group', 'type'], 'on')

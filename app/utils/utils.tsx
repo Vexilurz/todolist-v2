@@ -12,7 +12,6 @@ import {
 } from 'ramda'; 
 import { isDev } from './isDev';
 import { ipcRenderer } from 'electron';
-let Promise = require('bluebird');
 import { UpdateCheckResult } from 'electron-updater';
 import { globalErrorHandler } from './globalErrorHandler';
 import { generateId } from './generateId';

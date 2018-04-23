@@ -6,7 +6,6 @@ import { filter } from 'lodash';
 import axios from 'axios';
 let ical = require('ical.js'); 
 let RRule = require('rrule');
-let Promise = require('bluebird');
 import * as icalR from '../ical/index.js'; 
 import { normalize } from '../utils/normalize';
 import { assert } from '../utils/assert';

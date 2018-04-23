@@ -26,8 +26,7 @@ import { getData } from '../../utils/getData';
 import { convertEventDate } from '../Calendar';
 import { keyFromDate } from '../../utils/time';
 import { ipcRenderer } from 'electron'; 
-let uniqid = require("uniqid");   
-const Promise = require('bluebird');   
+let uniqid = require("uniqid");     
 const path = require("path");
 
 

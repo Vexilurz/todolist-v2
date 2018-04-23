@@ -2,7 +2,6 @@ export const value = `Open Source libraries used at tasklist:
 Libraries under MIT-license
 •	auto-launch@5.0.5
 •	axios@0.17.1
-•	bluebird@3.5.1
 •	dom-to-image@2.6.0
 •	electron-ga@1.0.5
 •	electron-json-storage@4.0.2

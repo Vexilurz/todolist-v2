@@ -44,8 +44,7 @@ import {
     getIntroList, introListLayout, isNotEmpty, checkForUpdates, 
     convertDates, printElement, introListIds, byNotDeleted, log
 } from '../utils/utils';
-import { threeDaysLater, inPast, oneMinuteLater, fourteenDaysLater, fiveMinutesLater } from '../utils/time';
-const Promise = require('bluebird');   
+import { threeDaysLater, inPast, oneMinuteLater, fourteenDaysLater, fiveMinutesLater } from '../utils/time'; 
 const moment = require("moment");   
 const path = require('path');
 let uniqid = require("uniqid"); 

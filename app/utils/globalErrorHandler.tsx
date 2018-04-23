@@ -3,7 +3,6 @@ import { googleAnalytics } from './../analytics';
 import { isNil } from 'ramda';
 import { isString } from './isSomething';
 import { getMachineIdSync } from './userid';
-const Promise = require('bluebird'); 
 
 export let globalErrorHandler = (error:any) : Promise<void> => {
     let message = '';

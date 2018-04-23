@@ -16,7 +16,6 @@ import {
 
 let uniqid = require("uniqid"); 
 let path = require('path');
-let Promise = require('bluebird');
  
 
 export let todos_db;

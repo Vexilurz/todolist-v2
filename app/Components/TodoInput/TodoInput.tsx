@@ -68,7 +68,6 @@ const linkifyPlugin = createLinkifyPlugin({
     }
 });  
 let moment = require("moment"); 
-let Promise = require('bluebird');  
 
 
 
