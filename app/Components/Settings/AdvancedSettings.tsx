@@ -26,7 +26,8 @@ import { getData } from '../../utils/getData';
 import { convertEventDate } from '../Calendar';
 import { keyFromDate } from '../../utils/time';
 import { ipcRenderer } from 'electron'; 
-let uniqid = require("uniqid");     
+const Promise = require("bluebird");
+const uniqid = require("uniqid");     
 const path = require("path");
 
 
@@ -81,7 +82,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
     componentDidMount(){
-        requestFromMain<any>('getVersion',[],(event,version) => version)
+        requestFromMain('getVersion',[],(event,version) => version)
         .then(
             (version) => this.updateState({updateStatus:`Current version is : ${version}.`}) 
         )
@@ -152,7 +153,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         isNil,
         () => new Promise( resolve => resolve() ), 
         (folder:string) => getDatabaseObjects(this.onError,1000000).then(
-            ([calendars,projects,areas,todos]) => requestFromMain<any>(
+            ([calendars,projects,areas,todos]) => requestFromMain(
                 'saveDatabase',
                 [ 
                     { database : { todos, projects, areas, calendars } }, 
@@ -170,7 +171,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         this.onError,
         1000000
     ).then(
-        ([calendars,projects,areas,todos]) => requestFromMain<any>(
+        ([calendars,projects,areas,todos]) => requestFromMain(
             'saveBackup',
             [ { database : { todos, projects, areas, calendars } } ],
             (event, to) => to
@@ -185,7 +186,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
         () => new Promise( resolve => resolve() ),
 
-        (pathToFile:string) => requestFromMain<any>(
+        (pathToFile:string) => requestFromMain(
             "readJsonFile",
             [pathToFile],
             (event,json) => json
@@ -233,12 +234,12 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     );
     
 
-
+ 
     checkUpdates : () => Promise<void> =
     () => this.updateState({updateStatus:"Loading..."})
                .then(() => checkForUpdates())  
                .then(
-                   (updateCheckResult:UpdateCheckResult) => requestFromMain<any>(
+                   (updateCheckResult:UpdateCheckResult) => requestFromMain(
                         'getVersion', 
                         [], 
                         (event,version) => version

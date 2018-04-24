@@ -21,35 +21,6 @@ export let initWindow = (
     }) as any;       
     
     handler.on('ready-to-show', () => onReady(handler));
-    
-    //handler.webContents.on('will-prevent-unload', (event) => { event.preventDefault() });
-
-    /*
-    handler.on(
-        'close', 
-        (event) => {
-            console.log(`callback ${handler.id}`)
-            
-            //hide if main window
-            if(handler.id===1){ 
-                console.log(`hide ${handler.id}`)
-                event.preventDefault(); 
-                handler.hide(); 
-            }else{ 
-                console.log(`close ${handler.id}`)
-                
-                //if separate window - close, update windows counter in main window 
-                handler.close(); 
-
-                //update counter
-                mainWindow.webContents.send(
-                    'separateWindowsCount', 
-                    BrowserWindow.getAllWindows().filter(w => !w.isDestroyed()).length
-                );
-            }  
-        } 
-    );
-    */
 
     handler.on(
         'closed', 

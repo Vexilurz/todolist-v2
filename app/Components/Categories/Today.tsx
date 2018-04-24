@@ -23,7 +23,7 @@ import { ipcRenderer } from 'electron';
 import { TodoCreationForm } from '../TodoInput/TodoCreation';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { arrayMove } from '../../utils/arrayMove';
-import { isTodo, isNotArray, isString, isDate, isArray } from '../../utils/isSomething';
+import { isTodo, isNotArray, isString, isDate, isArray, isNotTodo } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { generateId } from '../../utils/generateId';
@@ -280,7 +280,12 @@ export class Today extends Component<TodayProps,TodayState>{
         let y = event.clientY;  
         let draggedTodo = items[oldIndex] as Todo;
         let actions = [{type:"dragged",load:null}];
-        assert(isTodo(draggedTodo), `draggedTodo is not of type Todo. onSortEnd. ${draggedTodo}`);
+
+
+        if(isNotTodo(draggedTodo)){
+           this.props.dispatch({type:"multiple",load:actions});
+           return;
+        }
 
 
         if(insideTargetArea(null,leftpanel,x,y) && isTodo(draggedTodo)){ 

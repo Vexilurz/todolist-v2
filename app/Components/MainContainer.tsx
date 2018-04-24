@@ -250,7 +250,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         let check = () =>
             checkForUpdates()  
             .then(
-                (updateCheckResult:UpdateCheckResult) => requestFromMain<any>(
+                (updateCheckResult:UpdateCheckResult) => requestFromMain(
                    'getVersion',
                     [],
                     (event, currentAppVersion) => [updateCheckResult, currentAppVersion]
@@ -302,7 +302,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         }
  
         let cleanup = () => 
-        requestFromMain<any>(
+        requestFromMain(
             'backupCleanup',
             [],
             (event) => event
@@ -346,7 +346,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             Observable
                 .interval(5*minute)
                 .subscribe(() => 
-                    requestFromMain<any>(
+                    requestFromMain(
                         'saveBackup',
                         [
                             { 
@@ -642,8 +642,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         assert(
                                             todayTodos.length===(this.props.amounts.today+this.props.amounts.hot),
                                            `
-                                           Amounts dont match. 
-                                           Today. 
+                                           Amounts dont match. Today. 
                                            ${todayTodos.length}:${(this.props.amounts.today+this.props.amounts.hot)}.
                                            `
                                         ) 
@@ -678,13 +677,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     let somedayFilters = this.props.filters.someday;
                                     let selectedTodos = filter(this.props.todos, allPass(somedayFilters));
 
-                                    if(isDev()){
-                                        assert(
-                                            selectedTodos.length===this.props.amounts.someday,
-                                           `Amounts dont match. Someday. ${selectedTodos.length}:${this.props.amounts.someday}.`
-                                        ) 
-                                    }
-
                                     return <Someday 
                                         todos={selectedTodos}
                                         filters={this.props.filters}
@@ -713,12 +705,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         (item:Project) : boolean => not( contains(item._id,introListIds) )
                                     );
 
-                                    if(isDev()){
-                                        assert(
-                                            nextTodos.length===this.props.amounts.next,
-                                           `Amounts dont match. Next. ${nextTodos.length}:${this.props.amounts.next}.`
-                                        ) 
-                                    }
 
                                     return <Next   
                                         todos={nextTodos}

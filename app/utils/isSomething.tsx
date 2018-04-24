@@ -129,6 +129,11 @@ export let isTodo = (todo:any) : boolean => {
 };
 
 
+
+export let isNotTodo = complement(isTodo);
+
+
+
 export let isArrayOfTodos = (array:any[]) : boolean => {
     return all((todo:Todo) => isTodo(todo), array );
 }; 

@@ -60,7 +60,6 @@ let getFinalNotificationPosition = () : {finalX:number,finalY:number} => {
 let getInitialNotificationPosition = () : {initialX:number,initialY:number} => {
     const window = notification;
     if(isNil(window)){ return {initialX:0,initialY:0}; }
-
     const {width,height} = screen.getPrimaryDisplay().workAreaSize;
     const size = window.getSize();
     const offset = 25; 

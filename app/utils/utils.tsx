@@ -34,11 +34,11 @@ const domtoimage = require('retina-dom-to-image');
 
 
 
-export let selectFolder = () => requestFromMain<any>('selectFolder', [], (event,folder) => folder);
+export let selectFolder = () => requestFromMain('selectFolder', [], (event,folder) => folder);
 
 
 
-export let selectJsonDatabase = () => requestFromMain<any>('selectJsonDatabase', [], (event,folder) => folder);
+export let selectJsonDatabase = () => requestFromMain('selectJsonDatabase', [], (event,folder) => folder);
 
 
 
@@ -200,15 +200,21 @@ export let printElement = (selectedCategory:Category, list:HTMLElement) : Promis
 }; 
 
 
+ 
+export let measureTime = (f:(...args) => any, name?:string) => 
+    (...args) => {
+        let start : number = performance.now();
+        let data = f.apply(null,args); 
+        let finish : number = performance.now();
 
-export let measureTime = (f:() => void) => {
-    let start : number = performance.now();
-    f(); 
-    let finish : number = performance.now();
-    return finish - start; 
-}; 
+        if(isDev()){
+           console.log(`${name ? name : f.name} - time of execution : ${finish - start} ms`);
+        } 
+ 
+        return data; 
+    }; 
 
-
+ 
 
 export let measureTimePromise = (f:(...args) => Promise<any>, name?:string) => 
     (...args) : Promise<any> => {
@@ -507,9 +513,11 @@ export let dateToDateInputValue = (date:Date) : string => {
 
 
 let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {
- 
-    assert(not(isNil(objects)),`objects undefined. ${objects} removeDeleted.`);
-    assert(isFunction(updateDB),`updateDB is not a function. ${updateDB} removeDeleted.`);
+    
+    if(isDev()){
+       assert(not(isNil(objects)),`objects undefined. ${objects} removeDeleted.`);
+       assert(isFunction(updateDB),`updateDB is not a function. ${updateDB} removeDeleted.`);
+    }
 
     let deleted = [];
     let remainder = [];
@@ -517,7 +525,9 @@ let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {
     for(let i=0; i<objects.length; i++){ 
         let object = objects[i];
         
-        assert(isItem(object), `object has incorrect type ${object} ${i} ${objects}`);
+        if(isDev()){
+           assert(isItem(object), `object has incorrect type ${object} ${i} ${objects}`);
+        }
 
         if(!!objects[i]["deleted"]){ 
             deleted.push(objects[i]);
@@ -538,9 +548,11 @@ export let layoutOrderChanged = (before:(Heading|Todo)[], after:(Heading|Todo)[]
         for(let i=0; i<before.length; i++){
             let beforeItem : Heading|Todo = before[i];
             let afterItem : Heading|Todo = after[i];
-    
-            assert(!isNil(beforeItem),`beforeItem isNil ${beforeItem}. layoutOrderChanged.`);
-            assert(!isNil(afterItem), `afterItem isNil ${afterItem}. layoutOrderChanged.`);
+            
+            if(isDev()){
+               assert(!isNil(beforeItem),`beforeItem isNil ${beforeItem}. layoutOrderChanged.`);
+               assert(!isNil(afterItem), `afterItem isNil ${afterItem}. layoutOrderChanged.`);
+            }
            
             if(beforeItem._id !== afterItem._id){
                 return true;
@@ -604,7 +616,10 @@ export let byNotSomeday = (t:Todo) : boolean => t.category!=="someday";
 
 
 export let byHaveAttachedDate = (t:Todo) : boolean => {
-    assert(isTodo(t), `t is not of type Todo ${t}`);
+    if(isDev()){
+       assert(isTodo(t), `t is not of type Todo ${t}`);
+    }
+
     return not(isNil(t.attachedDate));
 }; 
 
@@ -613,13 +628,18 @@ export let byNotDeleted = (item:Item) : boolean => not(byDeleted(item));
 
 
 export let byDeleted = (item:Item) : boolean => { 
-    assert(isItem(item), `item have incorrect type. ${item}. byDeleted`);
+    if(isDev()){
+       assert(isItem(item), `item have incorrect type. ${item}. byDeleted`);
+    }
+
     return !!item.deleted;
 };  
 
 
-export let byCompleted = (item:Project & Todo) : boolean => { 
-    assert(isProject(item as Project) || isTodo(item),`item have incorrect type. ${item}. byCompleted`);
+export let byCompleted = (item) : boolean => { 
+    if(isDev()){
+       assert(isProject(item as Project) || isTodo(item),`item have incorrect type. ${item}. byCompleted`);
+    }
 
     let date = isNil(item) ? null :
                isTodo(item) ? item.completedWhen :
@@ -646,7 +666,10 @@ export let byTags = (selectedTag:string) => (item:Todo) : boolean => {
 
     
 export let byCategory = (selectedCategory:Category) => (item:Todo) : boolean => { 
-    assert(isCategory(selectedCategory), `selectedCategory is not of type Category. ${selectedCategory}. byCategory.`);
+    if(isDev()){
+       assert(isCategory(selectedCategory), `selectedCategory is not of type Category. ${selectedCategory}. byCategory.`);
+    }
+
     return item.category===selectedCategory;
 }; 
 
@@ -731,43 +754,53 @@ export let removeHeading = (headingId:string,project:Project) : Project => {
 
 export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
 
-    assert(oldTodo.type==="todo",`oldTodo is not todo ${oldTodo}. todoChanged.`);
-    assert(newTodo.type==="todo",`newTodo is not todo ${newTodo}. todoChanged.`);
-    assert(isString(oldTodo._id),`oldTodo._id is not string ${oldTodo._id}. todoChanged.`);
-    assert(isString(newTodo._id),`newTodo._id is not string ${newTodo._id}. todoChanged.`);
+    if(isDev()){
+        assert(oldTodo.type==="todo",`oldTodo is not todo ${oldTodo}. todoChanged.`);
+        assert(newTodo.type==="todo",`newTodo is not todo ${newTodo}. todoChanged.`);
+        assert(isString(oldTodo._id),`oldTodo._id is not string ${oldTodo._id}. todoChanged.`);
+        assert(isString(newTodo._id),`newTodo._id is not string ${newTodo._id}. todoChanged.`);
+    }
 
     if(oldTodo._id!==newTodo._id){ return true }
         
-    assert(isString(oldTodo.title), `oldTodo.title is not string ${oldTodo.title}. todoChanged.`);
-    assert(isString(newTodo.title), `newTodo.title is not string ${newTodo.title}. todoChanged.`);
-    assert(isString(oldTodo.note),`oldTodo.note is not string ${oldTodo.title}. todoChanged.`);
-    assert(isString(newTodo.note),`newTodo.note is not string ${newTodo.title}. todoChanged.`);
+    if(isDev()){
+        assert(isString(oldTodo.title), `oldTodo.title is not string ${oldTodo.title}. todoChanged.`);
+        assert(isString(newTodo.title), `newTodo.title is not string ${newTodo.title}. todoChanged.`);
+        assert(isString(oldTodo.note),`oldTodo.note is not string ${oldTodo.title}. todoChanged.`);
+        assert(isString(newTodo.note),`newTodo.note is not string ${newTodo.title}. todoChanged.`);
+    }
     
     if(oldTodo.title!==newTodo.title){ return true }
     if(oldTodo.note!==newTodo.note){ return true }  
 
-    assert(!isNaN(oldTodo.priority), `oldTodo.priority is not number ${oldTodo.priority}. todoChanged.`);
-    assert(!isNaN(newTodo.priority), `newTodo.priority is not number ${newTodo.priority}. todoChanged.`);
+    if(isDev()){
+        assert(!isNaN(oldTodo.priority), `oldTodo.priority is not number ${oldTodo.priority}. todoChanged.`);
+        assert(!isNaN(newTodo.priority), `newTodo.priority is not number ${newTodo.priority}. todoChanged.`);
+    }
     
     if(oldTodo.priority!==newTodo.priority){ return true }
     
-    assert(isCategory(oldTodo.category), `oldTodo.category is not of type Category ${oldTodo.category}. todoChanged.`);
-    assert(isCategory(newTodo.category), `newTodo.category is not of type Category ${newTodo.category}. todoChanged.`);
+    if(isDev()){
+        assert(isCategory(oldTodo.category), `oldTodo.category is not of type Category ${oldTodo.category}. todoChanged.`);
+        assert(isCategory(newTodo.category), `newTodo.category is not of type Category ${newTodo.category}. todoChanged.`);
+    }
 
     if(oldTodo.category!==newTodo.category){ return true }
     
-    assert(isArray(oldTodo.checklist), `oldTodo.checklist is not an Array. ${oldTodo.checklist}. todoChanged.`);
-    assert(isArray(newTodo.checklist), `newTodo.checklist is not an Array. ${newTodo.checklist}. todoChanged.`);
-    assert(isArray(oldTodo.attachedTags), `oldTodo.attachedTags is not an Array. ${oldTodo.attachedTags}. todoChanged.`);
-    assert(isArray(newTodo.attachedTags), `newTodo.attachedTags is not an Array. ${newTodo.attachedTags}. todoChanged.`);
-
+    if(isDev()){
+        assert(isArray(oldTodo.checklist), `oldTodo.checklist is not an Array. ${oldTodo.checklist}. todoChanged.`);
+        assert(isArray(newTodo.checklist), `newTodo.checklist is not an Array. ${newTodo.checklist}. todoChanged.`);
+        assert(isArray(oldTodo.attachedTags), `oldTodo.attachedTags is not an Array. ${oldTodo.attachedTags}. todoChanged.`);
+        assert(isArray(newTodo.attachedTags), `newTodo.attachedTags is not an Array. ${newTodo.attachedTags}. todoChanged.`);
+    }
     
     if(oldTodo.checklist.length!==newTodo.checklist.length){ return true }
     if(oldTodo.attachedTags.length!==newTodo.attachedTags.length){ return true }
 
-
-    assert(isDate(oldTodo.created),`oldTodo.created is not date ${oldTodo.created}. todoChanged.`);
-    assert(isDate(newTodo.created),`newTodo.created is not date ${newTodo.created}. todoChanged.`);
+    if(isDev()){
+        assert(isDate(oldTodo.created),`oldTodo.created is not date ${oldTodo.created}. todoChanged.`);
+        assert(isDate(newTodo.created),`newTodo.created is not date ${newTodo.created}. todoChanged.`);
+    }
     
 
     if(oldTodo.created.getTime()!==newTodo.created.getTime()){ return true }
@@ -812,10 +845,12 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
         let oldItem : ChecklistItem = oldTodo.checklist[i];
         let newItem : ChecklistItem = newTodo.checklist[i];
 
-        assert(isString(oldItem.text), `oldItem.text is not a string ${oldItem.text}. todoChanged.`);
-        assert(isString(newItem.text), `newItem.text is not a string ${newItem.text}. todoChanged.`);
-        assert(isString(oldItem.key), `oldItem.key is not a string ${oldItem.key}. todoChanged.`);
-        assert(isString(newItem.key), `newItem.key is not a string ${newItem.key}. todoChanged.`);
+        if(isDev()){
+            assert(isString(oldItem.text), `oldItem.text is not a string ${oldItem.text}. todoChanged.`);
+            assert(isString(newItem.text), `newItem.text is not a string ${newItem.text}. todoChanged.`);
+            assert(isString(oldItem.key), `oldItem.key is not a string ${oldItem.key}. todoChanged.`);
+            assert(isString(newItem.key), `newItem.key is not a string ${newItem.key}. todoChanged.`);
+        }
         
         if(oldItem.checked!==newItem.checked){ return true } 
         if(oldItem.idx!==newItem.idx){ return true }  
@@ -825,8 +860,11 @@ export let todoChanged = (oldTodo:Todo,newTodo:Todo) : boolean => {
 
 
     for(let i=0; i<newTodo.attachedTags.length; i++){
-        assert(isString(oldTodo.attachedTags[i]), `oldTodo.attachedTags[${i}] is not a string ${oldTodo.attachedTags[i]}. todoChanged.`);
-        assert(isString(newTodo.attachedTags[i]), `newTodo.attachedTags[${i}] is not a string ${newTodo.attachedTags[i]}. todoChanged.`);
+        if(isDev()){
+            assert(isString(oldTodo.attachedTags[i]), `oldTodo.attachedTags[${i}] is not a string ${oldTodo.attachedTags[i]}. todoChanged.`);
+            assert(isString(newTodo.attachedTags[i]), `newTodo.attachedTags[${i}] is not a string ${newTodo.attachedTags[i]}. todoChanged.`);
+        }
+
         if(oldTodo.attachedTags[i]!==newTodo.attachedTags[i]){ return true }
     }
 };
@@ -856,7 +894,10 @@ export let byAttachedToProject = (projects:Project[]) => (t:Todo) : boolean => {
 
     for(let i=0; i<projects.length; i++){
         let attachedTodosIds = projects[i].layout.filter(isString) as string[];
-        assert(isArrayOfStrings(attachedTodosIds),`attachedTodosIds is not an array of strings ${attachedTodosIds}.`); 
+
+        if(isDev()){
+           assert(isArrayOfStrings(attachedTodosIds),`attachedTodosIds is not an array of strings ${attachedTodosIds}.`); 
+        }
 
         if(contains(t._id)(attachedTodosIds)){ 
            return true; 
@@ -873,7 +914,10 @@ export let byAttachedToCompletedProject = (projects:Project[]) => (t:Todo) : boo
     for(let i=0; i<projects.length; i++){
         let project = projects[i];
         let attachedTodosIds = project.layout.filter(isString) as string[];
-        assert(isArrayOfStrings(attachedTodosIds),`attachedTodosIds is not an array of strings ${attachedTodosIds}.`); 
+
+        if(isDev()){
+           assert(isArrayOfStrings(attachedTodosIds),`attachedTodosIds is not an array of strings ${attachedTodosIds}.`); 
+        }
 
         if(contains(t._id)(attachedTodosIds)){ 
            let yes = isDate(project.completed); 
@@ -887,21 +931,13 @@ export let byAttachedToCompletedProject = (projects:Project[]) => (t:Todo) : boo
 
 
 let byNotAttachedToProject = (projects:Project[]) => (t:Todo) : boolean => {
-    return compose(
-        not,
-        byAttachedToProject(projects)
-    )(t);
+    return compose(not,byAttachedToProject(projects))(t);
 };
 
 
  
 let byNotAttachedToCompletedProject = (projects:Project[]) => (t:Todo) : boolean => {
-    let notAttached = compose(
-       not,
-       byAttachedToCompletedProject(projects)
-    )(t);
-
-    return notAttached;
+    return compose(not, byAttachedToCompletedProject(projects))(t);
 };
 
   
@@ -936,7 +972,9 @@ export let generateTagElement = (tag:string,idx:number) => {
 
 export let getMonthName = (d:Date) : string => {
 
-    assert(isDate(d),`d is not a Date ${d}. getMonthName.`);
+    if(isDev()){
+       assert(isDate(d),`d is not a Date ${d}. getMonthName.`);
+    }
 
     let monthNames = [
         "January", "February", "March", "April", "May", "June",
@@ -950,7 +988,9 @@ export let getMonthName = (d:Date) : string => {
  
 export let getDayName = (d:Date) : string => { 
 
-    assert(isDate(d), `d is not a Date ${d}. getDayName.`);
+    if(isDev()){
+       assert(isDate(d), `d is not a Date ${d}. getDayName.`);
+    }
 
     let days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -960,11 +1000,12 @@ export let getDayName = (d:Date) : string => {
    
 
 export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
- 
     if(hide){ return null } 
      
-    assert(not(isNil(deadline)), `deadline undefined. ${deadline}. daysLeftMark.`);
-    assert(isDate(deadline), `deadline not a Date. ${deadline}. daysLeftMark.`);
+    if(isDev()){
+       assert(not(isNil(deadline)), `deadline undefined. ${deadline}. daysLeftMark.`);
+       assert(isDate(deadline), `deadline not a Date. ${deadline}. daysLeftMark.`);
+    }
 
     let daysLeft = daysRemaining(deadline);      
     let flagColor = daysLeft <= 1  ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
@@ -1006,15 +1047,19 @@ export let gtDate = (first:Date,second:Date) : boolean => {
 
 export let compareByDate = (getDateFromObject:Function) => (i:Todo | Project, j:Todo | Project) => {
 
-    assert(isFunction(getDateFromObject), `getDateFromObject is not a function. ${getDateFromObject}. compareByDate.`);
+    if(isDev()){
+       assert(isFunction(getDateFromObject), `getDateFromObject is not a function. ${getDateFromObject}. compareByDate.`);
+    }
 
     let iDate = getDateFromObject(i); 
     let jDate = getDateFromObject(j);
 
     if(isNil(iDate) || isNil(jDate)){ return 1 }; 
-            
-    assert(isDate(iDate), `iDate is not a Date. ${getDateFromObject}. compareByDate.`);
-    assert(isDate(jDate), `jDate is not a Date. ${getDateFromObject}. compareByDate.`);
+           
+    if(isDev()){
+       assert(isDate(iDate), `iDate is not a Date. ${getDateFromObject}. compareByDate.`);
+       assert(isDate(jDate), `jDate is not a Date. ${getDateFromObject}. compareByDate.`);
+    }
 
     if(iDate.getTime() < jDate.getTime()){ return 1 }
     else{ return -1 }   
@@ -1044,7 +1089,9 @@ export let getDatesRange = (
     includeEnd : boolean
 ) : Date[] => {
  
-    assert(isDate(start), `start is not Date ${start}. getDatesRange`);
+    if(isDev()){
+       assert(isDate(start), `start is not Date ${start}. getDatesRange`);
+    }
          
     Date.prototype["addDays"] = function(days) {
         var date = new Date(this.valueOf());
@@ -1211,31 +1258,39 @@ export let convertAreaDates = (a:Area) : Area => ({
 export let createHeading = (e, props:Store) : Project => {
     let id : string = props.selectedProjectId;
 
-    assert(
-        props.selectedCategory==="project",   
-        `Attempt to create heading outside of project template. 
-        ${props.selectedCategory}. 
-        createHeading.`
-    );
+    if(isDev()){
+        assert(
+            props.selectedCategory==="project",   
+            `Attempt to create heading outside of project template. 
+            ${props.selectedCategory}. 
+            createHeading.`
+        );
 
-    assert(not(isNil(id)), `selectedProjectId undefined ${id}. createHeading.`);
+        assert(not(isNil(id)), `selectedProjectId undefined ${id}. createHeading.`);
+    }
 
     let project = props.projects.find( (p:Project) => p._id===id );
 
-    assert( 
-        isProject(project),   
-        `this.props.selectedProjectId ${props.selectedProjectId} do not correspond to existing project.
-        ${props.projects}. createHeading`
-    );
+    if(isDev()){
+        assert( 
+            isProject(project),   
+            `this.props.selectedProjectId ${props.selectedProjectId} do not correspond to existing project.
+            ${props.projects}. createHeading`
+        );
+    }
 
     let priority = 0; 
 
-    if(!isEmpty(project.layout)){
+    if(isNotEmpty(project.layout)){
         let item : LayoutItem = last(project.layout);
 
         if(isString(item)){ 
            let todo = props.todos.find( (t:Todo) => t._id===item );
-           assert(isTodo(todo), `todo is not of type Todo. todo : ${todo}. item : ${item}. createHeading.`);
+
+           if(isDev()){
+              assert(isTodo(todo), `todo is not of type Todo. todo : ${todo}. item : ${item}. createHeading.`);
+           }
+
            priority = todo.priority + 1; 
         }else if(item["type"]==="heading"){
            let heading : Heading = item as Heading; 
@@ -1320,7 +1375,7 @@ export let convertDates = (object) =>
 
 
 export let checkForUpdates = () : Promise<UpdateCheckResult> => 
-           requestFromMain<UpdateCheckResult>(
+           requestFromMain(
                'checkForUpdates',
                [],
                (event,updateCheckResult) => updateCheckResult
@@ -1329,7 +1384,7 @@ export let checkForUpdates = () : Promise<UpdateCheckResult> =>
 
 
 export let downloadUpdates = () : Promise<string> => 
-           requestFromMain<string>(
+           requestFromMain(
                'downloadUpdates',
                [],
                (event,path) => path

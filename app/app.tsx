@@ -12,7 +12,7 @@ import {
     oneMinuteBefore, nDaysFromNow, initDate, byDeleted, 
     byNotDeleted, byCompleted, byNotCompleted, 
     byCategory, introListIds, isDeadlineTodayOrPast, 
-    isTodayOrPast, byScheduled, typeEquals, log 
+    isTodayOrPast, byScheduled, typeEquals, log, measureTime 
 } from "./utils/utils";  
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight'; 
 import { isString, isDate, isNumber, isNotNil } from './utils/isSomething';
@@ -40,13 +40,14 @@ import { defaultTags } from './utils/defaultTags';
 import { SettingsPopup } from './Components/settings/SettingsPopup';
 import { LicensePopup } from './Components/settings/LicensePopup';
 import { generateIndicators } from './utils/generateIndicators';
-import { generateAmounts } from './utils/generateAmounts';
 import { refreshReminders } from './utils/reminderUtils';
 import { uppercase } from './utils/uppercase';
 import { getFilters } from './utils/getFilters';
+import { generateAmounts } from './utils/generateAmounts';
+let worker = new Worker('worker.js');
 let pathTo = require('path'); 
 injectTapEventPlugin();  
-
+ 
 
 
 if(process && !isDev()){
@@ -117,7 +118,7 @@ export let defaultStoreItems : Store = {
     progress : null,  
     scheduledReminders : [],  
     showUpdatesNotification : false, 
-    limit:nDaysFromNow(40), 
+    limit:nDaysFromNow(100), 
     searchQuery : "", 
     openChangeGroupPopup : false,    
     selectedSettingsSection : "QuickEntry",
@@ -193,6 +194,13 @@ export class App extends Component<AppProps,AppState>{
             `tasklist - ${uppercase(this.props.selectedCategory)}`, 
             this.props.id
         );
+
+        worker.onmessage = (e) => {
+            this.setState(
+                {indicators:e.data}, 
+                () => console.log(`indicators from worker:${this.state.indicators}`)
+            );
+        }
     }; 
 
 
@@ -238,8 +246,6 @@ export class App extends Component<AppProps,AppState>{
 
 
     propsToState = (props:Store) : AppState => {
-        let todos = this.removeTodosFromCompletedProjects(props.todos, props.projects);
-
         let filters : {
             inbox:((todo:Todo) => boolean)[],
             today:((todo:Todo) => boolean)[], 
@@ -252,19 +258,35 @@ export class App extends Component<AppProps,AppState>{
         } = getFilters(props.projects);
 
 
+        let todos = measureTime(
+            this.removeTodosFromCompletedProjects, 
+            'removeTodosFromCompletedProjects' 
+        )(
+            props.todos, 
+            props.projects
+        );
+        
+
         let indicators : { 
             [key:string]:{
                 active:number,
                 completed:number,
                 deleted:number
             }; 
-        } = generateIndicators(
+        } = {};
+        
+        worker.postMessage([props.projects,props.todos]);
+
+        /*measureTime( 
+            generateIndicators, 
+            'generateIndicators' 
+        )(
             props.projects,
             props.todos
-        );
+        );*/
 
 
-        let amounts : { 
+        let amounts : {  
             inbox:number,
             today:number,
             hot:number,
@@ -272,7 +294,10 @@ export class App extends Component<AppProps,AppState>{
             someday:number,
             logbook:number,
             trash:number
-        } = generateAmounts(todos,filters);
+        } = measureTime( generateAmounts, 'generateAmounts' )(
+            todos,
+            filters
+        );
 
 
         return {amounts,indicators,todos};
@@ -282,7 +307,7 @@ export class App extends Component<AppProps,AppState>{
 
     componentWillReceiveProps(nextProps:Store){
         if(
-            this.props.projects!==nextProps.projects ||
+            this.props.projects!==nextProps.projects || 
             this.props.todos!==nextProps.todos
         ){
             let {amounts,indicators,todos} = this.propsToState(nextProps);
@@ -427,7 +452,6 @@ let renderApp = (event, clonedStore:Store, id:number) : void => {
     let isClonedWindow : boolean = isNotNil(clonedStore);
     let isMainWindow : boolean = id===1;
     let defaultStore = {...defaultStoreItems};
-
 
     //handle window close event
     window.onbeforeunload = () => {

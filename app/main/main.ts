@@ -148,38 +148,44 @@ export let findWindowByTitle = (title:string) => {
 
 
 export let getClonedWindows = () : BrowserWindow[] =>  
-            BrowserWindow
-            .getAllWindows()
-            .filter(
-                (window:BrowserWindow) => {
-                    let mainWindowId = isNil(mainWindow) ? 1 : mainWindow.id;
-                    let title = window.getTitle();
-                    let id = window.id;
+    BrowserWindow
+    .getAllWindows()
+    .filter(
+        (window:BrowserWindow) => {
+            let mainWindowId = isNil(mainWindow) ? 1 : mainWindow.id;
+            let title = window.getTitle();
+            let id = window.id;
 
-                    let isDefaultWindow = contains(title)(['Add task','Notification']);
-                    let isMainWindow = equals(id,mainWindowId);
+            let isDefaultWindow = contains(title)(['Add task','Notification']);
+            let isMainWindow = equals(id,mainWindowId);
 
-                    return not(isDefaultWindow) && not(isMainWindow);
-                }
-            ); 
+            return not(isDefaultWindow) && not(isMainWindow);
+        }
+    ); 
 
 
 
 let shortcuts = {
     'Ctrl+Alt+T':() => {
-        if(isNil(quickEntry)){ return }   
+        if(isNil(quickEntry)){ return }
+
         quickEntry.show();
         quickEntry.focus();
         quickEntry.setSkipTaskbar(false); 
         quickEntry.webContents.send("focus"); 
     },
-    'Ctrl+Alt+D+P':() => mainWindow.webContents.openDevTools(),
-    'Ctrl+B':() => {
-        if(isNil(mainWindow)){ return }
 
-        if( mainWindow.isVisible() && mainWindow.isFocused() ){  
-            mainWindow.webContents.send("toggle");
-        }
+    'Ctrl+Alt+D+P':() => {
+        if(!mainWindow['focused'] ){ return }
+
+        mainWindow.webContents.openDevTools()
+    },
+
+    'Ctrl+B':() => {
+        if(!mainWindow['focused'] ){ return }
+        if(isNil(mainWindow)){ return }
+ 
+        mainWindow.webContents.send("toggle");
     }
 };
 
@@ -242,7 +248,7 @@ let createTray = () : Tray => {
         },
         {
             label:'Quit', 
-            type: 'normal', 
+            type:'normal', 
             click:() => {
                 let windows = BrowserWindow.getAllWindows();
                 windows.forEach((w) => w.destroy());
@@ -258,6 +264,7 @@ let createTray = () : Tray => {
 
             let visible : boolean = mainWindow.isVisible();
             let windows = getWindows();
+
             if(visible){ 
                windows.forEach((w) => w.hide()); 
             }else if(not(visible)){ 
@@ -268,6 +275,7 @@ let createTray = () : Tray => {
 
     tray.setToolTip(AppName);
     tray.setContextMenu(contextMenu);
+    
     return tray;
 };
 
@@ -312,8 +320,6 @@ let onReady = (showTray:boolean, config:any) => {
 
     let shouldHideApp : boolean = contains("--hidden")(process.argv);
     
-    listeners = new Listeners(mainWindow); 
-
     dialog.showErrorBox = (title, content) => {};
 
     registerAllShortcuts(); 
@@ -323,7 +329,7 @@ let onReady = (showTray:boolean, config:any) => {
     initAutoLaunch(enableShortcutForQuickEntry && not(disableReminder));   
 
 
-    
+
     mainWindow = initWindow(
         getWindowSize(), 
         {maximizable:true, show:false},
@@ -348,6 +354,11 @@ let onReady = (showTray:boolean, config:any) => {
        mainWindow.on('hide', () => tray.setToolTip(`Show ${AppName}`));
     }
 
+    listeners = new Listeners(mainWindow);
+    
+    mainWindow.on('focus', () => { mainWindow['focused'] = true; }); 
+
+    mainWindow.on('blur', () => { mainWindow['focused'] = false; }); 
 
 
     mainWindow.on(

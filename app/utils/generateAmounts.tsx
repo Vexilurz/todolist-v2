@@ -1,6 +1,6 @@
 import { 
     cond, isNil, not, defaultTo, map, isEmpty, compose, contains, append, omit, 
-    prop, equals, identity, all, when, evolve, ifElse, applyTo, reduce, add, groupBy
+    prop, equals, identity, all, when, evolve, ifElse, applyTo, add, groupBy
 } from 'ramda';
 import { Project, Area, Todo } from '../types';
 
@@ -16,17 +16,15 @@ export let generateAmounts : (
         trash:((todo:Todo) => boolean)[]//1
     } 
 ) => {inbox:number,today:number,hot:number,next:number,someday:number,logbook:number,trash:number} =
-
     (todos,filters) => todos.reduce(
         (acc,val:Todo) => {
-            if( 
-                filters.inbox[0](val) &&
-                filters.inbox[1](val) && 
-                filters.inbox[2](val) && 
-                filters.inbox[3](val) && 
-                filters.inbox[4](val)  
+            if( filters.trash[0](val) ){
+                acc.trash+=1;
+            }else if(
+                filters.logbook[0](val) &&
+                filters.logbook[1](val) 
             ){
-                acc.inbox+=1;
+                acc.logbook+=1; 
             }else if( 
                 filters.hot[0](val) &&
                 filters.hot[1](val) &&
@@ -42,6 +40,17 @@ export let generateAmounts : (
             ){
                 acc.today+=1;
             }else if( 
+                filters.inbox[0](val) &&
+                filters.inbox[1](val) && 
+                filters.inbox[2](val) && 
+                filters.inbox[3](val) && 
+                filters.inbox[4](val)  
+            ){
+                acc.inbox+=1;
+            }
+
+            /*
+            else if( 
                 filters.next[0](val) &&
                 filters.next[1](val) &&
                 filters.next[2](val) &&
@@ -49,22 +58,17 @@ export let generateAmounts : (
                 filters.next[4](val) 
             ){
                 acc.next+=1; 
-            }else if( 
+            }
+            else if( 
                 filters.someday[0](val) &&
                 filters.someday[1](val) &&
                 filters.someday[2](val) &&
                 filters.someday[3](val) 
             ){
                 acc.someday+=1;
-            }else if(
-                filters.logbook[0](val) &&
-                filters.logbook[1](val) 
-            ){
-               acc.logbook+=1; 
-            }else if( filters.trash[0](val) ){
-               acc.trash+=1;
             }
-
+            */
+            
             return acc;
         },
         { 

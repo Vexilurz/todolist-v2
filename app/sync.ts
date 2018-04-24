@@ -1,4 +1,8 @@
+const couchDBTestServer = 'https://couchdb-604ef9.smileupps.com/';
+
+
 /*
+Example
 var sync = PouchDB.sync('mydb', 'http://localhost:5984/mydb', {
   live: true,
   retry: true
@@ -17,11 +21,8 @@ var sync = PouchDB.sync('mydb', 'http://localhost:5984/mydb', {
 });
 
 sync.cancel(); 
-*/
 
 
-
-/*
 let syncDatabase = (db) => {
     //retry 
     //live

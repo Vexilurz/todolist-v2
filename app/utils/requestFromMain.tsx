@@ -1,14 +1,9 @@
 import { ipcRenderer } from 'electron';
 import { compose } from 'ramda';
 import { isNotNil } from './isSomething';
-const Promise = require('bluebird');
 
 
-export function requestFromMain<T>(
-    type:string,
-    args:any[],
-    pick:(...args:any[]) => T
-) : Promise<T>{
+export let requestFromMain = (type:string, args:any[], pick:(...args:any[]) => any) : Promise<any> => {
     return new Promise( 
         (resolve) => {
             let onDone = (...args) => {
@@ -19,7 +14,7 @@ export function requestFromMain<T>(
             ipcRenderer.once(type,onDone); 
             ipcRenderer.send(type,args);
         }    
-    ).catch(
+    ).catch( 
         (e) => {  
             if(isNotNil(e)){ 
                return null;    

@@ -27,7 +27,6 @@ import { SearchInput } from '../Search';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { googleAnalytics } from '../../analytics';
 import { isArrayOfStrings, isString } from '../../utils/isSomething';
-import { assert } from '../../utils/assert';
 import { isDev } from '../../utils/isDev';
  
 

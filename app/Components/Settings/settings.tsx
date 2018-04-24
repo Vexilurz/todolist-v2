@@ -23,7 +23,9 @@ import { QuickEntrySettings } from './QuickEntrySettings';
 import { CalendarEventsSettings } from './CalendarEventsSettings';
 import { AdvancedSettings } from './AdvancedSettings';
 import { TagsSettings } from './TagsSettings';
- 
+import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
+
+
 
 export interface SettingsProps{
     hideHint:boolean,
@@ -116,7 +118,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     alignItems:"center",
                     width:"100%",
                     padding:"10px"  
-                }}> 
+                }}>  
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'QuickEntry'})} 
                         icon={<QuickEntry style={{color:"rgba(100,100,100,0.8)", height:20, width:20}}/>}
@@ -141,6 +143,12 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         name={'Advanced'} 
                         selected={selectedSettingsSection==='Advanced'}
                     />   
+                    <Section
+                        onClick={() => dispatch({type:"selectedSettingsSection", load:'Sync'})} 
+                        icon={<Refresh style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>}
+                        name={'Sync'} 
+                        selected={selectedSettingsSection==='Sync'} 
+                    /> 
                 </div>     
             </div> 
             <div 
@@ -186,6 +194,10 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                             defaultTags={this.props.defaultTags}
                             dispatch={this.props.dispatch}
                         />
+                    ],
+                    [   
+                        () => true, 
+                        () => null   
                     ]
                 ])(selectedSettingsSection) 
             }   

@@ -21,7 +21,7 @@ export interface SystemInfo{
 
 
 export let collectSystemInfo = () : Promise<SystemInfo> => 
-    requestFromMain<SystemInfo>(
+    requestFromMain(
         'collectSystemInfo',
         [],
         (event,info) => info
