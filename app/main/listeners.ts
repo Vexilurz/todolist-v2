@@ -1,195 +1,35 @@
+import { getClonedWindowDimensions } from './utils/getClonedWindowDimensions';
+import { initWindow } from './utils/initWindow';
+import { initAutoLaunch } from './utils/initAutoLaunch';
+import { writeJsonFile } from './utils/writeJsonFile';
+import { readFile } from './utils/readFile';
+import { readJsonFile } from './utils/readJsonFile';
+import { updateConfig } from './utils/updateConfig';
+import { getClonedWindows } from './utils/getClonedWindows';
+import { getInitialNotificationPosition } from './utils/getInitialNotificationPosition';
+import { move } from './utils/move';
+import { loadApp, loadQuickEntry } from './utils/loadApp';
+import { clearStorage } from './utils/clearStorage';
 import { isDev } from './../utils/isDev';
-import { 
-    mainWindow, getClonedWindows, initAutoLaunch, toggleShortcut, 
-    getConfig, updateConfig, clearStorage, quickEntry, notification 
-} from './main';
-import { loadApp, loadQuickEntry, loadNotification } from './loadApp'; 
-import { ipcMain,app,BrowserWindow,screen,dialog } from 'electron';
-import { initWindow } from './initWindow';
+import { ipcMain, app, BrowserWindow, screen, dialog } from 'electron';
 import { isEmpty, when, isNil, prop, path, compose, defaultTo, find } from 'ramda';
-import { autoUpdater } from "electron-updater";
 import { isProject, isString, isNotNil } from '../utils/isSomething';
+import { keyFromDate } from '../utils/time';
+import { RegisteredListener, Config } from '../types';
+import { mainWindow, quickEntry, notification } from './main';
+import { getConfig } from './utils/getConfig';
+import { toggleShortcut } from './shortcuts';
+import { autoUpdater } from "electron-updater";
+import { onAppLoaded } from './utils/onAppLoaded';
+import { onQuickEntryLoaded } from './utils/onQuickEntryLoaded';
 const fs = require('fs');
 const pathTo = require('path');
 const log = require("electron-log");
 const os = require('os'); 
 const rimraf = require('rimraf');
 const Promise = require('bluebird');
+const backupFolder = pathTo.resolve(os.homedir(), "Documents", "tasklist");
 
-
-let backupFolder = pathTo.resolve(os.homedir(), "Documents", "tasklist");
-
-
-
-let move = () : Promise<void> => new Promise(
-    resolve => {
-        let {finalX,finalY} = getFinalNotificationPosition();
-        const window = notification;
-
-        if(isNil(window)){ resolve(); }
-
-        let currentPosition = window.getPosition();
-        let [x,y] = currentPosition;
-        let delta = 20;
-
-        if(y<=finalY){ 
-            window.setPosition(finalX, finalY);
-            resolve();
-        }else{
-            window.setPosition(x, y-delta);
-            setTimeout(() => move(), 30);   
-        }
-    }
-);
-
-
-
-let getFinalNotificationPosition = () : {finalX:number,finalY:number} => {
-    const window = notification;
-    if(isNil(window)){ return {finalX:0,finalY:0}; }
-    const {width,height} = screen.getPrimaryDisplay().workAreaSize;
-    const size = window.getSize();
-    const offset = 25;
-    const finalX = width-size[0]-offset;
-    const finalY = height-size[1]-offset; 
-    return {finalX,finalY};
-};
-
-
-
-let getInitialNotificationPosition = () : {initialX:number,initialY:number} => {
-    const window = notification;
-    if(isNil(window)){ return {initialX:0,initialY:0}; }
-    const {width,height} = screen.getPrimaryDisplay().workAreaSize;
-    const size = window.getSize();
-    const offset = 25; 
-    const initialX = width-size[0]-offset;
-    const initialY = height+size[1];
-    return {initialX,initialY};
-};
-
-
-
-//TODO remove
-let keyFromDate = (d:Date) : string => {  
-    //assert(isDate(date), `keyFromDate. input is not a date. ${date}`);
-    
-    if(isNil(d)){ return '' }
-    let date = isString(d) ? new Date(d) : d;
-
-    let year = date.getFullYear();
-    let day = date.getDate(); 
-    let month = date.getMonth();
-
-    return [year,month+1,day].join('-'); 
-};
-
-
-
-let readFile = (path:string) : Promise<any> => 
-    new Promise(
-        resolve => fs.readFile(
-            path, 
-            'utf8', 
-            (err, data) => {
-                if(err){ 
-                   resolve(null); 
-                }else{ 
-                   resolve(data);  
-                }
-            }
-        )
-    );
-
-   
-
-let readJsonFile = (path:string) : Promise<any> => 
-    new Promise(
-        resolve => {
-            try{
-                fs.readFile(
-                    path, 
-                    'utf8', 
-                    (err, data) => {
-                        if (err){ resolve(err) }
-                        else{ 
-                            let result = {};
-
-                            try{
-                                result = JSON.parse(data);
-                            }catch(e){
-                                resolve(result);
-                            }
-
-                            resolve(result);  
-                        }
-                    }
-                );
-            }catch(e){
-                resolve({});
-            }
-        }
-    );
-
-
-
-let writeJsonFile = (obj:any,pathToFile:string) : Promise<any> => 
-    new Promise(
-        resolve => {
-            let json : string = JSON.stringify(obj);
-            fs.writeFile(
-                pathToFile, 
-                json, 
-                'utf8', 
-                (err) => {
-                    if(err){ resolve(err) }
-                    else{ resolve() }
-                } 
-            );
-        }
-    );
- 
-
-
-let initAutoUpdater = () => {
-    autoUpdater.logger = log;
-    log.transports.file.level = "error";  
-    log.transports.console.level = "error";
-
-    autoUpdater.autoDownload = false; 
-    autoUpdater.on( 
-        'error',  
-        (error) => { 
-            if(mainWindow){ mainWindow.webContents.send("error",error) }
-        }
-    );
-
-    autoUpdater.on( 
-        'download-progress', 
-        (progress) => {
-            if(mainWindow){ mainWindow.webContents.send("progress",progress) }
-        }  
-    );
-};     
-
-
-
-let getClonedWindowDimensions = () => {
-    let workingArea = screen.getPrimaryDisplay().workAreaSize;
-    let clonedWindowWidth : number = isDev() ? 100 : 30;
-    let clonedWindowHeight : number = isDev() ? 100 : 80;  
-    let width = clonedWindowWidth*(workingArea.width/100);  
-    let height = clonedWindowHeight*(workingArea.height/100); 
-    return {width,height};
-};
-
-
-
-interface RegisteredListener{  
-     name : string, 
-     callback : (event:any,...args:any[]) => void
-};   
- 
 
  
 export class Listeners{ 
@@ -198,51 +38,30 @@ export class Listeners{
     
     constructor(window){
 
-      initAutoUpdater(); 
- 
       this.registeredListeners = [ 
             {
                 name:"backupCleanup",
-                callback: (event) => {
-                    rimraf(
-                        backupFolder, 
-                        () => { 
-                            event.sender.send("backupCleanup");
-                        }
-                    );
-                }
+                callback: (event) => rimraf(
+                    backupFolder, 
+                    () => { 
+                        event.sender.send("backupCleanup");
+                    }
+                )
             },
             {  
                 name:"reloadMainWindow", 
-                callback : () => isNil(mainWindow) ? null :
-                loadApp(mainWindow)
-                .then(() => {    
-                    mainWindow.webContents.send("loaded",null,mainWindow.id);
-                    if(isDev()){  
-                       mainWindow.webContents.openDevTools(); 
-                    }  
-                }) 
+                callback : () => mainWindow ? loadApp(mainWindow).then(() => onAppLoaded(mainWindow, false)) : null
             },
             {  
                 name:"reloadQuickEntry", 
-                callback : () => isNil(quickEntry) ? null :
-                loadQuickEntry(quickEntry)
-                .then(() => {
-                    quickEntry.webContents.send("loaded"); 
-
-                    if(isDev()){ 
-                       quickEntry.webContents.openDevTools(); 
-                    } 
-                })  
+                callback : () => quickEntry ? loadQuickEntry(quickEntry).then(() => onQuickEntryLoaded(quickEntry)) : null    
             }, 
             {
                 name:'separateWindowsCount',
-                callback:(event) => { 
-                    let windows = BrowserWindow.getAllWindows();
-                    if(mainWindow){
-                       mainWindow.webContents.send('separateWindowsCount', windows.length);
-                    }
-                } 
+                callback:(event) => 
+                mainWindow ?
+                mainWindow.webContents.send('separateWindowsCount', BrowserWindow.getAllWindows().length) : 
+                null
             },
             { 
                 name:"updateQuickEntryData",
@@ -275,14 +94,13 @@ export class Listeners{
             {
                 name:'Nmove',
                 callback:(event) => {
-                    let window = notification;
-                    if(isNil(window)){ return; }
+                    if(isNil(notification)){ return; }
 
-                    let {initialX,initialY} = getInitialNotificationPosition();
+                    let {initialX,initialY} = getInitialNotificationPosition(notification);
 
-                    window.setPosition(initialX, initialY);
-                    window.show();
-                    move();
+                    notification.setPosition(initialX, initialY);
+                    notification.show();
+                    move(notification);
                 }
             },
             {
@@ -361,7 +179,7 @@ export class Listeners{
             { 
                 name:"getConfig",
                 callback:(event) => getConfig().then(
-                    (data) => {
+                    (data:Config) => {
                         event.sender.send("getConfig",data)
                     }
                 )    
@@ -544,7 +362,7 @@ export class Listeners{
             {  
                 name:"closeClonedWindows",
                 callback : (event) => {  
-                    let windows = getClonedWindows();
+                    let windows = getClonedWindows(mainWindow);
                     windows.forEach((window) =>  window.destroy());
                 }    
             }, 
@@ -556,8 +374,9 @@ export class Listeners{
                     .then(
                         () => {
                             newWindow.webContents.send("loaded",store,newWindow.id); 
+                            
                             if(isDev()){
-                                newWindow.webContents.openDevTools(); 
+                               newWindow.webContents.openDevTools(); 
                             }
                         } 
                     );  
@@ -581,8 +400,7 @@ export class Listeners{
                                type:"attachTodoToProject",
                                load:{projectId:project._id,todoId:todo._id}
                             }; 
-                           
-                            windows[i].webContents.send("action", {...attachToProject, kind});
+                            windows[i].webContents.send("action", {...attachToProject,kind});
                         }
                     }  
                 }   

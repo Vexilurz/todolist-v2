@@ -15,13 +15,12 @@ import { convertProjectDates, convertAreaDates, convertTodoDates, measureTimePro
 import { updateCalendars } from '../Components/Calendar';
 import { inPast, oneMinuteLater } from './time';
 import { ipcRenderer } from 'electron';
-import { generateIndicators } from './generateIndicators';
 
 
 export let moveReminderFromPast : (todo:Todo) => Todo =  
     when(
         compose(inPast, prop('reminder')),
-        (t:Todo) => assoc('reminder', oneMinuteLater(new Date()), t)
+        (t:Todo) => assoc('reminder', oneMinuteLater(new Date()),t)
     ); 
 
 
@@ -42,7 +41,7 @@ let assureCorrectNoteTypeProject : (project:Project) => Project =
 let updateQuickEntryData = (data) => {
     let {projects,areas,todos,calendars} = data;
 
-    let indicators = generateIndicators(projects,todos);
+    let indicators = {}; //TODO FIX!!! //generateIndicators(projects,todos);
 
     ipcRenderer.send('updateQuickEntryData', {todos,projects,areas,indicators});
 
@@ -100,7 +99,7 @@ export let getData =  (limit:Date,onError:Function,max:number) : Promise<{
                 todos, 
                 calendars:updated
             })
-        )
+        ) 
     )
     .then(updateQuickEntryData)
 

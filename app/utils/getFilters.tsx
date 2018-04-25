@@ -7,10 +7,10 @@ import {
     convertProjectDates, convertAreaDates, 
     oneMinuteBefore, nDaysFromNow, initDate, byDeleted, 
     byNotDeleted, byCompleted, byNotCompleted, 
-    byCategory, introListIds, isDeadlineTodayOrPast, 
+    byCategory, isDeadlineTodayOrPast, 
     isTodayOrPast, byScheduled, typeEquals, log 
 } from "./utils";  
-
+import { introListIds } from '../utils/introList';
 
 
 export let getFilters = (projects:Project[]) : {

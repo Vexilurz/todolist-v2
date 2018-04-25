@@ -150,7 +150,7 @@ export interface Store extends Config{
   id? : number,
   clone? : boolean,
   dispatch? : Function
-} 
+}; 
 
 
 
@@ -172,10 +172,27 @@ export interface Config{
 
 
 
+export type Indicators = { 
+    [key:string]:{
+        active:number,
+        completed:number,
+        deleted:number
+    }; 
+};
+
+
+
 export interface RawDraftContentState{
     blocks:Block[],
     entityMap:any
 };
+
+
+
+export interface RegisteredListener{  
+    name : string, 
+    callback : (event:any,...args:any[]) => void
+};   
 
 
 
@@ -203,11 +220,11 @@ export interface Calendar{
 
  
 export interface Heading{
-  title : string, 
-  priority : number,
-  type : ObjectType,
-  _id : string, 
-  key : string 
+    title : string, 
+    priority : number,
+    type : ObjectType,
+    _id : string, 
+    key : string 
 };
 
 

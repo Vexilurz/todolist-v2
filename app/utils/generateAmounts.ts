@@ -2,22 +2,22 @@ import {
     cond, isNil, not, defaultTo, map, isEmpty, compose, contains, append, omit, 
     prop, equals, identity, all, when, evolve, ifElse, applyTo, add, groupBy
 } from 'ramda';
-import { Project, Area, Todo } from '../types';
+
 
 export let generateAmounts : (
-    todos:Todo[],
+    todos:any[],
     filters:{
-        inbox:((todo:Todo) => boolean)[],//5
-        today:((todo:Todo) => boolean)[],//5
-        hot:((todo:Todo) => boolean)[],//5
-        next:((todo:Todo) => boolean)[],//6
-        someday:((todo:Todo) => boolean)[],//5
-        logbook:((todo:Todo) => boolean)[],//3
-        trash:((todo:Todo) => boolean)[]//1
+        inbox:((todo:any) => boolean)[],//5
+        today:((todo:any) => boolean)[],//5
+        hot:((todo:any) => boolean)[],//5
+        next:((todo:any) => boolean)[],//6
+        someday:((todo:any) => boolean)[],//5
+        logbook:((todo:any) => boolean)[],//3
+        trash:((todo:any) => boolean)[]//1
     } 
 ) => {inbox:number,today:number,hot:number,next:number,someday:number,logbook:number,trash:number} =
     (todos,filters) => todos.reduce(
-        (acc,val:Todo) => {
+        (acc,val:any) => {
             if( filters.trash[0](val) ){
                 acc.trash+=1;
             }else if(

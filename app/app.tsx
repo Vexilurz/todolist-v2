@@ -11,8 +11,8 @@ import {
     convertProjectDates, convertAreaDates, 
     oneMinuteBefore, nDaysFromNow, initDate, byDeleted, 
     byNotDeleted, byCompleted, byNotCompleted, 
-    byCategory, introListIds, isDeadlineTodayOrPast, 
-    isTodayOrPast, byScheduled, typeEquals, log, measureTime 
+    byCategory, isDeadlineTodayOrPast, 
+    isTodayOrPast, byScheduled, typeEquals, log, measureTime, measureTimePromise 
 } from "./utils/utils";  
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight'; 
 import { isString, isDate, isNumber, isNotNil } from './utils/isSomething';
@@ -22,7 +22,7 @@ import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer } from './Components/MainContainer';
 import { filter } from 'lodash';
 import { addTodos } from './database'; 
-import { Project, Area, Category, Todo, Calendar, Config, Store } from './types';
+import { Project, Area, Category, Todo, Calendar, Config, Store, action, Indicators } from './types';
 import { applicationStateReducer } from './StateReducer'; 
 import { applicationObjectsReducer } from './ObjectsReducer';
 import { isNil, not, map, compose, contains, prop, when, evolve, ifElse, applyTo, flatten, reject, assoc, range } from 'ramda';
@@ -36,34 +36,18 @@ import { collectSystemInfo } from './utils/collectSystemInfo';
 import { assert } from './utils/assert';
 import { isDev } from './utils/isDev';
 import { convertEventDate, parseCalendar } from './Components/Calendar';
-import { defaultTags } from './utils/defaultTags';
 import { SettingsPopup } from './Components/settings/SettingsPopup';
 import { LicensePopup } from './Components/settings/LicensePopup';
-import { generateIndicators } from './utils/generateIndicators';
 import { refreshReminders } from './utils/reminderUtils';
 import { uppercase } from './utils/uppercase';
 import { getFilters } from './utils/getFilters';
 import { generateAmounts } from './utils/generateAmounts';
-let worker = new Worker('worker.js');
-let pathTo = require('path'); 
-injectTapEventPlugin();  
- 
-
-
-if(process && !isDev()){
-   process = evolve( { env:env => assoc('NODE_ENV','production',env) }, process );
-}
-
-
- 
-/*
-const MockDate = require('mockdate');  
-let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
-*/
+import { defaultStoreItems } from './defaultStoreItems'; 
+import { defaultConfig } from './defaultConfig';
 
 
 
-window.onerror = function (msg:any, url, lineNo, columnNo, error) {
+window.onerror = function(msg:any, url, lineNo, columnNo, error){
     let string = msg.toLowerCase();
     let message = [ 
         'Message:' + msg, 
@@ -83,77 +67,6 @@ window.onerror = function (msg:any, url, lineNo, columnNo, error) {
 }; 
 
 
-
-const defaultConfig : Config = { 
-    nextUpdateCheck:undefined,
-    nextBackupCleanup:undefined,
-    firstLaunch:true,
-    hideHint:false,
-    defaultTags:defaultTags,  
-    shouldSendStatistics:true,
-    showCalendarEvents:true,
-    groupTodos:false,
-    preserveWindowWidth:true, //when resizing sidebar
-    enableShortcutForQuickEntry:true,
-    disableReminder:false,
-    quickEntrySavesTo:"inbox", //inbox today next someday
-    moveCompletedItemsToLogbook:"immediately"
-};
- 
-
-
-export let defaultStoreItems : Store = {
-    ...defaultConfig,
-
-    showWhenCalendar : false, 
-    whenTodo : null,
-    whenCalendarPopupX : 0, 
-    whenCalendarPopupY : 0,
-
-    showLicense : false, 
-    selectedTodo : null, 
-    scrolledTodo : null,
-    shouldSendStatistics : true,  
-    hideHint : true,  
-    progress : null,  
-    scheduledReminders : [],  
-    showUpdatesNotification : false, 
-    limit:nDaysFromNow(100), 
-    searchQuery : "", 
-    openChangeGroupPopup : false,    
-    selectedSettingsSection : "QuickEntry",
-    openSettings : false,   
-    openRepeatPopup : null, 
-    showRepeatPopup : false,
-    repeatTodo : null, 
-    repeatPopupX : 0, 
-    repeatPopupY : 0,
-    showCalendarEvents : true,
-    calendars:[],
-    selectedCategory : "inbox",
-    showTrashPopup : false, 
-    openSearch : false, 
-    dragged : null, 
-    openTodoInputPopup : false, 
-    selectedTag : "All",
-    leftPanelWidth : window.innerWidth/3.7, 
-    selectedProjectId : null,
-    selectedAreaId : null,
-    showProjectMenuPopover : false,
-    closeAllItems : undefined,
-    openRightClickMenu : undefined,
-    openNewProjectAreaPopup : false,
-    showRightClickMenu : false,
-    rightClickedTodoId : null,
-    rightClickMenuX : 0,
-    rightClickMenuY : 0,
-    projects : [],
-    areas : [],  
-    clone : false,
-    todos : []
-};      
-
-
  
 interface AppProps extends Store{}
 interface AppState{
@@ -171,40 +84,40 @@ interface AppState{
 }
 @connect((store,props) => store, attachDispatchToProps)   
 export class App extends Component<AppProps,AppState>{  
+    generateIndicatorsWorker:any;
+
     constructor(props){  
         super(props); 
+        this.generateIndicatorsWorker = null;
+        let { amounts, todos } = this.propsToState(this.props);
+        this.state = { amounts, todos, indicators:{} };
+    };
 
-        let {amounts,indicators,todos} = this.propsToState(this.props);  
-        this.state = {amounts,indicators,todos};
+    
+
+    componentDidMount(){    
+        this.setInitialTitle();
+        this.generateIndicatorsWorker = new Worker('generateIndicators.js');
+        collectSystemInfo().then( info => this.reportStart({...info} as any) );
+    }; 
+
+
+
+    componentWillUnmount(){
+        this.generateIndicatorsWorker.terminate();
+        this.generateIndicatorsWorker = null;
     };
 
 
 
-    componentDidMount(){    
-        collectSystemInfo()
-        .then( 
-            info => {
-                let timeSeconds = Math.round( new Date().getTime() / 1000 );
-                this.reportStart({...info, timeSeconds} as any);
-            }
-        );
-
-        ipcRenderer.send(
-            'setWindowTitle', 
-            `tasklist - ${uppercase(this.props.selectedCategory)}`, 
-            this.props.id
-        );
-
-        worker.onmessage = (e) => {
-            this.setState(
-                {indicators:e.data}, 
-                () => console.log(`indicators from worker:${this.state.indicators}`)
-            );
-        }
-    }; 
+    setInitialTitle = () => ipcRenderer.send(
+        'setWindowTitle', 
+        `tasklist - ${uppercase(this.props.selectedCategory)}`, 
+        this.props.id
+    );
 
 
- 
+
     cloneWindow = () => {
         ipcRenderer.send("store", {...this.props});
         setTimeout(() => ipcRenderer.send('separateWindowsCount'), 100);
@@ -212,7 +125,7 @@ export class App extends Component<AppProps,AppState>{
 
 
 
-    reportStart = ({ arch, cpus, platform, release, type, timeSeconds }) => googleAnalytics.send(   
+    reportStart = ({ arch, cpus, platform, release, type }) => googleAnalytics.send(   
         'event',   
         {  
            ec:'Start',   
@@ -226,8 +139,8 @@ export class App extends Component<AppProps,AppState>{
                 type ${type}; 
            `,  
            el:'Application launched', 
-           ev:timeSeconds 
-        }
+           ev:0
+        } 
     ) 
     .catch(err => globalErrorHandler(err));
 
@@ -242,10 +155,39 @@ export class App extends Component<AppProps,AppState>{
         map(prop('layout')),
         projects => filter(projects, byCompleted)
     )(projects);
+
     
 
+    promiseIndicators = (projects:Project[],todos:Todo[]) : Promise<Indicators> => new Promise(
+        resolve => {
+            if(isNil(this.generateIndicatorsWorker)){ 
+                resolve({}) 
+            }else{
+                this.generateIndicatorsWorker.addEventListener(
+                   "message", 
+                   (event) => resolve(event.data),
+                   {once:true}
+                );
 
-    propsToState = (props:Store) : AppState => {
+                this.generateIndicatorsWorker.postMessage([projects,todos]); 
+            }
+        }
+    );
+
+
+
+    propsToState = (props:Store) : {
+        todos:Todo[],
+        amounts:{ 
+            inbox:number,
+            today:number,
+            hot:number,
+            next:number,
+            someday:number,
+            logbook:number,
+            trash:number
+        }
+    } => {
         let filters : {
             inbox:((todo:Todo) => boolean)[],
             today:((todo:Todo) => boolean)[], 
@@ -257,50 +199,19 @@ export class App extends Component<AppProps,AppState>{
             trash:((todo:Todo) => boolean)[]
         } = getFilters(props.projects);
 
-
-        let todos = measureTime(
-            this.removeTodosFromCompletedProjects, 
-            'removeTodosFromCompletedProjects' 
-        )(
-            props.todos, 
-            props.projects
+        measureTimePromise(
+            this.promiseIndicators,
+            'promiseIndicators'
+        )(props.projects,props.todos)
+        .then(
+            (indicators:Indicators) => this.setState({indicators})
         );
         
-
-        let indicators : { 
-            [key:string]:{
-                active:number,
-                completed:number,
-                deleted:number
-            }; 
-        } = {};
+        let todos = this.removeTodosFromCompletedProjects(props.todos,props.projects);
         
-        worker.postMessage([props.projects,props.todos]);
+        let amounts = generateAmounts(todos, filters);
 
-        /*measureTime( 
-            generateIndicators, 
-            'generateIndicators' 
-        )(
-            props.projects,
-            props.todos
-        );*/
-
-
-        let amounts : {  
-            inbox:number,
-            today:number,
-            hot:number,
-            next:number,
-            someday:number,
-            logbook:number,
-            trash:number
-        } = measureTime( generateAmounts, 'generateAmounts' )(
-            todos,
-            filters
-        );
-
-
-        return {amounts,indicators,todos};
+        return {todos,amounts};
     };
 
 
@@ -310,28 +221,28 @@ export class App extends Component<AppProps,AppState>{
             this.props.projects!==nextProps.projects || 
             this.props.todos!==nextProps.todos
         ){
-            let {amounts,indicators,todos} = this.propsToState(nextProps);
+            let {todos,amounts} = this.propsToState(nextProps);
 
             this.setState(
-                {amounts,indicators,todos}, 
-                when(
-                    () => not(nextProps.clone),
+                {todos,amounts}, 
+                () => when( 
+                    () => not(this.props.clone),
                     () => ipcRenderer.send(
                         'updateQuickEntryData',
                         {
                             todos,
                             projects:nextProps.projects,
                             areas:nextProps.areas,
-                            indicators
+                            indicators:this.state.indicators
                         }
                     )
                 )
-            );
+            )
         }
     };
- 
 
- 
+    
+
     render(){
         return <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001} as any}>  
             <div style={{display:"flex",width:"inherit",height:"inherit"}}>
@@ -445,26 +356,30 @@ export class App extends Component<AppProps,AppState>{
 
 
 
-let renderApp = (event, clonedStore:Store, id:number) : void => { 
+let onCloseWindow = (isMainWindow:boolean) => () => {
+    if(isMainWindow){
+        ipcRenderer.send('Mhide'); 
+        return false; 
+    }else{
+        ipcRenderer.send('separateWindowsCount'); 
+        return undefined;
+    }
+};
+
+
+
+let renderApp = (config:Config, clonedStore:Store, id:number) : void => { 
     let app=document.createElement('div'); 
-    app.id='application';     
-    document.body.appendChild(app);   
     let isClonedWindow : boolean = isNotNil(clonedStore);
     let isMainWindow : boolean = id===1;
     let defaultStore = {...defaultStoreItems};
-
-    //handle window close event
-    window.onbeforeunload = () => {
-        if(isMainWindow){
-            ipcRenderer.send('Mhide'); 
-            return false; 
-        }else{
-            ipcRenderer.send('separateWindowsCount'); 
-            return undefined;
-        }
-    };
-
+    let {nextUpdateCheck} = config;
     
+    app.id='application';      
+    document.body.appendChild(app); 
+    window.onbeforeunload = onCloseWindow(isMainWindow);
+    
+ 
     if(isClonedWindow){  
         let {todos,projects,areas,calendars,limit} = clonedStore;
 
@@ -480,41 +395,35 @@ let renderApp = (event, clonedStore:Store, id:number) : void => {
     }    
 
 
-    getConfig() 
-    .then(
-        config => {
-            let {nextUpdateCheck} = config;
-            let data = {
-                ...defaultStore,
-                ...config,
-                nextUpdateCheck:initDate(nextUpdateCheck),
-                id
-            };
+    let data = {
+        ...defaultStore,
+        ...config,
+        nextUpdateCheck:initDate(nextUpdateCheck),
+        id
+    };
+   
 
-            let store = createStore(applicationReducer,data);
+    let store = createStore(applicationReducer,data);
 
-            if(isDev()){
-               assert(isDate(data.nextUpdateCheck),`nextUpdateCheck is not of type Date`);
-            }
-
-            ReactDOM.render(   
-                <Provider store={store}>    
-                    {wrapMuiThemeLight(<App {...{} as any}/>)}
-                </Provider>,
-                document.getElementById('application')
-            ) 
-        }
-    ); 
+    
+    ReactDOM.render(   
+        <Provider store={store}>    
+            {wrapMuiThemeLight(<App {...{} as any}/>)}
+        </Provider>,
+        document.getElementById('application')
+    )  
 }; 
  
 
    
 //render application
-ipcRenderer.once('loaded',renderApp);    
+ipcRenderer.once(
+    'loaded', 
+    (event,clonedStore:Store,id:number) => getConfig().then(config => renderApp(config,clonedStore,id))
+);    
 
 
 
-interface action{ type:string, load:any };
 
 let reducer = (reducers) => ( state:Store, action:any) : Store => {
     let f = (state:Store,action:action) => {

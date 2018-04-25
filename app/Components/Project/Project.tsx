@@ -249,7 +249,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         let projectFilters = this.getProjectFilters();
         let layout = this.getLayout();
         let noScheduledTodos : boolean = this.noScheduledTodos(layout);  
-                
+        /*       
         if(isDev()){
             let todos = filter(layout, item => item.type==="todo");
             let completed = filter(todos, (item:Todo) => isDate(item.completedSet));
@@ -266,7 +266,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 `
             );
         }      
-        
+        */
         
         
         //this items will go to project header, dont filter them by tag, 

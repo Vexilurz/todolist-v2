@@ -2,30 +2,24 @@ import {
     cond, isNil, not, defaultTo, map, isEmpty, compose, contains, append, omit, concat,
     prop, equals, identity, all, when, evolve, ifElse, applyTo, reduce, add, groupBy 
 } from 'ramda';
-import {
-    isTodo, isProject, isArea, isArrayOfAreas, 
-    isArrayOfProjects, isArrayOfTodos, isArray, 
-    isString, isFunction, isDate, isNotNil
-} from '../utils/isSomething';
-import { Project, Todo } from '../types';
+const sendMessage = postMessage as any;
 
 
 
-
-export let generateIndicators : 
-(projects:Project[], todos:Todo[]) => { [key:string]:{active:number,completed:number,deleted:number}; } = 
+let generateIndicators : 
+(projects, todos) => { [key:string]:{active:number,completed:number,deleted:number}; } = 
  
-(projects:Project[], todos:Todo[]) => compose(
+(projects, todos) => compose(
     map(  
         data => data.reduce(
-            (acc,val:Todo) => cond([
+            (acc,val) => cond([
                     [
-                        t => isNotNil(t.deleted), 
+                        t => !isNil(t.deleted), 
                         t => evolve(
                                 {
                                     deleted:add(1),
                                     trash:{
-                                        completed:when(() => isNotNil(t.completedSet), add(1)), 
+                                        completed:when(() => !isNil(t.completedSet), add(1)), 
                                         active:when(() => isNil(t.completedSet), add(1)) 
                                     }
                                 }, 
@@ -33,7 +27,7 @@ export let generateIndicators :
                             )
                     ],  
                     [ 
-                        t => isNotNil(t.completedSet), 
+                        t => !isNil(t.completedSet), 
                         t => evolve({completed:add(1)}, acc) 
                     ],
                     [  
@@ -63,3 +57,9 @@ export let generateIndicators :
     append([ () => true, () => 'detached' ]),
     map(p => [t => contains(t._id, p.layout), () => p._id])
 )(projects); 
+
+
+onmessage = (e) => {
+   let [projects,todos] = e.data; 
+   sendMessage(generateIndicators(projects,todos));
+}

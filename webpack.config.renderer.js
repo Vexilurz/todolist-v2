@@ -13,7 +13,8 @@ module.exports = {
     entry:{    
         'app':'./app.tsx',
         'quickentry':'./quickentry.tsx',
-        'notification':'./notification.tsx'
+        'notification':'./notification.tsx',
+        'generateIndicators':'./generateIndicators.ts'
     },  
 
     output:{             

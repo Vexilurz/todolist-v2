@@ -19,7 +19,8 @@ import { Upcoming, extend } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { 
-    isNil, contains, not, evolve, map, compose, allPass, cond, defaultTo, when, prop, concat, append, isEmpty
+    isNil, contains, not, evolve, map, compose, allPass, 
+    cond, defaultTo, when, prop, concat, append, isEmpty
 } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -39,13 +40,9 @@ import { setCallTimeout } from '../utils/setCallTimeout';
 import { requestFromMain } from '../utils/requestFromMain';
 import { getData } from '../utils/getData';
 import { WhenCalendar } from './WhenCalendar';
-import { 
-    getIntroList, introListLayout, isNotEmpty, checkForUpdates, 
-    convertDates, printElement, introListIds, byNotDeleted, log, sideEffect
-} from '../utils/utils';
-import { 
-    threeDaysLater, inPast, oneMinuteLater, fourteenDaysLater, fiveMinutesLater 
-} from '../utils/time'; 
+import { isNotEmpty, checkForUpdates, convertDates, printElement, byNotDeleted, log, sideEffect } from '../utils/utils';
+import { threeDaysLater, inPast, oneMinuteLater, fourteenDaysLater, fiveMinutesLater } from '../utils/time'; 
+import { introListLayout, getIntroList, introListIds } from '../utils/introList';
 
 
 
@@ -199,7 +196,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 append({type:"addTodos", load:extended}) 
             )(actions);
         };
-
 
         let addIntroList = (projects:Project[]) => (actions:action[]) : action[] => {
             let {firstLaunch} = this.props;
@@ -579,7 +575,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             this.props.clone ? null :
                             <IconButton  
                                 iconStyle={{color:"rgba(100,100,100,0.6)",height:"22px",width:"22px"}} 
-                                onTouchTap={this.printCurrentList}
+                                onClick={this.printCurrentList}
                             > 
                                 <Print />   
                             </IconButton>   
@@ -606,13 +602,14 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 () => {
                                     let inboxFilters = this.props.filters.inbox;    
                                     let inboxTodos = filter(this.props.todos, allPass(inboxFilters));
-
+                                    
+                                    /*
                                     if(isDev()){
                                         assert(
                                            inboxTodos.length===this.props.amounts.inbox,
                                            `Amounts dont match. Inbox. ${inboxTodos.length}:${this.props.amounts.inbox}.`
                                         ) 
-                                    }
+                                    }*/
 
                                     return <Inbox 
                                         todos={inboxTodos} 
@@ -637,7 +634,8 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 () => { 
                                     let todayFilters = this.props.filters.today; 
                                     let todayTodos = filter(this.props.todos, allPass(todayFilters));
-
+                                    
+                                    /*
                                     if(isDev()){
                                         assert(
                                             todayTodos.length===(this.props.amounts.today+this.props.amounts.hot),
@@ -646,7 +644,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                            ${todayTodos.length}:${(this.props.amounts.today+this.props.amounts.hot)}.
                                            `
                                         ) 
-                                    }
+                                    }*/
 
                                     return <Today   
                                         todos={todayTodos}
@@ -729,13 +727,14 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 (selectedCategory:Category) : boolean => 'trash'===selectedCategory,  
                                 () => {
                                     let trashTodos = filter(this.props.todos, allPass(this.props.filters.trash));
-
+                                    
+                                    /*
                                     if(isDev()){
                                         assert(
                                             trashTodos.length===this.props.amounts.trash,
                                            `Amounts dont match. Trash. ${trashTodos.length}:${this.props.amounts.trash}.`
                                         ) 
-                                    }
+                                    }*/
 
                                     return <Trash    
                                         todos={trashTodos}
@@ -759,13 +758,14 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                 (selectedCategory:Category) : boolean => 'logbook'===selectedCategory,  
                                 () => {
                                     let logbookTodos = filter(this.props.todos, allPass(this.props.filters.logbook)); 
-
+                                    
+                                    /*
                                     if(isDev()){
                                         assert(
                                             logbookTodos.length===this.props.amounts.logbook,
                                            `Amounts dont match. Logbook. ${logbookTodos.length}:${this.props.amounts.logbook}.`
                                         ) 
-                                    }
+                                    }*/
 
                                     return <Logbook   
                                         todos={logbookTodos} 

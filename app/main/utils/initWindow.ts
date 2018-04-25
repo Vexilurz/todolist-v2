@@ -1,6 +1,6 @@
 import path = require("path");
 import {BrowserWindow,Menu} from 'electron';  
-import { mainWindow } from "./main";
+import { AppName } from "./AppName";
 
 export let initWindow = (
     {width,height}:{width:number,height:number},
@@ -14,7 +14,7 @@ export let initWindow = (
         icon,
         width,         
         height,   
-        title:'Tasklist',      
+        title:AppName,      
         center:true,
         frame:true, 
         ...options
@@ -22,12 +22,7 @@ export let initWindow = (
     
     handler.on('ready-to-show', () => onReady(handler));
 
-    handler.on(
-        'closed', 
-        () => {
-            handler = null;
-        }
-    ); 
+    handler.on('closed', () => { handler = null; }); 
 
     return handler; 
 };         
