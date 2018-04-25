@@ -422,9 +422,9 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 }),     
              
 
-            Observable
-                .interval(3*minute)
-                .subscribe((v) => dispatch({type:'update'})),  
+            //Observable
+                //.interval(3*minute)
+                //.subscribe((v) => dispatch({type:'update'})),  
 
 
 
@@ -432,7 +432,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 .fromEvent(ipcRenderer, 'openTodo', (event,todo) => todo)
                 .subscribe( 
                     (todo) => {
-                        ipcRenderer.send('focusMainWindow');
+                        ipcRenderer.send('focusMainWindow'); 
                         
                         dispatch({type:"selectedCategory",load:"inbox"});
                         //don't combine this actions to trigger rerender of todo input

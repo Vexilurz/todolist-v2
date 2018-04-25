@@ -199,10 +199,7 @@ export class App extends Component<AppProps,AppState>{
             trash:((todo:Todo) => boolean)[]
         } = getFilters(props.projects);
 
-        measureTimePromise(
-            this.promiseIndicators,
-            'promiseIndicators'
-        )(props.projects,props.todos)
+        measureTimePromise(this.promiseIndicators,'promiseIndicators')(props.projects,props.todos)
         .then(
             (indicators:Indicators) => this.setState({indicators})
         );
