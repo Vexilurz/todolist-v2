@@ -27,6 +27,7 @@ import {
     anyTrue,
     different,
     initDate,
+    nDaysFromNow,
 } from '../../utils/utils';  
 import {
     allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, contains,
@@ -40,7 +41,7 @@ import { updateCalendars } from '../Calendar';
 import { isDate, isArray, isArrayOfTodos, isNotNil } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
-import { timeOfTheDay, keyFromDate } from '../../utils/time';
+import { timeOfTheDay, keyFromDate, addMonths } from '../../utils/time';
 import { repeat } from '../RepeatPopup';
 import { isDev } from '../../utils/isDev';
 import { getSameDayEventElement } from '../../utils/getCalendarEventElement';
@@ -289,31 +290,34 @@ interface UpcomingState{
  
 export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     n:number;
-    
+    stop:Date;
+
     constructor(props){
         super(props);
         this.n=10;  
+        this.stop = addMonths(new Date(), 5);
+        this.stop.setDate(1);
         this.state={objects:[],enter:1}; 
     }    
- 
+
 
     updateLimit = (range:Date[]) => {
         let {dispatch,limit,todos,calendars} = this.props;
         let day = 1000 * 60 * 60 * 24;
-        
+        if(isEmpty(range)){ return }
         //threshold ->>> last date in range + 10 days ahead
         let threshold = last(range).getTime() + (day*this.n);
 
-        //if extended range reached limit 
+        //if extended range reached limit  
         if(threshold>=limit.getTime()){
             let newLimit = yearFromDate(limit);
             let actions = [];
             let extended = extend(newLimit, todos);
 
             if(isNotEmpty(extended)){
-               actions.push({type:"addTodos",load:extended}); 
+               actions.push({type:"addTodos", load:extended}); 
             }
-
+            
             actions.push({type:"limit", load:newLimit}); 
 
             updateCalendars(
@@ -327,7 +331,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                     dispatch({type:"multiple",load:actions});
                 }
             ) 
-
         } 
     }; 
  
@@ -336,16 +339,12 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         let objectsByDate = objectsToHashTableByDate(this.props);
         let from = last(this.state.objects);
         let {dispatch,limit,areas,projects} = this.props;
-
+        
         if(isNil(from)){ return }
 
-        if(isDev()){
-           assert(isDate(from.date), `from.date is not Date. ${from}. onEnter.`);
-        }
-
-        let range = getDatesRange(from.date, this.n, false, true);
+        let range = getDatesRange(from.date, this.n, false, true, this.stop);
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
-        
+         
         this.setState(
             {
                 objects:[...this.state.objects,...objects], 
@@ -367,7 +366,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     }[] => {  
         let {limit,dispatch} = this.props;
         let objectsByDate = objectsToHashTableByDate(props); 
-        let range = getDatesRange(new Date(), n, true, true); 
+        let range = getDatesRange(new Date(), n, true, true, this.stop); 
         let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
 
         return objects;

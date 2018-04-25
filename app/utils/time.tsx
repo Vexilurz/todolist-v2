@@ -152,6 +152,23 @@ export let addDays = (date:Date, days:number) => {
 
     return next; 
 };
+
+
+
+let isLastDay = (dt) => {
+    return new Date(dt.getTime() + 86400000).getDate() === 1;
+};
+
+
+
+export let addMonths = (date:Date, months:number) => {
+
+    let next = new Date(date.getTime());
+
+    next.setMonth(next.getMonth()+months);
+
+    return next; 
+};
  
 
 

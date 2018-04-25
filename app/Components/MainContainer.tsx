@@ -168,6 +168,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
     setData = ({projects, areas, todos, calendars}) : void => {
         if(this.props.clone){ return } 
 
+        ipcRenderer.send("focusMainWindowOnStart");
         
         let showHint = not(this.props.hideHint);
         let selectedTodos = todos; //filter(todos, isTodo);

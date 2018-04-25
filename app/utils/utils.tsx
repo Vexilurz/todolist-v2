@@ -1038,6 +1038,7 @@ export let daysLeftMark = (hide:boolean, deadline:Date, fontSize=13)  => {
 //Returns true if the first argument is greater than the second (first in future)
 export let gtDate = (first:Date,second:Date) : boolean => {
     if(isNotDate(first) || isNotDate(second)){ return false }
+
     return first.getTime() > second.getTime();
 };
 
@@ -1084,9 +1085,9 @@ export let getDatesRange = (
     start : Date,  
     days : number, 
     includeStart : boolean, 
-    includeEnd : boolean
+    includeEnd : boolean,
+    stop : Date
 ) : Date[] => {
- 
     if(isDev()){
        assert(isDate(start), `start is not Date ${start}. getDatesRange`);
     }
@@ -1106,15 +1107,15 @@ export let getDatesRange = (
     if(includeEnd){ to += 1; }
         
     for(let i=from; i<=to; i++){
-        dates.push( new Date(start.getTime())["addDays"]( i ) );
+        let next = new Date(start.getTime())["addDays"](i);
+        
+        if(stop.getTime() < next.getTime()){ break }
+
+        dates.push(next);
     }
     
     return dates;   
 }; 
-
-
-
-
 
 
 

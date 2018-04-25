@@ -50,8 +50,7 @@ let onReady = (config:any) => {
     let {disableReminder, enableShortcutForQuickEntry} = config;
     let mainWindowSize = getWindowSize();
     let options = {maximizable:true, show:false};
-    let shouldHideApp : boolean = contains("--hidden")(process.argv);
-    let onMainWindowReady = (handler:BrowserWindow) => shouldHideApp ? handler.hide() : handler.show();
+    let onMainWindowReady = (handler:BrowserWindow) => {};
 
     if(shouldQuit){ app.exit(); return; }  
 
@@ -76,13 +75,13 @@ let onReady = (config:any) => {
     mainWindow.on('focus', () => { mainWindow['focused'] = true; }); 
     mainWindow.on('blur', () => { mainWindow['focused'] = false; }); 
     mainWindow.on('unresponsive', handleMainWindowUnresponsive);
-    mainWindow.webContents.on('crashed', handleMainWindowCrashed(mainWindow, shouldHideApp));
+    mainWindow.webContents.on('crashed', handleMainWindowCrashed(mainWindow));
     quickEntry.webContents.on('crashed', handleQuickEntryCrashed(quickEntry));
     
 
     loadNotification(notification).then(() => onNotificationLoaded(notification));
     loadQuickEntry(quickEntry).then(() => onQuickEntryLoaded(quickEntry));  
-    loadApp(mainWindow).then(() => onAppLoaded(mainWindow, shouldHideApp));  
+    loadApp(mainWindow).then(() => onAppLoaded(mainWindow));  
 };                
 
 app.on('ready', () => getConfig().then((config:Config) => onReady(config)));    

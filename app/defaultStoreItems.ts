@@ -18,7 +18,7 @@ export let defaultStoreItems : Store = {
     progress : null,  
     scheduledReminders : [],  
     showUpdatesNotification : false, 
-    limit:nDaysFromNow(100), 
+    limit:nDaysFromNow(200), 
     searchQuery : "", 
     openChangeGroupPopup : false,    
     selectedSettingsSection : "QuickEntry",

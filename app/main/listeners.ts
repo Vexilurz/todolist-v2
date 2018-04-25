@@ -12,7 +12,7 @@ import { loadApp, loadQuickEntry } from './utils/loadApp';
 import { clearStorage } from './utils/clearStorage';
 import { isDev } from './../utils/isDev';
 import { ipcMain, app, BrowserWindow, screen, dialog } from 'electron';
-import { isEmpty, when, isNil, prop, path, compose, defaultTo, find } from 'ramda';
+import { isEmpty, when, isNil, prop, path, compose, defaultTo, find, contains } from 'ramda';
 import { isProject, isString, isNotNil } from '../utils/isSomething';
 import { keyFromDate } from '../utils/time';
 import { RegisteredListener, Config } from '../types';
@@ -29,7 +29,7 @@ const os = require('os');
 const rimraf = require('rimraf');
 const Promise = require('bluebird');
 const backupFolder = pathTo.resolve(os.homedir(), "Documents", "tasklist");
-
+const shouldHideApp : boolean = contains("--hidden")(process.argv);
 
  
 export class Listeners{ 
@@ -50,7 +50,7 @@ export class Listeners{
             },
             {  
                 name:"reloadMainWindow", 
-                callback : () => mainWindow ? loadApp(mainWindow).then(() => onAppLoaded(mainWindow, false)) : null
+                callback : () => mainWindow ? loadApp(mainWindow).then(() => onAppLoaded(mainWindow)) : null
             },
             {  
                 name:"reloadQuickEntry", 
@@ -289,6 +289,17 @@ export class Listeners{
                         (w) => w.webContents.send("action", {...data.action, kind})
                     ));
                 }
+            },
+            {
+                name:"focusMainWindowOnStart",
+                callback:(event) => {
+                    if(shouldHideApp){ return }
+
+                    if(mainWindow){
+                       mainWindow.show();
+                       mainWindow.focus();
+                    }
+                } 
             },
             {
                 name:"focusMainWindow",
