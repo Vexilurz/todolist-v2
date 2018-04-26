@@ -27,6 +27,10 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
            onOutsideClick={() => this.props.dispatch({type:"openSettings",load:false})}
         >
             <Settings 
+                authenticatedUser={this.props.authenticatedUser}
+                sync={this.props.sync}
+                lastSync={this.props.lastSync}
+
                 selectedSettingsSection={this.props.selectedSettingsSection}
 
                 enableShortcutForQuickEntry={this.props.enableShortcutForQuickEntry}
@@ -49,4 +53,4 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
             /> 
         </SimplePopup>    
     }  
-};  
+};   

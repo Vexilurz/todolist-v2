@@ -24,7 +24,7 @@ import { CalendarEventsSettings } from './CalendarEventsSettings';
 import { AdvancedSettings } from './AdvancedSettings';
 import { TagsSettings } from './TagsSettings';
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
-
+import { SyncSettings } from './SyncSettings';
 
 
 export interface SettingsProps{
@@ -45,6 +45,10 @@ export interface SettingsProps{
 
     todos:Todo[],
     defaultTags:string[],
+
+    authenticatedUser:any,
+    sync:boolean,
+    lastSync:Date,
 
     dispatch:Function
 }
@@ -195,7 +199,16 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                             dispatch={this.props.dispatch}
                         />
                     ],
-                    [   
+                    [ 
+                        (selectedSettingsSection:string) : boolean => selectedSettingsSection==="Sync", 
+                        () => <SyncSettings
+                            dispatch={this.props.dispatch as any}
+                            authenticatedUser={this.props.authenticatedUser}
+                            sync={this.props.sync}
+                            lastSync={this.props.lastSync}
+                        />
+                    ],
+                    [    
                         () => true, 
                         () => null   
                     ]

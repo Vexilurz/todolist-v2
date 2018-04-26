@@ -104,8 +104,19 @@ export interface Block{
 export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags' | 'Sync';
 
 
+export interface AuthenticatedUser{
+    email:string,
+    password:string,
+    status?:any
+}
+ 
 
 export interface Store extends Config{
+  authenticatedUser:AuthenticatedUser,
+  sync:boolean,
+  lastSync:Date,
+  syncInterval:number,
+
   showWhenCalendar : boolean, 
   whenTodo : Todo,
   whenCalendarPopupX : number, 

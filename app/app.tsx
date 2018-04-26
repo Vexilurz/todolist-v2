@@ -79,8 +79,7 @@ interface AppState{
         someday:number,
         logbook:number,
         trash:number
-    },
-    todos : Todo[]
+    }
 }
 @connect((store,props) => store, attachDispatchToProps)   
 export class App extends Component<AppProps,AppState>{  
@@ -89,8 +88,8 @@ export class App extends Component<AppProps,AppState>{
     constructor(props){  
         super(props); 
         this.generateIndicatorsWorker = null;
-        let { amounts, todos } = this.propsToState(this.props);
-        this.state = { amounts, todos, indicators:{} };
+        let amounts = this.getAmounts(this.props);
+        this.state = { amounts, indicators:{} };
     };
 
     
@@ -145,7 +144,7 @@ export class App extends Component<AppProps,AppState>{
     .catch(err => globalErrorHandler(err));
 
 
-
+/*
     removeTodosFromCompletedProjects : (todos:Todo[], projects:Project[]) => Todo[] =
     (todos, projects) => compose(
         applyTo(todos),
@@ -155,7 +154,7 @@ export class App extends Component<AppProps,AppState>{
         map(prop('layout')),
         projects => filter(projects, byCompleted)
     )(projects);
-
+*/
     
 
     promiseIndicators = (projects:Project[],todos:Todo[]) : Promise<Indicators> => new Promise(
@@ -176,17 +175,14 @@ export class App extends Component<AppProps,AppState>{
 
 
 
-    propsToState = (props:Store) : {
-        todos:Todo[],
-        amounts:{ 
-            inbox:number,
-            today:number,
-            hot:number,
-            next:number,
-            someday:number,
-            logbook:number,
-            trash:number
-        }
+    getAmounts = (props:Store) : { 
+        inbox:number,
+        today:number,
+        hot:number,
+        next:number,
+        someday:number,
+        logbook:number,
+        trash:number
     } => {
         let filters : {
             inbox:((todo:Todo) => boolean)[],
@@ -199,16 +195,9 @@ export class App extends Component<AppProps,AppState>{
             trash:((todo:Todo) => boolean)[]
         } = getFilters(props.projects);
 
-        measureTimePromise(this.promiseIndicators,'promiseIndicators')(props.projects,props.todos)
-        .then(
-            (indicators:Indicators) => this.setState({indicators})
-        );
-        
-        let todos = this.removeTodosFromCompletedProjects(props.todos,props.projects);
-        
-        let amounts = generateAmounts(todos, filters);
+        let amounts = generateAmounts(props.todos, filters);
 
-        return {todos,amounts};
+        return amounts;
     };
 
 
@@ -218,23 +207,29 @@ export class App extends Component<AppProps,AppState>{
             this.props.projects!==nextProps.projects || 
             this.props.todos!==nextProps.todos
         ){
-            let {todos,amounts} = this.propsToState(nextProps);
-
-            this.setState(
-                {todos,amounts}, 
-                () => when( 
-                    () => not(this.props.clone),
-                    () => ipcRenderer.send(
-                        'updateQuickEntryData',
-                        {
-                            todos,
-                            projects:nextProps.projects,
-                            areas:nextProps.areas,
-                            indicators:this.state.indicators
-                        }
+            measureTimePromise(this.promiseIndicators,'promiseIndicators')(
+                nextProps.projects,
+                nextProps.todos
+            )
+            .then(
+                (indicators:Indicators) => this.setState(
+                    {indicators}, 
+                    () => when( 
+                        () => not(this.props.clone),
+                        () => ipcRenderer.send(
+                            'updateQuickEntryData',
+                            {
+                                todos:nextProps.todos,
+                                projects:nextProps.projects,
+                                areas:nextProps.areas,
+                                indicators:this.state.indicators
+                            }
+                        )
                     )
                 )
-            )
+            );
+
+            this.setState({amounts:this.getAmounts(nextProps)});
         }
     };
 
@@ -284,7 +279,7 @@ export class App extends Component<AppProps,AppState>{
                     calendars={filter(this.props.calendars, (calendar:Calendar) => calendar.active)}
                     projects={this.props.projects}
                     areas={this.props.areas} 
-                    todos={this.state.todos} 
+                    todos={this.props.todos}  
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId}
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
@@ -297,7 +292,10 @@ export class App extends Component<AppProps,AppState>{
                 this.props.clone ? null : 
                 not(this.props.openSettings) ? null :
                 <SettingsPopup  
-                    dispatch={this.props.dispatch}
+                    authenticatedUser={this.props.authenticatedUser}
+                    sync={this.props.sync}
+                    lastSync={this.props.lastSync}
+                    dispatch={this.props.dispatch} 
                     openSettings={this.props.openSettings}
                     hideHint={this.props.hideHint}
                     selectedSettingsSection={this.props.selectedSettingsSection}
