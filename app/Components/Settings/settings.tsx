@@ -26,7 +26,7 @@ import { TagsSettings } from './TagsSettings';
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import { SyncSettings } from './SyncSettings';
 
-
+ 
 export interface SettingsProps{
     hideHint:boolean,
     selectedSettingsSection:section,
@@ -46,8 +46,9 @@ export interface SettingsProps{
     todos:Todo[],
     defaultTags:string[],
 
-    authenticatedUser:any,
-    sync:boolean,
+    authSession:string,
+    userEmail:string,
+    sync:boolean, 
     lastSync:Date,
 
     dispatch:Function
@@ -203,7 +204,8 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         (selectedSettingsSection:string) : boolean => selectedSettingsSection==="Sync", 
                         () => <SyncSettings
                             dispatch={this.props.dispatch as any}
-                            authenticatedUser={this.props.authenticatedUser}
+                            authSession={this.props.authSession}
+                            userEmail={this.props.userEmail}
                             sync={this.props.sync}
                             lastSync={this.props.lastSync}
                         />

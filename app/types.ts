@@ -104,15 +104,7 @@ export interface Block{
 export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags' | 'Sync';
 
 
-export interface AuthenticatedUser{
-    email:string,
-    password:string,
-    status?:any
-}
- 
-
 export interface Store extends Config{
-  authenticatedUser:AuthenticatedUser,
   sync:boolean,
   lastSync:Date,
   syncInterval:number,
@@ -164,8 +156,12 @@ export interface Store extends Config{
 }; 
 
 
-
+  
 export interface Config{
+    authSession:string,
+    userEmail:string,
+
+
     nextBackupCleanup:Date,
     nextUpdateCheck:Date,
     firstLaunch:boolean, 
@@ -178,7 +174,7 @@ export interface Config{
     preserveWindowWidth:boolean, //when resizing sidebar
     enableShortcutForQuickEntry:boolean,
     quickEntrySavesTo:string, //inbox today next someday
-    moveCompletedItemsToLogbook:string, //immediatelly
+    moveCompletedItemsToLogbook:string, //immediately
 };
 
 

@@ -22,7 +22,7 @@
     "assert": "^1.4.1",
     "auto-launch": "^5.0.5",
     "awesome-typescript-loader": "5.0.0",
-    "axios": "^0.17.1",
+    "axios": "^0.18.0",
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.4",
     "babel-preset-env": "^1.6.1",
@@ -93,7 +93,11 @@
     "webpack-cli": "^2.0.15"
   },
   "dependencies": {
+    "adler-32": "^1.2.0",
     "bluebird": "^3.5.1",
+    "electron-cookies": "heap/electron-cookies",
+    "email-validator": "^2.0.3",
+    "password-validator": "^4.1.1",
     "print-html-element": "^0.5.1",
     "raf": "^3.4.0",
     "resize-observer-polyfill": "^1.5.0",

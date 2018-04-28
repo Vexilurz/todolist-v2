@@ -16,7 +16,7 @@ interface SettingsPopupProps extends SettingsProps{
 
 
 interface SettingsPopupState{}
-
+ 
 
 
 export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupState>{
@@ -27,12 +27,12 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
            onOutsideClick={() => this.props.dispatch({type:"openSettings",load:false})}
         >
             <Settings 
-                authenticatedUser={this.props.authenticatedUser}
+                authSession={this.props.authSession}
+                userEmail={this.props.userEmail}
                 sync={this.props.sync}
                 lastSync={this.props.lastSync}
 
                 selectedSettingsSection={this.props.selectedSettingsSection}
-
                 enableShortcutForQuickEntry={this.props.enableShortcutForQuickEntry}
                 quickEntrySavesTo={this.props.quickEntrySavesTo}
 

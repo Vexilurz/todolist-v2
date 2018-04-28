@@ -21,11 +21,14 @@ import { Provider, connect } from "react-redux";
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer } from './Components/MainContainer';
 import { filter } from 'lodash';
-import { addTodos } from './database'; 
+import { addTodos, todos_db } from './database'; 
 import { Project, Area, Category, Todo, Calendar, Config, Store, action, Indicators } from './types';
 import { applicationStateReducer } from './StateReducer'; 
 import { applicationObjectsReducer } from './ObjectsReducer';
-import { isNil, not, map, compose, contains, prop, when, evolve, ifElse, applyTo, flatten, reject, assoc, range } from 'ramda';
+import { 
+    isNil, not, map, compose, contains, prop, when, evolve, 
+    ifElse, applyTo, flatten, reject, assoc, range, toLower 
+} from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { UpdateNotification } from './Components/UpdateNotification';
@@ -40,10 +43,21 @@ import { SettingsPopup } from './Components/settings/SettingsPopup';
 import { LicensePopup } from './Components/settings/LicensePopup';
 import { refreshReminders } from './utils/reminderUtils';
 import { uppercase } from './utils/uppercase';
+import { emailToUsername } from './utils/emailToUsername';
 import { getFilters } from './utils/getFilters';
 import { generateAmounts } from './utils/generateAmounts';
 import { defaultStoreItems } from './defaultStoreItems'; 
 import { defaultConfig } from './defaultConfig';
+require('electron-cookies');
+import PouchDB from 'pouchdb-browser';  
+const ADLER32 = require('adler-32'); 
+
+
+
+
+var session = require('electron').remote.session;
+var ses = session.fromPartition('persist:name');
+
 
 
 
@@ -203,6 +217,107 @@ export class App extends Component<AppProps,AppState>{
 
 
     componentWillReceiveProps(nextProps:Store){
+
+        if(this.props.authSession!==nextProps.authSession){
+            console.log(`diff`); 
+
+            console.log(`authSession ${nextProps.authSession}`); 
+            console.log(`userEmail ${nextProps.userEmail}`); 
+             
+            if(isString(nextProps.authSession) && isString(nextProps.userEmail)){
+
+                let getDatabaseName = (username:string) => (type:string) : string => {
+                    return `${username}-${type}-${ADLER32.str(username)}`;
+                };
+
+                /*ses.cookies.set({
+                    url:'https://couchdb-604ef9.smileupps.com/', 
+                    name: 'Cookie', // a name to identify it.
+                    value: nextProps.authSession, // the value that you want to save
+                   // expirationDate: expiration.getTime()
+                }, function(error) {
+                    console.log(error);
+                });*/
+            
+                session.defaultSession.cookies.set(
+                    {
+                        url: 'https://couchdb-604ef9.smileupps.com/', 
+                        name: 'Cookies', 
+                        value: nextProps.authSession, 
+                        expirationDate: nDaysFromNow(5)
+                    }, (error) => { 
+                  if (error) console.error(error)
+                })
+
+
+                let dbName = compose(toLower, n => getDatabaseName(n)("todos"), emailToUsername)(nextProps.userEmail);
+                 
+                console.log(dbName);
+
+                document.cookie = nextProps.authSession;
+
+                console.log(document.cookie); 
+ 
+                let remoteDB = new PouchDB( 
+                    `https://couchdb-604ef9.smileupps.com/${dbName}`,
+                    {
+                        skip_setup: true,
+                        headers: {
+                            'Cookie': nextProps.authSession
+                        },
+                        ajax: { 
+                            headers: {
+                                'Cookie': nextProps.authSession
+                            }, 
+                            withCredentials: false
+                        }
+                    }
+                ); 
+
+                todos_db.sync(remoteDB, {live: true,retry: true}) 
+                .on(
+                    'change', 
+                    function (info) {
+                        console.log('change',info);
+                    }
+                )
+                .on(
+                    'paused', 
+                    function (err) {
+                        console.log('paused',err);
+                    }
+                )
+                .on(
+                    'active', 
+                    function () {
+                        console.log('active');
+                    }
+                )
+                .on(
+                    'denied', 
+                    function (err) {
+                        console.log('denied',err);
+                    }
+                )
+                .on(
+                    'complete', 
+                    function (info) {
+                        console.log('complete',info);
+                
+                    }
+                )
+                .on(
+                    'error', 
+                    function (err) {
+                        console.log('error',err);
+                    }
+                );   
+            } 
+
+        }
+
+
+
         if(
             this.props.projects!==nextProps.projects || 
             this.props.todos!==nextProps.todos
@@ -292,9 +407,12 @@ export class App extends Component<AppProps,AppState>{
                 this.props.clone ? null : 
                 not(this.props.openSettings) ? null :
                 <SettingsPopup  
-                    authenticatedUser={this.props.authenticatedUser}
+                    authSession={this.props.authSession}
+                    userEmail={this.props.userEmail}
                     sync={this.props.sync}
                     lastSync={this.props.lastSync}
+
+
                     dispatch={this.props.dispatch} 
                     openSettings={this.props.openSettings}
                     hideHint={this.props.hideHint}

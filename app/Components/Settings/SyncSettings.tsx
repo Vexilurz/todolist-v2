@@ -3,37 +3,135 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
-import { isNil } from 'ramda';
+import { isNil, isEmpty, compose, path } from 'ramda';
 import Cloud from 'material-ui/svg-icons/file/cloud-done';
-import { action, AuthenticatedUser } from '../../types';
+import { action } from '../../types';
 import { getMonthName } from '../../utils/utils';
 import Toggle from 'material-ui/Toggle';
 import { timeOfTheDay } from '../../utils/time';
 import { isToday } from '../../utils/isSomething';
+import * as EmailValidator from 'email-validator';
+import axios from 'axios';
+import { isString } from 'util';
+import { updateConfig } from '../../utils/config';
+import { emailToUsername } from '../../utils/emailToUsername';
+const ADLER32 = require('adler-32');  
+ 
+
+//TODO Remove
+axios.defaults.headers.common['AuthToken'] = 'YWRtaW46WnV6dW4xMjM=';
+
+const passwordValidator = require('password-validator');
+const proxy = 'https://tasklist-server.herokuapp.com';
+const couch = 'https://couchdb-604ef9.smileupps.com';
+
+
+let validateEmail = (email:string) : boolean => {
+    let emailValid = EmailValidator.validate(email);
+    return emailValid;
+};
+
+let validatePassword = (password:string) => {
+    let schema = new passwordValidator();
+
+    schema
+    .is().min(8)                                    // Minimum length 8
+    .is().max(100)                                  // Maximum length 100
+    .has().uppercase()                              // Must have uppercase letters
+    .has().lowercase()                              // Must have lowercase letters
+    .has().digits()                                 // Must have digits
+    .has().not().spaces()                           // Should not have spaces
+
+    return schema.validate(password, { list: true });   
+};
+
 
 
 interface SyncSettingsProps{
     dispatch:(action:action) => void,
-    authenticatedUser:AuthenticatedUser
+    authSession:string,
+    userEmail:string,
     sync:boolean,
     lastSync:Date
 } 
 
  
-interface SyncSettingsState{}
+interface SyncSettingsState{
+    error:string
+}
 
 
 export class SyncSettings extends Component<SyncSettingsProps,SyncSettingsState>{
 
     constructor(props){
         super(props);
+        this.state = { error : '' };
     }
+
+
 
     toggleSync = () => this.props.dispatch({type:'sync', load:!this.props.sync});
 
-    validateCredentials = () => {}
 
-    submitCredentials = () => {}
+
+    validateCredentials = ({email,password}) : boolean => {
+        let emailValid = validateEmail(email);
+        let passwordBrokenRules = validatePassword(password);
+        let passwordValid = isEmpty(passwordBrokenRules);
+
+        if(!emailValid){
+            this.setState({error:`Email address has invalid format`}, () => console.log(this.state.error));
+        }
+
+        if(!passwordValid){
+            this.setState({error:`${passwordBrokenRules.join()}`}, () => console.log(this.state.error));
+        }
+
+        return passwordValid && emailValid;
+    };
+
+
+
+    submitCredentials = ({email,password}) => {
+        let valid = this.validateCredentials({email,password});
+         
+        if(valid){
+            axios({
+                method:'post',
+                url:`${proxy}/users/login`,
+                data:{ username:emailToUsername(email), password }
+            })
+            .then(
+                response => {
+                    if(response.status===200 && isString(response.data)){
+                        updateConfig({authSession:response.data, userEmail:email})
+                        .then(
+                            (config) => { 
+                                console.log(config);  
+                                this.props.dispatch({
+                                    type:"multiple",
+                                    load:[{type:"userEmail",load:email},{type:"authSession",load:response.data}]
+                                })
+                            }
+                        ) 
+                    }
+                }   
+            ) 
+            .catch(
+                err => {
+                    let reason = path(["response","data"], err);
+
+                    if(reason==="unauthorized"){
+                       this.setState({error:`Incorrect email or password`}, () => console.log(this.state.error));
+                    }else{
+                       this.setState({error:`Unexpected error occurred:${reason}`}, () => console.log(this.state.error)); 
+                    }
+                }
+            );
+        }
+    };
+
+
 
     render(){
         return <div style={{
@@ -58,22 +156,23 @@ export class SyncSettings extends Component<SyncSettingsProps,SyncSettingsState>
                 </div>
                 <SyncSwitch  
                     toggleSync={this.toggleSync}
-                    disabled={isNil(this.props.authenticatedUser)}
+                    disabled={isNil(this.props.authSession)}
                     defaultToggled={this.props.sync}
                 />
             </div>
             <div style={{width:"50%",height:"80%", display:"flex", alignItems:"center"}}> 
                 { 
-                    isNil(this.props.authenticatedUser) ? 
+                    //isNil(this.props.authSession) ? 
                     <LoginForm 
-                    
-                    /> 
-                    : 
+                        error={this.state.error}  
+                        submitCredentials={this.submitCredentials}
+                    />  
+                    /*: 
                     <SignedUp 
-                        authenticatedUser={this.props.authenticatedUser}
+                        userEmail={this.props.userEmail}
                         sync={this.props.sync}
                         lastSync={this.props.lastSync}
-                    /> 
+                    /> */
                 } 
             </div>
         </div>
@@ -104,7 +203,7 @@ export class SyncSwitch extends Component<SyncSwitchProps,SyncSwitchState>{
 
 
 interface SignedUpProps{
-    authenticatedUser:any,
+    userEmail:string,
     sync:boolean,
     lastSync:Date
 }
@@ -121,7 +220,7 @@ export class SignedUp extends Component<SignedUpProps,SignedUpState>{
 
 
     render(){ 
-        if(isNil(this.props.lastSync) || isNil(this.props.authenticatedUser)){ return }
+        if(isNil(this.props.lastSync) || isNil(this.props.userEmail)){ return }
 
         let month = getMonthName(this.props.lastSync);
         let day = this.props.lastSync.getDate();
@@ -132,7 +231,7 @@ export class SignedUp extends Component<SignedUpProps,SignedUpState>{
 
         return <div style={{ 
             display:"flex", 
-            flexDirection:"column", 
+            flexDirection:"column",  
             justifyContent:"space-around", 
             height:"50%"
         }}> 
@@ -152,7 +251,7 @@ export class SignedUp extends Component<SignedUpProps,SignedUpState>{
                     cursor:"default",
                     marginLeft:"40px"   
                 }}>
-                    {this.props.authenticatedUser.email}
+                    {this.props.userEmail}
                 </div>
             </div>
             <div style={{display:"flex"}}>
@@ -169,7 +268,7 @@ export class SignedUp extends Component<SignedUpProps,SignedUpState>{
                     fontWeight:"bold",
                     color:"rgba(10,10,10,1)",
                     cursor:"default",
-                    marginLeft:"55px"     
+                    marginLeft:"55px"      
                 }}>
                     {`Your account is active`}
                 </div>
@@ -188,7 +287,7 @@ export class SignedUp extends Component<SignedUpProps,SignedUpState>{
                     fontWeight:"bold",
                     color:"rgba(10,10,10,1)",
                     cursor:"default",
-                    marginLeft:"15px"       
+                    marginLeft:"12px" //"15px"       
                 }}>
                     {lastUpdateMessage}
                 </div>
@@ -199,16 +298,22 @@ export class SignedUp extends Component<SignedUpProps,SignedUpState>{
 
 
 
-interface LoginFormProps{}
+interface LoginFormProps{
+    error:string,
+    submitCredentials:(data:{email:string,password:string}) => void
+}
 
-interface LoginFormState{}
+interface LoginFormState{
+    email:string,
+    password:string
+}
 
-//validation??
 export class LoginForm extends Component<LoginFormProps,LoginFormState>{
 
     constructor(props){
         super(props);
-    }
+        this.state = {email:'', password:''}
+    } 
 
     render(){
         return <div style={{
@@ -227,7 +332,7 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
             <div> 
                 <input  
                     type="email"      
-                    value={''}
+                    value={this.state.email}
                     placeholder="Email" 
                     style={{
                         backgroundColor:"white",
@@ -242,13 +347,13 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
                         borderRadius:"4px",  
                         border:"1px solid rgba(100,100,100,0.3)"
                     }}
-                    onChange={(e) => e.target.value}
+                    onChange={(e) => this.setState({email:e.target.value})}
                 /> 
             </div>
             <div>
                 <input 
                     type="password"     
-                    value={''}
+                    value={this.state.password}
                     placeholder="Password" 
                     style={{
                         backgroundColor:"white",
@@ -263,24 +368,29 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
                         borderRadius:"4px",  
                         border:"1px solid rgba(100,100,100,0.3)"
                     }}
-                    onChange={(e) => e.target.value}
+                    onChange={(e) => this.setState({password:e.target.value})}
                 />  
             </div>
             </div>
-
+            {
+                isEmpty(this.props.error) ? null :    
+                <div style={{fontSize:"14px", color:'red', marginTop:"5px", marginBottom:"5px"}}> 
+                    {this.props.error}
+                </div>
+            }
             <div     
-                onClick={() => {}} 
+                onClick={() => this.props.submitCredentials({email:this.state.email, password:this.state.password})} 
                 style={{     
                     display:"flex",
-                    alignItems:"center",
+                    alignItems:"center", 
                     cursor:"pointer",
-                    justifyContent:"center",
+                    justifyContent:"center", 
                     height:"20px",
                     borderRadius:"5px", 
                     paddingLeft:"25px",
                     paddingRight:"25px",
                     paddingTop:"5px", 
-                    paddingBottom:"5px",
+                    paddingBottom:"5px", 
                     backgroundColor:"rgba(81, 144, 247, 1)"  
                 }}   
             >   

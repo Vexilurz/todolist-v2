@@ -8,6 +8,18 @@ import { Store, Category, Todo, section } from "./types";
 export let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => {
       return cond([
             [ 
+              typeEquals("userEmail"),
+              (action:{type:string,load:string}) : Store => {
+                return ({...state, userEmail:action.load}); 
+              } 
+            ],
+            [ 
+              typeEquals("authSession"),
+              (action:{type:string,load:string}) : Store => {
+                return ({...state, authSession:action.load}); 
+              } 
+            ],   
+            [ 
               typeEquals("selectedTodo"),
               (action:{type:string,load:Todo}) : Store => {
                 return ({...state, selectedTodo:action.load}); 
