@@ -29,7 +29,7 @@ let x = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Add task from anywhere"
+        _id:"Add task bxcfbxcffrom anywhere"
     }, 
     {
         type:"todo",
@@ -46,7 +46,7 @@ let x = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Link to emails, files, and web pages"
+        _id:"Link to emxbcfbxcfails, files, and web pages"
     }, 
     {
         type:"todo",
@@ -63,7 +63,7 @@ let x = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Open multiple windows"
+        _id:"Open multipxbcfbxcfle windows"
     },
     {
         type:"todo",
@@ -80,7 +80,7 @@ let x = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Convert a task into a project"
+        _id:"Convert a bxcfbxcftask into a project"
     },
     {
         type:"todo",
@@ -97,13 +97,13 @@ let x = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Make your task repeat"
+        _id:"Make yourbxcfbxcf task repeat"
     },            
     {
         type : "heading", 
         priority:24,
         title : "Before you go...", 
-        _id : "Before you go...", 
+        _id : "Before you bcfbcfgo...", 
         key : "Before you go..."
     },
     {
@@ -121,7 +121,7 @@ let x = [
         attachedDate:null,
         completedSet:null,
         completedWhen:null,
-        _id:"Any questions ? We're here to help!"
+        _id:"Any questions ? We'rbxcfbxcfe here to help!"
     }
 ];
 

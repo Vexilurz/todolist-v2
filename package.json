@@ -98,6 +98,7 @@
     "electron-cookies": "heap/electron-cookies",
     "email-validator": "^2.0.3",
     "password-validator": "^4.1.1",
+    "pouchdb-upsert": "^2.2.0",
     "print-html-element": "^0.5.1",
     "raf": "^3.4.0",
     "resize-observer-polyfill": "^1.5.0",
