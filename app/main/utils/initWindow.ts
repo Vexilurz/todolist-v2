@@ -15,7 +15,6 @@ export let initWindow = (
         width,         
         height,   
         title:AppName,      
-        webPreferences: {webSecurity: false},
         center:true,
         frame:true, 
         ...options

@@ -34,7 +34,7 @@ export let initDB = () => {
 
    
 initDB(); 
- 
+  
 
 
 export let updateProjects = (projects : Project[], onError : Function) : Promise<any[]> => {

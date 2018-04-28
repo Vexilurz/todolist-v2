@@ -3,7 +3,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
-import { isNil, isEmpty, compose, path } from 'ramda';
+import { isNil, isEmpty, compose, path, toLower } from 'ramda';
 import Cloud from 'material-ui/svg-icons/file/cloud-done';
 import { action } from '../../types';
 import { getMonthName } from '../../utils/utils';
@@ -94,28 +94,46 @@ export class SyncSettings extends Component<SyncSettingsProps,SyncSettingsState>
 
     submitCredentials = ({email,password}) => {
         let valid = this.validateCredentials({email,password});
-         
+       
+       let getToken = compose(
+            btoa,
+            unescape,
+            encodeURIComponent,
+            auth => auth.username + ':' + auth.password
+        );  
+          
         if(valid){
-            axios({
-                method:'post',
-                url:`${proxy}/users/login`,
-                data:{ username:emailToUsername(email), password }
-            })
-            .then(
+            let username = emailToUsername(email);
+            let getDatabaseName = (username:string) => (type:string) : string => {
+                return `${username}-${type}-${ADLER32.str(username)}`;
+            };
+
+            let dbName = compose(toLower, n => getDatabaseName(n)("todos"), emailToUsername)(email);
+                 
+
+            console.log(`login; password ${password}; username ${username};`); 
+
+            axios({ 
+                method:'post', 
+                url:`https://couchdb-604ef9.smileupps.com/_session`, 
+                data:{ name:emailToUsername(email), password }, 
+                headers: {'Authorization': 'Basic ' + getToken({username, password})}
+            })  
+            .then( 
                 response => {
-                    if(response.status===200 && isString(response.data)){
-                        updateConfig({authSession:response.data, userEmail:email})
+                    if(response.status===200){
+                        updateConfig({authSession:'authSession', userEmail:email})
                         .then(
                             (config) => { 
                                 console.log(config);  
                                 this.props.dispatch({
                                     type:"multiple",
                                     load:[{type:"userEmail",load:email},{type:"authSession",load:response.data}]
-                                })
+                                }) 
                             }
                         ) 
                     }
-                }   
+                }    
             ) 
             .catch(
                 err => {

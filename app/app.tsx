@@ -224,55 +224,29 @@ export class App extends Component<AppProps,AppState>{
             console.log(`authSession ${nextProps.authSession}`); 
             console.log(`userEmail ${nextProps.userEmail}`); 
              
-            if(isString(nextProps.authSession) && isString(nextProps.userEmail)){
+            if(isString(nextProps.userEmail)){
 
                 let getDatabaseName = (username:string) => (type:string) : string => {
                     return `${username}-${type}-${ADLER32.str(username)}`;
                 };
-
-                /*ses.cookies.set({
-                    url:'https://couchdb-604ef9.smileupps.com/', 
-                    name: 'Cookie', // a name to identify it.
-                    value: nextProps.authSession, // the value that you want to save
-                   // expirationDate: expiration.getTime()
-                }, function(error) {
-                    console.log(error);
-                });*/
-            
-                session.defaultSession.cookies.set(
-                    {
-                        url: 'https://couchdb-604ef9.smileupps.com/', 
-                        name: 'Cookies', 
-                        value: nextProps.authSession, 
-                        expirationDate: nDaysFromNow(5)
-                    }, (error) => { 
-                  if (error) console.error(error)
-                })
-
+                
 
                 let dbName = compose(toLower, n => getDatabaseName(n)("todos"), emailToUsername)(nextProps.userEmail);
                  
-                console.log(dbName);
-
-                document.cookie = nextProps.authSession;
-
-                console.log(document.cookie); 
+                console.log(dbName); 
  
                 let remoteDB = new PouchDB( 
                     `https://couchdb-604ef9.smileupps.com/${dbName}`,
                     {
-                        skip_setup: true,
-                        headers: {
-                            'Cookie': nextProps.authSession
-                        },
-                        ajax: { 
-                            headers: {
-                                'Cookie': nextProps.authSession
-                            }, 
-                            withCredentials: false
-                        }
+                        skip_setup: true, 
+                        //ajax: { 
+                        //    headers: {
+                        //        'Cookie': nextProps.authSession
+                        //    }, 
+                        //    withCredentials: false
+                        //}
                     }
-                ); 
+                );  
 
                 todos_db.sync(remoteDB, {live: true,retry: true}) 
                 .on(
