@@ -70,20 +70,17 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
         if(!emailValid){
             this.setState({error:`Email address has invalid format`});
         }else if(!passwordValid){
-            this.setState({error:getPasswordErrorMessage(passwordBrokenRules)});
+            this.setState({
+                error:getPasswordErrorMessage(passwordBrokenRules)
+            });
         }
     };
 
 
 
     setAuthError = err => {
-        let reason = path(["response","data"], err);
-
-        if(reason==="unauthorized"){
-           this.setState({error:`Incorrect email or password`});
-        }else{
-           this.setState({error:`Unexpected error occurred:${reason}`}); 
-        }
+        let reason = path(["response","data","reason"], err);
+        this.setState({error:`${reason}`}); 
     };
 
 

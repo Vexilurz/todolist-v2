@@ -197,6 +197,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 append({type:"addTodos", load:extended}) 
             )(actions);
         };
+        
 
         let addIntroList = (projects:Project[]) => (actions:action[]) : action[] => {
             let {firstLaunch} = this.props;

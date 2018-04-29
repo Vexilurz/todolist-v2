@@ -9,29 +9,62 @@ module.exports = [
     {
         context: __dirname + "/app",
         entry:{    
+            'pouchSync':'./pouchSync.ts'
+        },
+        mode:'development',
+        target: 'webworker',
+        devtool: 'source-map',
+        resolve: { 
+            extensions: [".ts", ".tsx", ".js", ".json"]
+        }, 
+        module: { 
+            rules: [ 
+                {  
+                    test:/\.(ts|tsx)?$/,  
+                    exclude: /(node_modules)/, 
+                    loader:"ts-loader"
+                },    
+                {     
+                    test: /\.js$/,
+                    exclude: /(node_modules|bower_components)/,
+                    loader: 'babel-loader',
+                    options: {
+                    presets: ['env']
+                    },
+                }   
+            ]    
+        }, 
+        output:{             
+            filename:'[name].js', 
+            path:path.resolve(__dirname,"dist") 
+        }
+    },
+    {
+        context: __dirname + "/app",
+        entry:{    
             'generateIndicators':'./generateIndicators.ts'
         },
         mode:'development',
         target: 'webworker',
         devtool: 'source-map',
         resolve: { 
-            extensions: [".ts", ".tsx", ".js", ".json", ".css"]
+            extensions: [".ts", ".tsx", ".js", ".json"]
         }, 
         module: { 
             rules: [ 
-            {  
-                test:/\.(ts|tsx)?$/,  
-                exclude: /(node_modules)/, 
-                loader:"ts-loader"
-            },    
-            {     
-                test: /\.js$/,
-                exclude: /(node_modules|bower_components)/,
-                loader: 'babel-loader',
-                options: {
-                presets: ['env']
-                },
-            },   
+                {  
+                    test:/\.(ts|tsx)?$/,  
+                    exclude: /(node_modules)/, 
+                    loader:"ts-loader"
+                },    
+                {     
+                    test: /\.js$/,
+                    exclude: /(node_modules|bower_components)/,
+                    loader: 'babel-loader',
+                    options: {
+                    presets: ['env']
+                    },
+                }   
             ]    
         }, 
         output:{             

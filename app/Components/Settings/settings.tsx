@@ -46,8 +46,7 @@ export interface SettingsProps{
     todos:Todo[],
     defaultTags:string[],
 
-    authSession:string,
-    userEmail:string,
+    email:string,
     sync:boolean, 
     lastSync:Date,
 
@@ -204,8 +203,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         (selectedSettingsSection:string) : boolean => selectedSettingsSection==="Sync", 
                         () => <SyncSettings
                             dispatch={this.props.dispatch as any}
-                            authSession={this.props.authSession}
-                            userEmail={this.props.userEmail}
+                            email={this.props.email}
                             sync={this.props.sync}
                             lastSync={this.props.lastSync}
                         />

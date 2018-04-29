@@ -63,12 +63,12 @@ export class Connected extends Component<ConnectedProps,ConnectedState>{
 
     constructor(props){
         super(props);
-    }
+    } 
 
     onLogout = () => {
         let load = [
-            { type:'sync', load:false }, //TODO add to reducer
-            { type:'email', load:null }
+            { type:'sync', load:false }, 
+            //{ type:'email', load:null }
         ]; 
 
         removeCouchCookies(host)
@@ -78,7 +78,10 @@ export class Connected extends Component<ConnectedProps,ConnectedState>{
                 
                 this.props.dispatch({type:'multiple',load});
 
-                updateConfig({email:null, sync:false});
+                updateConfig({
+                    //email:null, 
+                    sync:false
+                });
             }
         ) 
     };

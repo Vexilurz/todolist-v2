@@ -23,12 +23,11 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
     constructor(props){ super(props) }
     render(){ 
         return <SimplePopup
-           show={this.props.openSettings} 
-           onOutsideClick={() => this.props.dispatch({type:"openSettings",load:false})}
-        >
+            show={this.props.openSettings} 
+            onOutsideClick={() => this.props.dispatch({type:"openSettings",load:false})}
+        > 
             <Settings 
-                authSession={this.props.authSession}
-                userEmail={this.props.userEmail}
+                email={this.props.email} 
                 sync={this.props.sync}
                 lastSync={this.props.lastSync}
 

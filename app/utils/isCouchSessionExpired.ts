@@ -13,7 +13,7 @@ export let isCouchSessionExpired = (list:Cookie[]) : boolean => {
     let auth : Cookie[] = list.filter(
         (item) => 
         item.name===type && 
-        item.domain===host && 
+        contains(item.domain)(host) && 
         isNumber(item.expirationDate)
     );
 

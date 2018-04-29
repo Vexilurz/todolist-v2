@@ -19,7 +19,7 @@ import { isCouchSessionExpired } from '../../utils/isCouchSessionExpired';
 import { Connected } from '../Connected';
 import { LoginForm } from '../LoginForm';
 import { debounce } from 'lodash';
-
+import { checkAuthenticated } from '../../utils/checkAuthenticated';
 
 
 interface SyncSettingsProps{
@@ -47,12 +47,8 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
 
 
     componentDidMount(){
-        this.checkAuthenticated().then(this.setAuthenticated)
+        checkAuthenticated().then(this.setAuthenticated)
     }
-
-
-
-    checkAuthenticated = () : Promise<boolean> => getCouchCookies(host).then( list => !isCouchSessionExpired(list) )
 
 
 
@@ -132,6 +128,7 @@ export class SyncSwitch extends Component<SyncSwitchProps,SyncSwitchState>{
         return <div style={{zoom:1.8,marginRight:"8px"}}> 
             <Toggle 
                 toggled={this.props.toggled}
+                onToggle={this.props.toggleSync}
                 //disabled={this.props.disabled}
             />
         </div>  

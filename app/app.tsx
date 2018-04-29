@@ -27,8 +27,10 @@ import { applicationStateReducer } from './StateReducer';
 import { applicationObjectsReducer } from './ObjectsReducer';
 import { 
     isNil, not, map, compose, contains, prop, when, evolve, isEmpty,
-    ifElse, applyTo, flatten, reject, assoc, range, toLower, all 
+    ifElse, applyTo, flatten, reject, assoc, range, toLower, all, identity 
 } from 'ramda';
+import { Observable } from 'rxjs/Rx';
+import * as Rx from 'rxjs/Rx';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { UpdateNotification } from './Components/UpdateNotification';
@@ -46,6 +48,7 @@ import { uppercase } from './utils/uppercase';
 import { getFilters } from './utils/getFilters';
 import { generateAmounts } from './utils/generateAmounts';
 import { defaultStoreItems } from './defaultStoreItems'; 
+import { checkAuthenticated } from './utils/checkAuthenticated';
 
 
 
@@ -84,12 +87,19 @@ interface AppState{
     }
 }
 @connect((store,props) => store, attachDispatchToProps)   
-export class App extends Component<AppProps,AppState>{  
+export class App extends Component<AppProps,AppState>{ 
     generateIndicatorsWorker:any;
+    pouchSyncWorker:any;
+    syncObservableSubscription:any;
 
     constructor(props){  
         super(props); 
+
         this.generateIndicatorsWorker = null;
+
+        this.pouchSyncWorker = null;
+        this.syncObservableSubscription = null;
+
         let amounts = this.getAmounts(this.props);
         this.state = { amounts, indicators:{} };
     };
@@ -98,13 +108,21 @@ export class App extends Component<AppProps,AppState>{
 
     componentDidMount(){    
         this.setInitialTitle();
+
         this.generateIndicatorsWorker = new Worker('generateIndicators.js');
+        this.pouchSyncWorker = new Worker('pouchSync.js');
+        
         collectSystemInfo().then( info => this.reportStart({...info} as any) );
     }; 
 
 
-
+    //cleanup 
     componentWillUnmount(){
+        this.suspendSyncObservable();
+      
+        this.pouchSyncWorker.terminate();
+        this.pouchSyncWorker = null;
+    
         this.generateIndicatorsWorker.terminate();
         this.generateIndicatorsWorker = null;
     };
@@ -126,7 +144,8 @@ export class App extends Component<AppProps,AppState>{
 
 
 
-    reportStart = ({ arch, cpus, platform, release, type }) => googleAnalytics.send(   
+    reportStart = ({ arch, cpus, platform, release, type }) => 
+    googleAnalytics.send(   
         'event',   
         {  
            ec:'Start',   
@@ -159,7 +178,8 @@ export class App extends Component<AppProps,AppState>{
 */
     
 
-    promiseIndicators = (projects:Project[],todos:Todo[]) : Promise<Indicators> => new Promise(
+    promiseIndicators = (projects:Project[],todos:Todo[]) : Promise<Indicators> => 
+    new Promise(
         resolve => {
             if(isNil(this.generateIndicatorsWorker)){ 
                 resolve({}) 
@@ -175,6 +195,39 @@ export class App extends Component<AppProps,AppState>{
         }
     );
 
+    
+
+    initSyncObservable = () => {
+        let sync = Observable.fromEvent(this.pouchSyncWorker, 'message', (event) => event) 
+        let onPouchSyncWorkerMsg = (event) => {
+            console.log(event.data)
+        };
+
+        this.syncObservableSubscription = sync.subscribe(onPouchSyncWorkerMsg);
+    };
+
+
+
+    suspendSyncObservable = () => {
+        if(isNotNil(this.syncObservableSubscription)){
+           this.syncObservableSubscription.unsubscribe();
+           this.syncObservableSubscription = null;
+        } 
+    };
+
+
+
+    initSync = () => {
+        this.initSyncObservable();
+        this.pouchSyncWorker.postMessage('start'); 
+    };
+
+    
+
+    suspendSync = () => {
+        this.suspendSyncObservable();
+        this.pouchSyncWorker.postMessage('stop');
+    };
 
 
     getAmounts = (props:Store) : { 
@@ -202,9 +255,13 @@ export class App extends Component<AppProps,AppState>{
         return amounts;
     };
 
- 
+  
 
     componentWillReceiveProps(nextProps:Store){
+        if(this.props.sync!==nextProps.sync){
+            checkAuthenticated().then (when( identity, this.initSync ) )
+        }
+
         if(
             this.props.projects!==nextProps.projects || 
             this.props.todos!==nextProps.todos
@@ -294,12 +351,9 @@ export class App extends Component<AppProps,AppState>{
                 this.props.clone ? null : 
                 not(this.props.openSettings) ? null :
                 <SettingsPopup  
-                    authSession={this.props.authSession}
-                    userEmail={this.props.userEmail}
+                    email={this.props.email}
                     sync={this.props.sync}
                     lastSync={this.props.lastSync}
-
-
                     dispatch={this.props.dispatch} 
                     openSettings={this.props.openSettings}
                     hideHint={this.props.hideHint}
