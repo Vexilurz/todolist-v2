@@ -9,7 +9,6 @@ import ClearArrow from 'material-ui/svg-icons/content/backspace';
 import ArrowDropRight from 'material-ui/svg-icons/navigation-arrow-drop-right';
  import NewProjectIcon from 'material-ui/svg-icons/image/timelapse';
 import Popover from 'material-ui/Popover';
-import { removeTodo, addTodo, } from '../database';
 import { Category, ChecklistItem, Todo, Project, Area, LayoutItem, Store } from '../types';
 import { remove, isNil, not, and, equals } from 'ramda';
 let uniqid = require("uniqid");    

@@ -12,9 +12,9 @@ import { Checkbox } from '../TodoInput/TodoInput';
 import { 
     checkForUpdates, getCompletedWhen, log, removeRev, 
     closeClonedWindows, correctFormat, selectFolder, selectJsonDatabase 
-} from '../../utils/utils';
+} from '../../utils/utils'; 
 import { isNewVersion } from '../../utils/isNewVersion';
-import { destroyEverything, initDB, addTodos, addProjects, addAreas, addCalendars, getDatabaseObjects } from '../../database';
+//import { destroyEverything, initDB, addTodos, addProjects, addAreas, addCalendars, getDatabaseObjects } from '../../database';
 import { Area, Project, Todo, Calendar } from '../../types'; 
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater'; 
 import { updateConfig } from '../../utils/config';
@@ -30,7 +30,7 @@ const Promise = require("bluebird");
 const uniqid = require("uniqid");     
 const path = require("path");
 
-
+ 
 
 interface AdvancedProps{
     limit:Date,
@@ -100,7 +100,10 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
             }
         }
     ) => Promise<void> = 
-    (json) => {
+    (json) => new Promise(resolve => resolve());
+    
+    /*{
+        
         let { todos, projects, areas, calendars } = json.database;
         let remRev = compose(map(removeRev), defaultTo([])); 
         closeClonedWindows();
@@ -125,7 +128,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                         )
                     })  
                 );
-    };   
+    };*/  
 
 
 
@@ -152,7 +155,9 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     ifElse(   
         isNil,
         () => new Promise( resolve => resolve() ), 
-        (folder:string) => getDatabaseObjects(this.onError,1000000).then(
+        (folder:string) => {}
+        /*
+        getDatabaseObjects(this.onError,1000000).then(
             ([calendars,projects,areas,todos]) => requestFromMain(
                 'saveDatabase',
                 [ 
@@ -162,12 +167,15 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 (event) => event
             )
         )
+        */
     );      
    
 
 
     backup : () => Promise<string> = 
-    () => getDatabaseObjects(
+    () => new Promise( resolve => resolve() )
+    /*
+    getDatabaseObjects(
         this.onError,
         1000000
     ).then(
@@ -176,7 +184,8 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
             [ { database : { todos, projects, areas, calendars } } ],
             (event, to) => to
         ) 
-    );  
+    ); 
+    */ 
 
 
 

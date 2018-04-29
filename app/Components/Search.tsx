@@ -40,7 +40,6 @@ import {
     byTags
 } from '../utils/utils'; 
 import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../types';
-import { removeTodo } from '../database';
 import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection, defaultTo, all } from 'ramda';
 import { filter } from 'lodash'; 
 import { Observable } from 'rxjs/Rx';

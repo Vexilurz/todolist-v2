@@ -15,7 +15,6 @@ import {
     getRangeYearRepetitions, dateToDateInputValue, dateInputUpperLimit, limitDate, isNotNan, 
     limitInput, isNotEmpty, nDaysFromNow, log
 } from '../utils/utils'; 
-import { removeTodo, addTodo } from '../database';
 import { RepeatOptions, Category, ChecklistItem, Todo, Project, Area, LayoutItem, Group, Store } from '../types';
 import { 
     remove, isNil, not, isEmpty, last, compose, map, cond, defaultTo, flatten, groupBy, difference,

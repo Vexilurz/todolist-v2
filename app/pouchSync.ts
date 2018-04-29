@@ -2,7 +2,7 @@ import { cond, compose, equals, prop, isEmpty, when } from 'ramda';
 import { host } from './utils/couchHost';
 const typeEquals = (type:string) => compose(equals(type), prop(`type`))
 const sendMessage = postMessage as any;
-import PouchDB from 'pouchdb-browser';   
+const PouchDB = require('pouchdb-browser').default;
 import {userNameToDatabaseName} from './utils/userNameToDatabaseName';
 let todos_db = new PouchDB('todos');
 let projects_db = new PouchDB('projects');
@@ -14,7 +14,7 @@ let list = [];
 
 
 let onChangeHandler = (dbName:string) => (info) => {
-    sendMessage(`pouchSync change ${dbName} - ${info}`);
+    sendMessage(`pouchSync change ${dbName} - ${JSON.stringify(info)}`);
 };
 
 
@@ -53,22 +53,22 @@ let initDatabaseSync = (username:string) => (database:any) => {
     let name : string = database.name;
     let dbCouchName = userNameToDatabaseName(username)(name); 
 
-    let remoteDB = new PouchDB( 
+    let remoteDB : any = new PouchDB( 
         `${host}/${dbCouchName}`,
         { 
             skip_setup: true,  
             //ajax: { headers: {}, withCredentials: false }
         }
     );  
+ 
+    let sync = database.sync(remoteDB, {live: true,retry: true}) 
 
-    let sync = remoteDB.sync(database, {live: true,retry: true}) 
-
-    sync.on('change', onChangeHandler(name));
-    sync.on('paused', onPausedHandler(name));
-    sync.on('active', onActiveHandler(name));
-    sync.on('denied', onDeniedHandler(name));
-    sync.on('complete', onCompleteHandler(name));
-    sync.on('error', onErrorHandler(name));  
+    sync.on('change',onChangeHandler(name));
+    //sync.on('paused',onPausedHandler(name));
+    //sync.on('active',onActiveHandler(name));
+    sync.on('denied',onDeniedHandler(name));
+    //sync.on('complete',onCompleteHandler(name));
+    sync.on('error',onErrorHandler(name));  
 
     return sync;
 };
@@ -76,8 +76,12 @@ let initDatabaseSync = (username:string) => (database:any) => {
  
 
 let onStart = (username:string) : void => {
+    console.log('start');
     let init = initDatabaseSync(username);
+   
     list.push(...databases.map( db => init(db)));
+
+    sendMessage(`pouchSync init list length - ${list.length}`);
 };
 
  
@@ -92,7 +96,7 @@ let onStop = () => {
 let onMessage = cond([
     [
         typeEquals("start"), 
-        ({type,load}) => when( () => isEmpty(list), () => onStart(load) )
+        when( () => isEmpty(list),  ({type,load}) => onStart(load) )
     ],
     [
         typeEquals("stop"), onStop],

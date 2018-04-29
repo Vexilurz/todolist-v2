@@ -1,11 +1,11 @@
 import { Project, Area, Todo, Calendar, Store } from './types';
-import {  
-    removeProject, addProject, removeArea, updateProject, addTodo, 
-    updateArea, updateTodo, addArea, removeTodo, removeAreas, 
-    removeTodos, removeProjects, updateAreas, updateProjects, addTodos, 
-    addProjects, addAreas, updateTodos, addCalendar, updateCalendar, 
-    removeCalendar 
-} from './database';
+//import {  
+//    removeProject, addProject, removeArea, updateProject, addTodo, 
+//    updateArea, updateTodo, addArea, removeTodo, removeAreas, 
+//    removeTodos, removeProjects, updateAreas, updateProjects, addTodos, 
+//    addProjects, addAreas, updateTodos, addCalendar, updateCalendar, 
+//    removeCalendar 
+//} from './database';
 import { isDev } from './utils/isDev';
 import { ipcRenderer } from 'electron';
 import { 
@@ -94,7 +94,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     project = ({...project,showScheduled:!project.showScheduled});
 
                     if(shouldAffectDatabase){ 
-                       updateProject(action.load, project, onError); 
+                       //TODO updateProject(action.load, project, onError); 
                     }
                     
                     return {...state, projects:adjust(() => project, idx, state.projects)};
@@ -113,7 +113,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     project = ({...project,showCompleted:!project.showCompleted});
 
                     if(shouldAffectDatabase){ 
-                       updateProject(action.load, project, onError); 
+                       //TODO updateProject(action.load, project, onError); 
                     }
                     
                     return {...state, projects:adjust(() => project, idx, state.projects)};
@@ -169,7 +169,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     )(state.todos);
 
                     if(shouldAffectDatabase){ 
-                       removeTodos(todosToRemove,onError); 
+                       //removeTodos(todosToRemove,onError); 
                     } 
 
                     return ({...state,todos});
@@ -230,7 +230,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     }
 
                     if(shouldAffectDatabase){ 
-                       updateTodos(changedTodos,onError); 
+                       //updateTodos(changedTodos,onError); 
                     }
          
                     return { ...state, todos };
@@ -259,7 +259,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     if(isEmpty(todo.title)){
 
                         if(shouldAffectDatabase){ 
-                            removeTodo(action.load.id, onError); 
+                           //removeTodo(action.load.id, onError); 
                         } 
 
                         return{ ...state, todos:remove(idx, 1, state.todos) }; 
@@ -268,7 +268,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     }else{ 
 
                         if(shouldAffectDatabase){ 
-                            updateTodo(action.load.id, todo, onError); 
+                           //updateTodo(action.load.id, todo, onError); 
                         }
 
                         return{ ...state, todos:adjust(() => todo, idx, state.todos) }; 
@@ -328,7 +328,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     }
 
                     if(shouldAffectDatabase){ 
-                       addCalendar(onError,action.load) 
+                       //addCalendar(onError,action.load) 
                     }   
 
                     return {...state, calendars:[action.load,...state.calendars]};
@@ -347,7 +347,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     assert(idx!==-1, `attempt to remove non existing calendar. ObjectsReducer. ${action.load}`);
             
                     if(shouldAffectDatabase){ 
-                       removeCalendar(action.load, onError); 
+                       //removeCalendar(action.load, onError); 
                     }  
 
                     return {...state, calendars:remove(idx, 1, calendars)};
@@ -364,7 +364,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     let idx = calendars.findIndex(c => c.url===action.load.url);
 
                     if(shouldAffectDatabase){ 
-                       updateCalendar(action.load._id, action.load, onError); 
+                       //updateCalendar(action.load._id, action.load, onError); 
                     }  
 
                     return {...state, calendars:adjust(() => action.load, idx, calendars)};
@@ -445,7 +445,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     } 
     
                     if(shouldAffectDatabase){ 
-                       removeTodos(group,onError); 
+                       //removeTodos(group,onError); 
                     } 
 
                     return{   
@@ -489,7 +489,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     }
     
                     if(shouldAffectDatabase){ 
-                       addTodo(onError, action.load); 
+                       //addTodo(onError, action.load); 
                     }
 
                     let todos = [action.load,...state.todos];
@@ -518,7 +518,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                         }else{
 
                             if(shouldAffectDatabase){ 
-                               addTodo(onError, action.load); 
+                               //addTodo(onError, action.load); 
                             }
 
                             return { ...state, todos:[todo,...state.todos] };
@@ -528,7 +528,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                         if(isEmpty(action.load.title)){
 
                             if(shouldAffectDatabase){ 
-                               removeTodo(action.load._id, onError); 
+                               //removeTodo(action.load._id, onError); 
                             } 
 
                             return{ ...state, todos:remove(idx, 1, state.todos) }; 
@@ -537,7 +537,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                         }else{ 
 
                             if(shouldAffectDatabase){ 
-                               updateTodo(action.load._id, action.load, onError); 
+                               //updateTodo(action.load._id, action.load, onError); 
                             }
 
                             return{ ...state, todos:adjust(() => todo, idx, state.todos) }; 
@@ -554,7 +554,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     assert(isProject(action.load), `Load is not of type Project. ${action.load} addProject. objectsReducer.`)
 
                     if(shouldAffectDatabase){ 
-                       addProject(onError,action.load); 
+                       //addProject(onError,action.load); 
                     }
     
                     return { ...state, projects:[action.load,...state.projects] };   
@@ -569,7 +569,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     assert(isArea(action.load), `Load is not of type Area. ${action.load} addArea. objectsReducer.`)   
 
                     if(shouldAffectDatabase){ 
-                       addArea(onError,action.load); 
+                       //addArea(onError,action.load); 
                     } 
     
                     return { ...state, areas:[action.load,...state.areas] }; 
@@ -590,7 +590,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     project.layout = uniq([action.load.todoId, ...project.layout]);
 
                     if(shouldAffectDatabase){ 
-                       updateProject(project._id,project,onError); 
+                       //updateProject(project._id,project,onError); 
                     }
 
                     return {...state,projects:adjust(() => project, idx, state.projects)};
@@ -622,7 +622,8 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     );
 
                     if(shouldAffectDatabase){ 
-                       updateProject(
+                        /*
+                        updateProject(
                            project._id, 
                            {...project,deleted:undefined}, 
                            onError
@@ -632,6 +633,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                             undeleted.map(t => ({...t,deleted:undefined}) ),
                             onError
                         ); 
+                        */
                     }
  
                     return {...state, projects, todos};
@@ -650,7 +652,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     assert(idx!==-1, "Attempt to update non existing object. updateProject. objectsReducer.");
     
                     if(shouldAffectDatabase){ 
-                       updateProject(action.load._id, action.load, onError); 
+                       //updateProject(action.load._id, action.load, onError); 
                     }
                     
                     return {...state, projects:adjust(() => action.load, idx, state.projects)};
@@ -669,7 +671,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     assert(idx!==-1, "Attempt to update non existing object. updateArea. objectsReducer.");
 
                     if(shouldAffectDatabase){ 
-                       updateArea(action.load._id, action.load, onError); 
+                       //updateArea(action.load._id, action.load, onError); 
                     }
 
                     return {...state, areas:adjust(() => action.load, idx, state.areas)};
@@ -689,7 +691,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     )(state.projects);
                 
                     if(shouldAffectDatabase){ 
-                       updateProjects(changedProjects,onError); 
+                       //updateProjects(changedProjects,onError); 
                     }
         
                     return { ...state, projects };
@@ -711,7 +713,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     assert(isArrayOfAreas(areas), `Error: updateAreas. objectsReducer. ${areas}`);
                     
                     if(shouldAffectDatabase){ 
-                       updateAreas(changedAreas,onError); 
+                       //updateAreas(changedAreas,onError); 
                     } 
         
                     return { ...state, areas };
@@ -725,7 +727,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                     if(isEmpty(action.load)){ return { ...state }; }
 
                     if(shouldAffectDatabase){ 
-                       addTodos(onError,action.load); 
+                       //addTodos(onError,action.load); 
                     } 
                     
                     let todos = [...action.load,...state.todos];
@@ -741,7 +743,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
     
                 (action:{type:string, load:Project[]}) : Store => {
                     if(shouldAffectDatabase){ 
-                       addProjects(onError, action.load); 
+                       //addProjects(onError, action.load); 
                     }
 
                     let projects = [...action.load,...state.projects];
@@ -758,7 +760,7 @@ export let applicationObjectsReducer = (state:Store, action:{type:string,load:an
                 (action:{type:string, load:Area[]}) : Store => {
 
                     if(shouldAffectDatabase){ 
-                       addAreas(onError, action.load); 
+                       //addAreas(onError, action.load); 
                     } 
 
                     let areas = [...action.load,...state.areas];

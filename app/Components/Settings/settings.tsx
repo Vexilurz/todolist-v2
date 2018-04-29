@@ -11,10 +11,6 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import { Checkbox } from '../TodoInput/TodoInput';
 import { attachDispatchToProps, checkForUpdates, getCompletedWhen, log } from '../../utils/utils';
 import { isNewVersion } from '../../utils/isNewVersion';
-import { 
-    getCalendars, getProjects, getAreas, getTodos, destroyEverything, 
-    initDB, addTodos, addProjects, addAreas
-} from '../../database';
 import { section, Calendar, Area, Project, Todo } from '../../types';
 import { Section } from './section';
 import Advanced from 'material-ui/svg-icons/action/settings-applications'; 
@@ -138,8 +134,8 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'Tags'})} 
                         icon={<TriangleLabel style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>}
-                        name={'Tags'} 
-                        selected={selectedSettingsSection==='Tags'} 
+                        name={'Tags'}
+                        selected={selectedSettingsSection==='Tags'}  
                     /> 
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'Advanced'})} 

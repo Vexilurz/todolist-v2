@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
-import { removeTodos, removeProjects, removeAreas } from './../database';
 import { Todo, Project, Area, Category, ChecklistItem, Heading, LayoutItem, Item, Store } from './../types'; 
 import { 
     contains, isNil, prepend, isEmpty, last, not, 
@@ -564,19 +563,19 @@ export let layoutOrderChanged = (before:(Heading|Todo)[], after:(Heading|Todo)[]
  
         
 export let removeDeletedTodos = (todos:Todo[]) : Todo[] => {
-    return removeDeleted(todos, removeTodos) as Todo[]
+    return []//removeDeleted(todos, removeTodos) as Todo[]
 };  
 
  
 
 export let removeDeletedProjects = (projects:Project[]) : Project[] => {
-    return removeDeleted(projects, removeProjects) as Project[]
+    return []//removeDeleted(projects, removeProjects) as Project[]
 }; 
 
  
 
 export let removeDeletedAreas = (areas:Area[]) : Area[] => { 
-    return removeDeleted(areas, removeAreas) as Area[] 
+    return []//removeDeleted(areas, removeAreas) as Area[] 
 };
   
 
@@ -604,6 +603,14 @@ export let getTagsFromItems = (items:Item[]) : string[] => {
     return tags; 
 }; 
 
+
+
+export let turnedOff = (was:boolean, now:boolean) : boolean => was && !now;
+
+
+
+export let turnedOn = (was:boolean, now:boolean) : boolean => !was && now;
+        
 
 
 export let attachDispatchToProps = (dispatch:Function,props) => ({...props, dispatch});

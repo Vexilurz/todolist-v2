@@ -4,30 +4,14 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { TodosList } from '../../Components/TodosList';
-import { getTodos } from '../../database';
 import { Todo,Project, Area, Calendar, Category, CalendarEvent, RepeatOptions } from '../../types';
 import * as Waypoint from 'react-waypoint';
 import { ContainerHeader } from '.././ContainerHeader';
-import {  
-    byTags, 
-    getDayName, 
-    getDatesRange, 
-    byNotCompleted,
-    byNotDeleted,
-    getTagsFromItems, 
-    getMonthName,
-    yearFromDate,
-    convertTodoDates,
-    getRangeDays,
-    isNotEmpty,
-    typeEquals,
-    compareByDate,
-    monthFromDate,
-    log,
-    anyTrue,
-    different,
-    initDate,
-    nDaysFromNow,
+import { 
+    byTags, getDayName, getDatesRange, byNotCompleted, byNotDeleted,
+    getTagsFromItems, getMonthName, yearFromDate, convertTodoDates,
+    getRangeDays, isNotEmpty, typeEquals, compareByDate, monthFromDate,
+    log, anyTrue, different, initDate, nDaysFromNow
 } from '../../utils/utils';  
 import {
     allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, contains,

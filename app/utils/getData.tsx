@@ -3,12 +3,12 @@ import {
     toPairs, map, compose, allPass, cond, defaultTo, reject, when, ifElse, identity, and 
 } from 'ramda';
 import { isNotArray, isDate, isTodo, isString, isNotNil } from '../utils/isSomething';
-import { 
+/*import { 
     getTodos, removeTodo, addTodo, getProjects, 
     getAreas, queryToProjects, queryToAreas, initDB, 
     removeArea, removeProject, destroyEverything, addArea, addProject, 
     addTodos, addProjects, addAreas, getCalendars, getDatabaseObjects
-} from '.././database';
+} from '.././database';*/
 import { Heading, LayoutItem, Calendar, Todo, Project, Area } from '.././types';
 import { noteFromText } from './draftUtils';
 import { convertProjectDates, convertAreaDates, convertTodoDates, measureTimePromise } from './utils';
@@ -62,7 +62,10 @@ export let getData =  (limit:Date,onError:Function,max:number) : Promise<{
     areas:Area[],
     todos:Todo[],
     calendars:Calendar[]
-}> => 
+}> => new Promise(
+    resolve => resolve({projects:[],areas:[],todos:[],calendars:[]})
+);
+/*
     getDatabaseObjects(onError,max)
     .then(
         data => compose(
@@ -102,5 +105,5 @@ export let getData =  (limit:Date,onError:Function,max:number) : Promise<{
         ) 
     )
     .then(updateQuickEntryData)
-
+*/
 

@@ -12,16 +12,15 @@ import {
     oneMinuteBefore, nDaysFromNow, initDate, byDeleted, 
     byNotDeleted, byCompleted, byNotCompleted, 
     byCategory, isDeadlineTodayOrPast, 
-    isTodayOrPast, byScheduled, typeEquals, log, measureTime, measureTimePromise 
+    isTodayOrPast, byScheduled, typeEquals, log, measureTime, measureTimePromise, turnedOff, turnedOn 
 } from "./utils/utils";  
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight'; 
 import { isString, isDate, isNumber, isNotNil } from './utils/isSomething';
 import { createStore } from "redux"; 
 import { Provider, connect } from "react-redux";
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
-import { MainContainer } from './Components/MainContainer';
+import { MainContainer } from './Components/MainContainer'; 
 import { filter } from 'lodash';
-import { addTodos, todos_db } from './database'; 
 import { Project, Area, Category, Todo, Calendar, Config, Store, action, Indicators, Cookie } from './types';
 import { applicationStateReducer } from './StateReducer'; 
 import { applicationObjectsReducer } from './ObjectsReducer';
@@ -49,6 +48,7 @@ import { getFilters } from './utils/getFilters';
 import { generateAmounts } from './utils/generateAmounts';
 import { defaultStoreItems } from './defaultStoreItems'; 
 import { checkAuthenticated } from './utils/checkAuthenticated';
+import { emailToUsername } from './utils/emailToUsername';
 
 
 
@@ -107,11 +107,11 @@ export class App extends Component<AppProps,AppState>{
     
 
     componentDidMount(){    
-        this.setInitialTitle();
-
         this.generateIndicatorsWorker = new Worker('generateIndicators.js');
         this.pouchSyncWorker = new Worker('pouchSync.js');
-        
+
+        this.setInitialTitle();
+        this.initSync(this.props); 
         collectSystemInfo().then( info => this.reportStart({...info} as any) );
     }; 
 
@@ -145,24 +145,24 @@ export class App extends Component<AppProps,AppState>{
 
 
     reportStart = ({ arch, cpus, platform, release, type }) => 
-    googleAnalytics.send(   
-        'event',   
-        {  
-           ec:'Start',   
-           ea:`
-                Application launched ${new Date().toString()}
-                System info :
-                arch ${arch}; 
-                cpus ${cpus.length};
-                platform ${platform};
-                release ${release};
-                type ${type}; 
-           `,  
-           el:'Application launched', 
-           ev:0
-        } 
-    ) 
-    .catch(err => globalErrorHandler(err));
+        googleAnalytics.send(   
+            'event',   
+            {  
+            ec:'Start',   
+            ea:`
+                    Application launched ${new Date().toString()}
+                    System info :
+                    arch ${arch}; 
+                    cpus ${cpus.length};
+                    platform ${platform};
+                    release ${release};
+                    type ${type}; 
+            `,  
+            el:'Application launched', 
+            ev:0
+            } 
+        ) 
+        .catch(err => globalErrorHandler(err));
 
 
 /*
@@ -179,21 +179,21 @@ export class App extends Component<AppProps,AppState>{
     
 
     promiseIndicators = (projects:Project[],todos:Todo[]) : Promise<Indicators> => 
-    new Promise(
-        resolve => {
-            if(isNil(this.generateIndicatorsWorker)){ 
-                resolve({}) 
-            }else{
-                this.generateIndicatorsWorker.addEventListener(
-                   "message", 
-                   (event) => resolve(event.data),
-                   {once:true}
-                );
+        new Promise(
+            resolve => {
+                if(isNil(this.generateIndicatorsWorker)){ 
+                    resolve({}) 
+                }else{
+                    this.generateIndicatorsWorker.addEventListener(
+                        "message", 
+                        (event) => resolve(event.data),
+                        {once:true}
+                    );
 
-                this.generateIndicatorsWorker.postMessage([projects,todos]); 
+                    this.generateIndicatorsWorker.postMessage([projects,todos]); 
+                }
             }
-        }
-    );
+        );
 
     
 
@@ -217,17 +217,25 @@ export class App extends Component<AppProps,AppState>{
 
 
 
-    initSync = () => {
-        this.initSyncObservable();
-        this.pouchSyncWorker.postMessage('start'); 
-    };
-
+    initSync = (props:Store) => 
+    checkAuthenticated()
+    .then(
+        when(
+            auth => auth && props.sync && props.email,  
+            () => {
+                this.initSyncObservable();
+                this.pouchSyncWorker.postMessage(['start',emailToUsername(props.email)]); 
+            }
+        ) 
+    );
     
+
 
     suspendSync = () => {
         this.suspendSyncObservable();
-        this.pouchSyncWorker.postMessage('stop');
+        this.pouchSyncWorker.postMessage(['stop',null]);
     };
+
 
 
     getAmounts = (props:Store) : { 
@@ -258,13 +266,22 @@ export class App extends Component<AppProps,AppState>{
   
 
     componentWillReceiveProps(nextProps:Store){
-        if(this.props.sync!==nextProps.sync){
-            checkAuthenticated().then (when( identity, this.initSync ) )
-        }
 
         if(
+            turnedOn(this.props.sync, nextProps.sync)
+        ){ 
+            this.initSync(nextProps); 
+        }
+        else if(
+            turnedOff(this.props.sync, !nextProps.sync)
+        ){ 
+            this.suspendSync(); 
+        }  
+
+         
+        if(
             this.props.projects!==nextProps.projects || 
-            this.props.todos!==nextProps.todos
+            this.props.todos!==nextProps.todos 
         ){
             measureTimePromise(this.promiseIndicators,'promiseIndicators')(
                 nextProps.projects,
@@ -490,14 +507,13 @@ let reducer = (reducers) => ( state:Store, action:any) : Store => {
         return state;
     };
 
-    return refreshReminders(
-        state,
-        ifElse(
-            typeEquals("multiple"), 
-            (action:action) => action.load.reduce((state,action) => f(state,action), state),
-            (action:action) => f(state,action)
-        )(action)
-    );
+    let newState = ifElse(
+        typeEquals("multiple"), 
+        (action:action) => action.load.reduce((state,action) => f(state,action), state),
+        (action:action) => f(state,action)
+    )(action);
+
+    return compose( refreshReminders(state) ) (newState);
 }; 
 
 

@@ -52,7 +52,7 @@ let clearScheduledReminders = (store:Store) : Store => {
 
 
 
-export let refreshReminders = (prevState:Store, newState:Store) : Store => {
+export let refreshReminders = (prevState:Store) => (newState:Store) : Store => {
 
     if(
         isNil(prevState) || 
