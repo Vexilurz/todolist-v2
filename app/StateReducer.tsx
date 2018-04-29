@@ -5,18 +5,19 @@ import { typeEquals } from "./utils/utils";
 import { Store, Category, Todo, section } from "./types";
  
  
+ 
 export let applicationStateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => {
       return cond([
             [ 
-              typeEquals("userEmail"),
-              (action:{type:string,load:string}) : Store => {
-                return ({...state, userEmail:action.load}); 
-              } 
-            ],
+              typeEquals("sync"),
+              (action:{type:string,load:boolean}) : Store => {
+                return ({...state, sync:action.load}); 
+              }  
+            ], 
             [ 
-              typeEquals("authSession"),
+              typeEquals("email"),
               (action:{type:string,load:string}) : Store => {
-                return ({...state, authSession:action.load}); 
+                return ({...state, email:action.load}); 
               } 
             ],   
             [ 

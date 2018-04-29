@@ -2,8 +2,7 @@ import { Config } from "./types";
 import { defaultTags } from './defaultTags';
 
 export const defaultConfig : Config = { 
-    authSession:null,
-    userEmail:null, 
+    email:null, 
     nextUpdateCheck:new Date(),
     nextBackupCleanup:new Date(),
     firstLaunch:true,

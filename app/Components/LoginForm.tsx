@@ -113,7 +113,7 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
         if(response.status!==200){ return }
 
         let load = [
-            { type:'sync', load:true }, //TODO add to reducer
+            { type:'sync', load:true }, 
             { type:'email', load:this.state.email }
         ]; 
 

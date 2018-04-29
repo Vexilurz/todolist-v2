@@ -166,9 +166,8 @@ export interface Cookie{
 
   
 export interface Config{
-    authSession:string,
-    userEmail:string,
-
+    email:string,
+    
     nextBackupCleanup:Date,
     nextUpdateCheck:Date,
     firstLaunch:boolean, 
