@@ -34,7 +34,7 @@ interface SyncSettingsProps{
 interface SyncSettingsState{
     authenticated:boolean
 }
-
+ 
 
 
 export class SyncSettings extends Component<any,SyncSettingsState>{
@@ -56,7 +56,16 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
 
 
 
-    toggleSync = debounce(() => this.props.dispatch({type:'sync', load:!this.props.sync}), 150);
+    toggleSync = debounce(
+        () => {
+            let load = !this.props.sync;
+
+            this.props.dispatch({type:'sync', load});
+            
+            updateConfig({sync:load});
+        }, 
+        150
+    );
 
 
 
@@ -83,7 +92,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
 
                 <SyncSwitch  
                     toggleSync={this.toggleSync}
-                    disabled={!this.state.authenticated}
+                    //disabled={!this.state.authenticated}
                     toggled={this.props.sync}
                 />
             </div>
@@ -112,7 +121,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
 
 interface SyncSwitchProps{
     toggleSync:() => void,
-    disabled:boolean,
+    //disabled:boolean,
     toggled:boolean
 }
 
@@ -123,9 +132,9 @@ export class SyncSwitch extends Component<SyncSwitchProps,SyncSwitchState>{
         return <div style={{zoom:1.8,marginRight:"8px"}}> 
             <Toggle 
                 toggled={this.props.toggled}
-                disabled={this.props.disabled}
+                //disabled={this.props.disabled}
             />
-        </div> 
+        </div>  
     } 
 };
 

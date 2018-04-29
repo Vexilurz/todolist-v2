@@ -80,9 +80,9 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
         let reason = path(["response","data"], err);
 
         if(reason==="unauthorized"){
-           this.setState({error:`Incorrect email or password`}, () => console.log(this.state.error));
+           this.setState({error:`Incorrect email or password`});
         }else{
-           this.setState({error:`Unexpected error occurred:${reason}`}, () => console.log(this.state.error)); 
+           this.setState({error:`Unexpected error occurred:${reason}`}); 
         }
     };
 
@@ -121,7 +121,7 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
 
         this.props.dispatch({type:'multiple', load});
 
-        updateConfig({email:this.state.email});
+        updateConfig({email:this.state.email, sync:true});
     };      
 
 

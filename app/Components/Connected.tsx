@@ -78,7 +78,7 @@ export class Connected extends Component<ConnectedProps,ConnectedState>{
                 
                 this.props.dispatch({type:'multiple',load});
 
-                updateConfig({email:null});
+                updateConfig({email:null, sync:false});
             }
         ) 
     };

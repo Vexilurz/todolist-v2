@@ -3,6 +3,7 @@ import { defaultTags } from './defaultTags';
 
 export const defaultConfig : Config = { 
     email:null, 
+    sync:false,
     nextUpdateCheck:new Date(),
     nextBackupCleanup:new Date(),
     firstLaunch:true,

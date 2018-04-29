@@ -105,15 +105,13 @@ export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags' | 'S
 
 
 export interface Store extends Config{
-  sync:boolean,
   lastSync:Date,
   syncInterval:number,
-
   showWhenCalendar : boolean, 
   whenTodo : Todo,
   whenCalendarPopupX : number, 
   whenCalendarPopupY : number,
-  showLicense : boolean,
+  showLicense : boolean, 
   progress : any, 
   scrolledTodo : Todo,
   selectedTodo : Todo, 
@@ -167,7 +165,7 @@ export interface Cookie{
   
 export interface Config{
     email:string,
-    
+    sync:boolean,    
     nextBackupCleanup:Date,
     nextUpdateCheck:Date,
     firstLaunch:boolean, 
