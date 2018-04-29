@@ -1,4 +1,76 @@
 const couchDBTestServer = 'https://couchdb-604ef9.smileupps.com/';
+   
+
+        //let dbName = compose(toLower, n => getDatabaseName(n)("todos"), emailToUsername)(nextProps.userEmail);
+         
+        //console.log(dbName); 
+        /*
+        let remoteDB = new PouchDB( 
+            `https://couchdb-604ef9.smileupps.com/${dbName}`,
+            {
+                skip_setup: true, 
+                //ajax: { 
+                //    headers: {
+                //        'Cookie': nextProps.authSession
+                //    }, 
+                //    withCredentials: false
+                //}
+            }
+        );  
+
+        todos_db.sync(remoteDB, {live: true,retry: true}) 
+        .on(
+            'change', 
+            function (info) {
+                console.log('change',info);
+            }
+        )
+        .on(
+            'paused', 
+            function (err) {
+                console.log('paused',err);
+            }
+        )
+        .on(
+            'active', 
+            function () {
+                console.log('active');
+            }
+        )
+        .on(
+            'denied', 
+            function (err) {
+                console.log('denied',err);
+            }
+        )
+        .on(
+            'complete', 
+            function (info) {
+                console.log('complete',info);
+        
+            }
+        )
+        .on(
+            'error', 
+            function (err) {
+                console.log('error',err);
+            }
+        );  
+
+
+if(this.props.authSession!==nextProps.authSession || true){
+  console.log(`diff`); 
+
+  console.log(`authSession ${nextProps.authSession}`); 
+  console.log(`userEmail ${nextProps.userEmail}`); 
+   
+  if(isString(nextProps.userEmail) || true){
+
+     
+  } 
+
+}
+*/
 
 
 /*

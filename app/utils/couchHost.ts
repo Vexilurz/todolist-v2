@@ -1,0 +1,1 @@
+export let host = "https://couchdb-604ef9.smileupps.com";

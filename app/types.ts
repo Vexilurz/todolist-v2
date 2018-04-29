@@ -156,11 +156,18 @@ export interface Store extends Config{
 }; 
 
 
+
+export interface Cookie{
+    domain:string,
+    name:string,
+    expirationDate:number
+}
+
+
   
 export interface Config{
     authSession:string,
     userEmail:string,
-
 
     nextBackupCleanup:Date,
     nextUpdateCheck:Date,

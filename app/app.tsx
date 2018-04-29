@@ -22,12 +22,12 @@ import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer } from './Components/MainContainer';
 import { filter } from 'lodash';
 import { addTodos, todos_db } from './database'; 
-import { Project, Area, Category, Todo, Calendar, Config, Store, action, Indicators } from './types';
+import { Project, Area, Category, Todo, Calendar, Config, Store, action, Indicators, Cookie } from './types';
 import { applicationStateReducer } from './StateReducer'; 
 import { applicationObjectsReducer } from './ObjectsReducer';
 import { 
-    isNil, not, map, compose, contains, prop, when, evolve, 
-    ifElse, applyTo, flatten, reject, assoc, range, toLower 
+    isNil, not, map, compose, contains, prop, when, evolve, isEmpty,
+    ifElse, applyTo, flatten, reject, assoc, range, toLower, all 
 } from 'ramda';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
@@ -38,26 +38,14 @@ import { getConfig } from './utils/config';
 import { collectSystemInfo } from './utils/collectSystemInfo';
 import { assert } from './utils/assert';
 import { isDev } from './utils/isDev';
-import { convertEventDate, parseCalendar } from './Components/Calendar';
+import { convertEventDate } from './Components/Calendar';
 import { SettingsPopup } from './Components/settings/SettingsPopup';
 import { LicensePopup } from './Components/settings/LicensePopup';
 import { refreshReminders } from './utils/reminderUtils';
 import { uppercase } from './utils/uppercase';
-import { emailToUsername } from './utils/emailToUsername';
 import { getFilters } from './utils/getFilters';
 import { generateAmounts } from './utils/generateAmounts';
 import { defaultStoreItems } from './defaultStoreItems'; 
-import { defaultConfig } from './defaultConfig';
-require('electron-cookies');
-import PouchDB from 'pouchdb-browser';  
-const ADLER32 = require('adler-32'); 
-
-
-
-
-var session = require('electron').remote.session;
-var ses = session.fromPartition('persist:name');
-
 
 
 
@@ -214,88 +202,9 @@ export class App extends Component<AppProps,AppState>{
         return amounts;
     };
 
-
+ 
 
     componentWillReceiveProps(nextProps:Store){
-
-        
-        let getDatabaseName = (username:string) => (type:string) : string => {
-            return `${username}-${type}-${ADLER32.str(username)}`;
-        };
-        
-
-        let dbName = compose(toLower, n => getDatabaseName(n)("todos"), emailToUsername)(nextProps.userEmail);
-         
-        console.log(dbName); 
-
-        let remoteDB = new PouchDB( 
-            `https://couchdb-604ef9.smileupps.com/${dbName}`,
-            {
-                skip_setup: true, 
-                //ajax: { 
-                //    headers: {
-                //        'Cookie': nextProps.authSession
-                //    }, 
-                //    withCredentials: false
-                //}
-            }
-        );  
-
-        todos_db.sync(remoteDB, {live: true,retry: true}) 
-        .on(
-            'change', 
-            function (info) {
-                console.log('change',info);
-            }
-        )
-        .on(
-            'paused', 
-            function (err) {
-                console.log('paused',err);
-            }
-        )
-        .on(
-            'active', 
-            function () {
-                console.log('active');
-            }
-        )
-        .on(
-            'denied', 
-            function (err) {
-                console.log('denied',err);
-            }
-        )
-        .on(
-            'complete', 
-            function (info) {
-                console.log('complete',info);
-        
-            }
-        )
-        .on(
-            'error', 
-            function (err) {
-                console.log('error',err);
-            }
-        );  
-
-
-        if(this.props.authSession!==nextProps.authSession || true){
-            console.log(`diff`); 
-
-            console.log(`authSession ${nextProps.authSession}`); 
-            console.log(`userEmail ${nextProps.userEmail}`); 
-             
-            if(isString(nextProps.userEmail) || true){
-
-               
-            } 
-
-        }
-
-
-
         if(
             this.props.projects!==nextProps.projects || 
             this.props.todos!==nextProps.todos
