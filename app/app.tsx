@@ -16,9 +16,9 @@ import { Provider, connect } from "react-redux";
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer } from './Components/MainContainer'; 
 import { filter } from 'lodash';
-import { Project, Todo, Calendar, Config, Store, Indicators } from './types';
+import { Project, Todo, Calendar, Config, Store, Indicators, action } from './types';
 import { isNil, not, map, when, evolve } from 'ramda';
-import { Observable } from 'rxjs/Rx';
+import { Observable, Subscription } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { TrashPopup } from './Components/Categories/Trash'; 
 import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
@@ -35,61 +35,12 @@ import { getFilters } from './utils/getFilters';
 import { generateAmounts } from './utils/generateAmounts';
 import { defaultStoreItems } from './defaultStoreItems'; 
 import { applicationReducer } from './reducer';
-const pouchWorker = new Worker('pouchWorker.js');
+import { typeEquals } from './utils/time';
+export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
-let initDatabaseObservable = () => {
-
-    let db = Observable.fromEvent(pouchWorker, 'message', (event) => event) 
-    //filter by type change
-
-    let onChanges = (event) => {
-        console.log(event.data)
-    };
-
-    let subscription = db.subscribe(onChanges);
-};
 
 
-let suspendDatabaseObservable = () => {
-    if(isNotNil(this.syncObservableSubscription)){
-        this.syncObservableSubscription.unsubscribe();
-        this.syncObservableSubscription = null;
-    } 
-};
-
-
-
-
-/*
-
-
-initSync = (props:Store) => 
-checkAuthenticated()
-.then(
-    when(
-        auth => auth && props.sync && props.email,  
-        () => {
-            this.initSyncObservable();
-            this.pouchSyncWorker.postMessage(['start',emailToUsername(props.email)]); 
-        }
-    ) 
-);
-suspendSync = () => {
-    this.suspendSyncObservable();
-    this.pouchSyncWorker.postMessage(['stop',null]);
-};
- //if(
-        //    turnedOn(this.props.sync, nextProps.sync)
-        //){ 
-        //    this.initSync(nextProps); 
-        //}
-        //else if(
-        //   turnedOff(this.props.sync, !nextProps.sync)
-        //){ 
-        //    this.suspendSync(); 
-        //}  
-*/
 /*
     removeTodosFromCompletedProjects : (todos:Todo[], projects:Project[]) => Todo[] =
     (todos, projects) => compose(
@@ -120,9 +71,12 @@ interface AppState{
 @connect((store,props) => store, attachDispatchToProps)   
 export class App extends Component<AppProps,AppState>{ 
     generateIndicatorsWorker:any;
+    databaseChangesSubscription:Subscription;
 
     constructor(props){  
         super(props); 
+
+        this.databaseChangesSubscription = null;
 
         this.generateIndicatorsWorker = null;
 
@@ -132,13 +86,33 @@ export class App extends Component<AppProps,AppState>{
         };
     };
 
-    
 
+
+    initDatabaseObservable = () => {
+        let db = Observable.fromEvent(pouchWorker,'message',(event) => event).filter(typeEquals("changes")); 
+        
+        let onChanges = (event) => { 
+            let action = event.data;
+        };
+ 
+        this.databaseChangesSubscription = db.subscribe(onChanges);
+    };
+
+
+
+    suspendDatabaseObservable = () => {
+        if(this.databaseChangesSubscription){
+           this.databaseChangesSubscription.unsubscribe();
+           this.databaseChangesSubscription = null;
+        } 
+    };
+
+
+    
     componentDidMount(){    
         this.generateIndicatorsWorker = new Worker('generateIndicators.js');
-
         this.setInitialTitle();
-
+        this.initDatabaseObservable();
         collectSystemInfo().then( info => this.reportStart({...info} as any) );
     }; 
 
@@ -146,6 +120,7 @@ export class App extends Component<AppProps,AppState>{
 
     //cleanup 
     componentWillUnmount(){
+        this.suspendDatabaseObservable();
         this.generateIndicatorsWorker.terminate();
         this.generateIndicatorsWorker = null;
     };

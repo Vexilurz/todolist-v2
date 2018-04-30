@@ -138,29 +138,26 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
 
 
-    initData : (clone:boolean) => Promise<void> = when(
+    initData : (clone:boolean) => Promise<void> = 
+    when(
         not, 
-        () => getData(this.props.limit,this.onError,100000)
-              .then(
-                ({
-                    projects, 
-                    areas,  
-                    todos, 
-                    calendars
-                }) => this.setData({
+        () => getData(this.props.limit,this.onError)
+                .then(
+                    ({projects, areas, todos, calendars}) => {
+                        this.setData({
+                            projects:defaultTo([], projects), 
 
-                    projects:defaultTo([], projects), 
+                            areas:defaultTo([], areas), 
 
-                    areas:defaultTo([], areas), 
+                            todos:defaultTo([], todos), 
 
-                    todos:defaultTo([], todos), 
-
-                    calendars:map(
-                        evolve({events:map(convertEventDate)}),
-                        defaultTo([], calendars)
-                    )
-                }) 
-              )
+                            calendars:map(
+                                evolve({events:map(convertEventDate)}),
+                                defaultTo([], calendars)
+                            )
+                        }) 
+                    }
+                )
     );
         
 
@@ -300,23 +297,18 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         }
  
         let cleanup = () => 
-        requestFromMain(
-            'backupCleanup',
-            [],
-            (event) => event
-        )
-        .then(() => {
-            let next = isDev() ? fiveMinutesLater(new Date()) : fourteenDaysLater(new Date());
+            requestFromMain('backupCleanup', [], (event) => event)
+            .then(() => {
+                let next = isDev() ? fiveMinutesLater(new Date()) : fourteenDaysLater(new Date());
 
-            return updateConfig({nextBackupCleanup:next});
-        })
-        .then(
-            config => {
-                dispatch({type:"updateConfig",load:config});
-
-                this.initBackupCleanupTimeout(); 
-            }
-        );
+                return updateConfig({nextBackupCleanup:next});
+            })
+            .then(
+                config => {
+                    dispatch({type:"updateConfig",load:config});
+                    this.initBackupCleanupTimeout(); 
+                } 
+            );
 
 
         if(

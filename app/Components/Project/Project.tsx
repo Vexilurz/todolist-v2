@@ -22,15 +22,6 @@ import { noteFromState } from '../../utils/draftUtils';
 
 let byNotFuture = (t:Todo) => isNotNil(t.attachedDate) ? daysRemaining(t.attachedDate)<=0 : true;
 
-
-
-let log = (append:string) => (load:any) : any => {
-    console.log(append,load); 
-    return load;
-};
-
-
-
 interface ProjectComponentProps{ 
     project:Project,  
     moveCompletedItemsToLogbook:string,

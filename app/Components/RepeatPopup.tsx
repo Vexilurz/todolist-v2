@@ -112,7 +112,6 @@ let test = (targets : {todo:Todo,options:RepeatOptions}[], limits : Date[]) : vo
         let groupGradually = groupBy(path(['group','_id']), gradually);
         let groupImmediately = groupBy(path(['group','_id']), immediately);
         console.log(diff); 
-        debugger;
     }
 
 

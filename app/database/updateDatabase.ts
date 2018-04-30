@@ -1,10 +1,10 @@
-import { Project, Area, Todo, Calendar, Store, action } from './types';
-import { isDev } from './utils/isDev';
+import { Project, Area, Todo, Calendar, Store, action } from '../types';
+import { isDev } from '../utils/isDev';
 import { ipcRenderer } from 'electron';
 import { 
     byNotDeleted, typeEquals, byNotCompleted, convertTodoDates, 
     differentBy, compareByDate, isNotEmpty, measureTime, log 
-} from './utils/utils';
+} from '../utils/utils';
 import { 
     adjust, cond, all, isEmpty, contains, not, remove, uniq, assoc, reverse, 
     findIndex, splitAt, last, assocPath, isNil, and, complement, compose, 
@@ -15,8 +15,8 @@ import { filter } from 'lodash';
 import { 
     isTodo, isProject, isArea, isCalendar, isString, isArrayOfTodos, 
     isArrayOfProjects, isArrayOfAreas, isDate, isNumber, isNotNil 
-} from './utils/isSomething';
-import { moveReminderFromPast } from './utils/getData';
+} from '../utils/isSomething';
+import { moveReminderFromPast } from '../utils/getData';
 
 
 
@@ -113,5 +113,5 @@ let detectChanges : (state:Store) => (newState:Store) => Changes =
 export let updateDatabase = (state:Store, actions:action[]) => (newState:Store) : Store => { 
        let changes = detectChanges(state)(newState);
     
-       return state; 
+       return newState; 
 };     

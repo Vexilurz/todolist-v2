@@ -1,6 +1,5 @@
 import { ipcRenderer } from 'electron';
-import { compose } from 'ramda';
-import { isNotNil } from './isSomething';
+import { compose, isNil } from 'ramda';
 
 
 export let requestFromMain = (type:string, args:any[], pick:(...args:any[]) => any) : Promise<any> => {
@@ -16,7 +15,7 @@ export let requestFromMain = (type:string, args:any[], pick:(...args:any[]) => a
         }    
     ).catch( 
         (e) => {  
-            if(isNotNil(e)){ 
+            if(!isNil(e)){ 
                return null;    
             }
         }

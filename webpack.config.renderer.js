@@ -9,10 +9,10 @@ module.exports = [
     {
         context: __dirname + "/app",
         entry:{    
-            'pouchWorker':'./pouchWorker.ts'
+            'pouchWorker':'./database/pouchWorker.ts'
         },
         mode:'development',
-        target: 'webworker',
+        target: 'webworker', 
         devtool: 'source-map',
         resolve: { 
             extensions: [".ts", ".tsx", ".js", ".json"]
@@ -29,7 +29,7 @@ module.exports = [
                     exclude: /(node_modules|bower_components)/,
                     loader: 'babel-loader',
                     options: {
-                    presets: ['env']
+                        presets: ['env']
                     },
                 }   
             ]    

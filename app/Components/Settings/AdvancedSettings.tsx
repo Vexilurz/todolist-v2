@@ -14,7 +14,6 @@ import {
     closeClonedWindows, correctFormat, selectFolder, selectJsonDatabase 
 } from '../../utils/utils'; 
 import { isNewVersion } from '../../utils/isNewVersion';
-//import { destroyEverything, initDB, addTodos, addProjects, addAreas, addCalendars, getDatabaseObjects } from '../../database';
 import { Area, Project, Todo, Calendar } from '../../types'; 
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater'; 
 import { updateConfig } from '../../utils/config';
@@ -26,6 +25,7 @@ import { getData } from '../../utils/getData';
 import { convertEventDate } from '../Calendar';
 import { keyFromDate } from '../../utils/time';
 import { ipcRenderer } from 'electron'; 
+import { pouchWorker } from '../../app';
 const Promise = require("bluebird");
 const uniqid = require("uniqid");     
 const path = require("path");
@@ -77,7 +77,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
     updateState : (state:any) => Promise<void> = 
-    (state) => new Promise( resolve => this.setState(state, () => resolve()) );
+    (state) => new Promise(resolve => this.setState(state, () => resolve()));
 
 
 
@@ -90,48 +90,6 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
 
-    replaceDatabaseObjects : (
-        json:{
-            database:{
-                todos:Todo[], 
-                projects:Project[], 
-                areas:Area[], 
-                calendars:Calendar[]
-            }
-        }
-    ) => Promise<void> = 
-    (json) => new Promise(resolve => resolve());
-    
-    /*{
-        
-        let { todos, projects, areas, calendars } = json.database;
-        let remRev = compose(map(removeRev), defaultTo([])); 
-        closeClonedWindows();
-          
-        return  destroyEverything()  
-                .then(() => initDB()) 
-                .then(() => Promise.all([  
-                    addTodos(this.onError, remRev(todos)),      
-                    addProjects(this.onError, remRev(projects)), 
-                    addAreas(this.onError, remRev(areas)),
-                    addCalendars(this.onError, remRev(calendars))
-                ])) 
-                .then(() => getData(this.props.limit,this.onError,1000000))  
-                .then(
-                    ({projects, areas, todos, calendars}) => this.setData({
-                        projects:defaultTo([], projects), 
-                        areas:defaultTo([], areas), 
-                        todos:defaultTo([], todos), 
-                        calendars:map(
-                            evolve({ events:map(convertEventDate) }),
-                            defaultTo([], calendars)
-                        )
-                    })  
-                );
-    };*/  
-
-
-
     setData = ({projects, areas, todos, calendars}) : void => {
         let {dispatch} = this.props;
         dispatch({
@@ -140,7 +98,8 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 {type:"setProjects", load:projects},
                 {type:"setAreas", load:areas},
                 {type:"setTodos", load:todos},
-                {type:"setCalendars", load:calendars}
+                {type:"setCalendars", load:calendars},
+                {type:"selectedCategory",load:"inbox"}
             ]
         }); 
     };
@@ -149,66 +108,49 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
     onError = (error) => globalErrorHandler(error);
 
-    
+   
 
-    export : (folder:string) => Promise<void> = 
+    export : (folder:string) => void = 
     ifElse(   
         isNil,
-        () => new Promise( resolve => resolve() ), 
-        (folder:string) => {}
-        /*
-        getDatabaseObjects(this.onError,1000000).then(
-            ([calendars,projects,areas,todos]) => requestFromMain(
-                'saveDatabase',
-                [ 
-                    { database : { todos, projects, areas, calendars } }, 
-                    path.resolve(folder, `${keyFromDate(new Date())}-${uniqid()}.json`)
-                ],
-                (event) => event
-            )
-        )
-        */
+        identity, 
+        (folder:string) => pouchWorker.postMessage({
+            type:"dump",
+            load:path.resolve(folder, `${keyFromDate(new Date())}-${uniqid()}.json`)
+        }) 
     );      
    
 
 
-    backup : () => Promise<string> = 
-    () => new Promise( resolve => resolve() )
-    /*
-    getDatabaseObjects(
-        this.onError,
-        1000000
-    ).then(
-        ([calendars,projects,areas,todos]) => requestFromMain(
-            'saveBackup',
-            [ { database : { todos, projects, areas, calendars } } ],
-            (event, to) => to
-        ) 
-    ); 
-    */ 
+    backup = () => pouchWorker.postMessage({type:"backup", load:null}); 
 
 
 
-    import : (pathToFile:string) => Promise<void> = 
+    import : (pathToFile:string) => Promise<any> = 
     ifElse(
         isNil,
-
-        () => new Promise( resolve => resolve() ),
-
-        (pathToFile:string) => requestFromMain(
-            "readJsonFile",
-            [pathToFile],
-            (event,json) => json
-        ).then(
+        () => new Promise(resolve => resolve()),
+        (pathToFile:string) => requestFromMain("readJsonFile",[pathToFile],(event,json) => json).then(
             ifElse(
                 correctFormat,
+                (json) => {
+                    let remRev = compose(map(removeRev), defaultTo([])); 
+                    let database = compose(
+                        evolve({todos:remRev,projects:remRev,areas:remRev,calendars:remRev}),
+                        data => ({
+                            projects:defaultTo([], data.projects), 
+                            areas:defaultTo([], data.areas), 
+                            todos:defaultTo([], data.todos), 
+                            calendars:map( evolve({ events:map(convertEventDate) }), defaultTo([], data.calendars) )
+                        })
+                    )(json.database);
+                   
+                    closeClonedWindows();
 
-                (json) => this.updateState({importMessage:'Loading...'})
-                                .then( () => this.backup() )
-                                .then( (to:string) => this.replaceDatabaseObjects(json).then(() => to))
-                                .then( (to:string) => this.updateState({importMessage:this.message(to)}) )
-                                .then( () => this.props.dispatch({type:"selectedCategory",load:"inbox"}) ),
+                    pouchWorker.postMessage({type:"set", load:database});
 
+                    this.setData(database); 
+                },
                 () => this.updateState({importMessage:"Incorrect format."})
             )
         )  
@@ -216,25 +158,27 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     
      
 
-    onSelectExportFolder : () => Promise<void> =
-    () => selectFolder().then(
+    onSelectExportFolder : () => Promise<void> = () => 
+    selectFolder()
+    .then(
         ifElse(
             isNil,
             () => new Promise( resolve => resolve() ), 
             (folder:string) => this.updateState({exportPath:folder})
-                                   .then(() => this.export(folder))
-                                   .then(
-                                        () => this.updateState({
-                                            exportMessage:`Data was successfully exported to ${folder}.`
-                                        })
-                                    )
+                                .then(() => this.export(folder))
+                                .then(
+                                    () => this.updateState({
+                                        exportMessage:`Data was successfully exported to ${folder}.`
+                                    })
+                                )
         )
     );  
 
 
 
-    onSelectImportFile : () => Promise<void> = 
-    () => selectJsonDatabase().then(
+    onSelectImportFile : () => Promise<void> = () => 
+    selectJsonDatabase()
+    .then(
         ifElse(
             isNil, 
             () => new Promise( resolve => resolve() ),
@@ -276,11 +220,10 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                     )     
                );  
 
-        
 
 
-    shouldSendStatistics : () => Promise<void> = 
-    () => updateConfig({
+    shouldSendStatistics : () => Promise<void> = () => 
+    updateConfig({
         shouldSendStatistics:not(this.props.shouldSendStatistics)
     }).then(
         config => this.props.dispatch({type:"updateConfig",load:config}) 
@@ -493,7 +436,6 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                                 this.props.dispatch({ 
                                     type:"multiple",
                                     load:[
-                                       //{type:"openSettings",load:false},
                                         {type:"showLicense",load:true}
                                     ]
                                 });  

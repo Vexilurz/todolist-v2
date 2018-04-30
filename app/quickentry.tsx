@@ -149,9 +149,7 @@ let reducer = (state:QuickEntryProps, action) => cond([
 
 
 
-let initQuickEntry = () => {   
-    console.log('init');
-
+let initQuickEntry = () => {  
     let app=document.createElement('div'); 
     app.style.width=`${window.innerWidth}px`; 
     app.style.height=`${window.innerHeight}px`;

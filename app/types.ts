@@ -1,3 +1,12 @@
+export interface Databases{
+    todos:Todo[],
+    projects:Project[],
+    areas:Area[],
+    calendars:Calendar[]
+} 
+
+
+
 export type ItemWithPriority = Area | Project | Todo | Heading; 
 
 

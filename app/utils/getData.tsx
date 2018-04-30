@@ -3,18 +3,16 @@ import {
     toPairs, map, compose, allPass, cond, defaultTo, reject, when, ifElse, identity, and 
 } from 'ramda';
 import { isNotArray, isDate, isTodo, isString, isNotNil } from '../utils/isSomething';
-/*import { 
-    getTodos, removeTodo, addTodo, getProjects, 
-    getAreas, queryToProjects, queryToAreas, initDB, 
-    removeArea, removeProject, destroyEverything, addArea, addProject, 
-    addTodos, addProjects, addAreas, getCalendars, getDatabaseObjects
-} from '.././database';*/
-import { Heading, LayoutItem, Calendar, Todo, Project, Area } from '.././types';
+import { Observable, Subscription } from 'rxjs/Rx';
+import * as Rx from 'rxjs/Rx';
+import { Heading, LayoutItem, Calendar, Todo, Project, Area, Databases } from '.././types';
 import { noteFromText } from './draftUtils';
-import { convertProjectDates, convertAreaDates, convertTodoDates, measureTimePromise } from './utils';
+import { convertProjectDates, convertAreaDates, convertTodoDates, measureTimePromise, typeEquals } from './utils';
 import { updateCalendars } from '../Components/Calendar';
 import { inPast, oneMinuteLater } from './time';
 import { ipcRenderer } from 'electron';
+import { pouchWorker } from '../app';
+
 
 
 export let moveReminderFromPast : (todo:Todo) => Todo =  
@@ -24,11 +22,13 @@ export let moveReminderFromPast : (todo:Todo) => Todo =
     ); 
 
 
+
 let assureCorrectNoteTypeTodo : (todo:Todo) => Todo = 
     when(
         compose(isString, prop('note')),
         evolve({note:noteFromText})
     );
+
 
 
 let assureCorrectNoteTypeProject : (project:Project) => Project = 
@@ -37,6 +37,7 @@ let assureCorrectNoteTypeProject : (project:Project) => Project =
         evolve({description:noteFromText})
     );   
     
+
 
 let updateQuickEntryData = (data) => {
     let {projects,areas,todos,calendars} = data;
@@ -49,6 +50,7 @@ let updateQuickEntryData = (data) => {
 };    
 
 
+
 let assureCorrectCompletedTypeTodo : (todo:Todo) => Todo =  
     when(
       compose(isNotNil, prop('completed')),
@@ -57,53 +59,57 @@ let assureCorrectCompletedTypeTodo : (todo:Todo) => Todo =
 
 
 
-export let getData =  (limit:Date,onError:Function,max:number) : Promise<{
-    projects:Project[],
-    areas:Area[],
-    todos:Todo[],
-    calendars:Calendar[]
-}> => new Promise(
-    resolve => resolve({projects:[],areas:[],todos:[],calendars:[]})
-);
-/*
-    getDatabaseObjects(onError,max)
-    .then(
-        data => compose(
-            evolve({  
-                projects:map(
-                    compose(
-                        assureCorrectNoteTypeProject,
-                        convertProjectDates
-                    )
-                ),
-                areas:map(convertAreaDates),
-                todos:map(
-                    compose(
-                        moveReminderFromPast, 
-                        assureCorrectCompletedTypeTodo, 
-                        assureCorrectNoteTypeTodo,
-                        convertTodoDates
-                    )
-                ),  
-            }),
-            ([calendars,projects,areas,todos]) => ({calendars,projects,areas,todos})
-        )(data)
-    )  
-    .then( 
-        ({projects,areas,todos,calendars}) => updateCalendars(
-            limit,
-            calendars,
-            onError
-        ) 
-        .then(
-            (updated) => ({
-                projects,
-                areas,
-                todos, 
-                calendars:updated
-            })
-        ) 
-    )
-    .then(updateQuickEntryData)
-*/
+export let getData =  (limit:Date,onError:Function) : Promise<Databases> => 
+    new Promise(
+        resolve => {
+            
+            Observable
+            .fromEvent(pouchWorker,'message',(event) => event.data)
+            .filter(typeEquals("load"))
+            .first()
+            .map(prop("load"))
+            .map( 
+                evolve({  
+                    projects:map(
+                        compose(
+                            assureCorrectNoteTypeProject,
+                            convertProjectDates
+                        )
+                    ), 
+                    areas:map(convertAreaDates),
+                    todos:map(
+                        compose(
+                            moveReminderFromPast, 
+                            assureCorrectCompletedTypeTodo, 
+                            assureCorrectNoteTypeTodo,
+                            convertTodoDates
+                        )
+                    )  
+                })
+            )
+            .flatMap(({projects,areas,todos,calendars}) => 
+                updateCalendars(
+                    limit,
+                    calendars,
+                    onError
+                )
+                .then(
+                    (updated) : Databases => updateQuickEntryData({
+                        projects,
+                        areas,
+                        todos, 
+                        calendars:updated
+                    })
+                ) 
+            )
+            .subscribe(
+                (database:Databases) => resolve(database)
+            );
+
+
+            pouchWorker.postMessage({type:"load"});
+        }
+    );
+
+
 
