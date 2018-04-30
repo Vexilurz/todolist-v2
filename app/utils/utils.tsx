@@ -509,33 +509,29 @@ export let dateToDateInputValue = (date:Date) : string => {
 
 
 
-let removeDeleted = (objects : Item[], updateDB : Function) : Item[] => {
+export function onErrorWindow(msg:any, url, lineNo, columnNo, error){
+    let string = msg.toLowerCase();
+    let message = [ 
+        'Message:' + msg, 
+        'URL:' + url,
+        'Line:' + lineNo,
+        'Column:' + columnNo,
+        'Error object:' + JSON.stringify(error)
+    ].join(' - ');  
+
+    globalErrorHandler(message);
     
-    if(isDev()){
-       assert(not(isNil(objects)),`objects undefined. ${objects} removeDeleted.`);
-       assert(isFunction(updateDB),`updateDB is not a function. ${updateDB} removeDeleted.`);
+    if(isDev()){ 
+       return false; 
     }
 
-    let deleted = [];
-    let remainder = [];
+    return true;
+}; 
 
-    for(let i=0; i<objects.length; i++){ 
-        let object = objects[i];
-        
-        if(isDev()){
-           assert(isItem(object), `object has incorrect type ${object} ${i} ${objects}`);
-        }
 
-        if(!!objects[i]["deleted"]){ 
-            deleted.push(objects[i]);
-        }else{
-            remainder.push(objects[i]);  
-        }  
-    } 
- 
-    if(deleted.length>0){ updateDB(deleted) }
-    return remainder;
-};
+
+export let wrapArray = (item:any) => [item];
+
 
  
 export let layoutOrderChanged = (before:(Heading|Todo)[], after:(Heading|Todo)[]) : boolean => {
@@ -561,24 +557,6 @@ export let layoutOrderChanged = (before:(Heading|Todo)[], after:(Heading|Todo)[]
 };
     
  
-        
-export let removeDeletedTodos = (todos:Todo[]) : Todo[] => {
-    return []//removeDeleted(todos, removeTodos) as Todo[]
-};  
-
- 
-
-export let removeDeletedProjects = (projects:Project[]) : Project[] => {
-    return []//removeDeleted(projects, removeProjects) as Project[]
-}; 
-
- 
-
-export let removeDeletedAreas = (areas:Area[]) : Area[] => { 
-    return []//removeDeleted(areas, removeAreas) as Area[] 
-};
-  
-
 
 export let getTagsFromItems = (items:Item[]) : string[] => {
 

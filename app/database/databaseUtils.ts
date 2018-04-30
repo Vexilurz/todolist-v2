@@ -16,10 +16,6 @@ import { isArea, isString, isProject, isTodo } from './utils/isSomething';
 import { Calendar, ChecklistItem, Category, RawDraftContentState, RepeatOptions, Todo, Project, Area, Query } from './types';
 const Promise = require('bluebird');
 const path = require('path');
-let todos_db = new PouchDB('todos');  
-let projects_db = new PouchDB('projects');
-let areas_db = new PouchDB('areas'); 
-let calendars_db = new PouchDB('calendars'); 
 
 
 

@@ -4,8 +4,13 @@ export type ItemWithPriority = Area | Project | Todo | Heading;
 
 export interface action{
      type:string,
-     load:any
+     load:any,
+     kind?:string
 }
+
+
+
+export type Reducer = (state:Store, action:any) => Store
 
 
 

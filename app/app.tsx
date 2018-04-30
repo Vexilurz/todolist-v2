@@ -3,31 +3,21 @@ import './assets/fonts/index.css';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
 import * as injectTapEventPlugin from 'react-tap-event-plugin';
-import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react";  
 import { ipcRenderer } from 'electron';
-import {    
-    attachDispatchToProps, convertTodoDates, 
-    convertProjectDates, convertAreaDates, 
-    oneMinuteBefore, nDaysFromNow, initDate, byDeleted, 
-    byNotDeleted, byCompleted, byNotCompleted, 
-    byCategory, isDeadlineTodayOrPast, 
-    isTodayOrPast, byScheduled, typeEquals, log, measureTime, measureTimePromise, turnedOff, turnedOn 
+import { 
+    attachDispatchToProps, convertTodoDates, convertProjectDates, convertAreaDates, 
+    initDate, measureTimePromise,  onErrorWindow 
 } from "./utils/utils";  
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight'; 
-import { isString, isDate, isNumber, isNotNil } from './utils/isSomething';
+import { isNotNil } from './utils/isSomething';
 import { createStore } from "redux"; 
 import { Provider, connect } from "react-redux";
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer } from './Components/MainContainer'; 
 import { filter } from 'lodash';
-import { Project, Area, Category, Todo, Calendar, Config, Store, action, Indicators, Cookie } from './types';
-import { applicationStateReducer } from './StateReducer'; 
-import { applicationObjectsReducer } from './ObjectsReducer';
-import { 
-    isNil, not, map, compose, contains, prop, when, evolve, isEmpty,
-    ifElse, applyTo, flatten, reject, assoc, range, toLower, all, identity 
-} from 'ramda';
+import { Project, Todo, Calendar, Config, Store, Indicators } from './types';
+import { isNil, not, map, when, evolve } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { TrashPopup } from './Components/Categories/Trash'; 
@@ -37,39 +27,80 @@ import { googleAnalytics } from './analytics';
 import { globalErrorHandler } from './utils/globalErrorHandler';
 import { getConfig } from './utils/config';
 import { collectSystemInfo } from './utils/collectSystemInfo';
-import { assert } from './utils/assert';
-import { isDev } from './utils/isDev';
 import { convertEventDate } from './Components/Calendar';
 import { SettingsPopup } from './Components/settings/SettingsPopup';
 import { LicensePopup } from './Components/settings/LicensePopup';
-import { refreshReminders } from './utils/reminderUtils';
 import { uppercase } from './utils/uppercase';
 import { getFilters } from './utils/getFilters';
 import { generateAmounts } from './utils/generateAmounts';
 import { defaultStoreItems } from './defaultStoreItems'; 
-import { checkAuthenticated } from './utils/checkAuthenticated';
-import { emailToUsername } from './utils/emailToUsername';
+import { applicationReducer } from './reducer';
+const pouchWorker = new Worker('pouchWorker.js');
+window.onerror = onErrorWindow; 
+
+let initDatabaseObservable = () => {
+
+    let db = Observable.fromEvent(pouchWorker, 'message', (event) => event) 
+    //filter by type change
+
+    let onChanges = (event) => {
+        console.log(event.data)
+    };
+
+    let subscription = db.subscribe(onChanges);
+};
+
+
+let suspendDatabaseObservable = () => {
+    if(isNotNil(this.syncObservableSubscription)){
+        this.syncObservableSubscription.unsubscribe();
+        this.syncObservableSubscription = null;
+    } 
+};
 
 
 
-window.onerror = function(msg:any, url, lineNo, columnNo, error){
-    let string = msg.toLowerCase();
-    let message = [ 
-        'Message:' + msg, 
-        'URL:' + url,
-        'Line:' + lineNo,
-        'Column:' + columnNo,
-        'Error object:' + JSON.stringify(error)
-    ].join(' - ');  
 
-    globalErrorHandler(message);
-    
-    if(isDev()){ 
-       return false; 
-    }
+/*
 
-    return true;
-}; 
+
+initSync = (props:Store) => 
+checkAuthenticated()
+.then(
+    when(
+        auth => auth && props.sync && props.email,  
+        () => {
+            this.initSyncObservable();
+            this.pouchSyncWorker.postMessage(['start',emailToUsername(props.email)]); 
+        }
+    ) 
+);
+suspendSync = () => {
+    this.suspendSyncObservable();
+    this.pouchSyncWorker.postMessage(['stop',null]);
+};
+ //if(
+        //    turnedOn(this.props.sync, nextProps.sync)
+        //){ 
+        //    this.initSync(nextProps); 
+        //}
+        //else if(
+        //   turnedOff(this.props.sync, !nextProps.sync)
+        //){ 
+        //    this.suspendSync(); 
+        //}  
+*/
+/*
+    removeTodosFromCompletedProjects : (todos:Todo[], projects:Project[]) => Todo[] =
+    (todos, projects) => compose(
+        applyTo(todos),
+        items => reject((todo:Todo) => contains(todo._id,items)),
+        items => filter(items, isString),
+        flatten,
+        map(prop('layout')),
+        projects => filter(projects, byCompleted)
+    )(projects);
+*/
 
 
  
@@ -89,40 +120,32 @@ interface AppState{
 @connect((store,props) => store, attachDispatchToProps)   
 export class App extends Component<AppProps,AppState>{ 
     generateIndicatorsWorker:any;
-    pouchSyncWorker:any;
-    syncObservableSubscription:any;
 
     constructor(props){  
         super(props); 
 
         this.generateIndicatorsWorker = null;
 
-        this.pouchSyncWorker = null;
-        this.syncObservableSubscription = null;
-
-        let amounts = this.getAmounts(this.props);
-        this.state = { amounts, indicators:{} };
+        this.state = { 
+            amounts:this.getAmounts(this.props), 
+            indicators:{} 
+        };
     };
 
     
 
     componentDidMount(){    
         this.generateIndicatorsWorker = new Worker('generateIndicators.js');
-        this.pouchSyncWorker = new Worker('pouchSync.js');
 
         this.setInitialTitle();
-        this.initSync(this.props); 
+
         collectSystemInfo().then( info => this.reportStart({...info} as any) );
     }; 
 
 
+
     //cleanup 
     componentWillUnmount(){
-        this.suspendSyncObservable();
-      
-        this.pouchSyncWorker.terminate();
-        this.pouchSyncWorker = null;
-    
         this.generateIndicatorsWorker.terminate();
         this.generateIndicatorsWorker = null;
     };
@@ -164,19 +187,7 @@ export class App extends Component<AppProps,AppState>{
         ) 
         .catch(err => globalErrorHandler(err));
 
-
-/*
-    removeTodosFromCompletedProjects : (todos:Todo[], projects:Project[]) => Todo[] =
-    (todos, projects) => compose(
-        applyTo(todos),
-        items => reject((todo:Todo) => contains(todo._id,items)),
-        items => filter(items, isString),
-        flatten,
-        map(prop('layout')),
-        projects => filter(projects, byCompleted)
-    )(projects);
-*/
-    
+        
 
     promiseIndicators = (projects:Project[],todos:Todo[]) : Promise<Indicators> => 
         new Promise(
@@ -196,47 +207,6 @@ export class App extends Component<AppProps,AppState>{
         );
 
     
-
-    initSyncObservable = () => {
-        let sync = Observable.fromEvent(this.pouchSyncWorker, 'message', (event) => event) 
-        let onPouchSyncWorkerMsg = (event) => {
-            console.log(event.data)
-        };
-
-        this.syncObservableSubscription = sync.subscribe(onPouchSyncWorkerMsg);
-    };
-
-
-
-    suspendSyncObservable = () => {
-        if(isNotNil(this.syncObservableSubscription)){
-           this.syncObservableSubscription.unsubscribe();
-           this.syncObservableSubscription = null;
-        } 
-    };
-
-
-
-    initSync = (props:Store) => 
-    checkAuthenticated()
-    .then(
-        when(
-            auth => auth && props.sync && props.email,  
-            () => {
-                this.initSyncObservable();
-                this.pouchSyncWorker.postMessage(['start',emailToUsername(props.email)]); 
-            }
-        ) 
-    );
-    
-
-
-    suspendSync = () => {
-        this.suspendSyncObservable();
-        this.pouchSyncWorker.postMessage(['stop',null]);
-    };
-
-
 
     getAmounts = (props:Store) : { 
         inbox:number,
@@ -263,26 +233,27 @@ export class App extends Component<AppProps,AppState>{
         return amounts;
     };
 
-  
+
+
+    updateQuickEntry = (nextProps:Store,indicators:Indicators) => 
+        () => ipcRenderer.send(
+            'updateQuickEntryData',
+            {
+                todos:nextProps.todos,
+                projects:nextProps.projects,
+                areas:nextProps.areas,
+                indicators
+            }
+        );
+
+
 
     componentWillReceiveProps(nextProps:Store){
-
-        if(
-            turnedOn(this.props.sync, nextProps.sync)
-        ){ 
-            this.initSync(nextProps); 
-        }
-        else if(
-            turnedOff(this.props.sync, !nextProps.sync)
-        ){ 
-            this.suspendSync(); 
-        }  
-
-         
         if(
             this.props.projects!==nextProps.projects || 
             this.props.todos!==nextProps.todos 
         ){
+
             measureTimePromise(this.promiseIndicators,'promiseIndicators')(
                 nextProps.projects,
                 nextProps.todos
@@ -290,17 +261,9 @@ export class App extends Component<AppProps,AppState>{
             .then(
                 (indicators:Indicators) => this.setState(
                     {indicators}, 
-                    () => when( 
+                    when( 
                         () => not(this.props.clone),
-                        () => ipcRenderer.send(
-                            'updateQuickEntryData',
-                            {
-                                todos:nextProps.todos,
-                                projects:nextProps.projects,
-                                areas:nextProps.areas,
-                                indicators:this.state.indicators
-                            }
-                        )
+                        this.updateQuickEntry(nextProps,indicators)
                     )
                 )
             );
@@ -444,7 +407,7 @@ let renderApp = (config:Config, clonedStore:Store, id:number) : void => {
     let isClonedWindow : boolean = isNotNil(clonedStore);
     let isMainWindow : boolean = id===1;
     let defaultStore = {...defaultStoreItems};
-    let {nextUpdateCheck} = config;
+    let { nextUpdateCheck } = config;
     
     app.id='application';      
     document.body.appendChild(app); 
@@ -454,7 +417,7 @@ let renderApp = (config:Config, clonedStore:Store, id:number) : void => {
     if(isClonedWindow){  
         let {todos,projects,areas,calendars,limit} = clonedStore;
 
-        defaultStore={
+        defaultStore = {
             ...clonedStore,
             limit:initDate(limit),
             clone:true, 
@@ -484,7 +447,7 @@ let renderApp = (config:Config, clonedStore:Store, id:number) : void => {
         document.getElementById('application')
     )  
 }; 
- 
+
 
    
 //render application
@@ -493,36 +456,3 @@ ipcRenderer.once(
     (event,clonedStore:Store,id:number) => getConfig().then(config => renderApp(config,clonedStore,id))
 );    
 
-
-
-
-let reducer = (reducers) => ( state:Store, action:any) : Store => {
-    let f = (state:Store,action:action) => {
-        for(let i=0; i<reducers.length; i++){
-            let newState = reducers[i](state, action);
-            if(newState){ 
-               return newState;
-            }  
-        }    
-        return state;
-    };
-
-    let newState = ifElse(
-        typeEquals("multiple"), 
-        (action:action) => action.load.reduce((state,action) => f(state,action), state),
-        (action:action) => f(state,action)
-    )(action);
-
-    return compose( refreshReminders(state) ) (newState);
-}; 
-
-
-
-let applicationReducer = reducer([applicationStateReducer, applicationObjectsReducer]); 
-  
-
-  
-
-
-  
-   

@@ -9,7 +9,7 @@ module.exports = [
     {
         context: __dirname + "/app",
         entry:{    
-            'pouchSync':'./pouchSync.ts'
+            'pouchWorker':'./pouchWorker.ts'
         },
         mode:'development',
         target: 'webworker',
