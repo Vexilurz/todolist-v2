@@ -7,7 +7,7 @@ import IconButton from 'material-ui/IconButton';
 import { Component } from "react"; 
 import {isDev} from "../utils/isDev"; 
 import OverlappingWindows from 'material-ui/svg-icons/image/filter-none';
-import { Todo, Project, Area, Calendar, Category, action } from '.././types';
+import { Todo, Project, Area, Calendar, Category, action, Databases } from '.././types';
 import Print from 'material-ui/svg-icons/action/print';  
 import { AreaComponent } from './Area/Area';
 import { ProjectComponent } from './Project/Project';
@@ -38,9 +38,12 @@ import { isNewVersion } from '../utils/isNewVersion';
 import { UpdateCheckResult } from 'electron-updater';
 import { setCallTimeout } from '../utils/setCallTimeout';
 import { requestFromMain } from '../utils/requestFromMain';
-import { getData } from '../utils/getData';
+import { getData, moveReminderFromPast, assureCorrectNoteTypeProject, assureCorrectNoteTypeTodo, assureCorrectCompletedTypeTodo, updateQuickEntryData } from '../utils/getData';
 import { WhenCalendar } from './WhenCalendar';
-import { isNotEmpty, checkForUpdates, convertDates, printElement, byNotDeleted, log, sideEffect } from '../utils/utils';
+import { 
+    isNotEmpty, checkForUpdates, convertDates, printElement, byNotDeleted, log, sideEffect, convertProjectDates, 
+    convertTodoDates, convertAreaDates, limit 
+} from '../utils/utils';
 import { threeDaysLater, inPast, oneMinuteLater, fourteenDaysLater, fiveMinutesLater } from '../utils/time'; 
 import { introListLayout, getIntroList, introListIds } from '../utils/introList';
 
@@ -138,26 +141,37 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
 
 
-    initData : (clone:boolean) => Promise<void> = 
-    when(
-        not, 
-        () => getData(this.props.limit,this.onError)
-                .then(
-                    ({projects, areas, todos, calendars}) => {
-                        this.setData({
-                            projects:defaultTo([], projects), 
-
-                            areas:defaultTo([], areas), 
-
-                            todos:defaultTo([], todos), 
-
-                            calendars:map(
-                                evolve({events:map(convertEventDate)}),
-                                defaultTo([], calendars)
-                            )
-                        }) 
-                    }
+    initData : () => Promise<void> = () => 
+    getData()
+    .then(
+        evolve({  
+            projects:map( compose(assureCorrectNoteTypeProject, convertProjectDates) ), 
+            areas:map(convertAreaDates),
+            todos:map(
+                compose(
+                    moveReminderFromPast, 
+                    assureCorrectCompletedTypeTodo, 
+                    assureCorrectNoteTypeTodo,
+                    convertTodoDates
                 )
+            )  
+        })
+    )
+    .then(
+        ({calendars,todos,projects,areas}) => 
+        updateCalendars(this.props.limit,calendars,this.onError)
+        .then( 
+            (updated) => updateQuickEntryData({projects,areas,todos,calendars:updated}) 
+        ) 
+    )
+    .then(
+        ({projects, areas, todos, calendars}) => 
+        this.setData({
+            projects:defaultTo([], projects), 
+            areas:defaultTo([], areas), 
+            todos:defaultTo([], todos), 
+            calendars:map(evolve({events:map(convertEventDate)}), defaultTo([], calendars))
+        }) 
     );
         
 
@@ -334,7 +348,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
  
         this.subscriptions.push( 
             Observable
-                .interval(5*minute)
+                .interval(15*minute)
                 .subscribe(() => 
                     requestFromMain(
                         'saveBackup',
@@ -416,12 +430,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 }),     
              
 
-            //Observable
-                //.interval(3*minute)
-                //.subscribe((v) => dispatch({type:'update'})),  
-
-
-
             Observable
                 .fromEvent(ipcRenderer, 'openTodo', (event,todo) => todo)
                 .subscribe( 
@@ -484,10 +492,13 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
     componentDidMount(){    
         this.props.dispatch({type:"selectedCategory", load:this.props.selectedCategory});
 
-        this.initObservables(); 
-        this.initData(this.props.clone); 
-        this.initUpdateTimeout();
-        this.initBackupCleanupTimeout();
+        this.initObservables(); //TODO FIX should this really work completely in separate window ?
+
+        if(!this.props.clone){
+            this.initData(); 
+            this.initUpdateTimeout();
+            this.initBackupCleanupTimeout();
+        }
     };      
      
 

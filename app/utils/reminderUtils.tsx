@@ -86,9 +86,11 @@ export let refreshReminders = (prevState:Store) => (newState:Store) : Store => {
         (scheduledReminders:number[]) : Store => ({...newState,scheduledReminders}),
 
         (scheduledReminders:number[]) => {
-           let timers = filter(scheduledReminders, isNotNil);
-           if(isDev()){ console.log(`scheduled reminders : ${timers.length}`) }
-           return timers;
+            let timers = filter(scheduledReminders, isNotNil);
+            if(isDev()){ 
+               //console.log(`scheduled reminders : ${timers.length}`) 
+            }
+            return timers;
         },     
 
         map((todo) : number => scheduleReminder(todo)), //create timeout for each reminder

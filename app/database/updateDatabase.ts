@@ -54,8 +54,8 @@ let toObjById = (list:withId[]) =>
 
 let detectChanges : (state:Store) => (newState:Store) => Changes =
     state =>
-    compose(
-        log('database changes'),
+    compose( 
+        when(isNotEmpty, log('database changes')),
         mapObjIndexed(
             (val:any[], key:string) : DatabaseChanges<any> => {
                 let changes = { add:[], remove:[], update:[] };
@@ -109,8 +109,13 @@ let detectChanges : (state:Store) => (newState:Store) => Changes =
     );
 
 
+let ignoredActions = ["setCalendars","setTodos","setProjects","setAreas"];
+    
 
-export let updateDatabase = (state:Store, actions:action[]) => (newState:Store) : Store => { 
+export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : Store => { 
+       let nothing = compose( isEmpty, reject(a => contains(a.type)(ignoredActions)) )(load); 
+       if(nothing){ return newState }
+
        let changes = detectChanges(state)(newState);
     
        return newState; 

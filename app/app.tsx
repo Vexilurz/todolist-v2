@@ -16,8 +16,8 @@ import { Provider, connect } from "react-redux";
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer } from './Components/MainContainer'; 
 import { filter } from 'lodash';
-import { Project, Todo, Calendar, Config, Store, Indicators, action } from './types';
-import { isNil, not, map, when, evolve } from 'ramda';
+import { Project, Todo, Calendar, Config, Store, Indicators, action, PouchChanges, PouchError } from './types';
+import { isNil, not, map, when, evolve, prop } from 'ramda';
 import { Observable, Subscription } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { TrashPopup } from './Components/Categories/Trash'; 
@@ -36,6 +36,7 @@ import { generateAmounts } from './utils/generateAmounts';
 import { defaultStoreItems } from './defaultStoreItems'; 
 import { applicationReducer } from './reducer';
 import { typeEquals } from './utils/time';
+import { workerSendAction } from './utils/workerSendAction';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
@@ -71,12 +72,12 @@ interface AppState{
 @connect((store,props) => store, attachDispatchToProps)   
 export class App extends Component<AppProps,AppState>{ 
     generateIndicatorsWorker:any;
-    databaseChangesSubscription:Subscription;
+    subscriptions:Subscription[];
 
     constructor(props){  
         super(props); 
 
-        this.databaseChangesSubscription = null;
+        this.subscriptions = [];
 
         this.generateIndicatorsWorker = null;
 
@@ -87,33 +88,76 @@ export class App extends Component<AppProps,AppState>{
     };
 
 
+    openLoginForm = () =>   this.props.dispatch({
+        type:"multiple", 
+        load:[{type:"openSettings", load:true}, {type:"selectedSettingsSection", load:'Sync'}]
+    });
 
-    initDatabaseObservable = () => {
-        let db = Observable.fromEvent(pouchWorker,'message',(event) => event).filter(typeEquals("changes")); 
+
+
+    initObservables = () => {
+
+        let subscribeToChannel = (
+            channel:string, 
+            subscriber:(action:action) => void
+        ) : Subscription => 
+            Observable
+            .fromEvent(pouchWorker,'message',(event) => event)
+            .map(prop('data'))
+            .filter(typeEquals(channel)) 
+            .subscribe(subscriber);
         
-        let onChanges = (event) => { 
-            let action = event.data;
+
+
+        let onChanges = (action:action) => { 
+            let changes : PouchChanges = action.load; 
+            console.log(`%c pouch ${action.type}`, `color: "#000080"`, action.load);
         };
+
+
+
+        let onLog = (action:action) => { 
+            console.log(`%c ${action.load}`, 'color: #926239');
+        };
+        
+
  
-        this.databaseChangesSubscription = db.subscribe(onChanges);
+        let onError = (action:action) => { 
+            let error : PouchError = action.load;
+            console.log(`%c pouch - ${action.type} - ${action.load}`, 'color: #8b0017');
+
+            if(error.status===401 && error.error==="unauthorized"){
+               this.openLoginForm()
+            }
+        };
+
+
+
+        this.subscriptions.push(
+            subscribeToChannel("changes", onChanges),
+            subscribeToChannel("log", onLog),
+            subscribeToChannel("error", onError)
+        );
     };
 
-
+    
 
     suspendDatabaseObservable = () => {
-        if(this.databaseChangesSubscription){
-           this.databaseChangesSubscription.unsubscribe();
-           this.databaseChangesSubscription = null;
-        } 
+        this.subscriptions.map(s => s.unsubscribe());
+        this.subscriptions=[];
     };
 
-
+    
     
     componentDidMount(){    
         this.generateIndicatorsWorker = new Worker('generateIndicators.js');
+
         this.setInitialTitle();
-        this.initDatabaseObservable();
-        collectSystemInfo().then( info => this.reportStart({...info} as any) );
+
+        if(!this.props.clone){
+            this.initObservables();
+            collectSystemInfo().then( info => this.reportStart({...info} as any) );
+        }
     }; 
 
 
@@ -164,24 +208,15 @@ export class App extends Component<AppProps,AppState>{
 
         
 
-    promiseIndicators = (projects:Project[],todos:Todo[]) : Promise<Indicators> => 
-        new Promise(
-            resolve => {
-                if(isNil(this.generateIndicatorsWorker)){ 
-                    resolve({}) 
-                }else{
-                    this.generateIndicatorsWorker.addEventListener(
-                        "message", 
-                        (event) => resolve(event.data),
-                        {once:true}
-                    );
-
-                    this.generateIndicatorsWorker.postMessage([projects,todos]); 
-                }
-            }
-        );
-
+    promiseIndicators = (projects:Project[],todos:Todo[]) : Promise<Indicators> => {
+        let action = {type:'indicators', load:{projects,todos}};
+        
+        let generateIndicatorsWorkerSendAction = workerSendAction(this.generateIndicatorsWorker);
+        
+        return generateIndicatorsWorkerSendAction<Indicators>(action);
+    };
     
+
 
     getAmounts = (props:Store) : { 
         inbox:number,
@@ -388,7 +423,7 @@ let renderApp = (config:Config, clonedStore:Store, id:number) : void => {
     document.body.appendChild(app); 
     window.onbeforeunload = onCloseWindow(isMainWindow);
     
- 
+    
     if(isClonedWindow){  
         let {todos,projects,areas,calendars,limit} = clonedStore;
 

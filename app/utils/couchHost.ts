@@ -1,1 +1,1 @@
-export let host = "https://couchdb-604ef9.smileupps.com";
+export let host = "http://localhost:5984"; //"https://couchdb-604ef9.smileupps.com";

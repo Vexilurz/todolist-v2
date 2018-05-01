@@ -3,6 +3,8 @@ Date.prototype["addDays"] = function(days){
     dat.setDate(dat.getDate() + days);
     return dat; 
 }; 
+import { Observable } from 'rxjs/Rx';
+import * as Rx from 'rxjs/Rx';
 import { action, Query, Databases } from './../types';
 import { host } from './../utils/couchHost';
 import { userNameToDatabaseName } from './../utils/userNameToDatabaseName';
@@ -56,48 +58,18 @@ let getDatabaseObjects = () : Promise<Databases> =>
      
 
 
-let loadDatabase = (action:action) => {
+let loadDatabase = (action:action) : Promise<Databases> => {
     sendMessage({type:'log', load:`pouch log loadDatabase ${JSON.stringify(action)}`});
     
-    getDatabaseObjects().then( load => sendMessage({type:'load', load}) );
+    return getDatabaseObjects();
 };   
 
 
 
-let dumpDatabase = (action:action) => {
-    sendMessage({type:'log', load:`pouch log dumpDatabase ${JSON.stringify(action)}`});
-
-    let path : string = action.load;
-
-    /*getDatabaseObjects()
-    .then( 
-        database => requestFromMain(
-            'saveDatabase', 
-            [ { database }, path ], 
-            (event) => event 
-        )
-    )
-    .then(
-        () => sendMessage({type:action.type, load:null})
-    );*/
-};
-
-
-
-let backupDatabase = (action:action) => {
-    /*getDatabaseObjects()
-    .then( 
-        database => requestFromMain('saveBackup', [ { database } ], (event, to) => to)
-    ) 
-    .then(
-        (to) => sendMessage({type:action.type, load:to})
-    );*/
-};
-
-
-
-let applyChanges = (action:action) => {
+let applyChanges = (action:action) : Promise<void> => {
     sendMessage({type:'log', load:`pouch log applyChanges ${JSON.stringify(action)}`});
+
+    return new Promise( resolve => resolve(null) );
 };
 
 
@@ -111,10 +83,7 @@ let startDatabaseSync = (username:string) => (database:any) => {
     let sync = database.sync(remoteDB, {live: true,retry: true}); 
 
     sync.on('change',onChangeHandler(name));
-    //sync.on('paused',onPausedHandler(name));
-    //sync.on('active',onActiveHandler(name));
     sync.on('denied',onDeniedHandler(name));
-    //sync.on('complete',onCompleteHandler(name));
     sync.on('error',onErrorHandler(name));  
 
     return sync;
@@ -129,29 +98,9 @@ let onChangeHandler = (dbName:string) => (info) => {
 };
 
 
-
-let onPausedHandler = (dbName:string) =>  (err) => {
-    sendMessage({type:'log', load:`pouchSync pause ${dbName} - ${JSON.stringify(err)}`});
-};
-
-
-
-let onActiveHandler = (dbName:string) =>  () => {
-    sendMessage({type:'log', load:`pouchSync active ${JSON.stringify(dbName)}`});
-};
-
-
-
 let onDeniedHandler = (dbName:string) =>  (err) => {
     sendMessage({type:'log', load:`pouchSync denied ${JSON.stringify(err)}`});
 };
-
-
-
-let onCompleteHandler = (dbName:string) =>  (info) => {
-    sendMessage({type:'log', load:`pouchSync completed ${JSON.stringify(info)}`});
-};
-
 
 
 let onErrorHandler = (dbName:string) =>  (err) => {
@@ -160,29 +109,45 @@ let onErrorHandler = (dbName:string) =>  (err) => {
  
 
 
-let uninitialized = () => isEmpty(list);
+let startSync = (action:action) : Promise<void> => {
+    if(!isEmpty(list)){ return new Promise( resolve => resolve(null) ) }
 
-
-
-let initialized = () => !isEmpty(list);
-
-
-
-let startSync = (action:action) => {
     sendMessage({type:'log', load:`pouch log startSync ${JSON.stringify(action)}`});
 
     let username = action.load;
     let start = startDatabaseSync(username);
     list.push(...databases.map( db => start(db) ));
+ 
+    return new Promise( resolve => resolve(null) );
 };
 
 
 
-let stopSync = (action:action) => { 
+let stopSync = (action:action) : Promise<any[]> => { 
+
     sendMessage({type:'log', load:`pouch log stopSync ${JSON.stringify(action)}`});
 
-    list.map(s => s.cancel());  list = []; 
+    return Promise.all(
+        list.map(
+            s => new Promise( 
+                resolve => { 
+                    Observable
+                    .fromEvent(s,'complete',(event) => event)
+                    .first()
+                    .subscribe(complete => resolve(complete));
+
+                    s.cancel() 
+                } 
+            )
+        )
+    ).then(
+        events => {
+            list = []; 
+            return events;
+        }
+    );  
 };
+
 
 
 let setItemsToDatabase = (onError:Function, db:any) => 
@@ -190,21 +155,12 @@ let setItemsToDatabase = (onError:Function, db:any) =>
   
   
 
+let setDatabase = (action:action) : Promise<void> => 
+    stopSync({type:'setDatabase',load:null})  
+    .then(destroy)
+    .then(init)
+    .then(() => Promise.all( databases.map( db => setItemsToDatabase(onError, db)(action.load[db.name])) ));
 
-let setDatabase = (action:action) => { 
-    let {todos,projects,calendars,areas} = action.load;
-    //TODO What todo with sync ?
-    stopSync({type:'setDatabase',load:null}); //fix
-
-    return destroy().then(() => init()).then(
-        () => Promise.all([
-           setItemsToDatabase(onError, todos_db)(todos),
-           setItemsToDatabase(onError, projects_db)(projects),
-           setItemsToDatabase(onError, areas_db)(areas),
-           setItemsToDatabase(onError, calendars_db)(calendars)
-        ])
-    );
-};
 
 
 let updateItemInDatabase = (onError:Function, db:any) => {
@@ -307,22 +263,21 @@ let updateItemsInDatabase = (onError:Function, db:any) => {
 
 
 onmessage = function(e){
+    sendMessage({type:'log', load:`pouch log get action - ${e.data.type}`});
 
-    sendMessage({type:'log', load:`pouch log get mess ${JSON.stringify(e.data)}`});
+    let action = e.data; 
 
     compose(
+        p => p.then(load => sendMessage({type:action.type, load})),
         cond([
-            [ typeEquals("startSync"), when(uninitialized, startSync) ],
-            [ typeEquals("stopSync"), when(initialized, stopSync) ],
+            [ typeEquals("startSync"), startSync ],
+            [ typeEquals("stopSync"), stopSync ],
             [ typeEquals("changes"), applyChanges ],
             [ typeEquals("load"), loadDatabase ],
-            //[ typeEquals("dump"),  dumpDatabase ],
-            //[ typeEquals("backup"),  backupDatabase ],
             [ typeEquals("set"),  setDatabase ],
-            [ () => true, () => null ]    
-        ]),
-        prop('data')
-    )(e) 
+            [ () => true, () => new Promise( resolve => resolve(null) ) ]    
+        ])
+    )(action) 
 }
 
 

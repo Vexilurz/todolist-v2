@@ -66,22 +66,17 @@ export class Connected extends Component<ConnectedProps,ConnectedState>{
     } 
 
     onLogout = () => {
-        let load = [
-            { type:'sync', load:false }, 
-            //{ type:'email', load:null }
-        ]; 
+        let load = [{ type:'sync', load:false }]; 
 
-        removeCouchCookies(host)
+        workerSendAction(pouchWorker)({type:"stopSync", load:null})
+        .then(( => removeCouchCookies(host)))
         .then(
             () => {
                 this.props.setAuthenticated(false);
                 
                 this.props.dispatch({type:'multiple',load});
 
-                updateConfig({
-                    //email:null, 
-                    sync:false
-                });
+                updateConfig({sync:false});
             }
         ) 
     };

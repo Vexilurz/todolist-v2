@@ -31,7 +31,6 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
             [ 
                 typeEquals("setTodos"),  
                 (action:{type:string,load:Todo[]}) : Store => {
-                    console.log('setting todos',action.load); 
 
                     return {...state,todos:[...action.load] };
                 }

@@ -22,6 +22,7 @@ import { debounce } from 'lodash';
 import { checkAuthenticated } from '../../utils/checkAuthenticated';
 
 
+
 interface SyncSettingsProps{
     dispatch:(action:action) => void,
     email:string,
@@ -34,7 +35,7 @@ interface SyncSettingsProps{
 interface SyncSettingsState{
     authenticated:boolean
 }
- 
+
 
 
 export class SyncSettings extends Component<any,SyncSettingsState>{
@@ -50,17 +51,26 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
         checkAuthenticated().then(this.setAuthenticated)
     }
 
-
+    
 
     toggleSync = debounce(
         () => {
-            let load = !this.props.sync;
+            let shouldSync = !this.props.sync;
+
+            if(shouldSync && this.state.authenticated){
+
+               pouchWorker.postMessage({type:"startSync", load:emailToUsername(this.props.email)}))
+
+            }else if(!shouldSync && this.state.authenticated){
+
+               pouchWorker.postMessage({type:"stopSync", load:null}); 
+            }
+
+            updateConfig({sync:shouldSync});
 
             this.props.dispatch({type:'sync', load});
-            
-            updateConfig({sync:load});
         }, 
-        150
+        250
     );
 
 
@@ -88,8 +98,8 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
 
                 <SyncSwitch  
                     toggleSync={this.toggleSync}
-                    //disabled={!this.state.authenticated}
-                    toggled={this.props.sync}
+                    disabled={!this.state.authenticated}
+                    toggled={this.props.sync && this.state.authenticated}
                 />
             </div>
             <div style={{width:"50%",height:"80%", display:"flex", alignItems:"center"}}> 
@@ -117,7 +127,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
 
 interface SyncSwitchProps{
     toggleSync:() => void,
-    //disabled:boolean,
+    disabled:boolean,
     toggled:boolean
 }
 
@@ -129,7 +139,7 @@ export class SyncSwitch extends Component<SyncSwitchProps,SyncSwitchState>{
             <Toggle 
                 toggled={this.props.toggled}
                 onToggle={this.props.toggleSync}
-                //disabled={this.props.disabled}
+                disabled={this.props.disabled}
             />
         </div>  
     } 

@@ -5,9 +5,9 @@ import {
 const sendMessage = postMessage as any;
 
 let generateIndicators : 
-(projects, todos) => { [key:string]:{active:number,completed:number,deleted:number}; } = 
+(data) => { [key:string]:{active:number,completed:number,deleted:number}; } = 
  
-(projects, todos) => compose(
+({projects, todos}) => compose(
     map(  
         data => data.reduce(
             (acc,val) => cond([
@@ -58,7 +58,9 @@ let generateIndicators :
 
 
 onmessage = (e) => {
-   let [projects,todos] = e.data; 
-   let indicators = generateIndicators(projects,todos);
-   sendMessage(indicators);
+   let {type, load} = e.data; 
+
+   let indicators = generateIndicators(load);
+
+   sendMessage({type,load:indicators});
 }; 

@@ -7,6 +7,26 @@ export interface Databases{
 
 
 
+export interface PouchChange<T>{
+    doc_write_failures:number,
+    docs:T[],
+    docs_read:number,
+    docs_written:number,
+    errors:any[],
+    last_seq:number,
+    ok:boolean,
+    start_time:string
+}
+
+
+
+export interface PouchChanges{
+    change:PouchChange<any>,
+    direction:"push" | "pull"
+}
+
+
+
 export type ItemWithPriority = Area | Project | Todo | Heading; 
 
 
@@ -169,9 +189,20 @@ export interface Store extends Config{
 
 
 
+export interface PouchError{
+    error:string,//"unauthorized"
+    reason:string,
+    status:number,//401 unauthorized
+    message:string,
+    docId:string
+}
+
+
+
 export interface Cookie{
     domain:string,
     name:string,
+    session:boolean,
     expirationDate:number
 }
 

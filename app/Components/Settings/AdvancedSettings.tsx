@@ -6,15 +6,15 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react"; 
 import { 
     remove, isNil, not, isEmpty, compose, toPairs, map, findIndex, equals, ifElse, evolve,
-    contains, last, cond, defaultTo, flatten, uniq, concat, all, identity, when, prop 
+    contains, last, cond, defaultTo, flatten, uniq, concat, all, identity, when, prop, applyTo 
 } from 'ramda';
 import { Checkbox } from '../TodoInput/TodoInput';
 import { 
     checkForUpdates, getCompletedWhen, log, removeRev, 
-    closeClonedWindows, correctFormat, selectFolder, selectJsonDatabase 
+    closeClonedWindows, correctFormat, selectFolder, selectJsonDatabase, sideEffect 
 } from '../../utils/utils'; 
 import { isNewVersion } from '../../utils/isNewVersion';
-import { Area, Project, Todo, Calendar } from '../../types'; 
+import { Area, Project, Todo, Calendar, Databases } from '../../types'; 
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater'; 
 import { updateConfig } from '../../utils/config';
 import { isArrayOfTodos, isNotNil } from '../../utils/isSomething';
@@ -26,11 +26,13 @@ import { convertEventDate } from '../Calendar';
 import { keyFromDate } from '../../utils/time';
 import { ipcRenderer } from 'electron'; 
 import { pouchWorker } from '../../app';
+import { workerSendAction } from '../../utils/workerSendAction';
 const Promise = require("bluebird");
 const uniqid = require("uniqid");     
 const path = require("path");
 
- 
+let remRev = compose(map(removeRev), defaultTo([])); 
+
 
 interface AdvancedProps{
     limit:Date,
@@ -49,8 +51,6 @@ interface AdvancedState{
     importMessage:string,
     exportMessage:string,
     updateStatus:string 
-    importPath:string, 
-    exportPath:string
 }
 
 
@@ -64,8 +64,6 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
            showPopup:false,
            importMessage:'',
            exportMessage:'', 
-           importPath:'',   
-           exportPath:'',
            updateStatus:``
         };       
     };
@@ -90,18 +88,19 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
 
-    setData = ({projects, areas, todos, calendars}) : void => {
-        let {dispatch} = this.props;
-        dispatch({
+    setData = (load:Databases) : Promise<void> => {
+        this.props.dispatch({
             type:"multiple",
             load:[
-                {type:"setProjects", load:projects},
-                {type:"setAreas", load:areas},
-                {type:"setTodos", load:todos},
-                {type:"setCalendars", load:calendars},
-                {type:"selectedCategory",load:"inbox"}
+                {type:"setProjects", load:load.projects},
+                {type:"setAreas", load:load.areas},
+                {type:"setTodos", load:load.todos},
+                {type:"setCalendars", load:load.calendars},
+                {type:"selectedCategory", load:"inbox"}
             ]
         }); 
+
+        return workerSendAction(pouchWorker)({type:"set",load});
     };
 
     
@@ -110,115 +109,111 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
    
 
-    export : (folder:string) => void = 
-    ifElse(   
-        isNil,
-        identity, 
-        (folder:string) => pouchWorker.postMessage({
-            type:"dump",
-            load:path.resolve(folder, `${keyFromDate(new Date())}-${uniqid()}.json`)
-        }) 
-    );      
-   
+    export : (folder:string) => Promise<void> = 
+    (folder:string) => 
+    getData()
+    .then(
+        (database:Databases) => {
+            let where = path.resolve(folder, `${keyFromDate(new Date())}-${uniqid()}.json`);
+
+            return requestFromMain(
+                'saveDatabase', 
+                [{ database }, where], 
+                (event) => folder
+            );
+        }
+    ) 
+    .then( 
+        (folder:string) => this.updateState({exportMessage:`Data was successfully exported to ${folder}.`}) 
+    );       
 
 
-    backup = () => pouchWorker.postMessage({type:"backup", load:null}); 
+
+    backup : () => Promise<string> = 
+    () => 
+    getData().then( 
+        (database:Databases) => requestFromMain(
+            'saveBackup', 
+            [ { database } ], 
+            (event, to) => to 
+        ) 
+    );  
 
 
 
     import : (pathToFile:string) => Promise<any> = 
-    ifElse(
-        isNil,
-        () => new Promise(resolve => resolve()),
-        (pathToFile:string) => requestFromMain("readJsonFile",[pathToFile],(event,json) => json).then(
-            ifElse(
-                correctFormat,
-                (json) => {
-                    let remRev = compose(map(removeRev), defaultTo([])); 
-                    let database = compose(
-                        evolve({todos:remRev,projects:remRev,areas:remRev,calendars:remRev}),
-                        data => ({
-                            projects:defaultTo([], data.projects), 
-                            areas:defaultTo([], data.areas), 
-                            todos:defaultTo([], data.todos), 
-                            calendars:map( evolve({ events:map(convertEventDate) }), defaultTo([], data.calendars) )
-                        })
-                    )(json.database);
-                   
-                    closeClonedWindows();
-
-                    pouchWorker.postMessage({type:"set", load:database});
-
-                    this.setData(database); 
-                },
-                () => this.updateState({importMessage:"Incorrect format."})
-            )
-        )  
+    (pathToFile:string) => 
+    requestFromMain("readJsonFile", [pathToFile], (event,json) => json.database)
+    .then(
+        ifElse(
+            correctFormat,
+            compose(
+                (database:Databases) => this.updateState({importMessage:'Loading...'})
+                            .then(this.backup)
+                            .then((to:string) => this.updateState({importMessage:this.message(to)}))
+                            .then(() => this.setData(database)),
+                evolve({todos:remRev,projects:remRev,areas:remRev,calendars:remRev}),
+                data => ({
+                    projects:defaultTo([], data.projects), 
+                    areas:defaultTo([], data.areas), 
+                    todos:defaultTo([], data.todos), 
+                    calendars:map( evolve({ events:map(convertEventDate) }), defaultTo([], data.calendars) )
+                }),
+                sideEffect(closeClonedWindows)
+            ),
+            () => this.updateState({importMessage:"Incorrect format"})
+        )
     );
+
     
-     
 
     onSelectExportFolder : () => Promise<void> = () => 
     selectFolder()
     .then(
-        ifElse(
-            isNil,
-            () => new Promise( resolve => resolve() ), 
-            (folder:string) => this.updateState({exportPath:folder})
-                                .then(() => this.export(folder))
-                                .then(
-                                    () => this.updateState({
-                                        exportMessage:`Data was successfully exported to ${folder}.`
-                                    })
-                                )
-        )
-    );  
+        ifElse( isNil, () => new Promise( resolve => resolve() ), d => this.export(d)  )
+    ); 
 
 
 
     onSelectImportFile : () => Promise<void> = () => 
     selectJsonDatabase()
     .then(
-        ifElse(
-            isNil, 
-            () => new Promise( resolve => resolve() ),
-            (path:string) => this.updateState({importPath:path}).then(() => this.import(path))
-        )
+        ifElse( isNil, () => new Promise( resolve => resolve() ), d => this.import(d) )
     );
     
 
  
-    checkUpdates : () => Promise<void> =
-    () => this.updateState({updateStatus:"Loading..."})
-               .then(() => checkForUpdates())  
-               .then(
-                   (updateCheckResult:UpdateCheckResult) => requestFromMain(
-                        'getVersion', 
-                        [], 
-                        (event,version) => version
-                    ) 
-                    .then(
-                        (version) => {
-                            let {updateInfo} = updateCheckResult;
-                            let currentAppVersion = version; 
-                            let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
-            
-                            if(canUpdate){  
-                                this.props.dispatch({
-                                    type:"multiple",
-                                    load:[
-                                        {type:"openSettings", load:false},  
-                                        {type:"showUpdatesNotification", load:true}
-                                    ]
-                                }); 
-                            }  
+    checkUpdates : () => Promise<void> = () => 
+    this.updateState({updateStatus:"Loading..."})
+    .then(() => checkForUpdates())  
+    .then(
+        (updateCheckResult:UpdateCheckResult) => requestFromMain(
+            'getVersion', 
+            [], 
+            (event,version) => version
+        ) 
+        .then(
+            (version) => {
+                let {updateInfo} = updateCheckResult;
+                let currentAppVersion = version; 
+                let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
 
-                            return this.updateState({
-                                updateStatus:`Latest version is ${canUpdate ? updateInfo.version : 'already installed'}.`
-                            }); 
-                        }
-                    )     
-               );  
+                if(canUpdate){  
+                    this.props.dispatch({
+                        type:"multiple",
+                        load:[
+                            {type:"openSettings", load:false},  
+                            {type:"showUpdatesNotification", load:true}
+                        ]
+                    }); 
+                }  
+
+                return this.updateState({
+                    updateStatus:`Latest version is ${canUpdate ? updateInfo.version : 'already installed'}.`
+                }); 
+            }
+        )     
+    );  
 
 
 
@@ -231,8 +226,8 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         
 
 
-    shouldGroup : () => Promise<void> = 
-    () => updateConfig({
+    shouldGroup : () => Promise<void> = () => 
+    updateConfig({
         groupTodos:not(this.props.groupTodos)
     }).then(
         config => this.props.dispatch({type:"updateConfig",load:config}) 
@@ -240,8 +235,8 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
 
-    moveCompletedTo : (event:any) => Promise<void> = 
-    (event) => updateConfig({
+    moveCompletedTo : (event:any) => Promise<void> = (event) => 
+    updateConfig({
         moveCompletedItemsToLogbook:event.target.value
     }).then(
         (config) => {
@@ -276,9 +271,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
             let enableReminder = !config.disableReminder;
             let load = [{type:"updateConfig",load:config}];
 
-            if(enableReminder){
-               load.push({type:"moveReminderFromPast", load:null});
-            }
+            if(enableReminder){ load.push({type:"moveReminderFromPast", load:null}); }
 
             this.props.dispatch({type:"multiple",load}); 
 
@@ -289,7 +282,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
     render(){   
-        let {importPath, exportPath, updateStatus, exportMessage, importMessage} = this.state;
+        let {updateStatus, exportMessage, importMessage} = this.state;
         let {shouldSendStatistics,moveCompletedItemsToLogbook,groupTodos,disableReminder} = this.props;
         let buttonStyle = {      
             display:"flex",
