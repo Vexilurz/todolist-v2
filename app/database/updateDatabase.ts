@@ -1,4 +1,5 @@
-import { Project, Area, Todo, Calendar, Store, action } from '../types';
+import { pouchWorker } from './../app';
+import { Project, Area, Todo, Calendar, Store, action, withId, Changes, DatabaseChanges } from '../types';
 import { isDev } from '../utils/isDev';
 import { ipcRenderer } from 'electron';
 import { 
@@ -17,27 +18,6 @@ import {
     isArrayOfProjects, isArrayOfAreas, isDate, isNumber, isNotNil 
 } from '../utils/isSomething';
 import { moveReminderFromPast } from '../utils/getData';
-
-
-
-export interface DatabaseChanges<T>{
-    add:T[],
-    remove:T[],
-    update:T[]
-}
-
-
-
-export interface Changes{
-    todos:DatabaseChanges<Todo>,
-    projects:DatabaseChanges<Project>,
-    areas:DatabaseChanges<Area>,
-    calendars:DatabaseChanges<Calendar>
-}
-
-
-
-export interface withId{ _id:string }
 
 
 
@@ -113,10 +93,15 @@ let ignoredActions = ["setCalendars","setTodos","setProjects","setAreas"];
     
 
 export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : Store => { 
-       let nothing = compose( isEmpty, reject(a => contains(a.type)(ignoredActions)) )(load); 
-       if(nothing){ return newState }
+    let nothing = compose( isEmpty, reject(a => contains(a.type)(ignoredActions)) )(load); 
 
-       let changes = detectChanges(state)(newState);
+    if(nothing){ return newState }
+
+    let changes = detectChanges(state)(newState);
     
-       return newState; 
+    if(isNotEmpty(changes)){ 
+       pouchWorker.postMessage({type:"changes", load:changes}); 
+    } 
+
+    return newState; 
 };     

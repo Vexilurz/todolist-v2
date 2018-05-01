@@ -15,8 +15,8 @@ import { updateConfig } from '../utils/config';
 import { emailToUsername } from '../utils/emailToUsername';
 import { host } from '../utils/couchHost';
 import { removeCouchCookies } from '../utils/removeCouchCookies';
-
-
+import { workerSendAction } from '../utils/workerSendAction';
+import { pouchWorker } from '../app';
 
 interface ConnectedSectionProps{
     offset:number,
@@ -69,7 +69,7 @@ export class Connected extends Component<ConnectedProps,ConnectedState>{
         let load = [{ type:'sync', load:false }]; 
 
         workerSendAction(pouchWorker)({type:"stopSync", load:null})
-        .then(( => removeCouchCookies(host)))
+        .then(() => removeCouchCookies(host))
         .then(
             () => {
                 this.props.setAuthenticated(false);

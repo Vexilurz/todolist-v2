@@ -20,7 +20,7 @@ import { Connected } from '../Connected';
 import { LoginForm } from '../LoginForm';
 import { debounce } from 'lodash';
 import { checkAuthenticated } from '../../utils/checkAuthenticated';
-
+import { pouchWorker } from '../../app';
 
 
 interface SyncSettingsProps{
@@ -59,7 +59,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
 
             if(shouldSync && this.state.authenticated){
 
-               pouchWorker.postMessage({type:"startSync", load:emailToUsername(this.props.email)}))
+               pouchWorker.postMessage({ type:"startSync", load:emailToUsername(this.props.email) });
 
             }else if(!shouldSync && this.state.authenticated){
 
@@ -68,7 +68,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
 
             updateConfig({sync:shouldSync});
 
-            this.props.dispatch({type:'sync', load});
+            this.props.dispatch({type:'sync', load:shouldSync});
         }, 
         250
     );

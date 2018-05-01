@@ -31,6 +31,7 @@ const Promise = require("bluebird");
 const uniqid = require("uniqid");     
 const path = require("path");
 
+
 let remRev = compose(map(removeRev), defaultTo([])); 
 
 
@@ -48,8 +49,7 @@ interface AdvancedProps{
 
 interface AdvancedState{ 
     showPopup:boolean,
-    importMessage:string,
-    exportMessage:string,
+    message:string,
     updateStatus:string 
 }
 
@@ -62,8 +62,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
         this.state = {   
            showPopup:false,
-           importMessage:'',
-           exportMessage:'', 
+           message:'',
            updateStatus:``
         };       
     };
@@ -109,8 +108,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
    
 
-    export : (folder:string) => Promise<void> = 
-    (folder:string) => 
+    export : (folder:string) => Promise<void> = (folder:string) => 
     getData()
     .then(
         (database:Databases) => {
@@ -124,14 +122,14 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         }
     ) 
     .then( 
-        (folder:string) => this.updateState({exportMessage:`Data was successfully exported to ${folder}.`}) 
+        (folder:string) => this.updateState({message:`Data was successfully exported to ${folder}.`}) 
     );       
 
 
 
-    backup : () => Promise<string> = 
-    () => 
-    getData().then( 
+    backup : () => Promise<string> = () => 
+    getData()
+    .then( 
         (database:Databases) => requestFromMain(
             'saveBackup', 
             [ { database } ], 
@@ -140,18 +138,17 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     );  
 
 
-
-    import : (pathToFile:string) => Promise<any> = 
-    (pathToFile:string) => 
+    
+    import : (pathToFile:string) => Promise<any> = (pathToFile:string) => 
     requestFromMain("readJsonFile", [pathToFile], (event,json) => json.database)
     .then(
         ifElse(
             correctFormat,
             compose(
-                (database:Databases) => this.updateState({importMessage:'Loading...'})
-                            .then(this.backup)
-                            .then((to:string) => this.updateState({importMessage:this.message(to)}))
-                            .then(() => this.setData(database)),
+                (database:Databases) => this.updateState({message:'Loading...'})
+                                            .then(this.backup)
+                                            .then((to:string) => this.updateState({message:this.message(to)}))
+                                            .then(() => this.setData(database)),
                 evolve({todos:remRev,projects:remRev,areas:remRev,calendars:remRev}),
                 data => ({
                     projects:defaultTo([], data.projects), 
@@ -161,7 +158,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 }),
                 sideEffect(closeClonedWindows)
             ),
-            () => this.updateState({importMessage:"Incorrect format"})
+            () => this.updateState({message:"Incorrect format"})
         )
     );
 
@@ -282,7 +279,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
     render(){   
-        let {updateStatus, exportMessage, importMessage} = this.state;
+        let {updateStatus, message} = this.state;
         let {shouldSendStatistics,moveCompletedItemsToLogbook,groupTodos,disableReminder} = this.props;
         let buttonStyle = {      
             display:"flex",
@@ -347,31 +344,18 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 Database Backup  
             </div> 
             { 
-                isEmpty(importMessage) ? null :
+                isEmpty(message) ? null :
                 <div style={{
                     display: "flex",
                     fontSize: "14px",
                     alignItems: "center",
                     fontWeight: 500,
-                    color: importMessage==="Incorrect format." ? "red" : "green",
+                    color: message==="Incorrect format." ? "red" : "green",
                     userSelect: "none"
                 }}>       
-                    {importMessage}  
+                    {message}  
                 </div>  
-            } 
-            { 
-                isEmpty(exportMessage) ? null :
-                <div style={{
-                    display: "flex",
-                    fontSize: "14px",
-                    alignItems: "center",
-                    fontWeight: 500,
-                    color: "green",
-                    userSelect: "none"
-                }}>       
-                    {exportMessage}  
-                </div>  
-            }   
+            }  
                 <div style={{display:"flex"}}>
                     <div onClick={this.onSelectImportFile} style={buttonStyle}>   
                         <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  

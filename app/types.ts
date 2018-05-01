@@ -3,7 +3,7 @@ export interface Databases{
     projects:Project[],
     areas:Area[],
     calendars:Calendar[]
-} 
+}; 
 
 
 
@@ -16,14 +16,14 @@ export interface PouchChange<T>{
     last_seq:number,
     ok:boolean,
     start_time:string
-}
+};
 
 
 
 export interface PouchChanges{
     change:PouchChange<any>,
     direction:"push" | "pull"
-}
+};
 
 
 
@@ -35,11 +35,11 @@ export interface action{
      type:string,
      load:any,
      kind?:string
-}
+};
 
 
 
-export type Reducer = (state:Store, action:any) => Store
+export type Reducer = (state:Store, action:any) => Store;
 
 
 
@@ -56,7 +56,7 @@ export interface vcalProps{
     object:Object,
     type:string,
     value:string
-}
+};
 
 
 
@@ -68,7 +68,7 @@ export interface CalendarEvent{
     type?:string
     sequenceEnd?:boolean, 
     sequenceStart?:boolean
-}
+};
 
 
 
@@ -76,14 +76,14 @@ export interface CalendarProps{
     name:string,
     description:string,
     timezone:string
-} 
+}; 
 
 
 
 export interface AxiosError{
     name:string,
     message:string 
-}
+};
 
 
 
@@ -91,7 +91,7 @@ export type IcalData = {
     calendar : CalendarProps, 
     events : CalendarEvent[],
     error? : AxiosError
-} 
+}; 
 
 
 
@@ -189,13 +189,34 @@ export interface Store extends Config{
 
 
 
+export interface DatabaseChanges<T>{
+    add:T[],
+    remove:T[],
+    update:T[]
+};
+
+
+
+export interface Changes{
+    todos:DatabaseChanges<Todo>,
+    projects:DatabaseChanges<Project>,
+    areas:DatabaseChanges<Area>,
+    calendars:DatabaseChanges<Calendar>
+};
+
+
+
+export interface withId{ _id:string };
+
+
+
 export interface PouchError{
     error:string,//"unauthorized"
     reason:string,
     status:number,//401 unauthorized
     message:string,
     docId:string
-}
+};
 
 
 
@@ -204,7 +225,7 @@ export interface Cookie{
     name:string,
     session:boolean,
     expirationDate:number
-}
+};
 
 
   

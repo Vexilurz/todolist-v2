@@ -1,11 +1,11 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
-import { Todo, Project, Area, Category, ChecklistItem, Heading, LayoutItem, Item, Store } from './../types'; 
+import { Todo, Project, Area, Category, ChecklistItem, Heading, LayoutItem, Item, Store, Databases } from './../types'; 
 import { 
     contains, isNil, prepend, isEmpty, last, not, 
     when, flatten, map, compose, cond, remove, any,
     complement, equals, prop, groupBy, path, reject,
-    ifElse, identity, reduce, curry 
+    ifElse, identity, reduce, curry, where 
 } from 'ramda'; 
 import { isDev } from './isDev';
 import { ipcRenderer } from 'electron';
@@ -43,7 +43,13 @@ export let closeClonedWindows = () : void => ipcRenderer.send('closeClonedWindow
 
   
 
-export let correctFormat : (json:any) => boolean = compose(isNotNil, prop('database'));
+export let correctFormat : (database:Databases) => boolean = 
+    where({
+        todos:isArray,
+        projects:isArray,
+        areas:isArray,
+        calendars:isArray
+    });
 
 
 

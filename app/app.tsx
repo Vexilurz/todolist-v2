@@ -16,8 +16,8 @@ import { Provider, connect } from "react-redux";
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer } from './Components/MainContainer'; 
 import { filter } from 'lodash';
-import { Project, Todo, Calendar, Config, Store, Indicators, action, PouchChanges, PouchError } from './types';
-import { isNil, not, map, when, evolve, prop } from 'ramda';
+import { Project, Todo, Calendar, Config, Store, Indicators, action, PouchChanges, PouchError, PouchChange } from './types';
+import { isNil, not, map, when, evolve, prop, isEmpty } from 'ramda';
 import { Observable, Subscription } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { TrashPopup } from './Components/Categories/Trash'; 
@@ -110,8 +110,23 @@ export class App extends Component<AppProps,AppState>{
 
 
         let onChanges = (action:action) => { 
-            let changes : PouchChanges = action.load; 
             console.log(`%c pouch ${action.type}`, `color: "#000080"`, action.load);
+            let changes : PouchChanges = action.load; 
+            let change : PouchChange<any> = prop("change")(changes);
+
+            if(
+                changes.direction==="push" ||
+                isNil(change) || 
+                isEmpty(change.docs) ||
+                not(change.ok)
+            ){  return  }
+
+            let timestamp = new Date(change.start_time);
+            let docs = change.docs;
+            let type = docs[0].type; 
+            //type will be nil if deleted
+            
+
         };
 
 

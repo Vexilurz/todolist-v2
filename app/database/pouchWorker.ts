@@ -5,10 +5,14 @@ Date.prototype["addDays"] = function(days){
 }; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
-import { action, Query, Databases } from './../types';
+import { action, Query, Databases, Changes, DatabaseChanges } from './../types';
 import { host } from './../utils/couchHost';
 import { userNameToDatabaseName } from './../utils/userNameToDatabaseName';
-import { cond, compose, equals, prop, isEmpty, when, fromPairs, isNil } from 'ramda';
+import { 
+    cond, compose, equals, prop, isEmpty, when, fromPairs, 
+    isNil, forEachObjIndexed, toPairs, evolve, ifElse, last, 
+    map, mapObjIndexed, values, flatten 
+} from 'ramda';
 const sendMessage = postMessage as (action:action) => void;
 const Promise = require('bluebird');
 const PouchDB = require('pouchdb-browser').default;
@@ -23,6 +27,8 @@ let databases = [todos_db, projects_db, areas_db, calendars_db];
 let onError = (error) => sendMessage({type:'error', load:`pouch error ${JSON.stringify(error)}`});
 let list = [];
 
+
+
 let typeEquals = (type:string) => compose(equals(type), prop(`type`))
 
 
@@ -36,6 +42,10 @@ let init = () => {
     projects_db = new PouchDB('projects');
     areas_db = new PouchDB('areas'); 
     calendars_db = new PouchDB('calendars'); 
+
+    databases = [todos_db, projects_db, areas_db, calendars_db];
+
+    return databases;
 };
  
  
@@ -65,12 +75,6 @@ let loadDatabase = (action:action) : Promise<Databases> => {
 };   
 
 
-
-let applyChanges = (action:action) : Promise<void> => {
-    sendMessage({type:'log', load:`pouch log applyChanges ${JSON.stringify(action)}`});
-
-    return new Promise( resolve => resolve(null) );
-};
 
 
 
@@ -152,35 +156,35 @@ let stopSync = (action:action) : Promise<any[]> => {
 
 let setItemsToDatabase = (onError:Function, db:any) => 
     (items:any[]) : Promise<void> => db.bulkDocs(items).catch(onError); 
-  
+   
   
 
 let setDatabase = (action:action) : Promise<void> => 
-    stopSync({type:'setDatabase',load:null})  
-    .then(destroy)
-    .then(init)
-    .then(() => Promise.all( databases.map( db => setItemsToDatabase(onError, db)(action.load[db.name])) ));
+    stopSync({type:'stopSync',load:null})  
+    .then(() => destroy())
+    .then(() => init())
+    .then((databases) => Promise.all( databases.map( db => setItemsToDatabase(onError, db)(action.load[db.name])) ));
 
 
 
 let updateItemInDatabase = (onError:Function, db:any) => {
     let count = 0;  
 
-    let update = function(_id:string, changed:any) : Promise<any>{
-        return db.get(_id)
+    let update = function(changed:any) : Promise<any>{
+        return db.get(changed._id)
                 .then((doc) => {   
                     if(isNil(doc) || isEmpty(doc)){ 
-                    return new Promise(resolve => resolve(changed));
+                        return new Promise(resolve => resolve(changed));
                     }else{
-                    changed["_rev"] = doc["_rev"];
-                    return db.put({...doc,...changed});  
+                        changed["_rev"] = doc["_rev"];
+                        return db.put({...doc,...changed});  
                     }
                 })
                 .catch((err) => {
                     if(err.status===409 && count<5){
                         console.log(`409 retry`);
                         count++;
-                        return update(_id,changed);
+                        return update(changed);
                     }else {  
                         //onError(err);
                         return new Promise( resolve => resolve([]) )
@@ -192,11 +196,6 @@ let updateItemInDatabase = (onError:Function, db:any) => {
 };
 
 
-
-let removeObject = (onError:Function, db:any) => 
-    (_id:string) : Promise<void> => updateItemInDatabase(onError, db)(_id, {_deleted: true});
-  
- 
 
 let getItemFromDatabase = (onError:Function, db:any) =>
     (_id:string) : Promise<any> => db.get(_id).catch(onError);
@@ -260,6 +259,53 @@ let updateItemsInDatabase = (onError:Function, db:any) => {
     }  
 };
 
+
+let singleItem = (list:any[]) => list.length===1;
+
+
+let mapDatabaseItems = (withOne:Function, withMany:Function) => (dbname:string) => 
+    ifElse(
+        singleItem, 
+        (items:any[]) => {
+            let item = items[0];
+            let db = databases.find( d => d.name===dbname );
+            return withOne(onError, db)(item); 
+        },
+        (items:any[]) => {
+            let db = databases.find( d => d.name===dbname );
+            return withMany(onError, db)(items); 
+        }
+    ); 
+
+
+let addItems = mapDatabaseItems(setItemToDatabase,setItemsToDatabase);
+let updateItems = mapDatabaseItems(updateItemInDatabase,updateItemsInDatabase);  
+let removeItems = dbname => compose(updateItems(dbname), map(item => ({...item,_deleted: true})));
+
+
+let applyChanges = (action:action) : Promise<void> => {
+    sendMessage({type:'log', load:`pouch log applyChanges ${JSON.stringify(action)}`});
+
+    let changes : Changes = action.load;
+
+    return compose(
+        list => Promise.all(list),
+        flatten,
+        mapObjIndexed(
+            (change:DatabaseChanges<any>,dbname:string) => 
+                compose(
+                    values,
+                    evolve(
+                        {
+                            add:addItems(dbname),
+                            remove:removeItems(dbname),
+                            update:updateItems(dbname)
+                        }
+                    )
+                )(change)
+        )
+    )(changes);
+};
 
 
 onmessage = function(e){

@@ -18,8 +18,8 @@ import { validateEmail } from '../utils/validateEmail';
 import { validatePassword, getPasswordErrorMessage } from '../utils/validatePassword';
 import { LoginFormInput  } from './LoginFormInput';
 import { getToken } from '../utils/getToken';
-
-
+import { workerSendAction } from '../utils/workerSendAction';
+import { pouchWorker } from '../app';
 
 interface LoginFormProps{
     dispatch:(action:action) => void,
@@ -109,16 +109,16 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
     onAuth = response => {
         if(response.status!==200){ return }
 
-        let load = [
-            { type:'sync', load:true }, 
-            { type:'email', load:this.state.email }
-        ]; 
+        let load = [{ type:'sync', load:true },  { type:'email', load:this.state.email }]; 
 
-        this.props.setAuthenticated(true);
-
-        this.props.dispatch({type:'multiple', load});
-
-        updateConfig({email:this.state.email, sync:true});
+        workerSendAction(pouchWorker)({type:"startSync", load:emailToUsername(this.state.email)})
+        .then(
+            () => {
+                this.props.setAuthenticated(true);
+                updateConfig({email:this.state.email, sync:true}); //TODO move to reducer
+                this.props.dispatch({type:'multiple', load});
+            }
+        )
     };      
 
 
