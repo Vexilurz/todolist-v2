@@ -1,3 +1,4 @@
+import { singleItem } from './../utils/singleItem';
 Date.prototype["addDays"] = function(days){
     var dat = new Date(this.valueOf());
     dat.setDate(dat.getDate() + days);
@@ -5,13 +6,13 @@ Date.prototype["addDays"] = function(days){
 }; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
-import { action, Query, Databases, Changes, DatabaseChanges } from './../types';
+import { action, Query, Databases, Changes, DatabaseChanges, PouchChanges } from './../types';
 import { host } from './../utils/couchHost';
 import { userNameToDatabaseName } from './../utils/userNameToDatabaseName';
 import { 
     cond, compose, equals, prop, isEmpty, when, fromPairs, 
     isNil, forEachObjIndexed, toPairs, evolve, ifElse, last, 
-    map, mapObjIndexed, values, flatten 
+    map, mapObjIndexed, values, flatten, path 
 } from 'ramda';
 const sendMessage = postMessage as (action:action) => void;
 const Promise = require('bluebird');
@@ -69,7 +70,7 @@ let getDatabaseObjects = () : Promise<Databases> =>
 
 
 let loadDatabase = (action:action) : Promise<Databases> => {
-    sendMessage({type:'log', load:`pouch log loadDatabase ${JSON.stringify(action)}`});
+    sendMessage({type:'log', load:`pouch log loadDatabase`});
     
     return getDatabaseObjects();
 };   
@@ -92,19 +93,23 @@ let startDatabaseSync = (username:string) => (database:any) => {
 
     return sync;
 };
+ 
 
 
+let onChangeHandler = (dbName:string) => (info:PouchChanges) => {
+    sendMessage({type:'log', load:`pouchSync change ${dbName} - ${path(["change","docs","length"])(info)}`});
 
-let onChangeHandler = (dbName:string) => (info) => {
-    sendMessage({type:'log', load:`pouchSync change ${dbName} - ${JSON.stringify(info)}`});
-
-    sendMessage({type:'changes', load:info});
+    if(info && prop('direction')(info)==="pull"){
+       sendMessage({ type:'changes', load:{ dbname:dbName, changes:info } });
+    }
 };
+
 
 
 let onDeniedHandler = (dbName:string) =>  (err) => {
     sendMessage({type:'log', load:`pouchSync denied ${JSON.stringify(err)}`});
 };
+
 
 
 let onErrorHandler = (dbName:string) =>  (err) => {
@@ -259,8 +264,6 @@ let updateItemsInDatabase = (onError:Function, db:any) => {
     }  
 };
 
-
-let singleItem = (list:any[]) => list.length===1;
 
 
 let mapDatabaseItems = (withOne:Function, withMany:Function) => (dbname:string) => 

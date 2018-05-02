@@ -139,7 +139,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
       
     onError = (e) => globalErrorHandler(e); 
 
-
+    
 
     initData : () => Promise<void> = () => 
     getData()

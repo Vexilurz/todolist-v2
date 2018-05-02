@@ -249,10 +249,6 @@ export let subtractTime = (date:Date, time:number) : Date => {
 
 
 
-export let typeEquals = (type:string) => compose(equals(type), prop(`type`));
- 
-
-
 export let getTime = (date:Date) : {minutes : number,hours : number} => {
     let defaultValue = {minutes:0,hours:0};
 

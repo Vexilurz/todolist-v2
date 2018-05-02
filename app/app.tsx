@@ -7,7 +7,7 @@ import { Component } from "react";
 import { ipcRenderer } from 'electron';
 import { 
     attachDispatchToProps, convertTodoDates, convertProjectDates, convertAreaDates, 
-    initDate, measureTimePromise,  onErrorWindow 
+    initDate, measureTimePromise,  onErrorWindow, log, typeEquals 
 } from "./utils/utils";  
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight'; 
 import { isNotNil } from './utils/isSomething';
@@ -16,8 +16,15 @@ import { Provider, connect } from "react-redux";
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
 import { MainContainer } from './Components/MainContainer'; 
 import { filter } from 'lodash';
-import { Project, Todo, Calendar, Config, Store, Indicators, action, PouchChanges, PouchError, PouchChange } from './types';
-import { isNil, not, map, when, evolve, prop, isEmpty } from 'ramda';
+import { 
+    Project, Todo, Calendar, Config, Store, Indicators, action, 
+    PouchChanges, PouchError, PouchChange, DatabaseChanges 
+} from './types';
+import { 
+    isNil, not, map, when, evolve, prop, isEmpty, path, 
+    compose, ifElse, mapObjIndexed, reject, values,
+    cond, identity 
+} from 'ramda';
 import { Observable, Subscription } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { TrashPopup } from './Components/Categories/Trash'; 
@@ -35,12 +42,14 @@ import { getFilters } from './utils/getFilters';
 import { generateAmounts } from './utils/generateAmounts';
 import { defaultStoreItems } from './defaultStoreItems'; 
 import { applicationReducer } from './reducer';
-import { typeEquals } from './utils/time';
 import { workerSendAction } from './utils/workerSendAction';
+import { toStoreChanges } from './utils/toStoreChanges';
+import { changesToActions } from './utils/changesToActions';
+import { subscribeToChannel } from './utils/subscribeToChannel';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
-
+ 
 
 /*
     removeTodosFromCompletedProjects : (todos:Todo[], projects:Project[]) => Todo[] =
@@ -81,77 +90,85 @@ export class App extends Component<AppProps,AppState>{
 
         this.generateIndicatorsWorker = null;
 
-        this.state = { 
-            amounts:this.getAmounts(this.props), 
-            indicators:{} 
-        };
+        this.state = { amounts:this.getAmounts(this.props), indicators:{} };
     };
 
 
-    openLoginForm = () =>   this.props.dispatch({
+
+    openLoginForm = () => this.props.dispatch({
         type:"multiple", 
-        load:[{type:"openSettings", load:true}, {type:"selectedSettingsSection", load:'Sync'}]
+        load:[
+            {type:"openSettings", load:true}, 
+            {type:"selectedSettingsSection", load:'Sync'}
+        ]
     });
 
 
 
-    initObservables = () => {
+    onPouchChanges = (action:action) => { 
+        console.log(`%c pouch ${action.type}`, `color: "#000080"`, action.load);
 
-        let subscribeToChannel = (
-            channel:string, 
-            subscriber:(action:action) => void
-        ) : Subscription => 
-            Observable
-            .fromEvent(pouchWorker,'message',(event) => event)
-            .map(prop('data'))
-            .filter(typeEquals(channel)) 
-            .subscribe(subscriber);
+        let convertDates = 
+            map(
+                cond(
+                    [
+                        [typeEquals("todo"),convertTodoDates],
+                        [typeEquals("project"),convertProjectDates],
+                        [typeEquals("area"),convertAreaDates],
+                        [() => true, identity]
+                    ]
+                )
+            );
         
+        let changes : { dbname:string, changes:PouchChanges } = action.load; 
+        let dbname = prop("dbname")(changes);
+        let change : PouchChange<any> = path(["changes","change"])(changes);
 
-
-        let onChanges = (action:action) => { 
-            console.log(`%c pouch ${action.type}`, `color: "#000080"`, action.load);
-            let changes : PouchChanges = action.load; 
-            let change : PouchChange<any> = prop("change")(changes);
-
-            if(
-                changes.direction==="push" ||
-                isNil(change) || 
-                isEmpty(change.docs) ||
-                not(change.ok)
-            ){  return  }
-
-            let timestamp = new Date(change.start_time);
-            let docs = change.docs;
-            let type = docs[0].type; 
-            //type will be nil if deleted
-            
-
-        };
-
-
-
-        let onLog = (action:action) => { 
-            console.log(`%c ${action.load}`, 'color: #926239');
-        };
-        
-
+        if(isNil(change) || isEmpty(change.docs) || not(change.ok)){  return  }
  
-        let onError = (action:action) => { 
-            let error : PouchError = action.load;
-            console.log(`%c pouch - ${action.type} - ${action.load}`, 'color: #8b0017');
+        let timestamp = new Date(change.start_time);
+        let docs = convertDates(change.docs);
+ 
+        let lastSyncAction = { type:"lastSync", load:timestamp };
 
-            if(error.status===401 && error.error==="unauthorized"){
-               this.openLoginForm()
-            }
-        };
+        let actions : action[] = compose(
+            log('THREE actions'), 
+            map(action => ({...action,kind:"sync"})),
+            log('TWO actions'), 
+            changesToActions(dbname),
+            log('ONE actions'), 
+            toStoreChanges(this.props[dbname]) 
+        )(docs);
+       
+        this.props.dispatch({type:"multiple", load: [...actions,lastSyncAction] });
+    };
 
 
 
+    onPouchLog = (action:action) => { 
+        console.log(`%c ${action.load}`, 'color: #926239');
+    };
+
+
+
+    onPouchError = (action:action) => { 
+        let error : PouchError = action.load;
+        console.log(`%c pouch - ${action.type} - ${action.load}`, 'color: #8b0017');
+
+        globalErrorHandler(error);
+
+        if(error.status===401 && error.error==="unauthorized"){
+           this.openLoginForm();
+        }
+    };
+
+
+
+    initObservables = () => {
         this.subscriptions.push(
-            subscribeToChannel("changes", onChanges),
-            subscribeToChannel("log", onLog),
-            subscribeToChannel("error", onError)
+            subscribeToChannel("changes", this.onPouchChanges),
+            subscribeToChannel("log", this.onPouchLog),
+            subscribeToChannel("error", this.onPouchError)
         );
     };
 

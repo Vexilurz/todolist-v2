@@ -8,15 +8,21 @@ import { Store, Category, Todo, section, Calendar, Area, Project } from "./types
 export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => {
       return cond([
             [ 
+                typeEquals("lastSync"),
+                (action:{type:string,load:Date}) : Store => {
+                    return ({...state, lastSync:action.load}); 
+                }   
+            ], 
+            [ 
                 typeEquals("sync"),
                 (action:{type:string,load:boolean}) : Store => {
-                  return ({...state, sync:action.load}); 
+                    return ({...state, sync:action.load}); 
                 }  
             ], 
             [ 
                 typeEquals("email"),
                 (action:{type:string,load:string}) : Store => {
-                  return ({...state, email:action.load}); 
+                    return ({...state, email:action.load}); 
                 } 
             ],  
             [ 

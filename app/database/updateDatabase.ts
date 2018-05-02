@@ -89,13 +89,17 @@ let detectChanges : (state:Store) => (newState:Store) => Changes =
     );
 
 
-let ignoredActions = ["setCalendars","setTodos","setProjects","setAreas"];
+let ignoredActions = ["setCalendars","setTodos","setProjects","setAreas","updateCalendars"];
     
 
 export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : Store => { 
-    let nothing = compose( isEmpty, reject(a => contains(a.type)(ignoredActions)) )(load); 
 
-    if(nothing){ return newState }
+    let actions = reject(
+        a => contains(a.type)(ignoredActions) || a.kind==="sync",
+    )(load); 
+
+
+    if(isEmpty(actions)){ return newState }
 
     let changes = detectChanges(state)(newState);
     

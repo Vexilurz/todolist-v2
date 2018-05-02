@@ -1,0 +1,1 @@
+export let singleItem = (list:any[]) => list.length===1;

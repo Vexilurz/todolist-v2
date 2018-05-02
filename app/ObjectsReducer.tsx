@@ -47,6 +47,7 @@ let updateOtherInstances = (action:action) => (newState:Store) => {
 
 
 
+
 export let objectsReducer = (state:Store, action:action) : Store => { 
     return compose(
         updateOtherInstances(action),  
@@ -55,6 +56,84 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                 typeEquals('updateConfig'),  
                 (action:{type:string, load:any}) : Store => ({...state, ...action.load}) 
             ],
+            [ 
+                typeEquals("removeCalendar"),  
+                (action:{ type:string, load:string }) : Store => { 
+                    let { calendars } = state;
+                    let idx = calendars.findIndex(c => c._id===action.load);
+
+                    return {...state, calendars:remove(idx, 1, calendars)};
+                }
+            ],
+            [
+                typeEquals("removeTodo"),  
+                (action:{ type:string, load:string }) : Store => { 
+                    let { todos } = state;
+                    let idx = todos.findIndex(c => c._id===action.load);
+
+                    return {...state, todos:remove(idx, 1, todos)};
+                }
+            ],
+            [
+                typeEquals("removeProject"),  
+                (action:{ type:string, load:string }) : Store => { 
+                    let { projects } = state;
+                    let idx = projects.findIndex(c => c._id===action.load);
+
+                    return {...state, projects:remove(idx, 1, projects)};
+                }
+            ],
+            [
+                typeEquals("removeArea"),  
+                (action:{ type:string, load:string }) : Store => { 
+                    let { areas } = state;
+                    let idx = areas.findIndex(c => c._id===action.load);
+
+                    return {...state, areas:remove(idx, 1, areas)};
+                }
+            ],
+            [
+                typeEquals("removeTodos"),  
+                (action:{type:string, load:string[]}) : Store => ({
+                    ...state,
+                    todos:filter(state.todos, t => !contains(t._id)(action.load))
+                })
+            ],
+            [
+                typeEquals("removeProjects"),  
+                (action:{type:string, load:string[]}) : Store => ({
+                    ...state,
+                    projects:filter(state.projects, p => !contains(p._id)(action.load))
+                })
+            ],
+            [
+                typeEquals("removeAreas"),  
+                (action:{type:string, load:string[]}) : Store => ({
+                    ...state,
+                    areas:filter(state.areas, a => !contains(a._id)(action.load))
+                })
+            ],
+            [
+                typeEquals("removeCalendars"),  
+                (action:{type:string, load:any}) : Store => ({
+                    ...state,
+                    calendars:filter(state.calendars, c => !contains(c._id)(action.load))
+                })
+            ], 
+            [
+                typeEquals("removeDeleted"), 
+
+                (action:{type:string}) : Store => {
+                    return {
+                        ...state,
+                        todos:filter(state.todos, byNotDeleted),
+                        projects:filter(state.projects, byNotDeleted),
+                        areas:filter(state.areas, byNotDeleted)
+                    }; 
+                }
+            ], 
+
+
             [
                 typeEquals("toggleScheduled"),  
                 (action:{type:string, load:string}) : Store => {
@@ -131,18 +210,13 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     return ({...state,todos});
                 }
             ],
-
             [ 
                 typeEquals("moveReminderFromPast"),
                 (action:{type:string, load:any}) : Store => ({
                     ...state,
-                    todos:map(
-                        (todo:Todo) => moveReminderFromPast(todo),
-                        state.todos
-                    ) 
+                    todos:map((todo:Todo) => moveReminderFromPast(todo), state.todos) 
                 })
             ],
-
             [ 
                 typeEquals("updateTodos"),
                 (action:{type:string, load:Todo[]}) : Store => {
@@ -153,15 +227,19 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                        return { ...state };  
                     }
                      
-                    let todos : Todo[] = compose(
-                        concat(changedTodos),
-                        reject((todo:Todo) => contains(todo._id)(changedIds))
-                    )(state.todos);
+                    let todos : Todo[] = state.todos.map(
+                        ifElse(
+                            (todo) => contains(todo._id)(changedIds),
+                            (todo) => ({...todo,...changedTodos.find( t => t._id===todo._id )}),
+                            identity
+                        )
+                    )
+                    
+                    /*compose(concat(changedTodos), reject((todo:Todo) => contains(todo._id)(changedIds)))(state.todos);*/
 
                     return { ...state, todos };
                 } 
             ], 
-            
             [
                 typeEquals("updateTodoById"),
                 (action:{ type:string, load: {id:string,props:any} }) : Store => {
@@ -187,7 +265,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     }
                 }
             ], 
-            
             [ 
                 typeEquals('updateCalendars'),  
                 (action:{type:string,load:Calendar[]}):Store => {
@@ -202,7 +279,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     return {...state, calendars};
                 }
             ],  
-
             [  
                 typeEquals("addCalendar"),  
                 (action:{type:string,load:Calendar}):Store => { 
@@ -210,17 +286,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     return {...state, calendars:[action.load,...state.calendars]};
                 }
             ],
-
-            [ 
-                typeEquals("removeCalendar"),  
-                (action:{ type:string, load:string }) : Store => { 
-                    let { calendars } = state;
-                    let idx = calendars.findIndex(c => c._id===action.load);
-
-                    return {...state, calendars:remove(idx, 1, calendars)};
-                }
-            ],
-
             [ 
                 typeEquals("updateCalendar"),  
                 (action:{type:string,load:Calendar}):Store => { 
@@ -230,7 +295,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     return {...state, calendars:adjust(() => action.load, idx, calendars)};
                 }
             ],
-
             [  
                 typeEquals("removeGroup"), 
 
@@ -243,20 +307,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     }; 
                 }
             ],
-
-            [
-                typeEquals("removeDeleted"), 
-
-                (action:{type:string}) : Store => {
-                    return {
-                        ...state,
-                        todos:filter(state.todos, byNotDeleted),
-                        projects:filter(state.projects, byNotDeleted),
-                        areas:filter(state.areas, byNotDeleted)
-                    }; 
-                }
-            ], 
-
             [
                 typeEquals("addTodo"),
 
@@ -270,7 +320,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     return {...state, todos}; 
                 } 
             ], 
-
             [ 
                 typeEquals("updateTodo"),
 
@@ -298,12 +347,11 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                         //if todo exists - update
                         }else{ 
 
-                            return{ ...state, todos:adjust(() => todo, idx, state.todos) }; 
+                            return{ ...state, todos:adjust((prev) => ({...prev,...todo}), idx, state.todos) }; 
                         }
                     }
                 }
             ],
-
             [
                 typeEquals("addProject"),
 
@@ -312,7 +360,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     return { ...state, projects:[action.load,...state.projects] };   
                 }
             ], 
-
             [
                 typeEquals("addArea"),
 
@@ -321,7 +368,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     return { ...state, areas:[action.load,...state.areas] }; 
                 }    
             ],
-
             [
                 typeEquals("attachTodoToProject"),
 
@@ -336,7 +382,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     return {...state,projects:adjust(() => project, idx, state.projects)};
                 }
             ], 
-
             [
                 typeEquals("restoreProject"),
                 (action:{type:string, load:string}) : Store => {
@@ -364,18 +409,16 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     return {...state, projects, todos};
                 }
             ],
-
             [ 
                 typeEquals("updateProject"),
 
                 (action:{type:string, load:Project}) : Store => {
 
                     let idx = state.projects.findIndex((p:Project) => action.load._id===p._id);
-                    
-                    return {...state, projects:adjust(() => action.load, idx, state.projects)};
+
+                    return {...state, projects:adjust((p) => ({...p,...action.load}), idx, state.projects)};
                 }
             ],
-
             [ 
                 typeEquals("updateArea"),
 
@@ -383,10 +426,9 @@ export let objectsReducer = (state:Store, action:action) : Store => {
 
                     let idx = state.areas.findIndex((a:Area) => action.load._id===a._id);
                     
-                    return {...state, areas:adjust(() => action.load, idx, state.areas)};
+                    return {...state, areas:adjust((a) => ({...a, ...action.load}), idx, state.areas)};
                 } 
             ],
-
             [ 
                 typeEquals("updateProjects"),
     
@@ -394,15 +436,19 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     let changedProjects = [...action.load];
                     let changedIds:string[] = changedProjects.map((p:Project) => p._id);
 
-                    let projects : Project[] = compose( 
-                        concat(changedProjects),
-                        reject((project:Project) => contains(project._id)(changedIds))
-                    )(state.projects);
-                
+                    let projects : Project[] = state.projects.map(
+                        ifElse(
+                            (project) => contains(project._id)(changedIds),
+                            (project) => ({...project,...changedProjects.find( t => t._id===project._id )}),
+                            identity
+                        )
+                    );
+                    
+                    //compose(concat(changedProjects),reject((project:Project) => contains(project._id)(changedIds)))(state.projects);
+
                     return { ...state, projects };
                 }
             ],
-
             [ 
                 typeEquals("updateAreas"),
     
@@ -410,15 +456,19 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     let changedAreas = [...action.load];
                     let changedIds:string[] = changedAreas.map((a:Area) => a._id);
 
-                    let areas : Area[] = compose(
-                        concat(changedAreas),
-                        reject((area:Area) => contains(area._id)(changedIds))
-                    )(state.areas);
+                    let areas : Area[] = state.areas.map(
+                        ifElse(
+                            (area) => contains(area._id)(changedIds),
+                            (area) => ({...area,...changedAreas.find( t => t._id===area._id )}),
+                            identity
+                        )
+                    );
+                    
+                    //compose(concat(changedAreas), reject((area:Area) => contains(area._id)(changedIds)))(state.areas);
 
                     return { ...state, areas };
                 }
             ],
- 
             [ 
                 typeEquals("addTodos"),
     
@@ -430,7 +480,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     return { ...state, todos };
                 }
             ],
-
             [ 
                 typeEquals("addProjects"),
     
@@ -441,7 +490,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     return { ...state, projects };
                 }
             ],
-
             [ 
                 typeEquals("addAreas"),
     
@@ -452,7 +500,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     return { ...state, areas };
                 }
             ],
-
             [
                 () => true, () => undefined
             ]
