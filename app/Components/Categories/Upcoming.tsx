@@ -14,8 +14,8 @@ import {
     log, anyTrue, different, initDate, nDaysFromNow
 } from '../../utils/utils';  
 import {
-    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, contains,
-    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy,
+    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, contains, where,
+    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy, any,
     mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass
 } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
@@ -25,7 +25,7 @@ import { updateCalendars } from '../Calendar';
 import { isDate, isArray, isArrayOfTodos, isNotNil } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
-import { timeOfTheDay, keyFromDate, addMonths } from '../../utils/time';
+import { timeOfTheDay, keyFromDate, addMonths, inPast } from '../../utils/time';
 import { repeat } from '../RepeatPopup';
 import { isDev } from '../../utils/isDev';
 import { getSameDayEventElement } from '../../utils/getCalendarEventElement';
@@ -53,19 +53,15 @@ export let groupEventsByType = (events:CalendarEvent[]) : {
     sameDayEvents:CalendarEvent[], 
     fullDayEvents:CalendarEvent[]
 } => compose(
-    ({sameDayEvents,fullDayEvents}) => ({ 
+    ({sameDayEvents,fullDayEvents}) => ({
         sameDayEvents:defaultTo([],sameDayEvents), 
         fullDayEvents:defaultTo([],fullDayEvents) 
     }),
     groupBy( 
         cond(
             [
-                [
-                    typeEquals('sameDayEvents'), () => 'sameDayEvents'
-                ],
-                [
-                    typeEquals('fullDayEvents'), () => 'fullDayEvents'
-                ],
+                [typeEquals('sameDayEvents'), () => 'sameDayEvents'],
+                [typeEquals('fullDayEvents'), () => 'fullDayEvents'],
                 [
                     typeEquals('multipleDaysEvents'), 
                     cond([
@@ -164,7 +160,7 @@ interface objectsByDate{ [key:string]:Item[] }
 let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {  
     let {showCalendarEvents,todos,projects} = props;
     let filters = [haveDate, byTags(props.selectedTag), byNotCompleted, byNotDeleted];    
-
+    let todayKey = keyFromDate(new Date());
     let items = filter([...todos, ...projects], i => allPass(filters)(i));
     
     if(showCalendarEvents && isNotNil(props.calendars)){
@@ -198,7 +194,11 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
         let keys = [];
         
         if(isDate(item.attachedDate)){
-           keys.push(keyFromDate(item.attachedDate));
+            if(inPast(item.attachedDate)){
+               keys.push(todayKey)
+            }else{ 
+               keys.push(keyFromDate(item.attachedDate));
+            }
         }   
 
         if(isDate(item.deadline)){ 
@@ -266,7 +266,7 @@ interface UpcomingProps{
 
 
 interface UpcomingState{
-    objects : {date:Date, todos:Todo[], projects:Project[]}[],
+    objects : {date:Date, todos:Todo[], projects:Project[], events:CalendarEvent[]}[],
     enter : number
 }
 
@@ -486,7 +486,12 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                     /> 
                     </div>
                 }
-                <div>{this.state.objects.map(this.objectToComponent)}</div>
+                <div>{
+                    this.state
+                    .objects
+                    .filter(object => any(isNotEmpty)(object.todos,object.projects,object.events))
+                    .map(this.objectToComponent)
+                }</div>
                 <div className={`no-print`} style={{width:"100%", height:"1px"}}> 
                     <Waypoint  
                         onEnter={this.onEnter} 
