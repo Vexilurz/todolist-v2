@@ -132,11 +132,9 @@ export class App extends Component<AppProps,AppState>{
         let lastSyncAction = { type:"lastSync", load:timestamp };
 
         let actions : action[] = compose(
-            log('THREE actions'), 
+            log('actions'), 
             map(action => ({...action,kind:"sync"})),
-            log('TWO actions'), 
             changesToActions(dbname),
-            log('ONE actions'), 
             toStoreChanges(this.props[dbname]) 
         )(docs);
        
@@ -153,16 +151,18 @@ export class App extends Component<AppProps,AppState>{
 
     onPouchError = (action:action) => { 
         let error : PouchError = action.load;
-        console.log(`%c pouch - ${action.type} - ${action.load}`, 'color: #8b0017');
+        console.log(`%c pouch - ${action.type} - ${JSON.stringify(action.load)}`, 'color: #8b0017');
 
         globalErrorHandler(error);
 
         if(error.status===401 && error.error==="unauthorized"){
-           this.openLoginForm();
+           this.openLoginForm(); 
+        }else if(error.status===403 && error.error==="forbidden"){
+            //no permissions to access database
         }
     };
 
-
+    
 
     initObservables = () => {
         this.subscriptions.push(

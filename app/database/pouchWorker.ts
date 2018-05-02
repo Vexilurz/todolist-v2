@@ -89,8 +89,9 @@ let startDatabaseSync = (username:string) => (database:any) => {
 
     sync.on('change',onChangeHandler(name));
     sync.on('denied',onDeniedHandler(name));
-    sync.on('error',onErrorHandler(name));  
-
+    sync.on('error',onErrorHandler(name));
+    sync.on('completed',onErrorHandler(name));  
+      
     return sync;
 };
  
@@ -113,7 +114,7 @@ let onDeniedHandler = (dbName:string) =>  (err) => {
 
 
 let onErrorHandler = (dbName:string) =>  (err) => {
-    sendMessage({type:'log', load:`pouchSync error ${JSON.stringify(err)}`});
+    sendMessage({type:'error', load:err});
 };
  
 
@@ -140,12 +141,14 @@ let stopSync = (action:action) : Promise<any[]> => {
         list.map(
             s => new Promise( 
                 resolve => { 
+                    if(s.canceled){ resolve(true) }
+
                     Observable
-                    .fromEvent(s,'complete',(event) => event)
+                    .fromEvent(s, 'complete', (event) => event)
                     .first()
                     .subscribe(complete => resolve(complete));
 
-                    s.cancel() 
+                    s.cancel(); 
                 } 
             )
         )
@@ -287,7 +290,7 @@ let removeItems = dbname => compose(updateItems(dbname), map(item => ({...item,_
 
 
 let applyChanges = (action:action) : Promise<void> => {
-    sendMessage({type:'log', load:`pouch log applyChanges ${JSON.stringify(action)}`});
+    sendMessage({type:'log', load:`pouch log applyChanges ${action.type}`});
 
     let changes : Changes = action.load;
 

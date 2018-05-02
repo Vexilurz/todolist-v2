@@ -87,9 +87,6 @@ export let refreshReminders = (prevState:Store) => (newState:Store) : Store => {
 
         (scheduledReminders:number[]) => {
             let timers = filter(scheduledReminders, isNotNil);
-            if(isDev()){ 
-               //console.log(`scheduled reminders : ${timers.length}`) 
-            }
             return timers;
         },     
 
