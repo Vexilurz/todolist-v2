@@ -120,13 +120,15 @@ let onErrorHandler = (dbName:string) =>  (err) => {
 
 
 let startSync = (action:action) : Promise<void> => {
-    if(!isEmpty(list)){ return new Promise( resolve => resolve(null) ) }
+    list = list.filter(s => !s.canceled);
+
+    if(!isEmpty(list)){ return new Promise(resolve => resolve(null)); }
 
     sendMessage({type:'log', load:`pouch log startSync ${JSON.stringify(action)}`});
 
     let username = action.load;
     let start = startDatabaseSync(username);
-    list.push(...databases.map( db => start(db) ));
+    list = databases.map( db => start(db) );
  
     return new Promise( resolve => resolve(null) );
 };
