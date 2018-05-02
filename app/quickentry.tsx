@@ -57,7 +57,6 @@ import { Subscription } from 'rxjs/Rx';
 import Chip from 'material-ui/Chip';
 import DayPicker from 'react-day-picker'; 
 import RaisedButton from 'material-ui/RaisedButton';
-import { getConfig } from './utils/config';
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight';
 import { generateId } from './utils/generateId';
 import { generateEmptyTodo } from './utils/generateEmptyTodo';
@@ -99,6 +98,7 @@ import { groupProjectsByArea } from './Components/Area/groupProjectsByArea';
 import { generateLayout } from './Components/Area/generateLayout';
 import { App } from './app';
 import { getFilters } from './utils/getFilters';
+import { requestFromMain } from './utils/requestFromMain';
 let moment = require("moment");
 injectTapEventPlugin();  
 
@@ -156,8 +156,8 @@ let initQuickEntry = () => {
     app.id='application';      
     document.body.appendChild(app);
     
-    getConfig()
-    .then( 
+    requestFromMain("getConfig", [], (event, config) => config)
+    .then(  
         compose(
             el => ReactDOM.render(el,app), 
             store => <Provider store={store}>{
@@ -271,7 +271,7 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
 
 
 
-    stateFromConfig = (config:Config) : QuickEntryState => { 
+    stateFromConfig = (config:{ quickEntrySavesTo:string, defaultTags:string[] }) : QuickEntryState => { 
         let { quickEntrySavesTo, defaultTags } = config;
         let category = isNil(quickEntrySavesTo) ? "inbox" : quickEntrySavesTo.toLowerCase();
 
@@ -335,7 +335,10 @@ class QuickEntry extends Component<QuickEntryProps,QuickEntryState>{
             Observable
                 .fromEvent(ipcRenderer,"config", (event,config) => config) 
                 .subscribe(
-                    (config:Config) => this.props.dispatch({type:"config",load:config})
+                    (config:{ 
+                        quickEntrySavesTo:string, 
+                        defaultTags:string[] 
+                    }) => this.props.dispatch({ type:"config", load:config })
                 ),
             
             Observable

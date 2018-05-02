@@ -162,6 +162,8 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         () => <QuickEntrySettings 
                             enableShortcutForQuickEntry={this.props.enableShortcutForQuickEntry} 
                             quickEntrySavesTo={this.props.quickEntrySavesTo} 
+                            disableReminder={this.props.disableReminder}
+                            defaultTags={this.props.defaultTags}
                             dispatch={this.props.dispatch} 
                         />
                     ], 
@@ -183,11 +185,12 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             groupTodos={this.props.groupTodos}
                             disableReminder={this.props.disableReminder}
+                            enableShortcutForQuickEntry={this.props.enableShortcutForQuickEntry}
                             todos={this.props.todos}
                             dispatch={this.props.dispatch}
                         />
                     ],
-                    [
+                    [ 
                         (selectedSettingsSection:string) : boolean => selectedSettingsSection==="Tags",  
                         () => <TagsSettings 
                             todos={this.props.todos}

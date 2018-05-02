@@ -5,7 +5,6 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { Calendar, Area, Project, Todo, section } from '../../types';
-import { updateConfig } from '../../utils/config';
 import { not, ifElse, when } from 'ramda';
 import { Checkbox } from '../TodoInput/TodoInput';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
@@ -85,9 +84,7 @@ export class CalendarEventsSettings extends Component<CalendarEventsSettingsProp
         .then(
             when(
                 () => not(this.props.hideHint), 
-                () => updateConfig({hideHint:true}).then( 
-                    config => this.props.dispatch({type:"updateConfig",load:config}) 
-                ) 
+                () => this.props.dispatch({type:"hideHint",load:true}) 
             )
         )
         .then(

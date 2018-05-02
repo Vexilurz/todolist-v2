@@ -6,14 +6,15 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react"; 
 import { Calendar, Area, Project, Todo, section } from '../../types';
 import { ipcRenderer } from 'electron';
-import { updateConfig } from '../../utils/config';
 import { not } from 'ramda';
 import { Checkbox } from '../TodoInput/TodoInput';
 
 
 interface QuickEntrySettingsProps{
     enableShortcutForQuickEntry:boolean, 
+    disableReminder:boolean,
     quickEntrySavesTo:string,
+    defaultTags:string[], 
     dispatch:Function
 } 
 
@@ -29,25 +30,27 @@ export class QuickEntrySettings extends Component<QuickEntrySettingsProps,QuickE
 
 
 
-    enableQuickEntry = () => 
-    updateConfig({enableShortcutForQuickEntry:not(this.props.enableShortcutForQuickEntry)})
-    .then((config) => {
-        ipcRenderer.send('autolaunch', config.enableShortcutForQuickEntry || not(config.disableReminder));
-        ipcRenderer.send('toggleShortcut',config.enableShortcutForQuickEntry,'Ctrl+Alt+T');
-        this.props.dispatch({type:"updateConfig",load:config});     
-    });
-    
+    enableQuickEntry = () => {
+        let next = !this.props.enableShortcutForQuickEntry;
+        let enableReminder = !this.props.disableReminder;
+        let shouldAutolaunch = next || enableReminder;
+
+        ipcRenderer.send('autolaunch', shouldAutolaunch);
+        ipcRenderer.send('toggleShortcut', next,'Ctrl+Alt+T');
+
+        this.props.dispatch({type:"enableShortcutForQuickEntry", load:next});
+    };
 
 
-    quickEntrySavesTo = (event) => 
-    updateConfig({quickEntrySavesTo:event.target.value})
-    .then(
-        (config) => {
-            this.props.dispatch({type:"updateConfig",load:config}); 
-            ipcRenderer.send('updateQuickEntryConfig',config)
-        }
-    ); 
-    
+
+    quickEntrySavesTo = (event) => {
+        ipcRenderer.send(
+            'updateQuickEntryConfig', 
+            { quickEntrySavesTo:event.target.value, defaultTags:this.props.defaultTags }
+        );
+        this.props.dispatch({type:"quickEntrySavesTo", load:event.target.value}); 
+    };
+
 
     
     render(){

@@ -11,7 +11,6 @@ import Toggle from 'material-ui/Toggle';
 import { timeOfTheDay } from '../utils/time';
 import { isToday } from '../utils/isSomething';
 import axios from 'axios';
-import { updateConfig } from '../utils/config';
 import { emailToUsername } from '../utils/emailToUsername';
 import { host } from '../utils/couchHost';
 

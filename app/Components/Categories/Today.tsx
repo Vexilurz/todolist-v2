@@ -30,13 +30,11 @@ import { generateId } from '../../utils/generateId';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { chooseIcon } from '../../utils/chooseIcon';
 import { SortableContainer } from '../CustomSortableContainer';
-import { updateConfig } from '../../utils/config';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
 import { timeOfTheDay, inTimeRange, keyFromDate } from '../../utils/time';
 import { groupEventsByType, byTime } from './Upcoming';
 import { getSameDayEventElement } from '../../utils/getCalendarEventElement';
-import diff from 'deep-diff';
 let Perf = require('react-addons-perf');
 let p = require('react-dom/lib/ReactPerf'); 
 
@@ -562,19 +560,17 @@ export class Hint extends Component<HintProps,HintState>{
     onError = (error) => globalErrorHandler(error);
 
      
-    onLoad = (e) => updateConfig({hideHint:true}).then(
-        (config) => this.props.dispatch({
-            type:"multiple",
-            load:[
-                {type:"updateConfig",load:config},
-                {type:"selectedSettingsSection",load:'CalendarEvents'},
-                {type:"openSettings",load:true}
-            ]
-        })  
-    );
+    onLoad = (e) => this.props.dispatch({
+        type:"multiple",
+        load:[
+            {type:"hideHint", load:true}, 
+            {type:"selectedSettingsSection", load:'CalendarEvents'},
+            {type:"openSettings", load:true}
+        ]
+    })  
     
     
-    onClose = (e) => updateConfig({hideHint:true}).then( config => this.props.dispatch({type:"updateConfig",load:config}) )
+    onClose = (e) => this.props.dispatch({type:"hideHint", load:true}); 
     
 
     render(){

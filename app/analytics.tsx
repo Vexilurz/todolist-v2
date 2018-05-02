@@ -1,15 +1,15 @@
 import { collectSystemInfo } from './utils/collectSystemInfo';
-import { getConfig } from './utils/config';
 import Analytics from 'electron-ga';
 import { isNil } from 'ramda';
 import { ipcRenderer } from 'electron';
 import { getMachineIdSync } from './utils/userid';
+import { requestFromMain } from './utils/requestFromMain';
 
 let analytics = null;
 
 export const googleAnalytics = ({ 
     send:(type:string,load:any) => 
-        getConfig()
+        requestFromMain("getConfig", [], (event, config) => config)
         .then(
             (config) => {
                 if(config.shouldSendStatistics){ 

@@ -32,7 +32,6 @@ import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { UpdateNotification } from './Components/UpdateNotification';
 import { googleAnalytics } from './analytics';
 import { globalErrorHandler } from './utils/globalErrorHandler';
-import { getConfig } from './utils/config';
 import { collectSystemInfo } from './utils/collectSystemInfo';
 import { convertEventDate } from './Components/Calendar';
 import { SettingsPopup } from './Components/settings/SettingsPopup';
@@ -46,6 +45,7 @@ import { workerSendAction } from './utils/workerSendAction';
 import { toStoreChanges } from './utils/toStoreChanges';
 import { changesToActions } from './utils/changesToActions';
 import { subscribeToChannel } from './utils/subscribeToChannel';
+import { requestFromMain } from './utils/requestFromMain';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
@@ -495,6 +495,10 @@ let renderApp = (config:Config, clonedStore:Store, id:number) : void => {
 //render application
 ipcRenderer.once(
     'loaded', 
-    (event,clonedStore:Store,id:number) => getConfig().then(config => renderApp(config,clonedStore,id))
+    (event,clonedStore:Store,id:number) => 
+        requestFromMain("getConfig", [], (event, config) => config)
+        .then(
+            config => renderApp(config,clonedStore,id)
+        )
 );    
 

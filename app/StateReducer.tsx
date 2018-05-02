@@ -2,11 +2,64 @@ import { adjust, cond, all, equals, isEmpty, contains, not, remove, uniq, isNil,
 import { isTodo, isBoolean, isDate, isString, isNumber, isCategory, isProject, isArea } from "./utils/isSomething";
 import { typeEquals } from "./utils/utils";
 import { Store, Category, Todo, section, Calendar, Area, Project } from "./types";
- 
- 
- 
+
+
 export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => {
-      return cond([
+    return cond([
+            [ 
+                typeEquals("defaultTags"),
+                (action:{type:string,load:string[]}) : Store => {
+                    return ({...state, defaultTags:action.load}); 
+                }   
+            ],   
+            [ 
+                typeEquals("quickEntrySavesTo"),
+                (action:{type:string,load:string}) : Store => {
+                    return ({...state, quickEntrySavesTo:action.load}); 
+                }   
+            ],  
+            [ 
+                typeEquals("enableShortcutForQuickEntry"),
+                (action:{type:string,load:boolean}) : Store => {
+                    return ({...state, enableShortcutForQuickEntry:action.load}); 
+                }   
+            ],  
+            [ 
+                typeEquals("disableReminder"),
+                (action:{type:string,load:boolean}) : Store => {
+                    return ({...state, disableReminder:action.load}); 
+                }   
+            ],  
+            [ 
+                typeEquals("moveCompletedItemsToLogbook"),
+                (action:{type:string,load:string}) : Store => {
+                    return ({...state, moveCompletedItemsToLogbook:action.load}); 
+                }   
+            ], 
+            [ 
+                typeEquals("groupTodos"),
+                (action:{type:string,load:boolean}) : Store => {
+                    return ({...state, groupTodos:action.load}); 
+                }   
+            ],  
+            [ 
+                typeEquals("nextBackupCleanup"),
+                (action:{type:string,load:Date}) : Store => {
+                    return ({...state, nextBackupCleanup:action.load}); 
+                }   
+            ],    
+            [ 
+                typeEquals("nextUpdateCheck"),
+                (action:{type:string,load:Date}) : Store => {
+                    return ({...state, nextUpdateCheck:action.load}); 
+                }   
+            ],  
+            [ 
+                typeEquals("hideHint"),
+                (action:{type:string,load:boolean}) : Store => {
+                    return ({...state, hideHint:action.load}); 
+                }   
+            ],  
             [ 
                 typeEquals("lastSync"),
                 (action:{type:string,load:Date}) : Store => {

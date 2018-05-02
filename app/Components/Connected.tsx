@@ -11,7 +11,6 @@ import Toggle from 'material-ui/Toggle';
 import { timeOfTheDay } from '../utils/time';
 import { isToday, isNotDate } from '../utils/isSomething';
 import axios from 'axios';
-import { updateConfig } from '../utils/config';
 import { emailToUsername } from '../utils/emailToUsername';
 import { host } from '../utils/couchHost';
 import { removeCouchCookies } from '../utils/removeCouchCookies';
@@ -73,10 +72,7 @@ export class Connected extends Component<ConnectedProps,ConnectedState>{
         .then(
             () => {
                 this.props.setAuthenticated(false);
-                
-                this.props.dispatch({type:'multiple',load});
-
-                updateConfig({sync:false});
+                this.props.dispatch({type:'sync', load:false});
             }
         ) 
     };

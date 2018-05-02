@@ -5,7 +5,6 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react"; 
 import Clear from 'material-ui/svg-icons/content/clear';
 import { Calendar, Area, Project, Todo, section } from '../../types';
-import { updateConfig } from '../../utils/config';
 import { 
     remove, isNil, not, isEmpty, compose, toPairs, map, findIndex, equals, prop,
     contains, last, cond, defaultTo, flatten, uniq, concat, all, identity, when
@@ -45,16 +44,14 @@ export class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>
 
     onRemoveTag = (tag:string) => () => {
         compose(
-            when(
-                () => contains(tag)(this.props.defaultTags),
-                () => compose(
-                    (p) => p.then( config => this.props.dispatch({type:"updateConfig",load:config}) ),
-                    updateConfig,
-                    (idx:number) => ({defaultTags:remove(idx,1,this.props.defaultTags)}),
-                    findIndex((item) => item===tag)
-                )(this.props.defaultTags)
-            ),
-            load => this.props.dispatch({type:"updateTodos",load}), 
+            load => {
+                let idx = this.props.defaultTags.findIndex(item => item===tag);
+                let actions = [{type:"updateTodos", load}];
+                if(idx!==-1){
+                   actions.push({type:"defaultTags", load:remove(idx, 1, this.props.defaultTags)}); 
+                }
+                this.props.dispatch({type:"multiple", load:actions});
+            }, 
             map( 
                 (todo:Todo) : Todo => compose(
                     (idx) => ({...todo,attachedTags:remove(idx,1,todo.attachedTags)}),
@@ -68,26 +65,21 @@ export class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>
 
 
 
-    onReset = () => updateConfig({defaultTags}).then(
-        (config) => {
-            let updatedTodos = this.props.todos.map(
-                (todo:Todo) => ({ 
-                    ...todo, 
-                    attachedTags:todo.attachedTags.filter((tag) => contains(tag)(defaultTags)) 
-                })
-            );
-            
-            this.props.dispatch({
-                type:"multiple",
-                load:[
-                    {type:"updateConfig",load:config}, 
-                    {type:"updateTodos", load:updatedTodos}
-                ]
-            });  
-        }
-    ); 
-    
+    onReset = () => {
+        let load = this.props.todos.map(
+            (todo:Todo) => ({ 
+                ...todo, 
+                attachedTags:todo.attachedTags.filter((tag) => contains(tag)(defaultTags)) 
+            })
+        );
 
+        this.props.dispatch({
+            type:"multiple",
+            load:[{ type:"updateTodos", load }, { type:"defaultTags", load:defaultTags }]
+        }); 
+    };
+
+ 
 
     render(){
         let tags = this.getTags(this.props.defaultTags,this.props.todos); 

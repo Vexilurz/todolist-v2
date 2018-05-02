@@ -31,7 +31,6 @@ import { Search } from './Search';
 import { filter } from 'lodash';
 import { updateCalendars, convertEventDate } from './Calendar';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
-import { updateConfig } from '../utils/config';
 import { isTodo, isString, isNotNil } from '../utils/isSomething';
 import { assert } from '../utils/assert';
 import { isNewVersion } from '../utils/isNewVersion';
@@ -230,10 +229,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         let hideImportCalendarsHint : (actions:action[]) => action[] =
             when( 
                 () => isNotEmpty(calendars) && showHint, //if calendars not empty - hide hint
-                compose( 
-                    sideEffect(() => updateConfig({hideHint:true})), 
-                    append({type:"updateConfig", load:{hideHint:true}}) 
-                )
+                append({type:"hideHint", load:true}) 
             );
        
 
@@ -250,10 +246,8 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
     
 
     initUpdateTimeout = () : void => {
-        let {dispatch, nextUpdateCheck} = this.props;
-
         if(isDev()){
-           console.log(`nextUpdateCheck - ${nextUpdateCheck}`);
+           console.log(`nextUpdateCheck - ${this.props.nextUpdateCheck}`);
         }
 
         let check = () =>
@@ -269,34 +263,28 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 ([updateCheckResult, currentAppVersion]) => {
                     let {updateInfo} = updateCheckResult;
                     let canUpdate = isNewVersion(currentAppVersion,updateInfo.version);
-                    let next = isDev() ? fiveMinutesLater(new Date()) : threeDaysLater(new Date());
+                    let next : any = isDev() ? fiveMinutesLater(new Date()) : threeDaysLater(new Date());
+                    let actions = [{type:"nextUpdateCheck",load:next}];
 
-                    return updateConfig({nextUpdateCheck:next}).then( config => [config,canUpdate] );
-                }
-            )
-            .then(
-                ([config,canUpdate]) => {
-                    let actions = [{type:"updateConfig",load:config}];
-                    
                     if(canUpdate){ 
                        actions.push({type:"showUpdatesNotification", load:true});
                     } 
 
-                    dispatch({type:"multiple",load:actions}); 
-
+                    this.props.dispatch({type:"multiple",load:actions}); 
                     this.initUpdateTimeout();
                 }
-            );   
+            )
           
  
-        if(
-            isNil(nextUpdateCheck) || 
-            inPast(new Date(nextUpdateCheck))
+        if( 
+            isNil(this.props.nextUpdateCheck) || 
+            inPast(new Date(this.props.nextUpdateCheck)) 
         ){ 
             check(); 
         }else{
-            this.timeouts.push(
-                 setCallTimeout( () => check(), new Date(nextUpdateCheck) )
+            this.timeouts.push( 
+
+                setCallTimeout( () => check(), new Date(this.props.nextUpdateCheck) ) 
             );
         }
     };
@@ -304,38 +292,27 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
 
     initBackupCleanupTimeout = () : void => {
-        let {dispatch, nextBackupCleanup} = this.props;
-
         if(isDev()){
-           console.log(` nextBackupCleanup - ${nextBackupCleanup} `);
+           console.log(` nextBackupCleanup - ${this.props.nextBackupCleanup} `);
         }
  
         let cleanup = () => 
             requestFromMain('backupCleanup', [], (event) => event)
             .then(() => {
                 let next = isDev() ? fiveMinutesLater(new Date()) : fourteenDaysLater(new Date());
-
-                return updateConfig({nextBackupCleanup:next});
-            })
-            .then(
-                config => {
-                    dispatch({type:"updateConfig",load:config});
-                    this.initBackupCleanupTimeout(); 
-                } 
-            );
+                this.props.dispatch({type:"nextBackupCleanup", load:next});
+                this.initBackupCleanupTimeout(); 
+            });
 
 
         if(
-            isNil(nextBackupCleanup)  || 
-            inPast(new Date(nextBackupCleanup))
+            isNil(this.props.nextBackupCleanup)  || 
+            inPast(new Date(this.props.nextBackupCleanup))
         ){ 
             cleanup(); 
         }else{
             this.timeouts.push(
-                setCallTimeout(
-                    () => cleanup(), 
-                    new Date(nextBackupCleanup)
-                )
+                setCallTimeout( () => cleanup(), new Date(this.props.nextBackupCleanup) )
             );
         }
     };

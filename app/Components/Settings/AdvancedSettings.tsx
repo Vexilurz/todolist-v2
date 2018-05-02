@@ -16,7 +16,6 @@ import {
 import { isNewVersion } from '../../utils/isNewVersion';
 import { Area, Project, Todo, Calendar, Databases } from '../../types'; 
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater'; 
-import { updateConfig } from '../../utils/config';
 import { isArrayOfTodos, isNotNil } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
@@ -31,12 +30,13 @@ const Promise = require("bluebird");
 const uniqid = require("uniqid");     
 const path = require("path");
 
-
+let completedSet : (todo:Todo) => boolean = compose(isNotNil,prop('completedSet'));
 let remRev = compose(map(removeRev), defaultTo([])); 
 
 
 interface AdvancedProps{
     limit:Date,
+    enableShortcutForQuickEntry:boolean,
     shouldSendStatistics:boolean,
     moveCompletedItemsToLogbook:any,
     groupTodos:boolean,
@@ -214,69 +214,56 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
 
-    shouldSendStatistics : () => Promise<void> = () => 
-    updateConfig({
-        shouldSendStatistics:not(this.props.shouldSendStatistics)
-    }).then(
-        config => this.props.dispatch({type:"updateConfig",load:config}) 
-    );
-        
-
-
-    shouldGroup : () => Promise<void> = () => 
-    updateConfig({
-        groupTodos:not(this.props.groupTodos)
-    }).then(
-        config => this.props.dispatch({type:"updateConfig",load:config}) 
-    );
+    shouldSendStatistics = () => this.props.dispatch({
+        type:"shouldSendStatistics",
+        load:!this.props.shouldSendStatistics
+    }); 
 
 
 
-    moveCompletedTo : (event:any) => Promise<void> = (event) => 
-    updateConfig({
-        moveCompletedItemsToLogbook:event.target.value
-    }).then(
-        (config) => {
-            let completedSet : (todo:Todo) => boolean = compose(isNotNil,prop('completedSet'));
-            let load = map(
-                when(
-                    completedSet,
-                    (todo:Todo) => ({
-                        ...todo, 
-                        completedWhen:getCompletedWhen(config.moveCompletedItemsToLogbook,todo.completedSet)
-                    })
-                ),  
-                this.props.todos
-            );
+    shouldGroup = () =>  this.props.dispatch({
+        type:"groupTodos",
+        load:!this.props.groupTodos
+    }); 
 
-            this.props.dispatch({
-                type:"multiple",
-                load:[
-                    {type:"updateConfig",load:config},
-                    {type:"updateTodos",load}
-                ]
-            }); 
-        }
-    ); 
-    
+
+
+    moveCompletedTo = (event) => this.props.dispatch({
+        type:"multiple",
+        load:[
+            {type:"moveCompletedItemsToLogbook",load:event.target.value},
+            {
+                type:"updateTodos",
+                load:map(
+                    when(
+                        completedSet,
+                        (todo:Todo) => ({
+                            ...todo, 
+                            completedWhen:getCompletedWhen(event.target.value,todo.completedSet)
+                        })
+                    ),  
+                    this.props.todos
+                )
+            }
+        ]
+    }); 
+
  
 
-    disableReminder : (event:any) => void = (event) => 
-    updateConfig({disableReminder:not(this.props.disableReminder)})
-    .then(
-        (config) => {
-            let enableReminder = !config.disableReminder;
-            let load = [{type:"updateConfig",load:config}];
+    disableReminder = (event) => {     
+        let next = !this.props.disableReminder;
+        let load = [{type:"disableReminder", load:next}]; 
+        let enableReminder = !next;
+        let shouldAutolaunch = this.props.enableShortcutForQuickEntry || enableReminder;  
 
-            if(enableReminder){ load.push({type:"moveReminderFromPast", load:null}); }
+        if(enableReminder){ load.push({type:"moveReminderFromPast", load:null}); }
 
-            this.props.dispatch({type:"multiple",load}); 
+        ipcRenderer.send('autolaunch', shouldAutolaunch);
 
-            ipcRenderer.send('autolaunch', config.enableShortcutForQuickEntry || not(config.disableReminder));
-        } 
-    );
+        this.props.dispatch({type:"multiple", load});
+    };
+
     
-
 
     render(){   
         let {updateStatus, message} = this.state;

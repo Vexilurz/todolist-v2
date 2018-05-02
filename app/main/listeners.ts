@@ -187,9 +187,7 @@ export class Listeners{
             {
                 name:"updateConfig",
                 callback:(event,[load]) => updateConfig(load).then(
-                    (data) => {
-                        event.sender.send("updateConfig",data)
-                    }
+                    (data) => event.sender.send("updateConfig", data)
                 )    
             },
             {
@@ -312,10 +310,9 @@ export class Listeners{
             },
             { 
                 name:"updateQuickEntryConfig",
-                callback:(event,[config]) => {
-                    let window = quickEntry;
-                    if(window){
-                       window.webContents.send('config',config);
+                callback:(event,config) => {
+                    if(quickEntry){
+                       quickEntry.webContents.send('config',config);
                     }
                 }
             },

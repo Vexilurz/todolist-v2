@@ -52,9 +52,11 @@ export let objectsReducer = (state:Store, action:action) : Store => {
     return compose(
         updateOtherInstances(action),  
         cond([ 
-            [
-                typeEquals('updateConfig'),  
-                (action:{type:string, load:any}) : Store => ({...state, ...action.load}) 
+            [ 
+                typeEquals("shouldSendStatistics"),
+                (action:{type:string,load:boolean}) : Store => {
+                    return ({...state, shouldSendStatistics:action.load}); 
+                }   
             ],
             [ 
                 typeEquals("removeCalendar"),  

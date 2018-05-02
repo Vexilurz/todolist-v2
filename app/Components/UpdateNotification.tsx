@@ -17,7 +17,6 @@ import { TopSnackbar } from './Snackbar';
 import { attachDispatchToProps, downloadUpdates } from '../utils/utils';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
 import { googleAnalytics } from '../analytics';
-import { updateConfig } from '../utils/config';
 import { threeDaysLater } from '../utils/time';
  
 
@@ -43,8 +42,12 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
         };
     }; 
 
-    onError = (error) => globalErrorHandler(error)
+
+
+    onError = (error) => globalErrorHandler(error);
+
     
+
     onClick = () => {
         let {dispatch} = this.props;
         let {canRestart} = this.state;
@@ -75,11 +78,16 @@ export class UpdateNotification extends Component<UpdateNotificationProps,Update
               this.downloading=false; 
               this.setState({downloading:false});
             })
-            .then( () => updateConfig({nextUpdateCheck:threeDaysLater(new Date())}) )
-            .then( (config) => this.props.dispatch({type:"updateConfig",load:config}) )
-            .then( () => this.setState({canRestart:true}) )
+            .then(
+                () => this.props.dispatch({ type:"nextUpdateCheck", load:threeDaysLater(new Date()) }) 
+            )
+            .then( 
+                () => this.setState({canRestart:true}) 
+            )
         }  
-    } 
+    };
+    
+    
   
     render(){ 
         let {showUpdatesNotification, progress, dispatch} = this.props;
