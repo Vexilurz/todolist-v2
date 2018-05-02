@@ -335,7 +335,7 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
     constructor(props){ super(props) }
 
      
-    uncomplete = (e) => this.props.dispatch({type:"updateProject",load:{...this.props.project,completed:undefined}});
+    uncomplete = (e) => this.props.dispatch({type:"uncompleteProject",load:this.props.project._id});
     
 
     render(){ 
@@ -362,15 +362,7 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
             <div style={{paddingLeft:"19px",display:"flex",alignItems:"center"}}>
                 <Checkbox  
                     checked={isNotNil(project.completed)}
-                    onClick={(e) => {
-                        if(isNotNil(project.completed)){
-                            let type = "updateProject";
-                            this.props.dispatch({
-                                type:"updateProject", 
-                                load:{...project,completed:undefined}
-                            });
-                        }  
-                    }}
+                    onClick={this.uncomplete}
                 />
                 <div style={{paddingLeft:"5px"}}> 
                     <DueDate 

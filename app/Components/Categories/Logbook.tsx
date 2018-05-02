@@ -109,16 +109,18 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
         let getKey = (d:Date) : string => `${d.getFullYear()}-${d.getMonth()}`;
 
-        let completedTodos : Todo[] = filter(
-            todos,
-            byTags(props.selectedTag)
-        );
-
         let completedProjects : Project[] = filter(
             projects, 
             allPass([ byCompleted, byNotDeleted ])
         );  
-         
+
+        let ids = flatten( completedProjects.map( p => p.layout.filter(isString) ) );
+
+        let completedTodos : Todo[] = filter(
+            todos, 
+            allPass([ t => !contains(t._id)(ids), byTags(props.selectedTag) ])
+        );
+
         let compare = compareByDate(getDateFromObject);
 
         let objects = [...completedTodos, ...completedProjects].sort(compare);
@@ -202,11 +204,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                                 <ProjectLinkLogbook
                                     project={value as Project}
                                     dispatch={this.props.dispatch}
-                                    indicator={
-                                        defaultTo({completed:0, active:0})(
-                                            this.props.indicators[value._id]
-                                        )  
-                                    }
+                                    indicator={defaultTo({completed:0, active:0})(this.props.indicators[value._id])}
                                     selectedCategory={this.props.selectedCategory} 
                                 />  
                                 : 

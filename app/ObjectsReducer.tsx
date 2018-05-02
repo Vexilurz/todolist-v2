@@ -18,7 +18,9 @@ import {
 } from './utils/isSomething';
 import { moveReminderFromPast } from './utils/getData';
 
- 
+
+
+
 
 let actionOriginIsThisWindow = (action:action) : boolean => {
     return and(action.kind!=="external", action.kind!=="quick-entry");
@@ -235,8 +237,8 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                             (todo) => ({...todo,...changedTodos.find( t => t._id===todo._id )}),
                             identity
                         )
-                    )
-                    
+                    );
+
                     /*compose(concat(changedTodos), reject((todo:Todo) => contains(todo._id)(changedIds)))(state.todos);*/
 
                     return { ...state, todos };
@@ -385,21 +387,50 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                 }
             ], 
             [
-                typeEquals("restoreProject"),
+                typeEquals("uncompleteProject"),
                 (action:{type:string, load:string}) : Store => {
                     let projectIndex : number = state.projects.findIndex( p => p._id===action.load );
-
-                    if(projectIndex===-1){ return state }
-
                     let project = state.projects[projectIndex];
+                    let sameDate = (p:Project) => (t:Todo) => p.completed.toJSON()===t.completedSet.toJSON();
+                    let completedWithProject = sameDate(project);    
+
+                    if(projectIndex===-1 || !project.completed){ return state }
+
                     let relatedTodosIds : string[] = project.layout.filter(isString) as any[];
-                    let undeleted = filter( state.todos,  t => contains(t._id)(relatedTodosIds) );
             
                     let todos = state.todos.map(
                         when( 
-                            t => contains(t._id)(relatedTodosIds), 
+                            t => contains(t._id)(relatedTodosIds) && completedWithProject(t),
+                            t => ({...t, completedSet:undefined, completedWhen:undefined}) 
+                        ) 
+                    ) as Todo[];
+
+                    let projects = adjust(
+                        (project:Project) : Project => ({...project,completed:undefined}), 
+                        projectIndex, 
+                        state.projects
+                    );
+
+                    return {...state, projects, todos};
+                }
+            ],
+            [
+                typeEquals("restoreProject"),
+                (action:{type:string, load:string}) : Store => {
+                    let projectIndex : number = state.projects.findIndex( p => p._id===action.load );
+                    let project = state.projects[projectIndex];
+                    let sameDate = (p:Project) => (t:Todo) =>  p.deleted.toJSON()===t.deleted.toJSON();
+                    let deletedWithProject = sameDate(project);    
+
+                    if(projectIndex===-1 || !project.deleted){ return state }
+
+                    let relatedTodosIds : string[] = project.layout.filter(isString) as any[];
+            
+                    let todos = state.todos.map(
+                        when( 
+                            t => contains(t._id)(relatedTodosIds) && deletedWithProject(t),
                             t => ({...t,deleted:undefined}) 
-                        )
+                        ) 
                     ) as Todo[];
 
                     let projects = adjust(

@@ -16,7 +16,7 @@ import Flag from 'material-ui/svg-icons/image/assistant-photo';
 import Arrow from 'material-ui/svg-icons/navigation/arrow-forward';
 import { Category, Todo, Project, Heading, LayoutItem, Store } from '../../types';
 import { attachDispatchToProps, createHeading, byNotCompleted, byNotDeleted } from '../../utils/utils';
-import { contains, not, isNil, isEmpty, remove, prop, compose, allPass } from 'ramda';
+import { contains, not, isNil, isEmpty, remove, prop, compose, allPass, defaultTo } from 'ramda';
 import { filter } from 'lodash';
 import { assert } from '../../utils/assert';
 import { generateId } from '../../utils/generateId';
@@ -47,13 +47,6 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
     closeMenu = () => this.props.dispatch({type:"showProjectMenuPopover", load:false});
     
     
-
-    updateProject = (selectedProject:Project, updatedProps) : void => { 
-        let {dispatch} = this.props;
-        dispatch({type:"updateProject", load:{ ...selectedProject, ...updatedProps }})
-    };
-
-
 
     onAddDeadline = (e) => { 
         this.closeMenu(); 
@@ -103,13 +96,40 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
         this.closeMenu(); 
     };
 
-
+ 
 
     onComplete = (e) => { 
-        let {project} = this.props;
-        this.updateProject(project, {completed:new Date()});
-        this.props.dispatch({type:"selectedCategory",load:"inbox"});
-        this.closeMenu() 
+        let relatedTodosIds : string[] = compose(
+            layout => filter(layout, isString), 
+            prop('layout')
+        )(this.props.project) as string[];
+
+
+        let selectedTodos : Todo[] = filter(
+            this.props.todos,
+            (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
+        );   
+
+
+        let todos = selectedTodos.map(
+            (t:Todo) : Todo => ({
+                ...t, 
+                reminder:null, 
+                completedSet:defaultTo(new Date())(t.completedSet),
+                completedWhen:defaultTo(new Date())(t.completedWhen)
+            })
+        );
+
+
+        let load = [
+            {type:"updateTodos", load:todos},
+            {type:"updateProject", load:{...this.props.project,completed:new Date()}},
+            {type:"selectedCategory", load:"inbox"}  
+        ];
+ 
+        this.props.dispatch({type:"multiple", load});
+
+        this.closeMenu();  
     };
 
 
@@ -125,22 +145,20 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
             this.props.todos,
             (t:Todo) : boolean => contains(t._id)(relatedTodosIds)
         );   
-        
 
-        this.props.dispatch({
-            type:"multiple", 
-            load:[
-                {
-                    type:"updateTodos", 
-                    load:selectedTodos.map(
-                        (t:Todo) : Todo => ({...t,reminder:null,deleted:new Date()})
-                    )
-                },
-                {type:"updateProject", load:{...this.props.project,deleted:new Date()}},
-                {type:"selectedCategory", load:"inbox"}  
-            ]
-        });
 
+        let todos = selectedTodos.map(
+            (t:Todo) : Todo => ({...t, reminder:null, deleted:defaultTo(new Date())(t.deleted)})
+        );
+
+
+        let load = [
+            {type:"updateTodos", load:todos},
+            {type:"updateProject", load:{...this.props.project,deleted:new Date()}},
+            {type:"selectedCategory", load:"inbox"}  
+        ];
+ 
+        this.props.dispatch({type:"multiple", load});
 
         this.closeMenu();           
     };
