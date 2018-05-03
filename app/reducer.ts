@@ -68,7 +68,7 @@ let reducer = (reducers:Reducer[]) => (state:Store, action:any) : Store => {
         refreshReminders(state), 
 
         when(isMainWindow, updateDatabase(state, actions)),
-
+        
         applyActionsToState 
     )(state);
 };  

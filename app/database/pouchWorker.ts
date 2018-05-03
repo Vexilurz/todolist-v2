@@ -85,7 +85,7 @@ let startDatabaseSync = (username:string) => (database:any) => {
     let url = `${host}/${dbCouchName}`;
     let opt = { skip_setup: true,  /*ajax: { headers: {}, withCredentials: false }*/ };
     let remoteDB : any = new PouchDB(url, opt);  
-    let sync = database.sync(remoteDB, {live: true,retry: true}); 
+    let sync = database.sync(remoteDB, {live: true, retry: true}); 
 
     sync.on('change',onChangeHandler(name));
     sync.on('denied',onDeniedHandler(name));
@@ -259,7 +259,7 @@ let updateItemsInDatabase = (onError:Function, db:any) => {
                         count++;
                         return update(values);
                     }else{  
-                        //onError(err);
+                        onError(err);
                         return new Promise(resolve => resolve([]));
                     } 
                 });     

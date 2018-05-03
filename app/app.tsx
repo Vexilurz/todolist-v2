@@ -7,7 +7,7 @@ import { Component } from "react";
 import { ipcRenderer } from 'electron';
 import { 
     attachDispatchToProps, convertTodoDates, convertProjectDates, convertAreaDates, 
-    initDate, measureTimePromise,  onErrorWindow, log, typeEquals 
+    initDate, measureTimePromise,  onErrorWindow, log, typeEquals, generateEmptyProject, generateEmptyArea 
 } from "./utils/utils";  
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight'; 
 import { isNotNil, isString } from './utils/isSomething';
@@ -18,7 +18,7 @@ import { MainContainer } from './Components/MainContainer';
 import { filter } from 'lodash';
 import { 
     Project, Todo, Calendar, Config, Store, Indicators, action, 
-    PouchChanges, PouchError, PouchChange, DatabaseChanges 
+    PouchChanges, PouchError, PouchChange, DatabaseChanges, Area 
 } from './types';
 import { 
     isNil, not, map, when, evolve, prop, isEmpty, path, 
@@ -48,8 +48,12 @@ import { subscribeToChannel } from './utils/subscribeToChannel';
 import { requestFromMain } from './utils/requestFromMain';
 import { checkAuthenticated } from './utils/checkAuthenticated';
 import { emailToUsername } from './utils/emailToUsername';
+import { generateId } from './utils/generateId';
+import { generateEmptyTodo } from './utils/generateEmptyTodo';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
+
+
 
  
 interface AppProps extends Store{}
@@ -95,18 +99,25 @@ export class App extends Component<AppProps,AppState>{
     onPouchChanges = (action:action) => { 
         console.log(`%c pouch ${action.type}`, `color: "#000080"`, action.load);
 
-        let convertDates = 
+        let setDefaults = (getTemplate:Function) => (next:any) => ({...getTemplate(),...next});
+        let setDefaultsTodo : (todo:Todo) => Todo = setDefaults(() => generateEmptyTodo(generateId(), "inbox", 0));
+        let setDefaultsProject : (project:Project) => Project = setDefaults(() => generateEmptyProject());
+        let setDefaultsArea : (area:Area) => Area = setDefaults(() => generateEmptyArea());
+        
+        
+        let fixIncomingData = 
             map(
                 cond(
                     [
-                        [typeEquals("todo"),convertTodoDates],
-                        [typeEquals("project"),convertProjectDates],
-                        [typeEquals("area"),convertAreaDates],
+                        [typeEquals("todo"), compose(convertTodoDates, setDefaultsTodo)],
+                        [typeEquals("project"), compose(convertProjectDates, setDefaultsProject)],
+                        [typeEquals("area"), compose(convertAreaDates, setDefaultsArea)],
                         [() => true, identity]
                     ]
                 )
             );
         
+
         let changes : { dbname:string, changes:PouchChanges } = action.load; 
         let dbname = prop("dbname")(changes);
         let change : PouchChange<any> = path(["changes","change"])(changes);
@@ -114,9 +125,9 @@ export class App extends Component<AppProps,AppState>{
         if(isNil(change) || isEmpty(change.docs) || not(change.ok)){  return  }
  
         let timestamp = new Date(change.start_time);
-        let docs = convertDates(change.docs);
+        let docs = fixIncomingData(change.docs);
  
-        let lastSyncAction = { type:"lastSync", load:timestamp };
+        let lastSyncAction = { type:"lastSync", load:timestamp, kind:"sync" };
 
         let actions : action[] = compose(
             log('actions'), 
