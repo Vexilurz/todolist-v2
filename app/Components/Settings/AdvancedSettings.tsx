@@ -30,7 +30,7 @@ const Promise = require("bluebird");
 const uniqid = require("uniqid");     
 const path = require("path");
 
-let completedSet : (todo:Todo) => boolean = compose(isNotNil,prop('completedSet'));
+let completedSet : (todo:Todo) => boolean = compose(isNotNil,prop('completedSet')) as any;
 let remRev = compose(map(removeRev), defaultTo([])); 
 
 

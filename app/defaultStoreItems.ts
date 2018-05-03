@@ -9,8 +9,6 @@ export let defaultStoreItems : Store = {
 
     sync:true,
     lastSync:new Date(),
-    syncInterval:60 * 1000 * 5,
-
     showWhenCalendar : false, 
     whenTodo : null,
     whenCalendarPopupX : 0, 

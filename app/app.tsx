@@ -10,7 +10,7 @@ import {
     initDate, measureTimePromise,  onErrorWindow, log, typeEquals 
 } from "./utils/utils";  
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight'; 
-import { isNotNil } from './utils/isSomething';
+import { isNotNil, isString } from './utils/isSomething';
 import { createStore } from "redux"; 
 import { Provider, connect } from "react-redux";
 import { LeftPanel } from './Components/LeftPanel/LeftPanel';
@@ -46,23 +46,10 @@ import { toStoreChanges } from './utils/toStoreChanges';
 import { changesToActions } from './utils/changesToActions';
 import { subscribeToChannel } from './utils/subscribeToChannel';
 import { requestFromMain } from './utils/requestFromMain';
+import { checkAuthenticated } from './utils/checkAuthenticated';
+import { emailToUsername } from './utils/emailToUsername';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
-
- 
-
-/*
-    removeTodosFromCompletedProjects : (todos:Todo[], projects:Project[]) => Todo[] =
-    (todos, projects) => compose(
-        applyTo(todos),
-        items => reject((todo:Todo) => contains(todo._id,items)),
-        items => filter(items, isString),
-        flatten,
-        map(prop('layout')),
-        projects => filter(projects, byCompleted)
-    )(projects);
-*/
-
 
  
 interface AppProps extends Store{}
@@ -187,7 +174,16 @@ export class App extends Component<AppProps,AppState>{
         this.setInitialTitle();
 
         if(!this.props.clone){
+            checkAuthenticated().then( 
+                auth => {
+                    if(isString(this.props.email) && auth){
+                       pouchWorker.postMessage({type:"startSync", load:emailToUsername(this.props.email)});
+                    }
+                }
+            );
+
             this.initObservables();
+
             collectSystemInfo().then( info => this.reportStart({...info} as any) );
         }
     }; 
@@ -196,9 +192,13 @@ export class App extends Component<AppProps,AppState>{
 
     //cleanup 
     componentWillUnmount(){
-        this.suspendDatabaseObservable();
         this.generateIndicatorsWorker.terminate();
         this.generateIndicatorsWorker = null;
+
+        if(!this.props.clone){
+            pouchWorker.postMessage({type:'stopSync',load:null});         
+            this.suspendDatabaseObservable();
+        }
     };
 
 

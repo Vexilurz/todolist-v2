@@ -17,6 +17,7 @@ import { removeCouchCookies } from '../utils/removeCouchCookies';
 import { workerSendAction } from '../utils/workerSendAction';
 import { pouchWorker } from '../app';
 
+
 interface ConnectedSectionProps{
     offset:number,
     name:string,

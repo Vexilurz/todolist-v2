@@ -140,7 +140,6 @@ export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags' | 'S
 
 export interface Store extends Config{
   lastSync:Date,
-  syncInterval:number,
   showWhenCalendar : boolean, 
   whenTodo : Todo,
   whenCalendarPopupX : number, 
