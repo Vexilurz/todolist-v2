@@ -89,13 +89,13 @@ let detectChanges : (state:Store) => (newState:Store) => Changes =
     );
 
 
-let ignoredActions = ["setCalendars","setTodos","setProjects","setAreas","updateCalendars"];
+let ignoredActions = ["setCalendars","setTodos","setProjects","setAreas","updateCalendar","updateCalendars"];
     
 
 export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : Store => { 
 
     let actions = reject(
-        a => contains(a.type)(ignoredActions) || a.kind==="sync",
+        a => contains(a.type)(ignoredActions) || a.kind==="sync", 
     )(load); 
 
     // ok so here is the problem

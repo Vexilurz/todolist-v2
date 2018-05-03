@@ -208,6 +208,8 @@ export let inFuture =  (date:Date) : boolean => {
 
 
 export let timeOfTheDay = (date:Date) : string => {
+    if(isNotDate(date)){ return '' }
+
     let hours = String(date.getHours());
     let minutes = String(date.getMinutes());
     

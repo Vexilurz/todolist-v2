@@ -18,7 +18,7 @@ export let changesToActions = (dbname:string) => (change:DatabaseChanges<any>) :
  
     
     return compose(
-        reject(anyPass(isNil, isEmpty)),
+        reject(anyPass([isNil, isEmpty])),
         values,
         evolve({ remove:evolve({ load:ifElse( isArray, map(prop('_id')), prop('_id') ) }) }), 
         mapObjIndexed(
