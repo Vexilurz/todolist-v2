@@ -149,7 +149,7 @@ module.exports = [
         }, 
         
         target: "electron-renderer",     
-        /*
+        
         optimization: {
             minimize: true,
             minimizer: [
@@ -163,15 +163,10 @@ module.exports = [
                 })
             ]
         },
-        */
+        
         plugins : [
-            new CopyWebpackPlugin([
-                {from : './assets/icon.ico'},
-                {from : './assets/sound.wav'}
-            ]), 
-            new webpack.DefinePlugin({
-                'process.env.NODE_ENV': JSON.stringify('production')
-            }),
+            new CopyWebpackPlugin([{from : './assets/icon.ico'}, {from : './assets/sound.wav'}]), 
+            new webpack.DefinePlugin({'process.env.NODE_ENV': JSON.stringify('production')}),
             new HtmlWebpackPlugin({ 
                 inject:true, 
                 title:'tasklist',     
@@ -182,7 +177,7 @@ module.exports = [
                 inject:true, 
                 title:'Add task',     
                 chunks:['quickentry'],
-                filename: 'quickentry.html' 
+                filename: 'quickentry.html'  
             }),
             new HtmlWebpackPlugin({
                 inject:true, 

@@ -47,7 +47,7 @@ module.exports = {
     },
  
     target: "electron-main",     
-    /*
+    
     optimization: {
 		minimize: true,
 		minimizer: [
@@ -83,7 +83,7 @@ module.exports = {
             })
 		] 
 	},
-    */ 
+     
     plugins:[ 
         new CleanWebpackPlugin(['production']),
         new webpack.DefinePlugin({

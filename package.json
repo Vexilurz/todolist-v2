@@ -1,13 +1,13 @@
 {
   "name": "tasklist",
-  "version": "1.5.6-master",
+  "version": "1.5.7-master",
   "description": "tasklist",
-  "main": "dist/main.js",
+  "main": "production/main.js",
   "scripts": {
     "start": "electron .",
     "publish": "build --win --publish always",
     "pack": "build --win",
-    "build": "start webpack -w --config webpack.config.main.js && webpack -w --config webpack.config.renderer.js",
+    "build": "start webpack --config webpack.config.main.js && webpack --config webpack.config.renderer.js",
     "production": "start webpack --config webpack.config.main.prod.js && webpack --config webpack.config.renderer.prod.js"
   },
   "repository": "",
@@ -123,10 +123,7 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
+          "arch": ["x64","ia32"]
         }
       ],
       "icon": "./icon.ico"

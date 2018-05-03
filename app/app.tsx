@@ -50,6 +50,8 @@ import { checkAuthenticated } from './utils/checkAuthenticated';
 import { emailToUsername } from './utils/emailToUsername';
 import { generateId } from './utils/generateId';
 import { generateEmptyTodo } from './utils/generateEmptyTodo';
+import { isDev } from './utils/isDev';
+import { generateEmptyCalendar } from './utils/generateEmptyCalendar';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
@@ -97,13 +99,18 @@ export class App extends Component<AppProps,AppState>{
 
 
     onPouchChanges = (action:action) => { 
-        console.log(`%c pouch ${action.type}`, `color: "#000080"`, action.load);
+        if(isDev()){
+           console.log(`%c pouch ${action.type}`, `color: "#000080"`, action.load);
+        }
+
 
         let setDefaults = (getTemplate:Function) => (next:any) => ({...getTemplate(),...next});
         let setDefaultsTodo : (todo:Todo) => Todo = setDefaults(() => generateEmptyTodo(generateId(), "inbox", 0));
         let setDefaultsProject : (project:Project) => Project = setDefaults(() => generateEmptyProject());
         let setDefaultsArea : (area:Area) => Area = setDefaults(() => generateEmptyArea());
+        let setDefaultsCalendar : (calendar:Calendar) => Calendar = setDefaults(() => generateEmptyCalendar());
         
+         
         
         let fixIncomingData = 
             map(
@@ -112,6 +119,7 @@ export class App extends Component<AppProps,AppState>{
                         [typeEquals("todo"), compose(convertTodoDates, setDefaultsTodo)],
                         [typeEquals("project"), compose(convertProjectDates, setDefaultsProject)],
                         [typeEquals("area"), compose(convertAreaDates, setDefaultsArea)],
+                        [typeEquals("calendar"), compose(evolve({events:map(convertEventDate)}), setDefaultsCalendar)],
                         [() => true, identity]
                     ]
                 )
@@ -142,20 +150,27 @@ export class App extends Component<AppProps,AppState>{
 
 
     onPouchLog = (action:action) => { 
-        console.log(`%c ${action.load}`, 'color: #926239');
+        if(isDev()){
+           console.log(`%c ${action.load}`, 'color: #926239');
+        }
     };
 
 
 
     onPouchError = (action:action) => { 
         let error : PouchError = action.load;
-        console.log(`%c pouch - ${action.type} - ${JSON.stringify(action.load)}`, 'color: #8b0017');
+
+        if(isDev()){
+           console.log(`%c pouch - ${action.type} - ${JSON.stringify(action.load)}`, 'color: #8b0017');
+        }
 
         globalErrorHandler(error);
 
         if(error.status===401 && error.error==="unauthorized"){
+            //logout first TODO
            this.openLoginForm(); 
         }else if(error.status===403 && error.error==="forbidden"){
+            //logout first TODO
             //no permissions to access database
         }
     };

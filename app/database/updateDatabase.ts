@@ -9,7 +9,7 @@ import {
 import { 
     adjust, cond, all, isEmpty, contains, not, remove, uniq, assoc, reverse, 
     findIndex, splitAt, last, assocPath, isNil, and, complement, compose, 
-    reject, concat, map, when, find, prop, ifElse, identity, path, equals, 
+    reject, concat, map, when, find, prop, ifElse, identity, path, equals, any,
     allPass, evolve, pick, defaultTo, pickBy, mapObjIndexed, forEachObjIndexed  
 } from 'ramda'; 
 import { filter } from 'lodash';
@@ -18,6 +18,7 @@ import {
     isArrayOfProjects, isArrayOfAreas, isDate, isNumber, isNotNil 
 } from '../utils/isSomething';
 import { moveReminderFromPast } from '../utils/getData';
+import { assert, assertC } from '../utils/assert';
 
 
 
@@ -88,15 +89,62 @@ let detectChanges : (state:Store) => (newState:Store) => Changes =
         pick(['todos','projects','areas','calendars'])
     );
 
+    
 
-let ignoredActions = ["setCalendars","setTodos","setProjects","setAreas","updateCalendar","updateCalendars"];
+let ignoredActions = [
+    "setCalendars",
+    "setTodos",
+    "setProjects",
+    "setAreas",
+    "updateCalendar",
+    "updateCalendars",
+    "defaultTags",
+    "quickEntrySavesTo",
+    "enableShortcutForQuickEntry",
+    "disableReminder",
+    "moveCompletedItemsToLogbook",
+    "groupTodos",
+    "nextBackupCleanup",
+    "nextUpdateCheck",
+    "hideHint",
+    "lastSync",
+    "sync",
+    "email",
+    'showCalendarEvents',
+    "openWhenCalendar",
+    "selectedTodo",
+    "scrolledTodo",
+    "showLicense",
+    "progress",
+    "showUpdatesNotification",
+    "limit",
+    "searchQuery",
+    "openChangeGroupPopup",
+    "selectedSettingsSection",
+    "openSettings",
+    "showRepeatPopup",
+    "openRepeatPopup",
+    "openTodoInputPopup",
+    "showTrashPopup",
+    "dragged",
+    "openSearch",
+    "showProjectMenuPopover",
+    "selectedCategory",
+    "leftPanelWidth",
+    "selectedTag",
+    "openNewProjectAreaPopup",
+    "showRightClickMenu",
+    "openRightClickMenu",
+    "closeAllItems",
+    "selectedProjectId",
+    "selectedAreaId"
+];
     
 
 export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : Store => { 
-
-    let actions = reject(
-        a => contains(a.type)(ignoredActions) || a.kind==="sync", 
-    )(load); 
+    
+    let actionFromSync = (a:action) => a.kind==="sync";
+    let actions = reject(a => contains(a.type)(ignoredActions) || actionFromSync(a))(load); 
 
     // ok so here is the problem
     // i have a loop in case sync actions mixed with user actions at this point
@@ -105,6 +153,10 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
     //... etc...
     // this wont happen if actions will not be mixed 
     // assert --->>> all sync or none sync
+
+    if(isDev() && any(actionFromSync)(load)){ 
+       assertC(all(actionFromSync), `updateDatabase ${JSON.stringify(load)}`)(load); 
+    }
 
     if(isEmpty(actions)){ return newState }
 
