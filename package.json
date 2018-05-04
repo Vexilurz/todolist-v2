@@ -7,7 +7,13 @@
     "start": "electron .",
     "publish": "build --win --publish always",
     "pack": "build --win",
+    "tests": "mocha ./tests/dist/main && mocha ./tests/dist/renderer",
+    "test:main": "mocha ./tests/dist/main",
+    "test:renderer": "mocha ./tests/dist/renderer",
     "build": "start webpack --config webpack.config.main.js && webpack -w --config webpack.config.renderer.js",
+    "build:tests": "start webpack --config webpack.config.main.tests.js && webpack --config webpack.config.renderer.tests.js",
+    "build:tests:main": "start webpack --config webpack.config.main.tests.js",
+    "build:tests:renderer": "start webpack --config webpack.config.renderer.tests.js",
     "production": "start webpack --config webpack.config.main.prod.js && webpack --config webpack.config.renderer.prod.js"
   },
   "repository": "",
@@ -16,6 +22,8 @@
   "license": "",
   "devDependencies": {
     "@types/electron": "^1.6.10",
+    "@types/enzyme": "^3.1.10",
+    "@types/mocha": "^5.2.0",
     "@types/node": "^9.6.6",
     "@types/pouchdb-browser": "^6.1.2",
     "@types/react": "^16.3.12",
@@ -46,6 +54,8 @@
     "electron-publisher-s3": "^20.9.0",
     "electron-updater": "2.21.8",
     "email-validator": "^2.0.3",
+    "enzyme": "3.0",
+    "enzyme-adapter-react-15": "^1.0.5",
     "file-loader": "1.1.11",
     "filereader": "^0.10.3",
     "font-loader": "^0.1.2",
@@ -57,6 +67,7 @@
     "invariant": "^2.2.2",
     "lodash": "^4.17.4",
     "material-ui": "^0.19.4",
+    "mocha": "^5.1.1",
     "mockdate": "^2.0.2",
     "moment": "^2.19.3",
     "password-validator": "^4.1.1",
@@ -69,6 +80,7 @@
     "rc-time-picker": "^3.3.1",
     "react": "15.6.1",
     "react-addons-perf": "^15.4.2",
+    "react-addons-test-utils": "^15.6.2",
     "react-audio-player": "^0.9.0",
     "react-autosize-textarea": "^3.0.2",
     "react-color": "^2.13.8",
@@ -80,6 +92,7 @@
     "react-minimal-pie-chart": "^3.0.1",
     "react-redux": "^5.0.6",
     "react-tap-event-plugin": "^2.0.1",
+    "react-test-renderer": "^16.3.2",
     "react-time-input": "^0.0.17",
     "react-tippy": "^1.2.2",
     "react-transition-group": "^2.2.1",
@@ -89,6 +102,7 @@
     "retina-dom-to-image": "^2.5.6",
     "rx-dom": "^7.0.3",
     "rxjs": "^5.5.6",
+    "spectron": "^3.8.0",
     "style-loader": "^0.21.0",
     "tapable": "^1.0.0",
     "ts-loader": "^4.2.0",
@@ -97,7 +111,7 @@
     "uglify-es": "3.3.9",
     "uglifyjs-webpack-plugin": "1.2.5",
     "url": "^0.11.0",
-    "webpack": "4.6.0",
+    "webpack": "4.7.0",
     "webpack-cli": "^2.0.15"
   },
   "dependencies": {
@@ -123,7 +137,10 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64","ia32"]
+          "arch": [
+            "x64",
+            "ia32"
+          ]
         }
       ],
       "icon": "./icon.ico"
