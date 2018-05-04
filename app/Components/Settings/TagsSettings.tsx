@@ -12,7 +12,6 @@ import {
 import { Checkbox } from '../TodoInput/TodoInput';
 import { isArrayOfTodos } from '../../utils/isSomething';
 import { filter } from 'lodash';
-import { assert } from '../../utils/assert';
 import { uppercase } from '../../utils/uppercase';
 import { defaultTags } from './../../defaultTags';
 

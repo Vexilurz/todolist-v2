@@ -2,9 +2,11 @@ import { stringToLength } from './stringToLength';
 import { googleAnalytics } from './../analytics';
 import { isNil } from 'ramda';
 import { isString } from './isSomething';
-import { getMachineIdSync } from './userid';
+import { requestFromMain } from './requestFromMain';
+import { Config } from '../types';
+import { isDev } from './isDev';
 
-export let globalErrorHandler = (error:any) : Promise<void> => {
+export let globalErrorHandler = (error:any) : Promise<any> => {
     let message = '';
     let value = 0;     
 
@@ -29,21 +31,22 @@ export let globalErrorHandler = (error:any) : Promise<void> => {
         else if(error.lineNumber){ value = error.lineNumber; } 
     } 
     
-    console.log(message);
+    if(isDev()){
+       console.log(message);
+    }
 
-    let machineId = getMachineIdSync();
-
-    return Promise.all(
-        [
-            googleAnalytics.send(
-                'event',  
-                { ec:'Error', ea:stringToLength(`Error : ${message}`, 400), el:`Error occured : ${machineId}`, ev:value }
-            ),
-            googleAnalytics.send(  
-                'exception',  
-                { exd:stringToLength(`Error : ${message}`, 120), exf:1 } 
-            )  
-        ]
-    )
-    .then(() => console.log('Error report submitted'))
+    return requestFromMain("getConfig", [], (event, config) => config).then(
+        (config:Config) => Promise.all(
+            [
+                googleAnalytics.send(
+                    'event',  
+                    { ec:'Error', ea:stringToLength(`Error : ${message}`, 400), el:`Error occured : ${config.email}`, ev:value }
+                ),
+                googleAnalytics.send(  
+                    'exception',  
+                    { exd:stringToLength(`Error : ${message}`, 120), exf:1 } 
+                )  
+            ]
+        )
+    );
 };    

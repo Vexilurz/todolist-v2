@@ -21,12 +21,7 @@ import { insideTargetArea } from '../../utils/insideTargetArea';
 import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { generateId } from '../../utils/generateId';
 import { SortableContainer } from '../CustomSortableContainer';
-
-
-let log = (msg) => (item) => {
-    console.log(msg,item);
-    return item;
-};
+import { isDev } from '../../utils/isDev';
 
 
 interface ProjectBodyProps{ 
@@ -179,7 +174,10 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let {items,project,updateLayoutOrder} = this.props;
         let layout = [...project.layout];
         let from : Heading = items[oldIndex] as Heading;
-        assert(isHeading(from as Heading),`item is not heading. ${from}. changeHeadingsOrder.`);
+        
+        if(isDev()){
+           assert(isHeading(from as Heading),`item is not heading. ${from}. changeHeadingsOrder.`);
+        }
 
         //heading + string[]
         let data = compose(  
@@ -230,7 +228,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let {dispatch, items} = this.props;
         let item = items[oldIndex];
 
-        assert(isString(item.type), `item is Nil. incorrect index. onSortStart. ProjectBody.`);
+        if(isDev()){
+           assert(isString(item.type), `item is Nil. incorrect index. onSortStart. ProjectBody.`);
+        }
         
         dispatch({type:"dragged",load:item.type});
     }; 
@@ -242,8 +242,10 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
 
 
     onDropMany = (event:any,heading:Heading,todos:Todo[]) => {
-        assert(isArrayOfTodos(todos), `onDropMany. todos is not of type array of todos.`);
-        assert(isHeading(heading), `onDropMany. heading is not of type Heading.`);
+        if(isDev()){
+            assert(isArrayOfTodos(todos), `onDropMany. todos is not of type array of todos.`);
+            assert(isHeading(heading), `onDropMany. heading is not of type Heading.`);
+        }
 
         let { projects, selectedProjectId, dispatch, moveCompletedItemsToLogbook, filters } = this.props;
         let selectedProjectIdx = findIndex((p:Project) => p._id===selectedProjectId, projects);
@@ -362,7 +364,9 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         let selected = [index];
         let item = items[index];
 
-        assert(isNotNil(item),`item is Nil. selectElements. index ${index}`);
+        if(isDev()){
+           assert(isNotNil(item),`item is Nil. selectElements. index ${index}`);
+        }
 
         if(isHeading(item)){   
             for(let i=index+1; i<items.length; i++){

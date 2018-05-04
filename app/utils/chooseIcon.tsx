@@ -1,5 +1,4 @@
 import {isString,isCategory} from './isSomething';
-import { assert } from './../utils/assert'; 
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 import Inbox from 'material-ui/svg-icons/content/inbox';
 import * as React from 'react';

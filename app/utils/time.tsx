@@ -1,5 +1,7 @@
 import {isDate,isString, isNotDate} from './isSomething';
 import {compose,equals,prop,not,isNil} from 'ramda';
+import { assert } from './assert';
+import { isDev } from './isDev';
 
 
 
@@ -299,7 +301,9 @@ export let setTime = (date:Date, time:{minutes:number,hours:number}) : Date => {
 
  
 export let keyFromDate = (d:Date) : string => {  
-    //assert(isDate(date), `keyFromDate. input is not a date. ${date}`);
+    if(isDev()){
+       assert(isDate(d), `keyFromDate. input is not a date. ${d}`);
+    }
     
     if(isNil(d)){ return '' }
     let date = isString(d) ? new Date(d) : d;

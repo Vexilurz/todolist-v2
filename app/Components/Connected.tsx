@@ -11,7 +11,6 @@ import Toggle from 'material-ui/Toggle';
 import { timeOfTheDay } from '../utils/time';
 import { isToday, isNotDate } from '../utils/isSomething';
 import axios from 'axios';
-import { emailToUsername } from '../utils/emailToUsername';
 import { host } from '../utils/couchHost';
 import { removeCouchCookies } from '../utils/removeCouchCookies';
 import { workerSendAction } from '../utils/workerSendAction';
@@ -87,14 +86,6 @@ export class Connected extends Component<ConnectedProps,ConnectedState>{
     };
 
     render(){ 
-        if(
-            isNil(this.props.lastSync) || 
-            isNil(this.props.email) ||
-            isNotDate(this.props.lastSync)
-        ){ 
-            return null
-        }
-
         return <div style={{ 
             display:"flex", 
             flexDirection:"column",  

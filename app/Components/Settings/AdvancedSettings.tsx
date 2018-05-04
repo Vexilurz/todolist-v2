@@ -17,7 +17,6 @@ import { isNewVersion } from '../../utils/isNewVersion';
 import { Area, Project, Todo, Calendar, Databases } from '../../types'; 
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater'; 
 import { isArrayOfTodos, isNotNil } from '../../utils/isSomething';
-import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { requestFromMain } from '../../utils/requestFromMain';
 import { getData } from '../../utils/getData';

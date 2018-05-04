@@ -15,7 +15,6 @@ import {
     Calendar, ChecklistItem, Category, RawDraftContentState, RepeatOptions, Todo, Project, Area, Query 
 } from '../types';
 import { isDev } from '../utils/isDev';
-import { assert } from '../utils/assert';
 const Promise = require('bluebird');
 const path = require('path');
 

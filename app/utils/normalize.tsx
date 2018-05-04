@@ -36,21 +36,5 @@ export let normalize = (dates:Date[]) : Date[]  => {
         }
     }
 
-    /*
-    for(let i=0; i<list.length; i++){
-        let current = list[i];
-        let next = list[i+1];
-
-        if(isNil(next)){ continue; } //end
-        let difference = Math.round( (next.getTime() - current.getTime()) / day );
-        if(difference!==1){
-            console.log(
-                `distance between ${current} - ${next}`,
-                difference
-            ); 
-        }
-    }
-    */
-
     return list;
 };    

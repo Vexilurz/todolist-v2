@@ -20,7 +20,6 @@ import { Subscription } from 'rxjs/Rx';
 import { attachDispatchToProps, getCompletedWhen } from '../utils/utils';
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { generateId } from '../utils/generateId';
-import { assert } from '../utils/assert';
 import { noteFromState, getNotePlainTextFromRaw } from '../utils/draftUtils';
 import { isNotNil } from '../utils/isSomething';
  

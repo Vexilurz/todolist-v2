@@ -1,6 +1,5 @@
 import { defaultConfig } from './defaultConfig';
 import { checkAuthenticated } from './utils/checkAuthenticated';
-import { emailToUsername } from './utils/emailToUsername';
 import { refreshReminders } from './utils/reminderUtils';
 import { objectsReducer } from './objectsReducer';
 import { stateReducer } from './stateReducer';

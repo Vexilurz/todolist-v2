@@ -11,6 +11,7 @@ import { insideTargetArea } from '../utils/insideTargetArea';
 import { assert } from '../utils/assert';
 import { isArrayOfDOMElements, allHave, isDomElement, isArrayOfNumbers, isHeading } from '../utils/isSomething';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
+import { isDev } from '../utils/isDev';
 
 
 let getCSSPixelValue = (stringValue) => {
@@ -34,7 +35,9 @@ let getElementMargin = (element) => {
 
 
 let getNodes = (ref) : HTMLElement[] => { 
-    assert(!isNil(ref), `ref is Nil. getNodes.`);
+    if(isDev()){
+       assert(!isNil(ref), `ref is Nil. getNodes.`);
+    }
     return [].slice.call(ref.children);
 };
 
@@ -58,9 +61,10 @@ let showElement = (node:HTMLElement) : void => {
  * between this values in DOM elements and Objects.
  */
 let match = (nodes:HTMLElement[],items:{_id:string}[]) : boolean => {
-    
-    assert(isArrayOfDOMElements(nodes),`nodes is not of type Array Of DOM Elements. match. ${nodes}`);
-    assert(allHave("_id")(items),`not all items have id. match.`);
+    if(isDev()){
+       assert(isArrayOfDOMElements(nodes),`nodes is not of type Array Of DOM Elements. match. ${nodes}`);
+       assert(allHave("_id")(items),`not all items have id. match.`);
+    }
 
     if(nodes.length!==items.length){ return false }
     
@@ -78,7 +82,9 @@ let match = (nodes:HTMLElement[],items:{_id:string}[]) : boolean => {
  * Clone one DOM Element.
  */
 let cloneOne = (node:HTMLElement) : HTMLElement => {
-    assert(isDomElement(node),`node is not of type DOM Element. cloneOne.`);
+    if(isDev()){
+       assert(isDomElement(node),`node is not of type DOM Element. cloneOne.`);
+    }
     
     const fields = node.querySelectorAll('input, textarea, select');
     const clone = node.cloneNode(true) as HTMLElement;
@@ -109,7 +115,12 @@ let cloneOne = (node:HTMLElement) : HTMLElement => {
  * empty container.
  */
 let cloneMany = (nodes:HTMLElement[]) : HTMLElement => {
-    assert(isArrayOfDOMElements(nodes),`nodes is not of type Array Of DOM Elements. cloneMany. ${nodes}`);
+    if(isDev()){
+        assert(
+           isArrayOfDOMElements(nodes),
+           `nodes is not of type Array Of DOM Elements. cloneMany. ${nodes}`
+        );
+    }
 
     let container = document.createElement('div');
     let containerWidth = 0;
@@ -163,9 +174,11 @@ let cloneSelectedElements = (
     nodes:HTMLElement[],
     indices:number[] 
 ) : {selectedElements:HTMLElement[], clone:HTMLElement}  => {
-   
-    assert(isArrayOfDOMElements(nodes),`nodes is not of type Array Of DOM Elements. cloneSelectedElements. ${nodes}`);
-    assert(isArrayOfNumbers(indices),`indices is not of type Array of Numbers. cloneSelectedElements.`);
+
+    if(isDev()){
+        assert(isArrayOfDOMElements(nodes),`nodes is not of type Array Of DOM Elements. cloneSelectedElements. ${nodes}`);
+        assert(isArrayOfNumbers(indices),`indices is not of type Array of Numbers. cloneSelectedElements.`);
+    }
 
     if(indices.length===1){
         
@@ -326,10 +339,8 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
        let indices : number[] = selectElements(initialIndex,items); 
        let {selectedElements, clone} = cloneSelectedElements(nodes,indices); //clone selected elements, selectedElements - original elements.
        
-
        assert(match(nodes,items), `incorrect order. onDragStart.`);
        assert(selectedElements.length===indices.length, `incorrect selection. selectedElements:${selectedElements.length}. indices:${indices.length}. onDragStart.`);
-
 
        this.cloned = document.body.appendChild(clone); //append cloned nodes wrapped in empty container to body
 

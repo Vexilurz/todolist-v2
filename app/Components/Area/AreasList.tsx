@@ -367,8 +367,8 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
         let item = items[index];
 
         if(isDev()){
-           assert(not(isNil(item)),`item is Nil. selectElements. index ${index}`);
-        }
+           assert(!isNil(item),`item is Nil. selectElements. index ${index}`);
+        }  
 
         if(isArea(item)){
             for(let i=index+1; i<items.length; i++){

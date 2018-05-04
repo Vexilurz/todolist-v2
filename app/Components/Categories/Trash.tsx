@@ -147,13 +147,11 @@ export class Trash extends Component<TrashProps,TrashState>{
                     `missing tag. Trash. ${selectedTag}`
                 ) 
             }
-
             let todosIds = flatten( deletedProjects.map( p => p.layout.filter(isString) ) );
             assert(
                 all((todo:Todo) => !contains(todo._id,todosIds), deletedTodos), 
                 `Error: Deleted todos from deleted projects.`
             );
-
             let projectsIds = flatten( deletedAreas.map( a => a.attachedProjectsIds ) );
             assert(
                 all((project:Project) => !contains(project._id,projectsIds), deletedProjects), 

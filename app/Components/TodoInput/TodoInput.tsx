@@ -44,7 +44,6 @@ import { isFunction, isDate, isString, isNotNil, isToday } from '../../utils/isS
 import { daysRemaining } from '../../utils/daysRemaining';
 import Alert from 'material-ui/svg-icons/alert/add-alert';
 import { stringToLength } from '../../utils/stringToLength';
-import { assert } from '../../utils/assert';
 import TextareaAutosize from 'react-autosize-textarea';
 import {Tooltip,withTooltip} from 'react-tippy';
 import {shell} from 'electron'; 
@@ -138,7 +137,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
         if(different(this.state,nextState)){ 
-           //console.log(`state changed ${todo.title}`); 
            return true; 
         }
 
@@ -153,10 +151,6 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             //selectedProjectId!==this.props.selectedProjectId ||
             //selectedAreaId!==this.props.selectedAreaId ||
             
-        if(should){
-           //console.log(`props changed ${todo.title}`); 
-        }    
-        
         return should;
     }
 

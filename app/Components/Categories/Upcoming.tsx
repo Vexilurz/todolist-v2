@@ -22,7 +22,7 @@ import { ProjectLink } from '../Project/ProjectLink';
 import { filter } from 'lodash'; 
 import { Hint } from './Today'; 
 import { updateCalendars } from '../Calendar';
-import { isDate, isArray, isArrayOfTodos, isNotNil } from '../../utils/isSomething';
+import { isDate, isArray, isArrayOfTodos, isNotNil, isString } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { timeOfTheDay, keyFromDate, addMonths, inPast } from '../../utils/time';
@@ -110,9 +110,9 @@ export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
                         assert(
                             by.length===withStart.length, 
                             `
-                                dates repeat. extend. ${options.selectedOption}. 
-                                length : ${withStart.length}; 
-                                by : ${by.length};
+                            dates repeat. extend. ${options.selectedOption}. 
+                            length : ${withStart.length}; 
+                            by : ${by.length};
                             `
                         ); 
                     }
@@ -173,7 +173,7 @@ let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {
                        all(event => isDate(event.start) && isDate(event.end),events),
                        'Error: Events - incorrect type.'
                     ) 
-                }
+                } 
 
                 return events;
             },

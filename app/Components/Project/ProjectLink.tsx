@@ -13,7 +13,6 @@ import Restore from 'material-ui/svg-icons/content/undo';
 import { contains, isNil, allPass, not, isEmpty, defaultTo } from 'ramda';
 import Hide from 'material-ui/svg-icons/action/visibility-off';
 import Count from 'material-ui/svg-icons/editor/format-list-numbered';
-import { assert } from '../../utils/assert';
 import { uppercase } from '../../utils/uppercase'; 
 import { isDate, isString, isNotNil } from '../../utils/isSomething';
 import { daysRemaining } from '../../utils/daysRemaining';

@@ -21,7 +21,7 @@ import {
     PouchChanges, PouchError, PouchChange, DatabaseChanges, Area 
 } from './types';
 import { 
-    isNil, not, map, when, evolve, prop, isEmpty, path, 
+    isNil, map, when, evolve, prop, isEmpty, path, 
     compose, ifElse, mapObjIndexed, reject, values,
     cond, identity 
 } from 'ramda';
@@ -119,7 +119,15 @@ export class App extends Component<AppProps,AppState>{
                         [typeEquals("todo"), compose(convertTodoDates, setDefaultsTodo)],
                         [typeEquals("project"), compose(convertProjectDates, setDefaultsProject)],
                         [typeEquals("area"), compose(convertAreaDates, setDefaultsArea)],
-                        [typeEquals("calendar"), compose(evolve({events:map(convertEventDate)}), setDefaultsCalendar)],
+                        [
+                            typeEquals("calendar"), 
+                            compose(
+                                evolve({
+                                    events:map(convertEventDate)
+                                }), 
+                                setDefaultsCalendar
+                            )
+                        ],
                         [() => true, identity]
                     ]
                 )
@@ -130,7 +138,7 @@ export class App extends Component<AppProps,AppState>{
         let dbname = prop("dbname")(changes);
         let change : PouchChange<any> = path(["changes","change"])(changes);
 
-        if(isNil(change) || isEmpty(change.docs) || not(change.ok)){  return  }
+        if(isNil(change) || isEmpty(change.docs) || !change.ok){  return  }
  
         let timestamp = new Date(change.start_time);
         let docs = fixIncomingData(change.docs);
@@ -185,6 +193,17 @@ export class App extends Component<AppProps,AppState>{
         );
     };
 
+
+    initSync = () => 
+        checkAuthenticated()
+        .then( 
+            auth => {
+                if(isString(this.props.email) && auth){
+                    pouchWorker.postMessage({type:"startSync", load:emailToUsername(this.props.email)});
+                }
+            }
+        );
+    
     
 
     suspendDatabaseObservable = () => {
@@ -200,13 +219,7 @@ export class App extends Component<AppProps,AppState>{
         this.setInitialTitle();
 
         if(!this.props.clone){
-            checkAuthenticated().then( 
-                auth => {
-                    if(isString(this.props.email) && auth){
-                       pouchWorker.postMessage({type:"startSync", load:emailToUsername(this.props.email)});
-                    }
-                }
-            );
+            this.initSync();
 
             this.initObservables();
 
@@ -223,6 +236,7 @@ export class App extends Component<AppProps,AppState>{
 
         if(!this.props.clone){
             pouchWorker.postMessage({type:'stopSync',load:null});         
+
             this.suspendDatabaseObservable();
         }
     };
@@ -322,21 +336,17 @@ export class App extends Component<AppProps,AppState>{
             this.props.todos!==nextProps.todos 
         ){
 
-            measureTimePromise(this.promiseIndicators,'promiseIndicators')(
-                nextProps.projects,
-                nextProps.todos
-            )
+            this.promiseIndicators(nextProps.projects, nextProps.todos)
             .then(
                 (indicators:Indicators) => this.setState(
                     {indicators}, 
-                    when( 
-                        () => not(this.props.clone),
-                        this.updateQuickEntry(nextProps,indicators)
-                    )
+                    () => !this.props.clone ? this.updateQuickEntry(nextProps,indicators) : null
                 )
             );
 
-            this.setState({amounts:this.getAmounts(nextProps)});
+            if(!this.props.clone){
+                this.setState({amounts:this.getAmounts(nextProps)});
+            }
         }
     };
 
@@ -361,11 +371,10 @@ export class App extends Component<AppProps,AppState>{
                         selectedProjectId={this.props.selectedProjectId}
                         selectedAreaId={this.props.selectedAreaId}
                         id={this.props.id}
-                    /> 
+                    />  
                 }  
                 <MainContainer 
                     dispatch={this.props.dispatch} 
-                    amounts={this.state.amounts}
                     selectedCategory={this.props.selectedCategory}
                     limit={this.props.limit}
                     nextUpdateCheck={this.props.nextUpdateCheck}
@@ -395,9 +404,25 @@ export class App extends Component<AppProps,AppState>{
                     cloneWindow={this.cloneWindow}
                 /> 
             </div>   
+            {
+                !this.props.showTrashPopup ? null :    
+                <TrashPopup  
+                    dispatch={this.props.dispatch}
+                    showTrashPopup={this.props.showTrashPopup}
+                />
+            }
+            {   
+                !this.props.openChangeGroupPopup ? null : 
+                <ChangeGroupPopup    
+                    dispatch={this.props.dispatch}
+                    openChangeGroupPopup={this.props.openChangeGroupPopup}
+                    todos={this.props.todos}
+                    rightClickedTodoId={this.props.rightClickedTodoId}
+                />
+            }
             { 
                 this.props.clone ? null : 
-                not(this.props.openSettings) ? null :
+                !this.props.openSettings ? null :
                 <SettingsPopup  
                     email={this.props.email}
                     sync={this.props.sync}
@@ -419,25 +444,9 @@ export class App extends Component<AppProps,AppState>{
                     defaultTags={this.props.defaultTags}
                 />
             } 
-            {
-                not(this.props.showTrashPopup) ? null :    
-                <TrashPopup  
-                    dispatch={this.props.dispatch}
-                    showTrashPopup={this.props.showTrashPopup}
-                />
-            }
-            {   
-                not(this.props.openChangeGroupPopup) ? null : 
-                <ChangeGroupPopup    
-                    dispatch={this.props.dispatch}
-                    openChangeGroupPopup={this.props.openChangeGroupPopup}
-                    todos={this.props.todos}
-                    rightClickedTodoId={this.props.rightClickedTodoId}
-                />
-            }
             { 
                 this.props.clone ? null : 
-                not(this.props.showUpdatesNotification) ? null :
+                !this.props.showUpdatesNotification ? null :
                 <UpdateNotification  
                     dispatch={this.props.dispatch}
                     showUpdatesNotification={this.props.showUpdatesNotification}
@@ -446,7 +455,7 @@ export class App extends Component<AppProps,AppState>{
             }
             { 
                 this.props.clone ? null : 
-                not(this.props.showLicense) ? null :
+                !this.props.showLicense ? null :
                 <LicensePopup 
                     dispatch={this.props.dispatch}
                     showLicense={this.props.showLicense}
@@ -475,8 +484,7 @@ let renderApp = (config:Config, clonedStore:Store, id:number) : void => {
     let isClonedWindow : boolean = isNotNil(clonedStore);
     let isMainWindow : boolean = id===1;
     let defaultStore = {...defaultStoreItems};
-    let { nextUpdateCheck } = config;
-    
+    let { nextUpdateCheck, nextBackupCleanup } = config;
     app.id='application';      
     document.body.appendChild(app); 
     window.onbeforeunload = onCloseWindow(isMainWindow);
@@ -501,6 +509,7 @@ let renderApp = (config:Config, clonedStore:Store, id:number) : void => {
         ...defaultStore,
         ...config,
         nextUpdateCheck:initDate(nextUpdateCheck),
+        nextBackupCleanup:initDate(nextBackupCleanup),
         id
     };
    

@@ -2,7 +2,6 @@ import { collectSystemInfo } from './utils/collectSystemInfo';
 import Analytics from 'electron-ga';
 import { isNil } from 'ramda';
 import { ipcRenderer } from 'electron';
-import { getMachineIdSync } from './utils/userid';
 import { requestFromMain } from './utils/requestFromMain';
 
 let analytics = null;
@@ -20,7 +19,7 @@ export const googleAnalytics = ({
                                 analytics = new Analytics(
                                     'UA-113407516-1',
                                     {
-                                        userId:getMachineIdSync(),
+                                        userId:config.email,
                                         appName:"tasklist",
                                         appVersion:sysInfo.version,
                                         language:sysInfo.userLanguage,

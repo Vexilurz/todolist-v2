@@ -9,7 +9,7 @@ import { action } from '../../types';
 import { getMonthName } from '../../utils/utils';
 import Toggle from 'material-ui/Toggle';
 import { timeOfTheDay } from '../../utils/time';
-import { isToday } from '../../utils/isSomething';
+import { isToday, isString, isDate } from '../../utils/isSomething';
 import axios from 'axios';
 import { emailToUsername } from '../../utils/emailToUsername';
 import { host } from '../../utils/couchHost';
@@ -47,14 +47,17 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
 
 
     componentDidMount(){
-        checkAuthenticated().then(this.setAuthenticated)
+        checkAuthenticated()
+        .then(
+            auth => this.setAuthenticated( auth && isString(this.props.email) && isDate(this.props.lastSync) )
+        )
     }
 
     
 
     toggleSync = debounce(
         () => {
-            let shouldSync = !this.props.sync;
+            let shouldSync = !this.props.sync && isString(this.props.email);
 
             if(shouldSync && this.state.authenticated){
 

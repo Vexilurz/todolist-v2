@@ -352,7 +352,11 @@ export class Today extends Component<TodayProps,TodayState>{
   
 
         if(isDev()){
-           assert(this.props.selectedTag==="All" ? true : all( todo => contains(this.props.selectedTag)(todo.attachedTags),filter(items, isTodo) ), `missing tag. Today. ${this.props.selectedTag}`); 
+            assert(
+               this.props.selectedTag==="All" ? true : 
+               all( todo => contains(this.props.selectedTag)(todo.attachedTags), filter(items, isTodo) ), 
+               `missing tag. Today. ${this.props.selectedTag}`
+            ); 
         }
         
         

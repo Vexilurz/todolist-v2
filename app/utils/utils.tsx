@@ -209,11 +209,9 @@ export let measureTime = (f:(...args) => any, name?:string) =>
         let start : number = performance.now();
         let data = f.apply(null,args); 
         let finish : number = performance.now();
-
         if(isDev()){
            console.log(`${name ? name : f.name} - time of execution : ${finish - start} ms`);
         } 
- 
         return data; 
     }; 
 
@@ -1256,7 +1254,7 @@ export let createHeading = (e, props:Store) : Project => {
             createHeading.`
         );
 
-        assert(not(isNil(id)), `selectedProjectId undefined ${id}. createHeading.`);
+        assert(!isNil(id), `selectedProjectId undefined ${id}. createHeading.`);
     }
 
     let project = props.projects.find( (p:Project) => p._id===id );

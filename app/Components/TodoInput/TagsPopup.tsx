@@ -16,6 +16,7 @@ import { isArrayOfStrings } from '../../utils/isSomething';
 import AutosizeInput from 'react-input-autosize';
 import { Store } from '../../types';
 import { attachDispatchToProps } from '../../utils/utils';
+import { isDev } from '../../utils/isDev';
  
 interface TagsPopupProps{
     close : Function,
@@ -85,7 +86,10 @@ export class TagsPopup extends Component<TagsPopupProps,{}>{
                 
         render(){ 
             let tags = this.getTags();
-            assert(isArrayOfStrings(tags),'TodoTags');
+
+            if(isDev()){
+               assert(isArrayOfStrings(tags),'TodoTags');
+            }
 
             return <Popover  
                 open={this.props.open}

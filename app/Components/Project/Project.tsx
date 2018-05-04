@@ -71,7 +71,11 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     updateProject = (updatedProps) : void => { 
         let load = { ...this.props.project, ...updatedProps }; 
-        assert(isProject(load),`load is not a project. ${load}. updateProject. ProjectComponent.`);  
+        
+        if(isDev()){
+           assert(isProject(load),`load is not a project. ${load}. updateProject. ProjectComponent.`); 
+        } 
+
         this.props.dispatch({type:"updateProject", load}); 
     }; 
  
@@ -96,8 +100,10 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             let {project} = this.props;
             let layout = project.layout;
             let idx = layout.findIndex((i:any) => isString(i) ? false : i._id===headingId);
-         
-            assert(idx!==-1, `Item does not exist. ${headingId} updateHeading. ${layout}`); 
+            
+            if(isDev()){
+               assert(idx!==-1, `Item does not exist. ${headingId} updateHeading. ${layout}`); 
+            }
 
             let updatedLayout = adjust(() => ({...layout[idx] as Heading, title:newValue}), idx, layout);
             this.updateProject({layout:updatedLayout});
@@ -110,7 +116,9 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
     updateLayoutOrder = (layout:LayoutItem[]) => {
         let { project } = this.props;
 
-        assert(layout.length===project.layout.length,`incorrect length.updateLayoutOrder.`); 
+        if(isDev()){
+           assert(layout.length===project.layout.length,`incorrect length.updateLayoutOrder.`); 
+        }
           
         this.updateProject({layout});
     };
@@ -240,36 +248,13 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         let projectFilters = this.getProjectFilters();
         let layout = this.getLayout();
         let noScheduledTodos : boolean = this.noScheduledTodos(layout);  
-        /*       
-        if(isDev()){
-            let todos = filter(layout, item => item.type==="todo");
-            let completed = filter(todos, (item:Todo) => isDate(item.completedSet));
-            let active = filter(todos, (item:Todo) => isNil(item.completedSet));
-            
-            assert(
-                (
-                 completed.length===this.props.indicator.completed &&
-                 active.length===this.props.indicator.active
-                ), 
-                `Tasks count does not match indicator.
-                ${completed.length} : ${this.props.indicator.completed};
-                ${active.length} : ${this.props.indicator.active};
-                `
-            );
-        }      
-        */
-        
         
         //this items will go to project header, dont filter them by tag, 
         //because available tags will be derived from them        
         let toProjectHeader = this.getToProjectHeader(projectFilters,layout);
         
-        
-
         //filter by tag & by selected filters  
         let toProjectBody = this.getToProjectBody(projectFilters,layout);
-
-
 
         if(isDev()){
             if(selectedTag!=="All"){ 
@@ -280,8 +265,6 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             }
         };
         
-
-  
         return <div id={`${selectedCategory}-list`}>      
             <div className="unselectable">     
                 <ProjectHeader 

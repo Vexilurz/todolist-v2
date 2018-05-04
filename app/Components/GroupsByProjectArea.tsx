@@ -147,11 +147,14 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         let detached = defaultTo([])(result.detached); 
 
 
-            if(isDev()){ 
-                if(selectedTag!=="All"){ 
-                   assert(all((todo:Todo) => contains(selectedTag)(todo.attachedTags),selectedTodos),`missing tag. GroupsByProjectArea. ${selectedTag}`); 
-                }
+        if(isDev()){ 
+            if(selectedTag!=="All"){ 
+                assert(
+                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),selectedTodos),
+                    `missing tag. GroupsByProjectArea. ${selectedTag}`
+                ); 
             }
+        }
 
 
         return <div> 

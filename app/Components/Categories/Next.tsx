@@ -18,7 +18,6 @@ import { generateEmptyTodo } from '../../utils/generateEmptyTodo';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
 import { isNotArray, isString } from '../../utils/isSomething';
-import { assert } from '../../utils/assert';
 import { byHidden } from '../../utils/byHidden';
 import { projectsToHiddenTodosIDs } from '../../utils/projectsToHiddenTodosIDs';
 
