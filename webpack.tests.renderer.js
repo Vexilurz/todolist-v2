@@ -11,6 +11,7 @@ module.exports = [
          
         entry:{    
             'test':'./tests/renderer/test.tsx',
+            'repeat':'./tests/renderer/utils/repeat.ts'
         },  
 
         output:{             

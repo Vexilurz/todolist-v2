@@ -13,10 +13,13 @@ import { requestFromMain } from './utils/requestFromMain';
 import { isDev } from './utils/isDev';
 
 
-
  
- 
-let getActionsList : (action:action) => action[] = ifElse( typeEquals("multiple"), prop('load'), wrapArray );
+let getActionsList : (action:action) => action[] = 
+    ifElse( 
+        typeEquals("multiple"), 
+        prop('load'), 
+        wrapArray 
+    );
 
 
 

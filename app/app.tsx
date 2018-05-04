@@ -118,8 +118,6 @@ export class App extends Component<AppProps,AppState>{
         let lastSyncAction = { type:"lastSync", load:timestamp, kind:"sync" };
 
         let actions : action[] = compose(
-            log('actions'), 
-            map(action => ({...action,kind:"sync"})),
             changesToActions(dbname),
             toStoreChanges(this.props[dbname]) 
         )(docs);
@@ -176,7 +174,10 @@ export class App extends Component<AppProps,AppState>{
         .then( 
             auth => {
                 if(isString(this.props.email) && auth){
-                    pouchWorker.postMessage({type:"startSync", load:emailToUsername(this.props.email)});
+                    pouchWorker.postMessage({
+                       type:"startSync", 
+                       load:emailToUsername(this.props.email)
+                    });
                 }
             }
         );
@@ -200,7 +201,9 @@ export class App extends Component<AppProps,AppState>{
 
             this.initObservables();
 
-            collectSystemInfo().then( info => this.reportStart({...info} as any) );
+            collectSystemInfo().then( 
+                info => this.reportStart({...info} as any) 
+            );
         }
     }; 
 

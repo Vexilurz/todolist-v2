@@ -39,8 +39,8 @@ import { requestFromMain } from '../utils/requestFromMain';
 import { getData, moveReminderFromPast, assureCorrectNoteTypeProject, assureCorrectNoteTypeTodo, assureCorrectCompletedTypeTodo, updateQuickEntryData } from '../utils/getData';
 import { WhenCalendar } from './WhenCalendar';
 import { 
-    isNotEmpty, checkForUpdates, convertDates, printElement, byNotDeleted, log, sideEffect, convertProjectDates, 
-    convertTodoDates, convertAreaDates, limit 
+    isNotEmpty, checkForUpdates, convertDates, printElement, byNotDeleted, 
+    log, sideEffect, convertProjectDates, convertTodoDates, convertAreaDates, limit 
 } from '../utils/utils';
 import { threeDaysLater, inPast, oneMinuteLater, fourteenDaysLater, fiveMinutesLater } from '../utils/time'; 
 import { introListLayout, getIntroList, introListIds } from '../utils/introList';

@@ -40,7 +40,13 @@
   dependencies:
     electron "*"
 
-"@types/enzyme@^3.1.10":
+"@types/enzyme-adapter-react-15@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@types/enzyme-adapter-react-15/-/enzyme-adapter-react-15-1.0.2.tgz#c9fb9658e0d1aad53f833ed36dfbec0943945aca"
+  dependencies:
+    "@types/enzyme" "*"
+
+"@types/enzyme@*", "@types/enzyme@^3.1.10":
   version "3.1.10"
   resolved "https://registry.yarnpkg.com/@types/enzyme/-/enzyme-3.1.10.tgz#28108a9864e65699751469551a803a35d2e26160"
   dependencies:
@@ -6733,10 +6739,6 @@ react-input-autosize@^2.2.1:
   dependencies:
     prop-types "^15.5.8"
 
-react-is@^16.3.2:
-  version "16.3.2"
-  resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.3.2.tgz#f4d3d0e2f5fbb6ac46450641eb2e25bf05d36b22"
-
 react-keyboard-time-input@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/react-keyboard-time-input/-/react-keyboard-time-input-2.1.1.tgz#c67a9496e69f6fac7a4d9de4e84714671cd1bec5"
@@ -6764,14 +6766,12 @@ react-tap-event-plugin@^2.0.1:
   dependencies:
     fbjs "^0.8.6"
 
-react-test-renderer@^16.3.2:
-  version "16.3.2"
-  resolved "https://registry.yarnpkg.com/react-test-renderer/-/react-test-renderer-16.3.2.tgz#3d1ed74fda8db42521fdf03328e933312214749a"
+react-test-renderer@15.6.1:
+  version "15.6.1"
+  resolved "https://registry.yarnpkg.com/react-test-renderer/-/react-test-renderer-15.6.1.tgz#026f4a5bb5552661fd2cc4bbcd0d4bc8a35ebf7e"
   dependencies:
-    fbjs "^0.8.16"
-    object-assign "^4.1.1"
-    prop-types "^15.6.0"
-    react-is "^16.3.2"
+    fbjs "^0.8.9"
+    object-assign "^4.1.0"
 
 react-time-input@^0.0.17:
   version "0.0.17"

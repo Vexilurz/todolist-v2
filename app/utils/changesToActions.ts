@@ -18,6 +18,7 @@ export let changesToActions = (dbname:string) => (change:DatabaseChanges<any>) :
  
     
     return compose(
+        map(action => ({...action,kind:"sync"})),
         reject(anyPass([isNil, isEmpty])),
         values,
         evolve({ remove:evolve({ load:ifElse( isArray, map(prop('_id')), prop('_id') ) }) }), 

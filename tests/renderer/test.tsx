@@ -1,16 +1,20 @@
 import * as mocha from 'mocha'
-import { shallow } from 'enzyme';
 import { pick } from 'ramda'; 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { defaultStoreItems } from '../../app/defaultStoreItems';
-//import { MainContainer } from '../../app/Components/MainContainer';
-
+import { MainContainer } from '../../app/Components/MainContainer';
+import * as repeat from './utils/repeat'; 
 const MockDate = require('mockdate');  
-//Enzyme.configure({ adapter: new Adapter() });
-//mocha.setup('bdd')
 
+//import { configure, shallow } from 'enzyme';
+import * as Enzyme from 'enzyme';
+import * as Adapter from 'enzyme-adapter-react-15';
+import { getFilters } from '../../app/utils/getFilters';
+import { wrapMuiThemeLight } from '../../app/utils/wrapMuiThemeLight';
+Enzyme.configure({ adapter: new Adapter() });
 //let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
+
 
 const MainContainerProps = [
     "selectedCategory",
@@ -39,32 +43,38 @@ const MainContainerProps = [
     "selectedTag",
     "dragged"
 ]; 
-     
+   
+
 describe(
     '<MainContainer />', 
     () => {  
-        const wrapper = null;
-        /*shallow(
+        const wrapper = Enzyme.shallow(
             <MainContainer {
                 ...{ 
                     ...pick([MainContainerProps], defaultStoreItems),
-                    filters:{
-                        inbox:[],
-                        today:[],
-                        hot:[],
-                        next:[],
-                        someday:[],
-                        upcoming:[],
-                        logbook:[],
-                        trash:[]
-                    },
+                    filters:getFilters([]),
                     cloneWindow:() => {} ,
                     dispatch:() => {} 
                 }
             }/>
-        );*/
+        );
 
-        console.log(wrapper)
+        const wrapperMount = Enzyme.mount(
+            wrapMuiThemeLight(
+                <MainContainer {
+                    ...{ 
+                        ...pick([MainContainerProps], defaultStoreItems),
+                        filters:getFilters([]),
+                        cloneWindow:() => {} ,
+                        dispatch:() => {} 
+                    }
+                }/>
+            )
+        );
+
+        debugger;
+
+        console.log(wrapper);
 
         it(    
             ``,
