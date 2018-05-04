@@ -211,7 +211,7 @@ export let dropTodoOnCategory = ({
 
                     if(isDev()){
                         assert(
-                            filters.logbook[0](todo),
+                            filters.logbook[1](todo),
                             `Error : dropTodoOnCategory. Logbook. 
                              0 ${filters.logbook[0](todo)}
                              1 ${filters.logbook[1](todo)}

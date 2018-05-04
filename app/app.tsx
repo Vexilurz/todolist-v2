@@ -53,6 +53,7 @@ import { generateEmptyTodo } from './utils/generateEmptyTodo';
 import { isDev } from './utils/isDev';
 import { generateEmptyCalendar } from './utils/generateEmptyCalendar';
 import { logout } from './utils/logout';
+import { fixIncomingData } from './utils/fixIncomingData';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
@@ -104,37 +105,6 @@ export class App extends Component<AppProps,AppState>{
         if(isDev()){
            console.log(`%c pouch ${action.type}`, `color: "#000080"`, action.load);
         }
-
-
-        let setDefaults = (getTemplate:Function) => (next:any) => ({...getTemplate(),...next});
-        let setDefaultsTodo : (todo:Todo) => Todo = setDefaults(() => generateEmptyTodo(generateId(), "inbox", 0));
-        let setDefaultsProject : (project:Project) => Project = setDefaults(() => generateEmptyProject());
-        let setDefaultsArea : (area:Area) => Area = setDefaults(() => generateEmptyArea());
-        let setDefaultsCalendar : (calendar:Calendar) => Calendar = setDefaults(() => generateEmptyCalendar());
-        
-         
-        
-        let fixIncomingData = 
-            map(
-                cond(
-                    [
-                        [typeEquals("todo"), compose(convertTodoDates, setDefaultsTodo)],
-                        [typeEquals("project"), compose(convertProjectDates, setDefaultsProject)],
-                        [typeEquals("area"), compose(convertAreaDates, setDefaultsArea)],
-                        [
-                            typeEquals("calendar"), 
-                            compose(
-                                evolve({
-                                    events:map(convertEventDate)
-                                }), 
-                                setDefaultsCalendar
-                            )
-                        ],
-                        [() => true, identity]
-                    ]
-                )
-            );
-        
 
         let changes : { dbname:string, changes:PouchChanges } = action.load; 
         let dbname = prop("dbname")(changes);
@@ -189,7 +159,7 @@ export class App extends Component<AppProps,AppState>{
         }
     };
 
-    
+     
 
     initObservables = () => {
         this.subscriptions.push(
@@ -198,6 +168,7 @@ export class App extends Component<AppProps,AppState>{
             subscribeToChannel("error", this.onPouchError)
         );
     };
+
 
 
     initSync = () => 

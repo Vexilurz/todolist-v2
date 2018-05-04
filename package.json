@@ -7,7 +7,7 @@
     "start": "electron .",
     "publish": "build --win --publish always",
     "pack": "build --win",
-    "build": "start webpack --config webpack.config.main.js && webpack --config webpack.config.renderer.js",
+    "build": "start webpack --config webpack.config.main.js && webpack -w --config webpack.config.renderer.js",
     "production": "start webpack --config webpack.config.main.prod.js && webpack --config webpack.config.renderer.prod.js"
   },
   "repository": "",
