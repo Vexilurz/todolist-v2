@@ -7,14 +7,12 @@
     "start": "electron .",
     "publish": "build --win --publish always",
     "pack": "build --win",
-    "tests": "mocha ./tests/dist/main && mocha ./tests/dist/renderer",
-    "test:main": "mocha ./tests/dist/main",
-    "test:renderer": "mocha ./tests/dist/renderer",
-    "build": "start webpack --config webpack.config.main.js && webpack -w --config webpack.config.renderer.js",
-    "build:tests": "start webpack --config webpack.config.main.tests.js && webpack --config webpack.config.renderer.tests.js",
-    "build:tests:main": "start webpack --config webpack.config.main.tests.js",
-    "build:tests:renderer": "start webpack --config webpack.config.renderer.tests.js",
-    "production": "start webpack --config webpack.config.main.prod.js && webpack --config webpack.config.renderer.prod.js"
+    "test:main": "electron-mocha ./tests/dist/main",
+    "test:renderer": "electron-mocha --renderer ./tests/dist/renderer",
+    "build": "start webpack --config webpack.main.js && webpack -w --config webpack.renderer.js",
+    "build:tests:main": "start webpack --config webpack.tests.main.js",
+    "build:tests:renderer": "start webpack --config webpack.tests.renderer.js",
+    "production": "start webpack --config webpack.main.prod.js && webpack --config webpack.renderer.prod.js"
   },
   "repository": "",
   "keywords": [],
@@ -115,6 +113,7 @@
     "webpack-cli": "^2.0.15"
   },
   "dependencies": {
+    "electron-mocha": "^6.0.2",
     "raf": "^3.4.0",
     "resize-observer-polyfill": "^1.5.0",
     "rimraf": "^2.6.1",

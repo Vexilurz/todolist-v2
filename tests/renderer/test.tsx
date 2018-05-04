@@ -1,15 +1,15 @@
 import * as mocha from 'mocha'
-import {shallow} from 'enzyme';
-import { MainContainer } from '../../../app/Components/MainContainer';
-import { oneMinuteBefore, nextMidnight } from '../../../app/utils/utils';
-import { Store } from '../../../app/types';
+import { shallow } from 'enzyme';
 import { pick } from 'ramda'; 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
-import { defaultStoreItems } from '../../../app/defaultStoreItems';
+import { defaultStoreItems } from '../../app/defaultStoreItems';
+//import { MainContainer } from '../../app/Components/MainContainer';
+
 const MockDate = require('mockdate');  
 //Enzyme.configure({ adapter: new Adapter() });
 //mocha.setup('bdd')
+
 //let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 
 const MainContainerProps = [
@@ -43,7 +43,8 @@ const MainContainerProps = [
 describe(
     '<MainContainer />', 
     () => {  
-        const wrapper = shallow(
+        const wrapper = null;
+        /*shallow(
             <MainContainer {
                 ...{ 
                     ...pick([MainContainerProps], defaultStoreItems),
@@ -61,7 +62,7 @@ describe(
                     dispatch:() => {} 
                 }
             }/>
-        );
+        );*/
 
         console.log(wrapper)
 

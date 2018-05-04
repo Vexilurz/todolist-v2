@@ -34,12 +34,7 @@ module.exports = {
             options: {
               presets: ['@babel/preset-env']
             },
-          },
-          {   
-            test: /\.(css|scss)$/,   
-            exclude: /(node_modules)/, 
-            use: [ 'style-loader', 'css-loader']
-          }    
+          }  
         ]    
     },
  
@@ -48,7 +43,6 @@ module.exports = {
     target: "electron-main",     
 
     plugins:[ 
-        new CleanWebpackPlugin(['dist']),
         new webpack.DefinePlugin({
             NODE_ENV: JSON.stringify('development')
         })

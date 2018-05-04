@@ -10,7 +10,7 @@ module.exports = [
         mode:'development',
          
         entry:{    
-            'test':'./tests/renderer/app/test.tsx',
+            'test':'./tests/renderer/test.tsx',
         },  
 
         output:{             
@@ -50,22 +50,11 @@ module.exports = [
             ]   
         }, 
         
-        target: "web",     
+        target: "electron-renderer",     
         
         plugins : [
-            new webpack.DefinePlugin({
-                NODE_ENV: JSON.stringify('development'),
-                window:{}
-            }),
-            new HtmlWebpackPlugin({
-                title: 'Tests',
-                template: './tests/index.html'
-            })
-        ],
-        
-        node: {
-            fs: 'empty'
-        }
+            new webpack.DefinePlugin({NODE_ENV: JSON.stringify('development')})
+        ]
     }
 ];
  
