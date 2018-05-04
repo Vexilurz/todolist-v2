@@ -210,8 +210,14 @@ export let dropTodoOnCategory = ({
                     };
 
                     if(isDev()){
-                        assert(allPass(filters.logbook)(todo),`Error : dropTodoOnCategory. Logbook.`);
-                    }
+                        assert(
+                            filters.logbook[0](todo),
+                            `Error : dropTodoOnCategory. Logbook. 
+                             0 ${filters.logbook[0](todo)}
+                             1 ${filters.logbook[1](todo)}
+                            `
+                        );
+                    } 
 
                     return todo;
                 }
@@ -414,8 +420,8 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
             !isTodo(draggedTodo) || 
             isEmpty(draggedTodo.title)
         ){
-           dispatch({type:"multiple", load:actions}); 
-           return; 
+            dispatch({type:"multiple", load:actions}); 
+            return; 
         }
         
 
@@ -463,13 +469,13 @@ export class TodosList extends Component<TodosListProps, TodosListState>{
                let toIndex = layout.findIndex( i => i===to._id);
 
                if(fromIndex!==-1 && toIndex!==-1){
-                   dispatch({
+                    dispatch({
                        type:"updateProject",
                        load:{ 
                            ...target,
                            layout:arrayMove(layout,fromIndex,toIndex)
                        }
-                   })
+                    })
                } 
             }
         }else{

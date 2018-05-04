@@ -61,7 +61,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
 
             if(shouldSync && this.state.authenticated){
 
-               pouchWorker.postMessage({ type:"startSync", load:emailToUsername(this.props.email) });
+               pouchWorker.postMessage({type:"startSync", load:emailToUsername(this.props.email)});
 
             }else if(!shouldSync && this.state.authenticated){
 

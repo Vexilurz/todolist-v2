@@ -136,8 +136,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     }; 
                 }
             ], 
-
-
             [
                 typeEquals("toggleScheduled"),  
                 (action:{type:string, load:string}) : Store => {

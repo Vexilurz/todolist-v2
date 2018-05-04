@@ -8,10 +8,7 @@ export let removeCouchCookies = (url:string) : Promise<void> =>
             session.defaultSession.cookies.remove(
                 url, 
                 type, 
-                err => {
-                    if(err){ reject(err) }
-                    else{ resolve() }
-                }
+                err => resolve() 
             )
         }
     ); 

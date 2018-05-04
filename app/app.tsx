@@ -23,7 +23,7 @@ import {
 import { 
     isNil, map, when, evolve, prop, isEmpty, path, 
     compose, ifElse, mapObjIndexed, reject, values,
-    cond, identity 
+    cond, identity, any 
 } from 'ramda';
 import { Observable, Subscription } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -52,6 +52,7 @@ import { generateId } from './utils/generateId';
 import { generateEmptyTodo } from './utils/generateEmptyTodo';
 import { isDev } from './utils/isDev';
 import { generateEmptyCalendar } from './utils/generateEmptyCalendar';
+import { logout } from './utils/logout';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
@@ -91,6 +92,7 @@ export class App extends Component<AppProps,AppState>{
     openLoginForm = () => this.props.dispatch({
         type:"multiple", 
         load:[
+            {type:'sync', load:false}, 
             {type:"openSettings", load:true}, 
             {type:"selectedSettingsSection", load:'Sync'}
         ]
@@ -174,12 +176,16 @@ export class App extends Component<AppProps,AppState>{
 
         globalErrorHandler(error);
 
-        if(error.status===401 && error.error==="unauthorized"){
-            //logout first TODO
-           this.openLoginForm(); 
-        }else if(error.status===403 && error.error==="forbidden"){
-            //logout first TODO
-            //no permissions to access database
+        if(
+            any( 
+                identity,
+                [
+                    error.status===401 && error.error==="unauthorized",
+                    error.status===403 && error.error==="forbidden"
+                ]
+            )
+        ){
+            logout().then(() => this.openLoginForm());
         }
     };
 

@@ -14,6 +14,7 @@ import axios from 'axios';
 import { host } from '../utils/couchHost';
 import { removeCouchCookies } from '../utils/removeCouchCookies';
 import { workerSendAction } from '../utils/workerSendAction';
+import { logout } from '../utils/logout';
 import { pouchWorker } from '../app';
 
 
@@ -64,18 +65,16 @@ export class Connected extends Component<ConnectedProps,ConnectedState>{
         super(props);
     } 
 
-    onLogout = () => {
-        let load = [{ type:'sync', load:false }]; 
 
-        workerSendAction(pouchWorker)({type:"stopSync", load:null})
-        .then(() => removeCouchCookies(host))
-        .then(
-            () => {
-                this.props.setAuthenticated(false);
-                this.props.dispatch({type:'sync', load:false});
-            }
-        ) 
-    };
+    
+    onLogout = () => logout().then(
+        () => {
+            this.props.setAuthenticated(false);
+            this.props.dispatch({type:'sync', load:false});
+        }
+    );
+    
+    
 
     getLatUpdateMessage = () : string => {
         let month = getMonthName(this.props.lastSync);
