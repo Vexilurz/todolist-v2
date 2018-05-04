@@ -1,4 +1,8 @@
- 
+@keyframes spinner {
+  to {transform: rotate(360deg);}
+}
+
+
 body{  
   background-size:cover;
   height:100%;

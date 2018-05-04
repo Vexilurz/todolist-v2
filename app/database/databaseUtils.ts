@@ -3,7 +3,6 @@ Date.prototype["addDays"] = function(days){
     dat.setDate(dat.getDate() + days);
     return dat; 
 }; 
-import './assets/styles.css'; 
 import * as React from 'react'; 
 import * as ReactDOM from 'react-dom'; 
 import { ipcRenderer } from 'electron';
@@ -26,7 +25,7 @@ export let destroy = (databases:any[]) => Promise.all(databases.map(db => db.des
 
 
 let queryToObjects = (query:Query<any>) => query.rows.map(row => row.doc); 
-
+ 
 
 
 let getItems = (onError:Function, db:any) => db.allDocs({include_docs:true}).catch(onError);

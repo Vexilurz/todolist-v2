@@ -4,6 +4,7 @@ import * as ReactDOM from 'react-dom';
 import IconMenu from 'material-ui/IconMenu'; 
 import IconButton from 'material-ui/IconButton'; 
 import { Component } from "react"; 
+import { Spinner } from '../Spinner';
 import { 
     attachDispatchToProps, generateEmptyProject, generateEmptyArea, 
     byNotCompleted, byNotDeleted, byTags, byCategory, byCompleted, 
@@ -322,14 +323,15 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
                     />
                 </div>    
             </div>   
-            <div
-                style={{
-                    display:"flex", 
-                    paddingRight:"10px", 
-                    alignItems:"center", 
-                    cursor:"pointer"
-                }}
-            >     
+
+            <Spinner />
+
+            <div style={{
+                display:"flex", 
+                paddingRight:"10px", 
+                alignItems:"center", 
+                cursor:"pointer"
+            }}>     
                 <IconButton    
                 onClick = {(e) => openSettings(e)}  
                 iconStyle={{   
