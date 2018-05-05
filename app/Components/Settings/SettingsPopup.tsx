@@ -30,6 +30,7 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
                 email={this.props.email} 
                 sync={this.props.sync}
                 lastSync={this.props.lastSync}
+                secretKey={this.props.secretKey}
 
                 selectedSettingsSection={this.props.selectedSettingsSection}
                 enableShortcutForQuickEntry={this.props.enableShortcutForQuickEntry}

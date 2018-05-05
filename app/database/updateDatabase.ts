@@ -92,7 +92,7 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
     
     
     if(isNotEmpty(changes)){ 
-       let actionChanges : actionChanges = {type:"changes", load:{ changes, key:newState.key }};
+       let actionChanges : actionChanges = {type:"changes", load:{ changes, key:newState.secretKey }};
        pouchWorker.postMessage(actionChanges); 
     } 
 

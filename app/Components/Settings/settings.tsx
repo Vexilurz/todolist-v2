@@ -26,6 +26,7 @@ import { SyncSettings } from './SyncSettings';
 export interface SettingsProps{
     hideHint:boolean,
     selectedSettingsSection:section,
+    secretKey:string,
 
     enableShortcutForQuickEntry:boolean,
     quickEntrySavesTo:string,
@@ -181,6 +182,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         (selectedSettingsSection:string) : boolean => selectedSettingsSection==="Advanced",  
                         () => <AdvancedSettings 
                             limit={this.props.limit}
+                            secretKey={this.props.secretKey}
                             shouldSendStatistics={this.props.shouldSendStatistics}
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             groupTodos={this.props.groupTodos}

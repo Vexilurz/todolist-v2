@@ -8,7 +8,6 @@ import {
 } from './databaseUtils';
 import { singleItem } from './../utils/singleItem'; 
 import { sleep } from './../utils/sleep'; 
-import { decryptData, encryptData } from './../utils/crypto/crypto'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { 

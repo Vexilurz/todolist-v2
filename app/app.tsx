@@ -178,7 +178,7 @@ export class App extends Component<AppProps,AppState>{
                         type:"startSync", 
                         load:{ 
                             username: emailToUsername(this.props.email),
-                            key: this.props.key 
+                            key: this.props.secretKey
                         }
                     };
 
@@ -361,7 +361,7 @@ export class App extends Component<AppProps,AppState>{
                 }  
                 <MainContainer 
                     dispatch={this.props.dispatch} 
-                    key={this.props.key}
+                    secretKey={this.props.secretKey}
                     selectedCategory={this.props.selectedCategory}
                     limit={this.props.limit}
                     nextUpdateCheck={this.props.nextUpdateCheck}
@@ -412,6 +412,7 @@ export class App extends Component<AppProps,AppState>{
                 !this.props.openSettings ? null :
                 <SettingsPopup  
                     email={this.props.email}
+                    secretKey={this.props.secretKey}
                     sync={this.props.sync}
                     lastSync={this.props.lastSync}
                     dispatch={this.props.dispatch} 

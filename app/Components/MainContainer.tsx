@@ -55,7 +55,7 @@ interface MainContainerProps{
     nextBackupCleanup:Date,
     selectedTodo:Todo, 
     scrolledTodo:Todo,
-    key:string,
+    secretKey:string,
     showRepeatPopup:boolean,
     hideHint:boolean,
     firstLaunch:boolean,
@@ -132,7 +132,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
     
 
     initData : () => Promise<void> = () => 
-    getData(this.props.key)
+    getData(this.props.secretKey)
     .then(
         evolve({  
             projects:map( compose(assureCorrectNoteTypeProject, convertProjectDates) ), 

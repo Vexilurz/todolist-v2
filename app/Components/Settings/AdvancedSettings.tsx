@@ -35,7 +35,7 @@ let remRev = compose(map(removeRev), defaultTo([]));
 
 interface AdvancedProps{
     limit:Date,
-    key:string,
+    secretKey:string,
     enableShortcutForQuickEntry:boolean,
     shouldSendStatistics:boolean,
     moveCompletedItemsToLogbook:any,
@@ -103,7 +103,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
             type:"set",
             load:{
                 database:load,
-                key:this.props.key
+                key:this.props.secretKey
             }
         };
 
@@ -117,7 +117,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
    
 
     export : (folder:string) => Promise<void> = (folder:string) => 
-    getData(this.props.key)
+    getData(this.props.secretKey)
     .then(
         (database:Databases) => {
             let where = path.resolve(folder, `${keyFromDate(new Date())}-${uniqid()}.json`);
@@ -136,7 +136,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
     backup : () => Promise<string> = () => 
-    getData(this.props.key)
+    getData(this.props.secretKey)
     .then( 
         (database:Databases) => requestFromMain(
             'saveBackup', 

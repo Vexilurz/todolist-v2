@@ -116,7 +116,7 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
         let load = [
             { type:'sync', load:true },  
             { type:'email', load:this.state.email },
-            { type:'key', load:key },
+            { type:'secretKey', load:key },
             { type:'salt', load:salt }
         ]; 
 

@@ -272,7 +272,7 @@ export interface Cookie{
 
   
 export interface Config{
-    key:string,
+    secretKey:string,
     salt:string, 
     email:string,
     sync:boolean,    
