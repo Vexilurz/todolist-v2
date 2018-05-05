@@ -23,7 +23,7 @@ import {
 import { 
     isNil, map, when, evolve, prop, isEmpty, path, 
     compose, ifElse, mapObjIndexed, reject, values,
-    cond, identity, any 
+    cond, identity, any, defaultTo, fromPairs 
 } from 'ramda';
 import { Observable, Subscription } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -113,7 +113,13 @@ export class App extends Component<AppProps,AppState>{
         if(isNil(change) || isEmpty(change.docs) || !change.ok){  return  }
  
         let timestamp = new Date(change.start_time);
-        let docs = fixIncomingData(change.docs);
+
+        let docs = compose( 
+            fixIncomingData, 
+            data =>  fromPairs( [[dbname,data]] ),  
+            defaultTo([]), 
+            prop('docs')
+        )(change);
  
         let lastSyncAction = { type:"lastSync", load:timestamp, kind:"sync" };
 

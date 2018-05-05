@@ -270,6 +270,14 @@ export interface Cookie{
 };
 
 
+
+export type withOne = (onError:Function, db:any, key:string) => (doc:any) => Promise<any>;
+
+
+
+export type withMany = (onError:Function, db:any, key:string) => (docs:any[]) => Promise<any>;
+
+
   
 export interface Config{
     secretKey:string,

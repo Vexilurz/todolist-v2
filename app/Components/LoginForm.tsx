@@ -21,6 +21,8 @@ import { workerSendAction } from '../utils/workerSendAction';
 import { pouchWorker } from '../app';
 import { pwdToKey } from '../utils/crypto/crypto';
 
+
+
 interface LoginFormProps{
     dispatch:(action:action) => void,
     setAuthenticated:Function,
@@ -108,33 +110,25 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
 
     onAuth = response => {
         if(response.status!==200){ return }
-        let send = workerSendAction(pouchWorker);
-        let salt = "test";
-        let pwd = "password";
-        let key = pwdToKey(salt)(pwd);
+
+        let username = emailToUsername(this.state.email);
+        let password = this.state.password;
+        let key = pwdToKey(username)(password);
 
         let load = [
             { type:'sync', load:true },  
             { type:'email', load:this.state.email },
             { type:'secretKey', load:key },
-            { type:'salt', load:salt }
+            { type:'salt', load:username }
         ]; 
+
+        let actionStartSync : actionStartSync = {type:"startSync", load:{username,key}};
 
         this.props.dispatch({type:'multiple', load});
 
-        let actionStartSync : actionStartSync = {
-            type:"startSync", 
-            load:{ 
-                username: emailToUsername(this.state.email),
-                key
-            }
-        };
-
-        send(actionStartSync)
+        workerSendAction(pouchWorker)(actionStartSync)
         .then(
-            () => {
-                this.props.setAuthenticated(true);
-            }
+            () => this.props.setAuthenticated(true)
         )
     };      
 

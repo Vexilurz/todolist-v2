@@ -8,6 +8,7 @@ import {
     remove, isNil, not, isEmpty, compose, toPairs, map, findIndex, equals, ifElse, evolve,
     contains, last, cond, defaultTo, flatten, uniq, concat, all, identity, when, prop, applyTo 
 } from 'ramda';
+
 import { Checkbox } from '../TodoInput/TodoInput';
 import { 
     checkForUpdates, getCompletedWhen, log, removeRev, 
@@ -22,8 +23,9 @@ import { requestFromMain } from '../../utils/requestFromMain';
 import { getData } from '../../utils/getData';
 import { convertEventDate } from '../Calendar';
 import { keyFromDate } from '../../utils/time';
-import { ipcRenderer } from 'electron'; 
+import { ipcRenderer } from 'electron';  
 import { pouchWorker } from '../../app';
+import { fixIncomingData } from './../../utils/fixIncomingData';
 import { workerSendAction } from '../../utils/workerSendAction';
 const Promise = require("bluebird");
 const uniqid = require("uniqid");     
@@ -101,13 +103,10 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
         let actionSetDatabase : actionSetDatabase = {
             type:"set",
-            load:{
-                database:load,
-                key:this.props.secretKey
-            }
+            load:{ database:load, key:this.props.secretKey }
         };
 
-        return workerSendAction(pouchWorker)({type:"set",load});
+        return workerSendAction(pouchWorker)(actionSetDatabase);
     };
 
     
@@ -157,13 +156,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                                             .then(this.backup)
                                             .then((to:string) => this.updateState({message:this.message(to)}))
                                             .then(() => this.setData(database)),
-                evolve({todos:remRev,projects:remRev,areas:remRev,calendars:remRev}),
-                data => ({
-                    projects:defaultTo([], data.projects), 
-                    areas:defaultTo([], data.areas), 
-                    todos:defaultTo([], data.todos), 
-                    calendars:map( evolve({ events:map(convertEventDate) }), defaultTo([], data.calendars) )
-                }),
+                fixIncomingData, 
                 sideEffect(closeClonedWindows)
             ),
             () => this.updateState({message:"Incorrect format"})
@@ -185,6 +178,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     .then(
         ifElse( isNil, () => new Promise( resolve => resolve() ), d => this.import(d) )
     );
+
     
 
  

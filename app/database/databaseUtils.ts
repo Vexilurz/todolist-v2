@@ -15,7 +15,7 @@ import {
 import { isArea, isString, isProject, isTodo } from '../utils/isSomething';
 import { 
     Calendar, ChecklistItem, Category, RawDraftContentState, 
-    RepeatOptions, Todo, Project, Area, Query, Databases 
+    RepeatOptions, Todo, Project, Area, Query, Databases, withOne, withMany 
 } from '../types';
 import { isDev } from '../utils/isDev';
 import { singleItem } from '../utils/singleItem';
@@ -36,7 +36,7 @@ let queryToObjects = (query:Query<any>) => query ? query.rows.map(row => row.doc
 //get one
 let getItemFromDatabase = (onError:Function, db:any, key:string) =>
     (_id:string) : Promise<any> => {
-        let decrypt = decryptDoc(db.name,key);
+        let decrypt = decryptDoc(db.name,key,onError);
         return db.get(_id).then(doc => decrypt(doc)).catch(onError);
     };
  
@@ -45,11 +45,11 @@ let getItemFromDatabase = (onError:Function, db:any, key:string) =>
 //set one    
 let setItemToDatabase = (onError:Function, db:any, key:string) => 
     (item:any) : Promise<void> => {
-        let doc = encryptDoc(db.name,key)(item);
+        let doc = encryptDoc(db.name,key,onError)(item);
         return db.put(doc).catch(onError);
     };
 
-
+    //rehabilitative konked carriwitchet aqualungs sapota
 
 //update one    
 let updateItemInDatabase = (onError:Function, db:any, key:string) => {
@@ -87,7 +87,7 @@ let updateItemInDatabase = (onError:Function, db:any, key:string) => {
 //get all
 let getItemsFromDatabase = (onError:Function, db:any, key:string, opt?:any) => {
     let options = defaultTo({include_docs:true})(opt);
-    let decrypt = map(decryptDoc(db.name,key));
+    let decrypt = map(decryptDoc(db.name,key,onError));
     return db.allDocs(options).then(queryToObjects).then(docs => decrypt(docs)).catch(onError);
 };
 
@@ -96,7 +96,7 @@ let getItemsFromDatabase = (onError:Function, db:any, key:string, opt?:any) => {
 //set many
 export let setItemsToDatabase = (onError:Function, db:any, key:string) => 
     (items:any[]) : Promise<void> => {
-        let docs = map( encryptDoc(db.name,key), items );
+        let docs = map( encryptDoc(db.name,key,onError), items );
         return db.bulkDocs(docs).catch(onError); 
     };
 
@@ -163,10 +163,6 @@ export let getDatabaseObjects = (onError:Function, databases:any[], key:string) 
     .then(fromPairs);
 
 
-
-type withOne = (onError:Function, db:any, key:string) => (doc:any) => Promise<any>;
-
-type withMany = (onError:Function, db:any, key:string) => (docs:any[]) => Promise<any>;
 
 let mapDatabaseItems = (withOne:withOne, withMany:withMany) => (db:any, onError:Function, key:string) => 
     ifElse(

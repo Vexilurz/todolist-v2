@@ -34,7 +34,6 @@ let areas_db = new PouchDB('areas',{auto_compaction: true});
 let calendars_db = new PouchDB('calendars',{auto_compaction: true}); 
 let databases = [todos_db, projects_db, areas_db, calendars_db];
 
-
 let list = [];
 
 //destroy(databases);
@@ -155,11 +154,17 @@ let setDatabase = (action:actionSetDatabase) : Promise<void> =>
     stopSync({type:'stopSync',load:null})  
     .then(() => destroy(databases))
     .then(() => init())
-    .then((databases) => Promise.all( 
-        databases.map( 
-            db => setItemsToDatabase(onError, db, action.load.key)(action.load.database[db.name])
-        ) 
-    ));
+    .then(
+        (databases) => {
+            return Promise.all( 
+                databases.map( 
+                    db => setItemsToDatabase(
+                        onError, db, action.load.key
+                    )(action.load.database[db.name])
+                ) 
+            )
+        }
+    );
 
 
 

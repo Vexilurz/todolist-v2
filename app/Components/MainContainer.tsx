@@ -44,6 +44,7 @@ import {
 } from '../utils/utils';
 import { threeDaysLater, inPast, oneMinuteLater, fourteenDaysLater, fiveMinutesLater } from '../utils/time'; 
 import { introListLayout, getIntroList, introListIds } from '../utils/introList';
+import { fixIncomingData } from '../utils/fixIncomingData';
 
 
 
@@ -129,24 +130,11 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
       
     onError = (e) => globalErrorHandler(e); 
 
-    
+     
 
     initData : () => Promise<void> = () => 
     getData(this.props.secretKey)
-    .then(
-        evolve({  
-            projects:map( compose(assureCorrectNoteTypeProject, convertProjectDates) ), 
-            areas:map(convertAreaDates),
-            todos:map(
-                compose(
-                    moveReminderFromPast, 
-                    assureCorrectCompletedTypeTodo, 
-                    assureCorrectNoteTypeTodo,
-                    convertTodoDates
-                )
-            )  
-        })
-    )
+    .then(fixIncomingData)
     .then(({calendars,todos,projects,areas}) => 
 
         updateCalendars(this.props.limit,calendars,this.onError)

@@ -481,7 +481,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                     <div className={`no-print`}>
                     <Hint  
                         text={`These are your tasks for the next days. Do you also want to include the events from your calendar?`}
-                        dispatch={this.props.dispatch}
+                        dispatch={this.props.dispatch} 
                         hideHint={this.props.hideHint}          
                     /> 
                     </div>
@@ -489,7 +489,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 <div>{
                     this.state
                     .objects
-                    .filter(object => any(isNotEmpty)(object.todos,object.projects,object.events))
+                    .filter(object => any(isNotEmpty)([object.todos,object.projects,object.events]))
                     .map(this.objectToComponent)
                 }</div>
                 <div className={`no-print`} style={{width:"100%", height:"1px"}}> 

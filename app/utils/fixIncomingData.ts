@@ -1,25 +1,55 @@
 import { convertEventDate } from './../Components/Calendar';
-import { map, cond, compose, evolve, identity } from 'ramda';
-import { typeEquals, convertTodoDates, convertProjectDates, convertAreaDates } from './utils';
+import { map, cond, compose, evolve, identity, defaultTo } from 'ramda';
+import { typeEquals, convertTodoDates, convertProjectDates, convertAreaDates, removeRev } from './utils';
 import { setDefaultsTodo, setDefaultsProject, setDefaultsArea, setDefaultsCalendar } from './setDefaults';
+import { assureCorrectCompletedTypeTodo, moveReminderFromPast, assureCorrectNoteTypeTodo, assureCorrectNoteTypeProject } from './getData';
 
+ 
 export let fixIncomingData = 
-    map(
-        cond(
-            [
-                [typeEquals("todo"), compose(convertTodoDates, setDefaultsTodo)],
-                [typeEquals("project"), compose(convertProjectDates, setDefaultsProject)],
-                [typeEquals("area"), compose(convertAreaDates, setDefaultsArea)],
-                [
-                    typeEquals("calendar"), 
-                    compose(
-                        evolve({
-                            events:map(convertEventDate)
-                        }), 
-                        setDefaultsCalendar
-                    )
-                ],
-                [() => true, identity]
-            ]
+    evolve({
+        todos: compose(
+            map( 
+                compose( 
+                    removeRev,
+                    moveReminderFromPast, 
+                    assureCorrectCompletedTypeTodo, 
+                    assureCorrectNoteTypeTodo,
+                    convertTodoDates,
+                    setDefaultsTodo
+                )
+            ),
+            defaultTo([])
+        ),
+        projects:compose(
+            map( 
+                compose( 
+                    assureCorrectNoteTypeProject, 
+                    convertProjectDates,
+                    removeRev,
+                    setDefaultsProject
+                )
+            ),
+            defaultTo([])
+        ),
+        areas:compose(
+            map( 
+                compose( 
+                    removeRev, 
+                    convertAreaDates,
+                    setDefaultsArea 
+                ) 
+            ),
+            defaultTo([])
+        ),
+        calendars:compose(
+            map( 
+                compose( 
+                    removeRev, 
+                    evolve({ events:map(convertEventDate) }),
+                    setDefaultsCalendar 
+                ) 
+            ),
+            defaultTo([]) 
         )
-    );
+    });
+
