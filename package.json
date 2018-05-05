@@ -19,6 +19,7 @@
   "author": "Pixelbutler",
   "license": "",
   "devDependencies": {
+    "@types/crypto-js": "^3.1.39",
     "@types/electron": "^1.6.10",
     "@types/enzyme": "^3.1.10",
     "@types/enzyme-adapter-react-15": "^1.0.2",
@@ -105,7 +106,6 @@
     "spectron": "^3.8.0",
     "style-loader": "^0.21.0",
     "tapable": "^1.0.0",
-    "transform-pouch": "^1.1.4",
     "ts-loader": "^4.2.0",
     "typeface-roboto": "^0.0.45",
     "typescript": "2.7.2",

@@ -5,7 +5,7 @@ import {
 import { isNotArray, isDate, isTodo, isString, isNotNil } from '../utils/isSomething';
 import { Observable, Subscription } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
-import { Heading, LayoutItem, Calendar, Todo, Project, Area, Databases, action } from '.././types';
+import { Heading, LayoutItem, Calendar, Todo, Project, Area, Databases, action, actionLoadDatabase } from '.././types';
 import { noteFromText } from './draftUtils';
 import { convertProjectDates, convertAreaDates, convertTodoDates, measureTimePromise, typeEquals } from './utils';
 import { updateCalendars } from '../Components/Calendar';
@@ -59,7 +59,10 @@ export let assureCorrectCompletedTypeTodo : (todo:Todo) => Todo =
 
 
 
-export let getData =  () : Promise<Databases> => workerSendAction(pouchWorker)({type:"load",load:null});
+export let getData = (key:string) : Promise<Databases> => {
+    let actionLoadDatabase : actionLoadDatabase = {type:"load",load:key};
+    return workerSendAction(pouchWorker)(actionLoadDatabase);
+}
 
 
 

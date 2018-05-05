@@ -323,20 +323,18 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
                     />
                 </div>    
             </div>   
-            <div> <Spinner /> </div>            
-            <div style={{
-                display:"flex", 
-                paddingRight:"10px", 
-                alignItems:"center", 
-                cursor:"pointer"
-            }}>     
+            <div style={{flexGrow: 1, display: "flex", justifyContent:"flex-end"}}> 
+                <Spinner /> 
+            </div>            
+            <div style={{display:"flex", paddingRight:"10px", alignItems:"center", cursor:"pointer"}}>     
                 <IconButton    
-                onClick = {(e) => openSettings(e)}  
-                iconStyle={{   
-                    color:"rgba(100, 100, 100, 1)",
-                    width:"25px", 
-                    height:"25px"   
-                }}>        
+                    onClick = {(e) => openSettings(e)}  
+                    iconStyle={{   
+                        color:"rgba(100, 100, 100, 1)",
+                        width:"25px", 
+                        height:"25px"   
+                    }}
+                >        
                     <Adjustments /> 
                 </IconButton>  
             </div> 

@@ -5,7 +5,7 @@ import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
 import { isNil, isEmpty, compose, path, toLower, cond, contains, defaultTo, ifElse } from 'ramda';
 import Cloud from 'material-ui/svg-icons/file/cloud-done';
-import { action } from '../types';
+import { action, actionStartSync } from '../types';
 import { getMonthName } from '../utils/utils';
 import Toggle from 'material-ui/Toggle';
 import { timeOfTheDay } from '../utils/time';
@@ -19,6 +19,7 @@ import { LoginFormInput  } from './LoginFormInput';
 import { getToken } from '../utils/getToken';
 import { workerSendAction } from '../utils/workerSendAction';
 import { pouchWorker } from '../app';
+import { pwdToKey } from '../utils/crypto/crypto';
 
 interface LoginFormProps{
     dispatch:(action:action) => void,
@@ -107,14 +108,32 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
 
     onAuth = response => {
         if(response.status!==200){ return }
+        let send = workerSendAction(pouchWorker);
+        let salt = "test";
+        let pwd = "password";
+        let key = pwdToKey(salt)(pwd);
 
-        let load = [{ type:'sync', load:true },  { type:'email', load:this.state.email }]; 
+        let load = [
+            { type:'sync', load:true },  
+            { type:'email', load:this.state.email },
+            { type:'key', load:key },
+            { type:'salt', load:salt }
+        ]; 
 
-        workerSendAction(pouchWorker)({type:"startSync", load:emailToUsername(this.state.email)})
+        this.props.dispatch({type:'multiple', load});
+
+        let actionStartSync : actionStartSync = {
+            type:"startSync", 
+            load:{ 
+                username: emailToUsername(this.state.email),
+                key
+            }
+        };
+
+        send(actionStartSync)
         .then(
             () => {
                 this.props.setAuthenticated(true);
-                this.props.dispatch({type:'multiple', load});
             }
         )
     };      

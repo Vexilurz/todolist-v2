@@ -7,6 +7,18 @@ import { Store, Category, Todo, section, Calendar, Area, Project } from "./types
 export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => {
     return cond([
             [ 
+                typeEquals("key"),
+                (action:{type:string, load:string}) : Store => {
+                    return ({...state, key:action.load}); 
+                }   
+            ],   
+            [ 
+                typeEquals("salt"),
+                (action:{type:string, load:string}) : Store => {
+                    return ({...state, salt:action.load}); 
+                }   
+            ],   
+            [ 
                 typeEquals("defaultTags"),
                 (action:{type:string,load:string[]}) : Store => {
                     return ({...state, defaultTags:action.load}); 

@@ -2,6 +2,8 @@ import { Config } from "./types";
 import { defaultTags } from './defaultTags';
 
 export const defaultConfig : Config = { 
+    key:null,
+    salt:null, 
     email:null, 
     sync:false,
     nextUpdateCheck:new Date(),

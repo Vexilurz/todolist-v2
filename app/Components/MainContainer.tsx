@@ -55,6 +55,7 @@ interface MainContainerProps{
     nextBackupCleanup:Date,
     selectedTodo:Todo, 
     scrolledTodo:Todo,
+    key:string,
     showRepeatPopup:boolean,
     hideHint:boolean,
     firstLaunch:boolean,
@@ -131,7 +132,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
     
 
     initData : () => Promise<void> = () => 
-    getData()
+    getData(this.props.key)
     .then(
         evolve({  
             projects:map( compose(assureCorrectNoteTypeProject, convertProjectDates) ), 
@@ -146,15 +147,15 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             )  
         })
     )
-    .then(
-        ({calendars,todos,projects,areas}) => 
+    .then(({calendars,todos,projects,areas}) => 
+
         updateCalendars(this.props.limit,calendars,this.onError)
         .then( 
             (updated) => updateQuickEntryData({projects,areas,todos,calendars:updated}) 
         ) 
     )
-    .then(
-        ({projects, areas, todos, calendars}) => 
+    .then(({projects, areas, todos, calendars}) => 
+    
         this.setData({
             projects:defaultTo([], projects), 
             areas:defaultTo([], areas), 

@@ -1,3 +1,46 @@
+type Key = string;
+
+export interface actionStartSync{
+    type:"startSync",
+    load:{username:string, key:Key}
+};
+
+
+
+export interface actionStopSync{
+    type:"stopSync",
+    load:any
+};
+
+
+
+export interface actionChanges{
+    type:"changes",
+    load:{
+        changes:Changes,
+        key:Key
+    }
+};
+
+
+
+export interface actionLoadDatabase{
+    type:"load",
+    load:Key
+};
+
+
+
+export interface actionSetDatabase{
+    type:"set",
+    load:{
+        database:Databases,
+        key:Key
+    }
+};
+
+
+
 export interface Databases{
     todos:Todo[],
     projects:Project[],
@@ -229,6 +272,8 @@ export interface Cookie{
 
   
 export interface Config{
+    key:string,
+    salt:string, 
     email:string,
     sync:boolean,    
     nextBackupCleanup:Date,
@@ -290,6 +335,7 @@ export interface Calendar{
     active:boolean,
     events:CalendarEvent[],
     type:ObjectType, 
+    enc?:boolean,  
     _id:string
 };  
 
@@ -323,6 +369,7 @@ export interface Project{
   attachedTags : string[], 
   hide? : Category[],
   expand? : number,
+  enc? : boolean, 
   showCompleted? : boolean,
   showScheduled? : boolean
 };
@@ -339,7 +386,8 @@ export interface Area{
   description : string,
   attachedTags : string[], 
   attachedProjectsIds : string[], 
-  hideContentFromAreasList? : boolean
+  hideContentFromAreasList? : boolean,
+  enc?:boolean 
 };  
 
 
@@ -390,7 +438,8 @@ export interface Todo{
   completedSet : Date,
   completedWhen : Date, 
   group?:Group,
-  completed?:Date 
+  completed?:Date,
+  enc?:boolean 
 }; 
   
 

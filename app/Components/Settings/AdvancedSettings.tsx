@@ -14,7 +14,7 @@ import {
     closeClonedWindows, correctFormat, selectFolder, selectJsonDatabase, sideEffect 
 } from '../../utils/utils'; 
 import { isNewVersion } from '../../utils/isNewVersion';
-import { Area, Project, Todo, Calendar, Databases } from '../../types'; 
+import { Area, Project, Todo, Calendar, Databases, actionSetDatabase } from '../../types'; 
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater'; 
 import { isArrayOfTodos, isNotNil } from '../../utils/isSomething';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
@@ -35,6 +35,7 @@ let remRev = compose(map(removeRev), defaultTo([]));
 
 interface AdvancedProps{
     limit:Date,
+    key:string,
     enableShortcutForQuickEntry:boolean,
     shouldSendStatistics:boolean,
     moveCompletedItemsToLogbook:any,
@@ -98,6 +99,14 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
             ]
         }); 
 
+        let actionSetDatabase : actionSetDatabase = {
+            type:"set",
+            load:{
+                database:load,
+                key:this.props.key
+            }
+        };
+
         return workerSendAction(pouchWorker)({type:"set",load});
     };
 
@@ -108,7 +117,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
    
 
     export : (folder:string) => Promise<void> = (folder:string) => 
-    getData()
+    getData(this.props.key)
     .then(
         (database:Databases) => {
             let where = path.resolve(folder, `${keyFromDate(new Date())}-${uniqid()}.json`);
@@ -127,7 +136,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
     backup : () => Promise<string> = () => 
-    getData()
+    getData(this.props.key)
     .then( 
         (database:Databases) => requestFromMain(
             'saveBackup', 

@@ -5,7 +5,7 @@ import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
 import { isNil, isEmpty, compose, path, toLower, cond, contains } from 'ramda';
 import Cloud from 'material-ui/svg-icons/file/cloud-done';
-import { action } from '../../types';
+import { action, actionStartSync } from '../../types';
 import { getMonthName } from '../../utils/utils';
 import Toggle from 'material-ui/Toggle';
 import { timeOfTheDay } from '../../utils/time';
@@ -60,8 +60,15 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
             let shouldSync = !this.props.sync && isString(this.props.email);
 
             if(shouldSync && this.state.authenticated){
+                let actionStartSync : actionStartSync = {
+                    type:"startSync", 
+                    load:{ 
+                        username:emailToUsername(this.props.email),
+                        key:this.props.key
+                    }
+                }; 
 
-               pouchWorker.postMessage({type:"startSync", load:emailToUsername(this.props.email)});
+               pouchWorker.postMessage(actionStartSync);
 
             }else if(!shouldSync && this.state.authenticated){
 

@@ -1,6 +1,6 @@
 import { detectChanges } from './detectChanges';
 import { pouchWorker } from './../app';
-import { Project, Area, Todo, Calendar, Store, action, withId, Changes, DatabaseChanges } from '../types';
+import { Project, Area, Todo, Calendar, Store, action, withId, Changes, DatabaseChanges, actionChanges } from '../types';
 import { isDev } from '../utils/isDev';
 import { 
     adjust, cond, all, isEmpty, contains, not, remove, uniq, assoc, reverse, 
@@ -88,9 +88,12 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
     if(isEmpty(actions)){ return newState }
 
     let changes = detectChanges(state)(newState);
+
+    
     
     if(isNotEmpty(changes)){ 
-       pouchWorker.postMessage({type:"changes", load:changes}); 
+       let actionChanges : actionChanges = {type:"changes", load:{ changes, key:newState.key }};
+       pouchWorker.postMessage(actionChanges); 
     } 
 
     return newState; 

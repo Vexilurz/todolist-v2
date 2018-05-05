@@ -18,7 +18,7 @@ import { MainContainer } from './Components/MainContainer';
 import { filter } from 'lodash';
 import { 
     Project, Todo, Calendar, Config, Store, Indicators, action, 
-    PouchChanges, PouchError, PouchChange, DatabaseChanges, Area 
+    PouchChanges, PouchError, PouchChange, DatabaseChanges, Area, actionStartSync 
 } from './types';
 import { 
     isNil, map, when, evolve, prop, isEmpty, path, 
@@ -54,10 +54,10 @@ import { isDev } from './utils/isDev';
 import { generateEmptyCalendar } from './utils/generateEmptyCalendar';
 import { logout } from './utils/logout';
 import { fixIncomingData } from './utils/fixIncomingData';
+import { pwdToKey } from './utils/crypto/crypto';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
-pouchWorker.postMessage({type:"encryption",load:"test"});
 
 
 interface AppProps extends Store{}
@@ -174,10 +174,16 @@ export class App extends Component<AppProps,AppState>{
         .then( 
             auth => {
                 if(isString(this.props.email) && auth){
-                    pouchWorker.postMessage({
-                       type:"startSync", 
-                       load:emailToUsername(this.props.email)
-                    });
+                    let action : actionStartSync = {
+                        type:"startSync", 
+                        load:{ 
+                            username: emailToUsername(this.props.email),
+                            key: this.props.key 
+                        }
+                    };
+
+                    pouchWorker.postMessage(action);
+
                 }
             }
         );
@@ -355,6 +361,7 @@ export class App extends Component<AppProps,AppState>{
                 }  
                 <MainContainer 
                     dispatch={this.props.dispatch} 
+                    key={this.props.key}
                     selectedCategory={this.props.selectedCategory}
                     limit={this.props.limit}
                     nextUpdateCheck={this.props.nextUpdateCheck}
