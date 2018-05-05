@@ -57,9 +57,9 @@ import { fixIncomingData } from './utils/fixIncomingData';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
+pouchWorker.postMessage({type:"encryption",load:"test"});
 
 
- 
 interface AppProps extends Store{}
 interface AppState{
     indicators : { [key:string]:{active:number,completed:number,deleted:number}; },

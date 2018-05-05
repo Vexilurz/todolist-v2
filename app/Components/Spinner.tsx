@@ -2,7 +2,7 @@ import '../assets/styles.css';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
 import { Component } from "react"; 
-
+import RefreshIndicator from 'material-ui/RefreshIndicator';
 
 
 export class Spinner extends Component<{},{}>{
@@ -15,7 +15,26 @@ export class Spinner extends Component<{},{}>{
     }
  
     render(){ 
-        return <div 
+        return <RefreshIndicator
+            size={30}
+            left={0}
+            top={0}
+            color={"rgb(51, 151, 151)"}
+            percentage={80}
+            status="ready"
+            style={{
+              display:'inline-block', 
+              position:'relative',
+              boxShadow:"none",
+              backgroundColor:'rgb(248, 248, 248)'
+            }}
+        />
+    }
+};
+
+
+/*
+    <div 
         className={'spinner'}
         style={{    
             content: '',
@@ -29,12 +48,9 @@ export class Spinner extends Component<{},{}>{
             marginLeft: "-10px",
             borderRadius: "50%",
             border: "2px solid #ccc",
-            borderTopColor: "#333",
+            borderTopColor: "rgb(51, 151, 151)",
             animation: "spinner .6s linear infinite"
-        }}>  
-        
-        </div> 
-    }
-};
-
-
+        }}
+    >  
+    </div> 
+*/

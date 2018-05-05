@@ -323,9 +323,7 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
                     />
                 </div>    
             </div>   
-
-            <Spinner />
-
+            <div> <Spinner /> </div>            
             <div style={{
                 display:"flex", 
                 paddingRight:"10px", 

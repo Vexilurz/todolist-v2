@@ -288,7 +288,7 @@ export interface Calendar{
     description:string,
     timezone:string,
     active:boolean,
-    events:any[],
+    events:CalendarEvent[],
     type:ObjectType, 
     _id:string
 };  

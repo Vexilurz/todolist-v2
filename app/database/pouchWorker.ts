@@ -13,14 +13,19 @@ import { userNameToDatabaseName } from './../utils/userNameToDatabaseName';
 import { 
     cond, compose, equals, prop, isEmpty, when, fromPairs, 
     isNil, forEachObjIndexed, toPairs, evolve, ifElse, last, 
-    map, mapObjIndexed, values, flatten, path 
+    map, mapObjIndexed, values, flatten, path, pick 
 } from 'ramda';
 import { isDev } from '../utils/isDev';
-const typeEquals = (type:string) => compose(equals(type), prop(`type`));
+import { isHeading } from '../utils/isSomething';
+let CryptoJS = require("crypto-js");
+
+const typeEquals = (type:string) => compose(equals(type), prop(`type`)); //TODO move to utils
 const sendMessage = postMessage as (action:action) => void;
 const Promise = require('bluebird');
 const PouchDB = require('pouchdb-browser').default;
+PouchDB.plugin(require('transform-pouch'));
 
+let secret = null;
 let todos_db = new PouchDB('todos',{auto_compaction: true});
 let projects_db = new PouchDB('projects',{auto_compaction: true});
 let areas_db = new PouchDB('areas',{auto_compaction: true}); 
@@ -29,12 +34,106 @@ let calendars_db = new PouchDB('calendars',{auto_compaction: true});
 let databases = [todos_db, projects_db, areas_db, calendars_db];
 let list = [];
 
+
+
+let encryptData = (secret:string) => (data:string) : string => CryptoJS.AES.encrypt(data, secret);
+
+
+
+let decryptData = (secret:string) : (ciphertext:string) => string => 
+    compose(
+        bytes => bytes.toString(CryptoJS.enc.Utf8),
+        ciphertext => CryptoJS.AES.decrypt(ciphertext.toString(), secret)
+    );
+
+
+
+let getTransformations = (f:Function) => ({
+    todos:{
+        title:f,
+        checklist:map( evolve({text:f}) )
+        //note(RawDraftContentState) TODO
+    },
+    projects:{
+        name:f, 
+        layout:map( 
+            when( 
+                isHeading, 
+                evolve({title:f}) 
+            ) 
+        )
+        //description(RawDraftContentState) TODO
+    },
+    areas:{
+        name:f, 
+        description:f
+    },
+    calendars:{
+        events:map( 
+            evolve({
+                name:f,
+                description:f
+            })  
+        )
+    }
+});
+
+
+
+let getOutgoingTransformations = (secret) => getTransformations(decryptData(secret));
+
+
+
+let getIncomingTransformations = (secret) => getTransformations(encryptData(secret));
+
+
+
+let salt = CryptoJS.lib.WordArray.random(128 / 8);
+//CryptoJS.PBKDF2(passwordInput, salt, { keySize: 128/32, iterations: 10 });
+
+
+
+let setTransform = (secret:any) => (db:any) => {
+    let incoming = getIncomingTransformations(secret)[db.name];
+    let outgoing = getOutgoingTransformations(secret)[db.name];
+
+    db.transform({
+        incoming: compose( 
+            
+            evolve( incoming ) 
+
+        ),
+        outgoing: compose(
+
+            evolve( outgoing ) 
+
+        )
+    });
+
+    return db;
+};
+
+
+
+let setEncryption = (action:action) : Promise<void> => {
+    secret = action.load;
+
+    databases.forEach( db => setTransform(secret)(db) );
+    
+    return new Promise( resolve => resolve() );
+};
+
+
+
+
 let onError = (error) => sendMessage({type:'error', load:`pouch error ${JSON.stringify(error)}`});
 
 
 
 let onChangeHandler = (dbName:string) => (info:PouchChanges) => {
-    sendMessage({type:'log', load:`pouchSync change ${dbName} - ${path(["change","docs","length"])(info)}`});
+    if(isDev()){
+       sendMessage({type:'log', load:`pouchSync change ${dbName} - ${path(["change","docs","length"])(info)}`});
+    }
 
     if(info && prop('direction')(info)==="pull"){
        sendMessage({ type:'changes', load:{ dbname:dbName, changes:info } });
@@ -83,6 +182,8 @@ let startDatabaseSync = (username:string) => (database:any) => {
     return sync;
 };
  
+
+
 
 
 let startSync = (action:action) : Promise<void> => {
@@ -189,6 +290,7 @@ onmessage = function(e){
             [ typeEquals("changes"), applyChanges ],
             [ typeEquals("load"), loadDatabase ],
             [ typeEquals("set"),  setDatabase ],
+            [ typeEquals("encryption"),  setEncryption ],
             [ () => true, () => new Promise( resolve => resolve(null) ) ]    
         ])
     )(action) 
