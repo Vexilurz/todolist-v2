@@ -25,6 +25,8 @@ import { isDev } from '../../utils/isDev';
 
 
 interface ProjectBodyProps{ 
+    showScheduled:boolean,
+    noScheduledTodos:boolean,
     items:(Heading|Todo)[], 
     groupTodos:boolean,
     project:Project,
@@ -382,7 +384,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
         return selected; 
     };   
 
-    
+
     
     render(){  
         let {selectedCategory} = this.props;
@@ -408,7 +410,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                 />  
             </div>   
             <SortableContainer
-                items={this.props.items}
+                items={this.props.items} 
                 scrollableContainer={this.props.rootRef}
                 selectElements={this.selectElements}  
                 onSortStart={this.onSortStart} 

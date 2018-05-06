@@ -6,7 +6,7 @@ import * as ReactDOM from 'react-dom';
 import { Component } from "react"; 
 import { Calendar, Area, Project, Todo, section } from '../../types';
 import { not, ifElse, when } from 'ramda';
-import { Checkbox } from '../TodoInput/TodoInput';
+import { Checkbox } from '../TodoInput/Checkbox';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { isEmpty, contains, last } from 'ramda';
 import { getIcalData } from '../Calendar';

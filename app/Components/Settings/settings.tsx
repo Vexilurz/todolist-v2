@@ -8,7 +8,7 @@ import Clear from 'material-ui/svg-icons/content/clear';
 import QuickEntry from 'material-ui/svg-icons/content/add-box';  
 import CalendarEvents from 'material-ui/svg-icons/action/date-range';  
 import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
-import { Checkbox } from '../TodoInput/TodoInput';
+import { Checkbox } from '../TodoInput/Checkbox';
 import { attachDispatchToProps, checkForUpdates, getCompletedWhen, log } from '../../utils/utils';
 import { isNewVersion } from '../../utils/isNewVersion';
 import { section, Calendar, Area, Project, Todo } from '../../types';
@@ -132,6 +132,12 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         name={'Calendars'}
                         selected={selectedSettingsSection==='CalendarEvents'}
                     />
+                     <Section
+                        onClick={() => dispatch({type:"selectedSettingsSection", load:'Sync'})} 
+                        icon={<Refresh style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>}
+                        name={'Sync'} 
+                        selected={selectedSettingsSection==='Sync'} 
+                    /> 
                     <Section
                         onClick={() => dispatch({type:"selectedSettingsSection", load:'Tags'})} 
                         icon={<TriangleLabel style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>}
@@ -143,13 +149,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         icon={<Advanced style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>}
                         name={'Advanced'} 
                         selected={selectedSettingsSection==='Advanced'}
-                    />   
-                    <Section
-                        onClick={() => dispatch({type:"selectedSettingsSection", load:'Sync'})} 
-                        icon={<Refresh style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>}
-                        name={'Sync'} 
-                        selected={selectedSettingsSection==='Sync'} 
-                    /> 
+                    />  
                 </div>     
             </div> 
             <div 

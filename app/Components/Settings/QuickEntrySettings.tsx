@@ -7,7 +7,7 @@ import { Component } from "react";
 import { Calendar, Area, Project, Todo, section } from '../../types';
 import { ipcRenderer } from 'electron';
 import { not } from 'ramda';
-import { Checkbox } from '../TodoInput/TodoInput';
+import { Checkbox } from '../TodoInput/Checkbox';
 
 
 interface QuickEntrySettingsProps{

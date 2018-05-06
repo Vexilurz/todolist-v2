@@ -9,7 +9,6 @@ import {
     remove, isNil, not, isEmpty, compose, toPairs, map, findIndex, equals, prop,
     contains, last, cond, defaultTo, flatten, uniq, concat, all, identity, when
 } from 'ramda';
-import { Checkbox } from '../TodoInput/TodoInput';
 import { isArrayOfTodos } from '../../utils/isSomething';
 import { filter } from 'lodash';
 import { uppercase } from '../../utils/uppercase';

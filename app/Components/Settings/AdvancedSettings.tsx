@@ -9,7 +9,7 @@ import {
     contains, last, cond, defaultTo, flatten, uniq, concat, all, identity, when, prop, applyTo 
 } from 'ramda';
 
-import { Checkbox } from '../TodoInput/TodoInput';
+import { Checkbox } from '../TodoInput/Checkbox';
 import { 
     checkForUpdates, getCompletedWhen, log, removeRev, 
     closeClonedWindows, correctFormat, selectFolder, selectJsonDatabase, sideEffect 

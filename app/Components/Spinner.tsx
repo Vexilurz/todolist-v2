@@ -5,11 +5,12 @@ import { Component } from "react";
 import RefreshIndicator from 'material-ui/RefreshIndicator';
 import { Subscription } from 'rxjs';
 import { subscribeToChannel } from '../utils/subscribeToChannel';
+import IconButton from 'material-ui/IconButton'; 
+import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
 
 
-interface SpinnerProps{
-    
-}
+
+interface SpinnerProps{}
 
 interface SpinnerState{
     active:boolean
@@ -23,6 +24,8 @@ export class Spinner extends Component<SpinnerProps,SpinnerState>{
         this.state = { active : false };
         this.subscriptions = [];
     }
+     
+
     
     componentDidMount(){
         this.subscriptions.push(
@@ -31,57 +34,42 @@ export class Spinner extends Component<SpinnerProps,SpinnerState>{
         )
     };
 
+
+
     componentWillUnmount(){ 
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = [];
     };  
-  
+   
+
+
+    onRefresh = (e) => this.setState(
+        {active:true}, 
+        () => setTimeout(() => this.setState({active:false}), 800)
+    );
+    
+
+
     render(){ 
         return this.state.active ?
-        <RefreshIndicator
-            size={30}
+        <RefreshIndicator 
+            size={25}
             left={0}
             top={0}
             status="loading"
             style={{display:'inline-block', position:'relative'}}
         />
-        :
-        <RefreshIndicator
-            size={30}
-            left={0}
-            top={0}
-            color={"rgb(51, 151, 151)"}
-            percentage={80}
-            status={"ready"}
-            style={{
-              display:'inline-block', 
-              position:'relative',
-              boxShadow:"none",
-              backgroundColor:'rgb(248, 248, 248)'
+        : 
+        <IconButton    
+            onClick = {this.onRefresh}  
+            iconStyle={{   
+                color:"rgba(100, 100, 100, 1)",
+                width:"25px", 
+                height:"25px"   
             }}
-        />
+            style={{width:"auto", height:"auto", padding:"0px"}}
+        >        
+            <Refresh style={{color:"rgba(10,10,10,0.8)", height:20, width:20}}/>
+        </IconButton>  
     }
 };
-
-
-/*
-    <div 
-        className={'spinner'}
-        style={{    
-            content: '',
-            boxSizing: "border-box",
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            width: "20px",
-            height:"20px",
-            marginTop: "-10px",
-            marginLeft: "-10px",
-            borderRadius: "50%",
-            border: "2px solid #ccc",
-            borderTopColor: "rgb(51, 151, 151)",
-            animation: "spinner .6s linear infinite"
-        }}
-    >  
-    </div> 
-*/

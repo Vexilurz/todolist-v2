@@ -2,7 +2,7 @@ import '../../assets/styles.css';
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react";  
-import { Todo, Project, Heading, LayoutItem, Area, RawDraftContentState } from '../../types'; 
+import { Todo, Project, Heading, LayoutItem, Area, RawDraftContentState, Category } from '../../types'; 
 import { debounce } from 'lodash';
 import { byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNotEmpty, byCompleted } from '../../utils/utils'; 
 import { ProjectHeader } from './ProjectHeader';
@@ -17,7 +17,7 @@ import { assert } from '../../utils/assert';
 import { daysRemaining } from '../../utils/daysRemaining';
 import { isDev } from '../../utils/isDev';
 import { noteFromState } from '../../utils/draftUtils';
-
+import { TodoInput } from '../TodoInput/TodoInput';
 
 
 let byNotFuture = (t:Todo) => isNotNil(t.attachedDate) ? daysRemaining(t.attachedDate)<=0 : true;
@@ -178,12 +178,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
     getProjectFilters = () : ((todo:Todo) => boolean)[] => {
         let {showCompleted,showScheduled} = this.props.project;
-        let filters = [];
+        let filters = [byNotCompleted];
 
-        if(!showCompleted){
-           filters.push(byNotCompleted);
-        }
-        
         if(!showScheduled){
            filters.push(byNotFuture,byNotSomeday);
         }
@@ -235,8 +231,30 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
 
 
-    toggleScheduled = () => this.props.dispatch({ type:"toggleScheduled", load:prop('_id',this.props.project) });
+    toggleScheduled = () => this.props.dispatch({ 
+        type:"toggleScheduled", load:prop('_id',this.props.project) 
+    });
 
+
+
+    getTodoComponent = (todo:Todo,index:number) : JSX.Element => {
+        return <div key={`todo-${index}`}>
+            <TodoInput        
+                id={todo._id} 
+                key={todo._id} 
+                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                scrolledTodo={this.props.scrolledTodo}
+                groupTodos={this.props.groupTodos}
+                projects={this.props.projects}  
+                dispatch={this.props.dispatch}  
+                selectedProjectId={this.props.selectedProjectId}
+                selectedAreaId={this.props.selectedAreaId} 
+                selectedCategory={this.props.selectedCategory as Category} 
+                rootRef={document.getElementById("maincontainer")}  
+                todo={todo} 
+            />   
+        </div>
+    };
 
 
     render(){   
@@ -255,6 +273,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
         
         //filter by tag & by selected filters  
         let toProjectBody = this.getToProjectBody(projectFilters,layout);
+
+        let completed = filter(todos, byCompleted);
 
         if(isDev()){
             if(selectedTag!=="All"){ 
@@ -281,6 +301,8 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 />           
             </div>    
             <ProjectBody    
+                showScheduled={showScheduled}
+                noScheduledTodos={noScheduledTodos}
                 items={toProjectBody}
                 project={project}
                 dragged={this.props.dragged}
@@ -303,7 +325,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 todos={toProjectBody as Todo[]}  
                 rootRef={this.props.rootRef}
                 dispatch={this.props.dispatch} 
-            />    
+            />   
             {  
                 noScheduledTodos ? null:
                 <div 
@@ -318,6 +340,12 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                         {`${showScheduled ? 'Hide' : 'Show'} later tasks`}
                     </div>      
                 </div> 
+            }
+            {
+                !showCompleted ? null :
+                <div> 
+                { completed.map( (todo:Todo,idx:number) => this.getTodoComponent(todo,idx) ) }
+                </div>
             }
         </div> 
     }

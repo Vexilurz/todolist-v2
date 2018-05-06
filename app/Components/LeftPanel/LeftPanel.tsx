@@ -29,7 +29,7 @@ import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { googleAnalytics } from '../../analytics';
 import { isArrayOfStrings, isString } from '../../utils/isSomething';
 import { isDev } from '../../utils/isDev';
- 
+import { LeftPanelFooter } from './LeftPanelFooter';  
 
 interface LeftPanelProps{
     dispatch:Function,
@@ -187,9 +187,13 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
 
      
     render(){      
-        return <div style={{display:"flex",flexDirection:"row-reverse",height:window.innerHeight}}> 
+        return <div style={{display:"flex", flexDirection:"row-reverse", height:window.innerHeight}}> 
 
-            { not(this.state.collapsed) ? <ResizableHandle onDrag={this.onResizableHandleDrag}/> : null } 
+            { 
+                not(this.state.collapsed) ? 
+                <ResizableHandle onDrag={this.onResizableHandleDrag}/> : 
+                null 
+            } 
 
             <div        
                 id="leftpanel"
@@ -203,7 +207,6 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
                     backgroundColor:"rgb(248, 248, 248)"  
                 }}      
             >   
-
                 <SearchInput dispatch={this.props.dispatch} searchQuery={this.props.searchQuery}/>
 
                 <LeftPanelMenu    
@@ -247,100 +250,9 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
                     onNewProjectClick={this.onNewProjectClick}
                     onNewAreaClick={this.onNewAreaClick}
                 />  
-                 
             </div>    
         </div>    
     };    
 };  
  
-
-
-interface LeftPanelFooterProps{
-    width:number,
-    collapsed:boolean,
-    openNewProjectAreaPopup:(e:any) => void,
-    setNewProjectAnchor:(e:any) => void,
-    openSettings:(e:any) => void 
-}
-
-
-
-class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
-  
-    constructor(props){
-        super(props); 
-    }
-
-
-
-    shouldComponentUpdate(nextProps:LeftPanelFooterProps){
-        return nextProps.width!==this.props.width || 
-               nextProps.collapsed!==this.props.collapsed;
-    }
- 
-
-    
-    render(){ 
-        let { collapsed, openSettings, openNewProjectAreaPopup, width, setNewProjectAnchor } = this.props; 
-
-        return <div style={{    
-            transition: "width 0.2s ease-in-out", 
-            width:collapsed ? "0px" : `${width}px`,
-            display:"flex",  
-            alignItems:"center",  
-            position:"fixed",    
-            overflowX: "hidden",
-            justifyContent:"space-between",  
-            bottom:"0px",   
-            height:"60px",
-            backgroundColor:"rgb(248, 248, 248)",
-            borderTop:"1px solid rgba(100, 100, 100, 0.2)"
-        }}>    
-            <div  
-                onClick={openNewProjectAreaPopup}
-                style={{
-                    display:"flex",
-                    paddingLeft:"10px",
-                    alignItems:"center",
-                    cursor:"pointer"
-                }}
-            >     
-                <div 
-                    style={{
-                        display:"flex",
-                        alignItems:"center",
-                        justifyContent:"center"
-                    }}
-                    ref={setNewProjectAnchor}
-                >
-                    <Plus    
-                        style = {{     
-                            color:"rgb(79, 79, 79)",
-                            width:"25px",
-                            height:"25px",
-                            paddingLeft: "5px",
-                            paddingRight: "5px"     
-                        }}
-                    />
-                </div>    
-            </div>   
-            <div style={{flexGrow: 1, display: "flex", justifyContent:"flex-end"}}> 
-                <Spinner /> 
-            </div>            
-            <div style={{display:"flex", paddingRight:"10px", alignItems:"center", cursor:"pointer"}}>     
-                <IconButton    
-                    onClick = {(e) => openSettings(e)}  
-                    iconStyle={{   
-                        color:"rgba(100, 100, 100, 1)",
-                        width:"25px", 
-                        height:"25px"   
-                    }}
-                >        
-                    <Adjustments /> 
-                </IconButton>  
-            </div> 
-        </div> 
-    }
-};
-
 
