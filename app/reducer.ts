@@ -43,7 +43,7 @@ let applyActionToState = (reducers:Reducer[]) => (state:Store,action:action) : S
 
 
 
-let updateConfigFromStore = (state:Store) => (newState:Store) : Store => {
+export let updateConfigFromStore = (state:Store) => (newState:Store) : Store => {
     let pickConfig = pick( keys(defaultConfig) );
 
     let oldConfig = pickConfig(state);

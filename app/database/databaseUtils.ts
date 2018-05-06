@@ -34,7 +34,7 @@ let queryToObjects = (query:Query<any>) => query ? query.rows.map(row => row.doc
 
    
 //get one
-let getItemFromDatabase = (onError:Function, db:any, key:string) =>
+export let getItemFromDatabase = (onError:Function, db:any, key:string) =>
     (_id:string) : Promise<any> => {
         let decrypt = decryptDoc(db.name,key,onError);
         return db.get(_id).then(doc => decrypt(doc)).catch(onError);
@@ -43,7 +43,7 @@ let getItemFromDatabase = (onError:Function, db:any, key:string) =>
 
 
 //set one    
-let setItemToDatabase = (onError:Function, db:any, key:string) => 
+export let setItemToDatabase = (onError:Function, db:any, key:string) => 
     (item:any) : Promise<void> => {
         let doc = encryptDoc(db.name,key,onError)(item);
         return db.put(doc).catch(onError);
@@ -52,7 +52,7 @@ let setItemToDatabase = (onError:Function, db:any, key:string) =>
     //rehabilitative konked carriwitchet aqualungs sapota
 
 //update one    
-let updateItemInDatabase = (onError:Function, db:any, key:string) => {
+export let updateItemInDatabase = (onError:Function, db:any, key:string) => {
     let count = 0;  
 
     let update = function(changed:any) : Promise<any>{
@@ -85,7 +85,7 @@ let updateItemInDatabase = (onError:Function, db:any, key:string) => {
 
 
 //get all
-let getItemsFromDatabase = (onError:Function, db:any, key:string, opt?:any) => {
+export let getItemsFromDatabase = (onError:Function, db:any, key:string, opt?:any) => {
     let options = defaultTo({include_docs:true})(opt);
     let decrypt = map(decryptDoc(db.name,key,onError));
     return db.allDocs(options).then(queryToObjects).then(docs => decrypt(docs)).catch(onError);
@@ -103,7 +103,7 @@ export let setItemsToDatabase = (onError:Function, db:any, key:string) =>
 
 
 //update many    
-let updateItemsInDatabase = (onError:Function, db:any, key:string) => {
+export let updateItemsInDatabase = (onError:Function, db:any, key:string) => {
 
     return (values:any[]) : Promise<any[]> => {
         let count = 0;

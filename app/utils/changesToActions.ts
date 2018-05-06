@@ -16,7 +16,6 @@ export let changesToActions = (dbname:string) => (change:DatabaseChanges<any>) :
         }
     */
  
-    
     return compose(
         map(action => ({...action,kind:"sync"})),
         reject(anyPass([isNil, isEmpty])),

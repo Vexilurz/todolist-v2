@@ -10,8 +10,7 @@ module.exports = [
         mode:'development',
          
         entry:{    
-            'test':'./tests/renderer/test.tsx',
-            'repeat':'./tests/renderer/utils/repeat.ts'
+            'test':'./tests/renderer/test.tsx'
         },  
 
         output:{             

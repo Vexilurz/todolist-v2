@@ -4,14 +4,25 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { defaultStoreItems } from '../../app/defaultStoreItems';
 import { MainContainer } from '../../app/Components/MainContainer';
-import * as repeat from './utils/repeat'; 
 const MockDate = require('mockdate');  
-
-//import { configure, shallow } from 'enzyme';
 import * as Enzyme from 'enzyme';
 import * as Adapter from 'enzyme-adapter-react-15';
 import { getFilters } from '../../app/utils/getFilters';
 import { wrapMuiThemeLight } from '../../app/utils/wrapMuiThemeLight';
+
+const repeat = require('./utils/repeat'); 
+const applicationReducer = require('./utils/applicationReducer'); 
+const changesToActions = require('./utils/changesToActions'); 
+const crypto = require('./utils/crypto'); 
+const database = require('./utils/database'); 
+const detectChanges = require('./utils/detectChanges'); 
+const fixIncomingData = require('./utils/fixIncomingData'); 
+const generateIndicatorsWorker = require('./utils/generateIndicatorsWorker'); 
+const pouchWorker = require('./utils/pouchWorker'); 
+const toStoreChanges = require('./utils/toStoreChanges'); 
+const updateConfigFromStore = require('./utils/updateConfigFromStore'); 
+
+
 Enzyme.configure({ adapter: new Adapter() });
 //let testDate = () => MockDate.set( oneMinuteBefore(nextMidnight()) );
 
@@ -71,8 +82,6 @@ describe(
                 }/>
             )
         );
-
-        debugger;
 
         console.log(wrapper);
 
