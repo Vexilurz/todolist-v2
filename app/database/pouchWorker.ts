@@ -160,17 +160,15 @@ let setDatabase = (action:actionSetDatabase) : Promise<void> =>
     stopSync({type:'stopSync',load:null})  
     .then(() => destroy(databases))
     .then(() => init())
-    .then(
-        (databases) => {
-            return Promise.all( 
-                databases.map( 
-                    db => setItemsToDatabase(
-                        onError, db, action.load.key
-                    )(action.load.database[db.name])
-                ) 
-            )
-        }
-    );
+    .then((databases) => {
+        return Promise.all( 
+            databases.map( 
+                db => setItemsToDatabase(
+                    onError, db, action.load.key
+                )(action.load.database[db.name])
+            ) 
+        );
+    });
 
 
 

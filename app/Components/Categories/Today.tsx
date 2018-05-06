@@ -7,7 +7,7 @@ import {
     attachDispatchToProps, byNotCompleted, byNotDeleted, getTagsFromItems, 
     generateDropStyle, isDeadlineTodayOrPast, isTodayOrPast, byTags, byCategory
 } from "../../utils/utils";  
-import { Todo, Project, Area, Calendar, Category, Store, CalendarEvent } from '../../types'; 
+import { Todo, Project, Area, Calendar, Category, Store, CalendarEvent, action } from '../../types'; 
 import { Tags } from '../../Components/Tags';
 import { onDrop } from '.././TodosList'; 
 import Moon from 'material-ui/svg-icons/image/brightness-3';
@@ -35,14 +35,13 @@ import { isDev } from '../../utils/isDev';
 import { timeOfTheDay, inTimeRange, keyFromDate } from '../../utils/time';
 import { groupEventsByType, byTime } from './Upcoming';
 import { getSameDayEventElement } from '../../utils/getCalendarEventElement';
+import { indexToPriority } from '../../utils/indexToPriority';
 let Perf = require('react-addons-perf');
 let p = require('react-dom/lib/ReactPerf'); 
 
 
 
-export let indexToPriority = (items:any[]) : any[] => items.map(
-    (item,index:number) => ({...item,priority:index})
-); 
+
 
 
 
@@ -171,7 +170,7 @@ export class Today extends Component<TodayProps,TodayState>{
 
 
 
-    changeOrder = (oldIndex,newIndex,selected) => {
+    changeOrder = (oldIndex,newIndex,selected) : action => {
         let load = [];
         let category = "today";
         let items = arrayMove(selected,oldIndex,newIndex);
@@ -190,13 +189,15 @@ export class Today extends Component<TodayProps,TodayState>{
             load.push(item);
         }
  
-        this.props.dispatch({type:"updateTodos", load}); 
+        return {type:"updateTodos", load}; 
     };
 
 
 
     getItems = () : { items:(Todo|TodaySeparator)[], tags:string[] } => {
         let { todos, selectedTag } = this.props;
+
+        let sorted = todos.sort((a:Todo,b:Todo) => a.priority-b.priority);
 
         let separator : TodaySeparator = { 
             type:"separator", 
@@ -206,17 +207,20 @@ export class Today extends Component<TodayProps,TodayState>{
         };    
 
         let tags = getTagsFromItems(todos); 
-        let today = filter(todos, allPass([byTags(selectedTag), (t:Todo) => t.category!=="evening"]) ); 
-        let evening = filter(todos, allPass([byTags(selectedTag), byCategory("evening")]) ); 
+
+        let today = filter(sorted, allPass([byTags(selectedTag), (t:Todo) => t.category!=="evening"])); 
+        let evening = filter(sorted, allPass([byTags(selectedTag), byCategory("evening")])); 
         
         if(isEmpty(today) && isEmpty(evening)){ return {items:[],tags} }
  
-
         let items = indexToPriority(
-            [...today, separator, ...evening]
+            [
+                ...today, 
+                separator, 
+                ...evening 
+            ]
         ); 
  
-
         return {items,tags};
     };
   
@@ -305,16 +309,15 @@ export class Today extends Component<TodayProps,TodayState>{
         }else{     
  
             if(oldIndex===newIndex){ return }
-
-            this.changeOrder(oldIndex,newIndex,items);  
+            let changeOrderAction = this.changeOrder(oldIndex,newIndex,items);
+            actions.push(changeOrderAction);  
         }    
-        
         
         this.props.dispatch({type:"multiple",load:actions}); 
 
         if(isDev()){
             Perf.stop();
-            Perf.getLastMeasurements();
+            Perf.getLastMeasurements(); 
             Perf.getWasted();
             Perf.printExclusive();
             Perf.printWasted();
@@ -465,7 +468,7 @@ export class Today extends Component<TodayProps,TodayState>{
                         >   
                             {items.map((item,index) => this.getElement(item,index))}
                         </SortableContainer> 
-                    }
+                    } 
                 </div>  
             </div> 
         </div>

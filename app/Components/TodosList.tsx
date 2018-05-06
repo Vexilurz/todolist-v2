@@ -11,11 +11,11 @@ import { isNil, isEmpty, findIndex, cond, find,
     compose, map, contains, remove, not, equals, all, 
     intersection, path, prop, adjust, reject, allPass
 } from 'ramda';
-import { indexToPriority } from './Categories/Today'; 
+import { indexToPriority } from '../utils/indexToPriority';
 import { SortableContainer } from './CustomSortableContainer';
 import { 
     isString, isCategory, isTodo, isArrayOfTodos, isArrayOfProjects, isArrayOfAreas, isProject, isArea 
-} from '../utils/isSomething';
+} from '../utils/isSomething'; 
 import { assert } from '../utils/assert';
 import { arrayMove } from '../utils/arrayMove';
 import { isDev } from '../utils/isDev';

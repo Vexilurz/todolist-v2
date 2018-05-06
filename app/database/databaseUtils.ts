@@ -9,7 +9,7 @@ import { ipcRenderer } from 'electron';
 const PouchDB = require('pouchdb-browser').default;
 import { convertTodoDates, measureTimePromise } from '../utils/utils';
 import { 
-    isNil, all, map, isEmpty, not, reduce, fromPairs, 
+    isNil, all, map, isEmpty, not, reduce, fromPairs, reject,
     ifElse, compose, evolve, when, prop, identity, defaultTo 
 } from 'ramda'; 
 import { isArea, isString, isProject, isTodo } from '../utils/isSomething';
@@ -49,7 +49,7 @@ export let setItemToDatabase = (onError:Function, db:any, key:string) =>
         return db.put(doc).catch(onError);
     };
 
-    //rehabilitative konked carriwitchet aqualungs sapota
+    
 
 //update one    
 export let updateItemInDatabase = (onError:Function, db:any, key:string) => {
@@ -88,7 +88,11 @@ export let updateItemInDatabase = (onError:Function, db:any, key:string) => {
 export let getItemsFromDatabase = (onError:Function, db:any, key:string, opt?:any) => {
     let options = defaultTo({include_docs:true})(opt);
     let decrypt = map(decryptDoc(db.name,key,onError));
-    return db.allDocs(options).then(queryToObjects).then(docs => decrypt(docs)).catch(onError);
+    return db.allDocs(options)
+             .then(queryToObjects)
+             .then(reject(isNil))
+             .then(docs => decrypt(docs))
+             .catch(onError);
 };
 
 
