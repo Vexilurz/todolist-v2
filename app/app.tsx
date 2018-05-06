@@ -115,9 +115,7 @@ export class App extends Component<AppProps,AppState>{
         let timestamp = new Date(change.start_time);
 
         let docs = compose( 
-            map(
-                decryptDoc(dbname,this.props.secretKey,globalErrorHandler)
-            ),
+            map( decryptDoc(dbname,this.props.secretKey,globalErrorHandler) ),
             prop(dbname),
             fixIncomingData, 
             data =>  fromPairs( [[dbname,data]] ),  

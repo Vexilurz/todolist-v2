@@ -8,6 +8,8 @@ let aesjs = require('aes-js');
 
 let CryptoJS = require("crypto-js");
 
+
+
 export let pwdToKey = (salt:string) => (pwd:string) => 
     CryptoJS.PBKDF2(pwd, salt, { keySize: 512/32, iterations: 10 }).toString();
 
@@ -56,10 +58,12 @@ export let decryptData = (key:string) => (data:string)=> {
 };
 
 
+
 let getTransformations = (f:Function) => ({
     todos:{
         title:f,
-        checklist:map( evolve({text:f}) )
+        checklist:map( evolve({text:f}) ),
+        attachedTags:map( f )
         //note(RawDraftContentState) TODO
     },
     projects:{
@@ -85,7 +89,6 @@ let getTransformations = (f:Function) => ({
         )
     }
 });
-
 
 
 

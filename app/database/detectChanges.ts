@@ -35,7 +35,7 @@ let toObjById = (list:withId[]) =>
 export let detectChanges : (state:Store) => (newState:Store) => Changes =
     state =>
     compose( 
-        when(isNotEmpty, log('database changes')),
+        //when(isNotEmpty, log('database changes')),
         mapObjIndexed(
             (val:any[], key:string) : DatabaseChanges<any> => {
                 let changes = { add:[], remove:[], update:[] };

@@ -1,5 +1,13 @@
-import { Category } from "../app/types";
+import { Category, Project } from "../app/types";
 let randomWords = require('random-words');
+import { 
+    uniq, splitEvery, contains, isNil, not, and, 
+    evolve, when, map, reject, range, flatten, 
+    isEmpty, complement, equals, compose, ifElse, anyPass 
+} from 'ramda';
+let different = complement(equals);
+
+
 export const randomWord = () => randomWords();//require('random-word');
 
 
@@ -34,6 +42,28 @@ export let randomArrayMember = (array : any[]) => {
     let member = array[idx]; 
     return member;
 }; 
+
+
+
+export let assertLayoutUniqueness : (projects:Project[]) => Project[] = when(
+    (projects) => true, 
+    (projects) => map(
+        p => evolve(
+            {
+                layout:reject( 
+                    i => projects.find( 
+                        t => and( 
+                            contains(i)(t.layout), 
+                            different(t._id,p._id) 
+                        ) 
+                    ) 
+                )
+            },
+            p
+        ),
+        projects
+    )
+);
 
 
 
