@@ -204,6 +204,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         (selectedSettingsSection:string) : boolean => selectedSettingsSection==="Sync", 
                         () => <SyncSettings
                             dispatch={this.props.dispatch as any}
+                            secretKey={this.props.secretKey}
                             email={this.props.email}
                             sync={this.props.sync}
                             lastSync={this.props.lastSync}

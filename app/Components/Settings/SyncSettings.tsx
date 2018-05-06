@@ -25,6 +25,7 @@ import { pouchWorker } from '../../app';
 interface SyncSettingsProps{
     dispatch:(action:action) => void,
     email:string,
+    secretKey:string,
     sync:boolean,
     lastSync:Date
 } 
@@ -64,7 +65,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
                     type:"startSync", 
                     load:{ 
                         username:emailToUsername(this.props.email),
-                        key:this.props.key
+                        key:this.props.secretKey
                     }
                 }; 
 

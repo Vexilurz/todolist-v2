@@ -147,9 +147,9 @@ export class App extends Component<AppProps,AppState>{
     onPouchError = (action:action) => { 
         let error : PouchError = action.load;
 
-        if(isDev()){
+        //if(isDev()){
            console.log(`%c pouch - ${action.type} - ${JSON.stringify(action.load)}`, 'color: #8b0017');
-        }
+        //}
 
         globalErrorHandler(error);
 
@@ -182,7 +182,11 @@ export class App extends Component<AppProps,AppState>{
         checkAuthenticated()
         .then( 
             auth => {
-                if(isString(this.props.email) && auth){
+                if(
+                    isString(this.props.email) && 
+                    auth && 
+                    this.props.sync
+                ){
                     let action : actionStartSync = {
                         type:"startSync", 
                         load:{ 

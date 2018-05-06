@@ -6,6 +6,7 @@ import { daysRemaining } from './daysRemaining';
 export let isNotNil = complement(isNil);
 
 
+
 export let isRepeatOptions = (options:any) : boolean => {
     if(isNil(options)){ return false }
 
@@ -18,6 +19,7 @@ export let isRepeatOptions = (options:any) : boolean => {
            contains(options.selectedOption)(option) 
            //&& isDate(options.until);
 };
+
 
 
 export let isToday = (date : Date) => {
@@ -38,13 +40,17 @@ export let isToday = (date : Date) => {
 };  
 
 
+
 export let isDomElement = (element:any) => element instanceof Element;
  
+
 
 export let allHave = (prop:string) => (items:any[]) => isNotArray(items) ? false : all(has(prop), items);
 
 
+
 export let isNumber = (item) => compose(not,isNaN)(item);
+
 
 
 export let isArrayOfDOMElements = (array:any) : boolean => 
@@ -53,10 +59,13 @@ export let isArrayOfDOMElements = (array:any) : boolean =>
            all((item) => isDomElement(item), array);
 
 
+
 export let isArrayOfNumbers = (array:any[]) : boolean => isNotArray(array) ? false : all(isNumber,array);
 
 
+
 export let isNotArray = (items:any[]) => compose(not, isArray)(items); 
+
 
 
 export let isItem = (item:Item) : boolean => isNil(item) ? false : item.type==="project" || 
@@ -64,7 +73,9 @@ export let isItem = (item:Item) : boolean => isNil(item) ? false : item.type==="
                                                                    item.type==="todo";
 
 
+
 export let isCalendar = (item:any) => item.type==="calendar";    
+
 
 
 export let isEvent = (item:any) => {
@@ -73,16 +84,20 @@ export let isEvent = (item:any) => {
 };
 
 
+
 export let isHeading = (item:Heading) : boolean => isNil(item) ? false : item.type==="heading";
+
 
 
 export let isArray = (item:any[]) : boolean => Array.isArray(item); 
    
 
+
 export let isOneElementArray = (list:any[]) : boolean => {
     if(isArray(list)){ return list.length===1; }
     return false;
 };
+
 
 
 export let isManyElementsArray = (list:any[]) : boolean => {
@@ -91,16 +106,21 @@ export let isManyElementsArray = (list:any[]) : boolean => {
 };
 
 
+
 export let isDate = (date) : boolean => isNil(date) ? false : (date instanceof Date && isFunction(date.getTime)); 
  
 
+
 export let isNotDate = (date) : boolean => not(isDate(date)); 
+
 
 
 export let isFunction = (item) : boolean => typeof item==="function"; 
  
 
+
 export let isString = (item) : boolean => typeof item==="string"; 
+
 
   
 export let isCategory = (category : Category) : boolean => { 
@@ -115,7 +135,9 @@ export let isCategory = (category : Category) : boolean => {
 };     
 
 
+
 export let bySomeday = (todo:Todo) : boolean => todo.category==="someday";
+
 
 
 export let isBoolean = (variable:any) : boolean => {
@@ -123,9 +145,10 @@ export let isBoolean = (variable:any) : boolean => {
 };
 
 
+
 export let isTodo = (todo:any) : boolean => { 
     if(isNil(todo)){ return false } 
-    return todo.type==="todo" && isArrayOfStrings(todo.attachedTags);
+    return todo.type==="todo";
 };
 
 
@@ -139,10 +162,12 @@ export let isArrayOfTodos = (array:any[]) : boolean => {
 }; 
 
 
+
 export let isProject = (project:Project) : boolean => {
     if(isNil(project)){ return false }
     return project.type==="project"; 
 }; 
+
 
 
 export let isArrayOfProjects = (array:any[]) : boolean => {
@@ -150,15 +175,18 @@ export let isArrayOfProjects = (array:any[]) : boolean => {
 }; 
  
 
+
 export let isArea = (area:Area) : boolean => {
     if(isNil(area)){ return false }  
     return area.type==="area"; 
 };
 
+
   
 export let isArrayOfAreas = (array:any[]) : boolean => {
     return all((area:Area) => isArea(area), array );
 };
+
 
 
 export let isArrayOfStrings = (array:any[]) : boolean => isNotArray(array) ? false : all(isString,array);

@@ -31,9 +31,9 @@ export let globalErrorHandler = (error:any) : Promise<any> => {
         else if(error.lineNumber){ value = error.lineNumber; } 
     } 
     
-    if(isDev()){
+    //if(isDev()){
        console.log(message);
-    }
+    //}
 
     return requestFromMain("getConfig", [], (event, config) => config).then(
         (config:Config) => Promise.all(
