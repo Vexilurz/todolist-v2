@@ -34,5 +34,5 @@ export let changesToActions = (dbname:string) => (change:DatabaseChanges<any>) :
                 }
             }    
         )
-    )(change)
+    )(change);
 };

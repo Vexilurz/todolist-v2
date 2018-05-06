@@ -11,6 +11,9 @@ import { generateId } from '../app/utils/generateId';
 import { noteFromText } from '../app/utils/draftUtils';
 import { randomInteger, randomDate, randomArrayMember, fakeTags } from './utils';
 import { fakeTodo } from './fakeTodo';
+import { fakeProject } from './fakeProject';
+import { fakeArea } from './fakeArea';
+import { fakeCalendar } from './fakeCalendar';
 let randomWords = require('random-words');
 const randomWord = () => randomWords();//require('random-word');
 let uniqid = require("uniqid"); 
@@ -33,7 +36,6 @@ let randomDatabase = (t:number,p:number,a:number,c:number,withReminder:number) :
     let {todos, projects, areas} = generateRandomDatabase({todos:t, projects:p, areas:a}, withReminder);      
     
     
-
     let calendars = range(0,c)
                     .map(
                         () => ({
@@ -44,7 +46,7 @@ let randomDatabase = (t:number,p:number,a:number,c:number,withReminder:number) :
                         }) 
                     ) 
                     .map((c) => {
-                       let text = randomCalendar(c);
+                       let text = fakeCalendar(c);
                        let parsed = parseCalendar(new Date()["addDays"](50),text);
                        return parsed;
                     })
@@ -61,7 +63,6 @@ let randomDatabase = (t:number,p:number,a:number,c:number,withReminder:number) :
                         })
                     ); 
                     
-
 
     if(!fs.existsSync("databases")){ 
         fs.mkdirSync("databases"); 
@@ -120,143 +121,8 @@ let assertLayoutUniqueness : (projects:Project[]) => Project[] = when(
 
 
 
-export let randomCalendar = ({
-    NsameDay,
-    NfullDay,
-    NmultipleDays,
-    Nrecurrent
-}) => {
-    let from = 0;
-    let to = 50;
 
-    let sameDay = range(0,NsameDay).map(randomEventsameDay({from,to}));
-    let fullDay = range(0,NfullDay).map(randomEventfullDay({from,to}));
-    let multipleDays = range(0,NmultipleDays).map(randomEventmultipleDays({from,to}));
-    let recurrent = range(0,Nrecurrent).map(randomEventrecurrent({from,to}));
-
-    return ical({
-        domain: 'tasklist.net',
-        prodId: {company: 'tasklist', product: 'tasklist'},
-        name: randomWord(),
-        timezone: 'Europe/Berlin',
-        events: flatten([sameDay,fullDay,multipleDays,recurrent])
-    }).toString();
-};
  
-
-
-//sameDay
-let randomEventsameDay = ({from,to}:{from:number,to:number}) => () => {
-    let title : string[] = ['R sameDay'];
-    let note : string[] = [];
-    let k = randomInteger(2) + 1;
-    let n = randomInteger(2) + 1;
-
-    for(let i=0; i<k; i++){ title.push(randomWord()) }
-    for(let i=0; i<n; i++){ note.push(randomWord()) }
-
-    let start = randomDate( new Date()["addDays"](from), new Date()["addDays"](to) );
-    let time = getTime(start);
-    let rangeHours = 23 - time.hours;
-    let hours = time.hours + randomInteger(rangeHours) + 1;
-    let minutes = randomInteger(59);
-
-    if(hours>23){ hours = 23 }
-    if(minutes>59){ minutes = 59 }
-
-    let end = setTime(new Date(start.getTime()),{minutes,hours});
-
-    let event = {
-        start,
-        end,
-        timestamp: new Date(),
-        summary: title.join(' '),
-        allDay:false,
-        description: note.join(' ')
-    };
-
-    return event;
-};
-
-
-
-//fullDay
-let randomEventfullDay = ({from,to}:{from:number,to:number}) => () => {
-    let title : string[] = ['R fullDay'];
-    let note : string[] = [];
-    let k = randomInteger(2) + 1;
-    let n = randomInteger(2) + 1;
-
-    for(let i=0; i<k; i++){ title.push(randomWord()) }
-    for(let i=0; i<n; i++){ note.push(randomWord()) }
-
-    let start = randomDate( new Date()["addDays"](from), new Date()["addDays"](to) );
-
-    let end = setTime(new Date(start.getTime())["addDays"](1), {minutes:0,hours:0}); 
-
-    let event = {
-        start,
-        end,
-        timestamp:new Date(),
-        summary:title.join(' '),
-        allDay:true,
-        description:note.join(' ')
-    };
-
-    return event;
-};
-
-
-
-let randomEventmultipleDays = ({from,to}:{from:number,to:number}) => () => {
-    let title : string[] = ['R multipleDays'];
-    let note : string[] = [];
-    let k = randomInteger(2) + 1;
-    let n = randomInteger(2) + 1;
-
-    for(let i=0; i<k; i++){ title.push(randomWord()) }
-    for(let i=0; i<n; i++){ note.push(randomWord()) }
-
-
-    let start = randomDate( new Date()["addDays"](from), new Date()["addDays"](to) );
-    let end =  randomDate( start, new Date()["addDays"](to+10) );
-
-    let event = {
-        start,
-        end,
-        timestamp: new Date(),
-        summary: title.join(' '),
-        allDay: Math.random() > 0.5 ? true : false,
-        description: note.join(' ')
-    };
-
-    return event;
-};
-
-
-
-let randomEventrecurrent = ({from,to}:{from:number,to:number}) => () => {
-    let event = randomEventsameDay({from,to})();
-    let never = Math.random() > 0.7;
-
-    event.summary = 'R recurrent ' + event.summary; 
-
-    let repeating = {
-        freq: randomArrayMember(['YEARLY','MONTHLY','WEEKLY','DAILY']), // required
-        count: never ? 0 : (randomInteger(15) + 1),
-        interval: randomInteger(10) + 1,
-        until: never ? undefined :  randomDate( new Date(), new Date()["addDays"](to) ),
-        //byDay: ['su', 'mo'], // repeat only sunday and monday
-        //byMonth: [1, 2], // repeat only in january und february,
-        //byMonthDay: [1, 15], // repeat only on the 1st and 15th
-    }
-
-    
-    return {
-        ...event,
-        repeating
-    };
-};
 
  
     
@@ -279,75 +145,7 @@ let fakeHeading = () : Heading => {
     };  
 }; 
        
-    
-
-let fakeProject = (attachedTags:string[], layout:LayoutItem[]) : Project => {
-    
-    let checked = Math.random() > 0.5 ? true : false;
-
-    let name : string[] = [];
-    
-    let k = randomInteger(3) + 2;
-    
-    for(let i=0; i<k; i++)
-        name.push(randomWord()); 
-        
-    let description : string[] = [];
-             
-    let l = randomInteger(3) + 2;
-    
-    for(let i=0; i<l; i++)
-        description.push(randomWord());  
-    
-    return {    
-        _id : generateId(),    
-        type : "project", 
-        name : name.join(' '),  
-        priority : Math.random()*999999999,
-        deleted : Math.random() < 0.2 ? randomDate(new Date(), new Date()["addDays"](-50)) : undefined,
-        description : noteFromText(description.join(' ')), 
-        created : randomDate(new Date()["addDays"](-50), new Date()),
-        deadline : randomDate(new Date(), new Date()["addDays"](50)),
-        completed : checked ? randomDate(new Date(), new Date()["addDays"](-50)) : null,
-        layout,     
-        attachedTags  
-    };    
-}; 
-    
-    
-
-let fakeArea = (attachedTodosIds,attachedProjectsIds,attachedEventsIds,attachedTags) : Area => {
-    
-    let name : string[] = [];
-    
-    let k = randomInteger(3) + 2;
-    
-    for(let i=0; i<k; i++){
-        name.push(randomWord());
-    } 
-    
-    let description : string[] = [];
-            
-    let l = randomInteger(3) + 2;
-    
-    for(let i=0; i<l; i++){
-        description.push(randomWord());  
-    }
-
-    return {  
-        _id : generateId(),   
-        type : "area", 
-        deleted : Math.random() < 0.2 ? randomDate(new Date(), new Date()["addDays"](-50)) : undefined,
-        priority : Math.random()*999999999,
-        name : name.join(' '),    
-        description : description.join(' '),  
-        attachedTags, 
-        created : randomDate(new Date()["addDays"](-50), new Date()),
-        attachedProjectsIds:uniq(attachedProjectsIds)
-    };
-};
-    
-    
+   
     
 let generateProjectLayout = (generateTodosIds:string[],n:number) : LayoutItem[] => { 
 

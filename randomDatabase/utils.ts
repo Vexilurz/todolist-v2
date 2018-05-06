@@ -1,6 +1,6 @@
 import { Category } from "../app/types";
 let randomWords = require('random-words');
-const randomWord = () => randomWords();//require('random-word');
+export const randomWord = () => randomWords();//require('random-word');
 
 
 

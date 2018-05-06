@@ -3,7 +3,7 @@ import { checkAuthenticated } from './utils/checkAuthenticated';
 import { refreshReminders } from './utils/reminderUtils';
 import { objectsReducer } from './objectsReducer';
 import { stateReducer } from './stateReducer';
-import { Reducer, Store, action } from "./types";
+import { Reducer, Store, action, Config } from "./types";
 import { prop, ifElse, compose, not, when, identity, contains, keys, equals, pick, difference } from 'ramda';
 import { typeEquals, wrapArray, turnedOn, turnedOff } from "./utils/utils";
 import { pouchWorker } from './app';
@@ -43,14 +43,18 @@ let applyActionToState = (reducers:Reducer[]) => (state:Store,action:action) : S
 
 
 
-export let updateConfigFromStore = (state:Store) => (newState:Store) : Store => {
+type UpdateConfig = (config:Config) => Promise<Config>
+
+
+
+export let updateConfigFromStore = (updateConfig:UpdateConfig, state:Store) => (newState:Store) : Store => {
     let pickConfig = pick( keys(defaultConfig) );
 
     let oldConfig = pickConfig(state);
     let newConfig = pickConfig(newState);
     
     if(!equals(oldConfig,newConfig)){
-        requestFromMain("updateConfig", [newConfig], (event, config) => config);
+        updateConfig(newConfig);
     }
     
     return newState;
@@ -58,14 +62,21 @@ export let updateConfigFromStore = (state:Store) => (newState:Store) : Store => 
 
 
 
-let reducer = (reducers:Reducer[]) => (state:Store, action:any) : Store => {
+let updateConfig = (newConfig:Config) : Promise<Config> => requestFromMain(
+    "updateConfig", 
+    [newConfig], 
+    (event, config) => config
+);
+
+
+
+export let reducer = (reducers:Reducer[], updateConfig:UpdateConfig) => (state:Store, action:any) : Store => {
     let actions : action[] = getActionsList(action);
     let apply = applyActionToState(reducers);
     let applyActionsToState = (state:Store) : Store => actions.reduce((state,action) => apply(state,action), state);
    
-
     return compose( 
-        updateConfigFromStore(state),
+        updateConfigFromStore(updateConfig, state),
 
         refreshReminders(state), 
 
@@ -77,7 +88,7 @@ let reducer = (reducers:Reducer[]) => (state:Store, action:any) : Store => {
 
 
 
-export let applicationReducer = reducer(reducers); 
+export let applicationReducer = reducer(reducers,updateConfig); 
    
 
   
