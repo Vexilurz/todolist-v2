@@ -309,7 +309,8 @@ class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
                     style={{
                         display:"flex",
                         alignItems:"center",
-                        justifyContent:"center"}}
+                        justifyContent:"center"
+                    }}
                     ref={setNewProjectAnchor}
                 >
                     <Plus    

@@ -54,7 +54,7 @@ import { isDev } from './utils/isDev';
 import { generateEmptyCalendar } from './utils/generateEmptyCalendar';
 import { logout } from './utils/logout';
 import { fixIncomingData } from './utils/fixIncomingData';
-import { pwdToKey } from './utils/crypto/crypto';
+import { pwdToKey, decryptDoc } from './utils/crypto/crypto';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
@@ -115,19 +115,24 @@ export class App extends Component<AppProps,AppState>{
         let timestamp = new Date(change.start_time);
 
         let docs = compose( 
+            map(
+                decryptDoc(dbname,this.props.secretKey,globalErrorHandler)
+            ),
+            prop(dbname),
             fixIncomingData, 
             data =>  fromPairs( [[dbname,data]] ),  
             defaultTo([]), 
             prop('docs')
-        )(change);
+        )(change); 
  
         let lastSyncAction = { type:"lastSync", load:timestamp, kind:"sync" };
+        let local = defaultTo([])(this.props[dbname]);
 
         let actions : action[] = compose(
             changesToActions(dbname),
-            toStoreChanges(this.props[dbname]) 
+            toStoreChanges(local) 
         )(docs);
-       
+        
         this.props.dispatch({type:"multiple", load: [...actions,lastSyncAction] });
     };
 

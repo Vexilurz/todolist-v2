@@ -14,8 +14,9 @@ export let pwdToKey = (salt:string) => (pwd:string) =>
 
 
 export let encryptData = (key:string) => (data) : string => {
-    let k = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    //let k = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
     let iv = [ 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,35, 36 ];
+    let testKey = "abcdabcdabcdabcd";
     //aesjs.utils.utf8.toBytes(key);
     //let m = (n) => n + (32 - (n % 32));
     /*var textBytes = aesjs.utils.utf8.toBytes(data);
@@ -23,10 +24,9 @@ export let encryptData = (key:string) => (data) : string => {
     var encryptedBytes = aesOfb.encrypt(textBytes);
     var cipher = aesjs.utils.hex.fromBytes(encryptedBytes);*/
     
-    
     let cipher = CryptoJS.AES.encrypt(
         data, 
-        "testtesttesttest", 
+        testKey, 
         {mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7, iv}
     ).toString();
 
@@ -36,10 +36,10 @@ export let encryptData = (key:string) => (data) : string => {
 
 
 export let decryptData = (key:string) => (data:string)=> {
-    let k =  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    //let k =  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
     //aesjs.utils.utf8.toBytes(key);
     let iv = [ 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,35, 36 ];
-
+    let testKey = "abcdabcdabcdabcd";
     /*let encryptedBytes = aesjs.utils.hex.toBytes(data);
     var aesOfb = new aesjs.ModeOfOperation.ofb(k, iv);
     let decryptedBytes = aesOfb.decrypt(encryptedBytes);
@@ -48,10 +48,10 @@ export let decryptData = (key:string) => (data:string)=> {
 
     let decrypted = CryptoJS.AES.decrypt(
         data, 
-        "testtesttesttest",
+        testKey,
         {mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7, iv}
     ).toString(CryptoJS.enc.Utf8);
-
+    
     return decrypted;
 };
 
@@ -115,7 +115,7 @@ export let decryptDoc = (dbname:string, key:string, onError:Function) : (doc:any
     if(isNil(key)){ 
         return identity;
     }else{
-        return compose(setDecrypted, decrypt);
+        return compose(setDecrypted, decrypt); 
     } 
 };
  

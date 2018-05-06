@@ -81,6 +81,9 @@ let loadDatabase = (action:actionLoadDatabase) : Promise<Databases> => {
 };   
 
 
+let onPaused = () =>  sendMessage({type:'paused', load:null});
+let onActive = () =>  sendMessage({type:'active', load:null});
+
 
 let startDatabaseSync = (username:string) => (database:any) => {
     let name : string = database.name;
@@ -93,6 +96,9 @@ let startDatabaseSync = (username:string) => (database:any) => {
     sync.on('change',onChangeHandler(name));
     sync.on('denied',onError);
     sync.on('error',onError);
+
+    sync.on('paused', onPaused);
+    sync.on('active', onActive);
 
     //sync.on('completed',onError);  
       
