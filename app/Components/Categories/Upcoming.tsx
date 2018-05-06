@@ -593,8 +593,8 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         userSelect:"none" 
                     }}>  
                         { 
-                            idx===0 ? "Today" :
-                            idx===1 ? "Tomorrow" :
+                            //idx===0 ? "Today" :
+                            //idx===1 ? "Tomorrow" :
                             dayName
                         }
                     </div> 
