@@ -52,6 +52,8 @@ interface ProjectHeaderProps{
         completed:number,
         deleted:number
     },
+    onToggleScheduled:Function,
+    onToggleCompleted:Function,
     project:Project,
     rootRef:HTMLElement, 
     selectedTag:string,

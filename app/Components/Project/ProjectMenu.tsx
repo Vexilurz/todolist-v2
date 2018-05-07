@@ -30,6 +30,8 @@ interface ProjectMenuPopoverProps extends Store{
     anchorEl : HTMLElement, 
     rootRef:HTMLElement, 
     openDeadlineCalendar:Function,
+    onToggleScheduled:Function,
+    onToggleCompleted:Function,
     openTagsPopup:Function   
 }    
  
@@ -180,29 +182,18 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
 
  
 
-    onToggleCompleted = (e) => {
-        this.props.dispatch({ type:"toggleCompleted", load:prop('_id',this.props.project) });
-        this.closeMenu(); 
-    };
-
- 
-     
-    onToggleScheduled = (e) => {
-        this.props.dispatch({ type:"toggleScheduled", load:prop('_id',this.props.project) });
-        this.closeMenu(); 
-    };
-
-
-
     onRestoreVisibility = (category:Category, project:Project) => {
-        let {dispatch} = this.props;
         let hide = [...project.hide];
         let idx = hide.indexOf(category);
+        
         if(idx===-1){ return }
-        dispatch({
+
+        let action = {
             type:"updateProject", 
             load:{ ...project, hide:remove(idx, 1, [...project.hide]) }
-        }) 
+        };
+
+        this.props.dispatch(action); 
     };
 
 
@@ -297,7 +288,10 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                     <div style={{border:"1px solid rgba(200,200,200,0.5)",marginTop: "5px",marginBottom: "5px"}}></div>
                     {
                         <div  
-                            onClick={this.onToggleCompleted} 
+                            onClick={(e) => {
+                                this.props.onToggleCompleted();
+                                this.closeMenu();
+                            }} 
                             className={"tagItem"} 
                             style={{display:"flex", height:"auto", alignItems:"center", padding:"5px"}}
                         >  
@@ -346,7 +340,10 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
                     }
                     { 
                         <div  
-                            onClick={this.onToggleScheduled} 
+                            onClick={(e) => {
+                                this.props.onToggleScheduled();
+                                this.closeMenu(); 
+                            }} 
                             className={"tagItem"} 
                             style={{display:"flex",height:"auto",alignItems:"center",padding:"5px"}}
                         >  

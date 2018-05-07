@@ -25,8 +25,6 @@ import { isDev } from '../../utils/isDev';
 
 
 interface ProjectBodyProps{ 
-    showScheduled:boolean,
-    noScheduledTodos:boolean,
     items:(Heading|Todo)[], 
     groupTodos:boolean,
     project:Project,
@@ -46,7 +44,6 @@ interface ProjectBodyProps{
     },
     showCompleted:boolean,
     selectedCategory:string, 
-    todos:Todo[],  
     scrolledTodo:Todo, 
     selectedTodo:Todo,
     selectedTag:string,
@@ -403,7 +400,7 @@ export class ProjectBody extends Component<ProjectBodyProps,ProjectBodyState>{
                     selectedCategory={selectedCategory as any} 
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId} 
-                    todos={this.props.todos} 
+                    todos={this.props.items.filter(isTodo) as Todo[]} 
                     projects={this.props.projects}
                     rootRef={this.props.rootRef} 
                     todo={empty as any} 

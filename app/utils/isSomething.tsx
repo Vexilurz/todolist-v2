@@ -85,7 +85,7 @@ export let isEvent = (item:any) => {
 
 
 
-export let isHeading = (item:Heading) : boolean => isNil(item) ? false : item.type==="heading";
+export let isHeading = (item:any) : boolean => isNil(item) ? false : item.type==="heading";
 
 
 
