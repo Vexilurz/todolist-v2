@@ -17,22 +17,27 @@ export class HoverButton extends Component<HoverButtonProps,HoverButtonState>{
         super(props); 
     }
     
+    
+
     render(){ 
         return <div 
             className="showHideButton"
             onClick={this.props.onClick}
             style={{
-                cursor: "pointer",
-                marginTop: "5px",
-                minWidth:"170px",
-                width: "auto",
-                height: "25px",
-                paddingLeft: "5px",
-                paddingRight: "5px",
-                display: "inline-block",
-                color: "rgba(150,150,150,1)",
-                borderRadius: "5px",
-                backgroundColor: "rgba(255, 255, 255, 0)"
+                cursor:"pointer",
+                marginTop:"5px",
+                minWidth:"145px",
+                display:"flex",
+                alignItems:"center",
+                justifyContent:"flex-start",
+                width:"auto",
+                fontSize:"14px",
+                height:"25px",
+                paddingLeft:"5px",
+                paddingRight:"5px",
+                color:"rgb(150, 150, 150)",
+                borderRadius:"5px",
+                backgroundColor:"rgba(255, 255, 255, 0)"
             }}
         > 
          { this.props.title }

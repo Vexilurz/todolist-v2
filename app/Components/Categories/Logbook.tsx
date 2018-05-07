@@ -37,21 +37,21 @@ let sortByCompleted = (a:(Todo & Project),b:(Todo & Project)) => {
 
     if(isTodo(b)){
         if(b.completedWhen){ 
-           bTime = b.completedWhen.getTime(); 
+           bTime = new Date(b.completedWhen).getTime(); 
         }
     }else if(isProject(b)){
         if(b.completed){
-           bTime = b.completed.getTime();  
+           bTime = new Date(b.completed).getTime();  
         }
     }
 
     if(isTodo(a)){
         if(a.completedWhen){
-           aTime = a.completedWhen.getTime();  
+           aTime = new Date(a.completedWhen).getTime();  
         }
     }else if(isProject(a)){
         if(a.completed){
-           aTime = a.completed.getTime();  
+           aTime = new Date(a.completed).getTime();  
         }
     }
 

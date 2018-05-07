@@ -918,6 +918,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 onRemoveUpcomingLabel={this.onRemoveUpcomingLabel}
                 onRemoveSomedayLabel={this.onRemoveSomedayLabel}
                 onRemoveDeadlineLabel={this.onRemoveDeadlineLabel} 
+                reminder={todo.reminder}
                 todayCategory={isToday(attachedDate) || isToday(deadline)}
                 open={open} 
                 category={category}

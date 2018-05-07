@@ -342,12 +342,12 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
             </div>
             {
                 completedEmpty ? null :
+                !showCompleted ? null :
                 <div style={{
                     display:"flex", 
-                    visibility:showCompleted ? "visible" : "hidden",
                     flexDirection:"column", 
                     width:"100%"
-                }}>   
+                }}>      
                     <TodosList    
                         dispatch={this.props.dispatch}  
                         filters={this.props.filters}

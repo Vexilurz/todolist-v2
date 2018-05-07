@@ -32,8 +32,8 @@ export class TodoInputLabel extends Component<TodoInputLabelProps, TodoInputLabe
             color: "rgba(0,0,0,1)",
             fontWeight: "bold", 
             cursor: "default",
-            marginLeft: "20px",
-            marginRight: "20px",
+            marginLeft: "2px",
+            marginRight: "2px",
             userSelect: "none"
         };
  

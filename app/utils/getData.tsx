@@ -1,5 +1,5 @@
 import { 
-    isEmpty, last, isNil, contains, all, not, assoc, flatten, reduce, prop, evolve, uniq,
+    isEmpty, last, isNil, contains, all, not, assoc, flatten, reduce, prop, evolve, uniq, where,
     toPairs, map, compose, allPass, cond, defaultTo, reject, when, ifElse, identity, and 
 } from 'ramda';
 import { isNotArray, isDate, isTodo, isString, isNotNil } from '../utils/isSomething';
@@ -51,18 +51,19 @@ export let updateQuickEntryData = (data) => {
 
 
 
-export let assureCorrectCompletedTypeTodo : (todo:Todo) => Todo =  
-    when(
-      compose(isNotNil, prop('completed')),
-      (t:Todo) => ({...t, completedSet:t.completed, completedWhen:t.completed})
-    ); 
+export let assureCorrectCompletedTypeTodo = 
+    ifElse(
+        where({completed:isNotNil,completedSet:isNil}),
+        t => ({...t,completedSet:new Date(t.completed),completedWhen:new Date(t.completed)}),
+        identity
+    );
 
-
+   
 
 export let getData = (key:string) : Promise<Databases> => {
     let actionLoadDatabase : actionLoadDatabase = {type:"load",load:key};
     return workerSendAction(pouchWorker)(actionLoadDatabase);
-}
+};
 
 
 

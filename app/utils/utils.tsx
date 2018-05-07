@@ -1187,61 +1187,31 @@ export let transformLoadDates = (load) : any => {
 
 export let convertTodoDates = (t:Todo) : Todo => ({
     ...t, 
-    reminder : !t.reminder ? undefined :  
-                typeof t.reminder==="string" ? new Date(t.reminder) : 
-                t.reminder,
-    deadline : !t.deadline ? undefined : 
-                typeof t.deadline==="string" ? new Date(t.deadline) : 
-                t.deadline,
-    created : !t.created ? undefined : 
-               typeof t.created==="string" ? new Date(t.created) : 
-               t.created,
-    deleted : !t.deleted ? undefined : 
-               typeof t.deleted==="string" ? new Date(t.deleted) : 
-               t.deleted,
-    attachedDate : !t.attachedDate ? undefined : 
-                    typeof t.attachedDate==="string" ? new Date(t.attachedDate) : 
-                    t.attachedDate,
-    completedSet : !t.completedSet ? undefined : 
-                    typeof t.completedSet==="string" ? new Date(t.completedSet) : 
-                    t.completedSet,
-    completedWhen : !t.completedWhen ? undefined : 
-                    typeof t.completedWhen==="string" ? new Date(t.completedWhen) : 
-                    t.completedWhen           
+    reminder : isNil(t.reminder) ? undefined : new Date(t.reminder),
+    deadline : isNil(t.deadline) ? undefined : new Date(t.deadline), 
+    created : isNil(t.created) ? undefined : new Date(t.created),
+    deleted : isNil(t.deleted) ? undefined : new Date(t.deleted),
+    attachedDate : isNil(t.attachedDate) ? undefined : new Date(t.attachedDate),
+    completedSet : isNil(t.completedSet) ? undefined : new Date(t.completedSet),
+    completedWhen : isNil(t.completedWhen) ? undefined : new Date(t.completedWhen)
 });
 
 
 
 export let convertProjectDates = (p:Project) : Project => ({
     ...p,
-    created : !p.created ? undefined : 
-               typeof p.created==="string" ? new Date(p.created) : 
-               p.created,
-
-    deadline : !p.deadline ? undefined : 
-                typeof p.deadline==="string" ? new Date(p.deadline) : 
-                p.deadline,
-
-    deleted : !p.deleted ? undefined : 
-               typeof p.deleted==="string" ? new Date(p.deleted) : 
-               p.deleted,
-
-    completed : !p.completed ? undefined : 
-                 typeof p.completed==="string" ? new Date(p.completed) : 
-                 p.completed  
+    created : isNil(p.created) ? undefined : new Date(p.created),
+    deadline : isNil(p.deadline) ? undefined : new Date(p.deadline),
+    deleted :  isNil(p.deleted) ? undefined : new Date(p.deleted),
+    completed :  isNil(p.completed) ? undefined : new Date(p.completed)
 });
 
 
 
 export let convertAreaDates = (a:Area) : Area => ({
     ...a, 
-    created : !a.created ? undefined : 
-               typeof a.created==="string" ? new Date(a.created) : 
-               a.created,
-
-    deleted : !a.deleted ? undefined : 
-               typeof a.deleted==="string" ? new Date(a.deleted) : 
-               a.deleted,
+    created:isNil(a.created) ? undefined : new Date(a.created),
+    deleted:isNil(a.deleted) ? undefined : new Date(a.deleted)
 });
 
  

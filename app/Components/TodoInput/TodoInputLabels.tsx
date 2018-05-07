@@ -64,7 +64,22 @@ import { RelatedProjectLabel } from './RelatedProjectLabel';
 let moment = require("moment"); 
 
 
-
+const icon = <div style={{
+    zoom:"0.7",
+    position:"relative",
+    height:"22px", marginLeft:"3px", marginRight:"3px"
+}}>
+    <Alert style={{color:"black",WebkitUserSelect:"none"}}/>
+    <div style={{
+        width: "10px",
+        height: "14px",
+        top: "8px",
+        left: "7px",
+        position: "absolute",
+        backgroundColor: "black"
+    }}> 
+    </div>
+</div>
 
 
 interface TodoInputLabelsProps{
@@ -72,6 +87,7 @@ interface TodoInputLabelsProps{
     onRemoveSomedayLabel:Function,
     onRemoveUpcomingLabel:Function,
     onRemoveDeadlineLabel:Function,
+    reminder:Date,
     todayCategory:boolean,
     open:boolean,
     category:Category,
@@ -105,18 +121,36 @@ export class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLab
 
 
 
+    getTodayLabelContent = () => {
+        let { reminder } = this.props;
+        let title = this.props.category==="evening" ? `This Evening` : `Today`;
+        let opt = {hour: '2-digit', minute:'2-digit'};
+        
+
+        if(isNil(reminder)){
+            return <div>{title}</div>;
+        }else{
+            return <div style={{display:"flex"}}>
+                <div>{title}</div>
+                {icon}
+                <div>{reminder.toLocaleTimeString([], opt)}</div>
+            </div>    
+        }
+    };
+
+
     render(){ 
 
         return <div style={{display:"flex",flexDirection:"column",paddingLeft:"10px",paddingRight:"10px"}}>   
             {    
-                not(this.props.todayCategory) ? null :
+                !this.props.todayCategory ? null :
                 <div style={{transition:"opacity 0.4s ease-in-out",opacity:open ? 1 : 0,paddingLeft:"5px"}}>      
                     <TodoInputLabel 
                         onRemove={this.props.onRemoveTodayLabel}
                         category={this.props.category==="evening" ? "evening" : "today"} 
                         content={ 
                             <div style={{marginLeft:"15px"}}>
-                                {this.props.category==="evening" ? "This Evening" : "Today"}   
+                                { this.getTodayLabelContent() }   
                             </div>   
                         }  
                     />   

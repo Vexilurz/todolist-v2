@@ -9,13 +9,14 @@ export let fixIncomingData =
     evolve({
         todos: compose(
             map( 
+                //order matters here !
                 compose( 
-                    removeRev,
                     moveReminderFromPast, 
+                    convertTodoDates,
                     assureCorrectCompletedTypeTodo, 
                     assureCorrectNoteTypeTodo,
-                    convertTodoDates,
-                    setDefaultsTodo
+                    setDefaultsTodo,
+                    removeRev
                 )
             ),
             defaultTo([])
@@ -23,10 +24,10 @@ export let fixIncomingData =
         projects:compose(
             map( 
                 compose( 
-                    assureCorrectNoteTypeProject, 
                     convertProjectDates,
-                    removeRev,
-                    setDefaultsProject
+                    assureCorrectNoteTypeProject, 
+                    setDefaultsProject,
+                    removeRev
                 )
             ),
             defaultTo([])
@@ -34,19 +35,19 @@ export let fixIncomingData =
         areas:compose(
             map( 
                 compose( 
-                    removeRev, 
                     convertAreaDates,
-                    setDefaultsArea 
+                    setDefaultsArea,
+                    removeRev 
                 ) 
             ),
             defaultTo([])
         ),
         calendars:compose(
             map( 
-                compose( 
-                    removeRev, 
+                compose(  
                     evolve({ events:map(convertEventDate) }),
-                    setDefaultsCalendar 
+                    setDefaultsCalendar,
+                    removeRev 
                 ) 
             ),
             defaultTo([]) 

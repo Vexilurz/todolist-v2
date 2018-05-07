@@ -630,6 +630,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
         {
             not(open) ? null :  
             <TodoInputLabels 
+                reminder={null}
                 onRemoveTodayLabel={() => {
                     let {selectedCategory, todo, dispatch} = this.props;
                     let {deadline,attachedDate} = this.state;

@@ -22,7 +22,7 @@ import {
     map, mapObjIndexed, values, flatten, path, pick 
 } from 'ramda';
 import { isDev } from '../utils/isDev';
-
+let window : any = self;
 const typeEquals = (type:string) => compose(equals(type), prop(`type`)); //TODO move to utils
 const sendMessage = postMessage as (action:action) => void;
 const Promise = require('bluebird');
@@ -35,6 +35,7 @@ let calendars_db = new PouchDB('calendars',{auto_compaction: true});
 let databases = [todos_db, projects_db, areas_db, calendars_db];
 
 let list = [];
+
 
 //destroy(databases);
 
