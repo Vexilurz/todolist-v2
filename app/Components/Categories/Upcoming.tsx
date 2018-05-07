@@ -20,6 +20,7 @@ import {
 } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
 import { filter } from 'lodash'; 
+import { CalendarDay } from '../../Components/CalendarDay';
 import { Hint } from './Today'; 
 import { updateCalendars } from '../Calendar';
 import { isDate, isArray, isArrayOfTodos, isNotNil, isString } from '../../utils/isSomething';

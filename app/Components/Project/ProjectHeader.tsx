@@ -164,6 +164,8 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             <ProjectMenuPopover 
                 { 
                     ...{
+                        onToggleScheduled:this.props.onToggleScheduled,
+                        onToggleCompleted:this.props.onToggleCompleted, 
                         project,   
                         anchorEl:this.projectMenuPopoverAnchor,
                         rootRef,   

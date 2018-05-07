@@ -33,16 +33,14 @@ import { SortableContainer } from '../CustomSortableContainer';
 import { GroupsByProjectArea } from '../GroupsByProjectArea';
 import { isDev } from '../../utils/isDev';
 import { timeOfTheDay, inTimeRange, keyFromDate } from '../../utils/time';
-import { groupEventsByType, byTime } from './Upcoming';
 import { getSameDayEventElement } from '../../utils/getCalendarEventElement';
 import { indexToPriority } from '../../utils/indexToPriority';
+import { groupEventsByType } from '../../utils/groupEventsByType';
+import { byTime } from '../../utils/byTime';
+
+
 let Perf = require('react-addons-perf');
 let p = require('react-dom/lib/ReactPerf'); 
-
-
-
-
-
 
 
 class ThisEveningSeparator extends Component<{},{}>{

@@ -1,5 +1,5 @@
-import './../assets/styles.css';  
-import './../assets/calendarStyle.css';   
+import '../../assets/styles.css';  
+import '../../assets/calendarStyle.css';   
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react";  

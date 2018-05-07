@@ -8,8 +8,8 @@ import { byNotCompleted, byTags, byNotSomeday, byScheduled, removeHeading, isNot
 import { ProjectHeader } from './ProjectHeader';
 import { ProjectBody } from './ProjectBody';
 import { 
-    adjust, allPass, uniq, isEmpty, not, isNil, map, prop, takeWhile, splitAt, groupBy,
-    compose, defaultTo, ifElse, all, contains, findIndex, equals, last, reject, when, identity 
+    adjust, allPass, uniq, isEmpty, not, isNil, map, prop, takeWhile, splitAt, groupBy, complement,
+    compose, defaultTo, ifElse, all, contains, findIndex, equals, last, reject, when, identity, anyPass 
 } from 'ramda';
 import { filter } from 'lodash';
 import { bySomeday, isProject, isTodo, isString, isDate, isNotNil, isHeading } from '../../utils/isSomething';
@@ -24,6 +24,9 @@ import { TodosList } from '../TodosList';
 
 
 let byNotFuture = (t:Todo) => isNotNil(t.attachedDate) ? daysRemaining(t.attachedDate)<=0 : true;
+
+let byFuture = complement(byNotFuture);
+
 
 interface ProjectComponentProps{ 
     project:Project,  
@@ -211,30 +214,29 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
 
     getData = () => {
-        let def = {
-            completedEmpty:true,
-            scheduledEmpty:true,
-            header:[],
-            layout:[],
-            completed:[]
-        };
-
-        if(isNil(this.props.project)){ return def; }
 
         let {showCompleted, showScheduled} = this.props.project;
 
         let layout = this.getLayout();
 
-        let scheduledFilter = allPass([byNotSomeday,byNotFuture]);
+        let scheduledFilter = anyPass([bySomeday,byFuture]);
 
         return layout.reduce(
             (acc,item:any) => {
                 if(isHeading(item)){ acc.layout.push(item); return acc; }
 
-                if( scheduledFilter(item) && !showScheduled ){ acc.scheduledEmpty = false; return acc; }
+                if( scheduledFilter(item) ){ 
+                    acc.scheduledEmpty = false; 
+                    if(!showScheduled){ return acc; }
+                }
 
-                if( byCompleted(item) && !showCompleted){ acc.completedEmpty = false; return acc; }
-
+                if( byCompleted(item) ){ 
+                    acc.completedEmpty = false; 
+                    if(!showCompleted){ 
+                        acc.completed.push(item);
+                        return acc; 
+                    }
+                }
 
                 acc.header.push(item);
               
@@ -245,12 +247,20 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 if(byTags(this.props.selectedTag)(item) && byCompleted(item)){
                    acc.completed.push(item);
                 }
+
+                return acc;
             }, 
-            def
-        )
+            {
+                completedEmpty:true,
+                scheduledEmpty:true,
+                header:[],
+                layout:[],
+                completed:[]
+            }
+        );
     };
 
-
+    
 
     render(){   
         if(isNil(this.props.project)){ return null } 
@@ -308,29 +318,34 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 rootRef={this.props.rootRef}
                 dispatch={this.props.dispatch} 
             /> 
-
-            <div>
-            {
-                completedEmpty ? null :
-                <ToggleCompletedButton
-                    onToggle={this.onToggleCompleted}
-                    showCompleted={showCompleted}
-                />
-            }
-
-            {
-                scheduledEmpty ? null :
-                <ToggleScheduledButton
-                    onToggle={this.onToggleScheduled}
-                    showScheduled={showScheduled}
-                />
-            }
+            <div style={{
+                display:"flex", 
+                flexDirection:"column", 
+                alignItems:"flex-start",
+                paddingTop:"10px",
+                paddingBottom:"10px"
+            }}>
+                {
+                    completedEmpty ? null :
+                    <ToggleCompletedButton
+                        onToggle={this.onToggleCompleted}
+                        showCompleted={showCompleted}
+                    />
+                }
+                {
+                    scheduledEmpty ? null :
+                    <ToggleScheduledButton
+                        onToggle={this.onToggleScheduled}
+                        showScheduled={showScheduled}
+                    />
+                }
             </div>
             {
-                completedEmpty || !showCompleted ? null :
+                completedEmpty ? null :
                 <div style={{
-                    display:"flex",
-                    flexDirection:"column",
+                    display:"flex", 
+                    visibility:showCompleted ? "visible" : "hidden",
+                    flexDirection:"column", 
                     width:"100%"
                 }}>   
                     <TodosList    

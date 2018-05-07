@@ -1,5 +1,5 @@
-import './../assets/styles.css';  
-import './../assets/calendarStyle.css';   
+import '../../assets/styles.css';  
+import '../../assets/calendarStyle.css';   
 import * as React from 'react';  
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react";  
@@ -7,7 +7,7 @@ import { HoverButton } from './../HoverButton';
 
 interface ToggleCompletedButtonProps{
     onToggle:(e:any) => void,
-    showCompleted:boolean
+    showCompleted:boolean 
 }
 
 interface ToggleCompletedButtonState{}   

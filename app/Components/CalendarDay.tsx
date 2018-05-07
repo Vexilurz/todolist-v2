@@ -1,5 +1,5 @@
-import '../../assets/styles.css';  
-import '../../assets/calendarStyle.css';  
+import './../assets/styles.css';    
+import './../assets/calendarStyle.css';  
 import * as React from 'react';   
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
@@ -18,10 +18,12 @@ import {
     map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy, any,
     mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass
 } from 'ramda';
+import { ProjectLink } from './Project/ProjectLink';
 import { groupEventsByType } from '../utils/groupEventsByType';
 import { isDev } from '../utils/isDev';
 import { assert } from '../utils/assert';
-
+import { byTime } from '../utils/byTime';
+import { getSameDayEventElement } from '../utils/getCalendarEventElement';
 
 
 interface CalendarDayProps{ 
