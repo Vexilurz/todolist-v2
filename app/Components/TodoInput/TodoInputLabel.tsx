@@ -41,7 +41,10 @@ export class TodoInputLabel extends Component<TodoInputLabelProps, TodoInputLabe
         return  <Chip 
                     onRequestDelete={this.props.onRemove}
                     onClick={(e) => {}}
-                    style={{backgroundColor:"",background:"",transform:"scale(0.9,0.9)"}}  
+                    style={{
+                        backgroundColor:"",
+                        background:"" 
+                    }}  
                 >
                     <div style={containerStyle}>
                         {chooseIcon({height: "25px", width: "25px"}, this.props.category)} 
