@@ -9,9 +9,7 @@ import {
 const uniqid = require("uniqid");
 let expect = require('chai').expect;
 import { generateRandomDatabase } from "../../../randomDatabase/generateRandomDatabase";
-import { pwdToKey } from "../../../app/utils/crypto/crypto";
 import { mapObjIndexed } from 'ramda';
-import { destroy } from './../../../app/database/databaseUtils';
 const PouchDB = require('pouchdb-browser').default;
 
 
@@ -51,7 +49,7 @@ describe(
 
         let salt = uniqid();
         let pwd = uniqid();
-        let randomKey = pwdToKey(salt)(pwd); 
+        let randomKey = '';//pwdToKey(salt)(pwd); 
 
 
         beforeEach(() => {
@@ -70,7 +68,7 @@ describe(
                     (db:any, dbname:string) => {
                         let items = data[dbname];
 
-                        return setItemsToDatabase(onError,db,randomKey)(items)
+                        return setItemsToDatabase(onError,db)(items)
                         .then(
                             () => getItemsFromDatabase(onError,db,randomKey)
                         )
@@ -108,11 +106,11 @@ describe(
                         let newData = generateRandomDatabase(opt, 0); //{ todos, projects, areas }
                         let substitute = newData[db.name];
 
-                        return setItemsToDatabase(onError,db,randomKey)(items)
-                        .then(() => getItemsFromDatabase(onError,db,randomKey))
+                        return setItemsToDatabase(onError,db)(items)
+                        .then(() => getItemsFromDatabase(onError,db))
                         .then(
                             result => {
-                                return updateItemsInDatabase(onError,db,randomKey)(
+                                return updateItemsInDatabase(onError,db)(
                                     result.map( 
                                         (item,idx) => {
                                             let s = substitute[idx];
@@ -160,9 +158,9 @@ describe(
                     (db:any, dbname:string) => {
                         let items = data[dbname];
 
-                        return setItemToDatabase(onError,db,randomKey)(items[0])
+                        return setItemToDatabase(onError,db)(items[0])
                         .then(
-                            () => getItemFromDatabase(onError,db,randomKey)(items[0]._id)
+                            () => getItemFromDatabase(onError,db)(items[0]._id)
                         )
                         .then(
                             result => {
@@ -192,17 +190,17 @@ describe(
                         let newData = generateRandomDatabase(opt, 0); //{ todos, projects, areas }
                         let substitute = newData[db.name];
 
-                        return setItemToDatabase(onError,db,randomKey)(items[0])
-                        .then(() => getItemFromDatabase(onError,db,randomKey))
+                        return setItemToDatabase(onError,db)(items[0])
+                        .then(() => getItemFromDatabase(onError,db))
                         .then(
                             result => {
-                                return updateItemInDatabase(onError,db,randomKey)(
+                                return updateItemInDatabase(onError,db)(
                                     {...result,...substitute[0]}
                                 );
                             }
                         )
                         .then(
-                            updated => getItemFromDatabase(onError,db,randomKey)(items[0]._id)
+                            updated => getItemFromDatabase(onError,db)(items[0]._id)
                         )
                         .then(
                             updated => {

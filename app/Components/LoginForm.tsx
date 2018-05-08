@@ -5,7 +5,7 @@ import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
 import { isNil, isEmpty, compose, path, toLower, cond, contains, defaultTo, ifElse } from 'ramda';
 import Cloud from 'material-ui/svg-icons/file/cloud-done';
-import { action, actionStartSync } from '../types';
+import { action, actionStartSync, actionSetKey } from '../types';
 import { getMonthName } from '../utils/utils';
 import Toggle from 'material-ui/Toggle';
 import { timeOfTheDay } from '../utils/time';
@@ -19,13 +19,15 @@ import { LoginFormInput  } from './LoginFormInput';
 import { getToken } from '../utils/getToken';
 import { workerSendAction } from '../utils/workerSendAction';
 import { pouchWorker } from '../app';
-import { pwdToKey } from '../utils/crypto/crypto';
+const uniqid = require('uniqid');
+let CryptoJS = require("crypto-js");
 
 
 
 interface LoginFormProps{
     dispatch:(action:action) => void,
     setAuthenticated:Function,
+    secretKey:string,
     email:string
 }
 
@@ -113,20 +115,30 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
 
         let username = emailToUsername(this.state.email);
         let password = this.state.password;
-        let key = pwdToKey(username)(password);
+        let key = this.props.secretKey;
 
         let load = [
             { type:'sync', load:true },  
             { type:'email', load:this.state.email },
-            { type:'secretKey', load:key },
             { type:'salt', load:username }
         ]; 
 
-        let actionStartSync : actionStartSync = {type:"startSync", load:{username,key}};
+        //login for the first time
+        if(isNil(key)){
+            let opt = { keySize: 512/32, iterations: 10 };
+            key = CryptoJS.PBKDF2(uniqid(), uniqid(), opt).toString();
+            load.push({ type:'secretKey', load:key });
+        }
 
         this.props.dispatch({type:'multiple', load});
 
-        workerSendAction(pouchWorker)(actionStartSync)
+        let actionSetKey : actionSetKey = { type:"setKey", load:key };
+        let actionStartSync : actionStartSync = { type:"startSync", load:username };
+
+        workerSendAction(pouchWorker)(actionSetKey)
+        .then(
+            () => workerSendAction(pouchWorker)(actionStartSync)
+        )
         .then(
             () => this.props.setAuthenticated(true)
         )

@@ -1,4 +1,4 @@
-import { encryptDoc, decryptDoc, pwdToKey } from "../../../app/utils/crypto/crypto";
+import { encryptDoc, decryptDoc } from "../../../app/utils/crypto/crypto";
 import { generateRandomDatabase } from "../../../randomDatabase/generateRandomDatabase";
 import { Todo, Project, LayoutItem, Heading } from "../../../app/types";
 import { isEmpty, equals } from 'ramda';
@@ -19,7 +19,7 @@ describe(
                 this.timeout(0);
                 let salt = uniqid();
                 let pwd = uniqid();
-                let randomKey = pwdToKey(salt)(pwd); 
+                let randomKey = '';//pwdToKey(salt)(pwd); 
                 let opt = {todos:150, projects:150, areas:150};
                 let { todos, projects, areas } = generateRandomDatabase(opt, 0);
                 

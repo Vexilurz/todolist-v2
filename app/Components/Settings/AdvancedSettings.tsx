@@ -89,28 +89,6 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
 
-    setData = (load:Databases) : Promise<void> => {
-        this.props.dispatch({
-            type:"multiple",
-            load:[
-                {type:"setProjects", load:load.projects},
-                {type:"setAreas", load:load.areas},
-                {type:"setTodos", load:load.todos},
-                {type:"setCalendars", load:load.calendars},
-                {type:"selectedCategory", load:"inbox"}
-            ]
-        }); 
-
-        let actionSetDatabase : actionSetDatabase = {
-            type:"set",
-            load:{ database:load, key:this.props.secretKey }
-        };
-
-        return workerSendAction(pouchWorker)(actionSetDatabase);
-    };
-
-    
-
     onError = (error) => globalErrorHandler(error);
 
    
@@ -144,11 +122,27 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         ) 
     );  
 
+    //TODO
+    /*setData = (load:Databases) : Promise<void> => {
+        this.props.dispatch({
+            type:"multiple",
+            load:[
+                {type:"setProjects", load:load.projects},
+                {type:"setAreas", load:load.areas},
+                {type:"setTodos", load:load.todos},
+                {type:"setCalendars", load:load.calendars},
+                {type:"selectedCategory", load:"inbox"}
+            ]
+        }); 
 
-    
+        let actionSetDatabase : actionSetDatabase = { type:"set", load };
+
+        return workerSendAction(pouchWorker)(actionSetDatabase);
+    };*/
+
     import : (pathToFile:string) => Promise<any> = (pathToFile:string) => 
     requestFromMain("readJsonFile", [pathToFile], (event,json) => json.database)
-    .then(
+    /*.then(
         ifElse(
             correctFormat,
             compose(
@@ -161,7 +155,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
             ),
             () => this.updateState({message:"Incorrect format"})
         )
-    );
+    );*/
 
     
 

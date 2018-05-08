@@ -64,11 +64,11 @@ import { RelatedProjectLabel } from './RelatedProjectLabel';
 let moment = require("moment"); 
 
 
+
 const icon = <div style={{
-    zoom:"0.7",
-    position:"relative",
+    zoom:"0.7", 
+    position:"relative", 
     height:"28px"
-    //, marginLeft:"3px", marginRight:"3px"
 }}>
     <Alert style={{color:"black",WebkitUserSelect:"none"}}/>
     <div style={{
@@ -81,6 +81,7 @@ const icon = <div style={{
     }}> 
     </div>
 </div>
+
 
 
 interface TodoInputLabelsProps{
@@ -97,7 +98,9 @@ interface TodoInputLabelsProps{
 }
 
 
+
 interface TodoInputLabelsState{}
+
 
 
 export class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLabelsState>{
@@ -106,6 +109,7 @@ export class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLab
         super(props);
     }
 
+    
     
     shouldComponentUpdate(nextProps:TodoInputLabelsProps){
         let { 
@@ -122,6 +126,7 @@ export class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLab
                open!==this.props.open ||
                todayCategory!==this.props.todayCategory;
     };
+
 
 
     getTodayLabelContent = () => {
@@ -144,6 +149,7 @@ export class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLab
             </div>    
         }
     };
+
 
 
     render(){ 

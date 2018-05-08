@@ -25,45 +25,35 @@ const Promise = require('bluebird');
 const path = require('path');
 
 
-export let destroy = (databases:any[]) => Promise.all(databases.map(db => db.destroy()));
-
-
-
 let queryToObjects = (query:Query<any>) => query ? query.rows.map(row => row.doc) : []; 
 
 
    
 //get one
-export let getItemFromDatabase = (onError:Function, db:any, key:string) =>
-    (_id:string) : Promise<any> => {
-        let decrypt = decryptDoc(db.name,key,onError);
-        return db.get(_id).then(doc => decrypt(doc)).catch(onError);
-    };
+export let getItemFromDatabase = (onError:Function, db:any) =>
+    (_id:string) : Promise<any> => db.get(_id).catch(onError);
  
 
 
 //set one    
-export let setItemToDatabase = (onError:Function, db:any, key:string) => 
-    (item:any) : Promise<void> => {
-        let doc = encryptDoc(db.name,key,onError)(item);
-        return db.put(doc).catch(onError);
-    };
+export let setItemToDatabase = (onError:Function, db:any) => 
+    (doc:any) : Promise<void> => db.put(doc).catch(onError);
 
     
 
 //update one    
-export let updateItemInDatabase = (onError:Function, db:any, key:string) => {
+export let updateItemInDatabase = (onError:Function, db:any) => {
     let count = 0;  
 
     let update = function(changed:any) : Promise<any>{
-        return getItemFromDatabase(onError,db,key)(changed._id)
+        return getItemFromDatabase(onError,db)(changed._id)
                 .then(
                     (doc) => {   
                         if(isNil(doc) || isEmpty(doc)){ 
                            return new Promise(resolve => resolve(changed));
                         }else{
                            changed["_rev"] = doc["_rev"];
-                           return setItemToDatabase(onError,db,key)({...doc,...changed});  
+                           return setItemToDatabase(onError,db)({...doc,...changed});  
                         }
                     }
                 )
@@ -85,38 +75,34 @@ export let updateItemInDatabase = (onError:Function, db:any, key:string) => {
 
 
 //get all
-export let getItemsFromDatabase = (onError:Function, db:any, key:string, opt?:any) => {
-    let options = defaultTo({include_docs:true})(opt);
-    let decrypt = map(decryptDoc(db.name,key,onError));
-    return db.allDocs(options)
+export let getItemsFromDatabase = (onError:Function, db:any, opt?:any) => {
+    let options = defaultTo({})(opt);
+
+    return db.allDocs({...options,include_docs:true})
              .then(queryToObjects)
              .then(reject(isNil))
-             .then(docs => decrypt(docs))
              .catch(onError);
 };
 
 
 
 //set many
-export let setItemsToDatabase = (onError:Function, db:any, key:string) => 
-    (items:any[]) : Promise<void> => {
-        let docs = map( encryptDoc(db.name,key,onError), items );
-        return db.bulkDocs(docs).catch(onError); 
-    };
-
+export let setItemsToDatabase = (onError:Function, db:any) => 
+    (docs:any[]) : Promise<void> => db.bulkDocs(docs).catch(onError);
+    
 
 
 //update many    
-export let updateItemsInDatabase = (onError:Function, db:any, key:string) => {
+export let updateItemsInDatabase = (onError:Function, db:any) => {
 
     return (values:any[]) : Promise<any[]> => {
         let count = 0;
 
         let update = (values) : Promise<any[]> => {
             let items = values.filter(v => v);
-            let opt = { include_docs:true, keys:items.map((item) => item["_id"]) };
+            let opt = { keys:items.map((item) => item["_id"]) };
 
-            return getItemsFromDatabase(onError,db,key,opt)
+            return getItemsFromDatabase(onError,db,opt)
                 .then( (result:any[]) => {
                     let itemsWithRev = result.filter(v => v);
                     let revs = {};
@@ -135,7 +121,7 @@ export let updateItemsInDatabase = (onError:Function, db:any, key:string) => {
                         }
                     }    
                     
-                    return setItemsToDatabase(onError, db, key)(items); 
+                    return setItemsToDatabase(onError, db)(items); 
                 })
                 .catch((err) => {
                     if(err.status===409 && count<5){
@@ -155,10 +141,10 @@ export let updateItemsInDatabase = (onError:Function, db:any, key:string) => {
     
     
 
-export let getDatabaseObjects = (onError:Function, databases:any[], key:string) : Promise<Databases> => 
+export let getDatabaseObjects = (onError:Function, databases:any[]) : Promise<Databases> => 
     Promise.map( 
         databases.map( 
-            db => () => getItemsFromDatabase(onError, db, key, null)
+            db => () => getItemsFromDatabase(onError, db, null)
                         .then(items => [db.name,items]) 
         ),
         (f) => f(), 
@@ -168,24 +154,28 @@ export let getDatabaseObjects = (onError:Function, databases:any[], key:string) 
 
 
 
-let mapDatabaseItems = (withOne:withOne, withMany:withMany) => (db:any, onError:Function, key:string) => 
+let mapDatabaseItems = (withOne:withOne, withMany:withMany) => (db:any, onError:Function) => 
     ifElse(
         singleItem, 
-        (items:any[]) => withOne(onError, db, key)(items[0]),
-        (items:any[]) => withMany(onError, db, key)(items)
+        (items:any[]) => withOne(onError, db)(items[0]),
+        (items:any[]) => withMany(onError, db)(items)
     ); 
 
 
 
 export let addItems = mapDatabaseItems(setItemToDatabase,setItemsToDatabase);
 
+
+
 export let updateItems = mapDatabaseItems(updateItemInDatabase, updateItemsInDatabase);  
 
-export let  removeItems = (db:any, onError:Function, key:string) => 
-            compose(
-                updateItems(db, onError, key), 
-                map(item => ({...item,_deleted: true}))
-            );
+
+ 
+export let removeItems = (db:any, onError:Function) => 
+           compose(
+             updateItems(db, onError), 
+             map(item => ({...item,_deleted: true}))
+           );
 
 
 

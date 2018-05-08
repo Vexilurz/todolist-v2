@@ -61,7 +61,7 @@ export let assureCorrectCompletedTypeTodo =
    
 
 export let getData = (key:string) : Promise<Databases> => {
-    let actionLoadDatabase : actionLoadDatabase = {type:"load",load:key};
+    let actionLoadDatabase : actionLoadDatabase = {type:"load",load:undefined};
     return workerSendAction(pouchWorker)(actionLoadDatabase);
 };
 

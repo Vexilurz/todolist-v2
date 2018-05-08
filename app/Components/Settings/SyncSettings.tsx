@@ -22,6 +22,7 @@ import { checkAuthenticated } from '../../utils/checkAuthenticated';
 import { pouchWorker } from '../../app';
 
 
+
 interface SyncSettingsProps{
     dispatch:(action:action) => void,
     email:string,
@@ -50,7 +51,9 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
     componentDidMount(){
         checkAuthenticated()
         .then(
-            auth => this.setAuthenticated( auth && isString(this.props.email) && isDate(this.props.lastSync) )
+            auth => this.setAuthenticated( 
+                auth && isString(this.props.email) && isDate(this.props.lastSync) 
+            )
         )
     }
 
@@ -63,10 +66,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
             if(shouldSync && this.state.authenticated){
                 let actionStartSync : actionStartSync = {
                     type:"startSync", 
-                    load:{ 
-                        username:emailToUsername(this.props.email),
-                        key:this.props.secretKey
-                    }
+                    load:emailToUsername(this.props.email)
                 }; 
 
                pouchWorker.postMessage(actionStartSync);
@@ -88,7 +88,12 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
 
 
     render(){
-        return <div style={{display:"flex", justifyContent:"center", alignItems:"center", width:"100%"}}>
+        return <div style={{
+            display:"flex", 
+            justifyContent:"center", 
+            alignItems:"center", 
+            width:"100%"
+        }}>
             <div style={{
                 display:"flex", 
                 flexDirection:"column",
@@ -123,6 +128,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
                     :
                     <LoginForm 
                         setAuthenticated={this.setAuthenticated}
+                        secretKey={this.props.secretKey}
                         dispatch={this.props.dispatch}
                         email={this.props.email}
                     />  
@@ -130,7 +136,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
             </div>
         </div>
     }
-}
+};
 
 
 interface SyncSwitchProps{

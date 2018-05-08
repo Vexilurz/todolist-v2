@@ -18,7 +18,7 @@ import { MainContainer } from './Components/MainContainer';
 import { filter } from 'lodash';
 import { 
     Project, Todo, Calendar, Config, Store, Indicators, action, 
-    PouchChanges, PouchError, PouchChange, DatabaseChanges, Area, actionStartSync 
+    PouchChanges, PouchError, PouchChange, DatabaseChanges, Area, actionStartSync, actionSetKey 
 } from './types';
 import { 
     isNil, map, when, evolve, prop, isEmpty, path, 
@@ -54,7 +54,6 @@ import { isDev } from './utils/isDev';
 import { generateEmptyCalendar } from './utils/generateEmptyCalendar';
 import { logout } from './utils/logout';
 import { fixIncomingData } from './utils/fixIncomingData';
-import { pwdToKey, decryptDoc } from './utils/crypto/crypto';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
@@ -115,7 +114,6 @@ export class App extends Component<AppProps,AppState>{
         let timestamp = new Date(change.start_time);
 
         let docs = compose( 
-            map( decryptDoc(dbname,this.props.secretKey,globalErrorHandler) ),
             prop(dbname),
             fixIncomingData, 
             data =>  fromPairs( [[dbname,data]] ),  
@@ -189,14 +187,10 @@ export class App extends Component<AppProps,AppState>{
                 ){
                     let action : actionStartSync = {
                         type:"startSync", 
-                        load:{ 
-                            username: emailToUsername(this.props.email),
-                            key: this.props.secretKey
-                        }
+                        load:emailToUsername(this.props.email)
                     };
 
                     pouchWorker.postMessage(action);
-
                 }
             }
         );
@@ -209,13 +203,14 @@ export class App extends Component<AppProps,AppState>{
     };
 
     
-    
+    //init
     componentDidMount(){    
         this.generateIndicatorsWorker = new Worker('generateIndicators.js');
 
         this.setInitialTitle();
 
         if(!this.props.clone){
+
             this.initSync();
 
             this.initObservables();
@@ -234,6 +229,7 @@ export class App extends Component<AppProps,AppState>{
         this.generateIndicatorsWorker = null;
 
         if(!this.props.clone){
+
             pouchWorker.postMessage({type:'stopSync',load:null});         
 
             this.suspendDatabaseObservable();
@@ -317,15 +313,15 @@ export class App extends Component<AppProps,AppState>{
 
 
     updateQuickEntry = (nextProps:Store,indicators:Indicators) => 
-        () => ipcRenderer.send(
-            'updateQuickEntryData',
-            {
-                todos:nextProps.todos,
-                projects:nextProps.projects,
-                areas:nextProps.areas,
-                indicators
-            }
-        );
+    ipcRenderer.send(
+        'updateQuickEntryData',
+        {
+            todos:nextProps.todos,
+            projects:nextProps.projects,
+            areas:nextProps.areas,
+            indicators
+        }
+    );
 
 
 
@@ -534,7 +530,18 @@ ipcRenderer.once(
     (event,clonedStore:Store,id:number) => 
         requestFromMain("getConfig", [], (event, config) => config)
         .then(
-            config => renderApp(config,clonedStore,id)
+            (config:Config) => {
+                let key = config.secretKey;
+                
+                //if key exist in configuration send it to webworker
+                //in order to initialize encryption middleware 
+                if(isString(key)){
+                   let action : actionSetKey = {type:"setKey", load:key};
+                   workerSendAction(pouchWorker)(action);
+                }
+                
+                renderApp(config,clonedStore,id);
+            }
         )
 );    
 

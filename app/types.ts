@@ -1,43 +1,25 @@
-type Key = string;
 
-export interface actionStartSync{
-    type:"startSync",
-    load:{username:string, key:Key}
-};
+export interface actionSetKey{ type:"setKey", load:string };
 
 
 
-export interface actionStopSync{
-    type:"stopSync",
-    load:any
-};
+export interface actionStartSync{ type:"startSync", load:string };
 
 
 
-export interface actionChanges{
-    type:"changes",
-    load:{
-        changes:Changes,
-        key:Key
-    }
-};
+export interface actionStopSync{ type:"stopSync", load:void };
 
 
 
-export interface actionLoadDatabase{
-    type:"load",
-    load:Key
-};
+export interface actionChanges{ type:"changes", load:Changes };
 
 
 
-export interface actionSetDatabase{
-    type:"set",
-    load:{
-        database:Databases,
-        key:Key
-    }
-};
+export interface actionLoadDatabase{ type:"load", load:void };
+
+
+
+export interface actionSetDatabase{ type:"set", load:Databases };
 
 
 
@@ -271,11 +253,11 @@ export interface Cookie{
 
 
 
-export type withOne = (onError:Function, db:any, key:string) => (doc:any) => Promise<any>;
+export type withOne = (onError:Function, db:any) => (doc:any) => Promise<any>;
 
 
 
-export type withMany = (onError:Function, db:any, key:string) => (docs:any[]) => Promise<any>;
+export type withMany = (onError:Function, db:any) => (docs:any[]) => Promise<any>;
 
 
   

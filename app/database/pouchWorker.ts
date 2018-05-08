@@ -4,7 +4,7 @@ Date.prototype["addDays"] = function(days){
     return dat; 
 }; 
 import { 
-    getDatabaseObjects, destroy, addItems, removeItems, updateItems, setItemsToDatabase 
+    getDatabaseObjects, addItems, removeItems, updateItems, setItemsToDatabase 
 } from './databaseUtils';
 import { singleItem } from './../utils/singleItem'; 
 import { sleep } from './../utils/sleep'; 
@@ -12,102 +12,89 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { 
     action, Query, Databases, Changes, DatabaseChanges, PouchChanges, actionStartSync, 
-    actionStopSync, actionChanges, actionLoadDatabase, actionSetDatabase 
+    actionStopSync, actionChanges, actionLoadDatabase, actionSetDatabase, actionSetKey 
 } from './../types';
 import { host } from './../utils/couchHost';
 import { userNameToDatabaseName } from './../utils/userNameToDatabaseName';
 import { 
     cond, compose, equals, prop, isEmpty, when, fromPairs, 
     isNil, forEachObjIndexed, toPairs, evolve, ifElse, last, 
-    map, mapObjIndexed, values, flatten, path, pick 
+    map, mapObjIndexed, values, flatten, path, pick, identity,
+    complement 
 } from 'ramda';
 import { isDev } from '../utils/isDev';
+import { encryptDoc, decryptDoc } from '../utils/crypto/crypto';
+import { onError } from './onError'; 
+import { startDatabaseSync } from './startDatabaseSync';
+
 let window : any = self;
+
 const typeEquals = (type:string) => compose(equals(type), prop(`type`)); //TODO move to utils
+let isNotNil = complement(isNil); //TODO move to utils
+let isString = (item) : boolean => typeof item==="string"; //TODO move to utils 
+
 const sendMessage = postMessage as (action:action) => void;
 const Promise = require('bluebird');
+
 const PouchDB = require('pouchdb-browser').default;
+PouchDB.plugin(require('transform-pouch'));
 
-let todos_db = new PouchDB('todos',{auto_compaction: true});
-let projects_db = new PouchDB('projects',{auto_compaction: true});
-let areas_db = new PouchDB('areas',{auto_compaction: true}); 
-let calendars_db = new PouchDB('calendars',{auto_compaction: true}); 
-let databases = [todos_db, projects_db, areas_db, calendars_db];
-
+let databases = [];
 let list = [];
 
 
-//destroy(databases);
 
-
-let onError = (error) => {
-    sendMessage({type:'error', load:`pouch error ${error.message}  ${error.stack}`});
-};
-
-
-
-let onChangeHandler = (dbName:string) => (info:PouchChanges) => {
-    if(isDev()){
-       sendMessage({type:'log', load:`pouchSync change ${dbName} - ${path(["change","docs","length"])(info)}`});
-    }
-
-    if(info && prop('direction')(info)==="pull"){
-       sendMessage({ type:'changes', load:{ dbname:dbName, changes:info } });
-    }
-};
+let transform = (dbname:string) => ({
+    incoming:ifElse(
+        (doc) => isNotNil(doc) && isString(window.key) && !doc.enc,
+        encryptDoc(dbname, window.key, onError),
+        identity
+    ),
+    outgoing:ifElse(
+        (doc) => isNotNil(doc) && isString(window.key) && doc.enc,
+        decryptDoc(dbname, window.key, onError),
+        identity
+    )
+});
 
 
 
 let init = () => {
-    todos_db = new PouchDB('todos',{auto_compaction: true});
-    projects_db = new PouchDB('projects',{auto_compaction: true});
-    areas_db = new PouchDB('areas',{auto_compaction: true}); 
-    calendars_db = new PouchDB('calendars',{auto_compaction: true}); 
+    let todos_db = new PouchDB('todos',{auto_compaction: true});
+    let projects_db = new PouchDB('projects',{auto_compaction: true});
+    let areas_db = new PouchDB('areas',{auto_compaction: true}); 
+    let calendars_db = new PouchDB('calendars',{auto_compaction: true}); 
 
     databases = [todos_db, projects_db, areas_db, calendars_db];
+    
+    databases.forEach( db => db.transform( transform(db.name) ) );
 
     return databases;
 };
  
- 
 
-let loadDatabase = (action:actionLoadDatabase) : Promise<Databases> => {
+
+//start
+init();
+
+
+
+/**
+ * load data from dbs in memory
+ */
+let load = (action:actionLoadDatabase) : Promise<Databases> => {
     if(isDev()){
        sendMessage({type:'log', load:`pouch log loadDatabase`});
     }
 
-    let key = action.load;
-    
-    return getDatabaseObjects(onError,databases,key);
+    return getDatabaseObjects(onError,databases);
 };   
 
 
-let onPaused = () =>  sendMessage({type:'paused', load:null});
-let onActive = () =>  sendMessage({type:'active', load:null});
 
-
-let startDatabaseSync = (username:string) => (database:any) => {
-    let name : string = database.name;
-    let dbCouchName = userNameToDatabaseName(username)(name); 
-    let url = `${host}/${dbCouchName}`;
-    let opt = { skip_setup: true, auto_compaction: true /*ajax: { headers: {}, withCredentials: false }*/ };
-    let remoteDB : any = new PouchDB(url, opt);  
-    let sync = database.sync(remoteDB, {live: true, retry: true}); 
-
-    sync.on('change',onChangeHandler(name));
-    sync.on('denied',onError);
-    sync.on('error',onError);
-
-    sync.on('paused', onPaused);
-    sync.on('active', onActive);
-
-    //sync.on('completed',onError);  
-      
-    return sync;
-};
- 
-
-
+/**
+ * start synchronization process
+ */
 let startSync = (action:actionStartSync) : Promise<void> => {
     list = list.filter(s => !s.canceled);
 
@@ -117,7 +104,7 @@ let startSync = (action:actionStartSync) : Promise<void> => {
        sendMessage({type:'log', load:`pouch log startSync ${JSON.stringify(action)}`});
     }
 
-    let username = action.load.username;
+    let username = action.load;
     let start = startDatabaseSync(username);
     list = databases.map( db => start(db) );
  
@@ -126,6 +113,9 @@ let startSync = (action:actionStartSync) : Promise<void> => {
 
 
 
+/**
+ * stop synchronization process
+ */
 let stopSync = (action:actionStopSync) : Promise<any[]> => { 
 
     if(isDev()){
@@ -157,28 +147,15 @@ let stopSync = (action:actionStopSync) : Promise<any[]> => {
 
 
 
-let setDatabase = (action:actionSetDatabase) : Promise<void> => 
-    stopSync({type:'stopSync',load:null})  
-    .then(() => destroy(databases))
-    .then(() => init())
-    .then((databases) => {
-        return Promise.all( 
-            databases.map( 
-                db => setItemsToDatabase(
-                    onError, db, action.load.key
-                )(action.load.database[db.name])
-            ) 
-        );
-    });
-
-
-
-let applyChanges = (action:actionChanges) : Promise<void> => {
+/**
+ * apply changes from redux store to dbs
+ */
+let changes = (action:actionChanges) : Promise<void> => {
     if(isDev()){
        sendMessage({type:'log', load:`pouch log applyChanges ${action.type}`});
     }
 
-    let changes : Changes = action.load.changes;
+    let changes : Changes = action.load;
 
     return compose(
         list => Promise.all(list),
@@ -187,13 +164,15 @@ let applyChanges = (action:actionChanges) : Promise<void> => {
             (change:DatabaseChanges<any>, dbname:string) => {
                 let db = databases.find( d => d.name===dbname );
 
+                if(isNil(db)){ return new Promise( resolve => resolve() ) }
+
                 return compose(
                     values,
                     evolve(
                         {
-                            add:addItems(db, onError, action.load.key),
-                            remove:removeItems(db, onError, action.load.key),
-                            update:updateItems(db, onError, action.load.key)
+                            add:addItems(db, onError),
+                            remove:removeItems(db, onError),
+                            update:updateItems(db, onError)
                         }
                     )
                 )(change);
@@ -203,21 +182,37 @@ let applyChanges = (action:actionChanges) : Promise<void> => {
 };
 
 
+
+/**
+ * assign encryption key to window object for further usage
+ */
+let setKey = (action:actionSetKey) => {
+    window.key = action.load;
+    return new Promise( resolve => resolve(null) );
+};
+
+
+ 
 onmessage = function(e){
     if(isDev()){
        sendMessage({type:'log', load:`pouch log get action - ${e.data.type}`});
     }
 
-    let action = e.data; 
+    let action : action = e.data; 
 
     compose(
         p => p.then(load => sendMessage({type:action.type, load})),
         cond([
+            [ typeEquals("load"), load ], 
+
+            [ typeEquals("changes"), changes ],
+
             [ typeEquals("startSync"), startSync ],
+
             [ typeEquals("stopSync"), stopSync ],
-            [ typeEquals("changes"), applyChanges ],
-            [ typeEquals("load"), loadDatabase ],
-            [ typeEquals("set"),  setDatabase ],
+
+            [ typeEquals("setKey"), setKey ],
+            
             [ () => true, () => new Promise( resolve => resolve(null) ) ]    
         ])
     )(action) 
