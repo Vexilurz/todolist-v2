@@ -2,7 +2,7 @@ import './../assets/styles.css';
 import './../assets/calendarStyle.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';  
-import { equals } from 'ramda';
+import { equals, isNil } from 'ramda';
 import { ipcRenderer } from 'electron'; 
 import { Component } from "react";   
 import { getMonthName, attachDispatchToProps } from './../utils/utils'; 
@@ -13,14 +13,13 @@ import { OptionsPopup } from './OptionsPopup';
 
 
 interface ImportPopupProps{
-    dispatch:Function,
-    import:ImportActionLoad
+    import:ImportActionLoad,
+    dispatch:Function
 } 
 
 
 
 interface ImportPopupState{}
-
 
 
 export class ImportPopup extends Component<ImportPopupProps,ImportPopupState>{
@@ -44,45 +43,53 @@ export class ImportPopup extends Component<ImportPopupProps,ImportPopupState>{
 
 
 
-    replace = (database:Databases) : Promise<void> => {
-        this.onClose();  
-        return null;
-    };
+    replace = () : void => {
+        let database:Databases = this.props.import.database;
 
+        let {todos,projects,areas,calendars} = database;
 
-
-    merge = (database:Databases) : Promise<void> => {
-        this.onClose();  
-        return null;
-    };
-
-
-    //TODO
-    /*
-    setData = (load:Databases) : Promise<void> => {
         this.props.dispatch({
             type:"multiple",
             load:[
-                {type:"setProjects", load:load.projects},
-                {type:"setAreas", load:load.areas},
-                {type:"setTodos", load:load.todos},
-                {type:"setCalendars", load:load.calendars},
-                {type:"selectedCategory", load:"inbox"}
+                {type:"addTodos", load:todos},
+                {type:"addProjects", load:projects},   
+                {type:"addAreas", load:areas},      
+                {type:"addCalendars", load:calendars}   
             ]
-        }); 
+        });
 
-        let actionSetDatabase : actionSetDatabase = { type:"set", load };
 
-        return workerSendAction(pouchWorker)(actionSetDatabase);
+        this.onClose();  
     };
-    */
+
+
+
+    merge = () : void => {
+        let database:Databases = this.props.import.database;
+
+        let {todos,projects,areas,calendars} = database;
+
+        this.props.dispatch({
+            type:"multiple",
+            load:[
+                {type:"erase", load:undefined},
+
+                {type:"addTodos", load:todos},
+                {type:"addProjects", load:projects},   
+                {type:"addAreas", load:areas},      
+                {type:"addCalendars", load:calendars}   
+            ]
+        });
+
+        this.onClose();  
+    };
 
 
 
     render(){ 
         return <OptionsPopup
             title={'Import database'}
-            message={``}
+            message={this.props.import.pathToFile}
             options={[
                 { title:'Merge databases', f:this.merge },                  
                 { title:'Replace database', f:this.replace }

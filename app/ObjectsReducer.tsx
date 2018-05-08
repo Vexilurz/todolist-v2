@@ -119,9 +119,19 @@ export let objectsReducer = (state:Store, action:action) : Store => {
             ],
             [
                 typeEquals("removeCalendars"),  
-                (action:{type:string, load:any}) : Store => ({
+                (action:{type:string, load:string[]}) : Store => ({
                     ...state,
                     calendars:filter(state.calendars, c => !contains(c._id)(action.load))
+                })
+            ], 
+            [
+                typeEquals("erase"),  
+                (action:{type:string, load:void}) : Store => ({
+                    ...state,
+                    todos:[],
+                    projects:[],
+                    areas:[],
+                    calendars:[]
                 })
             ], 
             [
@@ -286,6 +296,13 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                 (action:{type:string,load:Calendar}):Store => { 
                     
                     return {...state, calendars:[action.load,...state.calendars]};
+                }
+            ],
+            [  
+                typeEquals("addCalendars"),  
+                (action:{type:string,load:Calendar[]}):Store => { 
+                    
+                    return {...state, calendars:[...action.load,...state.calendars]};
                 }
             ],
             [ 

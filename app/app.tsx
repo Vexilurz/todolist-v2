@@ -460,9 +460,9 @@ export class App extends Component<AppProps,AppState>{
             }
             {
                 !this.props.import ? null : 
-                <ImportPopup    
-                    dispatch={this.props.dispatch}
+                <ImportPopup 
                     import={this.props.import}
+                    dispatch={this.props.dispatch}
                 />
             }
         </div>  
