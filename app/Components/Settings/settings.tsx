@@ -11,7 +11,7 @@ import TriangleLabel from 'material-ui/svg-icons/action/loyalty';
 import { Checkbox } from '../TodoInput/Checkbox';
 import { attachDispatchToProps, checkForUpdates, getCompletedWhen, log } from '../../utils/utils';
 import { isNewVersion } from '../../utils/isNewVersion';
-import { section, Calendar, Area, Project, Todo } from '../../types';
+import { section, Calendar, Area, Project, Todo, ImportActionLoad } from '../../types';
 import { Section } from './section';
 import Advanced from 'material-ui/svg-icons/action/settings-applications'; 
 import { cond } from 'ramda';
@@ -27,6 +27,7 @@ export interface SettingsProps{
     hideHint:boolean,
     selectedSettingsSection:section,
     secretKey:string,
+    import:ImportActionLoad,
 
     enableShortcutForQuickEntry:boolean,
     quickEntrySavesTo:string,
@@ -182,6 +183,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                         (selectedSettingsSection:string) : boolean => selectedSettingsSection==="Advanced",  
                         () => <AdvancedSettings 
                             limit={this.props.limit}
+                            import={this.props.import}
                             secretKey={this.props.secretKey}
                             shouldSendStatistics={this.props.shouldSendStatistics}
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}

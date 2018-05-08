@@ -58,6 +58,7 @@ export class OptionsPopup extends Component<OptionsPopupProps,OptionsPopupState>
                             flexDirection:"column",
                             justifyContent:"flex-start",
                             padding:"10px",
+                            width:"90%",
                             cursor:"default",
                             userSelect:"none" 
                         }}>
@@ -70,7 +71,12 @@ export class OptionsPopup extends Component<OptionsPopupProps,OptionsPopupState>
                             }}>    
                                 {this.props.title}
                             </div>
-                            <div style={{fontSize:"14px",color:"rgba(0,0,0,1)",textAlign:"center"}}>
+                            <div style={{
+                                fontSize:"14px",
+                                color:"rgba(0,0,0,1)",
+                                textAlign:"center",
+                                wordWrap:"break-word"
+                            }}>
                                 {this.props.message}
                             </div>   
                         </div>

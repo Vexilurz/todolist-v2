@@ -417,6 +417,7 @@ export class App extends Component<AppProps,AppState>{
                     sync={this.props.sync}
                     lastSync={this.props.lastSync}
                     dispatch={this.props.dispatch} 
+                    import={this.props.import}
                     openSettings={this.props.openSettings}
                     hideHint={this.props.hideHint}
                     selectedSettingsSection={this.props.selectedSettingsSection}
@@ -459,11 +460,7 @@ export class App extends Component<AppProps,AppState>{
                 />
             }
             {
-                !this.props.import ? null : 
-                <ImportPopup 
-                    import={this.props.import}
-                    dispatch={this.props.dispatch}
-                />
+                !this.props.import ? null : <ImportPopup {...{} as any}/>
             }
         </div>  
     }           

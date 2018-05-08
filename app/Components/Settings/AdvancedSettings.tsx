@@ -15,7 +15,7 @@ import {
     closeClonedWindows, correctFormat, selectFolder, selectJsonDatabase, sideEffect 
 } from '../../utils/utils'; 
 import { isNewVersion } from '../../utils/isNewVersion';
-import { Area, Project, Todo, Calendar, Databases, actionSetDatabase, ImportAction } from '../../types'; 
+import { Area, Project, Todo, Calendar, Databases, actionSetDatabase, ImportAction, ImportActionLoad } from '../../types'; 
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater'; 
 import { isArrayOfTodos, isNotNil } from '../../utils/isSomething';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
@@ -38,6 +38,7 @@ let remRev = compose(map(removeRev), defaultTo([]));
 interface AdvancedProps{
     limit:Date,
     secretKey:string,
+    import:ImportActionLoad,
     enableShortcutForQuickEntry:boolean,
     shouldSendStatistics:boolean,
     moveCompletedItemsToLogbook:any,
@@ -71,10 +72,6 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     
 
 
-    message = (place) => `Data was successfully imported. You can find a backup of your old database in ${place}.`;
-
-
-
     updateState : (state:any) => Promise<void> = 
     (state) => new Promise(resolve => this.setState(state, () => resolve()));
 
@@ -86,6 +83,14 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
             (version) => this.updateState({updateStatus:`Current version is : ${version}.`}) 
         )
     }; 
+
+
+
+    componentWillReceiveProps(nextProps:AdvancedProps){
+        if(isNil(nextProps.import) && isNotNil(this.props.import)){
+           this.updateState({message:'Data was successfully imported.'});
+        }
+    };
 
 
 
@@ -123,13 +128,6 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     );  
 
 
-
-    /*
-    this.updateState({message:'Loading...'})
-    .then(this.backup)
-    .then((to:string) => this.updateState({message:this.message(to)}))
-    */
-  
 
     import : (pathToFile:string) => Promise<any> = (pathToFile:string) => 
     requestFromMain("readJsonFile", [pathToFile], (event,json) => json.database)
@@ -169,7 +167,6 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     );
 
     
-
  
     checkUpdates : () => Promise<void> = () => 
     this.updateState({updateStatus:"Loading..."})
