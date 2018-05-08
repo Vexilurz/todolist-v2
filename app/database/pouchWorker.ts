@@ -44,20 +44,6 @@ let list = [];
 
 
 
-let transform = (dbname:string) => ({
-    incoming:ifElse(
-        (doc) => isNotNil(doc) && isString(window.key) && !doc.enc,
-        encryptDoc(dbname, window.key, onError),
-        identity
-    ),
-    outgoing:ifElse(
-        (doc) => isNotNil(doc) && isString(window.key) && doc.enc,
-        decryptDoc(dbname, window.key, onError),
-        identity
-    )
-});
-
-
 
 let init = () => {
     let todos_db = new PouchDB('todos',{auto_compaction: true});
@@ -67,7 +53,36 @@ let init = () => {
 
     databases = [todos_db, projects_db, areas_db, calendars_db];
     
-    databases.forEach( db => db.transform( transform(db.name) ) );
+    databases.forEach( 
+        db => db.transform({
+            incoming:ifElse(
+                (doc) => {
+                    return isNotNil(doc) && isString(window.key) && !doc.enc
+                },
+                compose(
+                    doc => {
+                        sendMessage({type:'log', load:`pouch incoming ${doc.title}`});
+                        return doc;
+                    },
+                    doc => encryptDoc(db.name, window.key, onError)(doc)
+                ),
+                identity
+            ),
+            outgoing:ifElse(
+                (doc) => {
+                    return isNotNil(doc) && isString(window.key) && doc.enc
+                },
+                compose( 
+                    doc => {
+                        sendMessage({type:'log', load:`pouch outgoing ${doc.title}`});
+                        return doc;
+                    },
+                    doc => decryptDoc(db.name, window.key, onError)(doc) 
+                ),
+                identity
+            )
+        }) 
+    );
 
     return databases;
 };

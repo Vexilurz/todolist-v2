@@ -19,6 +19,7 @@ import { LoginFormInput  } from './LoginFormInput';
 import { getToken } from '../utils/getToken';
 import { workerSendAction } from '../utils/workerSendAction';
 import { pouchWorker } from '../app';
+import { isDev } from '../utils/isDev';
 const uniqid = require('uniqid');
 let CryptoJS = require("crypto-js");
 
@@ -124,7 +125,7 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
         ]; 
 
         //login for the first time
-        if(isNil(key)){
+        if(isNil(key) || isDev()){
             let opt = { keySize: 512/32, iterations: 10 };
             key = CryptoJS.PBKDF2(uniqid(), uniqid(), opt).toString();
             load.push({ type:'secretKey', load:key });
