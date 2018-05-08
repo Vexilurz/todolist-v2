@@ -15,7 +15,7 @@ import {
     closeClonedWindows, correctFormat, selectFolder, selectJsonDatabase, sideEffect 
 } from '../../utils/utils'; 
 import { isNewVersion } from '../../utils/isNewVersion';
-import { Area, Project, Todo, Calendar, Databases, actionSetDatabase } from '../../types'; 
+import { Area, Project, Todo, Calendar, Databases, actionSetDatabase, ImportAction } from '../../types'; 
 import { UpdateInfo, UpdateCheckResult } from 'electron-updater'; 
 import { isArrayOfTodos, isNotNil } from '../../utils/isSomething';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
@@ -122,40 +122,35 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         ) 
     );  
 
-    //TODO
-    /*setData = (load:Databases) : Promise<void> => {
-        this.props.dispatch({
-            type:"multiple",
-            load:[
-                {type:"setProjects", load:load.projects},
-                {type:"setAreas", load:load.areas},
-                {type:"setTodos", load:load.todos},
-                {type:"setCalendars", load:load.calendars},
-                {type:"selectedCategory", load:"inbox"}
-            ]
-        }); 
 
-        let actionSetDatabase : actionSetDatabase = { type:"set", load };
 
-        return workerSendAction(pouchWorker)(actionSetDatabase);
-    };*/
+    /*
+    this.updateState({message:'Loading...'})
+    .then(this.backup)
+    .then((to:string) => this.updateState({message:this.message(to)}))
+    */
+  
 
     import : (pathToFile:string) => Promise<any> = (pathToFile:string) => 
     requestFromMain("readJsonFile", [pathToFile], (event,json) => json.database)
-    /*.then(
+    .then(
         ifElse(
             correctFormat,
             compose(
-                (database:Databases) => this.updateState({message:'Loading...'})
-                                            .then(this.backup)
-                                            .then((to:string) => this.updateState({message:this.message(to)}))
-                                            .then(() => this.setData(database)),
+                (database:Databases) => {
+                    let action : ImportAction = {
+                        type:"import", 
+                        load:{ database, pathToFile }
+                    };
+
+                    this.props.dispatch(action);
+                },
                 fixIncomingData, 
                 sideEffect(closeClonedWindows)
             ),
             () => this.updateState({message:"Incorrect format"})
         )
-    );*/
+    );
 
     
 

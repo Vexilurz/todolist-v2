@@ -1,4 +1,22 @@
 
+export interface ImportActionLoad{ 
+    database:Databases, 
+    pathToFile:string 
+};
+
+
+
+export interface ImportAction{
+    type:"import",
+    load:ImportActionLoad
+};
+
+
+
+export interface Option{ title:string, f:(e:any) => void };
+
+
+
 export interface actionSetKey{ type:"setKey", load:string };
 
 
@@ -163,8 +181,10 @@ export interface Block{
 export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags' | 'Sync';
 
 
+
 export interface Store extends Config{
-  lastSync:Date,
+  import : ImportActionLoad,
+  lastSync : Date,
   showWhenCalendar : boolean, 
   whenTodo : Todo,
   whenCalendarPopupX : number, 

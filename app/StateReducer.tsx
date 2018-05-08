@@ -1,11 +1,17 @@
 import { adjust, cond, all, equals, isEmpty, contains, not, remove, uniq, isNil, defaultTo } from 'ramda';
 import { isTodo, isBoolean, isDate, isString, isNumber, isCategory, isProject, isArea } from "./utils/isSomething";
 import { typeEquals } from "./utils/utils";
-import { Store, Category, Todo, section, Calendar, Area, Project } from "./types";
+import { Store, Category, Todo, section, Calendar, Area, Project, ImportAction } from "./types";
 
 
 export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => {
     return cond([
+            [ 
+                typeEquals("import"),
+                (action:ImportAction) : Store => {
+                    return ({...state, import:action.load}); 
+                }   
+            ],  
             [ 
                 typeEquals("secretKey"),
                 (action:{type:string, load:string}) : Store => {

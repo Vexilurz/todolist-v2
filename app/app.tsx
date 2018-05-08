@@ -54,6 +54,7 @@ import { isDev } from './utils/isDev';
 import { generateEmptyCalendar } from './utils/generateEmptyCalendar';
 import { logout } from './utils/logout';
 import { fixIncomingData } from './utils/fixIncomingData';
+import { ImportPopup } from './Components/ImportPopup';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
@@ -407,15 +408,6 @@ export class App extends Component<AppProps,AppState>{
                     showTrashPopup={this.props.showTrashPopup}
                 />
             }
-            {   
-                !this.props.openChangeGroupPopup ? null : 
-                <ChangeGroupPopup    
-                    dispatch={this.props.dispatch}
-                    openChangeGroupPopup={this.props.openChangeGroupPopup}
-                    todos={this.props.todos}
-                    rightClickedTodoId={this.props.rightClickedTodoId}
-                />
-            }
             { 
                 this.props.clone ? null : 
                 !this.props.openSettings ? null :
@@ -450,12 +442,27 @@ export class App extends Component<AppProps,AppState>{
                     progress={this.props.progress}
                 />
             }
+            {   
+                !this.props.openChangeGroupPopup ? null : 
+                <ChangeGroupPopup    
+                    dispatch={this.props.dispatch}
+                    todos={this.props.todos}
+                    rightClickedTodoId={this.props.rightClickedTodoId}
+                />
+            }
             { 
                 this.props.clone ? null : 
                 !this.props.showLicense ? null :
                 <LicensePopup 
                     dispatch={this.props.dispatch}
                     showLicense={this.props.showLicense}
+                />
+            }
+            {
+                !this.props.import ? null : 
+                <ImportPopup    
+                    dispatch={this.props.dispatch}
+                    import={this.props.import}
                 />
             }
         </div>  
