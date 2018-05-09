@@ -25,8 +25,8 @@ import {
 import { isDev } from '../utils/isDev';
 import { encryptDoc, decryptDoc } from '../utils/crypto/crypto';
 import { onError } from './onError'; 
+import { init } from './init';
 import { startDatabaseSync } from './startDatabaseSync';
-
 let window : any = self;
 
 const typeEquals = (type:string) => compose(equals(type), prop(`type`)); //TODO move to utils
@@ -36,62 +36,9 @@ let isString = (item) : boolean => typeof item==="string"; //TODO move to utils
 const sendMessage = postMessage as (action:action) => void;
 const Promise = require('bluebird');
 
-const PouchDB = require('pouchdb-browser').default;
-PouchDB.plugin(require('transform-pouch'));
 
-let databases = [];
+let databases = init();
 let list = [];
-
-
-
-
-let init = () => {
-    let todos_db = new PouchDB('todos',{auto_compaction: true});
-    let projects_db = new PouchDB('projects',{auto_compaction: true});
-    let areas_db = new PouchDB('areas',{auto_compaction: true}); 
-    let calendars_db = new PouchDB('calendars',{auto_compaction: true}); 
-
-    databases = [todos_db, projects_db, areas_db, calendars_db];
-    
-    databases.forEach( 
-        db => db.transform({
-            incoming:ifElse(
-                (doc) => {
-                    return isNotNil(doc) && isString(window.key) && !doc.enc
-                },
-                compose(
-                    doc => {
-                        sendMessage({type:'log', load:`pouch incoming ${doc.title}`});
-                        return doc;
-                    },
-                    doc => encryptDoc(db.name, window.key, onError)(doc)
-                ),
-                identity
-            ),
-            outgoing:ifElse(
-                (doc) => {
-                    return isNotNil(doc) && isString(window.key) && doc.enc
-                },
-                compose( 
-                    doc => {
-                        sendMessage({type:'log', load:`pouch outgoing ${doc.title}`});
-                        return doc;
-                    },
-                    doc => decryptDoc(db.name, window.key, onError)(doc) 
-                ),
-                identity
-            )
-        }) 
-    );
-
-    return databases;
-};
- 
-
-
-//start
-init();
-
 
 
 /**
@@ -104,7 +51,6 @@ let load = (action:actionLoadDatabase) : Promise<Databases> => {
 
     return getDatabaseObjects(onError,databases);
 };   
-
 
 
 /**
@@ -125,7 +71,6 @@ let startSync = (action:actionStartSync) : Promise<void> => {
  
     return new Promise( resolve => resolve(null) );
 };
-
 
 
 /**
@@ -159,7 +104,6 @@ let stopSync = (action:actionStopSync) : Promise<any[]> => {
         }
     );  
 };
-
 
 
 /**

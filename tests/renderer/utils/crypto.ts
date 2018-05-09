@@ -20,7 +20,7 @@ describe(
                 let salt = uniqid();
                 let pwd = uniqid();
                 let randomKey = '';//pwdToKey(salt)(pwd); 
-                let opt = {todos:150, projects:150, areas:150};
+                let opt = {todos:15, projects:15, areas:15};
                 let { todos, projects, areas } = generateRandomDatabase(opt, 0);
                 
                 todos.forEach( 

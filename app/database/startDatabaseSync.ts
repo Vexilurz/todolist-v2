@@ -3,7 +3,8 @@ import { userNameToDatabaseName } from './../utils/userNameToDatabaseName';
 import { 
     cond, compose, equals, prop, isEmpty, when, fromPairs, 
     isNil, forEachObjIndexed, toPairs, evolve, ifElse, last, 
-    map, mapObjIndexed, values, flatten, path, pick, identity 
+    map, mapObjIndexed, values, flatten, path, pick, identity,
+    defaultTo 
 } from 'ramda';
 import { 
     action, Query, Databases, Changes, DatabaseChanges, PouchChanges, actionStartSync, 
@@ -11,6 +12,9 @@ import {
 } from './../types';
 import { isDev } from '../utils/isDev';
 import { onError } from './onError'; 
+import { isNotNil, isString } from '../utils/isSomething';
+import { encryptDoc, decryptDoc } from '../utils/crypto/crypto';
+const PouchDB = require('pouchdb-browser').default;
 
 
 
@@ -40,10 +44,11 @@ let onChangeHandler = (dbName:string) => (info:PouchChanges) => {
 
 export let startDatabaseSync = (username:string) => (database:any) => {
     let name : string = database.name;
+    let options = { skip_setup:true, auto_compaction:true };
     let dbCouchName = userNameToDatabaseName(username)(name); 
     let url = `${host}/${dbCouchName}`;
-    let opt = { skip_setup: true, auto_compaction: true };
-    let remoteDB : any = new PouchDB(url, opt);  
+    let remoteDB : any = new PouchDB(url, options);  
+
     let sync = database.sync(remoteDB, {live: true, retry: true}); 
 
     sync.on('change', onChangeHandler(name));
@@ -53,7 +58,6 @@ export let startDatabaseSync = (username:string) => (database:any) => {
     sync.on('paused', onPaused);
     sync.on('active', onActive);
   
-      
     return sync;
 };
  

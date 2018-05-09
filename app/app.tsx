@@ -203,6 +203,7 @@ export class App extends Component<AppProps,AppState>{
         this.subscriptions=[];
     };
 
+
     
     //init
     componentDidMount(){    
@@ -527,25 +528,19 @@ let renderApp = (config:Config, clonedStore:Store, id:number) : void => {
 }; 
 
 
+let setKey =  (config:Config) => {
+    let key = config.secretKey;
+    let action : actionSetKey = {type:"setKey", load:key};
+    return workerSendAction(pouchWorker)(action).then( () => config );
+};
+
    
 //render application
 ipcRenderer.once(
     'loaded', 
     (event,clonedStore:Store,id:number) => 
         requestFromMain("getConfig", [], (event, config) => config)
-        .then(
-            (config:Config) => {
-                let key = config.secretKey;
-                
-                //if key exist in configuration send it to webworker
-                //in order to initialize encryption middleware 
-                if(isString(key)){
-                   let action : actionSetKey = {type:"setKey", load:key};
-                   workerSendAction(pouchWorker)(action);
-                }
-                
-                renderApp(config,clonedStore,id);
-            }
-        )
+        .then(setKey)
+        .then((config:Config) => renderApp(config,clonedStore,id))
 );    
 

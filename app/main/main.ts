@@ -25,8 +25,10 @@ import { onAppLoaded } from './utils/onAppLoaded';
 import { onNotificationLoaded } from './utils/onNotificationLoaded'; 
 import { onQuickEntryLoaded } from './utils/onQuickEntryLoaded'; 
 import { onWindowAllClosed } from './utils/onWindowAllClosed';
+import { updateConfig } from './utils/updateConfig';
 const storage = require('electron-json-storage');
 const os = require('os');
+const uniqid = require('uniqid');
 storage.setDataPath(os.tmpdir());
 
 export let mainWindow : BrowserWindow;   
@@ -35,6 +37,8 @@ export let notification : BrowserWindow;
 export let listeners : Listeners;  
 export let dateCalendar : BrowserWindow; 
 export let tray : Tray;
+
+let generateSecretKey = () => uniqid().substring(0, 16);
 
 const shouldQuit = app.makeSingleInstance(
     (commandLine, workingDirectory) => {
@@ -46,7 +50,7 @@ const shouldQuit = app.makeSingleInstance(
     }
 );  
 
-let onReady = (config:any) => {  
+let onReady = (config:Config) => {  
     let {disableReminder, enableShortcutForQuickEntry} = config;
     let mainWindowSize = getWindowSize();
     let options = {maximizable:true, show:false};
@@ -81,7 +85,11 @@ let onReady = (config:any) => {
 
     loadNotification(notification).then(() => onNotificationLoaded(notification));
     loadQuickEntry(quickEntry).then(() => onQuickEntryLoaded(quickEntry));  
-    loadApp(mainWindow).then(() => onAppLoaded(mainWindow));  
+
+
+    loadApp(mainWindow)
+    .then(() => isNil(config.secretKey) ? updateConfig({secretKey:generateSecretKey()}) : null)
+    .then(() => onAppLoaded(mainWindow));  
 };                
 
 app.on('ready', () => getConfig().then((config:Config) => onReady(config)));    

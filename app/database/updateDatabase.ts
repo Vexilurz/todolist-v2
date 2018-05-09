@@ -14,7 +14,6 @@ import {
 } from '../utils/isSomething';
 import { moveReminderFromPast } from '../utils/getData';
 import { assert, assertC } from '../utils/assert';
-import { isNotEmpty } from '../utils/utils';
 
 
 
@@ -89,7 +88,7 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
 
     let changes = detectChanges(state)(newState);
 
-    if(isNotEmpty(changes)){ 
+    if(!isEmpty(changes)){ 
         
        let actionChanges : actionChanges = { type:"changes", load:changes };
 
