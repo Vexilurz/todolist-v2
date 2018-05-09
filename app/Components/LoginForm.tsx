@@ -116,7 +116,6 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
 
         let username = emailToUsername(this.state.email);
         let password = this.state.password;
-        let key = this.props.secretKey;
 
         let load = [
             { type:'sync', load:true },  
@@ -124,22 +123,11 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
             { type:'salt', load:username }
         ]; 
 
-        //login for the first time
-        if(isNil(key) || isDev()){
-            let opt = { keySize: 512/32, iterations: 10 };
-            key = CryptoJS.PBKDF2(uniqid(), uniqid(), opt).toString();
-            load.push({ type:'secretKey', load:key });
-        }
-
         this.props.dispatch({type:'multiple', load});
 
-        let actionSetKey : actionSetKey = { type:"setKey", load:key };
         let actionStartSync : actionStartSync = { type:"startSync", load:username };
 
-        workerSendAction(pouchWorker)(actionSetKey)
-        .then(
-            () => workerSendAction(pouchWorker)(actionStartSync)
-        )
+        workerSendAction(pouchWorker)(actionStartSync)
         .then(
             () => this.props.setAuthenticated(true)
         )

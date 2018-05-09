@@ -38,7 +38,9 @@ export let listeners : Listeners;
 export let dateCalendar : BrowserWindow; 
 export let tray : Tray;
 
-let generateSecretKey = () => uniqid().substring(0, 16);
+let generateSecretKey = () => ( uniqid()+uniqid() ).substring(0, 16);
+//CryptoJS.PBKDF2(uniqid(), uniqid(), { keySize: 512/32, iterations: 10 }).toString();
+
 
 const shouldQuit = app.makeSingleInstance(
     (commandLine, workingDirectory) => {
@@ -86,7 +88,7 @@ let onReady = (config:Config) => {
     loadNotification(notification).then(() => onNotificationLoaded(notification));
     loadQuickEntry(quickEntry).then(() => onQuickEntryLoaded(quickEntry));  
 
-
+    
     loadApp(mainWindow)
     .then(() => isNil(config.secretKey) ? updateConfig({secretKey:generateSecretKey()}) : null)
     .then(() => onAppLoaded(mainWindow));  

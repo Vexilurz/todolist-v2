@@ -55,6 +55,7 @@ import { generateEmptyCalendar } from './utils/generateEmptyCalendar';
 import { logout } from './utils/logout';
 import { fixIncomingData } from './utils/fixIncomingData';
 import { ImportPopup } from './Components/ImportPopup';
+import { decryptDoc } from './utils/crypto/crypto';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
@@ -113,8 +114,10 @@ export class App extends Component<AppProps,AppState>{
         if(isNil(change) || isEmpty(change.docs) || !change.ok){  return  }
  
         let timestamp = new Date(change.start_time);
+        let decrypt = decryptDoc(dbname, this.props.secretKey, globalErrorHandler);
 
         let docs = compose( 
+            map(decrypt),
             prop(dbname),
             fixIncomingData, 
             data =>  fromPairs( [[dbname,data]] ),  

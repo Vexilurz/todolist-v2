@@ -35,7 +35,7 @@ let queryToObjects = (query:Query<any>) => query ? query.rows.map(row => row.doc
 export let getItemsFromDatabase = (onError:Function, db:any, opt?:any) => {
     let options = defaultTo({})(opt);
     let decrypt = decryptDoc(db.name, window.key, onError);
-
+    
     return db.allDocs({...options,include_docs:true})
              .then(queryToObjects)
              .then(reject(isNil))
@@ -51,7 +51,7 @@ export let setItemsToDatabase = (onError:Function, db:any) =>
         let encrypt = encryptDoc(db.name, window.key, onError);
         let encrypted = map(encrypt, docs);
         
-        return db.bulkDocs(encrypted).catch(onError);
+        return db.bulkDocs(encrypted).then(() => encrypted).catch(onError);
     };
 
     
@@ -162,7 +162,7 @@ export let updateItemsInDatabase = (onError:Function, db:any) => {
 export let getDatabaseObjects = (onError:Function, databases:any[]) : Promise<Databases> => 
     Promise.map( 
         databases.map( 
-            db => () => getItemsFromDatabase(onError, db, null).then(items => [db.name,items]) 
+            db => () => getItemsFromDatabase(onError, db).then(items => [db.name,items]) 
         ),
         f => f(), 
         {concurrency: 1}

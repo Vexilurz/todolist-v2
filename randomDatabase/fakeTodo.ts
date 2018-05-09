@@ -52,9 +52,9 @@ let fakeCheckListItem = (idx) : ChecklistItem => {
 export let fakeTodo = (tags:string[], withReminder:number) : Todo => {
     let checked = Math.random() > 0.5 ? true : false;
     
-    let title : string[] = [];
+    let title : string[] = ['todo'];
     let note : string[] = [];
-    let checklist = [];
+    let checklist = []; 
 
     let k = randomInteger(3) + 2;
     let n = randomInteger(6) + 2;

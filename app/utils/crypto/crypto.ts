@@ -6,7 +6,6 @@ import {
     not
 } from 'ramda';
 let CryptoJS = require("crypto-js");
-//const testKey = "abcdabcdabcdabcd";
 
 
 
@@ -22,16 +21,17 @@ export let encryptData = (key:string) => (data) : string => {
     return cipher;
 };
  
-
+ 
 
 export let decryptData = (key:string) => (data:string)=> {
     let iv = [ 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,35, 36 ];
 
-    let decrypted = CryptoJS.AES.decrypt(
-        data, 
-        key,
-        {mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7, iv}
-    ).toString(CryptoJS.enc.Utf8);
+    let decrypted =  CryptoJS.AES.decrypt(
+            data, 
+            key,
+            {mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7, iv}
+        ).toString(CryptoJS.enc.Utf8);
+ 
     return decrypted;
 };
 
@@ -72,10 +72,11 @@ let getTransformations = (f:Function) => ({
 
 export let encryptDoc = (dbname:string, key:string, onError:Function) : (doc:any) => any => {
     let setEncrypted = (doc) => ({...doc,enc:true});
-    let isNotEncrypted = compose(not, prop('enc'));
+    let isNotEncrypted = doc => {
+        return !doc.enc;
+    } 
     let transformations = getTransformations( encryptData(key) )[dbname];
     let encrypt = evolve( transformations );
-    
 
     //if no key supplied - do nothing
     if(isNil(key)){
@@ -90,10 +91,11 @@ export let encryptDoc = (dbname:string, key:string, onError:Function) : (doc:any
 
 export let decryptDoc = (dbname:string, key:string, onError:Function) : (doc:any) => any => {
     let setDecrypted = (doc) => ({...doc,enc:false});
-    let isEncrypted = prop('enc');
+    let isEncrypted = doc => {
+        return doc.enc;
+    };
     let transformations =  getTransformations( decryptData(key) )[dbname];
     let decrypt = evolve( transformations );
-
 
     //if no key supplied - do nothing
     if(isNil(key)){ 
