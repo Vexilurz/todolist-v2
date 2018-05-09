@@ -565,7 +565,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
       
     
 
-    updateChecklist = (checklist:ChecklistItem[]) => this.updateState({checklist});
+    updateChecklist = (checklist:ChecklistItem[]) => this.updateState({checklist}).then(() => this.update({checklist}));
 
 
 

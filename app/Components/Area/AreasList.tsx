@@ -404,7 +404,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
         return <div   
             id="areas"
-            style={{userSelect:"none",paddingRight:"15px",paddingLeft:"15px",paddingTop:"15px",paddingBottom:"80px"}}   
+            style={{userSelect:"none",paddingRight:"15px",paddingLeft:"20px",paddingTop:"15px",paddingBottom:"80px"}}   
         >     
             <SortableContainer
                 items={layout}
