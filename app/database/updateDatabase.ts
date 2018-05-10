@@ -57,7 +57,7 @@ let ignoredActions = [
     "showProjectMenuPopover",
     "selectedCategory",
     "leftPanelWidth",
-    "selectedTag",
+    "selectedTags",
     "openNewProjectAreaPopup",
     "showRightClickMenu",
     "openRightClickMenu",

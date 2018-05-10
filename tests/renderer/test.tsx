@@ -51,7 +51,7 @@ const MainContainerProps = [
     "selectedProjectId",
     "selectedAreaId",
     "moveCompletedItemsToLogbook",
-    "selectedTag",
+    "selectedTags",
     "dragged"
 ]; 
    

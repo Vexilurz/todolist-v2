@@ -5,7 +5,8 @@ import {
     contains, isNil, prepend, isEmpty, last, not, 
     when, flatten, map, compose, cond, remove, any,
     complement, equals, prop, groupBy, path, reject,
-    ifElse, identity, reduce, curry, where, intersection 
+    ifElse, identity, reduce, curry, where, intersection,
+    all 
 } from 'ramda'; 
 import { isDev } from './isDev';
 import { ipcRenderer } from 'electron';
@@ -645,7 +646,7 @@ export let byTags = (selectedTags:string[]) => (item:Todo) : boolean => {
     if(isNil(item)){ return false };  
  
     if(isTodo(item)){
-        return compose(isEmpty,intersection(item.attachedTags))(selectedTags); 
+        return all( selected => contains(selected)(item.attachedTags) )(selectedTags);
     }else{
         return true;
     } 

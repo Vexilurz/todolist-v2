@@ -8,7 +8,10 @@ import CircularProgress from 'material-ui/CircularProgress';
 import { Component } from "react"; 
 import { createStore, combineReducers } from "redux"; 
 import DayPicker from 'react-day-picker';
-import { append, prepend, contains, not, isEmpty, intersection, compose } from 'ramda';
+import { 
+    append, prepend, contains, not, isEmpty, intersection, compose, equals, 
+    all, reject, prop, when, always 
+} from 'ramda';
 import { Subscription } from 'rxjs/Rx';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -31,22 +34,22 @@ export class Tags extends Component<TagsProps,TagsState>{
 
     constructor(props){
         super(props);
+        this.state = {multipleSelection:false};
         this.subscriptions = [];
     }
 
 
     componentDidMount(){
-        let ctrl = (event) => event.ctrlKey;
 
         this.subscriptions.push(
-            Observable.fromEvent(window,'keydown').filter(ctrl)
-            .do(() => console.log('ctrl pressed'))
+            Observable.fromEvent(window,'keydown')
+            .filter((e:any) => e.ctrlKey)
             .subscribe(
                 (event) => this.setState({multipleSelection:true})
             ), 
 
-            Observable.fromEvent(window,'keyup').filter(ctrl)
-            .do(() => console.log('ctrl released'))
+            Observable.fromEvent(window,'keyup')
+            .filter((e:any) => e.key==="Control")
             .subscribe(
                 (event) => this.setState({multipleSelection:false}) 
             )
@@ -61,26 +64,36 @@ export class Tags extends Component<TagsProps,TagsState>{
 
 
     componentWillReceiveProps(nextProps:TagsProps){
-        let exist = tag => contains(tag)(nextProps.tags);
+        let tags = ['All', ...nextProps.tags];
 
-        if(this.props.tags!==nextProps.tags){
-           nextProps.selectTags( nextProps.selectedTags.filter(exist) ) 
+        let allSelectedTagsExist = tags => all( selected => contains(selected)(tags) );
+
+        if(!allSelectedTagsExist(tags)(nextProps.selectedTags)){
+
+            compose(
+                result => nextProps.selectTags(result),
+                when(isEmpty, always(['All'])), 
+                selectedTags => selectedTags.filter( tag => contains(tag)(tags) ),
+                prop('selectedTags')
+            )(nextProps);
         }
-    }  
+    };  
 
 
     onTagClick = tag => {
         if(this.state.multipleSelection){
-            this.props.selectTags( [tag,...this.props.selectedTags] ); 
-        }else{
-            if(
-               this.props.selectedTags.length===1 && 
-               contains(tag)(this.props.selectedTags)
-            ){ 
-                this.props.selectTags( ['All'] ); 
+            if(contains(tag)(this.props.selectedTags)){
+               this.props.selectTags( reject(equals(tag))(this.props.selectedTags) ); 
+            }else{
+               this.props.selectTags( [tag,...this.props.selectedTags] ); 
             }
 
-            this.props.selectTags( [tag] ); 
+        }else{
+            if(contains(tag)(this.props.selectedTags)){ 
+                this.props.selectTags( ['All'] ); 
+            }else{
+                this.props.selectTags( [tag] ); 
+            }
         }
     };
 
@@ -102,7 +115,7 @@ export class Tags extends Component<TagsProps,TagsState>{
                         .map((tag:string) =>  
                             <div key={tag} style={{padding:"4px"}}> 
                                 <div className="chip"       
-                                    onClick={this.onTagClick} 
+                                    onClick={() => this.onTagClick(tag)} 
                                     style={{ 
                                         width:"auto",
                                         height:"20px", 
