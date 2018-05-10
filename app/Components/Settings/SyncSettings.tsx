@@ -88,6 +88,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
 
 
     render(){
+        
         return <div style={{
             display:"flex", 
             justifyContent:"center", 

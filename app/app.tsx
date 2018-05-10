@@ -400,7 +400,7 @@ export class App extends Component<AppProps,AppState>{
                     selectedProjectId={this.props.selectedProjectId}
                     selectedAreaId={this.props.selectedAreaId}
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                    selectedTag={this.props.selectedTag}
+                    selectedTags={this.props.selectedTags}
                     dragged={this.props.dragged}
                     cloneWindow={this.cloneWindow}
                 /> 

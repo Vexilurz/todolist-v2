@@ -38,7 +38,7 @@ export let defaultStoreItems : Store = {
     openSearch : false, 
     dragged : null, 
     openTodoInputPopup : false, 
-    selectedTag : "All",
+    selectedTags : ["All"],
     leftPanelWidth : window.innerWidth/3.7, 
     selectedProjectId : null,
     selectedAreaId : null,

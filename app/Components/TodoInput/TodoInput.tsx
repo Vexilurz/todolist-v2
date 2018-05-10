@@ -801,6 +801,19 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     };
 
     
+
+    openCalendar = (e) => this.props.dispatch({
+        type : "openWhenCalendar", 
+        load : {
+            showWhenCalendar:true, 
+            whenTodo:this.props.todo,
+            whenCalendarPopupX : e.clientX-this.props.rootRef.offsetLeft, 
+            whenCalendarPopupY : e.clientY+this.props.rootRef.scrollTop,
+            showRightClickMenu : false
+        } 
+    }); 
+
+
   
     render(){   
         let {selectedCategory, id, rootRef, todo} = this.props; 
@@ -867,6 +880,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             <div style={{display:"flex",flexDirection:"column",paddingTop:"4px",width:"100%"}}>
                 <TodoInputTopLevel 
                     onWindowEnterPress={this.onWindowEnterPress}
+                    openCalendar={this.openCalendar}
                     groupTodos={this.props.groupTodos}
                     setInputRef={e => {this.inputRef=e;}}
                     onRestoreButtonClick={this.onRestoreButtonClick}

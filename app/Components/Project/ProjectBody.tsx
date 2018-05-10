@@ -46,7 +46,7 @@ interface ProjectBodyProps{
     selectedCategory:string, 
     scrolledTodo:Todo, 
     selectedTodo:Todo,
-    selectedTag:string,
+    selectedTags:string[],
     moveCompletedItemsToLogbook:string,
     areas:Area[],
     dragged:string, 

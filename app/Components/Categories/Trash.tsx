@@ -45,7 +45,7 @@ interface TrashProps{
     showTrashPopup:boolean, 
     selectedProjectId:string,
     selectedAreaId:string, 
-    selectedTag:string, 
+    selectedTags:string[], 
     indicators:{ 
         [key:string]:{
             active:number,
@@ -103,7 +103,7 @@ export class Trash extends Component<TrashProps,TrashState>{
     render(){  
         let {
             todos, projects, areas, selectedProjectId, selectedCategory,
-            dispatch, selectedAreaId, selectedTag, rootRef
+            dispatch, selectedAreaId, selectedTags, rootRef
         } = this.props;   
 
 
@@ -134,19 +134,13 @@ export class Trash extends Component<TrashProps,TrashState>{
 
 
         let items = [
-            ...deletedTodos.filter(byTags(selectedTag)),
+            ...deletedTodos.filter(byTags(selectedTags)),
             ...deletedProjects,
             ...deletedAreas
         ].sort(sortByDeleted); 
 
 
         if(isDev()){
-            if(selectedTag!=="All"){ 
-                assert( 
-                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),filter(items,isTodo)),
-                    `missing tag. Trash. ${selectedTag}`
-                ) 
-            }
             let todosIds = flatten( deletedProjects.map( p => p.layout.filter(isString) ) );
             assert(
                 all((todo:Todo) => !contains(todo._id,todosIds), deletedTodos), 
@@ -165,7 +159,7 @@ export class Trash extends Component<TrashProps,TrashState>{
                 selectedCategory={selectedCategory}  
                 dispatch={dispatch}  
                 tags={tags} 
-                selectedTag={selectedTag}
+                selectedTags={selectedTags}
                 showTags={true} 
             />    
             <FadeBackgroundIcon    
@@ -285,7 +279,7 @@ export class TrashPopup extends Component<TrashPopupProps,TrashPopupState>{
         load:[
             {type:"removeDeleted"},  
             {type:"selectedCategory", load:"inbox"},
-            {type:"selectedTag", load:"All"},
+            {type:"selectedTags", load:["All"]},
             {type:"showTrashPopup", load:false}
         ]
     });

@@ -213,7 +213,7 @@ export interface Store extends Config{
   showProjectMenuPopover : boolean,
   showTrashPopup : boolean,
   selectedCategory : Category,
-  selectedTag : string, 
+  selectedTags : string[], 
   leftPanelWidth : number,
   closeAllItems : any, 
   dragged : string,

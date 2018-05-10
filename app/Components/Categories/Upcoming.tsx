@@ -115,7 +115,7 @@ interface objectsByDate{ [key:string]:Item[] }
  
 let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {  
     let {showCalendarEvents,todos,projects} = props;
-    let filters = [haveDate, byTags(props.selectedTag), byNotCompleted, byNotDeleted];    
+    let filters = [haveDate, byTags(props.selectedTags), byNotCompleted, byNotDeleted];    
     let todayKey = keyFromDate(new Date());
     let items = filter([...todos, ...projects], i => allPass(filters)(i));
     
@@ -215,7 +215,7 @@ interface UpcomingProps{
     selectedAreaId:string,
     selectedProjectId:string, 
     areas:Area[], 
-    selectedTag:string,
+    selectedTags:string[],
     rootRef:HTMLElement 
 }  
  
@@ -327,7 +327,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             nextProps.todos!==this.props.todos
         ){       
             this.setState({objects:this.getObjects(nextProps, this.n * this.state.enter)});
-        }else if(nextProps.selectedTag!==this.props.selectedTag){  
+        }else if(nextProps.selectedTags!==this.props.selectedTags){  
             this.setState({objects:this.getObjects(nextProps, this.n), enter:1}); 
         }   
     } 
@@ -410,7 +410,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 scrolledTodo={this.props.scrolledTodo}
                 selectedProjectId={this.props.selectedProjectId}
                 dispatch={this.props.dispatch}
-                selectedTag={this.props.selectedTag}
+                selectedTags={this.props.selectedTags}
                 rootRef={this.props.rootRef}
             />  
         </div>
@@ -418,7 +418,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
 
 
     render(){ 
-        let {todos,projects,selectedTag,dispatch,selectedCategory,clone} = this.props;
+        let {todos,projects,selectedTags,dispatch,selectedCategory,clone} = this.props;
         let tags = getTagsFromItems(todos);
 
         return <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}> 
@@ -428,7 +428,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                         dispatch={dispatch}  
                         tags={tags}
                         showTags={true} 
-                        selectedTag={selectedTag} 
+                        selectedTags={selectedTags} 
                     />
                 </div>
                 {  

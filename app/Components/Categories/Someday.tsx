@@ -27,7 +27,7 @@ interface SomedayProps{
     moveCompletedItemsToLogbook:string, 
     selectedProjectId:string, 
     selectedAreaId:string, 
-    selectedTag:string,
+    selectedTags:string[],
     indicators:{ 
         [key:string]:{
             active:number,
@@ -68,7 +68,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
         
         let selectedTodos = filter(
             this.props.groupTodos ? visibleTodos : this.props.todos, 
-            byTags(this.props.selectedTag)
+            byTags(this.props.selectedTags)
         );
 
         let tags : string[] = getTagsFromItems(
@@ -90,7 +90,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                 dispatch={this.props.dispatch} 
                 tags={tags}
                 showTags={false} 
-                selectedTag={this.props.selectedTag}
+                selectedTags={this.props.selectedTags}
             />   
             <FadeBackgroundIcon    
                 container={this.props.rootRef}  
@@ -123,7 +123,7 @@ export class Someday extends Component<SomedayProps, SomedayState>{
                         scrolledTodo={this.props.scrolledTodo}
                         groupTodos={this.props.groupTodos}
                         selectedCategory={this.props.selectedCategory}
-                        selectedTag={this.props.selectedTag}
+                        selectedTags={this.props.selectedTags}
                         rootRef={this.props.rootRef}
                         areas={this.props.areas}
                         projectsFilters={projectsFilters}

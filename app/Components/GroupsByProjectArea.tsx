@@ -52,7 +52,7 @@ interface GroupsByProjectAreaProps{
     moveCompletedItemsToLogbook:string,
     selectedAreaId:string,
     selectedCategory:Category, 
-    selectedTag:string,
+    selectedTags:string[],
     indicators : { 
         [key:string]:{
             active:number,
@@ -124,13 +124,12 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
 
     render(){
         let { 
-            projects, projectsFilters, areasFilters, hideDetached, 
-            areas, todos, selectedTag, selectedCategory
+            projects, projectsFilters, areasFilters, hideDetached, areas, todos, selectedCategory 
         } = this.props;
 
         let selectedAreas = areas.filter(allPass(areasFilters));
         let selectedProjects = filter(this.props.projects, allPass(this.props.projectsFilters));
-        let selectedTodos = filter(this.props.todos, byTags(this.props.selectedTag));
+        let selectedTodos = filter(this.props.todos, byTags(this.props.selectedTags));
        
 
         //Projects sorted according to order in LeftPanel -> AreasList component
@@ -145,16 +144,6 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         let result : {[key: string]: Todo[];} = this.groupByProject(selectedProjects)(selectedTodos);
         //Filtered todos which doesnt belong to any area or project
         let detached = defaultTo([])(result.detached); 
-
-
-        if(isDev()){ 
-            if(selectedTag!=="All"){ 
-                assert(
-                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),selectedTodos),
-                    `missing tag. GroupsByProjectArea. ${selectedTag}`
-                ); 
-            }
-        }
 
 
         return <div> 
@@ -201,7 +190,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
                                     dispatch={this.props.dispatch}    
                                     sortBy={this.sortByLayoutOrder(project)}
                                     filters={this.props.filters}
-                                    selectedTag={this.props.selectedTag} 
+                                    selectedTags={this.props.selectedTags} 
                                     scrolledTodo={this.props.scrolledTodo}
                                     selectedAreaId={this.props.selectedAreaId}
                                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
@@ -245,7 +234,7 @@ interface ExpandableTodosListProps{
     selectedCategory:Category,
     groupTodos:boolean,
     selectedProjectId:string, 
-    selectedTag:string, 
+    selectedTags:string[], 
     areas:Area[],
     projects:Project[], 
     rootRef:HTMLElement, 

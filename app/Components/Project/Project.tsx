@@ -50,7 +50,7 @@ interface ProjectComponentProps{
     groupTodos:boolean, 
     selectedTodo:Todo,
     projects:Project[], 
-    selectedTag:string, 
+    selectedTags:string[], 
     dragged:string, 
     areas:Area[], 
     scrolledTodo:Todo,
@@ -240,11 +240,11 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
 
                 acc.header.push(item);
               
-                if(byTags(this.props.selectedTag)(item) && byNotCompleted(item)){
+                if(byTags(this.props.selectedTags)(item) && byNotCompleted(item)){
                    acc.layout.push(item);
                 }
 
-                if(byTags(this.props.selectedTag)(item) && byCompleted(item)){
+                if(byTags(this.props.selectedTags)(item) && byCompleted(item)){
                    acc.completed.push(item);
                 }
 
@@ -287,7 +287,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                     indicator={this.props.indicator}
                     rootRef={this.props.rootRef}
                     attachTagToProject={this.attachTagToProject}
-                    selectedTag={this.props.selectedTag}    
+                    selectedTags={this.props.selectedTags}    
                     updateProjectDeadline={this.updateProjectDeadline}
                     updateProjectName={this.updateProjectName}
                     updateProjectDescription={this.updateProjectDescription} 
@@ -310,7 +310,7 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 removeHeading={this.removeHeading}
                 updateHeading={this.updateHeading}
                 removeHeadingWithTasks={this.removeHeadingWithTasks}
-                selectedTag={this.props.selectedTag}    
+                selectedTags={this.props.selectedTags}    
                 areas={this.props.areas}      
                 selectedProjectId={this.props.selectedProjectId}
                 selectedAreaId={this.props.selectedAreaId}  

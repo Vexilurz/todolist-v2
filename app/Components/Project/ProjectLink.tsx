@@ -367,6 +367,7 @@ export class ProjectLinkLogbook extends Component<ProjectLinkLogbookProps, Proje
                 <div style={{paddingLeft:"5px"}}> 
                     <DueDate 
                         date={null}
+                        onClick={() => {}}
                         selectedCategory={this.props.selectedCategory}
                         category={this.props.selectedCategory}
                         completed={project.completed}

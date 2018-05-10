@@ -59,7 +59,7 @@ interface CalendarDayProps{
     selectedAreaId:string,
     selectedProjectId:string, 
     selectedCategory:Category,
-    selectedTag:string,
+    selectedTags:string[],
     rootRef:HTMLElement
 }
 
@@ -72,27 +72,14 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
      
     render(){   
-        let {selectedTodos,selectedTag,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
+        let {selectedTodos,selectedTags,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
         let {sameDayEvents,fullDayEvents} = groupEventsByType(selectedEvents); 
 
         let noEvents = isEmpty(fullDayEvents) && isEmpty(sameDayEvents);
         let noProjects = isEmpty(scheduledProjects);
         let noTodos = isEmpty(selectedTodos);
 
-        if(isDev()){
-            if(selectedTag!=="All"){ 
-                assert(
-                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),selectedTodos),
-                    `missing tag. CalendarDay. ${selectedTag}`
-                )  
-            }
-        }
-
-        return <div style={{
-            display:"flex",
-            flexDirection:"column", 
-            WebkitUserSelect:"none" 
-        }}>  
+        return <div style={{display:"flex", flexDirection:"column", WebkitUserSelect:"none"}}>  
                 <div style={{
                     width:"100%",
                     display:"flex",
@@ -210,7 +197,6 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         display:"flex",
                         flexDirection:"column",
                         width:"100%",
-                        //marginTop:(noProjects && noEvents) ? "-10px" : "0px",
                         paddingLeft:"20px"
                     }}>   
                         <TodosList    

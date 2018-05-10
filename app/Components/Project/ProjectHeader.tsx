@@ -56,7 +56,7 @@ interface ProjectHeaderProps{
     onToggleCompleted:Function,
     project:Project,
     rootRef:HTMLElement, 
-    selectedTag:string,
+    selectedTags:string[],
     todos:Todo[],  
     dispatch:Function   
 }
@@ -321,9 +321,9 @@ export class ProjectHeader extends Component<ProjectHeaderProps,ProjectHeaderSta
             </div>
             <div className={`no-print`}>  
                 <Tags  
-                    selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
+                    selectTags={(tags) => this.props.dispatch({type:"selectedTags", load:tags})}
                     tags={tags} 
-                    selectedTag={this.props.selectedTag}
+                    selectedTags={this.props.selectedTags}
                     show={true}  
                 /> 
             </div> 

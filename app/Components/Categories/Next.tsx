@@ -31,7 +31,7 @@ interface NextProps{
     moveCompletedItemsToLogbook:string, 
     selectedAreaId:string,
     selectedCategory:Category, 
-    selectedTag:string,
+    selectedTags:string[],
     rootRef:HTMLElement,
     filters:{
         inbox:((todo:Todo) => boolean)[],
@@ -72,7 +72,7 @@ export class Next extends Component<NextProps, NextState>{
 
         let selectedTodos = filter(
             this.props.groupTodos ? visibleTodos : this.props.todos, 
-            byTags(this.props.selectedTag)
+            byTags(this.props.selectedTags)
         );
 
         let tags : string[] = getTagsFromItems(
@@ -96,7 +96,7 @@ export class Next extends Component<NextProps, NextState>{
                 selectedCategory={this.props.selectedCategory}  
                 dispatch={this.props.dispatch}  
                 tags={tags} 
-                selectedTag={this.props.selectedTag}
+                selectedTags={this.props.selectedTags}
                 showTags={true} 
             />    
             <FadeBackgroundIcon    
@@ -130,7 +130,7 @@ export class Next extends Component<NextProps, NextState>{
                         indicators={this.props.indicators}
                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                         selectedCategory={this.props.selectedCategory}  
-                        selectedTag={this.props.selectedTag}  
+                        selectedTags={this.props.selectedTags}  
                         rootRef={this.props.rootRef} 
                         areas={this.props.areas}
                         projectsFilters={projectsFilters}

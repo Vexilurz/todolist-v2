@@ -74,6 +74,7 @@ interface TodoInputTopLevelProps{
     onWindowEnterPress:Function,
     setInputRef:(e:any) => void  
     groupTodos:boolean,
+    openCalendar:Function,
     onRestoreButtonClick:Function,
     onCheckBoxClick:Function,
     onTitleChange:Function, 
@@ -175,6 +176,7 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                             open ? null :       
                             <DueDate  
                                 category={category} 
+                                onClick={this.props.openCalendar}
                                 date={attachedDate} 
                                 completed={completedWhen} 
                                 selectedCategory={selectedCategory}

@@ -32,7 +32,7 @@ interface InboxProps{
     selectedTodo:Todo, 
     selectedAreaId:string,  
     moveCompletedItemsToLogbook:string,
-    selectedTag:string,
+    selectedTags:string[],
     selectedCategory:Category, 
     areas:Area[],
     projects:Project[],  
@@ -60,7 +60,7 @@ export class Inbox extends Component<InboxProps, InboxState>{
                 dispatch={this.props.dispatch}   
                 tags={[]}   
                 showTags={false} 
-                selectedTag={this.props.selectedTag} 
+                selectedTags={this.props.selectedTags} 
             /> 
             <FadeBackgroundIcon    
                 container={this.props.rootRef} 

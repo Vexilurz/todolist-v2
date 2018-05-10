@@ -78,7 +78,7 @@ interface LogbookProps{
     },
     projects:Project[],
     areas:Area[],    
-    selectedTag:string,
+    selectedTags:string[],
     rootRef:HTMLElement 
 };
  
@@ -118,7 +118,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
         let completedTodos : Todo[] = filter(
             todos, 
-            allPass([ t => !contains(t._id)(ids), byTags(props.selectedTag) ])
+            allPass([ t => !contains(t._id)(ids), byTags(props.selectedTags) ])
         );
 
         let compare = compareByDate(getDateFromObject);
@@ -236,7 +236,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
 
     render(){  
-        let { selectedCategory, dispatch, selectedTag } = this.props;
+        let { selectedCategory, dispatch, selectedTags } = this.props;
         let tags = getTagsFromItems(this.props.todos);
         let groups = this.init(this.props);  
 
@@ -245,14 +245,6 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
             let completedTodos = flatten( groups.map((group:any[]) => filter(group, isTodo)) );
             let completedProjects = flatten( groups.map((group:any[]) => filter(group, isProject)) );
             let ids = flatten( completedProjects.map( p => p.layout.filter(isString) ) );
-
-            if(selectedTag!=="All"){ 
-                assert(
-                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags), completedTodos),
-                    `missing tag. Logbook. ${selectedTag}`
-                ) 
-            }
-            
             assert(
                 all((todo:Todo) => !contains(todo._id,ids), completedTodos), 
                 `Error: Completed todos from completed projects.`
@@ -268,7 +260,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
                         dispatch={dispatch}  
                         tags={tags} 
                         showTags={true} 
-                        selectedTag={selectedTag}
+                        selectedTags={selectedTags}
                     />
                     <div style={{display:"flex", flexDirection:"column", width:"100%"}}> 
                         {   

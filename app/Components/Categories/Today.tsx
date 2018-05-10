@@ -135,7 +135,7 @@ interface TodayProps{
     areas:Area[],
     calendars:Calendar[],  
     projects:Project[],
-    selectedTag:string,
+    selectedTags:string[],
     rootRef:HTMLElement,
     todos:Todo[]
 } 
@@ -193,7 +193,7 @@ export class Today extends Component<TodayProps,TodayState>{
 
 
     getItems = () : { items:(Todo|TodaySeparator)[], tags:string[] } => {
-        let { todos, selectedTag } = this.props;
+        let { todos, selectedTags } = this.props;
 
         let sorted = todos.sort((a:Todo,b:Todo) => a.priority-b.priority);
 
@@ -206,8 +206,8 @@ export class Today extends Component<TodayProps,TodayState>{
 
         let tags = getTagsFromItems(todos); 
 
-        let today = filter(sorted, allPass([byTags(selectedTag), (t:Todo) => t.category!=="evening"])); 
-        let evening = filter(sorted, allPass([byTags(selectedTag), byCategory("evening")])); 
+        let today = filter(sorted, allPass([byTags(selectedTags), (t:Todo) => t.category!=="evening"])); 
+        let evening = filter(sorted, allPass([byTags(selectedTags), byCategory("evening")])); 
         
         if(isEmpty(today) && isEmpty(evening)){ return {items:[],tags} }
  
@@ -351,15 +351,6 @@ export class Today extends Component<TodayProps,TodayState>{
             id:"default"
         }];    
   
-
-        if(isDev()){
-            assert(
-               this.props.selectedTag==="All" ? true : 
-               all( todo => contains(this.props.selectedTag)(todo.attachedTags), filter(items, isTodo) ), 
-               `missing tag. Today. ${this.props.selectedTag}`
-            ); 
-        }
-        
         
         return <div 
             id={`${this.props.selectedCategory}-list`}
@@ -387,9 +378,9 @@ export class Today extends Component<TodayProps,TodayState>{
             />  
             <div className={`no-print`}>
                 <Tags  
-                    selectTag={(tag) => this.props.dispatch({type:"selectedTag", load:tag})}
+                    selectTags={(tags) => this.props.dispatch({type:"selectedTags", load:tags})}
                     tags={tags} 
-                    selectedTag={this.props.selectedTag}
+                    selectedTags={this.props.selectedTags}
                     show={true}  
                 />  
                 {
@@ -430,7 +421,7 @@ export class Today extends Component<TodayProps,TodayState>{
                         projects={this.props.projects} 
                         rootRef={this.props.rootRef} 
                         todo={empty as any}  
-                    /> 
+                    />  
                 </div>
                 <div style={{position:"relative"}}>   
                     {
@@ -445,7 +436,7 @@ export class Today extends Component<TodayProps,TodayState>{
                             groupTodos={this.props.groupTodos} 
                             indicators={this.props.indicators}
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                            selectedTag={this.props.selectedTag}
+                            selectedTags={this.props.selectedTags}
                             rootRef={this.props.rootRef}
                             areas={this.props.areas} 
                             projectsFilters={[byNotCompleted, byNotDeleted]}

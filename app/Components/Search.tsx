@@ -451,7 +451,7 @@ export class Search extends Component<SearchProps,SearchState>{
 
 
     render(){
-        let {todos, projects, areas, dispatch, selectedTag, groupTodos, selectedCategory} = this.props; 
+        let {todos, projects, areas, dispatch, selectedTags, groupTodos, selectedCategory} = this.props; 
         let noresults = { 
             fontSize:"18px",
             userSelect:"none",
@@ -462,7 +462,7 @@ export class Search extends Component<SearchProps,SearchState>{
             justifyContent:"center" 
         };  
       
-        let selectedTodos = filter(todos, allPass([byNotDeleted,byTags(selectedTag)]));
+        let selectedTodos = filter(todos, allPass([byNotDeleted,byTags(selectedTags)]));
         let selectedProjects = filter(projects, byNotDeleted);
         let selectedAreas = filter(areas, byNotDeleted);
         let suggestions = this.getSuggestions(selectedTodos,selectedProjects,selectedAreas);
@@ -477,15 +477,6 @@ export class Search extends Component<SearchProps,SearchState>{
         let searchedTodos = flatten([suggestions.detached, suggestions.attached.map(i => i.todos)]);
         let tags = getTagsFromItems(searchedTodos); 
 
- 
-        if(isDev()){
-            if(selectedTag!=="All"){ 
-                assert(
-                    all((todo:Todo) => contains(selectedTag)(todo.attachedTags),selectedTodos),
-                    `missing tag. Search. ${selectedTag}`
-                )  
-            }
-        }
 
 
         return <div id={`${selectedCategory}-list`}>   
@@ -505,9 +496,9 @@ export class Search extends Component<SearchProps,SearchState>{
             </div> 
             <div className="no-print" style={{paddingTop:"15px", paddingBottom:"15px"}}>
                 <Tags  
-                    selectTag={(tag) => dispatch({type:"selectedTag", load:tag})}
+                    selectTags={tags => dispatch({type:"selectedTags", load:tags})}
                     tags={tags} 
-                    selectedTag={selectedTag}
+                    selectedTags={selectedTags}
                     show={true}  
                 />  
             </div> 

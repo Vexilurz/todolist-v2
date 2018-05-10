@@ -88,8 +88,7 @@ export class Connected extends Component<ConnectedProps,ConnectedState>{
         return <div style={{ 
             display:"flex", 
             flexDirection:"column",  
-            justifyContent:"space-around", 
-            height:"50%"
+            justifyContent:"space-around"
         }}> 
             { ConnectedSection({offset:40,name:'Account',value:this.props.email}) }
 
@@ -97,6 +96,10 @@ export class Connected extends Component<ConnectedProps,ConnectedState>{
 
             { ConnectedSection({offset:12,name:'Last update',value:this.getLatUpdateMessage()}) }
 
+            <div style={{ display:"flex", flexDirection:"column" }}>
+                <a href={'#'} style={{paddingTop:"3px", paddingBottom:"3px"}}>Change password</a>
+                <a href={'#'} style={{paddingTop:"3px", paddingBottom:"3px"}}>Manage subscriptions</a>
+            </div>
             <div     
                 onClick={this.onLogout} 
                 style={{     

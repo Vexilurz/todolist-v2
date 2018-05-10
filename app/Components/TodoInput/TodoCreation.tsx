@@ -588,6 +588,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                             setInputRef={e => {this.inputRef=e;}}
                             onRestoreButtonClick={() => {}}
                             onCheckBoxClick={() => {}}
+                            openCalendar={(e) => {}}
                             onTitleChange={this.onTitleChange} 
                             open={open}  
                             rootRef={rootRef}

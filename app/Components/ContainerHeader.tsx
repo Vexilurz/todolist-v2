@@ -10,12 +10,13 @@ import { chooseIcon } from '../utils/chooseIcon';
 import { uppercase } from '../utils/uppercase';
 
 
+
 export interface ContainerHeaderProps{
     selectedCategory:Category, 
     dispatch:Function, 
     tags:string[],
     showTags:boolean,
-    selectedTag:string
+    selectedTags:string[]
 }  
 
  
@@ -55,9 +56,9 @@ export class ContainerHeader extends Component<ContainerHeaderProps,ContainerHea
             </div>  
             <div className={`no-print`}>        
                 <Tags  
-                    selectTag={(tag) => this.props.dispatch({type:"selectedTag",load:tag})}
+                    selectTags={tags => this.props.dispatch({type:"selectedTags",load:tags})}
                     tags={this.props.tags} 
-                    selectedTag={this.props.selectedTag} 
+                    selectedTags={this.props.selectedTags} 
                     show={this.props.showTags} 
                 />   
             </div>  

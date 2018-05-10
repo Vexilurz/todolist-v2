@@ -254,7 +254,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 {type:"selectedCategory",load:title},
                 {type:"showProjectMenuPopover",load:false}, 
                 {type:"searchQuery",load:""},
-                {type:"selectedTag",load:"All"} 
+                {type:"selectedTags",load:["All"]} 
             ]
         }); 
     }

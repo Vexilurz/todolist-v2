@@ -39,7 +39,7 @@ interface AreaComponentProps{
     },
     groupTodos:boolean, 
     selectedAreaId:string,
-    selectedTag:string, 
+    selectedTags:string[], 
     moveCompletedItemsToLogbook:string,
     dispatch:Function,  
     selectedProjectId:string,  
@@ -147,7 +147,7 @@ export class AreaComponent extends Component<AreaComponentProps,AreaComponentSta
                 scrolledTodo={this.props.scrolledTodo}
                 selectedProjectId={this.props.selectedProjectId}
                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                selectedTag={this.props.selectedTag}
+                selectedTags={this.props.selectedTags}
                 areas={this.props.areas}
                 projects={this.props.projects}
                 rootRef={this.props.rootRef} 

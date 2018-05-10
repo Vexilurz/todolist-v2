@@ -43,7 +43,7 @@ interface AreaBodyProps{
     selectedProjectId:string, 
     todos:Todo[],
     selectedCategory:Category, 
-    selectedTag:string, 
+    selectedTags:string[], 
     rootRef:HTMLElement,
     dispatch:Function
 } 
@@ -92,7 +92,7 @@ export class AreaBody extends Component<AreaBodyProps,AreaBodyState>{
                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                 selectedAreaId={this.props.selectedAreaId}
                 selectedCategory={this.props.selectedCategory}
-                selectedTag={this.props.selectedTag}
+                selectedTags={this.props.selectedTags}
                 rootRef={this.props.rootRef}
                 filters={this.props.filters}
                 areas={[]}

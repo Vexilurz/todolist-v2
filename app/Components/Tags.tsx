@@ -8,27 +8,85 @@ import CircularProgress from 'material-ui/CircularProgress';
 import { Component } from "react"; 
 import { createStore, combineReducers } from "redux"; 
 import DayPicker from 'react-day-picker';
-import { append, prepend, contains, not, isEmpty } from 'ramda';
-   
-
+import { append, prepend, contains, not, isEmpty, intersection, compose } from 'ramda';
+import { Subscription } from 'rxjs/Rx';
+import { Observable } from 'rxjs/Rx';
+import * as Rx from 'rxjs/Rx';
 
 interface TagsProps{
-    selectTag:(tag:string) => void,
+    selectTags:(tags:string[]) => void,
     tags:string[],
-    selectedTag:string,
+    selectedTags:string[],
     show:boolean
 } 
-export class Tags extends Component<TagsProps,{}>{
+
+interface TagsState{
+    multipleSelection:boolean
+}
+
+
+export class Tags extends Component<TagsProps,TagsState>{
+
+    subscriptions:Subscription[]; 
+
+    constructor(props){
+        super(props);
+        this.subscriptions = [];
+    }
+
+
+    componentDidMount(){
+        let ctrl = (event) => event.ctrlKey;
+
+        this.subscriptions.push(
+            Observable.fromEvent(window,'keydown').filter(ctrl)
+            .do(() => console.log('ctrl pressed'))
+            .subscribe(
+                (event) => this.setState({multipleSelection:true})
+            ), 
+
+            Observable.fromEvent(window,'keyup').filter(ctrl)
+            .do(() => console.log('ctrl released'))
+            .subscribe(
+                (event) => this.setState({multipleSelection:false}) 
+            )
+        )
+    }
+
+
+    componentWillUnmount(){
+        this.subscriptions.map( s => s.unsubscribe() );
+        this.subscriptions = [];
+    }
+
 
     componentWillReceiveProps(nextProps:TagsProps){
-        if(!contains(nextProps.selectedTag)(nextProps.tags)){
-            nextProps.selectTag("All") 
-        } 
+        let exist = tag => contains(tag)(nextProps.tags);
+
+        if(this.props.tags!==nextProps.tags){
+           nextProps.selectTags( nextProps.selectedTags.filter(exist) ) 
+        }
     }  
+
+
+    onTagClick = tag => {
+        if(this.state.multipleSelection){
+            this.props.selectTags( [tag,...this.props.selectedTags] ); 
+        }else{
+            if(
+               this.props.selectedTags.length===1 && 
+               contains(tag)(this.props.selectedTags)
+            ){ 
+                this.props.selectTags( ['All'] ); 
+            }
+
+            this.props.selectTags( [tag] ); 
+        }
+    };
 
   
     render(){
-         let { show, tags, selectTag, selectedTag } = this.props; 
+         let { show, tags, selectedTags } = this.props; 
           
          return not(show) ? null :
                 isEmpty(tags) ? null :
@@ -44,10 +102,7 @@ export class Tags extends Component<TagsProps,{}>{
                         .map((tag:string) =>  
                             <div key={tag} style={{padding:"4px"}}> 
                                 <div className="chip"       
-                                    onClick={() => { 
-                                        if(tag===selectedTag){ selectTag("All") }
-                                        else{ selectTag(tag) } 
-                                    }} 
+                                    onClick={this.onTagClick} 
                                     style={{ 
                                         width:"auto",
                                         height:"20px", 
@@ -57,8 +112,8 @@ export class Tags extends Component<TagsProps,{}>{
                                         paddingRight:"5px",  
                                         cursor:"pointer",
                                         borderRadius:"100px", 
-                                        backgroundColor:tag===selectedTag ? "dimgray" : "white",
-                                        color:tag===selectedTag ? "white" : "dimgray",                  
+                                        backgroundColor:contains(tag)(selectedTags) ? "dimgray" : "white",
+                                        color:contains(tag)(selectedTags) ? "white" : "dimgray",                  
                                         fontWeight:700 
                                     }}     
                                 >   

@@ -73,6 +73,7 @@ let moment = require("moment");
 interface DueDateProps{
     date:Date,
     selectedCategory:Category,
+    onClick:Function,
     category:Category,
     completed:Date
 }
@@ -93,10 +94,7 @@ export class DueDate extends Component<DueDateProps,{}>{
 
 
 
-    render(){   
-        let {date,category,selectedCategory,completed} = this.props;
-        let showSomeday : boolean = selectedCategory!=="someday" && category==="someday";
-
+    getContent = () : JSX.Element => {
         let containerStyle= {  
             backgroundColor:"rgb(235, 235, 235)",
             cursor:"default", 
@@ -121,6 +119,10 @@ export class DueDate extends Component<DueDateProps,{}>{
             marginRight:"5px" 
         };
 
+        let {date,category,selectedCategory,completed} = this.props;
+
+        let showSomeday : boolean = selectedCategory!=="someday" && category==="someday";
+
 
         if(isNil(completed) && showSomeday){
             return <div style={{height:"18px",marginTop:"-2px"}}>
@@ -135,13 +137,7 @@ export class DueDate extends Component<DueDateProps,{}>{
                 selectedCategory==="project" ||
                 selectedCategory==="area" ||
                 selectedCategory==="search" 
-            )                 
-            /*
-            selectedCategory!=="logbook" && 
-            selectedCategory!=="search" &&
-            selectedCategory!=="upcoming" &&
-            selectedCategory!=="today"
-            */
+            ) 
         ){
 
             let month = getMonthName(date); 
@@ -193,5 +189,25 @@ export class DueDate extends Component<DueDateProps,{}>{
         }else{
             return null
         }
+    };
+
+
+
+
+
+    render(){   
+        let content = this.getContent();
+        
+        return isNil(content) ? null :
+        <div 
+            onClick = {(e) => {
+                e.stopPropagation(); 
+                e.nativeEvent.stopImmediatePropagation();
+                this.props.onClick(e);
+            }}
+        >
+            {content}
+        </div>
+        
     }
 };

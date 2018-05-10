@@ -279,9 +279,9 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
                 }
             ],
             [
-                typeEquals("selectedTag"),
-                (action:{type:string,load:string}) : Store => {
-                    return ({...state,selectedTag:action.load}); 
+                typeEquals("selectedTags"),
+                (action:{type:string,load:string[]}) : Store => {
+                    return ({...state,selectedTags:action.load}); 
                 }
             ],
             [

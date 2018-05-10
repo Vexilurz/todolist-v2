@@ -20,6 +20,8 @@ import { getToken } from '../utils/getToken';
 import { workerSendAction } from '../utils/workerSendAction';
 import { pouchWorker } from '../app';
 import { isDev } from '../utils/isDev';
+import RefreshIndicator from 'material-ui/RefreshIndicator';
+
 const uniqid = require('uniqid');
 let CryptoJS = require("crypto-js");
 
@@ -37,6 +39,7 @@ interface LoginFormProps{
 interface LoginFormState{
     email:string,
     password:string,
+    spin:boolean,
     error:string
 }
 
@@ -50,6 +53,7 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
         this.state = {
             email:defaultTo('')(this.props.email), 
             password:'', 
+            spin:false,
             error:''
         };
     } 
@@ -85,7 +89,7 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
 
     setAuthError = err => {
         let reason = path(["response","data","reason"], err);
-        this.setState({error:`${reason}`}); 
+        this.setState({error:`${reason}`,spin:false}); 
     };
 
 
@@ -127,7 +131,7 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
 
         let actionStartSync : actionStartSync = { type:"startSync", load:username };
 
-        workerSendAction(pouchWorker)(actionStartSync)
+        return workerSendAction(pouchWorker)(actionStartSync)
         .then(
             () => this.props.setAuthenticated(true)
         )
@@ -138,12 +142,15 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
     submit = ({email,password}) => {
         let username = emailToUsername(email);
 
-        return axios({ 
-            method:'post', 
-            url:`${host}/_session`, 
-            data:{ name:username, password }, 
-            headers: {'Authorization': 'Basic ' + getToken({username, password})}
-        })  
+        return this.setStateP({spin:true})
+        .then(
+            () => axios({ 
+                method:'post', 
+                url:`${host}/_session`, 
+                data:{ name:username, password }, 
+                headers: {'Authorization': 'Basic ' + getToken({username, password})}
+            })  
+        )
         .then(this.onAuth) 
         .catch(this.setAuthError);
     };     
@@ -154,7 +161,6 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
         return <div style={{
             display:"flex",
             flexDirection:"column",
-            height:"50%",
             width:"90%",
             justifyContent:"space-between"
         }}>
@@ -165,17 +171,21 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
                 justifyContent:"space-around"
             }}>
             <LoginFormInput 
-                 type="email"
-                 value={this.state.email}
-                 placeholder="Email" 
-                 onChange={(e) => this.setState({email:e.target.value})}
+                type="email"
+                value={this.state.email}
+                placeholder="Email" 
+                onChange={(e) => this.setState({email:e.target.value})}
             />
             <LoginFormInput 
-                 type="password"   
-                 value={this.state.password}
-                 placeholder="Password" 
-                 onChange={(e) => this.setState({password:e.target.value})}
+                type="password"   
+                value={this.state.password}
+                placeholder="Password" 
+                onChange={(e) => this.setState({password:e.target.value})}
             />
+            <div style={{ display:"flex", flexDirection:"column" }}> 
+                <a href={'#'} style={{paddingTop:"3px", paddingBottom:"3px"}}>Forget Password ?</a>
+                <a href={'#'} style={{paddingTop:"3px", paddingBottom:"3px"}}>Register</a>
+            </div>
             </div>
             {
                 isEmpty(this.state.error) ? null :    
@@ -187,19 +197,32 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
                 onClick={this.onSubmit} 
                 style={{     
                     display:"flex",
-                    alignItems:"center", 
+                    alignItems:"center",
                     cursor:"pointer",
-                    justifyContent:"center", 
+                    justifyContent:"flex-start",
                     height:"20px",
-                    borderRadius:"5px", 
-                    paddingLeft:"25px",
-                    paddingRight:"25px",
-                    paddingTop:"5px", 
-                    paddingBottom:"5px", 
-                    backgroundColor:"rgba(81, 144, 247, 1)"  
+                    borderRadius:"5px",
+                    padding:"5px",
+                    backgroundColor:"rgb(81, 144, 247)"
                 }}   
             >   
-                <div style={{color:"white",whiteSpace:"nowrap",fontSize:"16px"}}>  
+                {
+                    <div style={{visibility:this.state.spin ? "visible" : "hidden"}}>
+                        <RefreshIndicator 
+                            size={25}
+                            left={0}
+                            top={0}
+                            status="loading"
+                            style={{
+                                display:'inline-block', 
+                                position:'relative',
+                                boxShadow:'none',
+                                backgroundColor:'rgba(255,255,255,0)'
+                            }}
+                        />
+                    </div>
+                }
+                <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px", paddingLeft:"10px"}}>  
                     Connect with Tasklist Cloud
                 </div>    
             </div>   

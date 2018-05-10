@@ -90,7 +90,7 @@ interface MainContainerProps{
     selectedProjectId:string,
     selectedAreaId:string,
     moveCompletedItemsToLogbook:string,
-    selectedTag:string,
+    selectedTags:string[],
     dragged:string,
     cloneWindow:() => void
 } 
@@ -561,7 +561,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     let inboxFilters = this.props.filters.inbox;    
                                     let inboxTodos = filter(this.props.todos, allPass(inboxFilters));
                                     
-
+                                    
                                     return <Inbox 
                                         todos={inboxTodos} 
                                         filters={this.props.filters}
@@ -571,7 +571,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         selectedTodo={this.props.selectedTodo}
                                         scrolledTodo={this.props.scrolledTodo}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                                        selectedTag={this.props.selectedTag} 
+                                        selectedTags={this.props.selectedTags} 
                                         selectedProjectId={this.props.selectedProjectId} 
                                         selectedAreaId={this.props.selectedAreaId} 
                                         rootRef={this.rootRef}
@@ -600,7 +600,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         indicators={this.props.indicators}
                                         selectedAreaId={this.props.selectedAreaId} 
                                         selectedCategory={this.props.selectedCategory}
-                                        selectedTag={this.props.selectedTag}
+                                        selectedTags={this.props.selectedTags} 
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         areas={this.props.areas}
                                         projects={this.props.projects}
@@ -616,6 +616,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     let somedayFilters = this.props.filters.someday;
                                     let selectedTodos = filter(this.props.todos, allPass(somedayFilters));
 
+
                                     return <Someday 
                                         todos={selectedTodos}
                                         filters={this.props.filters}
@@ -628,7 +629,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         selectedProjectId={this.props.selectedProjectId}
                                         selectedAreaId={this.props.selectedAreaId} 
                                         selectedCategory={this.props.selectedCategory}
-                                        selectedTag={this.props.selectedTag}
+                                        selectedTags={this.props.selectedTags} 
                                         rootRef={this.rootRef}
                                         areas={this.props.areas}
                                         projects={this.props.projects}
@@ -655,7 +656,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         selectedTodo={this.props.selectedTodo}
                                         scrolledTodo={this.props.scrolledTodo}
                                         selectedCategory={this.props.selectedCategory}
-                                        selectedTag={this.props.selectedTag}
+                                        selectedTags={this.props.selectedTags} 
                                         rootRef={this.rootRef}
                                         selectedProjectId={this.props.selectedProjectId}
                                         selectedAreaId={this.props.selectedAreaId} 
@@ -677,7 +678,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         scrolledTodo={this.props.scrolledTodo}
                                         selectedCategory={this.props.selectedCategory}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                                        selectedTag={this.props.selectedTag} 
+                                        selectedTags={this.props.selectedTags} 
                                         showTrashPopup={this.props.showTrashPopup}
                                         selectedProjectId={this.props.selectedProjectId}
                                         selectedAreaId={this.props.selectedAreaId} 
@@ -705,7 +706,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         selectedProjectId={this.props.selectedProjectId}
                                         areas={this.props.areas}
                                         projects={this.props.projects}
-                                        selectedTag={this.props.selectedTag} 
+                                        selectedTags={this.props.selectedTags} 
                                         rootRef={this.rootRef}
                                     />
                                 }
@@ -732,7 +733,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         selectedAreaId={this.props.selectedAreaId}
                                         selectedProjectId={this.props.selectedProjectId}
                                         projects={this.props.projects}
-                                        selectedTag={this.props.selectedTag}
+                                        selectedTags={this.props.selectedTags} 
                                         rootRef={this.rootRef}
                                         showCalendarEvents={this.props.showCalendarEvents}
                                         calendars={this.props.calendars} 
@@ -767,7 +768,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         selectedTodo={this.props.selectedTodo}
                                         groupTodos={this.props.groupTodos}
                                         dispatch={this.props.dispatch} 
-                                        selectedTag={this.props.selectedTag}  
+                                        selectedTags={this.props.selectedTags}  
                                         selectedCategory={this.props.selectedCategory}
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedProjectId={this.props.selectedProjectId}
@@ -785,7 +786,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     let area = this.props.areas.find((a) => this.props.selectedAreaId===a._id);
 
                                     if(isNil(area)){ return null }
-
+ 
                                     return <AreaComponent    
                                         area={area}   
                                         filters={this.props.filters}
@@ -797,7 +798,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                                         selectedCategory={this.props.selectedCategory}
                                         selectedAreaId={this.props.selectedAreaId} 
-                                        selectedTag={this.props.selectedTag}
+                                        selectedTags={this.props.selectedTags} 
                                         dispatch={this.props.dispatch}      
                                         selectedProjectId={this.props.selectedProjectId}
                                         projects={this.props.projects} 

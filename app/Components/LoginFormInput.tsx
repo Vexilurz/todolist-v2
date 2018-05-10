@@ -36,12 +36,13 @@ export class LoginFormInput extends Component<LoginFormInputProps,LoginFormInput
                     backgroundColor:"white",
                     color:"rgba(100, 100, 100, 0.9)",   
                     outline:"none", 
-                    textAlign:"center",
+                    textAlign:"left",
+                    paddingLeft:"10px",
                     alignItems:"center",
                     display:"flex",
                     justifyContent:"center",
                     height:"30px",
-                    width:"100%",  
+                    width:"95%",  
                     borderRadius:"4px",  
                     border:"1px solid rgba(100,100,100,0.3)"
                 }}
