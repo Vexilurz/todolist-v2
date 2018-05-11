@@ -3,7 +3,7 @@ import {
     cond, compose, equals, prop, isEmpty, when, fromPairs, 
     isNil, forEachObjIndexed, toPairs, evolve, ifElse, last, 
     map, mapObjIndexed, values, flatten, path, pick, identity,
-    not
+    not, adjust
 } from 'ramda';
 let CryptoJS = require("crypto-js");
 let uniqid = require('uniqid');
@@ -22,7 +22,7 @@ export let encryptData = (key:string) => (data) : string => {
     return cipher;
 };
  
- 
+
 
 export let decryptData = (key:string) => (data:string)=> {
     let iv = [ 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,35, 36 ];
@@ -42,8 +42,8 @@ let getTransformations = (f:Function) => ({
     todos:{
         title:f,
         checklist:map( evolve({text:f}) ),
-        attachedTags:map( f )
-        //note(RawDraftContentState) TODO
+        attachedTags:map( f ),
+        note:evolve({ blocks:adjust(evolve({text:f}))(0) })
     },
     projects:{
         name:f, 
@@ -52,8 +52,8 @@ let getTransformations = (f:Function) => ({
                 item => prop('type')(item)==="heading",// isHeading, 
                 evolve({title:f}) 
             ) 
-        )
-        //description(RawDraftContentState) TODO
+        ),  
+        description:evolve({ blocks:adjust(evolve({text:f}))(0) })
     },
     areas:{
         name:f, 
@@ -70,7 +70,7 @@ let getTransformations = (f:Function) => ({
 });
 
 
-
+ 
 export let encryptDoc = (dbname:string, key:string, onError:Function) : (doc:any) => any => {
     let setEncrypted = (doc) => ({...doc,enc:true});
     let isNotEncrypted = doc => {
