@@ -15,7 +15,7 @@ import { onError } from './onError';
 import { isNotNil, isString } from '../utils/isSomething';
 import { encryptDoc, decryptDoc } from '../utils/crypto/crypto';
 const PouchDB = require('pouchdb-browser').default;
-
+let window : any = self;
 
 
 let onPaused = () => sendMessage({type:'paused', load:null});

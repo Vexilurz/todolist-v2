@@ -3,13 +3,13 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
-import { isNil, isEmpty, compose, path, toLower, cond, contains, defaultTo, ifElse } from 'ramda';
+import { isNil, isEmpty, compose, path, toLower, cond, contains, defaultTo, ifElse, prop } from 'ramda';
 import Cloud from 'material-ui/svg-icons/file/cloud-done';
 import { action, actionStartSync, actionSetKey } from '../types';
 import { getMonthName } from '../utils/utils';
 import Toggle from 'material-ui/Toggle';
 import { timeOfTheDay } from '../utils/time';
-import { isToday } from '../utils/isSomething';
+import { isToday, isNotNil } from '../utils/isSomething';
 import axios from 'axios';
 import { emailToUsername } from '../utils/emailToUsername';
 import { host } from '../utils/couchHost';
@@ -22,16 +22,11 @@ import { pouchWorker } from '../app';
 import { isDev } from '../utils/isDev';
 import RefreshIndicator from 'material-ui/RefreshIndicator';
 
-const uniqid = require('uniqid');
-let CryptoJS = require("crypto-js");
-
 
 
 interface LoginFormProps{
-    dispatch:(action:action) => void,
-    setAuthenticated:Function,
-    secretKey:string,
-    email:string
+    email:string,
+    onAuth:(data:{email:string,password:string}) => (response:any) => Promise<void>
 }
 
 
@@ -60,14 +55,9 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
 
 
 
-    setStateP = (state:any) : Promise<LoginFormState> => 
-        new Promise(
-            resolve => this.setState(state, () => resolve(this.state))
-        );
-
-
-
-    clearError = () => this.setStateP({error:''});
+    setStateP = (state:any) : Promise<LoginFormState> => new Promise(
+        resolve => this.setState(state, () => resolve(this.state))
+    );
 
 
 
@@ -89,6 +79,11 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
 
     setAuthError = err => {
         let reason = path(["response","data","reason"], err);
+
+        if(isNil(reason) && prop("message")(err)==="Network Error"){
+           reason = "No internet connection"; 
+        }
+
         this.setState({error:`${reason}`,spin:false}); 
     };
 
@@ -104,7 +99,7 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
 
 
     onSubmit = () => 
-        this.clearError()
+        this.setStateP({error:''})
         .then(
             ifElse(
                 this.credentialsAreValid,
@@ -112,35 +107,12 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
                 this.setCredentialsError
             )
         );
-        
+         
 
 
-    onAuth = response => {
-        if(response.status!==200){ return }
-
+    submit = () => {
         let username = emailToUsername(this.state.email);
         let password = this.state.password;
-
-        let load = [
-            { type:'sync', load:true },  
-            { type:'email', load:this.state.email },
-            { type:'salt', load:username }
-        ]; 
-
-        this.props.dispatch({type:'multiple', load});
-
-        let actionStartSync : actionStartSync = { type:"startSync", load:username };
-
-        return workerSendAction(pouchWorker)(actionStartSync)
-        .then(
-            () => this.props.setAuthenticated(true)
-        )
-    };      
-
-
-
-    submit = ({email,password}) => {
-        let username = emailToUsername(email);
 
         return this.setStateP({spin:true})
         .then(
@@ -151,7 +123,7 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
                 headers: {'Authorization': 'Basic ' + getToken({username, password})}
             })  
         )
-        .then(this.onAuth) 
+        .then(this.props.onAuth({email:this.state.email,password})) 
         .catch(this.setAuthError);
     };     
 
@@ -196,33 +168,32 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
             <div     
                 onClick={this.onSubmit} 
                 style={{     
-                    display:"flex",
-                    alignItems:"center",
-                    cursor:"pointer",
-                    justifyContent:"flex-start",
-                    height:"20px",
-                    borderRadius:"5px",
-                    padding:"5px",
-                    backgroundColor:"rgb(81, 144, 247)"
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    justifyContent: "space-evenly",
+                    height: "20px",
+                    borderRadius: "5px",
+                    padding: "5px",
+                    backgroundColor: "rgb(81, 144, 247)"
                 }}   
             >   
                 {
-                    <div style={{visibility:this.state.spin ? "visible" : "hidden"}}>
-                        <RefreshIndicator 
-                            size={25}
-                            left={0}
-                            top={0}
-                            status="loading"
-                            style={{
-                                display:'inline-block', 
-                                position:'relative',
-                                boxShadow:'none',
-                                backgroundColor:'rgba(255,255,255,0)'
-                            }}
-                        />
-                    </div>
+                    !this.state.spin ? null :
+                    <RefreshIndicator 
+                        size={25}
+                        left={0}
+                        top={0}
+                        status="loading"
+                        style={{
+                            display:'inline-block', 
+                            position:'relative',
+                            boxShadow:'none',
+                            backgroundColor:'rgba(255,255,255,0)'
+                        }}
+                    />
                 }
-                <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px", paddingLeft:"10px"}}>  
+                <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
                     Connect with Tasklist Cloud
                 </div>    
             </div>   

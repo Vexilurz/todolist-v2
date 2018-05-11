@@ -17,8 +17,8 @@ import {
     isArrayOfProjects, isArrayOfAreas, isDate, isNumber 
 } from './utils/isSomething';
 import { moveReminderFromPast } from './utils/getData';
-
-
+import { encryptDoc } from './utils/crypto/crypto';
+import { globalErrorHandler } from './utils/globalErrorHandler';
 
 
 
@@ -49,11 +49,11 @@ let updateOtherInstances = (action:action) => (newState:Store) => {
 
 
 
-
 export let objectsReducer = (state:Store, action:action) : Store => { 
     return compose(
         updateOtherInstances(action),  
         cond([ 
+
             [ 
                 typeEquals("shouldSendStatistics"),
                 (action:{type:string,load:boolean}) : Store => {

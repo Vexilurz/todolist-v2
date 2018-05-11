@@ -16,7 +16,7 @@ import { host } from '../../utils/couchHost';
 import { getCouchCookies } from '../../utils/getCouchCookies';
 import { isCouchSessionExpired } from '../../utils/isCouchSessionExpired';
 import { Connected } from '../Connected';
-import { LoginForm } from '../LoginForm';
+import { Login } from '../Login';
 import { debounce } from 'lodash';
 import { checkAuthenticated } from '../../utils/checkAuthenticated';
 import { pouchWorker } from '../../app';
@@ -127,7 +127,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
                         lastSync={this.props.lastSync}
                     />
                     :
-                    <LoginForm 
+                    <Login
                         setAuthenticated={this.setAuthenticated}
                         secretKey={this.props.secretKey}
                         dispatch={this.props.dispatch}

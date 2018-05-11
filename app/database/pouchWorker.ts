@@ -12,7 +12,7 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { 
     action, Query, Databases, Changes, DatabaseChanges, PouchChanges, actionStartSync, 
-    actionStopSync, actionChanges, actionLoadDatabase, actionSetDatabase, actionSetKey 
+    actionStopSync, actionChanges, actionLoadDatabase, actionSetDatabase, actionSetKey, actionEncryptDatabase 
 } from './../types';
 import { host } from './../utils/couchHost';
 import { userNameToDatabaseName } from './../utils/userNameToDatabaseName';
@@ -27,6 +27,7 @@ import { encryptDoc, decryptDoc } from '../utils/crypto/crypto';
 import { onError } from './onError'; 
 import { init } from './init';
 import { startDatabaseSync } from './startDatabaseSync';
+import { globalErrorHandler } from '../utils/globalErrorHandler';
 let window : any = self;
 
 const typeEquals = (type:string) => compose(equals(type), prop(`type`)); //TODO move to utils
@@ -142,10 +143,28 @@ let changes = (action:actionChanges) : Promise<void> => {
 
 
 
+let encryptDatabase = (action:actionEncryptDatabase) : Promise<any> => 
+    getDatabaseObjects(onError,databases)
+    .then(
+        evolve({
+            todos:map(encryptDoc("todos", action.load, globalErrorHandler)), 
+            projects:map(encryptDoc("projects", action.load, globalErrorHandler)), 
+            areas:map(encryptDoc("areas", action.load, globalErrorHandler)), 
+            calendars:map(encryptDoc("calendars", action.load, globalErrorHandler))
+        })
+    )
+    .then(
+        (database:Databases) => databases.forEach( 
+            db => updateItems(db, onError)(databases[db.name]) 
+        )
+    );
+
+
+
 /**
  * assign encryption key to window object for further usage
  */
-let setKey = (action:actionSetKey) => {
+let setKey = (action:actionSetKey) : Promise<void> => {
     window.key = action.load;
     return new Promise( resolve => resolve(null) );
 };
@@ -161,6 +180,7 @@ onmessage = function(e){
 
     compose(
         p => p.then(load => sendMessage({type:action.type, load})),
+        
         cond([
             [ typeEquals("load"), load ], 
 
@@ -171,6 +191,8 @@ onmessage = function(e){
             [ typeEquals("stopSync"), stopSync ],
 
             [ typeEquals("setKey"), setKey ],
+
+            [ typeEquals("encryptDatabase"), encryptDatabase ],
             
             [ () => true, () => new Promise( resolve => resolve(null) ) ]    
         ])

@@ -6,6 +6,7 @@ import {
     not
 } from 'ramda';
 let CryptoJS = require("crypto-js");
+let uniqid = require('uniqid');
 
 
 
@@ -106,3 +107,21 @@ export let decryptDoc = (dbname:string, key:string, onError:Function) : (doc:any
     } 
 };
  
+
+
+export let generateSecretKey = () => ( uniqid()+uniqid() ).substring(0, 16);
+
+
+
+export let encryptKey = (password:string) => (key:string) => {
+    let hash = CryptoJS.SHA3(password).toString(CryptoJS.enc.Base64);
+    return encryptData(hash)(key);
+};
+
+
+
+export let decryptKey = (password:string) => (key:string) => {
+    let hash = CryptoJS.SHA3(password).toString(CryptoJS.enc.Base64);
+    return decryptData(hash)(key);
+};
+

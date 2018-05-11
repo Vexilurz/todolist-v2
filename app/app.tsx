@@ -56,6 +56,8 @@ import { logout } from './utils/logout';
 import { fixIncomingData } from './utils/fixIncomingData';
 import { ImportPopup } from './Components/ImportPopup';
 import { decryptDoc } from './utils/crypto/crypto';
+import { setKey } from './utils/crypto/setKey';
+
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
@@ -531,11 +533,11 @@ let renderApp = (config:Config, clonedStore:Store, id:number) : void => {
 }; 
 
 
-let setKey =  (config:Config) => {
+let setKey = (config:Config) => {
     let key = config.secretKey;
     let action : actionSetKey = {type:"setKey", load:key};
     return workerSendAction(pouchWorker)(action).then( () => config );
-};
+}
 
    
 //render application

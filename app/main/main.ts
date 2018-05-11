@@ -28,7 +28,7 @@ import { onWindowAllClosed } from './utils/onWindowAllClosed';
 import { updateConfig } from './utils/updateConfig';
 const storage = require('electron-json-storage');
 const os = require('os');
-const uniqid = require('uniqid');
+
 storage.setDataPath(os.tmpdir());
 
 export let mainWindow : BrowserWindow;   
@@ -38,8 +38,6 @@ export let listeners : Listeners;
 export let dateCalendar : BrowserWindow; 
 export let tray : Tray;
 
-let generateSecretKey = () => ( uniqid()+uniqid() ).substring(0, 16);
-//CryptoJS.PBKDF2(uniqid(), uniqid(), { keySize: 512/32, iterations: 10 }).toString();
 
 
 const shouldQuit = app.makeSingleInstance(
@@ -87,11 +85,7 @@ let onReady = (config:Config) => {
 
     loadNotification(notification).then(() => onNotificationLoaded(notification));
     loadQuickEntry(quickEntry).then(() => onQuickEntryLoaded(quickEntry));  
-
-    
-    loadApp(mainWindow)
-    .then(() => isNil(config.secretKey) ? updateConfig({secretKey:generateSecretKey()}) : null)
-    .then(() => onAppLoaded(mainWindow));  
+    loadApp(mainWindow).then(() => onAppLoaded(mainWindow));  
 };                
 
 app.on('ready', () => getConfig().then((config:Config) => onReady(config)));    

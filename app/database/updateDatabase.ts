@@ -16,7 +16,6 @@ import { moveReminderFromPast } from '../utils/getData';
 import { assert, assertC } from '../utils/assert';
 
 
-
 let ignoredActions = [
     "setCalendars",
     "setTodos",
