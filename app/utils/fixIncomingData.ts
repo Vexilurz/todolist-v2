@@ -4,22 +4,22 @@ import { typeEquals, convertTodoDates, convertProjectDates, convertAreaDates, re
 import { setDefaultsTodo, setDefaultsProject, setDefaultsArea, setDefaultsCalendar } from './setDefaults';
 import { assureCorrectCompletedTypeTodo, moveReminderFromPast, assureCorrectNoteTypeTodo, assureCorrectNoteTypeProject } from './getData';
 
- 
+
 export let fixIncomingData = 
     evolve({
         todos: compose(
             map( 
                 //order matters here !
-                compose( 
+                compose(  
                     moveReminderFromPast, 
                     convertTodoDates,
                     assureCorrectCompletedTypeTodo, 
                     assureCorrectNoteTypeTodo,
                     setDefaultsTodo,
                     removeRev
-                )
+                )  
             ),
-            defaultTo([])
+            defaultTo([]) 
         ),
         projects:compose(
             map( 

@@ -38,7 +38,7 @@ export let decryptData = (key:string) => (data:string)=> {
 
 
 
-let getTransformations = (f:Function) => ({
+export let getTransformations = (f:Function) => ({
     todos:{
         title:f,
         checklist:map( evolve({text:f}) ),

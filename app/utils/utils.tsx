@@ -1188,31 +1188,31 @@ export let transformLoadDates = (load) : any => {
 
 export let convertTodoDates = (t:Todo) : Todo => ({
     ...t, 
-    reminder : isNil(t.reminder) ? undefined : new Date(t.reminder),
-    deadline : isNil(t.deadline) ? undefined : new Date(t.deadline), 
-    created : isNil(t.created) ? undefined : new Date(t.created),
-    deleted : isNil(t.deleted) ? undefined : new Date(t.deleted),
-    attachedDate : isNil(t.attachedDate) ? undefined : new Date(t.attachedDate),
-    completedSet : isNil(t.completedSet) ? undefined : new Date(t.completedSet),
-    completedWhen : isNil(t.completedWhen) ? undefined : new Date(t.completedWhen)
+    reminder : isNil(t.reminder) ? null : new Date(t.reminder),
+    deadline : isNil(t.deadline) ? null : new Date(t.deadline), 
+    created : isNil(t.created) ? null : new Date(t.created),
+    deleted : isNil(t.deleted) ? null: new Date(t.deleted),
+    attachedDate : isNil(t.attachedDate) ? null : new Date(t.attachedDate),
+    completedSet : isNil(t.completedSet) ? null : new Date(t.completedSet),
+    completedWhen : isNil(t.completedWhen) ? null : new Date(t.completedWhen)
 });
 
 
 
 export let convertProjectDates = (p:Project) : Project => ({
     ...p,
-    created : isNil(p.created) ? undefined : new Date(p.created),
-    deadline : isNil(p.deadline) ? undefined : new Date(p.deadline),
-    deleted :  isNil(p.deleted) ? undefined : new Date(p.deleted),
-    completed :  isNil(p.completed) ? undefined : new Date(p.completed)
+    created : isNil(p.created) ? null : new Date(p.created),
+    deadline : isNil(p.deadline) ? null : new Date(p.deadline),
+    deleted :  isNil(p.deleted) ? null : new Date(p.deleted),
+    completed :  isNil(p.completed) ? null : new Date(p.completed)
 });
 
 
 
 export let convertAreaDates = (a:Area) : Area => ({
     ...a, 
-    created:isNil(a.created) ? undefined : new Date(a.created),
-    deleted:isNil(a.deleted) ? undefined : new Date(a.deleted)
+    created:isNil(a.created) ? null : new Date(a.created),
+    deleted:isNil(a.deleted) ? null : new Date(a.deleted)
 });
 
  
