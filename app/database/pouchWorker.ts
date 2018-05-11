@@ -27,7 +27,6 @@ import { encryptDoc, decryptDoc } from '../utils/crypto/crypto';
 import { onError } from './onError'; 
 import { init } from './init';
 import { startDatabaseSync } from './startDatabaseSync';
-import { globalErrorHandler } from '../utils/globalErrorHandler';
 let window : any = self;
 
 const typeEquals = (type:string) => compose(equals(type), prop(`type`)); //TODO move to utils
@@ -147,15 +146,15 @@ let encryptDatabase = (action:actionEncryptDatabase) : Promise<any> =>
     getDatabaseObjects(onError,databases)
     .then(
         evolve({
-            todos:map(encryptDoc("todos", action.load, globalErrorHandler)), 
-            projects:map(encryptDoc("projects", action.load, globalErrorHandler)), 
-            areas:map(encryptDoc("areas", action.load, globalErrorHandler)), 
-            calendars:map(encryptDoc("calendars", action.load, globalErrorHandler))
+            todos:map(encryptDoc("todos",action.load, onError)), 
+            projects:map(encryptDoc("projects",action.load, onError)), 
+            areas:map(encryptDoc("areas",action.load, onError)), 
+            calendars:map(encryptDoc("calendars",action.load, onError))
         })
     )
     .then(
-        (database:Databases) => databases.forEach( 
-            db => updateItems(db, onError)(databases[db.name]) 
+        (data:Databases) => databases.forEach( 
+            db => updateItems(db, onError)(data[db.name]) 
         )
     );
 

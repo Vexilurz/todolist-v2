@@ -85,7 +85,7 @@ export class Login extends Component<LoginProps,LoginState>{
             }else{
                 //something goes wrong this scenario should not be possible
                 //throw an error ?
-                return requested;
+                return retrieved;
             }
 
         }else if(isNil(retrieved) && isNil(requested)){
