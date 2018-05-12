@@ -9,7 +9,7 @@ import { Transition } from 'react-transition-group';
 import { Todo, Project, Area, Category } from '../../types';
 import { ContainerHeader } from '.././ContainerHeader';
 import { compareByDate, getMonthName, byTags, byCompleted, byNotDeleted, byNotCompleted, getTagsFromItems } from '../../utils/utils';
-import { allPass, compose, or, isNil, isEmpty, defaultTo, all, contains, flatten } from 'ramda';
+import { allPass, compose, or, isNil, isEmpty, defaultTo, all, contains, flatten, identity } from 'ramda';
 import { TodoInput } from '../TodoInput/TodoInput';
 import { ProjectLink, ProjectLinkLogbook } from '../Project/ProjectLink';
 import { filter } from 'lodash';
@@ -95,16 +95,8 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
     }  
     
     
-    
-    init = (props:LogbookProps) => {
-        let groups : (Todo | Project)[][] = this.groupByMonth(props);
-        return groups;
-    } 
- 
 
-
-    groupByMonth = (props:LogbookProps) : (Todo | Project)[][] => {  
- 
+    groupByMonth = (props:LogbookProps, filterByTags:boolean) : (Todo | Project)[][] => {  
         let {todos,projects} = props;   
 
         let getKey = (d:Date) : string => `${d.getFullYear()}-${d.getMonth()}`;
@@ -118,7 +110,10 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
         let completedTodos : Todo[] = filter(
             todos, 
-            allPass([ t => !contains(t._id)(ids), byTags(props.selectedTags) ])
+            allPass([ 
+                t => !contains(t._id)(ids), 
+                filterByTags ? byTags(props.selectedTags) : identity 
+            ])
         );
 
         let compare = compareByDate(getDateFromObject);
@@ -237,14 +232,18 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
     render(){  
         let { selectedCategory, dispatch, selectedTags } = this.props;
-        let groups = this.init(this.props);  
-        let completedTodos = flatten( groups.map((group:any[]) => filter(group, isTodo)) );
-        let tags = getTagsFromItems(completedTodos);
-       
-
-
-        if(isDev()){
+        let groups : (Todo | Project)[][] = this.groupByMonth(this.props, true);  
         
+        let completedTodos = flatten( groups.map((group:any[]) => filter(group, isTodo)) );
+
+        let tags = compose(
+            getTagsFromItems,
+            flatten,
+            groups => groups.map((group:any[]) => filter(group, isTodo)),
+            props => this.groupByMonth(props, false)
+        )(this.props)
+        
+        if(isDev()){
             let completedProjects = flatten( groups.map((group:any[]) => filter(group, isProject)) );
             let ids = flatten( completedProjects.map( p => p.layout.filter(isString) ) );
             assert(

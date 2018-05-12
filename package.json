@@ -2,7 +2,7 @@
   "name": "tasklist",
   "version": "1.6.0-master",
   "description": "tasklist",
-  "main": "dist/main.js",
+  "main": "production/main.js",
   "scripts": { 
     "start": "electron .",
     "publish": "build --win --publish always",
