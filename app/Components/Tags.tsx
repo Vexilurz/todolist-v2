@@ -81,11 +81,17 @@ export class Tags extends Component<TagsProps,TagsState>{
 
 
     onTagClick = tag => {
+        let onlyAllSelected = equals(['All']);
+
         if(this.state.multipleSelection){
             if(contains(tag)(this.props.selectedTags)){
-               this.props.selectTags( reject(equals(tag))(this.props.selectedTags) ); 
+                this.props.selectTags( reject(equals(tag))(this.props.selectedTags) ); 
             }else{
-               this.props.selectTags( [tag,...this.props.selectedTags] ); 
+                if(onlyAllSelected(this.props.selectedTags)){
+                    this.props.selectTags( [tag] ); 
+                }else{
+                    this.props.selectTags( [tag,...this.props.selectedTags] ); 
+                }
             }
 
         }else{

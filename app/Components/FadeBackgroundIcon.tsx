@@ -86,17 +86,22 @@ interface FadeBackgroundIconProps{
  
 export class FadeBackgroundIcon extends Component<FadeBackgroundIconProps,any>{
 
+    constructor(props){
+        super(props);
+    }
+
+    shouldComponentUpdate(){
+        return true;
+    }
+
     render(){
-    
-        if(this.props.container===null || this.props.container===undefined)
+        if(this.props.container===null || this.props.container===undefined){
            return null;
-         
-
-        if(this.props.show) 
+        }else if(this.props.show){ 
            return chooseFadeIcon(this.props.container,this.props.selectedCategory);
- 
-
-        return null;  
+        }else{
+           return null;  
+        }
     } 
 }
 

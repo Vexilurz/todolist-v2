@@ -237,12 +237,14 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
 
     render(){  
         let { selectedCategory, dispatch, selectedTags } = this.props;
-        let tags = getTagsFromItems(this.props.todos);
         let groups = this.init(this.props);  
+        let completedTodos = flatten( groups.map((group:any[]) => filter(group, isTodo)) );
+        let tags = getTagsFromItems(completedTodos);
+       
 
 
         if(isDev()){
-            let completedTodos = flatten( groups.map((group:any[]) => filter(group, isTodo)) );
+        
             let completedProjects = flatten( groups.map((group:any[]) => filter(group, isProject)) );
             let ids = flatten( completedProjects.map( p => p.layout.filter(isString) ) );
             assert(

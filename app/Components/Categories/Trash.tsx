@@ -129,9 +129,9 @@ export class Trash extends Component<TrashProps,TrashState>{
         )(projects);
 
 
-        let tags = getTagsFromItems([...deletedTodos,...deletedProjects,...deletedAreas]); 
+        let tags = getTagsFromItems(deletedTodos); 
         let empty = isEmpty(deletedTodos) && isEmpty(deletedProjects) && isEmpty(deletedAreas);
-
+ 
 
         let items = [
             ...deletedTodos.filter(byTags(selectedTags)),

@@ -85,21 +85,12 @@ export class Connected extends Component<ConnectedProps,ConnectedState>{
     };
 
     render(){ 
-        return <div style={{ 
-            display:"flex", 
-            flexDirection:"column",  
-            justifyContent:"space-around"
-        }}> 
+        return <div style={{display:"flex", flexDirection:"column", justifyContent:"space-around"}}> 
             { ConnectedSection({offset:40,name:'Account',value:this.props.email}) }
 
             { ConnectedSection({offset:55,name:'Status',value:`Your account is active`}) }
 
             { ConnectedSection({offset:12,name:'Last update',value:this.getLatUpdateMessage()}) }
-
-            <div style={{ display:"flex", flexDirection:"column" }}>
-                <a href={'#'} style={{paddingTop:"3px", paddingBottom:"3px"}}>Change password</a>
-                <a href={'#'} style={{paddingTop:"3px", paddingBottom:"3px"}}>Manage subscriptions</a>
-            </div>
             <div     
                 onClick={this.onLogout} 
                 style={{     
@@ -120,6 +111,30 @@ export class Connected extends Component<ConnectedProps,ConnectedState>{
                     Logout
                 </div>    
             </div>  
+            <div style={{ display:"flex", flexDirection:"column" }}> 
+                <div style={{
+                    paddingTop:"5px",
+                    color:"rgb(81, 144, 247)",
+                    borderBottom:"1px solid rgb(81, 144, 247)",
+                    display:"inline-table",
+                    lineHeight:"1em",
+                    fontSize:"14px",
+                    cursor:"pointer"
+                }}>
+                    Change password
+                </div>
+                <div style={{
+                    paddingTop:"5px",
+                    color:"rgb(81, 144, 247)",
+                    borderBottom:"1px solid rgb(81, 144, 247)",
+                    display:"inline-table",
+                    lineHeight:"1em",
+                    fontSize:"14px",
+                    cursor:"pointer"
+                }}>
+                    Manage subscriptions
+                </div>
+            </div>
         </div>
     }
 } 

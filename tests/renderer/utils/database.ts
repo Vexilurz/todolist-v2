@@ -15,6 +15,8 @@ import { fixIncomingData } from "../../../app/utils/fixIncomingData";
 import { convertAreaDates, convertProjectDates, convertTodoDates } from "../../../app/utils/utils";
 const PouchDB = require('pouchdb-browser').default;
 
+
+
 let getBeforeAfter = (dbname,originalItems,doc) => {
     let fields = map( keys )( getTransformations( null ))[dbname];
     let initial = originalItems.find(item => item._id===item._id);

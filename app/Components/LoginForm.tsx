@@ -154,10 +154,6 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
                 placeholder="Password" 
                 onChange={(e) => this.setState({password:e.target.value})}
             />
-            <div style={{ display:"flex", flexDirection:"column" }}> 
-                <a href={'#'} style={{paddingTop:"3px", paddingBottom:"3px"}}>Forget Password ?</a>
-                <a href={'#'} style={{paddingTop:"3px", paddingBottom:"3px"}}>Register</a>
-            </div>
             </div>
             {
                 isEmpty(this.state.error) ? null :    
@@ -165,21 +161,18 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
                     {this.state.error}
                 </div>
             }
-            <div     
-                onClick={this.onSubmit} 
-                style={{     
-                    display: "flex",
-                    alignItems: "center",
-                    cursor: "pointer",
-                    justifyContent: "space-evenly",
-                    height: "20px",
-                    borderRadius: "5px",
-                    padding: "5px",
-                    backgroundColor: "rgb(81, 144, 247)"
-                }}   
-            >   
-                {
-                    !this.state.spin ? null :
+            {
+                this.state.spin ?
+                <div
+                    style={{
+                        display:"flex",
+                        justifyContent:"center",
+                        height:"20px",
+                        borderRadius:"5px",
+                        padding:"5px",
+                        backgroundColor:"rgba(200,200,200,0.1)"
+                    }}
+                >
                     <RefreshIndicator 
                         size={25}
                         left={0}
@@ -192,11 +185,52 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
                             backgroundColor:'rgba(255,255,255,0)'
                         }}
                     />
-                }
-                <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
-                    Connect with Tasklist Cloud
-                </div>    
-            </div>   
+                </div>
+                :
+                <div     
+                    onClick={this.onSubmit} 
+                    style={{     
+                        display: "flex",
+                        alignItems: "center",
+                        cursor: "pointer",
+                        justifyContent: "space-evenly",
+                        height: "20px",
+                        borderRadius: "5px",
+                        padding: "5px",
+                        backgroundColor: "rgb(81, 144, 247)",
+                        marginTop:"10px",
+                        marginBottom: "10px"
+                    }}   
+                >   
+                    <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
+                        Connect with Tasklist Cloud
+                    </div>    
+                </div> 
+            }
+            <div style={{ display:"flex", flexDirection:"column" }}> 
+                <div style={{
+                    paddingTop:"5px",
+                    color:"rgb(81, 144, 247)",
+                    borderBottom:"1px solid rgb(81, 144, 247)",
+                    display:"inline-table",
+                    lineHeight:"1em",
+                    fontSize:"14px",
+                    cursor:"pointer"
+                }}>
+                    Forget Password ?
+                </div>
+                <div style={{
+                    paddingTop:"5px",
+                    color:"rgb(81, 144, 247)",
+                    borderBottom:"1px solid rgb(81, 144, 247)",
+                    display:"inline-table",
+                    lineHeight:"1em",
+                    fontSize:"14px",
+                    cursor:"pointer"
+                }}>
+                    Register
+                </div>
+            </div>
         </div>
     }
 };

@@ -80,13 +80,21 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
     onError = (error) => globalErrorHandler(error);
     
 
+    toggleLeftPanel = () => this.setState(
+        { collapsed:!this.state.collapsed }, 
+        () => {
+            // to trigger rerender
+            this.props.dispatch({type:"leftPanelWidth", load:this.props.leftPanelWidth+1})
+            this.props.dispatch({type:"leftPanelWidth", load:this.props.leftPanelWidth-1})
+        }
+    );
+
+
     initCtrlB = () => {
-        this.subscriptions.push(
+        this.subscriptions.push( 
             Observable
             .fromEvent(ipcRenderer, "toggle", (event) => event)
-            .subscribe(() => {
-                this.setState({collapsed:!this.state.collapsed})
-            })
+            .subscribe(this.toggleLeftPanel)
         ); 
     }; 
     

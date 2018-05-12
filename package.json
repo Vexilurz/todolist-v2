@@ -3,7 +3,7 @@
   "version": "1.6.0-master",
   "description": "tasklist",
   "main": "dist/main.js",
-  "scripts": {
+  "scripts": { 
     "start": "electron .",
     "publish": "build --win --publish always",
     "pack": "build --win",
