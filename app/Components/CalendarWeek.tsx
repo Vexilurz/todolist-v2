@@ -28,6 +28,8 @@ import { getSameDayEventElement } from '../utils/getCalendarEventElement';
 
 
 interface CalendarWeekProps{ 
+    month:string,
+    range:string,
     indicators : { 
         [key:string]:{
             active:number,
@@ -45,13 +47,12 @@ interface CalendarWeekProps{
         logbook:((todo:Todo) => boolean)[],
         trash:((todo:Todo) => boolean)[]
     },
+    sortedItems:(Project | Todo) []
+    sortedEvents:CalendarEvent[],
     projects:Project[],
-    scheduledProjects:Project[],
     areas:Area[], 
-    selectedTodos:Todo[],
     scrolledTodo:Todo, 
     groupTodos:boolean,
-    selectedEvents:CalendarEvent[],
     moveCompletedItemsToLogbook:string, 
     dispatch:Function, 
     selectedAreaId:string,
@@ -75,41 +76,38 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
 
      
     render(){   
-        let {selectedTodos,selectedTags,scheduledProjects,dispatch,selectedEvents} = this.props; 
-        let {sameDayEvents,fullDayEvents} = groupEventsByType(selectedEvents); 
+        let {sortedItems, sortedEvents, selectedTags, dispatch} = this.props; 
+        let {sameDayEvents, fullDayEvents} = groupEventsByType(sortedEvents); 
 
         let noEvents = isEmpty(fullDayEvents) && isEmpty(sameDayEvents);
-        let noProjects = isEmpty(scheduledProjects);
-        let noTodos = isEmpty(selectedTodos);
-
+        let noItems = isEmpty(sortedItems);
+       
 
         return <div style={{display:"flex", flexDirection:"column", WebkitUserSelect:"none"}}>  
-                <div style={{
-                    width:"100%",
-                    display:"flex",
-                    paddingBottom:"10px",
-                    alignItems:"center",
-                    WebkitUserSelect:"none"
-                }}>  
-                    <div style={{width:"50px",fontWeight:900,fontSize:"35px",userSelect:"none"}}>
-                        week
-                    </div>  
-                    <div style={{
-                        width:"100%",
-                        fontSize:"17px",
-                        color:"dimgray",
+                <div 
+                    style={{
+                        WebkitUserSelect: "none", 
                         display:"flex",
-                        height:"30px",
-                        alignItems:"flex-end", 
-                        fontWeight:"bolder",
+                        cursor:"default", 
+                        fontSize:"15px",
+                        width:"100%", 
+                        fontWeight:"bold",
+                        marginTop:"10px",
+                        paddingTop:"5px",
                         borderTop:"1px solid rgba(100, 100, 100, 0.3)",
-                        marginTop:"5px",
-                        userSelect:"none" 
-                    }}>  
-                        week
-                    </div> 
-                </div>   
-
+                        paddingBottom:"15px"
+                    }} 
+                >  
+                    <div style={{display:"flex"}}>
+                        <div>{this.props.month}</div>
+                        <div
+                            style={{
+                                paddingLeft:"5px",
+                                color:"rgba(50,50,50,0.7)"
+                            }}
+                        >{this.props.range}</div>
+                    </div>
+                </div>
                 <div>
                 {
                     noEvents ? null :  
@@ -169,18 +167,15 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
                         }
                     </div>
                 }
-                {
-                    noProjects ? null :
+
+                {/*   
                     <div style={{
-                        display:"flex", 
-                        flexDirection:"column", 
+                        display:"flex",
+                        flexDirection:"column",
                         width:"100%",
-                        paddingLeft:"25px"
-                    }}>    
-                    { 
-                        scheduledProjects.map(
-                            (project:Project, index:number) : JSX.Element => 
-                                <div 
+                        paddingLeft:"20px"
+                    }}>   
+                         <div 
                                     style={{marginTop:"5px", marginBottom:"5px"}} 
                                     key={project._id}
                                 >
@@ -192,36 +187,8 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
                                         selectedCategory={this.props.selectedCategory}
                                     />  
                                 </div>  
-                             
-                        )     
-                    }      
                     </div> 
-                } 
-                {   
-                    noTodos ? null :
-                    <div style={{
-                        display:"flex",
-                        flexDirection:"column",
-                        width:"100%",
-                        paddingLeft:"20px"
-                    }}>   
-                        <TodosList    
-                            dispatch={this.props.dispatch}  
-                            filters={this.props.filters}
-                            groupTodos={this.props.groupTodos}
-                            sortBy={(a:Todo,b:Todo) => a.priority-b.priority}
-                            selectedCategory={this.props.selectedCategory}
-                            scrolledTodo={this.props.scrolledTodo} 
-                            moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                            selectedAreaId={this.props.selectedAreaId}
-                            selectedProjectId={this.props.selectedProjectId}
-                            areas={this.props.areas}
-                            projects={this.props.projects}
-                            rootRef={this.props.rootRef}
-                            todos={selectedTodos}   
-                        />  
-                    </div> 
-                }
+                */}
                 </div>
         </div>   
     }

@@ -215,7 +215,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                 </div>
             }
             <CalendarDay 
-                idx={idx} 
                 day={day}  
                 indicators={this.props.indicators}
                 dayName={getDayName(object.date)}

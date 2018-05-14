@@ -41,6 +41,25 @@ export let isToday = (date : Date) => {
 
 
 
+export let isTomorrow = (date : Date) => {
+    if(isNil(date)){ return false }; 
+
+    if(isDate(date)){ 
+       return daysRemaining(date)===1;
+    } 
+
+    if(isString(date)){
+       let maybeDate = new Date(date);
+       if(isDate(maybeDate)){
+          return daysRemaining(date)===1;
+       }
+    } 
+  
+    return false;
+};  
+
+
+
 export let isDomElement = (element:any) => element instanceof Element;
  
 

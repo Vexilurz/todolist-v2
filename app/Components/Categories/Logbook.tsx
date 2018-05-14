@@ -241,7 +241,7 @@ export class Logbook extends Component<LogbookProps,LogbookState>{
             flatten,
             groups => groups.map((group:any[]) => filter(group, isTodo)),
             props => this.groupByMonth(props, false)
-        )(this.props)
+        )(this.props);
         
         if(isDev()){
             let completedProjects = flatten( groups.map((group:any[]) => filter(group, isProject)) );

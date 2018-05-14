@@ -21,7 +21,7 @@ import {
     isItem,isArray,isDate,isFunction,isString,  
     isCategory,bySomeday,isTodo,isArrayOfTodos, 
     isProject,isArrayOfProjects,isArea,isNotNil, 
-    isArrayOfAreas,isArrayOfStrings,isNotDate, isToday
+    isArrayOfAreas,isArrayOfStrings,isNotDate, isToday, isTomorrow
 } from './isSomething';
 import { generateEmptyTodo } from './generateEmptyTodo';
 import { noteFromText } from './draftUtils';
@@ -981,7 +981,8 @@ export let getDayName = (d:Date) : string => {
     }
 
     if(isToday(d)){ return "Today" }
-    //idx===1 ? "Tomorrow" :
+    else if(isTomorrow(d)){ return "Tomorrow" }
+   
 
     let days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 

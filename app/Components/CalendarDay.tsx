@@ -101,11 +101,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                         marginTop:"5px",
                         userSelect:"none" 
                     }}>  
-                        { 
-                            //idx===0 ? "Today" :
-                            //idx===1 ? "Tomorrow" :
-                            dayName
-                        }
+                        { dayName }
                     </div> 
                 </div>   
 

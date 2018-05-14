@@ -15,15 +15,15 @@ import {
 } from '../../utils/utils';  
 import {
     allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, contains, where,
-    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy, any,
-    mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass
+    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy, any, 
+    mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass, applyTo
 } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
 import { filter } from 'lodash'; 
 import { CalendarDay } from '../../Components/CalendarDay';
 import { Hint } from './Today'; 
 import { updateCalendars } from '../Calendar';
-import { isDate, isArray, isArrayOfTodos, isNotNil, isString } from '../../utils/isSomething';
+import { isDate, isArray, isArrayOfTodos, isNotNil, isString, isTodo, isProject } from '../../utils/isSomething';
 import { assert } from '../../utils/assert';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { timeOfTheDay, keyFromDate, addMonths, inPast } from '../../utils/time';
@@ -35,6 +35,7 @@ import { CalendarMonth } from '../CalendarMonth';
 import { CalendarWeek } from '../CalendarWeek';
 import { generateUpcomingSequence } from '../../utils/generateUpcomingSequence';
 import { generateCalendarObjectsFromRange } from '../../utils/generateCalendarObjectsFromRange';
+import { byTime } from '../../utils/byTime';
 
 
 
@@ -80,6 +81,39 @@ interface UpcomingDefaultProps{
 interface UpcomingDefaultState{}
 
 
+
+let getWeekTitle = (objects:CalendarObject[]) : { month:string, range:string } => {
+    let dates = objects.map(prop('date'));
+
+    if(isEmpty(dates)){ return {month:'', range:''} }
+    else if(dates.length===1){  
+
+        let date = dates[0] as Date;
+        return {
+            month:getMonthName(date), 
+            range:`${date.getDate()}`
+        };
+    }else{
+        let start = dates[0] as Date;
+        let end = last(dates) as Date;
+        let startMonth = getMonthName(start);
+        let endMonth = getMonthName(end);
+
+        if(startMonth===endMonth){
+            return {
+                month:startMonth, 
+                range:`${start.getDate()}-${end.getDate()}`
+            };
+        }else{
+            return {
+                month:`${startMonth}-${endMonth}`, 
+                range:`${start.getDate()}-${end.getDate()}`
+            };
+        }
+    }
+};
+
+
  
 export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefaultState>{
 
@@ -106,37 +140,13 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
 
 
 
-    getCalendarDay = ( 
-        object:CalendarObject
-    ) => {
-        let todos = [];
-        let events = [];
-        let projects = [];
-        let title = 'day';
-        let month = 'month';
-        let day = 1;
-        let date = new Date();
+    getCalendarDay = (object:CalendarObject) => {
+        let { todos, projects, events, date } = object;
+        let key = date.toJSON();
+        let day = date.getDate();
 
-        let showMonth = true; //todo fix idx===0 || day===1;
-
-        return <div  style={{WebkitUserSelect:"none"}}>
-            { 
-                not(showMonth) ? null :  
-                <div 
-                    style={{
-                        WebkitUserSelect: "none", 
-                        display:"flex",
-                        cursor:"default", 
-                        fontSize:"x-large",
-                        width:"100%", 
-                        fontWeight:"bold",
-                        paddingTop:"20px",
-                        paddingBottom:"15px"
-                    }} 
-                >  
-                    {month}  
-                </div>
-            }
+        
+        return <div key={key} style={{WebkitUserSelect:"none"}}>
             <CalendarDay 
                 day={day}  
                 indicators={this.props.indicators}
@@ -163,37 +173,33 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
 
 
     getCalendarWeek = (objects:CalendarObject[]) : JSX.Element => {
+        if(isEmpty(objects)){ return null }
 
-        let todos = [];
-        let events = [];
-        let projects = [];
-        let title = 'week';
+        let types = ["todos","events","projects"];
+        let flattenObjects = (type:string) => compose( flatten, map(prop(type)) );
+        let getDate = item => isTodo(item) ? item.attachedDate : isProject(item) ? item.deadline : null;
 
-        return <div style={{WebkitUserSelect:"none"}}>
-            { 
-                <div 
-                    style={{
-                        WebkitUserSelect: "none", 
-                        display:"flex",
-                        cursor:"default", 
-                        fontSize:"x-large",
-                        width:"100%", 
-                        fontWeight:"bold",
-                        paddingTop:"20px",
-                        paddingBottom:"15px"
-                    }} 
-                >  
-                    {title}  
-                </div>
-            }
+
+        let todos = flattenObjects("todos")(objects);
+        let projects = flattenObjects("projects")(objects);
+        let events = flattenObjects("events")(objects);
+
+        let sortedItems =  [...todos, ...projects].sort( compareByDate(getDate), );
+        let sortedEvents = events.sort(byTime);
+
+        let key = objects[0].date.toJSON();
+        let { month, range } = getWeekTitle(objects);
+    
+        return <div key={key} style={{WebkitUserSelect:"none"}}>
             <CalendarWeek
+                month={month}
+                range={range}
                 indicators={this.props.indicators}
                 filters={this.props.filters}
                 groupTodos={this.props.groupTodos}
-                selectedTodos={todos} 
-                selectedEvents={events}
+                sortedItems={sortedItems}
+                sortedEvents={sortedEvents}
                 areas={this.props.areas}
-                scheduledProjects={projects}  
                 moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                 projects={this.props.projects}
                 selectedAreaId={this.props.selectedAreaId} 
