@@ -20,10 +20,9 @@ import {
 } from '../types';
 import { 
     remove, isNil, not, isEmpty, last, compose, map, cond, defaultTo, flatten, groupBy, difference,
-    equals, all, when, prop, complement, adjust, path, drop, add, uniqBy, reduce, range, xprod 
+    equals, all, when, prop, complement, adjust, path, drop, add, uniqBy, reduce, range, xprod, evolve 
 } from 'ramda';
 let uniqid = require("uniqid");    
-import { extend } from './Categories/Upcoming';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
@@ -159,11 +158,14 @@ export let repeat = (
         ]
     );  
 
- 
+
+    let setLast = items => adjust( evolve({group:(group) => ({...group, last:true})}), items.length-1 , items );
+
+
     let todos = compose(
+        when(isNotEmpty, setLast),
         map((t:Todo) : Todo => ({ ...t, reminder:null, group:{type:selectedOption, _id:groupId, options} })),
         selectedDatesToTodos(todo),
-        //log('dates'),
         optionToDates
     )(selectedOption); 
 

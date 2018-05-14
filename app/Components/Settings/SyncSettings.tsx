@@ -51,9 +51,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
     componentDidMount(){
         checkAuthenticated()
         .then(
-            auth => this.setAuthenticated( 
-                auth && isString(this.props.email) && isDate(this.props.lastSync) 
-            )
+            auth => this.setAuthenticated(auth)
         )
     }
 

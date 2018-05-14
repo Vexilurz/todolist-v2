@@ -15,7 +15,7 @@ import { Trash } from './Categories/Trash';
 import { Logbook } from './Categories/Logbook';
 import { Someday } from './Categories/Someday';
 import { Next } from './Categories/Next';  
-import { Upcoming, extend } from './Categories/Upcoming';
+import { Upcoming } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { 
@@ -45,6 +45,8 @@ import {
 import { threeDaysLater, inPast, oneMinuteLater, fourteenDaysLater, fiveMinutesLater } from '../utils/time'; 
 import { introListLayout, getIntroList, introListIds } from '../utils/introList';
 import { fixIncomingData } from '../utils/fixIncomingData';
+import { extend } from '../utils/extend';
+import { UpcomingDefault } from './Categories/UpcomingDefault';
 
 
 
@@ -717,7 +719,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     let upcomingFilters = this.props.filters.upcoming;
                                     let upcomingTodos = filter(this.props.todos, allPass(upcomingFilters));
 
-                                    return <Upcoming  
+                                    return <UpcomingDefault  
                                         limit={this.props.limit}
                                         clone={this.props.clone} 
                                         filters={this.props.filters}

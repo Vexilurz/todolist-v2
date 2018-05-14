@@ -20,7 +20,9 @@ const fixIncomingData = require('./utils/fixIncomingData');
 const generateIndicatorsWorker = require('./utils/generateIndicatorsWorker'); 
 const pouchWorker = require('./utils/pouchWorker'); 
 const toStoreChanges = require('./utils/toStoreChanges'); 
+const generateUpcomingSequence = require('./utils/generateUpcomingSequence'); 
 const updateConfigFromStore = require('./utils/updateConfigFromStore'); 
+
 
 
 Enzyme.configure({ adapter: new Adapter() });

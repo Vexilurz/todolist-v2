@@ -326,17 +326,17 @@ export class ProjectComponent extends Component<ProjectComponentProps,ProjectCom
                 paddingBottom:"10px"
             }}>
                 {
-                    completedEmpty ? null :
-                    <ToggleCompletedButton
-                        onToggle={this.onToggleCompleted}
-                        showCompleted={showCompleted}
-                    />
-                }
-                {
                     scheduledEmpty ? null :
                     <ToggleScheduledButton
                         onToggle={this.onToggleScheduled}
                         showScheduled={showScheduled}
+                    />
+                }
+                {
+                    completedEmpty ? null :
+                    <ToggleCompletedButton
+                        onToggle={this.onToggleCompleted}
+                        showCompleted={showCompleted}
                     />
                 }
             </div>

@@ -27,7 +27,6 @@ import { getSameDayEventElement } from '../utils/getCalendarEventElement';
 
 
 interface CalendarDayProps{ 
-    idx:number,
     day:number, 
     dayName:string,
     indicators : { 
@@ -72,7 +71,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
 
      
     render(){   
-        let {selectedTodos,selectedTags,scheduledProjects,day,idx,dayName,dispatch,selectedEvents} = this.props; 
+        let {selectedTodos,selectedTags,scheduledProjects,day,dayName,dispatch,selectedEvents} = this.props; 
         let {sameDayEvents,fullDayEvents} = groupEventsByType(selectedEvents); 
 
         let noEvents = isEmpty(fullDayEvents) && isEmpty(sameDayEvents);

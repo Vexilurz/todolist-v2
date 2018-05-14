@@ -4,7 +4,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { TodosList } from '../../Components/TodosList';
-import { Todo,Project, Area, Calendar, Category, CalendarEvent, RepeatOptions } from '../../types';
+import { Todo,Project, Area, Calendar, Category, CalendarEvent, RepeatOptions, objectsByDate } from '../../types';
 import * as Waypoint from 'react-waypoint';
 import { ContainerHeader } from '.././ContainerHeader';
 import { 
@@ -30,156 +30,9 @@ import { timeOfTheDay, keyFromDate, addMonths, inPast } from '../../utils/time';
 import { repeat } from '../RepeatPopup';
 import { isDev } from '../../utils/isDev';
 import { getSameDayEventElement } from '../../utils/getCalendarEventElement';
-
-
-
-export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
-    let isNotNeverGroup = compose(not, equals('never'), path(['group','type']));
-    let getDate = (todo:Todo) => todo.attachedDate;
-    let compareByAttachedDate = compareByDate(getDate);
-
-    let groupButNotAfter = compose(
-        anyPass([equals('never'),equals('on')]), 
-        path(['group','type'])
-    );
-
-    let repeated = compose( 
-        flatten, 
-        values,
-        map(
-            compose(
-               (todo:Todo) => {
-                    if(isNil(todo)){ return [] }
-
-                    let group = todo.group;
-                    let options : RepeatOptions = compose( 
-                        evolve({until:initDate}), 
-                        prop('options') 
-                    )(group);
-                    let start = defaultTo(new Date())(todo.attachedDate);
-                    let todos = repeat(options, todo, start, limit, group._id);
-
-                    if(isDev()){
-                        let withStart = [...todos.map(t => t.attachedDate), start];
-                        let by = uniqBy(d => d.toString(), withStart);
-            
-                        assert(
-                            by.length===withStart.length, 
-                            `
-                            dates repeat. extend. ${options.selectedOption}. 
-                            length : ${withStart.length}; 
-                            by : ${by.length};
-                            `
-                        ); 
-                    }
-
-                    return todos; 
-                },   
-               (todos) => todos[0],
-               (todos) => todos.sort(compareByAttachedDate) /*.filter(t => isDate(t.attachedDate))*/
-            )
-        ),
-        groupBy(path(['group','_id'])),
-        (todos) => filter(todos, groupButNotAfter)
-    )(todos);
-
-
-    if(isDev()){
-       assert(isArrayOfTodos(repeated),`repeated is not of type array of todos. extend.`);
-       assert(all(t => isDate(t.attachedDate),repeated),`not all repeated have date. extend.`);
-    }
-
-    return repeated;
-};
-
-
-
-let haveDate = (item : Project | Todo) : boolean => {  
-    if(item.type==="project"){  
-        return isNotNil(item.deadline); 
-    }else if(item.type==="todo"){ 
-        return or(
-           isNotNil(item["attachedDate"]), 
-           isNotNil(item.deadline)
-        );
-    }
-};
-
-
-
-type Item = Project | Todo | CalendarEvent;
- 
-
-interface objectsByDate{ [key:string]:Item[] }  
-
- 
-let objectsToHashTableByDate = (props:UpcomingProps) : objectsByDate => {  
-    let {showCalendarEvents,todos,projects} = props;
-    let filters = [haveDate, byTags(props.selectedTags), byNotCompleted, byNotDeleted];    
-    let todayKey = keyFromDate(new Date());
-    let items = filter([...todos, ...projects], i => allPass(filters)(i));
-    
-    if(showCalendarEvents && isNotNil(props.calendars)){
-        compose(
-            (events) => items.push(...events), 
-            (events) => {
-                
-                if(isDev()){
-                    assert(
-                       all(event => isDate(event.start) && isDate(event.end),events),
-                       'Error: Events - incorrect type.'
-                    ) 
-                } 
-
-                return events;
-            },
-            flatten,
-            map(prop('events')),
-            (calendars) => filter(calendars, (calendar:Calendar) => calendar.active)
-        )(props.calendars)
-    };    
-
-    let objectsByDate : objectsByDate = {};
-
-    if(items.length===0){  
-       return {objectsByDate:[],tags:[]};
-    }
-  
-    for(let i=0; i<items.length; i++){
-        let item = items[i] as any; 
-        let keys = [];
-        
-        if(isDate(item.attachedDate)){
-            if(inPast(item.attachedDate)){
-               keys.push(todayKey)
-            }else{ 
-               keys.push(keyFromDate(item.attachedDate));
-            }
-        }   
-
-        if(isDate(item.deadline)){ 
-           keys.push(keyFromDate(item.deadline));
-        } 
-
-        if(isDate(item.start)){
-           keys.push(keyFromDate(item.start));
-        }  
-
-        uniq(keys)
-        .map(  
-            (key:string) => {
-                if(isNil(objectsByDate[key])){
-                   objectsByDate[key] = [items[i]];
-                }else{
-                   objectsByDate[key].push(items[i]);
-                }
-            } 
-        )
-    }    
-    
-    return objectsByDate; 
-};   
-
+import { objectsToHashTableByDate } from '../../utils/objectsToHashTableByDate';
+import { generateCalendarObjectsFromRange } from '../../utils/generateCalendarObjectsFromRange';
+import { extend } from '../../utils/extend';
 
 
 interface UpcomingProps{
@@ -283,7 +136,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         if(isNil(from)){ return }
 
         let range = getDatesRange(from.date, this.n, false, true, this.stop);
-        let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
+        let objects = generateCalendarObjectsFromRange(range, objectsByDate); 
          
         this.setState(
             {
@@ -307,7 +160,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         let {limit,dispatch} = this.props;
         let objectsByDate = objectsToHashTableByDate(props); 
         let range = getDatesRange(new Date(), n, true, true, this.stop); 
-        let objects = this.generateCalendarObjectsFromRange(range, objectsByDate); 
+        let objects = generateCalendarObjectsFromRange(range, objectsByDate); 
 
         return objects;
     }; 
@@ -332,37 +185,6 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         }   
     } 
 
-
-    generateCalendarObjectsFromRange = ( 
-        range:Date[], 
-        objectsByDate:objectsByDate   
-    ) : {date:Date, todos:Todo[], projects:Project[], events:CalendarEvent[]}[] => {
-
-        let objects = [];
-
-        for(let i = 0; i<range.length; i++){
-            let object = {
-                date : range[i], 
-                todos : [], 
-                projects : [],
-                events : [] 
-            }
- 
-            let key : string = keyFromDate(range[i]);
-            let entry = objectsByDate[key];
- 
-            if(isNil(entry)){ 
-               objects.push(object);
-            }else{
-               object.todos = entry.filter((el:Todo) => el.type==="todo"); 
-               object.projects = entry.filter((el:Project) => el.type==="project"); 
-               object.events = entry.filter((el:CalendarEvent) => isDate(el.start)); 
-               objects.push(object);  
-            }
-        } 
-         
-        return objects; 
-    };
 
 
     objectToComponent = (

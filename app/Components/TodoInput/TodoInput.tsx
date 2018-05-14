@@ -279,7 +279,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
         this.updateState({
             attachedDate,
-            category:isToday(attachedDate) ? "today" : category,
+            category:isToday(attachedDate) ? "today" : "upcoming",
             showDateCalendar:false
         })
         .then( 

@@ -7,10 +7,13 @@ import { Subscription } from 'rxjs';
 import { subscribeToChannel } from '../utils/subscribeToChannel';
 import IconButton from 'material-ui/IconButton'; 
 import Refresh from 'material-ui/svg-icons/navigation/refresh'; 
+import { checkAuthenticated } from '../utils/checkAuthenticated';
 
 
 
-interface SpinnerProps{}
+interface SpinnerProps{
+    openSyncSettings:(e:any) => void
+}
 
 interface SpinnerState{
     active:boolean
@@ -43,12 +46,23 @@ export class Spinner extends Component<SpinnerProps,SpinnerState>{
    
 
 
-    onRefresh = (e) => this.setState(
-        {active:true}, 
-        () => setTimeout(() => this.setState({active:false}), 800)
-    );
+    onRefresh = (e) => {
+        checkAuthenticated()
+        .then(
+            auth => {
+                if(auth){
+                    this.setState(
+                        {active:true}, 
+                        () => setTimeout(() => this.setState({active:false}), 800)
+                    );
+                }else{
+                    this.props.openSyncSettings(e);
+                }
+            }
+        )
+    }
     
-
+    
 
     render(){ 
         return this.state.active ?

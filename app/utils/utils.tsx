@@ -1079,7 +1079,7 @@ export let getDatesRange = (
     days : number, 
     includeStart : boolean, 
     includeEnd : boolean,
-    stop : Date
+    stop? : Date
 ) : Date[] => {
     if(isDev()){
        assert(isDate(start), `start is not Date ${start}. getDatesRange`);
@@ -1102,7 +1102,11 @@ export let getDatesRange = (
     for(let i=from; i<=to; i++){
         let next = new Date(start.getTime())["addDays"](i);
         
-        if(stop.getTime() < next.getTime()){ break }
+        if(stop){
+            if(stop.getTime() < next.getTime()){ 
+               break 
+            }
+        }
 
         dates.push(next);
     }

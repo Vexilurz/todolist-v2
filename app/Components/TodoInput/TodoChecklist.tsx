@@ -232,36 +232,6 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                         }} 
                         value={value.text}
                     /> 
-                { 
-                    /*
-                    <TextField     
-                        id={value.key} 
-                        fullWidth={true}   
-                        defaultValue={value.text}
-                        hintStyle={{top:"3px", left:0, width:"100%", height:"100%"}}  
-                        style={{height:"28px",cursor:"default"}}  
-                        inputStyle={{
-                            color:value.checked ? "rgba(100,100,100,0.7)" : "rgba(0,0,0,1)",  
-                            fontSize:"16px",
-                            textDecoration:value.checked ? "line-through" : "none"
-                        }}    
-                        underlineFocusStyle={{borderColor: "rgba(0,0,0,0)"}}   
-                        underlineStyle={{borderColor: "rgba(0,0,0,0)"}}   
-                        onClick={(e) => {
-                            let value = e.target.value;
-                            e.target.value = '';
-                            e.target.focus();
-                            e.target.value = value; 
-                        }}  
-                        onChange={(event, newText:string) => this.onChecklistItemChange(value.key, event, newText)}
-                        onKeyDown={(event) => { 
-                            if(event.which == 13 || event.keyCode == 13){
-                                event.stopPropagation(); 
-                            }     
-                        }} 
-                    />
-                    */
-                }  
                 </div>  
             </div>  
         </li>     
@@ -326,13 +296,35 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         let checklistItemJustAdded = prevProps.checklist.length<this.props.checklist.length;
 
         if(this.inputRef && checklistItemJustAdded){
-            this.inputRef.focus();  
+           this.inputRef.focus();  
         } 
     }
 
 
 
+    getChecklistIndicator = (checklist:ChecklistItem[]) : {done:number, left:number, count:number} => {
+
+        return checklist.reduce(
+            (indicator,item:ChecklistItem) => {
+                indicator.count += 1;
+
+                if(item.checked){
+                    indicator.done += 1;
+                }else{
+                    indicator.left += 1;
+                }
+
+                return indicator;
+            }, 
+            { done:0, left:0, count:0 }
+        )
+    };
+
+
+
     render(){  
+        let indicator = this.getChecklistIndicator(this.props.checklist); 
+
         return <div  
             ref={e => {this.ref=e;}}
             style={{
@@ -343,20 +335,33 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
             }}
             onClick={(e) => {e.stopPropagation();}}  
         >    
+            <div 
+                style={{
+                    borderRadius:"100px", 
+                    width:"25px", 
+                    height:"25px",
+                    paddingTop:"10px",
+                    paddingBottom:"10px",
+                    display:"flex",
+                    alignItems:"center",
+                    justifyContent:"center"                    
+                }}
+            >
+                {`${indicator.done}/${indicator.count}`}
+            </div>
             <SortableContainer
-              items={this.props.checklist}
-              scrollableContainer={document.body}
-              selectElements={this.selectElements}   
-              onSortStart={this.onSortStart} 
-              onSortMove={this.onSortMove}
-              onSortEnd={this.onSortEnd}
-              shouldCancelStart={(event:any,item:any) => false}  
-              decorators={[]}   
-              lock={true}
+                items={this.props.checklist}
+                scrollableContainer={document.body}
+                selectElements={this.selectElements}   
+                onSortStart={this.onSortStart} 
+                onSortMove={this.onSortMove}
+                onSortEnd={this.onSortEnd}
+                shouldCancelStart={(event:any,item:any) => false}  
+                decorators={[]}   
+                lock={true}
             >   
                 {this.props.checklist.map((item,index) => this.getCheckListItem(item,index))}
             </SortableContainer> 
-            
             {   
                 <div
                     style={{   
@@ -389,7 +394,12 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                     </div>   
                         <div     
                             key={generateId()}
-                            style={{display:"flex",justifyContent:"space-around",width:"100%",alignItems:"center"}}  
+                            style={{
+                                display:"flex",
+                                justifyContent:"space-around",
+                                width:"100%",
+                                alignItems:"center"
+                            }}  
                         >    
                             <TextField     
                                 ref={e => {this.inputRef=e;}}  

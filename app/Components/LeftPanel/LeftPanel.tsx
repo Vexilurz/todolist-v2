@@ -193,6 +193,16 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
     };
 
 
+    openSyncSettings = () => {
+        this.props.dispatch({
+            type:"multiple",
+            load:[
+                {type:"openSettings",load:true},
+                {type:"selectedSettingsSection", load:'Sync'}
+            ]
+        }); 
+    };
+
      
     render(){      
         return <div style={{display:"flex", flexDirection:"row-reverse", height:window.innerHeight}}> 
@@ -247,6 +257,7 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
                     width={ this.props.leftPanelWidth }  
                     collapsed={ this.state.collapsed }
                     openSettings={this.openSettings}
+                    openSyncSettings={this.openSyncSettings}
                     openNewProjectAreaPopup={ this.openNewProjectAreaPopup }
                     setNewProjectAnchor={(e) => {this.anchor=e}}  
                 /> 

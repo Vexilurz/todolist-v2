@@ -37,7 +37,8 @@ interface LeftPanelFooterProps{
     collapsed:boolean,
     openNewProjectAreaPopup:(e:any) => void,
     setNewProjectAnchor:(e:any) => void,
-    openSettings:(e:any) => void 
+    openSettings:(e:any) => void,
+    openSyncSettings:(e:any) => void 
 }
 
 
@@ -102,7 +103,7 @@ export class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
                 </div>    
             </div>   
             <div style={{flexGrow: 1, display: "flex", justifyContent:"flex-end"}}> 
-                <Spinner /> 
+                <Spinner openSyncSettings={this.props.openSyncSettings}/> 
             </div>            
             <div style={{display:"flex", paddingRight:"10px", alignItems:"center", cursor:"pointer"}}>     
                 <IconButton    

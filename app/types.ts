@@ -1,7 +1,27 @@
 
+export interface Sequence{
+    days:CalendarObject[],
+    weeks:CalendarObject[][],
+    months:CalendarObject[][]
+};
+
+
 export interface ImportActionLoad{ 
     database:Databases, 
     pathToFile:string 
+};
+
+
+
+export interface objectsByDate{ [key:string]:Item[] } 
+
+
+
+export interface CalendarObject{
+    date:Date, 
+    todos:Todo[], 
+    projects:Project[], 
+    events:CalendarEvent[]
 };
 
 

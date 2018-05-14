@@ -7,11 +7,11 @@ import { nDaysFromNow } from '../../../app/utils/utils';
 import { assert } from '../../../app/utils/assert';
 import { isDate, isArrayOfTodos, isNotNil } from '../../../app/utils/isSomething';
 import { Todo, RepeatOptions } from '../../../app/types';
-import { extend } from '../../../app/Components/Categories/Upcoming';
 import { repeat } from '../../../app/Components/RepeatPopup';
 import { generateId } from '../../../app/utils/generateId';
 import { fakeTodo } from '../../../randomDatabase/fakeTodo';
 import { randomArrayMember, fakeTags } from '../../../randomDatabase/utils';
+import { extend } from '../../../app/utils/extend';
 
 
 
