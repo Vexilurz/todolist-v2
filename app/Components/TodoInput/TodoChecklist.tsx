@@ -337,14 +337,17 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         >    
             <div 
                 style={{
-                    borderRadius:"100px", 
-                    width:"25px", 
-                    height:"25px",
-                    paddingTop:"10px",
-                    paddingBottom:"10px",
+                    borderRadius:"25px",
+                    width:"24px",
+                    height:"24px",
+                    fontSize:"11px",
+                    marginLeft:"-22px",
+                    color:"white",
+                    fontWeight:"bold",
+                    backgroundColor:"rgba(40,100,180,0.5)",
                     display:"flex",
                     alignItems:"center",
-                    justifyContent:"center"                    
+                    justifyContent:"center"               
                 }}
             >
                 {`${indicator.done}/${indicator.count}`}

@@ -30,7 +30,7 @@ import { TodoInputLabel } from './TodoInputLabel';
 import {  
     uniq, isEmpty, contains, isNil, not, multiply, remove, cond, ifElse,
     equals, any, complement, compose, defaultTo, path, prop, always,
-    identity, when
+    identity, when, pick, and, clone
 } from 'ramda';
 import Restore from 'material-ui/svg-icons/content/undo';
 import * as Rx from 'rxjs/Rx';
@@ -225,15 +225,22 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
     onClose = () => {
         let {dispatch,onClose,todo} = this.props;
         let {attachedDate,deadline,category,title,editorState,checklist} = this.state;
+        let same = compose( 
+            and( equals(todo.note,noteFromState(editorState)) ),
+            equals({attachedDate,deadline,category,title,checklist}),
+            pick(["attachedDate","deadline","category","title","checklist"])
+        )(todo)
 
-        this.update({
-            attachedDate,
-            deadline,
-            category,
-            title,
-            note:noteFromState(editorState),
-            checklist
-        });
+        if(!same){
+            this.update({
+                attachedDate,
+                deadline,
+                category,
+                title,
+                note:noteFromState(editorState),
+                checklist
+            });
+        }
 
         if(isFunction(onClose)){ onClose() } 
     };
@@ -495,7 +502,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     different(todo.category,category),
                     different(todo.title,title),
                     different(todo.note,note),
-                    different(todo.checklist,checklist)
+                    different(todo.checklist,checklist) 
                 ]
             )
         ){
@@ -550,7 +557,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     {type:"showWhenCalendar", load:false},
                     {type:"showRightClickMenu", load:false},
                     {type:"selectedTodo", load:todo}
-                ]
+                ]   
             });  
         };   
     };     

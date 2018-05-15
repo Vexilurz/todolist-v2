@@ -4,6 +4,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { TodosList } from '../Components/TodosList';
+import { ExpandableList } from '../Components/ExpandableList';
 import { Todo,Project, Area, Calendar, Category, CalendarEvent, RepeatOptions } from '../types';
 import * as Waypoint from 'react-waypoint';
 import { ContainerHeader } from './ContainerHeader';
@@ -24,6 +25,8 @@ import { isDev } from '../utils/isDev';
 import { assert } from '../utils/assert';
 import { byTime } from '../utils/byTime';
 import { getSameDayEventElement } from '../utils/getCalendarEventElement';
+import { isProject, isTodo } from '../utils/isSomething';
+import { TodoInput } from './TodoInput/TodoInput';
 
 
 
@@ -50,7 +53,6 @@ interface CalendarWeekProps{
     sortedItems:(Project | Todo) []
     sortedEvents:CalendarEvent[],
     projects:Project[],
-    areas:Area[], 
     scrolledTodo:Todo, 
     groupTodos:boolean,
     moveCompletedItemsToLogbook:string, 
@@ -74,16 +76,52 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
         super(props) 
     }
 
+    componentDidMount(){
+        console.log(`CalendarWeek MOUNT`)
+
+    }
+
+    componentWillUnmount(){
+        console.log(`CalendarWeek UNMOUNT`)
+    }
+
+
+    shouldComponentUpdate(nextProps){
+        if(
+            this.props.month!==nextProps.month ||
+            this.props.range!==nextProps.range ||
+            this.props.indicators!==nextProps.indicators ||
+            this.props.sortedItems!==nextProps.sortedItems ||
+            this.props.sortedEvents!==nextProps.sortedEvents ||
+            this.props.groupTodos!==nextProps.groupTodos ||
+            this.props.moveCompletedItemsToLogbook!==nextProps.moveCompletedItemsToLogbook ||
+            this.props.selectedAreaId!==nextProps.selectedAreaId ||
+            this.props.selectedProjectId!==nextProps.selectedProjectId ||
+            this.props.selectedTags!==nextProps.selectedTags
+        ){
+            return true
+        }
+        
+        return false;
+    }
+
      
     render(){   
         let {sortedItems, sortedEvents, selectedTags, dispatch} = this.props; 
         let {sameDayEvents, fullDayEvents} = groupEventsByType(sortedEvents); 
+
+        let getEventDay = (date) => {
+            let day = date.getDate().toString();
+            return day.length > 1 ? day : `0${day}`;
+        };
 
         let noEvents = isEmpty(fullDayEvents) && isEmpty(sameDayEvents);
         let noItems = isEmpty(sortedItems);
        
 
         return <div style={{display:"flex", flexDirection:"column", WebkitUserSelect:"none"}}>  
+
+
                 <div 
                     style={{
                         WebkitUserSelect: "none", 
@@ -108,6 +146,8 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
                         >{this.props.range}</div>
                     </div>
                 </div>
+
+
                 <div>
                 {
                     noEvents ? null :  
@@ -115,18 +155,27 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
                         display:'flex', 
                         flexDirection:"column", 
                         alignItems:"flex-start", 
-                        justifyContent:"flex-start",
-                        marginLeft:"45px"
+                        justifyContent:"flex-start"
                     }}>  
                         {
-                            fullDayEvents
+                            <ExpandableList
+                                showAll={false}
+                                minLength={5}
+                                buttonOffset={0}
+                                type={"events"}   
+                            >{
+                            
+                            [...fullDayEvents, ...sameDayEvents]
+                            .sort(byTime) 
                             .map(  
                                 (event,index) => <div 
                                     key={`event-${event.name}-${index}`}
                                     style={{paddingTop:"1px", paddingBottom:"1px"}}
                                 >
-                                <div style={{display:"flex",height:"20px",alignItems:"center"}}>
-                                    <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
+                                <div style={{display:"flex",/*height:"20px",*/alignItems:"flex-start"}}>
+                                    <div style={{paddingRight:"5px",height:"100%"}}>
+                                    {getEventDay(event.start)}
+                                    </div>
                                     <div style={{
                                         fontSize:"14px",
                                         userSelect:"none",
@@ -140,56 +189,69 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
                                 </div>
                                 </div>  
                             )  
+                            
+                        }</ExpandableList>
                         } 
-                        {
-                            sameDayEvents 
-                            .sort(byTime) 
-                            .map(
-                                (event,index) => <div 
-                                    key={`event-${event.name}-${index}`} 
-                                    style={{
-                                        paddingTop:"1px",
-                                        paddingBottom:"1px",
-                                        display:"flex",
-                                        height:"20px",
-                                        alignItems:"center"
-                                    }}  
-                                >
-                                    {
-                                        event.type!=='multipleDaysEvents' ? null :
-                                        <div style={{paddingRight:"5px",height:"100%",backgroundColor:"dimgray"}}></div>
-                                    }
-                                    <div style={{paddingLeft:event.type!=="multipleDaysEvents" ? "0px":"5px"}}>
-                                        {getSameDayEventElement(event,false)}
-                                    </div>  
-                                </div> 
-                            )  
-                        }
                     </div>
                 }
 
-                {/*   
-                    <div style={{
-                        display:"flex",
-                        flexDirection:"column",
-                        width:"100%",
-                        paddingLeft:"20px"
-                    }}>   
-                         <div 
-                                    style={{marginTop:"5px", marginBottom:"5px"}} 
-                                    key={project._id}
-                                >
-                                    <ProjectLink 
-                                        project={project} 
-                                        indicator={defaultTo({completed:0, active:0})(this.props.indicators[project._id])}
-                                        showMenu={false}
-                                        dispatch={this.props.dispatch}
-                                        selectedCategory={this.props.selectedCategory}
-                                    />  
-                                </div>  
-                    </div> 
-                */}
+                {   
+                    noItems ? null :
+                    <div style={{marginLeft:"-22px"}}>
+                    <ExpandableList
+                        showAll={false}
+                        minLength={5}
+                        buttonOffset={25}
+                        type={"items"}   
+                    >
+                    {
+                    sortedItems.map(
+                        (item:any,idx) => {
+                            if(isTodo(item)){
+                                return <TodoInput      
+                                    key={`${item._id}-${idx}`}
+                                    id={item._id}
+                                    groupTodos={this.props.groupTodos}
+                                    scrolledTodo={this.props.scrolledTodo}
+                                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                                    projects={this.props.projects}  
+                                    dispatch={dispatch}  
+                                    selectedProjectId={this.props.selectedProjectId}
+                                    selectedAreaId={this.props.selectedAreaId} 
+                                    selectedCategory={this.props.selectedCategory}  
+                                    rootRef={this.props.rootRef}  
+                                    todo={item as Todo}
+                                />  
+                            }else if(isProject(item)){
+                                return <div 
+                                key={`${item._id}-${idx}`}
+                                style={{
+                                    display:"flex",
+                                    flexDirection:"column",
+                                    width:"100%",
+                                    paddingLeft:"4px"
+                                }}>   
+                                    <div style={{marginTop:"5px", marginBottom:"5px"}}>
+                                        <ProjectLink 
+                                            project={item} 
+                                            indicator={defaultTo({completed:0, active:0})(this.props.indicators[item._id])}
+                                            showMenu={false}
+                                            dispatch={this.props.dispatch}
+                                            selectedCategory={this.props.selectedCategory}
+                                        />  
+                                    </div>  
+                                </div> 
+                            }else{
+                                return null;
+                            }
+                        }
+                    )
+                    } 
+                    </ExpandableList>
+                    </div>
+                }
                 </div>
-        </div>   
+            </div>
+                
     }
 } 
