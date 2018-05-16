@@ -88,7 +88,7 @@ export class ExpandableList extends Component<ExpandableListProps,ExpandableList
                 }
                 {   
                     showAll ? null :
-                    (maxLength-length) <= 0 ? null :
+                    (maxLength-minLength) <= 0 ? null :
                     <div style={{cursor: "pointer", height: "30px", paddingLeft:`${buttonOffset}px`}}>
                         {   
                             <div     
@@ -105,7 +105,7 @@ export class ExpandableList extends Component<ExpandableListProps,ExpandableList
                             >     
                                 { 
                                     not(expanded) ? 
-                                    `Show ${ maxLength-length } more ${this.props.type}` :
+                                    `Show ${ maxLength-minLength } more ${this.props.type}` :
                                     `Hide` 
                                 } 
                             </div>

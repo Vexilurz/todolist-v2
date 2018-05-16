@@ -263,12 +263,14 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
                     /> 
                     </div>
                 }
-                <div>{
+                <div>
+                {
                     this.state
                     .objects
                     .filter(object => any(isNotEmpty)([object.todos,object.projects,object.events]))
                     .map(this.objectToComponent)
-                }</div>
+                }
+                </div>
                 <div className={`no-print`} style={{width:"100%", height:"1px"}}> 
                     <Waypoint  
                         onEnter={this.onEnter} 

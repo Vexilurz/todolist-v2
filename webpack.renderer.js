@@ -13,7 +13,7 @@ module.exports = [
         },
         mode:'development',
         target: 'webworker', 
-        devtool: 'source-map',
+        devtool: 'cheap-module-source-map', // 'source-map',
         resolve: { 
             extensions: [".ts", ".tsx", ".js", ".json"]
         }, 
@@ -46,7 +46,7 @@ module.exports = [
         },
         mode:'development',
         target: 'webworker',
-        devtool: 'source-map',
+        devtool: 'cheap-module-source-map', // 'source-map',
         resolve: { 
             extensions: [".ts", ".tsx", ".js", ".json"]
         }, 
@@ -120,7 +120,7 @@ module.exports = [
             ]    
         }, 
 
-        devtool: 'source-map',
+        devtool: 'cheap-module-source-map', // 'source-map',
         
         target: "electron-renderer",     
         

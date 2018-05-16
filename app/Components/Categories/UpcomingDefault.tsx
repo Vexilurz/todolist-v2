@@ -4,7 +4,10 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
 import { TodosList } from '../../Components/TodosList';
-import { Todo,Project, Area, Calendar, Category, CalendarEvent, RepeatOptions, objectsByDate, CalendarObject } from '../../types';
+import { 
+    Todo,Project, Area, Calendar, Category, CalendarEvent, 
+    RepeatOptions, objectsByDate, CalendarObject, Store 
+} from '../../types';
 import * as Waypoint from 'react-waypoint';
 import { ContainerHeader } from '.././ContainerHeader';
 import { 
@@ -14,8 +17,8 @@ import {
     log, anyTrue, different, initDate, nDaysFromNow
 } from '../../utils/utils';  
 import {
-    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, contains, where,
-    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy, any, 
+    allPass, uniq, isNil, cond, compose, last, isEmpty, adjust,and, contains, where, concat, reverse,
+    map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy, any, always, ifElse,
     mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass, applyTo
 } from 'ramda';
 import { ProjectLink } from '../Project/ProjectLink';
@@ -115,6 +118,19 @@ let getWeekTitle = (objects:CalendarObject[]) : { month:string, range:string } =
 };
 
 
+
+let todosChanged = (was:Todo[]) => (now:Todo[]) : boolean => {
+    let changes = detectChanges({todos:was} as Store)({todos:now} as Store);
+
+    let changed = compose( 
+        ifElse( isNil, always(false), compose(any(isNotEmpty), values) ),  
+        prop('todos')
+    )(changes); 
+   
+    return changed;
+};
+
+
  
 export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefaultState>{
 
@@ -122,53 +138,50 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
 
     constructor(props){
         super(props);
-        this.state={
-        };
+        this.state={};
     }    
 
 
     shouldComponentUpdate(nextProps){
-        if(nextProps.hideHint!==this.props.hideHint){
-            console.log('updated hideHint')
+        if(
+            nextProps.hideHint!==this.props.hideHint ||
+            nextProps.showCalendarEvents!==this.props.showCalendarEvents ||
+            nextProps.groupTodos!==this.props.groupTodos ||
+            nextProps.moveCompletedItemsToLogbook!==this.props.moveCompletedItemsToLogbook 
+        ){
             return true;
         }
-        if(nextProps.showCalendarEvents!==this.props.showCalendarEvents){
-            return true;
-        }
-        if(nextProps.groupTodos!==this.props.groupTodos){
-            return true;
-        }
-        if(nextProps.todos!==this.props.todos){
-            let che = detectChanges(this.props as any)(nextProps as any);
-            if(isNotEmpty(che.todos.add) || isNotEmpty(che.todos.remove) || isNotEmpty(che.todos.update)){
-               return true; 
-            }else{
-                return false;
-            }
-        }
-        if(nextProps.scrolledTodo!==this.props.scrolledTodo){
-            return true;
-        }
-        if(nextProps.moveCompletedItemsToLogbook!==this.props.moveCompletedItemsToLogbook){
-            return true;
-        }
-        if(nextProps.calendars!==this.props.calendars){
-            return true;
-        }
-        if(nextProps.projects!==this.props.projects){
-            return true;
-        }
-        if(nextProps.indicators!==this.props.indicators){
-            return true;
-        }
+
+
         if(nextProps.selectedTags!==this.props.selectedTags){
             return true;
         }
 
-       
+
+        if(todosChanged(this.props.todos)(nextProps.todos)){
+            return true;
+        }
+
+
+        if(nextProps.calendars!==this.props.calendars){
+            return true;
+        }
+
+
+        if(nextProps.projects!==this.props.projects){
+            return true;
+        }
+
+
+        if(nextProps.indicators!==this.props.indicators){
+
+            return true;
+        }
+
 
         return false;
     }
+
 
 
     
@@ -186,25 +199,24 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
 
 
 
-    getCalendarMonth = (objects:CalendarObject[]) : JSX.Element => {
+    getCalendarMonth = (objects:CalendarObject[], idx:number) : JSX.Element => {
         if(isEmpty(objects)){ return null }
 
         let types = ["todos","events","projects"];
         let flattenObjects = (type:string) => compose( flatten, map(prop(type)) );
-        let getDate = item => isTodo(item) ? item.attachedDate : isProject(item) ? item.deadline : null;
-
-
+        let getDate = item => isDate(item.attachedDate) ? item.attachedDate : item.deadline;
+            
         let todos = flattenObjects("todos")(objects);
         let projects = flattenObjects("projects")(objects);
         let events = flattenObjects("events")(objects);
 
-        let sortedItems =  [...todos, ...projects].sort( compareByDate(getDate), );
+        
+        let sortedItems = compose(reverse, items => items.sort(compareByDate(getDate)), concat(todos))(projects);
+    
         let sortedEvents = events.sort(byTime);
-
-        let key = objects[0].date.toJSON();
         let { month, range } = getWeekTitle(objects);
     
-        return <div key={key} style={{WebkitUserSelect:"none"}}>
+        return <div key={`month-${idx}`} style={{WebkitUserSelect:"none"}}>
             <CalendarMonth
                 month={month}
                 indicators={this.props.indicators}
@@ -223,7 +235,77 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
                 rootRef={this.props.rootRef}
             />  
         </div>
-    }
+    };
+
+
+
+    getCalendarWeek = (objects:CalendarObject[], idx:number) : JSX.Element => {
+        if(isEmpty(objects)){ return null }
+
+        let types = ["todos","events","projects"];
+        let flattenObjects = (type:string) => compose( flatten, map(prop(type)) );
+        let getDate = item => isTodo(item) ? item.attachedDate : isProject(item) ? item.deadline : null;
+
+        let todos = flattenObjects("todos")(objects);
+        let projects = flattenObjects("projects")(objects);
+        let events = flattenObjects("events")(objects);
+
+        let sortedItems = compose(reverse, items => items.sort(compareByDate(getDate)), concat(todos))(projects);
+    
+        let sortedEvents = events.sort(byTime);
+        let { month, range } = getWeekTitle(objects);
+    
+        return <div key={`week-${idx}`} style={{WebkitUserSelect:"none"}}>
+            <CalendarWeek
+                month={month}
+                range={range}
+                indicators={this.props.indicators}
+                filters={this.props.filters}
+                groupTodos={this.props.groupTodos}
+                sortedItems={sortedItems}
+                sortedEvents={sortedEvents}
+                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                projects={this.props.projects}
+                selectedAreaId={this.props.selectedAreaId} 
+                selectedCategory={this.props.selectedCategory as Category}
+                scrolledTodo={this.props.scrolledTodo}
+                selectedProjectId={this.props.selectedProjectId}
+                dispatch={this.props.dispatch}
+                selectedTags={this.props.selectedTags}
+                rootRef={this.props.rootRef}
+            />  
+        </div>
+    };
+
+
+
+    getCalendarDay = (object:CalendarObject, idx:number) : JSX.Element => {
+        let { todos, projects, events, date } = object;
+        let day = date.getDate();
+
+        return <div key={`day-${idx}`} style={{WebkitUserSelect:"none"}}>
+            <CalendarDay 
+                day={day}  
+                indicators={this.props.indicators}
+                dayName={getDayName(date)}
+                filters={this.props.filters}
+                groupTodos={this.props.groupTodos}
+                selectedTodos={todos} 
+                selectedEvents={events}
+                areas={this.props.areas}
+                scheduledProjects={projects}  
+                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                projects={this.props.projects}
+                selectedAreaId={this.props.selectedAreaId} 
+                selectedCategory={this.props.selectedCategory as Category}
+                scrolledTodo={this.props.scrolledTodo}
+                selectedProjectId={this.props.selectedProjectId}
+                dispatch={this.props.dispatch}
+                selectedTags={this.props.selectedTags}
+                rootRef={this.props.rootRef}
+            />  
+        </div>
+    };
     
 
 
@@ -249,7 +331,7 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
         let tags = getTagsFromItems({...todos});
         let objects = this.getObjects({...this.props} as any, 150);
         
-        let { days, weeks, months } = generateUpcomingSequence(5, 1, 10)(objects); 
+        let { days, weeks, months } = generateUpcomingSequence(7, 3, 5)(objects); 
 
 
         return <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}> 
@@ -262,92 +344,14 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
                         selectedTags={selectedTags} 
                     />
                 </div>
+                
                 { this.getHint() }
-                <div>
-                { 
-                    days.map(
-                        (object:CalendarObject) => {
-                            let { todos, projects, events, date } = object;
-                            let key = date.toJSON();
-                            let day = date.getDate();
 
-                            
-                            return <div key={key} style={{WebkitUserSelect:"none"}}>
-                                <CalendarDay 
-                                    day={day}  
-                                    indicators={this.props.indicators}
-                                    dayName={getDayName(date)}
-                                    filters={this.props.filters}
-                                    groupTodos={this.props.groupTodos}
-                                    selectedTodos={todos} 
-                                    selectedEvents={events}
-                                    areas={this.props.areas}
-                                    scheduledProjects={projects}  
-                                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                                    projects={this.props.projects}
-                                    selectedAreaId={this.props.selectedAreaId} 
-                                    selectedCategory={this.props.selectedCategory as Category}
-                                    scrolledTodo={this.props.scrolledTodo}
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    dispatch={this.props.dispatch}
-                                    selectedTags={this.props.selectedTags}
-                                    rootRef={this.props.rootRef}
-                                />  
-                            </div>
-                        }
-                    ) 
-                }
-                </div>
-                <div>{ 
-                    
-                    weeks.map(
-                        (objects:CalendarObject[]) : JSX.Element => {
-                            if(isEmpty(objects)){ return null }
-                    
-                            let types = ["todos","events","projects"];
-                            let flattenObjects = (type:string) => compose( flatten, map(prop(type)) );
-                            let getDate = item => isTodo(item) ? item.attachedDate : isProject(item) ? item.deadline : null;
-                    
-                    
-                            let todos = flattenObjects("todos")(objects);
-                            let projects = flattenObjects("projects")(objects);
-                            let events = flattenObjects("events")(objects);
-                    
-                            let sortedItems =  [...todos, ...projects].sort( compareByDate(getDate), );
-                            let sortedEvents = events.sort(byTime);
-                    
-                            let key = objects[0].date.toJSON();
-                            let { month, range } = getWeekTitle(objects);
-                        
-                            return <div key={key} style={{WebkitUserSelect:"none"}}>
-                                <CalendarWeek
-                                    month={month}
-                                    range={range}
-                                    indicators={this.props.indicators}
-                                    filters={this.props.filters}
-                                    groupTodos={this.props.groupTodos}
-                                    sortedItems={sortedItems}
-                                    sortedEvents={sortedEvents}
-                                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                                    projects={this.props.projects}
-                                    selectedAreaId={this.props.selectedAreaId} 
-                                    selectedCategory={this.props.selectedCategory as Category}
-                                    scrolledTodo={this.props.scrolledTodo}
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    dispatch={this.props.dispatch}
-                                    selectedTags={this.props.selectedTags}
-                                    rootRef={this.props.rootRef}
-                                />  
-                            </div>
-                        }
-                    ) 
+                <div>{days.map(this.getCalendarDay)}</div>
 
-                }</div>
+                <div>{weeks.map(this.getCalendarWeek)}</div>
 
-
-
-
-                <div >{ months.map(month => this.getCalendarMonth(month)) }</div>
+                <div>{months.map(this.getCalendarMonth)}</div>
         </div> 
     } 
 }

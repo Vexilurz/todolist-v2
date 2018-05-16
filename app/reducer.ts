@@ -77,11 +77,8 @@ export let reducer = (reducers:Reducer[], updateConfig:UpdateConfig) => (state:S
    
     return compose( 
         updateConfigFromStore(updateConfig, state),
-
         refreshReminders(state), 
-
         when(isMainWindow, updateDatabase(state, actions)),
-        
         applyActionsToState 
     )(state);
 };  

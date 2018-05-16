@@ -719,7 +719,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                     let upcomingFilters = this.props.filters.upcoming;
                                     let upcomingTodos = filter(this.props.todos, allPass(upcomingFilters));
 
-                                    return <UpcomingDefault  
+                                    return <UpcomingDefault 
                                         limit={this.props.limit}
                                         clone={this.props.clone} 
                                         filters={this.props.filters}

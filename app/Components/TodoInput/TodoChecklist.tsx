@@ -12,6 +12,7 @@ import { generateId } from '../../utils/generateId';
 import { ChecklistItem } from '../../types';
 import TextareaAutosize from 'react-autosize-textarea';
 import { different } from '../../utils/utils';
+import { throttle } from 'lodash';
 
 /*
 let shouldUpdateChecklist = (
@@ -140,6 +141,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
         this.props.updateChecklist(checklist); 
     };  
       
+
 
     getCheckListItem = (value:ChecklistItem, index:number) => { 
 

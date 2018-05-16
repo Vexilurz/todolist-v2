@@ -247,26 +247,32 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
      
 
-    update = (props) : void => {
-        this.props.dispatch({
-            type:"multiple",
-            load:[
-                {
-                    type:"updateTodo",
-                    load:{...this.props.todo,...props}
-                },
-                {
-                    type: "openRightClickMenu",
-                    load: {
-                        showRightClickMenu:false,
-                        rightClickedTodoId:null,
-                        rightClickMenuX:0,
-                        rightClickMenuY:0
+    update =  //debounce( 
+        (props) : void => {
+            this.props.dispatch({
+                type:"multiple",
+                load:[
+                    {
+                        type:"updateTodo",
+                        load:{...this.props.todo,...props}
+                    },
+                    {
+                        type: "openRightClickMenu",
+                        load: {
+                            showRightClickMenu:false,
+                            rightClickedTodoId:null,
+                            rightClickMenuX:0,
+                            rightClickMenuY:0
+                        }
                     }
-                }
-            ]
-        }); 
-    };
+                ]
+            }); 
+        }//,
+        //300
+    //);
+
+
+    updateChecklistInStore = debounce( this.update, 300 );
 
 
 
@@ -572,7 +578,11 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
       
     
 
-    updateChecklist = (checklist:ChecklistItem[]) => this.updateState({checklist}).then(() => this.update({checklist}));
+    updateChecklist = (checklist:ChecklistItem[]) => 
+        this.updateState({checklist})
+        .then(
+            () =>  this.updateChecklistInStore({checklist})
+        );
 
 
 
