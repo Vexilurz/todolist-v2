@@ -343,7 +343,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
                     width:"24px",
                     height:"24px",
                     fontSize:"11px",
-                    marginLeft:"-22px",
+                    //marginLeft:"-22px",
                     color:"white",
                     fontWeight:"bold",
                     backgroundColor:"rgba(40,100,180,0.5)",

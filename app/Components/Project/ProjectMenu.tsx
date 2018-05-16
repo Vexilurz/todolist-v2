@@ -21,7 +21,7 @@ import { filter } from 'lodash';
 import { assert } from '../../utils/assert';
 import { generateId } from '../../utils/generateId';
 import { uppercase } from '../../utils/uppercase';
-import { isString, isHeading } from '../../utils/isSomething';
+import { isString, isHeading, isNotNil } from '../../utils/isSomething';
 
 
 
@@ -60,31 +60,37 @@ export class ProjectMenuPopover extends Component<ProjectMenuPopoverProps,Projec
     onDuplicate = (e) => {   
         let {project,todos} = this.props;
         let todosIDs = project.layout.filter(isString);
+
         let relatedTodos = filter(
             todos, 
             allPass([
                 (todo:Todo) => contains( todo._id, todosIDs ),
-                byNotCompleted,  
+                //byNotCompleted,  
                 byNotDeleted   
             ])
         );
+
         let duplicatedTodos:Todo[] = [];
+
         let duplicatedLayout:LayoutItem[] = project.layout.map((item) => {
             if(isString(item)){
                 let todo = relatedTodos.find( todo => todo._id===item );
-                let duplicate : Todo = {...todo};
-                duplicate._id = generateId();
-                delete duplicate['_rev']; 
-                duplicatedTodos.push(duplicate);
-                return duplicate._id;
+                if(todo){
+                    let duplicate : Todo = {...todo, _id:generateId()};
+                    delete duplicate['_rev']; 
+                    duplicatedTodos.push(duplicate);
+                    return duplicate._id;
+                }
             }else if(isHeading(item as Heading)){
                 let heading = {...item as Heading};
                 heading._id = generateId();
                 return heading;
+            }else{
+                return null;
             }
         });  
 
-        let duplicate = {...project, _id:generateId(), layout:duplicatedLayout};
+        let duplicate = {...project, _id:generateId(), layout:duplicatedLayout.filter(isNotNil)};
         delete duplicate["_rev"]; 
 
         this.props.dispatch({

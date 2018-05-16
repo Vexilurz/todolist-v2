@@ -76,35 +76,7 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
         super(props) 
     }
 
-    componentDidMount(){
-        console.log(`CalendarWeek MOUNT`)
-
-    }
-
-    componentWillUnmount(){
-        console.log(`CalendarWeek UNMOUNT`)
-    }
-
-
-    shouldComponentUpdate(nextProps){
-        if(
-            this.props.month!==nextProps.month ||
-            this.props.range!==nextProps.range ||
-            this.props.indicators!==nextProps.indicators ||
-            this.props.sortedItems!==nextProps.sortedItems ||
-            this.props.sortedEvents!==nextProps.sortedEvents ||
-            this.props.groupTodos!==nextProps.groupTodos ||
-            this.props.moveCompletedItemsToLogbook!==nextProps.moveCompletedItemsToLogbook ||
-            this.props.selectedAreaId!==nextProps.selectedAreaId ||
-            this.props.selectedProjectId!==nextProps.selectedProjectId ||
-            this.props.selectedTags!==nextProps.selectedTags
-        ){
-            return true
-        }
-        
-        return false;
-    }
-
+    
      
     render(){   
         let {sortedItems, sortedEvents, selectedTags, dispatch} = this.props; 

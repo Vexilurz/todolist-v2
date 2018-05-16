@@ -28,6 +28,7 @@ export let chooseFadeIcon = (container:HTMLElement, selectedCategory:Category) :
         position: "absolute",
         color: "rgba(100,100,100,0.1)",
         top: y,
+        pointerEvents: "none",
         left: x,
         fill: "currentcolor", 
         height: "170px",
