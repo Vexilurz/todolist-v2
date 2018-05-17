@@ -214,6 +214,7 @@ export interface Store extends Config{
   whenCalendarPopupX : number, 
   whenCalendarPopupY : number,
   showLicense : boolean, 
+  collapsed : boolean,
   progress : any, 
   scrolledTodo : Todo,
   selectedTodo : Todo, 

@@ -13,7 +13,7 @@ import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight';
 import { isNotNil, isString } from './utils/isSomething';
 import { createStore } from "redux"; 
 import { Provider, connect } from "react-redux";
-import { LeftPanel } from './Components/LeftPanel/LeftPanel';
+import { LeftPanelMenu } from './Components/LeftPanelMenu/LeftPanelMenu';
 import { MainContainer } from './Components/MainContainer'; 
 import { filter } from 'lodash';
 import { 
@@ -55,6 +55,7 @@ import { generateEmptyCalendar } from './utils/generateEmptyCalendar';
 import { logout } from './utils/logout';
 import { fixIncomingData } from './utils/fixIncomingData';
 import { ImportPopup } from './Components/ImportPopup';
+import { TopPopoverMenu } from './Components/TopPopoverMenu/TopPopoverMenu';
 import { decryptDoc } from './utils/crypto/crypto';
 
 export const pouchWorker = new Worker('pouchWorker.js');
@@ -88,6 +89,36 @@ export class App extends Component<AppProps,AppState>{
         this.generateIndicatorsWorker = null;
 
         this.state = { amounts:this.getAmounts(this.props), indicators:{} };
+    };
+
+
+    //init
+    componentDidMount(){    
+        this.generateIndicatorsWorker = new Worker('generateIndicators.js');
+        this.setInitialTitle();
+        this.initCtrlB();
+
+
+        if(!this.props.clone){
+            this.initPouchObservables();
+            this.initSync();
+            this.reportStart();
+        }
+    }; 
+
+
+
+    //cleanup 
+    componentWillUnmount(){
+        if(this.generateIndicatorsWorker){
+            this.generateIndicatorsWorker.terminate();
+            this.generateIndicatorsWorker = null;
+        }
+
+        if(!this.props.clone){
+            pouchWorker.postMessage({type:'stopSync',load:null});   
+            this.suspendObservables();
+        }
     };
 
 
@@ -171,11 +202,23 @@ export class App extends Component<AppProps,AppState>{
 
      
 
-    initObservables = () => {
+    initPouchObservables = () => {
         this.subscriptions.push(
             subscribeToChannel("changes", this.onPouchChanges),
             subscribeToChannel("log", this.onPouchLog),
             subscribeToChannel("error", this.onPouchError)
+        );
+    };
+
+
+
+    initCtrlB = () => {
+        this.subscriptions.push(
+            Observable
+            .fromEvent(ipcRenderer, "toggle", (event) => event)
+            .subscribe(
+                () => this.props.dispatch({type:"collapsed", load:!this.props.collapsed})
+            )
         );
     };
 
@@ -202,45 +245,14 @@ export class App extends Component<AppProps,AppState>{
     
     
 
-    suspendDatabaseObservable = () => {
+    suspendObservables = () => {
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions=[];
     };
 
 
     
-    //init
-    componentDidMount(){    
-        this.generateIndicatorsWorker = new Worker('generateIndicators.js');
-
-        this.setInitialTitle();
-
-        if(!this.props.clone){
-
-            this.initSync();
-
-            this.initObservables();
-
-            collectSystemInfo().then( 
-                info => this.reportStart({...info} as any) 
-            );
-        }
-    }; 
-
-
-
-    //cleanup 
-    componentWillUnmount(){
-        this.generateIndicatorsWorker.terminate();
-        this.generateIndicatorsWorker = null;
-
-        if(!this.props.clone){
-
-            pouchWorker.postMessage({type:'stopSync',load:null});         
-
-            this.suspendDatabaseObservable();
-        }
-    };
+   
 
 
 
@@ -259,7 +271,8 @@ export class App extends Component<AppProps,AppState>{
 
 
 
-    reportStart = ({ arch, cpus, platform, release, type }) => 
+    reportStart = () => collectSystemInfo().then(
+         ({ arch, cpus, platform, release, type }) => 
         googleAnalytics.send(   
             'event',   
             {  
@@ -277,7 +290,8 @@ export class App extends Component<AppProps,AppState>{
             ev:0
             } 
         ) 
-        .catch(err => globalErrorHandler(err));
+    )
+    .catch(err => globalErrorHandler(err));
 
         
 
@@ -358,8 +372,9 @@ export class App extends Component<AppProps,AppState>{
             <div style={{display:"flex",width:"inherit",height:"inherit"}}>
                 { 
                     this.props.clone ? null :  
-                    <LeftPanel 
+                    <LeftPanelMenu 
                         dispatch={this.props.dispatch}
+                        collapsed={this.props.collapsed}
                         selectedCategory={this.props.selectedCategory}
                         searchQuery={this.props.searchQuery} 
                         leftPanelWidth={this.props.leftPanelWidth}
@@ -411,6 +426,24 @@ export class App extends Component<AppProps,AppState>{
                 <TrashPopup  
                     dispatch={this.props.dispatch}
                     showTrashPopup={this.props.showTrashPopup}
+                />
+            }
+            {
+                <TopPopoverMenu 
+                    dispatch={this.props.dispatch}
+                    collapsed={this.props.collapsed}
+                    selectedCategory={this.props.selectedCategory}
+                    searchQuery={this.props.searchQuery} 
+                    leftPanelWidth={this.props.leftPanelWidth}
+                    openNewProjectAreaPopup={this.props.openNewProjectAreaPopup}
+                    projects={this.props.projects}
+                    areas={this.props.areas}
+                    amounts={this.state.amounts}
+                    indicators={this.state.indicators}
+                    dragged={this.props.dragged}
+                    selectedProjectId={this.props.selectedProjectId}
+                    selectedAreaId={this.props.selectedAreaId}
+                    id={this.props.id}
                 />
             }
             { 

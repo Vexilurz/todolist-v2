@@ -13,6 +13,12 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
                 }   
             ],  
             [ 
+                typeEquals("collapsed"),
+                (action:{type:string, load:boolean}) : Store => {
+                    return ({...state, collapsed:action.load}); 
+                }   
+            ],   
+            [ 
                 typeEquals("secretKey"),
                 (action:{type:string, load:string}) : Store => {
                     return ({...state, secretKey:action.load}); 

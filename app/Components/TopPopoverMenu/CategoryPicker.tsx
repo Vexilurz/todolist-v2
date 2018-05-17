@@ -10,7 +10,7 @@ import Trash from 'material-ui/svg-icons/action/delete';
 import Calendar from 'material-ui/svg-icons/action/date-range';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import { merge, isNil, not } from 'ramda';
-import { Category } from '../../types';
+import { Category, Project, Area } from '../../types';
 import { anyTrue, different } from '../../utils/utils';
 import { uppercase } from '../../utils/uppercase';
 import { ipcRenderer } from 'electron'; 
@@ -58,7 +58,7 @@ let Counter = (counter:number) : JSX.Element =>
 
 
 
-interface LeftPanelMenuItemProps{
+interface CategoryPickerItemProps{
     onClick : (e) => void, 
     icon:JSX.Element,
     dragged:string, 
@@ -72,13 +72,13 @@ interface LeftPanelMenuItemProps{
    
  
 
-interface LeftPanelMenuItemState{
+interface CategoryPickerItemState{
     highlight:boolean 
 }
 
 
 
-class LeftPanelMenuItem extends Component<LeftPanelMenuItemProps,LeftPanelMenuItemState>{
+class CategoryPickerItem extends Component<CategoryPickerItemProps,CategoryPickerItemState>{
 
     constructor(props){
         super(props);
@@ -191,7 +191,7 @@ export class Separator extends Component<{},{}>{
 
 
 
-interface LeftPanelMenuProps{ 
+interface CategoryPickerProps{ 
     dragged:string, 
     dispatch:Function,
     selectedCategory:Category,
@@ -205,11 +205,11 @@ interface LeftPanelMenuProps{
  
   
 
-interface LeftPanelMenuState{}
+interface CategoryPickerState{}
 
 
 
-export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuState>{
+export class CategoryPicker extends Component<CategoryPickerProps,CategoryPickerState>{
 
     constructor(props){
         super(props);
@@ -217,7 +217,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
 
 
-    shouldComponentUpdate(nextProps:LeftPanelMenuProps){
+    shouldComponentUpdate(nextProps:CategoryPickerProps){
         let {
             dragged, 
             selectedCategory,
@@ -267,7 +267,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
             <Separator />
 
-            <LeftPanelMenuItem
+            <CategoryPickerItem
                 onClick={this.onClick("inbox")}
                 dragged={this.props.dragged}
                 icon={<Inbox style={{color:"dodgerblue"}}/>}
@@ -280,7 +280,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
             <Separator />
 
-            <LeftPanelMenuItem
+            <CategoryPickerItem
                 onClick={this.onClick("today")} 
                 dragged={this.props.dragged}
                 icon={<Star style={{color:"gold"}}/>}
@@ -292,7 +292,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 hot={this.props.hot}
             />
 
-            <LeftPanelMenuItem
+            <CategoryPickerItem
                 onClick={this.onClick("next")} 
                 dragged={this.props.dragged}
                 icon={<Layers style={{color:"darkgreen"}}/>}
@@ -303,7 +303,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 counter={0} 
             /> 
 
-            <LeftPanelMenuItem
+            <CategoryPickerItem
                 onClick={this.onClick("upcoming")} 
                 dragged={this.props.dragged}
                 category={"upcoming"}
@@ -314,7 +314,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 counter={0}
             />  
 
-            <LeftPanelMenuItem
+            <CategoryPickerItem
                 onClick={this.onClick("someday")}
                 dragged={this.props.dragged}
                 category={"someday"}
@@ -329,7 +329,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
             { 
                 this.props.logbook===0 ? null :
-                <LeftPanelMenuItem 
+                <CategoryPickerItem 
                     onClick={this.onClick("logbook")}
                     dragged={this.props.dragged}
                     icon={<Logbook style={{color:"limegreen"}}/>}
@@ -343,7 +343,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
             { 
                 this.props.trash===0 ? null :    
-                <LeftPanelMenuItem
+                <CategoryPickerItem
                     onClick={this.onClick("trash")}
                     dragged={this.props.dragged}
                     icon={<Trash style={{color:"darkgray"}}/>}
@@ -358,6 +358,8 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
     }
 }    
  
+
+
 
 
 

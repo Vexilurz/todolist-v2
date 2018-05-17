@@ -8,6 +8,7 @@ export let defaultStoreItems : Store = {
     ...defaultConfig,
     import:null,
     sync:true,
+    collapsed:false,
     lastSync:new Date(),
     showWhenCalendar : false, 
     whenTodo : null,

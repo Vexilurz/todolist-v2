@@ -27,7 +27,7 @@ import * as Rx from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Rx';
 import { RightClickMenu } from './RightClickMenu';
 import { RepeatPopup } from './RepeatPopup';
-import { Search } from './Search';
+import { Search } from './ApplicationMenu/Search';
 import { filter } from 'lodash';
 import { updateCalendars, convertEventDate } from './Calendar';
 import { globalErrorHandler } from '../utils/globalErrorHandler';

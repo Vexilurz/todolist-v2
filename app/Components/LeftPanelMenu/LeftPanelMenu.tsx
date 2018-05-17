@@ -15,26 +15,29 @@ import { ipcRenderer } from 'electron';
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import Plus from 'material-ui/svg-icons/content/add';  
 import { Todo, Project, Area, Category, Store } from '../../types';
-import { AreasList } from './../Area/AreasList';
 import { ResizableHandle } from './../ResizableHandle';
-import { LeftPanelMenu } from './LeftPanelMenu';
 import { NewProjectAreaPopup } from './NewProjectAreaPopup';
 import { allPass, isNil, not, flatten, contains } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { SearchInput } from '../Search';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { googleAnalytics } from '../../analytics';
 import { isArrayOfStrings, isString } from '../../utils/isSomething';
 import { isDev } from '../../utils/isDev';
-import { LeftPanelFooter } from './LeftPanelFooter';  
+import { SearchInput } from '../Search/SearchInput';
+import { CategoryMenu } from './CategoryMenu';  
+import { Footer } from './Footer';  
+import { AreasList } from './AreasList';
 
-interface LeftPanelProps{
+
+
+interface LeftPanelMenuProps{
     dispatch:Function,
     selectedCategory:Category,
     leftPanelWidth:number,
+    collapsed:boolean,
     openNewProjectAreaPopup:boolean,
     projects:Project[],
     areas:Area[], 
@@ -62,54 +65,26 @@ interface LeftPanelProps{
 }
 
 
-interface LeftPanelState{ collapsed:boolean }
+
+interface LeftPanelMenuState{}
 
 
-export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
+
+export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuState>{
     anchor:HTMLElement;
-    subscriptions:Subscription[];
     leftPanelRef:HTMLElement;  
+
+    
 
     constructor(props){  
         super(props);   
-        this.subscriptions = [];    
-        this.state = { collapsed:false };      
     } 
+
 
 
     onError = (error) => globalErrorHandler(error);
     
-
-    toggleLeftPanel = () => this.setState(
-        { collapsed:!this.state.collapsed }, 
-        () => {
-            // to trigger rerender
-            this.props.dispatch({type:"leftPanelWidth", load:this.props.leftPanelWidth+1})
-            this.props.dispatch({type:"leftPanelWidth", load:this.props.leftPanelWidth-1})
-        }
-    );
-
-
-    initCtrlB = () => {
-        this.subscriptions.push( 
-            Observable
-            .fromEvent(ipcRenderer, "toggle", (event) => event)
-            .subscribe(this.toggleLeftPanel)
-        ); 
-    }; 
     
-     
-    componentDidMount(){ 
-        this.initCtrlB(); 
-    }  
-         
-
-    componentWillUnmount(){
-        this.subscriptions.map(s => s.unsubscribe());
-        this.subscriptions = [];
-    } 
-
-
  
     onNewProjectClick = (e:any) => {  
         let timeSeconds = Math.round( new Date().getTime() / 1000 );
@@ -193,6 +168,7 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
     };
 
 
+
     openSyncSettings = () => {
         this.props.dispatch({
             type:"multiple",
@@ -203,15 +179,12 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
         }); 
     };
 
+
      
     render(){      
         return <div style={{display:"flex", flexDirection:"row-reverse", height:window.innerHeight}}> 
 
-            { 
-                not(this.state.collapsed) ? 
-                <ResizableHandle onDrag={this.onResizableHandleDrag}/> : 
-                null 
-            } 
+            { not(this.props.collapsed) ? <ResizableHandle onDrag={this.onResizableHandleDrag}/> : null } 
 
             <div        
                 id="leftpanel"
@@ -220,14 +193,15 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
                 style={{ 
                     WebkitUserSelect:"none", 
                     transition: "width 0.2s ease-in-out", 
-                    width:this.state.collapsed ? "0px" : `${this.props.leftPanelWidth}px`,
+                    width:this.props.collapsed ? "0px" : `${this.props.leftPanelWidth}px`,
                     height:`100%`,      
                     backgroundColor:"rgb(248, 248, 248)"  
                 }}      
             >   
+
                 <SearchInput dispatch={this.props.dispatch} searchQuery={this.props.searchQuery}/>
 
-                <LeftPanelMenu    
+                <CategoryMenu    
                     dragged={this.props.dragged}
                     dispatch={this.props.dispatch} 
                     selectedCategory={this.props.selectedCategory}
@@ -241,7 +215,6 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
 
                 <AreasList   
                     leftPanelWidth={this.props.leftPanelWidth}
-                    leftPanelRef={this.leftPanelRef} 
                     dragged={this.props.dragged}  
                     dispatch={this.props.dispatch}   
                     indicators={this.props.indicators}
@@ -253,9 +226,9 @@ export class LeftPanel extends Component<LeftPanelProps,LeftPanelState>{
                     id={this.props.id}
                 />
 
-                <LeftPanelFooter  
+                <Footer  
                     width={ this.props.leftPanelWidth }  
-                    collapsed={ this.state.collapsed }
+                    collapsed={ this.props.collapsed }
                     openSettings={this.openSettings}
                     openSyncSettings={this.openSyncSettings}
                     openNewProjectAreaPopup={ this.openNewProjectAreaPopup }

@@ -1,4 +1,4 @@
-import '../assets/styles.css';  
+import '../../assets/styles.css';  
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';   
 import { ipcRenderer } from 'electron'; 
@@ -38,8 +38,8 @@ import {
     todoToKeywords,
     getTagsFromItems,
     byTags
-} from '../utils/utils'; 
-import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../types';
+} from '../../utils/utils'; 
+import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../../types';
 import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection, defaultTo, all } from 'ramda';
 import { filter } from 'lodash'; 
 import { Observable } from 'rxjs/Rx';
@@ -47,13 +47,13 @@ import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
 import PieChart from 'react-minimal-pie-chart';
-import { TodoInput } from './TodoInput/TodoInput';
-import { Tags } from './Tags';
-import { isArray, isString, isDate, isNotDate } from '../utils/isSomething';
-import { chooseIcon } from '../utils/chooseIcon';
-import { FadeBackgroundIcon } from './FadeBackgroundIcon';
-import { isDev } from '../utils/isDev';
-import { assert } from '../utils/assert';
+import { TodoInput } from './../TodoInput/TodoInput';
+import { Tags } from './../Tags';
+import { isArray, isString, isDate, isNotDate } from '../../utils/isSomething';
+import { chooseIcon } from '../../utils/chooseIcon';
+import { FadeBackgroundIcon } from './../FadeBackgroundIcon';
+import { isDev } from '../../utils/isDev';
+import { assert } from '../../utils/assert';
 
 
 
@@ -157,90 +157,6 @@ let getProjectHeading = (
 };
 
 
-interface SearchInputProps{
-    dispatch:Function,
-    searchQuery:string  
-}  
-
-
-interface SearchInputState{}  
- 
-
-export class SearchInput extends Component<SearchInputProps,SearchInputState>{
- 
-    shouldComponentUpdate(nextProps:SearchInputProps){
-        return nextProps.searchQuery!==this.props.searchQuery;
-    }
-
-
-    constructor(props){ 
-        super(props)
-    } 
-
-
-    onChange = (e) => { 
-        let {dispatch} = this.props; 
-        
-        if(isEmpty(e.target.value)){
-            dispatch({
-                type:"multiple",
-                load:[
-                    {type:"searchQuery", load:""}, 
-                    {type:"selectedCategory", load:"inbox"}
-                ]
-            }); 
-        }else{ 
-            dispatch({
-                type:"multiple",
-                load:[
-                    {type:"searchQuery", load:e.target.value},
-                    {type:"selectedCategory", load:"search"}
-                ]
-            }); 
-        }       
-    }
-      
-    
-    render(){  
-        return <div 
-            style={{   
-                zIndex:30000,
-                borderRadius:"5px",
-                position:"relative",
-                WebkitUserSelect:"none",  
-                maxHeight:"30px",
-                overflowY:"visible",
-                padding:"10px"  
-            }}  
-        >       
-            <div style={{
-                backgroundColor:"rgb(217, 218, 221)", 
-                borderRadius:"5px",
-                display:"flex",
-                height:"30px",  
-                alignItems:"center"
-            }}>  
-                <div style={{padding:"5px",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <SearchIcon style={{color:"rgb(100, 100, 100)",height:"20px",width:"20px"}}/>   
-                </div>   
-                <input 
-                    style={{  
-                      outline:"none",
-                      border:"none", 
-                      width:"100%", 
-                      backgroundColor:"rgb(217,218,221)",
-                      caretColor:"cornflowerblue"  
-                    }} 
-                    placeholder="Quick Find" 
-                    type="text" 
-                    name="search"  
-                    value={this.props.searchQuery} 
-                    onChange={this.onChange}
-                />
-            </div>   
-        </div>
-    }
-}
 
 
 interface SearchProps extends Store{

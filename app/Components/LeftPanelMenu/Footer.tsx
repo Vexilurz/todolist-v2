@@ -15,16 +15,13 @@ import { ipcRenderer } from 'electron';
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import Plus from 'material-ui/svg-icons/content/add';  
 import { Todo, Project, Area, Category, Store } from '../../types';
-import { AreasList } from './../Area/AreasList';
 import { ResizableHandle } from './../ResizableHandle';
-import { LeftPanelMenu } from './LeftPanelMenu';
 import { NewProjectAreaPopup } from './NewProjectAreaPopup';
 import { allPass, isNil, not, flatten, contains } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
 import { Subscription } from 'rxjs/Rx';
-import { SearchInput } from '../Search';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
 import { googleAnalytics } from '../../analytics';
 import { isArrayOfStrings, isString } from '../../utils/isSomething';
@@ -32,7 +29,7 @@ import { isDev } from '../../utils/isDev';
 
 
 
-interface LeftPanelFooterProps{
+interface FooterProps{
     width:number,
     collapsed:boolean,
     openNewProjectAreaPopup:(e:any) => void,
@@ -41,9 +38,9 @@ interface LeftPanelFooterProps{
     openSyncSettings:(e:any) => void 
 }
 
+interface FooterState{}
 
-
-export class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
+export class Footer extends Component<FooterProps,FooterState>{
   
     constructor(props){
         super(props); 
@@ -51,7 +48,7 @@ export class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
 
 
 
-    shouldComponentUpdate(nextProps:LeftPanelFooterProps){
+    shouldComponentUpdate(nextProps:FooterProps){
         return nextProps.width!==this.props.width || 
                nextProps.collapsed!==this.props.collapsed;
     }
@@ -102,17 +99,13 @@ export class LeftPanelFooter extends Component<LeftPanelFooterProps,{}>{
                     />
                 </div>    
             </div>   
-            <div style={{flexGrow: 1, display: "flex", justifyContent:"flex-end"}}> 
+            <div style={{flexGrow:1, display:"flex", justifyContent:"flex-end"}}> 
                 <Spinner openSyncSettings={this.props.openSyncSettings}/> 
             </div>            
             <div style={{display:"flex", paddingRight:"10px", alignItems:"center", cursor:"pointer"}}>     
                 <IconButton    
-                    onClick = {(e) => openSettings(e)}  
-                    iconStyle={{   
-                        color:"rgba(100, 100, 100, 1)",
-                        width:"25px", 
-                        height:"25px"   
-                    }}
+                    onClick={(e) => openSettings(e)}  
+                    iconStyle={{color:"rgba(100, 100, 100, 1)", width:"25px", height:"25px"}}
                 >        
                     <Adjustments /> 
                 </IconButton>  

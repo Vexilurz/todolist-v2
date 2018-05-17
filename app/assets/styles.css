@@ -101,6 +101,30 @@ ul {
 }
 
 
+
+.scrollAuto {  
+  overflow-y: auto;
+} 
+
+
+.scrollAuto::-webkit-scrollbar {
+   width: 6px;
+} 
+ 
+
+.scrollAuto::-webkit-scrollbar-track {
+   border-radius: 55px;
+} 
+ 
+
+.scrollAuto::-webkit-scrollbar-thumb {
+   border-radius: 55px;
+   background-color:rgba(150,150,150,0.5);
+} 
+
+
+
+
 .scroll {  
   overflow-y: scroll;
 } 

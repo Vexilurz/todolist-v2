@@ -22,8 +22,8 @@ import { isArea, isProject, isNotArray } from '../../utils/isSomething';
 import { arrayMove } from '../../utils/arrayMove';
 import { SortableContainer } from '../CustomSortableContainer';
 import { isDev } from '../../utils/isDev';
-import { groupProjectsByArea } from './groupProjectsByArea';
-import { generateLayout } from './generateLayout';
+import { groupProjectsByArea } from '../Area/groupProjectsByArea';
+import { generateLayout } from '../Area/generateLayout';
 import { uppercase } from '../../utils/uppercase';
 import { ipcRenderer } from 'electron';
 const mapIndexed = addIndex(map);
@@ -39,7 +39,6 @@ interface AreasListProps{
     selectedAreaId:string, 
     selectedCategory:Category, 
     areas:Area[],
-    leftPanelRef:HTMLElement, 
     indicators : { 
         [key:string]:{
             active:number,
@@ -162,7 +161,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
             area={a}
             index={index} 
             hideAreaPadding={hideAreaPadding}
-            leftPanelRef={this.props.leftPanelRef}
             selectArea={this.selectArea}
             onCollapseContent={this.onCollapseContent}
             leftPanelWidth={this.props.leftPanelWidth}
@@ -439,7 +437,6 @@ interface AreaElementProps{
     leftPanelWidth:number, 
     index:number,
     hideAreaPadding:boolean,
-    leftPanelRef:HTMLElement,
     selectArea:(area:Area) => void,
     onCollapseContent:(area:Area) => void,
     selectedAreaId:string,
