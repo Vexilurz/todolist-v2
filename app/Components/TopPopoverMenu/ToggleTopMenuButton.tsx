@@ -64,6 +64,7 @@ export class ToggleTopMenuButton extends Component<ToggleTopMenuButtonProps,Togg
             }}
         >
             <div style={{
+                paddingLeft:"7px",
                 fontSize:"15px", 
                 userSelect:"none", 
                 fontWeight:500, 

@@ -54,91 +54,73 @@ import { chooseIcon } from '../../utils/chooseIcon';
 import { FadeBackgroundIcon } from './../FadeBackgroundIcon';
 import { isDev } from '../../utils/isDev';
 import { assert } from '../../utils/assert';
+import { sortByCompletedOrNot } from './sortByCompletedOrNot';
+import { getProjectHeading } from './getProjectHeading';
+import { limitGroups } from './limitGroups';
 
 
 
-interface SearchInputProps{
-    dispatch:Function,
-    searchQuery:string  
-}  
+export let getSuggestions = (
+    todos:Todo[], 
+    projects:Project[], 
+    areas:Area[],
+    searchQuery:string,
+    limit:number
+) : {
+    attached : { project:Project, todos:Todo[] }[],
+    detached : Todo[],
+    limitReached : boolean 
+} => { 
+    let limitedGroups = limitGroups(3, todos);  
+    let cutBy = (by:String, words:string[]) => words.map(word => word.substring(0,by.length));
+    let table = {};
+    let detached = []; 
+    let attached = []; 
+    let limitReached = true;
+    let match = (searchKeywords:string[],keywords:string[]) => 
+        any(
+            (searchKeyword:string) => contains(searchKeyword)(cutBy(searchKeyword,keywords))
+        )(searchKeywords); 
 
+    for(let i=0; i<limitedGroups.length; i++){
 
-interface SearchInputState{}  
- 
-
-export class SearchInput extends Component<SearchInputProps,SearchInputState>{
- 
-    shouldComponentUpdate(nextProps:SearchInputProps){
-        return nextProps.searchQuery!==this.props.searchQuery;
-    }
-
-
-    constructor(props){ 
-        super(props)
-    } 
-
-
-    onChange = (e) => { 
-        let {dispatch} = this.props; 
-        
-        if(isEmpty(e.target.value)){
-            dispatch({
-                type:"multiple",
-                load:[
-                    {type:"searchQuery", load:""}, 
-                    {type:"selectedCategory", load:"inbox"}
-                ]
-            }); 
-        }else{ 
-            dispatch({
-                type:"multiple",
-                load:[
-                    {type:"searchQuery", load:e.target.value},
-                    {type:"selectedCategory", load:"search"}
-                ]
-            }); 
-        }       
-    }
-      
+        if((attached.length + detached.length) > limit){ 
+            limitReached = false;
+            break; 
+        }
     
-    render(){  
-        return <div 
-            style={{   
-                zIndex:30000,
-                backgroundColor:"rgb(248, 248, 248)",
-                borderRadius:"5px",
-                position:"relative",
-                WebkitUserSelect:"none",  
-                maxHeight:"30px",
-                overflowY:"visible",
-                padding:"10px"  
-            }}  
-        >       
-            <div style={{
-                backgroundColor:"rgb(217, 218, 221)", 
-                borderRadius:"5px",
-                display:"flex",
-                height:"30px",  
-                alignItems:"center"
-            }}>  
-                <div style={{padding:"5px",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <SearchIcon style={{color:"rgb(100, 100, 100)",height:"20px",width:"20px"}}/>   
-                </div>   
-                <input 
-                    style={{  
-                      outline:"none",
-                      border:"none", 
-                      width:"100%", 
-                      backgroundColor:"rgb(217,218,221)",
-                      caretColor:"cornflowerblue"  
-                    }} 
-                    placeholder="Quick Find" 
-                    type="text" 
-                    name="search"  
-                    value={this.props.searchQuery} 
-                    onChange={this.onChange}
-                />
-            </div>   
-        </div>
+        let todo = limitedGroups[i];
+        let keywords = todoToKeywords(todo); //lowered and trimmed words from todo title + attachedTags
+        let searchKeywords = searchQuery
+                             .trim()
+                             .toLowerCase()
+                             .split(' ')
+                             .filter(compose(not,isEmpty)); 
+        
+        if(match( searchKeywords , keywords )){
+            let project = projects.find((p) => contains(todo._id)(p.layout as any)); 
+
+            if(isNil(project)){ detached.push(todo) }
+            else{ 
+                attached.push(todo);
+
+                if(isNil(table[project._id])){
+                   table[project._id] = [todo]; 
+                }else if(isArray(table[project._id])){ 
+                   table[project._id].push(todo); 
+                }  
+            }
+        } 
     }
-}
+
+    return {    
+        attached:projects
+                .map((project:Project) => ({project, todos:table[project._id]}))
+                .filter(({project,todos}) => isNil(todos) ? false : !isEmpty(todos)),
+        detached,
+        limitReached   
+    }; 
+};   
+
+
+

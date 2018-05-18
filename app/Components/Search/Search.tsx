@@ -54,108 +54,10 @@ import { chooseIcon } from '../../utils/chooseIcon';
 import { FadeBackgroundIcon } from './../FadeBackgroundIcon';
 import { isDev } from '../../utils/isDev';
 import { assert } from '../../utils/assert';
-
-
-
-let sortByCompletedOrNot = (a:Todo,b:Todo) => {
-    if(isDate(a.completedSet) && isNotDate(b.completedSet)){
-        return 1; 
-    }else if(isDate(b.completedSet) && isNotDate(a.completedSet)){
-        return -1; 
-    }else{
-        return 0;
-    }
-};
-
-
-
-let getProjectHeading = (
-    project:Project, 
-    indicator:{
-        active:number,
-        completed:number,
-        deleted:number
-    }
-) : JSX.Element => {
-    let done = indicator.completed;
-    let left = indicator.active;
-    let totalValue = (done+left)===0 ? 1 : (done+left);
-    let currentValue = done;
-
-    return <div   
-        id = {project._id}        
-        style={{    
-            height:"30px",   
-            paddingLeft:"6px", 
-            paddingRight:"6px",  
-            cursor:"default",
-            width:"100%",
-            display:"flex",  
-            alignItems:"center", 
-            overflowX:"hidden", 
-            borderBottom:"1px solid rgba(100, 100, 100, 0.6)"
-        }}
-    >     
-        <div style={{     
-            marginLeft:"1px",
-            width:"18px",
-            height:"18px",
-            position: "relative",
-            borderRadius: "100px",
-            display: "flex",
-            justifyContent: "center",
-            transform: "rotate(270deg)",
-            cursor:"default",
-            alignItems: "center",
-            border: "1px solid rgb(108, 135, 222)",
-            boxSizing: "border-box" 
-        }}> 
-            <div style={{
-                width: "18px",
-                height: "18px",
-                display: "flex",
-                alignItems: "center", 
-                cursor:"default",
-                justifyContent: "center",
-                position: "relative" 
-            }}>  
-                <PieChart 
-                    animate={false}    
-                    totalValue={totalValue}
-                    data={[{      
-                        value:currentValue, 
-                        key:1,  
-                        color:"rgb(108, 135, 222)" 
-                    }]}    
-                    style={{  
-                        color: "rgb(108, 135, 222)",
-                        width: "12px",
-                        height: "12px",
-                        position: "absolute",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"  
-                    }}
-                />     
-            </div>
-        </div> 
-        <div   
-            id = {project._id}   
-            style={{   
-                fontFamily: "sans-serif",
-                fontSize: "15px",    
-                cursor: "default",
-                paddingLeft: "5px", 
-                WebkitUserSelect: "none",
-                fontWeight: "bolder", 
-                color: "rgba(0, 0, 0, 0.8)" 
-            }}
-        >    
-            { isEmpty(project.name) ? "New Project" : project.name } 
-        </div> 
-    </div>
-};
-
+import { sortByCompletedOrNot } from './sortByCompletedOrNot';
+import { getProjectHeading } from './getProjectHeading';
+import { limitGroups } from './limitGroups';
+import { getSuggestions } from './getSuggestions';
 
 
 
@@ -169,11 +71,16 @@ interface SearchProps extends Store{
     }
 }
 
+
+
 interface SearchState{ limit:number }
+
+
 
 @connect((store,props) => ({ ...store, ...props }), attachDispatchToProps)
 export class Search extends Component<SearchProps,SearchState>{ 
     limitReached:boolean;
+
 
 
     constructor(props){
@@ -183,13 +90,16 @@ export class Search extends Component<SearchProps,SearchState>{
     }    
 
 
+
     scrollTop = () => {
         let rootRef = document.getElementById("maincontainer");
         if(rootRef){ rootRef.scrollTop=0 }   
     }
 
 
+
     componentDidMount(){ this.scrollTop() }
+
 
 
     componentWillReceiveProps(nextProps:SearchProps){
@@ -205,111 +115,7 @@ export class Search extends Component<SearchProps,SearchState>{
         }
     }
      
-    /**
-     * Limit search results from Repeat groups to n items from each group.
-     * We sort todos by date, and then we walk through sorted todos,
-     * collecting items for each group until n limit is exceeded for this particular group.
-     */
-    limitGroups = (n:number, todos:Todo[]) : Todo[] => {
-        let table = {};
-        let result = [];
-
-        let sorted = todos.sort(
-           (a:Todo,b:Todo) => {
-              let A = a.attachedDate;
-              let B = b.attachedDate;
-
-              if(isNil(A) || isNil(B)){ return 0 };
-
-              return A.getTime()-B.getTime();
-            }
-        ) 
-
-        for(let i=0; i<sorted.length; i++){ 
-            let todo = todos[i];
-
-            if(isNil(todo.group)){ result.push(todo) }
-            else{
-                let groupId = todo.group._id;
-                let entry = table[groupId];
-
-                if(isNil(entry)){
-                    table[groupId] = 1;
-                    result.push(todo);
-                }else{
-                    if(entry<n){  
-                       table[groupId] = table[groupId] + 1; 
-                       result.push(todo);   
-                    }
-                } 
-            }
-        }
- 
-        return result;
-    }; 
-
-
-
-    getSuggestions = (todos:Todo[], projects:Project[], areas:Area[]) : {
-        attached : { project:Project, todos:Todo[] }[],
-        detached : Todo[] 
-    } => { 
-        let { searchQuery } = this.props;
-        let limitGroups = this.limitGroups(3, todos);  
-        let cutBy = (by:String, words:string[]) => words.map(word => word.substring(0,by.length));
-        let table = {};
-        let detached = []; 
-        let attached = []; 
-        let limitReached = true;
-        let match = (searchKeywords:string[],keywords:string[]) => 
-            any(
-                (searchKeyword:string) => contains(searchKeyword)(cutBy(searchKeyword,keywords))
-            )(searchKeywords); 
-
-
-
-        for(let i=0; i<limitGroups.length; i++){
-
-            if((attached.length + detached.length) > this.state.limit){ 
-                limitReached = false;
-                break; 
-            }
-        
-            let todo = limitGroups[i];
-            let keywords = todoToKeywords(todo); //lowercased and trimmed words from todo title + attachedTags
-            let searchKeywords = searchQuery
-                                 .trim()
-                                 .toLowerCase()
-                                 .split(' ')
-                                 .filter(compose(not,isEmpty)); 
-            
-            if(match( searchKeywords , keywords )){
-                let project = projects.find((p) => contains(todo._id)(p.layout as any)); 
-
-                if(isNil(project)){ detached.push(todo) }
-                else{ 
-                    attached.push(todo);
-
-                    if(isNil(table[project._id])){
-                       table[project._id] = [todo]; 
-                    }else if(isArray(table[project._id])){ 
-                       table[project._id].push(todo); 
-                    }  
-                }
-            } 
-        }
-
-        this.limitReached = limitReached;
-         
-        return {    
-            attached:projects
-                     .map((project:Project) => ({project, todos:table[project._id]}))
-                     .filter(({project,todos}) => isNil(todos) ? false : !isEmpty(todos)),
-            detached  
-        } 
-    };   
-
-
+    
     
     getTodoComponent = (todo:Todo,index:number) : JSX.Element => {
         return <div key={`todo-${index}`}>
@@ -368,6 +174,7 @@ export class Search extends Component<SearchProps,SearchState>{
 
     render(){
         let {todos, projects, areas, dispatch, selectedTags, groupTodos, selectedCategory} = this.props; 
+
         let noresults = { 
             fontSize:"18px",
             userSelect:"none",
@@ -379,9 +186,20 @@ export class Search extends Component<SearchProps,SearchState>{
         };  
       
         let selectedTodos = filter(todos, allPass([byNotDeleted,byTags(selectedTags)]));
+
         let selectedProjects = filter(projects, byNotDeleted);
+
         let selectedAreas = filter(areas, byNotDeleted);
-        let suggestions = this.getSuggestions(selectedTodos,selectedProjects,selectedAreas);
+
+        let suggestions = getSuggestions(
+            selectedTodos,
+            selectedProjects,
+            selectedAreas,
+            this.props.searchQuery,
+            this.state.limit
+        );
+
+        this.limitReached = suggestions.limitReached;
 
         let ids = flatten(selectedProjects.map((p) => p.layout.filter(isString))) as string[];
 

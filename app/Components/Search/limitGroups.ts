@@ -54,91 +54,53 @@ import { chooseIcon } from '../../utils/chooseIcon';
 import { FadeBackgroundIcon } from './../FadeBackgroundIcon';
 import { isDev } from '../../utils/isDev';
 import { assert } from '../../utils/assert';
+import { sortByCompletedOrNot } from './sortByCompletedOrNot';
+import { getProjectHeading } from './getProjectHeading';
 
 
 
-interface SearchInputProps{
-    dispatch:Function,
-    searchQuery:string  
-}  
 
 
-interface SearchInputState{}  
- 
+/*
+*
+* Limit search results from Repeat groups to n items from each group.
+* We sort todos by date, and then we walk through sorted todos,
+* collecting items for each group until n limit is exceeded for this particular group.
+*/
+export let limitGroups = (n:number, todos:Todo[]) : Todo[] => {
+    let table = {};
+    let result = [];
 
-export class SearchInput extends Component<SearchInputProps,SearchInputState>{
- 
-    shouldComponentUpdate(nextProps:SearchInputProps){
-        return nextProps.searchQuery!==this.props.searchQuery;
+    let sorted = todos.sort(
+        (a:Todo,b:Todo) => {
+            let A = a.attachedDate;
+            let B = b.attachedDate;
+
+            if(isNil(A) || isNil(B)){ return 0 };
+
+            return A.getTime()-B.getTime();
+        }
+    ) 
+
+    for(let i=0; i<sorted.length; i++){ 
+        let todo = todos[i];
+
+        if(isNil(todo.group)){ result.push(todo) }
+        else{
+            let groupId = todo.group._id;
+            let entry = table[groupId];
+
+            if(isNil(entry)){
+                table[groupId] = 1;
+                result.push(todo);
+            }else{
+                if(entry<n){  
+                    table[groupId] = table[groupId] + 1; 
+                    result.push(todo);   
+                }
+            } 
+        }
     }
 
-
-    constructor(props){ 
-        super(props)
-    } 
-
-
-    onChange = (e) => { 
-        let {dispatch} = this.props; 
-        
-        if(isEmpty(e.target.value)){
-            dispatch({
-                type:"multiple",
-                load:[
-                    {type:"searchQuery", load:""}, 
-                    {type:"selectedCategory", load:"inbox"}
-                ]
-            }); 
-        }else{ 
-            dispatch({
-                type:"multiple",
-                load:[
-                    {type:"searchQuery", load:e.target.value},
-                    {type:"selectedCategory", load:"search"}
-                ]
-            }); 
-        }       
-    }
-      
-    
-    render(){  
-        return <div 
-            style={{   
-                zIndex:30000,
-                backgroundColor:"rgb(248, 248, 248)",
-                borderRadius:"5px",
-                position:"relative",
-                WebkitUserSelect:"none",  
-                maxHeight:"30px",
-                overflowY:"visible",
-                padding:"10px"  
-            }}  
-        >       
-            <div style={{
-                backgroundColor:"rgb(217, 218, 221)", 
-                borderRadius:"5px",
-                display:"flex",
-                height:"30px",  
-                alignItems:"center"
-            }}>  
-                <div style={{padding:"5px",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <SearchIcon style={{color:"rgb(100, 100, 100)",height:"20px",width:"20px"}}/>   
-                </div>   
-                <input 
-                    style={{  
-                      outline:"none",
-                      border:"none", 
-                      width:"100%", 
-                      backgroundColor:"rgb(217,218,221)",
-                      caretColor:"cornflowerblue"  
-                    }} 
-                    placeholder="Quick Find" 
-                    type="text" 
-                    name="search"  
-                    value={this.props.searchQuery} 
-                    onChange={this.onChange}
-                />
-            </div>   
-        </div>
-    }
-}
+    return result;
+}; 

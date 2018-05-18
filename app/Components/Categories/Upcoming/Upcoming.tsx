@@ -3,36 +3,37 @@ import '../../assets/calendarStyle.css';
 import * as React from 'react';   
 import * as ReactDOM from 'react-dom'; 
 import { Component } from "react"; 
-import { TodosList } from '../../Components/TodosList';
-import { Todo,Project, Area, Calendar, Category, CalendarEvent, RepeatOptions, objectsByDate } from '../../types';
+import { TodosList } from '../../../Components/TodosList';
+import { Todo,Project, Area, Calendar, Category, CalendarEvent, RepeatOptions, objectsByDate } from '../../../types';
 import * as Waypoint from 'react-waypoint';
-import { ContainerHeader } from '.././ContainerHeader';
+import { ContainerHeader } from '../.././ContainerHeader';
 import { 
     byTags, getDayName, getDatesRange, byNotCompleted, byNotDeleted,
     getTagsFromItems, getMonthName, yearFromDate, convertTodoDates,
     getRangeDays, isNotEmpty, typeEquals, compareByDate, monthFromDate,
     log, anyTrue, different, initDate, nDaysFromNow
-} from '../../utils/utils';  
+} from '../../../utils/utils';  
 import {
     allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, contains, where,
     map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy, any,
     mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass
 } from 'ramda';
-import { ProjectLink } from '../Project/ProjectLink';
+import { ProjectLink } from '../../Project/ProjectLink';
 import { filter } from 'lodash'; 
-import { CalendarDay } from '../../Components/CalendarDay';
-import { Hint } from './Today'; 
-import { updateCalendars } from '../Calendar';
-import { isDate, isArray, isArrayOfTodos, isNotNil, isString } from '../../utils/isSomething';
-import { assert } from '../../utils/assert';
-import { globalErrorHandler } from '../../utils/globalErrorHandler';
-import { timeOfTheDay, keyFromDate, addMonths, inPast } from '../../utils/time';
-import { repeat } from '../RepeatPopup';
-import { isDev } from '../../utils/isDev';
-import { getSameDayEventElement } from '../../utils/getCalendarEventElement';
-import { objectsToHashTableByDate } from '../../utils/objectsToHashTableByDate';
-import { generateCalendarObjectsFromRange } from '../../utils/generateCalendarObjectsFromRange';
-import { extend } from '../../utils/extend';
+import { CalendarDay } from '../../../Components/CalendarDay';
+import { Hint } from './../Today'; 
+import { updateCalendars } from '../../Calendar';
+import { isDate, isArray, isArrayOfTodos, isNotNil, isString } from '../../../utils/isSomething';
+import { assert } from '../../../utils/assert';
+import { globalErrorHandler } from '../../../utils/globalErrorHandler';
+import { timeOfTheDay, keyFromDate, addMonths, inPast } from '../../../utils/time';
+import { repeat } from '../../RepeatPopup';
+import { isDev } from '../../../utils/isDev';
+import { getSameDayEventElement } from '../../../utils/getCalendarEventElement';
+import { objectsToHashTableByDate } from '../../../utils/objectsToHashTableByDate';
+import { generateCalendarObjectsFromRange } from '../../../utils/generateCalendarObjectsFromRange';
+import { extend } from '../../../utils/extend';
+
 
 
 interface UpcomingProps{
@@ -94,6 +95,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     }    
 
 
+
     updateLimit = (range:Date[]) => {
         let {dispatch,limit,todos,calendars} = this.props;
         let day = 1000 * 60 * 60 * 24;
@@ -120,13 +122,13 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             ).then(
                 (load) => {
                     actions.push({type:"setCalendars",load});
-                    
                     dispatch({type:"multiple",load:actions});
                 }
             ) 
         } 
     }; 
  
+
 
     onEnter = ({previousPosition, currentPosition}) => { 
         let objectsByDate = objectsToHashTableByDate(this.props);
@@ -147,8 +149,10 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
         );
     };      
 
+
     
     onError = (e) => globalErrorHandler(e);
+
 
 
     getObjects = (props:UpcomingProps,n:number) : { 
@@ -166,10 +170,12 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
     }; 
 
 
+
     componentDidMount(){
         this.setState({objects:this.getObjects(this.props,this.n)})
     }   
      
+
     
     componentWillReceiveProps(nextProps:UpcomingProps){
         if( 
@@ -236,6 +242,7 @@ export class Upcoming extends Component<UpcomingProps,UpcomingState>{
             />  
         </div>
     }; 
+
 
 
     render(){ 

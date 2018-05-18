@@ -15,7 +15,6 @@ import { Trash } from './Categories/Trash';
 import { Logbook } from './Categories/Logbook';
 import { Someday } from './Categories/Someday';
 import { Next } from './Categories/Next';  
-import { Upcoming } from './Categories/Upcoming';
 import { Today } from './Categories/Today';
 import { Inbox } from './Categories/Inbox';
 import { 
@@ -27,7 +26,7 @@ import * as Rx from 'rxjs/Rx';
 import { Subscription } from 'rxjs/Rx';
 import { RightClickMenu } from './RightClickMenu';
 import { RepeatPopup } from './RepeatPopup';
-import { Search } from './ApplicationMenu/Search';
+import { Search } from './Search/Search';
 import { filter } from 'lodash';
 import { updateCalendars, convertEventDate } from './Calendar';
 import { globalErrorHandler } from '../utils/globalErrorHandler';
@@ -46,7 +45,7 @@ import { threeDaysLater, inPast, oneMinuteLater, fourteenDaysLater, fiveMinutesL
 import { introListLayout, getIntroList, introListIds } from '../utils/introList';
 import { fixIncomingData } from '../utils/fixIncomingData';
 import { extend } from '../utils/extend';
-import { UpcomingDefault } from './Categories/UpcomingDefault';
+import { UpcomingDefault } from './Categories/Upcoming/UpcomingDefault';
 
 
 

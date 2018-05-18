@@ -30,6 +30,7 @@ import { uppercase } from '../../utils/uppercase';
 import { ToggleTopMenuButton } from './ToggleTopMenuButton';
 import { CategoryPicker } from './CategoryPicker';
 import { StaticAreasList } from './StaticAreasList';
+import { SearchSuggestions } from '../Search/SearchSuggestions';
 
 
 
@@ -84,6 +85,7 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
         return <div style={{
             width:"100%",
             position:"fixed",
+            zIndex:10000,
             top:0,
             display:"flex",
             justifyContent:"center"
@@ -95,7 +97,6 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                    setRef={(e) => { this.anchor=e; }} 
                    title={this.props.selectedCategory}       
                 />
-
                 <Popover  
                     style={{backgroundColor:"rgba(0,0,0,0)",background:"rgba(0,0,0,0)",borderRadius:"10px"}}     
                     open={this.state.showMenu}
@@ -106,10 +107,9 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                     targetOrigin={{vertical:"top",horizontal:"middle"}}  
                 >   
                     <div>
-                        <SearchInput 
-                            dispatch={this.props.dispatch} 
-                            searchQuery={this.props.searchQuery}
-                        />
+
+                        <SearchInput dispatch={this.props.dispatch} searchQuery={this.props.searchQuery}/>
+
                         <div> 
                             <div        
                                 className="scrollAuto"
@@ -119,9 +119,34 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                                     backgroundColor:"rgb(248, 248, 248)"  
                                 }}      
                             >   
-                                <CategoryPicker />
-                                <StaticAreasList />
-                                <SearchSuggestions />
+
+                                <CategoryPicker 
+                                    dragged={this.props.dragged} 
+                                    dispatch={this.props.dispatch}
+                                    selectedCategory={this.props.selectedCategory}
+                                    inbox={this.props.amounts.inbox}
+                                    today={this.props.amounts.today}
+                                    hot={this.props.amounts.hot}
+                                    logbook={this.props.amounts.logbook}
+                                    trash={this.props.amounts.trash}
+                                    id={this.props.id}
+                                />
+
+                                <StaticAreasList 
+                                    dispatch={this.props.dispatch}
+                                    leftPanelWidth={this.props.leftPanelWidth}
+                                    dragged={this.props.dragged} 
+                                    selectedProjectId={this.props.selectedProjectId} 
+                                    selectedAreaId={this.props.selectedAreaId} 
+                                    selectedCategory={this.props.selectedCategory} 
+                                    areas={this.props.areas} 
+                                    indicators={this.props.indicators} 
+                                    projects={this.props.projects} 
+                                    id={this.props.id} 
+                                />
+
+                                <SearchSuggestions {...{} as any}/>
+
                             </div>
                         </div>
                     </div>   

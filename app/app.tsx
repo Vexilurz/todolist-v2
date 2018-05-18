@@ -389,6 +389,24 @@ export class App extends Component<AppProps,AppState>{
                         id={this.props.id}
                     />  
                 }  
+                {
+                    <TopPopoverMenu 
+                        dispatch={this.props.dispatch}
+                        collapsed={this.props.collapsed}
+                        selectedCategory={this.props.selectedCategory}
+                        searchQuery={this.props.searchQuery} 
+                        leftPanelWidth={this.props.leftPanelWidth}
+                        openNewProjectAreaPopup={this.props.openNewProjectAreaPopup}
+                        projects={this.props.projects}
+                        areas={this.props.areas}
+                        amounts={this.state.amounts}
+                        indicators={this.state.indicators}
+                        dragged={this.props.dragged}
+                        selectedProjectId={this.props.selectedProjectId}
+                        selectedAreaId={this.props.selectedAreaId}
+                        id={this.props.id}
+                    />
+                }
                 <MainContainer 
                     dispatch={this.props.dispatch} 
                     secretKey={this.props.secretKey}
@@ -426,24 +444,6 @@ export class App extends Component<AppProps,AppState>{
                 <TrashPopup  
                     dispatch={this.props.dispatch}
                     showTrashPopup={this.props.showTrashPopup}
-                />
-            }
-            {
-                <TopPopoverMenu 
-                    dispatch={this.props.dispatch}
-                    collapsed={this.props.collapsed}
-                    selectedCategory={this.props.selectedCategory}
-                    searchQuery={this.props.searchQuery} 
-                    leftPanelWidth={this.props.leftPanelWidth}
-                    openNewProjectAreaPopup={this.props.openNewProjectAreaPopup}
-                    projects={this.props.projects}
-                    areas={this.props.areas}
-                    amounts={this.state.amounts}
-                    indicators={this.state.indicators}
-                    dragged={this.props.dragged}
-                    selectedProjectId={this.props.selectedProjectId}
-                    selectedAreaId={this.props.selectedAreaId}
-                    id={this.props.id}
                 />
             }
             { 
