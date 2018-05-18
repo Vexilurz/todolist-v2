@@ -51,7 +51,7 @@ export class ToggleTopMenuButton extends Component<ToggleTopMenuButtonProps,Togg
             ref={this.props.setRef}
             style={{
                 padding:"5px",
-                border:this.props.toggled ? "none" : "1px solid rgba(100,100,100,0.1)",
+                border:this.props.toggled ? "none" : "1px solid rgba(150,150,150,0.1)",
                 backgroundColor:this.props.toggled ? "rgba(100,100,100,0.1)" : "white",
                 borderRadius:"5px",
                 height:"15px",

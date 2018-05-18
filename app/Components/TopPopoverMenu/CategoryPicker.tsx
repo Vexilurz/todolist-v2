@@ -14,7 +14,7 @@ import { Category, Project, Area } from '../../types';
 import { anyTrue, different } from '../../utils/utils';
 import { uppercase } from '../../utils/uppercase';
 import { ipcRenderer } from 'electron'; 
-
+import Checked from 'material-ui/svg-icons/navigation/check';
  
 
 let Hot = (hot:number) : JSX.Element => 
@@ -114,19 +114,20 @@ class CategoryPickerItem extends Component<CategoryPickerItemProps,CategoryPicke
 
 
     render(){  
-        let selectedStyle = { borderRadius: "5px", backgroundColor: "rgba(228,230,233,1)" };
+        let selectedStyle = { borderRadius: "3px", backgroundColor: "rgba(196,215,247,1)" };
 
         let {hot,counter,showCounter} = this.props;
 
         let style = {    
-            position: "relative" as "relative",
-            height: "25px",  
-            borderRadius: !this.state.highlight ? "0px" : "5px", 
+            position:"relative",
+            height: "15px",  
+            borderRadius: !this.state.highlight ? "0px" : "3px", 
             backgroundColor: !this.state.highlight ? "" : 
                               this.props.category==="trash" ? "rgba(200,0,0,0.3)" : 
                               "rgba(0,200,0,0.3)", 
             display: "flex",
-            padding: "5px",  
+            margin: "3px",
+            padding: "4px",
             cursor: "pointer"  
         }; 
 
@@ -135,7 +136,7 @@ class CategoryPickerItem extends Component<CategoryPickerItemProps,CategoryPicke
         return <div   
             onMouseMove={this.onMouseOver} 
             onMouseOut={this.onMouseLeave}    
-            className={this.props.selected ? `` : `leftpanelmenuitem`}  
+            className={this.props.selected ? `` : `dropdownmenuitem`}  
             onClick={this.props.onClick}   
             id={this.props.category}    
             style={selected ? merge(style,selectedStyle) : style}
@@ -153,8 +154,8 @@ class CategoryPickerItem extends Component<CategoryPickerItemProps,CategoryPicke
                     height: "100%",
                     display: "flex",
                     alignItems: "center",
-                    fontWeight: 500,
-                    fontSize: "18px",  
+                    fontWeight: 500,  
+                    fontSize: "15px",  
                     color: "rgba(10, 10, 10, 0.9)", 
                     WebkitUserSelect:"none"   
                 }}>     
@@ -169,12 +170,18 @@ class CategoryPickerItem extends Component<CategoryPickerItemProps,CategoryPicke
                   flexGrow:1,
                   justifyContent:"flex-end"
                 }}>         
-                    { isNil(hot) ? null : Hot(hot) }  
+                    {   isNil(hot) ? null : Hot(hot)   }  
                     { 
                         isNil(counter) || not(showCounter) ? null : 
                         isNil(hot) ? Counter(counter) :
                         Counter(counter)  
                     } 
+                    { 
+                        !selected ? null : 
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
+                            <Checked style={{color:"rgb(56, 115, 207)", width:"15px", height:"15px"}}/>
+                        </div> 
+                    }
                 </div>
             } 
         </div> 
@@ -183,9 +190,15 @@ class CategoryPickerItem extends Component<CategoryPickerItemProps,CategoryPicke
 
 
 
-export class Separator extends Component<{},{}>{
+class Separator extends Component<{},{}>{
     render(){ 
-        return <div style={{outline:"none",position:"relative",width:"100%",height:"10px"}}></div>
+        return <div style={{
+            outline:"none",
+            position:"relative",
+            width:"100%",
+            height:"5px",
+            borderBottom:"1px solid rgba(220,220,220,1)"
+        }}></div>
     } 
 }
 
@@ -263,14 +276,12 @@ export class CategoryPicker extends Component<CategoryPickerProps,CategoryPicker
     render(){ 
         let {dispatch} = this.props;
 
-        return <div style={{paddingLeft:"15px",paddingRight:"15px"}}>
-
-            <Separator />
+        return <div style={{paddingLeft:"5px",paddingRight:"5px"}}>
 
             <CategoryPickerItem
                 onClick={this.onClick("inbox")}
                 dragged={this.props.dragged}
-                icon={<Inbox style={{color:"dodgerblue"}}/>}
+                icon={<Inbox style={{color:"dodgerblue", width:"17px", height:"17px"}}/>}
                 title={"Inbox"} 
                 category={"inbox"}
                 selected={this.props.selectedCategory==="inbox"}
@@ -283,7 +294,7 @@ export class CategoryPicker extends Component<CategoryPickerProps,CategoryPicker
             <CategoryPickerItem
                 onClick={this.onClick("today")} 
                 dragged={this.props.dragged}
-                icon={<Star style={{color:"gold"}}/>}
+                icon={<Star style={{color:"gold", width:"17px", height:"17px"}}/>}
                 title={"Today"}
                 category={"today"}
                 showCounter={true}
@@ -295,7 +306,7 @@ export class CategoryPicker extends Component<CategoryPickerProps,CategoryPicker
             <CategoryPickerItem
                 onClick={this.onClick("next")} 
                 dragged={this.props.dragged}
-                icon={<Layers style={{color:"darkgreen"}}/>}
+                icon={<Layers style={{color:"darkgreen", width:"17px", height:"17px"}}/>}
                 title={"Next"}
                 category={"next"}
                 selected={this.props.selectedCategory==="next"}
@@ -307,7 +318,7 @@ export class CategoryPicker extends Component<CategoryPickerProps,CategoryPicker
                 onClick={this.onClick("upcoming")} 
                 dragged={this.props.dragged}
                 category={"upcoming"}
-                icon={<Calendar style={{color:"crimson"}}/>}
+                icon={<Calendar style={{color:"crimson", width:"17px", height:"17px"}}/>}
                 selected={this.props.selectedCategory==="upcoming"}
                 title={"Upcoming"}
                 showCounter={false} 
@@ -318,7 +329,7 @@ export class CategoryPicker extends Component<CategoryPickerProps,CategoryPicker
                 onClick={this.onClick("someday")}
                 dragged={this.props.dragged}
                 category={"someday"}
-                icon={<BusinessCase style={{color:"burlywood"}}/>}
+                icon={<BusinessCase style={{color:"burlywood", width:"17px", height:"17px"}}/>}
                 title={"Someday"}
                 selected={this.props.selectedCategory==="someday"}
                 showCounter={false}
@@ -332,7 +343,7 @@ export class CategoryPicker extends Component<CategoryPickerProps,CategoryPicker
                 <CategoryPickerItem 
                     onClick={this.onClick("logbook")}
                     dragged={this.props.dragged}
-                    icon={<Logbook style={{color:"limegreen"}}/>}
+                    icon={<Logbook style={{color:"limegreen", width:"17px", height:"17px"}}/>}
                     title={"Logbook"}
                     category={"logbook"}
                     selected={this.props.selectedCategory==="logbook"}
@@ -346,7 +357,7 @@ export class CategoryPicker extends Component<CategoryPickerProps,CategoryPicker
                 <CategoryPickerItem
                     onClick={this.onClick("trash")}
                     dragged={this.props.dragged}
-                    icon={<Trash style={{color:"darkgray"}}/>}
+                    icon={<Trash style={{color:"darkgray", width:"17px", height:"17px"}}/>}
                     title={"Trash"}  
                     category={"trash"}
                     selected={this.props.selectedCategory==="trash"}
@@ -354,6 +365,8 @@ export class CategoryPicker extends Component<CategoryPickerProps,CategoryPicker
                     counter={0}
                 />
             }    
+
+            <Separator />
         </div> 
     }
 }    

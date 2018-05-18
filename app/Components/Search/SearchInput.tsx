@@ -110,8 +110,7 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
                 position:"relative",
                 WebkitUserSelect:"none",  
                 maxHeight:"30px",
-                overflowY:"visible",
-                padding:"10px"  
+                overflowY:"visible"
             }}  
         >       
             <div style={{

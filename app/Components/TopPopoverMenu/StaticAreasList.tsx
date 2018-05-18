@@ -67,57 +67,11 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
     } 
 
 
-
-    shouldComponentUpdate(nextProps:StaticAreasListProps){
-        let {
-            leftPanelWidth,
-            dragged,
-            selectedProjectId,
-            selectedAreaId,
-            selectedCategory,
-            areas,
-            indicators,
-            projects 
-        } = nextProps; 
-
-
-        let should = leftPanelWidth!==this.props.leftPanelWidth ||
-                     dragged!==this.props.dragged ||
-                     selectedProjectId!==this.props.selectedProjectId ||
-                     selectedAreaId!==this.props.selectedAreaId ||
-                     selectedCategory!==this.props.selectedCategory ||
-                     different(indicators,this.props.indicators) ||
-                     nextProps.areas!==this.props.areas ||
-                     nextProps.projects!==this.props.projects;
-      
-                     
-        return should;                
-    };
-
-
-
-    onCollapseContent = (area:Area) : void => { 
-        let {dispatch} = this.props;
-        let {hideContentFromAreasList} = area; 
-
-        dispatch({
-            type:"updateArea",
-            load:{...area,hideContentFromAreasList:not(hideContentFromAreasList)}
-        });
-    };
-
-
  
     selectArea = (area:Area) : void => {
-        let {hideContentFromAreasList,name} = area; 
-
-        if(hideContentFromAreasList){
-           this.onCollapseContent(area);
-        }
- 
         ipcRenderer.send(
             'setWindowTitle', 
-            `tasklist - ${uppercase(isEmpty(name) ? 'New Area' : name)}`, 
+            `tasklist - ${uppercase(isEmpty(area.name) ? 'New Area' : area.name)}`, 
             this.props.id
         );
         
@@ -160,10 +114,8 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
         return <AreaElement 
             area={a}
             index={index} 
-            hideAreaPadding={hideAreaPadding}
             selectArea={this.selectArea}
-            onCollapseContent={this.onCollapseContent}
-            leftPanelWidth={this.props.leftPanelWidth}
+            containerWidth={300} //TODO FIX
             selectedAreaId={this.props.selectedAreaId}
             selectedCategory={this.props.selectedCategory}
         />
@@ -176,8 +128,7 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
             indicator={defaultTo({completed:0,active:0})(this.props.indicators[p._id])}
             project={p} 
             index={index}
-            leftPanelWidth={this.props.leftPanelWidth}
-            dragged={this.props.dragged}  
+            containerWidth={300} //TODO FIX
             selectProject={this.selectProject}
             selectedProjectId={this.props.selectedProjectId}
             selectedCategory={this.props.selectedCategory}
@@ -214,208 +165,21 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
 
 
 
-    shouldCancelStart = (e) => {
-        let nodes = [].slice.call(e.path);
-
-        for(let i=0; i<nodes.length; i++){ 
-            if(nodes[i].id==="separator"){ 
-               return true; 
-            }
-        } 
-   
-        return false; 
-    }; 
-     
-
-
-    onSortMove = (oldIndex:number, event) : void => {}; 
-
-
-
-    onSortStart = (oldIndex:number, event:any) : void => {};
-
-
-
-    projectsAttachedToCollapsedAreaIDs = () : string[] => {
-        let collapsedAreas = filter(this.props.areas, (area:Area) => area.hideContentFromAreasList);
-        let ids = flatten( collapsedAreas.map( (area:Area) => area.attachedProjectsIds ) );
-        return ids;
-    };
-
-
-
-    onSortEnd = (oldIndex:number, newIndex:number, event) : void => {
-        let {dispatch} = this.props;
-        let ids = this.projectsAttachedToCollapsedAreaIDs();
-
-        let {table,detached} = groupProjectsByArea(
-            this.props.projects.filter(
-                allPass([
-                    byNotDeleted, 
-                    byNotCompleted,
-                    (project:Project) => !contains(project._id)(ids)
-                ])
-            ),
-            this.props.areas.filter(byNotDeleted)
-        );
-
-        let layout = generateLayout(this.props.areas,{table,detached}); 
- 
-        if(isEmpty(layout)){ return }
-
-        //projects ids contained in current layout
-        let layoutProjectsIds : string[] = layout.filter(isProject).map(p => p._id); 
-
-        //indices
-        let indices = this.selectElements(oldIndex,layout);
-    
-        //1) change projects & areas order, detach projects from areas 
-        let layoutAfterSort = compose(
-            mapIndexed( 
-                (item,index:number) => cond( 
-                    [
-                        [
-                            isArea, //if area, remove attached projects ids (contained in current layout)
-                            (area:Area) => compose(
-                                area => assoc("priority",index,area),
-                                (ids) => assoc("attachedProjectsIds",ids,area),
-                                reject((id) => contains(id)(layoutProjectsIds)),
-                                (area) => area.attachedProjectsIds
-                            )(area) 
-                        ],
-                        [
-                            isProject, //if project, set new priority (change order according to items rearrangement)
-                            project => assoc("priority",index,project)
-                        ],
-                        [
-                            isSeparator,  
-                            (separator) => separator
-                        ]
-                    ]
-                )(item) 
-            ),
-            compose( 
-                ifElse(
-                    isArea, 
-                    compose(
-                        (collection) => compose(
-                            insertAll(newIndex,collection), // insert (area + project[]) at new position
-                            remove(oldIndex,indices.length) // remove (area + project[]) from initial layout
-                        )(layout),
-                        (lastIndex:number) => slice(oldIndex,lastIndex,layout), // preserve (area + project[])
-                        () => last(indices) + 1, //move one forward
-                    ),
-                    (item) => arrayMove([...layout], oldIndex, newIndex)
-                ), 
-                prop(oldIndex) //get dragged item
-            )
-        )(layout);
-        
-        if(isDev()){
-           assert(layout.length===layoutAfterSort.length, `incorrect logic. Areas List.`);
-           assert(layout[oldIndex]._id===layoutAfterSort[newIndex]._id, `incorrect order. Areas List.`);
-        }    
-
-        //2) Based on new order, generate hash table of form { areaId : projectId[] }
-        let target = undefined;
-        let byArea = {}; 
-        for(let i=0; i<layoutAfterSort.length; i++){
-            let item = layoutAfterSort[i];
-
-            if(isArea(item)){ 
-                target = item._id; 
-            }else if(isProject(item)){
-                if(target){
-                    if(isNotArray(byArea[target])){
-                       byArea[target] = [item._id];
-                    }else{
-                       byArea[target].push(item._id); 
-                    }
-                }
-            }
-        };
-
-
-        //3) Assign to each area attachedProjectsIds collected into coresponding cell in hash table
-        let updatedProjects : Project[] = layoutAfterSort.filter(isProject);
-        let updatedAreas : Area[] = layoutAfterSort.filter(isArea).map(
-            (area:Area) => compose(  
-                (ids) => assoc("attachedProjectsIds",ids,area),
-                uniq,
-                concat( defaultTo([], byArea[area._id]) ),
-                (area) => area.attachedProjectsIds
-            )(area)
-        );
-
- 
-        //4) Update projects/areas in store/database
-        dispatch({
-            type:"multiple",
-            load:[
-                {type:"updateProjects", load:updatedProjects}, 
-                {type:"updateAreas", load:updatedAreas}  
-            ]
-        }); 
-    };
-
-
-       
-    selectElements = (index:number,items:any[]) => {
-        let selected = [index];
-        let item = items[index];
-
-        if(isDev()){
-           assert(!isNil(item),`item is Nil. selectElements. index ${index}`);
-        }  
-
-        if(isArea(item)){
-            for(let i=index+1; i<items.length; i++){
-                let next = items[i];
-                if(isProject(next)){ selected.push(i) }
-                else{ break }   
-            }
-        } 
-  
-        return selected; 
-    };   
- 
-
-
     render(){ 
-        let scrollableContainer = document.getElementById("leftpanel");
         let {projects,areas} = this.props;
-        let ids = this.projectsAttachedToCollapsedAreaIDs();
         let {table,detached} = groupProjectsByArea(
-            projects.filter(
-                allPass([
-                    byNotDeleted,
-                    byNotCompleted,
-                    (project:Project) => !contains(project._id)(ids)
-                ])
-            ), 
+            projects.filter(allPass([byNotDeleted,byNotCompleted])), 
             areas.filter(byNotDeleted)
         );
-
         let layout = generateLayout(this.props.areas,{table,detached}); 
         let hideAreaPadding = true; 
         let detachedEmpty = isEmpty(detached);
 
+
         return <div   
             id="areas"
-            style={{userSelect:"none",paddingRight:"15px",paddingLeft:"20px",paddingTop:"15px",paddingBottom:"80px"}}   
+            style={{userSelect:"none",paddingRight:"5px",paddingLeft:"5px",paddingTop:"5px",paddingBottom:"40px"}}   
         >     
-            <SortableContainer
-                items={layout}
-                scrollableContainer={scrollableContainer}
-                selectElements={this.selectElements}   
-                onSortStart={this.onSortStart} 
-                onSortMove={this.onSortMove}
-                onSortEnd={this.onSortEnd}
-                shouldCancelStart={(event:any,item:any) => this.shouldCancelStart(event)}  
-                decorators={[]}   
-                lock={true} 
-                hidePlaceholder={true}
-            >   
                 {
                     layout.map( 
                         (item,index) => {
@@ -425,20 +189,28 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
                         }
                     )
                 }
-            </SortableContainer> 
          </div> 
     }
 };
 
+/*
+import { ExpandableList } from './../ExpandableList';
+
+<ExpandableList
+    showAll={false}
+    minLength={5}
+    buttonOffset={0}
+    type={"events"}   
+>
+</ExpandableList>
+*/
 
 
 interface AreaElementProps{
     area:Area,
-    leftPanelWidth:number, 
-    index:number,
-    hideAreaPadding:boolean,
     selectArea:(area:Area) => void,
-    onCollapseContent:(area:Area) => void,
+    containerWidth:number,
+    index:number,
     selectedAreaId:string,
     selectedCategory:Category
 } 
@@ -455,25 +227,17 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
         this.state={highlight:false}; 
     }  
 
-
-
     onMouseEnter = (e) => this.setState({highlight:true});  
       
-
-
     onMouseLeave = (e) => this.setState({highlight:false});
     
-
-
     render(){      
         let {
             area, 
             selectedAreaId, 
             selectedCategory, 
             selectArea, 
-            index, 
-            hideAreaPadding, 
-            onCollapseContent
+            index
         } = this.props;
 
         let {highlight} = this.state;
@@ -488,7 +252,6 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
             onMouseEnter={this.onMouseEnter} 
             onMouseLeave={this.onMouseLeave} 
         >     
-            <div style={{outline:"none",width:"100%",height:hideAreaPadding ? "0px" : "20px"}}></div>  
             <div     
                 onClick={(e) => {
                     e.stopPropagation(); 
@@ -533,7 +296,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                 }}>  
                     <AutoresizableText
                         text={area.name}
-                        width={this.props.leftPanelWidth}
+                        width={this.props.containerWidth}
                         placeholder="New Area" 
                         fontSize={15}
                         offset={45} 
@@ -541,33 +304,6 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                         placeholderStyle={{}}
                     />
                 </div>  
-                { 
-                    not(hideContentFromAreasList) && not(highlight) ? null :
-                    <IconButton  
-                        onClick={(e) => { 
-                            e.stopPropagation();
-                            onCollapseContent(area); 
-                            this.onMouseLeave(null); 
-                        }} 
-                        style={{ 
-                            width:"22px",  
-                            height:"22px", 
-                            padding:"0px",
-                            display:"flex",  
-                            alignItems:"center",  
-                            justifyContent:"center"   
-                        }}    
-                        iconStyle={{color:"rgba(150,150,150,1)",width:"22px",height:"22px"}}   
-                    >      
-                        <div style={{display:"flex",justifyContent:"center",alignItems:"center"}}>
-                            {
-                                hideContentFromAreasList ?
-                                <ArrowDown style={{color:"rgba(150,150,150,1)",width:"22px",height:"22px"}}/> :
-                                <ArrowUp style={{color:"rgba(150,150,150,1)",width:"22px",height:"22px"}}/> 
-                            }
-                        </div>
-                    </IconButton> 
-                }
             </div> 
         </li>
     }
@@ -578,8 +314,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
 interface ProjectElementProps{
     project:Project,
     index:number,
-    dragged:string,
-    leftPanelWidth:number,
+    containerWidth:number,
     selectProject:Function,
     selectedProjectId:string,
     selectedCategory:Category,
@@ -602,26 +337,6 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
     
 
 
-    onMouseOver = (e) => {  
-        let {dragged} = this.props; 
-
-        if(e.buttons === 1 || e.buttons === 3){   
-            if(dragged==="todo" || dragged==="heading"){
-               this.setState({highlight:true})  
-            }  
-        }  
-    }; 
-
-
-
-    onMouseOut = (e) => { 
-        if(this.state.highlight){
-           this.setState({highlight:false})
-        }
-    }; 
-     
-
-
     render(){
         let {project, selectedProjectId, selectedCategory, indicator} = this.props;
         let selected = (project._id===selectedProjectId) && (selectedCategory==="project");
@@ -633,8 +348,6 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         return <li   
             style={{WebkitUserSelect:"none",width:"100%"}}  
             key={this.props.index} 
-            onMouseOver={this.onMouseOver}  
-            onMouseOut={this.onMouseOut}   
         >    
             <div  
                 onClick={(e) => this.props.selectProject(this.props.project)} 
@@ -652,33 +365,29 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                 }} 
             >     
                     <div style={{    
-                        transform: "rotate(270deg)", 
-                        width: "18px",
-                        height: "18px",
-                        position: "relative",
-                        borderRadius: "100px",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        border: "1px solid rgb(170, 170, 170)",
-                        boxSizing: "border-box" 
+                        transform:"rotate(270deg)", 
+                        width:"18px",
+                        height:"18px",
+                        position:"relative",
+                        borderRadius:"100px",
+                        display:"flex",
+                        justifyContent:"center",
+                        alignItems:"center",
+                        border:"1px solid rgb(170, 170, 170)",
+                        boxSizing:"border-box" 
                     }}> 
                         <div style={{
-                            width: "18px",
-                            height: "18px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            position: "relative" 
+                            width:"18px",
+                            height:"18px",
+                            display:"flex",
+                            alignItems:"center",
+                            justifyContent:"center",
+                            position:"relative" 
                         }}>  
                             <PieChart 
                                 animate={false}    
                                 totalValue={totalValue}
-                                data={[{     
-                                    value:currentValue,   
-                                    key:1,    
-                                    color:"rgba(159, 159, 159, 1)" 
-                                }]}    
+                                data={[{value:currentValue, key:1, color:"rgba(159, 159, 159, 1)"}]}    
                                 style={{   
                                     color:"rgba(159, 159, 159, 1)",
                                     width:12,   
@@ -705,7 +414,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     >    
                         <AutoresizableText
                             text={project.name}
-                            width={this.props.leftPanelWidth}
+                            width={this.props.containerWidth}
                             placeholder="New Project"
                             fontSize={15}
                             style={{}}

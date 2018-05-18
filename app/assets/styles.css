@@ -277,6 +277,20 @@ ul {
 }
 
 
+
+.dropdownmenuitem{
+  background-color:none;
+}
+
+
+
+.dropdownmenuitem:hover{
+  border-radius: 5px; 
+  background-color:rgba(196,215,247,1);
+}
+
+
+
 .leftpanelmenuitem{
   background-color:none;
 }

@@ -106,10 +106,10 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                     anchorOrigin={{vertical:"bottom",horizontal:"middle"}}  
                     targetOrigin={{vertical:"top",horizontal:"middle"}}  
                 >   
-                    <div>
-
+                    <div style={{width:`250px`}}>
+                        <div style={{padding:"5px", backgroundColor:"rgb(248, 248, 248)"}}>
                         <SearchInput dispatch={this.props.dispatch} searchQuery={this.props.searchQuery}/>
-
+                        </div>
                         <div> 
                             <div        
                                 className="scrollAuto"

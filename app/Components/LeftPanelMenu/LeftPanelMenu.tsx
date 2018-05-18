@@ -198,9 +198,9 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                     backgroundColor:"rgb(248, 248, 248)"  
                 }}      
             >   
-
-                <SearchInput dispatch={this.props.dispatch} searchQuery={this.props.searchQuery}/>
-
+                <div style={{padding:"15px"}}>
+                    <SearchInput dispatch={this.props.dispatch} searchQuery={this.props.searchQuery}/>
+                </div>    
                 <CategoryMenu    
                     dragged={this.props.dragged}
                     dispatch={this.props.dispatch} 
