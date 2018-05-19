@@ -607,6 +607,7 @@ export class TodoCreationForm extends Component<TodoCreationFormProps,TodoCreati
                             deadline={deadline}
                             title={title}
                             haveNote={compose(isNotEmpty,getNotePlainText)(this.state.editorState)}
+                            showDueDate={false}
                         />   
                     {    
                         not(open) ? null :    

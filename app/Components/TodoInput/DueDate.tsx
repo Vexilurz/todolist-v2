@@ -69,15 +69,17 @@ let moment = require("moment");
 
 
 
-
 interface DueDateProps{
     date:Date,
     selectedCategory:Category,
     onClick:Function,
     category:Category,
-    completed:Date
+    completed:Date,
+    showDueDate?:boolean
 }
- 
+
+
+
 export class DueDate extends Component<DueDateProps,{}>{
     constructor(props){
         super(props); 
@@ -119,7 +121,7 @@ export class DueDate extends Component<DueDateProps,{}>{
             marginRight:"5px" 
         };
 
-        let {date,category,selectedCategory,completed} = this.props;
+        let {date,category,selectedCategory,completed,showDueDate} = this.props;
 
         let showSomeday : boolean = selectedCategory!=="someday" && category==="someday";
 
@@ -127,17 +129,22 @@ export class DueDate extends Component<DueDateProps,{}>{
         if(isNil(completed) && showSomeday){
             return <div style={{height:"18px",marginTop:"-2px"}}>
                 <BusinessCase style={{...style,color:"burlywood"}}/>
-            </div>
+            </div>;
+
+        //if has date and not completed    
         }else if(
-            isNotNil(date) && isNil(completed) &&
+            showDueDate ||
             (
-                selectedCategory==="next" ||
-                selectedCategory==="someday" ||
-                selectedCategory==="trash" ||
-                selectedCategory==="project" ||
-                selectedCategory==="area" ||
-                selectedCategory==="search" 
-            ) 
+                isNotNil(date) && isNil(completed) &&
+                (
+                    selectedCategory==="next" ||
+                    selectedCategory==="someday" ||
+                    selectedCategory==="trash" ||
+                    selectedCategory==="project" ||
+                    selectedCategory==="area" ||
+                    selectedCategory==="search" 
+                ) 
+            )
         ){
 
             let month = getMonthName(date); 
@@ -155,8 +162,9 @@ export class DueDate extends Component<DueDateProps,{}>{
                         <div>{day}</div>
                     </div> 
                 </div>
-            </div> 
+            </div>; 
  
+        //if completed    
         }else if(isNotNil(completed) && ( selectedCategory==="logbook" || selectedCategory==="search" )){ 
             let month = getMonthName(completed);
             let day = completed.getDate(); 
@@ -185,13 +193,11 @@ export class DueDate extends Component<DueDateProps,{}>{
                         }   
                     </div>  
                 </div> 
-            </div>
+            </div>;
         }else{
-            return null
+            return null;
         }
     };
-
-
 
 
 
@@ -199,15 +205,12 @@ export class DueDate extends Component<DueDateProps,{}>{
         let content = this.getContent();
         
         return isNil(content) ? null :
-        <div 
-            onClick = {(e) => {
-                e.stopPropagation(); 
-                e.nativeEvent.stopImmediatePropagation();
-                this.props.onClick(e);
-            }}
-        >
+        <div onClick = {(e) => {
+            e.stopPropagation(); 
+            e.nativeEvent.stopImmediatePropagation();
+            this.props.onClick(e);
+        }}>
             {content}
         </div>
-        
     }
 };

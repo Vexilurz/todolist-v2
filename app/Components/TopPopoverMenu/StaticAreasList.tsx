@@ -8,17 +8,18 @@ import { Project, Area, Todo, Category } from '../../types';
 import NewAreaIcon from 'material-ui/svg-icons/content/content-copy';
 import ArrowUp from 'material-ui/svg-icons/navigation/arrow-drop-up';
 import ArrowDown from 'material-ui/svg-icons/navigation/arrow-drop-down';
-import { byNotCompleted, byNotDeleted, typeEquals, different } from '../../utils/utils';
+import { byNotCompleted, byNotDeleted, typeEquals, different, isNotEmpty } from '../../utils/utils';
 import PieChart from 'react-minimal-pie-chart';
+import { ExpandableList } from '../../Components/ExpandableList';
 import { 
     uniq, allPass, remove, reject, slice, prop, flatten,
     isEmpty, contains, assoc, isNil, not, map, concat, ifElse, 
-    addIndex, compose, cond, defaultTo, last, insertAll
+    addIndex, compose, cond, defaultTo, last, insertAll, when
 } from 'ramda'; 
 import { filter } from 'lodash';
 import { AutoresizableText } from '../AutoresizableText';
 import { assert } from '../../utils/assert';
-import { isArea, isProject, isNotArray, isNotNil } from '../../utils/isSomething';
+import { isArea, isProject, isNotArray, isNotNil, isArray } from '../../utils/isSomething';
 import { arrayMove } from '../../utils/arrayMove';
 import { SortableContainer } from '../CustomSortableContainer';
 import { isDev } from '../../utils/isDev';
@@ -30,7 +31,38 @@ import { Separator } from './Separator';
 import Checked from 'material-ui/svg-icons/navigation/check';
 
 const isSeparator = (item) => item.type==="separator"; 
+
+
+
 let wrapSeparator = (element) => <div> <div><Separator/></div> {element} </div>;
+
+
+
+let wrapProjects = (elements) => {
+    let list = [];
+    let chunk = [];
+
+    for(let i = 0; i < elements.length; i++){
+        let item = elements[i];
+        if(isProject(item)){
+           chunk.push(item)
+        }else{
+            if(isNotEmpty(chunk)){
+                list.push([...chunk])
+                chunk = [];
+            } 
+            list.push(item); 
+        }
+    }
+
+    if(isNotEmpty(chunk)){ 
+       list.push([...chunk]) 
+    }
+
+    return list;
+};
+
+
 
 interface StaticAreasListProps{   
     dispatch:Function,
@@ -112,9 +144,7 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
     getAreaElement = (a:Area, index : number) : JSX.Element => {
         return <AreaElement 
             area={a}
-            index={index} 
             selectArea={this.selectArea}
-            containerWidth={1} //to prevent rerender  
             selectedAreaId={this.props.selectedAreaId}
             selectedCategory={this.props.selectedCategory}
         />
@@ -126,8 +156,6 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
         return <ProjectElement 
             indicator={defaultTo({completed:0,active:0})(this.props.indicators[p._id])}
             project={p} 
-            index={index}
-            containerWidth={1}
             selectProject={this.selectProject}
             selectedProjectId={this.props.selectedProjectId}
             selectedCategory={this.props.selectedCategory}
@@ -136,18 +164,18 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
     
     
  
-    getElement = (value, index : number) : JSX.Element => 
+    getElement = (value, index : number, warp? : boolean) : JSX.Element => 
         cond([
             [
                 typeEquals("area"),
                 (value) => <div key={`key-${value._id}`} id={value._id}>
-                    {this.getAreaElement(value, index)}
+                { compose( when(() => warp, wrapSeparator), value => this.getAreaElement(value, index) )(value) }
                 </div>
             ],
             [
                 typeEquals("project"),
                 (value) => <div key={`key-${value._id}`} id={value._id}>
-                    {this.getProjectElement(value, index)}
+                { this.getProjectElement(value, index) }
                 </div>
             ],
             [   () => true, () => null  ]
@@ -165,31 +193,31 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
         let hideAreaPadding = true; 
         let detachedEmpty = isEmpty(detached);
 
-        /*
-            import { ExpandableList } from './../ExpandableList';
-            <ExpandableList
-                showAll={false}
-                minLength={5}
-                buttonOffset={0}
-                type={"events"}   
-            >
-            </ExpandableList>
-        */
-
-        return <div style={{userSelect:"none", paddingLeft:"5px", paddingRight:"5px"}}>     
-                {
-                    layout.map( 
-                        (item,index) => {
-                            let element = this.getElement(item,index);
-
-                            if(isArea(item)){ 
-                               return wrapSeparator(element);
-                            }else{
-                               return element; 
-                            }
+        return <div style={{userSelect:"none",paddingLeft:"5px",paddingRight:"5px"}}>     
+            {
+                wrapProjects( layout )
+                .map( 
+                    (item,index) => {
+                        if(isArray(item)){
+                            return <div key={`list-${index}`} style={{paddingLeft:"8px"}}>
+                                <ExpandableList
+                                    showAll={false}
+                                    minLength={3} 
+                                    buttonOffset={0}
+                                    type={"projects"}   
+                                >
+                                    { item.map( (i,idx) => this.getElement(i,idx) ) }
+                                </ExpandableList> 
+                            </div>
+                        }else if(isArea(item)){
+                            return this.getElement(item,index, true);
+                        }else{
+                            return this.getElement(item,index);
                         }
-                    )
-                }
+                    }, 
+                    []
+                )
+            }
          </div> 
     }
 };
@@ -199,17 +227,13 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
 interface AreaElementProps{
     area:Area,
     selectArea:(area:Area) => void,
-    containerWidth:number,
-    index:number,
     selectedAreaId:string,
     selectedCategory:Category
 } 
 
 
 
-interface AreaElementState{
-    highlight:boolean
-} 
+interface AreaElementState{} 
 
 
 
@@ -218,23 +242,15 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
 
     constructor(props){
         super(props);
-        this.state={highlight:false}; 
     }  
 
-    onMouseEnter = (e) => this.setState({highlight:true});  
-      
-    onMouseLeave = (e) => this.setState({highlight:false});
-    
     render(){      
         let {
             area, 
             selectedAreaId, 
             selectedCategory, 
             selectArea, 
-            index
         } = this.props;
-
-        let {highlight} = this.state;
         let selected = (area._id===selectedAreaId) && selectedCategory==="area";
         let {hideContentFromAreasList} = area;
  
@@ -242,9 +258,6 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
             ref={e => {this.ref=e;}} 
             style={{WebkitUserSelect:"none",width:"100%"}} 
             className={"area"}  
-            key={`area-${index}`}   
-            onMouseEnter={this.onMouseEnter} 
-            onMouseLeave={this.onMouseLeave} 
         >     
             <div     
                 onClick={(e) => {
@@ -279,7 +292,7 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                 }}>  
                     <AutoresizableText
                         text={area.name}
-                        width={this.props.containerWidth}
+                        width={1}
                         placeholder="New Area" 
                         fontSize={15}
                         offset={45} 
@@ -287,15 +300,10 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                         placeholderStyle={{}}
                     />
                     {
-                        this.props.area._id===this.props.selectedAreaId ?
+                        this.props.area._id===this.props.selectedAreaId &&
+                        selectedCategory==="area" ?
                         <div style={{paddingRight:"8px"}}>
-                            <Checked 
-                                style={{
-                                    color:"rgb(56, 115, 207)",  
-                                    width:"15px", 
-                                    height:"15px"
-                                }}
-                            />
+                            <Checked style={{color:"rgb(56, 115, 207)", width:"15px", height:"15px"}}/>
                         </div>
                         :
                         null
@@ -310,19 +318,19 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
 
 interface ProjectElementProps{
     project:Project,
-    index:number,
-    containerWidth:number,
     selectProject:Function,
     selectedProjectId:string,
     selectedCategory:Category,
-    indicator:{active:number,completed:number,deleted:number}
+    indicator:{
+        active:number,
+        completed:number,
+        deleted:number
+    }
 }
 
 
 
-interface ProjectElementState{ 
-    highlight:boolean
-} 
+interface ProjectElementState{} 
 
 
  
@@ -330,9 +338,6 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
     
     constructor(props){
         super(props);
-        this.state={
-            highlight:false 
-        };  
     }   
     
 
@@ -345,21 +350,13 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
         let totalValue = (done+left)===0 ? 1 : (done+left);
         let currentValue = done;
         
-        return <li   
-            style={{WebkitUserSelect:"none",width:"100%"}}  
-            key={this.props.index} 
-        >    
+        return <li style={{WebkitUserSelect:"none",width:"100%"}}>    
             <div  
                 onClick={(e) => this.props.selectProject(this.props.project)} 
                 id={this.props.project._id}
                 className={selected ? "" : "leftpanelmenuitem"}  
                 style={{     
-                    borderRadius:this.state.highlight || selected ? "5px" : "0px", 
-                    backgroundColor:this.state.highlight ? "rgba(0,200,0,0.3)" :
-                                    selected ? "rgba(228,230,233,1)" : 
-                                    "",   
                     height:"20px",  
-                    paddingLeft:"8px",   
                     paddingBottom:"3px",
                     paddingTop:"3px",
                     display:"flex",
@@ -417,7 +414,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     >    
                         <AutoresizableText
                             text={project.name}
-                            width={this.props.containerWidth}
+                            width={1}
                             placeholder="New Project"
                             fontSize={15}
                             style={{}}
@@ -425,15 +422,10 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                             placeholderStyle={{}}
                         />
                         {
-                            this.props.project._id===this.props.selectedProjectId ?
+                            this.props.project._id===this.props.selectedProjectId && 
+                            selectedCategory==="project" ?
                             <div style={{paddingRight:"8px"}}>
-                                <Checked 
-                                    style={{
-                                        color:"rgb(56, 115, 207)",  
-                                        width:"15px", 
-                                        height:"15px"
-                                    }}
-                                />
+                                <Checked style={{color:"rgb(56, 115, 207)", width:"15px", height:"15px"}}/>
                             </div>
                             :
                             null

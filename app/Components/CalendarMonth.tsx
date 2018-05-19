@@ -75,15 +75,6 @@ export class CalendarMonth extends Component<CalendarMonthProps,CalendarMonthSta
         super(props) 
     }
 
-    componentDidMount(){
-        console.log(`CalendarMonth MOUNT`)
-
-    }
-
-    componentWillUnmount(){
-        console.log(`CalendarMonth UNMOUNT`)
-    }
-
 
     shouldComponentUpdate(nextProps){
         if(
@@ -197,47 +188,48 @@ export class CalendarMonth extends Component<CalendarMonthProps,CalendarMonthSta
                         type={"items"}   
                     >
                     {
-                    sortedItems.map(
-                        (item:any,idx) => {
-                            if(isTodo(item)){
-                                return <TodoInput      
+                        sortedItems.map(
+                            (item:any,idx) => {
+                                if(isTodo(item)){
+                                    return <TodoInput      
+                                        key={`${item._id}-${idx}`}
+                                        id={item._id}
+                                        groupTodos={this.props.groupTodos}
+                                        scrolledTodo={this.props.scrolledTodo}
+                                        moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
+                                        projects={this.props.projects}  
+                                        dispatch={dispatch}  
+                                        selectedProjectId={this.props.selectedProjectId}
+                                        selectedAreaId={this.props.selectedAreaId} 
+                                        selectedCategory={this.props.selectedCategory}  
+                                        rootRef={this.props.rootRef}  
+                                        todo={item as Todo}
+                                        showDueDate={true}
+                                    />  
+                                }else if(isProject(item)){
+                                    return <div 
                                     key={`${item._id}-${idx}`}
-                                    id={item._id}
-                                    groupTodos={this.props.groupTodos}
-                                    scrolledTodo={this.props.scrolledTodo}
-                                    moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                                    projects={this.props.projects}  
-                                    dispatch={dispatch}  
-                                    selectedProjectId={this.props.selectedProjectId}
-                                    selectedAreaId={this.props.selectedAreaId} 
-                                    selectedCategory={this.props.selectedCategory}  
-                                    rootRef={this.props.rootRef}  
-                                    todo={item as Todo}
-                                />  
-                            }else if(isProject(item)){
-                                return <div 
-                                key={`${item._id}-${idx}`}
-                                style={{
-                                    display:"flex",
-                                    flexDirection:"column",
-                                    width:"100%",
-                                    paddingLeft:"4px"
-                                }}>   
-                                    <div style={{marginTop:"5px", marginBottom:"5px"}}>
-                                        <ProjectLink 
-                                            project={item} 
-                                            indicator={defaultTo({completed:0, active:0})(this.props.indicators[item._id])}
-                                            showMenu={false}
-                                            dispatch={this.props.dispatch}
-                                            selectedCategory={this.props.selectedCategory}
-                                        />  
-                                    </div>  
-                                </div> 
-                            }else{
-                                return null;
+                                    style={{
+                                        display:"flex",
+                                        flexDirection:"column",
+                                        width:"100%",
+                                        paddingLeft:"4px"
+                                    }}>   
+                                        <div style={{marginTop:"5px", marginBottom:"5px"}}>
+                                            <ProjectLink 
+                                                project={item} 
+                                                indicator={defaultTo({completed:0, active:0})(this.props.indicators[item._id])}
+                                                showMenu={false}
+                                                dispatch={this.props.dispatch}
+                                                selectedCategory={this.props.selectedCategory}
+                                            />  
+                                        </div>  
+                                    </div> 
+                                }else{
+                                    return null;
+                                }
                             }
-                        }
-                    )
+                        )
                     } 
                     </ExpandableList>
                     </div>

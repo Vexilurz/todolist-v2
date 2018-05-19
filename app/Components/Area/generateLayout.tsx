@@ -19,9 +19,9 @@ export let generateLayout = (
         (areas) => areas.map(
             (area) => compose(
                 prepend(area),
-                (projects) => projects.sort((a,b) => a.priority-b.priority),
+                projects => projects.sort((a,b) => a.priority-b.priority),
                 defaultTo([]),
-                (key) => table[key],
+                key => table[key],
                 prop('_id')
             )(area)
         ),

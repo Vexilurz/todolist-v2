@@ -42,6 +42,7 @@ import { byTime } from '../../../utils/byTime';
 import { detectChanges } from '../../../database/detectChanges'
 
 
+
 interface UpcomingDefaultProps{
     limit:Date, 
     hideHint:boolean,
@@ -81,8 +82,7 @@ interface UpcomingDefaultProps{
  
 
 
-interface UpcomingDefaultState{
-}
+interface UpcomingDefaultState{}
 
 
 
@@ -189,7 +189,7 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
 
   
 
-    getObjects = (props:UpcomingDefaultProps,n:number) : CalendarObject[] => {  
+    getObjects = (n:number) => (props:UpcomingDefaultProps) : CalendarObject[] => {  
         let { limit, dispatch } = this.props;
         let objectsByDate = objectsToHashTableByDate(props); 
         let range = getDatesRange(new Date(), n, true, true); 
@@ -210,6 +210,7 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
         let projects = flattenObjects("projects")(objects);
         let events = flattenObjects("events")(objects);
 
+        if(all(isEmpty)([todos,projects,events])){ return null; }
         
         let sortedItems = compose(reverse, items => items.sort(compareByDate(getDate)), concat(todos))(projects);
     
@@ -250,6 +251,8 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
         let projects = flattenObjects("projects")(objects);
         let events = flattenObjects("events")(objects);
 
+        if(all(isEmpty)([todos,projects,events])){ return null; }
+
         let sortedItems = compose(reverse, items => items.sort(compareByDate(getDate)), concat(todos))(projects);
     
         let sortedEvents = events.sort(byTime);
@@ -283,7 +286,10 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
         let { todos, projects, events, date } = object;
         let day = date.getDate();
 
-        return <div key={`day-${idx}`} style={{WebkitUserSelect:"none"}}>
+        
+
+        return all(isEmpty)([todos,projects,events]) ? null :
+        <div key={`day-${idx}`} style={{WebkitUserSelect:"none"}}>
             <CalendarDay 
                 day={day}  
                 indicators={this.props.indicators}
@@ -308,7 +314,7 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
     };
     
 
-
+    
     getHint = () => {
         return this.props.clone ? null :
         this.props.hideHint ? null :
@@ -325,15 +331,9 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
 
     render(){ 
         let {todos,projects,selectedTags,dispatch,selectedCategory,clone} = this.props;
-        let removeEmptyObjects =  objects => objects.filter(
-            object => any(isNotEmpty)([object.todos,object.projects,object.events])
-        );
         let tags = getTagsFromItems({...todos});
-        let objects = this.getObjects({...this.props} as any, 150);
+        let { days, weeks, months } = compose( generateUpcomingSequence(7, 3, 5), this.getObjects(150) )(this.props);
         
-        let { days, weeks, months } = generateUpcomingSequence(7, 3, 5)(objects); 
-
-
         return <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}> 
                 <div style={{paddingBottom:"20px"}}>
                     <ContainerHeader 

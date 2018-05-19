@@ -95,7 +95,8 @@ export interface TodoInputProps{
     id : string,  
     onOpen? : Function,
     onClose? : Function,
-    showCompleted? : boolean
+    showCompleted? : boolean,
+    showDueDate? : boolean
 }    
 
 
@@ -921,6 +922,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                     deadline={deadline}
                     title={title}
                     haveNote={compose(isNotEmpty, getNotePlainText)(this.state.editorState)}
+                    showDueDate={this.props.showDueDate}
                 />  
                 {    
                     not(open) ? null :    

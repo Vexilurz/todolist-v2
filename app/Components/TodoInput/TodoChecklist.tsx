@@ -144,7 +144,6 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
 
     getCheckListItem = (value:ChecklistItem, index:number) => { 
-
         let style = {display:"flex", alignItems:"center", paddingTop:"4px"} as any;
 
         let checkedStyle = {
@@ -304,29 +303,7 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
 
 
 
-    getChecklistIndicator = (checklist:ChecklistItem[]) : {done:number, left:number, count:number} => {
-
-        return checklist.reduce(
-            (indicator,item:ChecklistItem) => {
-                indicator.count += 1;
-
-                if(item.checked){
-                    indicator.done += 1;
-                }else{
-                    indicator.left += 1;
-                }
-
-                return indicator;
-            }, 
-            { done:0, left:0, count:0 }
-        )
-    };
-
-
-
     render(){  
-        let indicator = this.getChecklistIndicator(this.props.checklist); 
-
         return <div  
             ref={e => {this.ref=e;}}
             style={{
@@ -337,23 +314,6 @@ export class Checklist extends Component<ChecklistProps,ChecklistState>{
             }}
             onClick={(e) => {e.stopPropagation();}}  
         >    
-            <div 
-                style={{
-                    borderRadius:"25px",
-                    width:"24px",
-                    height:"24px",
-                    fontSize:"11px",
-                    //marginLeft:"-22px",
-                    color:"white",
-                    fontWeight:"bold",
-                    backgroundColor:"rgba(40,100,180,0.5)",
-                    display:"flex",
-                    alignItems:"center",
-                    justifyContent:"center"               
-                }}
-            >
-                {`${indicator.done}/${indicator.count}`}
-            </div>
             <SortableContainer
                 items={this.props.checklist}
                 scrollableContainer={document.body}

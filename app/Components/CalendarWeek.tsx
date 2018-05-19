@@ -92,8 +92,6 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
        
 
         return <div style={{display:"flex", flexDirection:"column", WebkitUserSelect:"none"}}>  
-
-
                 <div 
                     style={{
                         WebkitUserSelect: "none", 
@@ -118,8 +116,6 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
                         >{this.props.range}</div>
                     </div>
                 </div>
-
-
                 <div>
                 {
                     noEvents ? null :  
@@ -166,7 +162,6 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
                         } 
                     </div>
                 }
-
                 {   
                     noItems ? null :
                     <div style={{marginLeft:"-22px"}}>
@@ -193,6 +188,7 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
                                     selectedCategory={this.props.selectedCategory}  
                                     rootRef={this.props.rootRef}  
                                     todo={item as Todo}
+                                    showDueDate={true}
                                 />  
                             }else if(isProject(item)){
                                 return <div 
