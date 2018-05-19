@@ -114,11 +114,13 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                             <div        
                                 className="scrollAuto"
                                 style={{ 
-                                    maxHeight:`${window.innerHeight*0.8}px`,
+                                    maxHeight:`${window.innerHeight*0.7}px`,
                                     WebkitUserSelect:"none",   
-                                    backgroundColor:"rgb(248, 248, 248)"  
+                                    backgroundColor:"rgb(248, 248, 248)",
+                                    paddingBottom:"5px"  
                                 }}      
                             >   
+
 
                                 <CategoryPicker 
                                     dragged={this.props.dragged} 
@@ -131,7 +133,6 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                                     trash={this.props.amounts.trash}
                                     id={this.props.id}
                                 />
-
                                 <StaticAreasList 
                                     dispatch={this.props.dispatch}
                                     leftPanelWidth={this.props.leftPanelWidth}
@@ -145,7 +146,11 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                                     id={this.props.id} 
                                 />
 
-                                <SearchSuggestions {...{} as any}/>
+
+
+
+
+                                {/*<SearchSuggestions {...{} as any}/>*/}
 
                             </div>
                         </div>

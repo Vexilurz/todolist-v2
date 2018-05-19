@@ -18,7 +18,7 @@ import {
 import { filter } from 'lodash';
 import { AutoresizableText } from '../AutoresizableText';
 import { assert } from '../../utils/assert';
-import { isArea, isProject, isNotArray } from '../../utils/isSomething';
+import { isArea, isProject, isNotArray, isNotNil } from '../../utils/isSomething';
 import { arrayMove } from '../../utils/arrayMove';
 import { SortableContainer } from '../CustomSortableContainer';
 import { isDev } from '../../utils/isDev';
@@ -26,10 +26,11 @@ import { groupProjectsByArea } from '../Area/groupProjectsByArea';
 import { generateLayout } from '../Area/generateLayout';
 import { uppercase } from '../../utils/uppercase';
 import { ipcRenderer } from 'electron';
-const mapIndexed = addIndex(map);
+import { Separator } from './Separator';
+import Checked from 'material-ui/svg-icons/navigation/check';
+
 const isSeparator = (item) => item.type==="separator"; 
-
-
+let wrapSeparator = (element) => <div> <div><Separator/></div> {element} </div>;
 
 interface StaticAreasListProps{   
     dispatch:Function,
@@ -51,13 +52,9 @@ interface StaticAreasListProps{
 }  
 
 
+
 interface StaticAreasListState{} 
 
-
-interface Separator{ type:string, _id:string }; 
- 
-
-type LayoutItem = Project | Area | Separator;  
 
 
 export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasListState>{
@@ -79,6 +76,7 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
             type:"multiple",
             load:[
                 {type:"selectedAreaId",load:area._id}, 
+                {type:"selectedProjectId",load:null},
                 {type:"showProjectMenuPopover",load:false}, 
                 {type:"selectedCategory",load:"area"},
                 {type:"selectedTags",load:["All"]},
@@ -100,6 +98,7 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
             type:"multiple",
             load:[
                 {type:"selectedProjectId",load:p._id},
+                {type:"selectedAreaId",load:null}, 
                 {type:"showProjectMenuPopover",load:false}, 
                 {type:"selectedCategory",load:"project"},
                 {type:"selectedTags",load:["All"]},
@@ -110,12 +109,12 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
     
 
 
-    getAreaElement = (a : Area, index : number, hideAreaPadding : boolean) : JSX.Element => {
+    getAreaElement = (a:Area, index : number) : JSX.Element => {
         return <AreaElement 
             area={a}
             index={index} 
             selectArea={this.selectArea}
-            containerWidth={300} //TODO FIX
+            containerWidth={1} //to prevent rerender  
             selectedAreaId={this.props.selectedAreaId}
             selectedCategory={this.props.selectedCategory}
         />
@@ -128,7 +127,7 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
             indicator={defaultTo({completed:0,active:0})(this.props.indicators[p._id])}
             project={p} 
             index={index}
-            containerWidth={300} //TODO FIX
+            containerWidth={1}
             selectProject={this.selectProject}
             selectedProjectId={this.props.selectedProjectId}
             selectedCategory={this.props.selectedCategory}
@@ -137,27 +136,18 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
     
     
  
-    getElement = (value : LayoutItem, index : number, hideAreaPadding : boolean) : JSX.Element => 
+    getElement = (value, index : number) : JSX.Element => 
         cond([
             [
                 typeEquals("area"),
                 (value) => <div key={`key-${value._id}`} id={value._id}>
-                    {this.getAreaElement(value as any, index, hideAreaPadding)}
+                    {this.getAreaElement(value, index)}
                 </div>
             ],
             [
                 typeEquals("project"),
                 (value) => <div key={`key-${value._id}`} id={value._id}>
-                    {this.getProjectElement(value as any, index)}
-                </div>
-            ],
-            [
-                typeEquals("separator"),
-                (value) => <div 
-                    key={`key-${value._id}`} 
-                    id={value._id} 
-                    style={{outline:"none",width:"100%",height:"1px"}}
-                >
+                    {this.getProjectElement(value, index)}
                 </div>
             ],
             [   () => true, () => null  ]
@@ -175,17 +165,28 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
         let hideAreaPadding = true; 
         let detachedEmpty = isEmpty(detached);
 
+        /*
+            import { ExpandableList } from './../ExpandableList';
+            <ExpandableList
+                showAll={false}
+                minLength={5}
+                buttonOffset={0}
+                type={"events"}   
+            >
+            </ExpandableList>
+        */
 
-        return <div   
-            id="areas"
-            style={{userSelect:"none",paddingRight:"5px",paddingLeft:"5px",paddingTop:"5px",paddingBottom:"40px"}}   
-        >     
+        return <div style={{userSelect:"none", paddingLeft:"5px", paddingRight:"5px"}}>     
                 {
                     layout.map( 
                         (item,index) => {
-                            let element = this.getElement(item,index,hideAreaPadding && detachedEmpty);
-                            if(isArea(item as Area)){ hideAreaPadding = false; }  
-                            return element;
+                            let element = this.getElement(item,index);
+
+                            if(isArea(item)){ 
+                               return wrapSeparator(element);
+                            }else{
+                               return element; 
+                            }
                         }
                     )
                 }
@@ -193,17 +194,6 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
     }
 };
 
-/*
-import { ExpandableList } from './../ExpandableList';
-
-<ExpandableList
-    showAll={false}
-    minLength={5}
-    buttonOffset={0}
-    type={"events"}   
->
-</ExpandableList>
-*/
 
 
 interface AreaElementProps{
@@ -215,9 +205,13 @@ interface AreaElementProps{
     selectedCategory:Category
 } 
 
+
+
 interface AreaElementState{
     highlight:boolean
 } 
+
+
 
 class AreaElement extends Component<AreaElementProps,AreaElementState>{
     ref:HTMLElement;
@@ -262,34 +256,23 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                 style={{  
                     borderRadius:selected ? "5px" : "0px", 
                     backgroundColor:selected ? "rgba(228,230,233,1)" : "",  
-                    height:"25px", 
+                    height:"20px", 
                     display:"flex",  
+                    paddingTop:"3px",
+                    paddingBottom:"3px",
+                    paddingLeft:"8px",
                     alignItems:"center" 
                 }}
             >      
-                <IconButton  
-                    style={{ 
-                        width:"20px", 
-                        height:"20px", 
-                        padding:"0px",
-                        display:"flex", 
-                        alignItems:"center", 
-                        justifyContent:"center"
-                    }}    
-                    iconStyle={{ 
-                        color:"rgba(109,109,109,0.7)", 
-                        width:"20px", 
-                        height:"20px" 
-                    }}   
-                >      
-                    <NewAreaIcon style={{width:"20px",height:"20px"}}/> 
-                </IconButton>  
+                <NewAreaIcon style={{color:"rgba(109, 109, 109, 0.7)", width:"18px", height:"18px"}}/> 
+
                 <div style={{ 
+                    display:'flex',
                     width:"100%",
                     fontFamily:"sans-serif",
                     fontSize:"15px",    
                     cursor:"default", 
-                    paddingLeft:"5px", 
+                    paddingLeft:"3px", 
                     WebkitUserSelect:"none",
                     fontWeight:"bolder", 
                     color:"rgba(0, 0, 0, 0.8)" 
@@ -303,6 +286,20 @@ class AreaElement extends Component<AreaElementProps,AreaElementState>{
                         style={{}}
                         placeholderStyle={{}}
                     />
+                    {
+                        this.props.area._id===this.props.selectedAreaId ?
+                        <div style={{paddingRight:"8px"}}>
+                            <Checked 
+                                style={{
+                                    color:"rgb(56, 115, 207)",  
+                                    width:"15px", 
+                                    height:"15px"
+                                }}
+                            />
+                        </div>
+                        :
+                        null
+                    }
                 </div>  
             </div> 
         </li>
@@ -321,9 +318,12 @@ interface ProjectElementProps{
     indicator:{active:number,completed:number,deleted:number}
 }
 
+
+
 interface ProjectElementState{ 
     highlight:boolean
 } 
+
 
  
 class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
@@ -358,16 +358,18 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                     backgroundColor:this.state.highlight ? "rgba(0,200,0,0.3)" :
                                     selected ? "rgba(228,230,233,1)" : 
                                     "",   
-                    height:"25px",  
-                    paddingLeft:"4px",   
+                    height:"20px",  
+                    paddingLeft:"8px",   
+                    paddingBottom:"3px",
+                    paddingTop:"3px",
                     display:"flex",
                     alignItems:"center"  
                 }} 
             >     
                     <div style={{    
                         transform:"rotate(270deg)", 
-                        width:"18px",
-                        height:"18px",
+                        width:"16px",
+                        height:"16px",
                         position:"relative",
                         borderRadius:"100px",
                         display:"flex",
@@ -377,8 +379,8 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                         boxSizing:"border-box" 
                     }}> 
                         <div style={{
-                            width:"18px",
-                            height:"18px",
+                            width:"16px",
+                            height:"16px",
                             display:"flex",
                             alignItems:"center",
                             justifyContent:"center",
@@ -405,6 +407,7 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                         style={{  
                             width:"100%",
                             paddingLeft:"5px",
+                            display:"flex",
                             fontFamily: "sans-serif",
                             fontSize:`15px`,  
                             whiteSpace: "nowrap",
@@ -421,6 +424,20 @@ class ProjectElement extends Component<ProjectElementProps,ProjectElementState>{
                             offset={45} 
                             placeholderStyle={{}}
                         />
+                        {
+                            this.props.project._id===this.props.selectedProjectId ?
+                            <div style={{paddingRight:"8px"}}>
+                                <Checked 
+                                    style={{
+                                        color:"rgb(56, 115, 207)",  
+                                        width:"15px", 
+                                        height:"15px"
+                                    }}
+                                />
+                            </div>
+                            :
+                            null
+                        }
                     </div>    
             </div>
         </li>  

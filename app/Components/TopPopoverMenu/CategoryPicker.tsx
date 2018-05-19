@@ -15,14 +15,16 @@ import { anyTrue, different } from '../../utils/utils';
 import { uppercase } from '../../utils/uppercase';
 import { ipcRenderer } from 'electron'; 
 import Checked from 'material-ui/svg-icons/navigation/check';
- 
+import { Separator } from './Separator'; 
+
 
 let Hot = (hot:number) : JSX.Element => 
     hot===0 ? null :
     <div style={{ 
         display: "flex", 
         alignItems: "center",
-        height: "18px",
+        height: "16px",
+        fontSize: "14px",
         width: "auto",
         borderRadius: "10px", 
         backgroundColor: "rgb(239, 80, 120)",
@@ -45,11 +47,12 @@ let Hot = (hot:number) : JSX.Element =>
 let Counter = (counter:number) : JSX.Element =>
     counter===0 ? null :    
     <div style={{
-        height: "100%",
         display: "flex", 
         alignItems: "center",
         paddingRight: "5px",   
         paddingLeft: "5px", 
+        height: "16px",
+        fontSize: "14px",
         fontWeight: 700,
         color:"rgba(100, 100, 100, 0.6)" 
     }}>
@@ -121,10 +124,6 @@ class CategoryPickerItem extends Component<CategoryPickerItemProps,CategoryPicke
         let style = {    
             position:"relative",
             height: "15px",  
-            borderRadius: !this.state.highlight ? "0px" : "3px", 
-            backgroundColor: !this.state.highlight ? "" : 
-                              this.props.category==="trash" ? "rgba(200,0,0,0.3)" : 
-                              "rgba(0,200,0,0.3)", 
             display: "flex",
             margin: "3px",
             padding: "4px",
@@ -134,8 +133,6 @@ class CategoryPickerItem extends Component<CategoryPickerItemProps,CategoryPicke
         let selected = this.props.selected;    
         
         return <div   
-            onMouseMove={this.onMouseOver} 
-            onMouseOut={this.onMouseLeave}    
             className={this.props.selected ? `` : `dropdownmenuitem`}  
             onClick={this.props.onClick}   
             id={this.props.category}    
@@ -169,37 +166,23 @@ class CategoryPickerItem extends Component<CategoryPickerItemProps,CategoryPicke
                   alignItems:"center",
                   flexGrow:1,
                   justifyContent:"flex-end"
-                }}>         
+                }}>  
+                    { 
+                        !selected ? null : 
+                        <div style={{display:"flex",alignItems:"center",justifyContent:"center",paddingRight:"5px"}}>
+                            <Checked style={{color:"rgb(56, 115, 207)",  width:"15px", height:"15px"}}/>
+                        </div> 
+                    }       
                     {   isNil(hot) ? null : Hot(hot)   }  
                     { 
                         isNil(counter) || not(showCounter) ? null : 
                         isNil(hot) ? Counter(counter) :
                         Counter(counter)  
                     } 
-                    { 
-                        !selected ? null : 
-                        <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
-                            <Checked style={{color:"rgb(56, 115, 207)", width:"15px", height:"15px"}}/>
-                        </div> 
-                    }
                 </div>
             } 
         </div> 
     }   
-}
-
-
-
-class Separator extends Component<{},{}>{
-    render(){ 
-        return <div style={{
-            outline:"none",
-            position:"relative",
-            width:"100%",
-            height:"5px",
-            borderBottom:"1px solid rgba(220,220,220,1)"
-        }}></div>
-    } 
 }
 
 
@@ -228,30 +211,6 @@ export class CategoryPicker extends Component<CategoryPickerProps,CategoryPicker
         super(props);
     }
 
-
-
-    shouldComponentUpdate(nextProps:CategoryPickerProps){
-        let {
-            dragged, 
-            selectedCategory,
-            inbox,
-            today,
-            hot,
-            logbook,
-            trash
-        } = nextProps; 
-
-
-        let should = dragged!==this.props.dragged ||
-                     selectedCategory!==this.props.selectedCategory ||
-                     inbox!==this.props.inbox ||
-                     today!==this.props.today ||
-                     hot!==this.props.hot ||
-                     logbook!==this.props.logbook ||
-                     trash!==this.props.trash;
-
-        return should;                
-    };
 
     
     onClick = (title:string) => () => {
