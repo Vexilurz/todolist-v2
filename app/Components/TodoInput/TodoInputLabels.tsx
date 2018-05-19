@@ -117,10 +117,12 @@ export class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLab
             open,
             category,
             attachedDate,
-            deadline
+            deadline,
+            reminder
         } = nextProps; 
 
-        return different(deadline,this.props.deadline) ||
+        return different(reminder,this.props.reminder) ||
+               different(deadline,this.props.deadline) ||
                different(attachedDate,this.props.attachedDate) ||
                category!==this.props.category ||
                open!==this.props.open ||
@@ -144,7 +146,30 @@ export class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLab
                 alignItems:"center"
             }}>
                 <div>{title}</div>
-                {icon}
+                <div style={{paddingLeft:"5px",paddingRight:"5px"}}>{icon}</div>
+                <div>{reminder.toLocaleTimeString([], opt)}</div>
+            </div>    
+        }
+    };
+
+
+
+    getWhenLabelContent = () => {
+        let { reminder } = this.props;
+        let title = <div>When : {moment(this.props.attachedDate).format('MMMM D')}</div>;
+        let opt = {hour: '2-digit', minute:'2-digit'};
+        
+
+        if(isNil(reminder)){
+            return title;
+        }else{
+            return <div style={{
+                display:"flex",
+                justifyContent:"center",
+                alignItems:"center"
+            }}>
+                <div>{title}</div>
+                <div style={{paddingLeft:"5px",paddingRight:"5px"}}>{icon}</div>
                 <div>{reminder.toLocaleTimeString([], opt)}</div>
             </div>    
         }
@@ -205,7 +230,7 @@ export class TodoInputLabels extends Component<TodoInputLabelsProps,TodoInputLab
                         category={"upcoming"}
                         content={
                             <div style={{marginLeft:"5px", color:"black"}}>
-                                When : {moment(this.props.attachedDate).format('MMMM D')} 
+                                { this.getWhenLabelContent() }
                             </div>    
                         }  
                     />    

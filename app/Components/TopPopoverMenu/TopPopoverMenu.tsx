@@ -92,8 +92,13 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
         }}> 
             <div>
                 <ToggleTopMenuButton 
+                   collapsed={this.props.collapsed}
                    toggled={this.state.showMenu} 
-                   onClick={(e) => this.setState({showMenu:!this.state.showMenu})} 
+                   onClick={(e) => {
+                       e.stopPropagation(); 
+                       e.nativeEvent.stopImmediatePropagation();
+                       this.setState({showMenu:!this.state.showMenu});
+                   }} 
                    setRef={(e) => { this.anchor=e; }} 
                    title={this.props.selectedCategory}       
                 />

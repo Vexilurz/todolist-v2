@@ -105,7 +105,7 @@ export class CalendarDay extends Component<CalendarDayProps,CalendarDayState>{
                     </div> 
                 </div>   
 
-                <div>
+                <div style={{marginLeft:"-42px"}}>
                 {
                     noEvents ? null :  
                     <div style={{

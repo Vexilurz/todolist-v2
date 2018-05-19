@@ -851,8 +851,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
            flagColor = daysLeft <= 1 ? "rgba(200,0,0,0.7)" : "rgba(100,100,100,0.7)";
         }     
 
-        let shouldHighlightOnHover = not(open); // && selectedCategory!=="logbook" && selectedCategory!=="trash";
-
+        let shouldHighlightOnHover = not(open); 
+        
         return <div        
             id={id}    
             onKeyDown={this.onWindowEnterPress}  

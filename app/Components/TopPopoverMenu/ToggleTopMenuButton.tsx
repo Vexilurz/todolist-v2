@@ -31,6 +31,7 @@ import { uppercase } from '../../utils/uppercase';
 interface ToggleTopMenuButtonProps{
     setRef:(e:any) => void,
     onClick:(e:any) => void,
+    collapsed:boolean,
     toggled:boolean,
     title:string,
 }
@@ -51,7 +52,9 @@ export class ToggleTopMenuButton extends Component<ToggleTopMenuButtonProps,Togg
             ref={this.props.setRef}
             style={{
                 padding:"5px",
-                border:this.props.toggled ? "none" : "1px solid rgba(150,150,150,0.1)",
+                transition: "opacity 0.2s ease-in-out", 
+                opacity:this.props.collapsed ? 1 : 0,
+                border:this.props.toggled ? "1px solid rgba(150,150,150,0)" : "1px solid rgba(150,150,150,0.1)",
                 backgroundColor:this.props.toggled ? "rgba(100,100,100,0.1)" : "white",
                 borderRadius:"5px",
                 height:"15px",

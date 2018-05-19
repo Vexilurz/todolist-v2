@@ -371,7 +371,25 @@ export class App extends Component<AppProps,AppState>{
         return <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001} as any}>  
             <div style={{display:"flex",width:"inherit",height:"inherit"}}>
                 { 
-                    this.props.clone ? null :  
+                    !this.props.collapsed ? null :
+                    <TopPopoverMenu 
+                        dispatch={this.props.dispatch}
+                        collapsed={this.props.collapsed}
+                        selectedCategory={this.props.selectedCategory}
+                        searchQuery={this.props.searchQuery} 
+                        leftPanelWidth={this.props.leftPanelWidth}
+                        openNewProjectAreaPopup={this.props.openNewProjectAreaPopup}
+                        projects={this.props.projects}
+                        areas={this.props.areas}
+                        amounts={this.state.amounts}
+                        indicators={this.state.indicators}
+                        dragged={this.props.dragged}
+                        selectedProjectId={this.props.selectedProjectId}
+                        selectedAreaId={this.props.selectedAreaId}
+                        id={this.props.id}
+                    /> 
+                }
+                {    
                     <LeftPanelMenu 
                         dispatch={this.props.dispatch}
                         collapsed={this.props.collapsed}
@@ -388,24 +406,6 @@ export class App extends Component<AppProps,AppState>{
                         selectedAreaId={this.props.selectedAreaId}
                         id={this.props.id}
                     />  
-                }  
-                {
-                    <TopPopoverMenu 
-                        dispatch={this.props.dispatch}
-                        collapsed={this.props.collapsed}
-                        selectedCategory={this.props.selectedCategory}
-                        searchQuery={this.props.searchQuery} 
-                        leftPanelWidth={this.props.leftPanelWidth}
-                        openNewProjectAreaPopup={this.props.openNewProjectAreaPopup}
-                        projects={this.props.projects}
-                        areas={this.props.areas}
-                        amounts={this.state.amounts}
-                        indicators={this.state.indicators}
-                        dragged={this.props.dragged}
-                        selectedProjectId={this.props.selectedProjectId}
-                        selectedAreaId={this.props.selectedAreaId}
-                        id={this.props.id}
-                    />
                 }
                 <MainContainer 
                     dispatch={this.props.dispatch} 
@@ -441,10 +441,7 @@ export class App extends Component<AppProps,AppState>{
             </div>   
             {
                 !this.props.showTrashPopup ? null :    
-                <TrashPopup  
-                    dispatch={this.props.dispatch}
-                    showTrashPopup={this.props.showTrashPopup}
-                />
+                <TrashPopup dispatch={this.props.dispatch} showTrashPopup={this.props.showTrashPopup}/>
             }
             { 
                 this.props.clone ? null : 
@@ -492,14 +489,9 @@ export class App extends Component<AppProps,AppState>{
             { 
                 this.props.clone ? null : 
                 !this.props.showLicense ? null :
-                <LicensePopup 
-                    dispatch={this.props.dispatch}
-                    showLicense={this.props.showLicense}
-                />
+                <LicensePopup dispatch={this.props.dispatch} showLicense={this.props.showLicense}/>
             }
-            {
-                !this.props.import ? null : <ImportPopup {...{} as any}/>
-            }
+            {  !this.props.import ? null : <ImportPopup {...{} as any}/>  }
         </div>  
     }           
 };    

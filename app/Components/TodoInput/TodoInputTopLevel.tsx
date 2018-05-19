@@ -287,30 +287,25 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                                     </div>
                                 </div>
                             }
-                            {   
-                                isNil(checklist) || isEmpty(checklist) ? null : 
-                                <div style={{
-                                    paddingRight:"4px",
-                                    paddingTop:"1px",
-                                    display:"flex",
-                                    alignItems:"center",
-                                    height:"20px"
-                                }}>
-                                    <ChecklistIcon style={{width:15,height:15,color:"rgba(200,200,200,1)"}}/>
-                                </div>
-                            } 
                             {
                                 isNil(checklist) || isEmpty(checklist) ? null :
-                                
                                 <div style={{display:"flex", alignItems:"center"}}>
+                                <div style={{
+                                    display:"flex", 
+                                    alignItems:"center", 
+                                    height:"15px",
+                                    borderRadius:"10px", 
+                                    backgroundColor:"rgba(200,200,200,1)"
+                                }}>
+                                    <Checked style={{color:"white",height:"14px",width:"14px", paddingLeft:"3px"}}/> 
                                     <div 
                                         style={{
-                                            borderRadius:"15px",
+                                            paddingRight:"3px",
+                                            borderRadius:"15px", 
                                             width:"15px",
                                             height:"15px",
                                             fontSize:"8px",
                                             color:"white",
-                                            backgroundColor:"rgba(200,200,200,1)",
                                             display:"flex",
                                             alignItems:"center",
                                             justifyContent:"center"               
@@ -318,6 +313,7 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                                     >
                                         {`${indicator.done}/${indicator.count}`}
                                     </div>
+                                </div>
                                 </div>
                             }
                             {

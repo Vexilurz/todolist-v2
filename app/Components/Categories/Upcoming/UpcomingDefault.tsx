@@ -217,10 +217,10 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
         let sortedEvents = events.sort(byTime);
         let { month, range } = getWeekTitle(objects);
     
-        return <div key={`month-${idx}`} style={{WebkitUserSelect:"none"}}>
+        return <div key={`month-${idx}`} style={{WebkitUserSelect:"none", paddingTop:"3px", paddingBottom:"3px"}}>
             <CalendarMonth
                 month={month}
-                indicators={this.props.indicators}
+                indicators={this.props.indicators} 
                 filters={this.props.filters}
                 groupTodos={this.props.groupTodos}
                 sortedItems={sortedItems}
@@ -258,7 +258,7 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
         let sortedEvents = events.sort(byTime);
         let { month, range } = getWeekTitle(objects);
     
-        return <div key={`week-${idx}`} style={{WebkitUserSelect:"none"}}>
+        return <div key={`week-${idx}`} style={{WebkitUserSelect:"none", paddingTop:"3px", paddingBottom:"3px"}}>
             <CalendarWeek
                 month={month}
                 range={range}
@@ -289,7 +289,7 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
         
 
         return all(isEmpty)([todos,projects,events]) ? null :
-        <div key={`day-${idx}`} style={{WebkitUserSelect:"none"}}>
+        <div key={`day-${idx}`} style={{WebkitUserSelect:"none", paddingTop:"3px", paddingBottom:"3px"}}>
             <CalendarDay 
                 day={day}  
                 indicators={this.props.indicators}

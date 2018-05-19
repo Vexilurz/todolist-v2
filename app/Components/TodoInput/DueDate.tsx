@@ -133,7 +133,8 @@ export class DueDate extends Component<DueDateProps,{}>{
 
         //if has date and not completed    
         }else if(
-            showDueDate ||
+            (showDueDate && isDate(date))  
+            ||
             (
                 isNotNil(date) && isNil(completed) &&
                 (

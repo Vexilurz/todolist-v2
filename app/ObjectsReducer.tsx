@@ -7,7 +7,7 @@ import {
 } from './utils/utils';
 import { 
     adjust, cond, all, isEmpty, contains, not, remove, uniq, assoc, reverse, 
-    findIndex, splitAt, last, assocPath, isNil, and, complement, compose, 
+    findIndex, splitAt, last, assocPath, isNil, and, complement, compose, add, 
     reject, concat, map, when, find, prop, ifElse, identity, path, equals, 
     allPass, evolve, pick, defaultTo  
 } from 'ramda'; 
@@ -178,17 +178,30 @@ export let objectsReducer = (state:Store, action:action) : Store => {
             [
                 typeEquals("removeGroupAfterDate"),
                 (action:{type:string, load:Todo}) : Store => {
+                    let containsSingleElement = list => {
+                        if(list){
+                           return list.length===1; 
+                        }else{
+                           return false; 
+                        }
+                    };
+
+
+
                     let compareByAttachedDate = compareByDate((todo:Todo) => todo.attachedDate);
                     let todo : Todo = action.load;
                     let group = prop('group', todo);
 
                     
+                    
                     if(isNil(group) || isNil(todo) || !isDate(todo.attachedDate)){ return }
+
 
  
                     let [todosToUpdate, todosToRemove] : Todo[][] = compose(
                         (todos:Todo[]) => compose( 
                             (idx:number) => splitAt(idx)(todos), 
+                            add(1),
                             findIndex((t:Todo) => t._id===todo._id) 
                         )(todos), 
                         reverse, //from past -> to future
@@ -197,24 +210,34 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                         prop('_id')
                     )(group);
 
-
+                    let until = compose(prop('attachedDate'), last)(todosToUpdate);
                     let todosToRemoveIds = todosToRemove.map((t:Todo) => t._id);
                     let todosToUpdateIds = todosToUpdate.map((t:Todo) => t._id);
-                    let until = compose(prop('attachedDate'), last)(todosToUpdate);
+
+
 
                     let todos : Todo[] = compose(
-                        when(
-                            () => path(['group','options','selectedOption'], todo) !== 'after',
-                            map(
-                                when(
-                                    (t:Todo) => contains(t._id)(todosToUpdateIds) && isDate(until), 
-                                    compose(
-                                        assocPath(['group', 'options', 'until'], until),
-                                        assocPath(['group', 'options', 'selectedOption'], 'on'),
-                                        assocPath(['group', 'type'], 'on')
+                        ifElse(
+                            () => containsSingleElement(todosToUpdate),
+                            //only one todo left in series
+                            (todos) => {
+                                let id = todosToUpdateIds[0];
+                                let index = findIndex((t:Todo) => todo._id===t._id, todos);
+                                return adjust(todo => assoc('group', null, todo), index, todos);
+                            }, 
+                            when(
+                                () => path(['group','options','selectedOption'], todo) !== 'after', //on, never 
+                                map(
+                                    when(
+                                        (t:Todo) => contains(t._id)(todosToUpdateIds) && isDate(until), 
+                                        compose(
+                                            assocPath(['group', 'options', 'until'], until),
+                                            assocPath(['group', 'options', 'selectedOption'], 'on'),
+                                            assocPath(['group', 'type'], 'on')
+                                        )
                                     )
-                                )
-                            ) 
+                                ) 
+                            )
                         ),
                         reject((t:Todo) => contains(t._id)(todosToRemoveIds))
                     )(state.todos);

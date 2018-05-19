@@ -520,31 +520,36 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                     <WhenCalendar {...{} as any}/>  
                 }
                 <div style={{display:"flex",padding:"10px"}}>   
-                    <div 
-                      style={{
+                    <div style={{
                         display:"flex", 
                         zIndex:20000,
                         alignItems:"center", 
                         position:"fixed", 
                         top:0,  
                         right:"15px"
-                      }}
-                    >  
+                    }}>  
                         { 
                             this.props.clone ? null :
                             <IconButton  
-                                iconStyle={{color:"rgba(100,100,100,0.6)",height:"22px",width:"22px"}} 
+                                iconStyle={{
+                                    color:"rgba(100,100,100,0.6)",
+                                    paddingBottom:"5px",
+                                    paddingTop:"5px"
+                                }} 
                                 onClick={this.printCurrentList}
                             > 
                                 <Print />   
                             </IconButton>   
                         } 
-                        
                         {     
                             this.props.clone ? null :
                             this.state.separateWindowsCount>this.maxSepWindows ? null :
                             <IconButton    
-                                iconStyle={{color:"rgba(100,100,100,0.6)",width:"18px",height:"18px"}}
+                                iconStyle={{
+                                    color:"rgba(100,100,100,0.6)",
+                                    paddingBottom:"5px",
+                                    paddingTop:"5px"
+                                }}
                                 onClick={this.props.cloneWindow}   
                                 disabled={this.state.separateWindowsCount>this.maxSepWindows}
                             >     
