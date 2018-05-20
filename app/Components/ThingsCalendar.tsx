@@ -492,10 +492,7 @@ export class CalendarFooter extends Component<CalendarFooterProps,CalendarFooter
                                 color:"white",  
                                 backgroundColor:"rgb(157, 157, 157)"
                             }} 
-                            buttonStyle={{  
-                                color:"white",  
-                                backgroundColor:"rgb(157, 157, 157)"
-                            }}
+                            buttonStyle={{color:"white", backgroundColor:"rgb(157, 157, 157)"}}
                         >
                             Clear 
                         </RaisedButton>

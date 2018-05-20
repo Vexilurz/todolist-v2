@@ -1,7 +1,10 @@
 import { isNil } from 'ramda';
 const storage = require('electron-json-storage');
 const os = require('os');
-storage.setDataPath(os.tmpdir());
+const path = require("path");
+const configPath = path.resolve(__dirname);
+
+storage.setDataPath(configPath);
 
 export let clearStorage = () : Promise<void> => {
     return new Promise( 

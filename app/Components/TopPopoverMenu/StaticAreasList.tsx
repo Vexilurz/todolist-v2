@@ -98,11 +98,6 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
 
  
     selectArea = (area:Area) : void => {
-        ipcRenderer.send(
-            'setWindowTitle', 
-            `tasklist - ${uppercase(isEmpty(area.name) ? 'New Area' : area.name)}`, 
-            this.props.id
-        );
         
         this.props.dispatch({
             type:"multiple",
@@ -120,11 +115,6 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
 
 
     selectProject = (p:Project) : void => {
-        ipcRenderer.send(
-            'setWindowTitle',  
-            `tasklist - ${uppercase( isEmpty(p.name) ? 'New Project' : p.name )}`, 
-            this.props.id
-        );
 
         this.props.dispatch({
             type:"multiple",

@@ -28,8 +28,9 @@ import { onWindowAllClosed } from './utils/onWindowAllClosed';
 import { updateConfig } from './utils/updateConfig';
 const storage = require('electron-json-storage');
 const os = require('os');
-
-storage.setDataPath(os.tmpdir());
+const path = require("path");
+const configPath = path.resolve(__dirname);
+storage.setDataPath(configPath);
 
 export let mainWindow : BrowserWindow;   
 export let quickEntry : BrowserWindow;   

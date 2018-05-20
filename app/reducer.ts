@@ -4,14 +4,15 @@ import { refreshReminders } from './utils/reminderUtils';
 import { objectsReducer } from './objectsReducer';
 import { stateReducer } from './stateReducer';
 import { Reducer, Store, action, Config } from "./types";
-import { prop, ifElse, compose, not, when, identity, contains, keys, equals, pick, difference } from 'ramda';
+import { prop, ifElse, compose, not, when, identity, contains, keys, equals, pick, difference, isEmpty } from 'ramda';
 import { typeEquals, wrapArray, turnedOn, turnedOff } from "./utils/utils";
 import { pouchWorker } from './app';
 import { isString } from './utils/isSomething';
 import { updateDatabase } from './database/updateDatabase';
 import { requestFromMain } from './utils/requestFromMain';
 import { isDev } from './utils/isDev';
-
+import { ipcRenderer } from 'electron';
+import { uppercase } from './utils/uppercase';
 
  
 let getActionsList : (action:action) => action[] = 
@@ -70,12 +71,50 @@ let updateConfig = (newConfig:Config) : Promise<Config> => requestFromMain(
 
 
 
+let setWindowTitle = (state:Store) => (newState:Store) : Store => {
+
+    if(state.selectedCategory===newState.selectedCategory){ return newState }
+
+    if(newState.selectedCategory==="area"){
+        let area = newState.areas.find( a => a._id===newState.selectedAreaId );
+        if(area){
+            ipcRenderer.send(
+                'setWindowTitle', 
+                `tasklist - ${uppercase(isEmpty(area.name) ? 'New Area' : area.name)}`, 
+                newState.id
+            );
+        }
+    }else if(newState.selectedCategory==="project"){
+        let project = newState.projects.find( p => p._id===newState.selectedProjectId );
+
+        if(project){
+            ipcRenderer.send(
+                'setWindowTitle',  
+                `tasklist - ${uppercase( isEmpty(project.name) ? 'New Project' : project.name )}`, 
+                newState.id
+            );
+        }
+    }else{
+        ipcRenderer.send(
+            'setWindowTitle', 
+            `tasklist - ${uppercase(newState.selectedCategory)}`, 
+            newState.id
+        );    
+    }
+    
+    return newState;
+};
+
+
+
+
 export let reducer = (reducers:Reducer[], updateConfig:UpdateConfig) => (state:Store, action:any) : Store => {
     let actions : action[] = getActionsList(action);
     let apply = applyActionToState(reducers);
     let applyActionsToState = (state:Store) : Store => actions.reduce((state,action) => apply(state,action), state);
    
     return compose( 
+        setWindowTitle(state),
         updateConfigFromStore(updateConfig, state),
         refreshReminders(state), 
         when(isMainWindow, updateDatabase(state, actions)),

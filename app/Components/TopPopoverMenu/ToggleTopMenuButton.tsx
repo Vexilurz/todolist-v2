@@ -26,7 +26,7 @@ import { isDev } from '../../utils/isDev';
 import Popover from 'material-ui/Popover';
 import ShowMenu from 'material-ui/svg-icons/navigation/unfold-more';  
 import { uppercase } from '../../utils/uppercase';
-
+import Clear from 'material-ui/svg-icons/content/clear';
 
 interface ToggleTopMenuButtonProps{
     setRef:(e:any) => void,

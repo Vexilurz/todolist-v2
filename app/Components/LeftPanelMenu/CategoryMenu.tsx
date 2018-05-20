@@ -242,11 +242,6 @@ export class CategoryMenu extends Component<CategoryMenuProps,CategoryMenuState>
 
     
     onClick = (title:string) => () => {
-        ipcRenderer.send(
-            'setWindowTitle', 
-            `tasklist - ${uppercase(title)}`, 
-            this.props.id
-        );    
         
         this.props.dispatch({
             type:"multiple",

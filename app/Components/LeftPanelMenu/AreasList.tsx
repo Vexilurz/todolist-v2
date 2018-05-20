@@ -115,11 +115,6 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
            this.onCollapseContent(area);
         }
  
-        ipcRenderer.send(
-            'setWindowTitle', 
-            `tasklist - ${uppercase(isEmpty(name) ? 'New Area' : name)}`, 
-            this.props.id
-        );
         
         this.props.dispatch({
             type:"multiple",
@@ -136,11 +131,7 @@ export class AreasList extends Component<AreasListProps,AreasListState>{
 
 
     selectProject = (p:Project) : void => {
-        ipcRenderer.send(
-            'setWindowTitle',  
-            `tasklist - ${uppercase( isEmpty(p.name) ? 'New Project' : p.name )}`, 
-            this.props.id
-        );
+     
 
         this.props.dispatch({
             type:"multiple",

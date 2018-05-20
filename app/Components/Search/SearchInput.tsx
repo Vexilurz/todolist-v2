@@ -102,9 +102,18 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
                 ]
             }); 
         }       
-    }
+    };
       
+
+    clear = () => this.props.dispatch({
+        type:"multiple",
+        load:[
+            {type:"searchQuery", load:""}, 
+            {type:"selectedCategory", load:"inbox"}
+        ]
+    }); 
     
+
     render(){  
         return <div 
             style={{   
@@ -142,6 +151,12 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
                     value={this.props.searchQuery} 
                     onChange={this.onChange}
                 />
+                <div>
+                    <Clear  
+                        onClick={this.clear} 
+                        style={{color:"rgb(100, 100, 100)",height:"20px",width:"20px"}}
+                    />
+                </div> 
             </div>   
         </div>
     }

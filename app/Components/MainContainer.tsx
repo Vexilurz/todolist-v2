@@ -35,7 +35,10 @@ import { isNewVersion } from '../utils/isNewVersion';
 import { UpdateCheckResult } from 'electron-updater';
 import { setCallTimeout } from '../utils/setCallTimeout';
 import { requestFromMain } from '../utils/requestFromMain';
-import { getData, moveReminderFromPast, assureCorrectNoteTypeProject, assureCorrectNoteTypeTodo, assureCorrectCompletedTypeTodo, updateQuickEntryData } from '../utils/getData';
+import { 
+    getData, moveReminderFromPast, assureCorrectNoteTypeProject, 
+    assureCorrectNoteTypeTodo, assureCorrectCompletedTypeTodo, updateQuickEntryData 
+} from '../utils/getData';
 import { WhenCalendar } from './WhenCalendar';
 import { 
     isNotEmpty, checkForUpdates, convertDates, printElement, byNotDeleted, 
