@@ -12,7 +12,7 @@ import { timeOfTheDay } from '../utils/time';
 import { isToday } from '../utils/isSomething';
 import axios from 'axios';
 import { host } from '../utils/couchHost';
-
+import { stopPropagation } from '../utils/stopPropagation';
 
 
 interface LoginFormInputProps{
@@ -46,6 +46,7 @@ export class LoginFormInput extends Component<LoginFormInputProps,LoginFormInput
                     borderRadius:"4px",  
                     border:"1px solid rgba(100,100,100,0.3)"
                 }}
+                onKeyDown={stopPropagation}
                 onChange={this.props.onChange as any}
             /> 
         </div>

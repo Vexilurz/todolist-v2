@@ -12,7 +12,8 @@ import { isEmpty, isNil, equals, complement, when, prop } from 'ramda';
 import { uppercase } from '../../utils/uppercase';
 import { isFunction, isNotNil } from '../../utils/isSomething'; 
 let notEquals = complement(equals);
- 
+import { stopPropagation } from '../../utils/stopPropagation';
+
 
 interface ProjectHeadingProps{
     heading : Heading,
@@ -99,6 +100,7 @@ export class ProjectHeading extends Component<ProjectHeadingProps,ProjectHeading
                             cursor:"default",
                             userSelect:"none" 
                         }}  
+                        onKeyDown={stopPropagation}
                         hintStyle={{top:"3px",left:0,width:"100%",height:"100%"}}   
                         style={{height:"30px"}}      
                         underlineFocusStyle={{borderColor:"rgba(0,0,0,0)"}}    

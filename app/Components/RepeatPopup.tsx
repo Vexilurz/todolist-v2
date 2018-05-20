@@ -35,6 +35,8 @@ import { isDev } from '../utils/isDev';
 import { insideTargetArea } from '../utils/insideTargetArea';
 import { normalize } from '../utils/normalize';
 import { sameDay } from '../utils/time';
+import { stopPropagation } from '../utils/stopPropagation';
+
 let RRule = require('rrule');
 
 
@@ -432,6 +434,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                 <div style={{fontSize:"14px"}}>Repeat every</div>  
                 <div style={{width:"50px", paddingLeft:"10px", paddingRight:"10px"}}> 
                     <input   
+                        onKeyDown={stopPropagation}
                         value={String(interval)}  
                         style={{ 
                             outline:"none",   
@@ -512,6 +515,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     <div>
                         <input 
                             type="date"    
+                            onKeyDown={stopPropagation}
                             min={start}   
                             disabled={selectedOption!=='on'}
                             max={end} 
@@ -556,6 +560,7 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                         <div style={{display:"flex", backgroundColor:"rgba(235,235,235,1)"}}>
                             <div style={{width:"50px"}}> 
                                 <input   
+                                    onKeyDown={stopPropagation}
                                     onChange={(event) => this.setState({
                                         count:limitInput( Number(event.target.value) )
                                     })}

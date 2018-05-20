@@ -13,6 +13,7 @@ import { getIcalData } from '../Calendar';
 import { generateId } from '../../utils/generateId';
 import Clear from 'material-ui/svg-icons/content/clear';
 import { isNotNil } from '../../utils/isSomething';
+import { stopPropagation } from '../../utils/stopPropagation';
 
 
 interface CalendarEventsSettingsProps{
@@ -167,6 +168,7 @@ export class CalendarEventsSettings extends Component<CalendarEventsSettingsProp
                         <input 
                             type="url"     
                             value={this.state.url}
+                            onKeyPress={stopPropagation}
                             placeholder="Input Calendar URL (*.ics)" 
                             style={{
                                 backgroundColor:"white",

@@ -14,7 +14,7 @@ import { ipcRenderer } from 'electron';
 import Adjustments from 'material-ui/svg-icons/image/tune';
 import Plus from 'material-ui/svg-icons/content/add';  
 import { Todo, Project, Area, Category, Store } from '../../types';
-import { allPass, isNil, not, flatten, contains } from 'ramda';
+import { allPass, isNil, not, flatten, contains, isEmpty } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
@@ -38,6 +38,16 @@ interface TopPopoverMenuProps{
     dispatch:Function,
     selectedCategory:Category,
     leftPanelWidth:number,
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    },
     collapsed:boolean,
     openNewProjectAreaPopup:boolean,
     projects:Project[],
@@ -81,6 +91,33 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
         this.state={ showMenu:false };
     } 
 
+
+
+    //open menu if quick find invoked
+    componentWillReceiveProps(nextProps:TopPopoverMenuProps){
+        if(
+            nextProps.collapsed && 
+            !this.props.collapsed
+        ){
+            if(
+                !isEmpty(nextProps.searchQuery) && 
+                isEmpty(this.props.searchQuery)
+            ){
+                this.setState({showMenu:true});
+            }
+        }
+    }
+
+
+
+    showMenu = (e) => {
+        e.stopPropagation(); 
+        e.nativeEvent.stopImmediatePropagation();
+        this.setState({showMenu:!this.state.showMenu});
+    }; 
+
+
+
     render(){      
         return <div style={{
             width:"100%",
@@ -94,11 +131,7 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                 <ToggleTopMenuButton 
                    collapsed={this.props.collapsed}
                    toggled={this.state.showMenu} 
-                   onClick={(e) => {
-                       e.stopPropagation(); 
-                       e.nativeEvent.stopImmediatePropagation();
-                       this.setState({showMenu:!this.state.showMenu});
-                   }} 
+                   onClick={this.showMenu} 
                    setRef={(e) => { this.anchor=e; }} 
                    title={this.props.selectedCategory}       
                 />
@@ -115,7 +148,7 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                         <div style={{padding:"5px", backgroundColor:"rgb(248, 248, 248)"}}>
                         <SearchInput dispatch={this.props.dispatch} searchQuery={this.props.searchQuery}/>
                         </div>
-                        <div> 
+                        <div>  
                             <div        
                                 className="scrollAuto"
                                 style={{ 
@@ -125,38 +158,43 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                                     paddingBottom:"5px"  
                                 }}      
                             >   
-
-
-                                <CategoryPicker 
-                                    dragged={this.props.dragged} 
-                                    dispatch={this.props.dispatch}
-                                    selectedCategory={this.props.selectedCategory}
-                                    inbox={this.props.amounts.inbox}
-                                    today={this.props.amounts.today}
-                                    hot={this.props.amounts.hot}
-                                    logbook={this.props.amounts.logbook}
-                                    trash={this.props.amounts.trash}
-                                    id={this.props.id}
+                            {
+                                isEmpty(this.props.searchQuery) ?
+                                <div>
+                                    <CategoryPicker 
+                                        dragged={this.props.dragged} 
+                                        dispatch={this.props.dispatch}
+                                        selectedCategory={this.props.selectedCategory}
+                                        inbox={this.props.amounts.inbox}
+                                        today={this.props.amounts.today}
+                                        hot={this.props.amounts.hot}
+                                        logbook={this.props.amounts.logbook}
+                                        trash={this.props.amounts.trash}
+                                        id={this.props.id}
+                                    />
+                                    <StaticAreasList 
+                                        dispatch={this.props.dispatch}
+                                        leftPanelWidth={this.props.leftPanelWidth}
+                                        dragged={this.props.dragged} 
+                                        selectedProjectId={this.props.selectedProjectId} 
+                                        selectedAreaId={this.props.selectedAreaId} 
+                                        selectedCategory={this.props.selectedCategory} 
+                                        areas={this.props.areas} 
+                                        indicators={this.props.indicators} 
+                                        projects={this.props.projects} 
+                                        id={this.props.id} 
+                                    />
+                                </div>
+                                :
+                                <SearchSuggestions 
+                                    {
+                                        ...{ 
+                                            indicators:this.props.indicators, 
+                                            filters:this.props.filters 
+                                        } as any
+                                    }
                                 />
-                                <StaticAreasList 
-                                    dispatch={this.props.dispatch}
-                                    leftPanelWidth={this.props.leftPanelWidth}
-                                    dragged={this.props.dragged} 
-                                    selectedProjectId={this.props.selectedProjectId} 
-                                    selectedAreaId={this.props.selectedAreaId} 
-                                    selectedCategory={this.props.selectedCategory} 
-                                    areas={this.props.areas} 
-                                    indicators={this.props.indicators} 
-                                    projects={this.props.projects} 
-                                    id={this.props.id} 
-                                />
-
-
-
-
-
-                                {/*<SearchSuggestions {...{} as any}/>*/}
-
+                            }
                             </div>
                         </div>
                     </div>   

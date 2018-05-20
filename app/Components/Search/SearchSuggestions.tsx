@@ -35,7 +35,7 @@ import {
     byNotDeleted, findAttachedProject, todoToKeywords,
     getTagsFromItems, byTags
 } from '../../utils/utils'; 
-import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../../types';
+import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store, action } from '../../types';
 import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection, defaultTo, all } from 'ramda';
 import { filter } from 'lodash'; 
 import { Observable } from 'rxjs/Rx';
@@ -54,7 +54,117 @@ import { sortByCompletedOrNot } from './sortByCompletedOrNot';
 import { getProjectHeading } from './getProjectHeading';
 
 
+let ContinueSearchButton = (onClick:(e) => void, show:boolean) => !show ? null :
+<div 
+    onClick={this.onGetMoreResults} 
+    style={{
+        width:"100%",
+        fontSize:"15px",
+        userSelect:"none",
+        cursor:"pointer",
+        display:"flex",
+        alignItems:"center",
+        justifyContent:"flex-start" 
+    }}
+> 
+    <div style={{
+        paddingTop:"5px",
+        paddingBottom:"5px",
+        paddingLeft: "10px",
+        paddingRight: "5px",
+        display:"flex",
+        alignItems:"center",
+        justifyContent:"center"
+    }}>
+    <SearchIcon style={{color:"rgb(100, 100, 100)",height:"20px",width:"20px"}}/>   
+    </div>  
+    <div>Continue Search...</div>
+</div> 
+
+
+let NoResultsLabel = (show:boolean) => !show ? null : 
+<div style={{
+    fontSize:"15px",
+    userSelect:"none",
+    cursor:"default",
+    width:"100%",
+    display:"flex",
+    alignItems:"center",
+    justifyContent:"center" 
+}}>No results were found...</div> 
+
+
+
+let SearchActions = {
+    "todo" : (todo:Todo) : action => { return {type:'multiple', load:[]} },
+    "project" : (project:Project) : action => { return {type:'multiple', load:[]} },
+    "area" : (area:Area) : action => { return {type:'multiple', load:[]} },
+    "tag" : (tag:string) : action => { return {type:'multiple', load:[]} },
+    "category" : (category:string) : action => { return {type:'multiple', load:[]} }
+};
+
+
+
+let SearchAppearances = {
+    "todo" : (todo:Todo) : JSX.Element => <div> </div>,
+    "project" : (project:Project) => <div> </div>,
+    "area" : (area:Area) => <div> </div>,
+    "tag" : (tag:string) => <div> </div>,
+    "category" : (category:string) => <div> </div>
+};
+
+
+
+let SearchStyles = {
+    "todo" : {},
+    "project" : {},
+    "area" : {},
+    "tag" : {},
+    "category" : {}
+};
+
+
+
+interface LinkProps{item:any}
+
+interface LinkState{}
+
+class Link extends Component<LinkProps,LinkState>{
+
+    constructor(props){
+        super(props);
+    }
+
+    render(){
+        let type = prop("type", this.props.item);
+
+        if(isNil(type)){ return null }
+
+        let action = SearchActions[type];
+        let appearance = SearchAppearances[type];
+        let style = SearchStyles[type]; 
+
+        return <div style={style} onClick={action}>{appearance}</div>
+    }
+}
+
+
+
+
+
+
+
 interface SearchSuggestionsProps extends Store{
+    filters:{
+        inbox:((todo:Todo) => boolean)[],
+        today:((todo:Todo) => boolean)[],
+        hot:((todo:Todo) => boolean)[],
+        next:((todo:Todo) => boolean)[],
+        someday:((todo:Todo) => boolean)[],
+        upcoming:((todo:Todo) => boolean)[],
+        logbook:((todo:Todo) => boolean)[],
+        trash:((todo:Todo) => boolean)[]
+    },
     indicators : { 
         [key:string]:{
             active:number,
@@ -75,12 +185,15 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
     limitReached:boolean;
     initialLimit:number;
 
+
+
     constructor(props){
         super(props);
         this.initialLimit = 10;
         this.limitReached = false; 
         this.state = {limit:this.initialLimit};
     }
+
 
 
     componentWillReceiveProps(nextProps:SearchSuggestionsProps){
@@ -95,6 +208,7 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
             this.setState({limit:this.initialLimit}); 
         }
     }
+
 
 
     getTodoComponent = (todo:Todo,index:number) : JSX.Element => {
@@ -181,29 +295,21 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
     render(){
         let { suggestions, searchedTodos, attachedTodos } = this.search();
         let tags = getTagsFromItems(searchedTodos); 
-
+        let empty = isEmpty(suggestions.attached) && isEmpty(suggestions.detached); 
 
 
         return <div>  
-            { 
-                isEmpty(suggestions.attached) && 
-                isEmpty(suggestions.detached) ? 
-                <div style={{
-                    fontSize:"15px",
-                    userSelect:"none",
-                    cursor:"default",
-                    width:"100%",
-                    display:"flex",
-                    alignItems:"center",
-                    justifyContent:"center" 
-                }}>No results were found...</div> : 
-                null
-            }
-            <div> 
+            { NoResultsLabel(empty) }
 
+            <div> 
             { 
+
                 not(this.props.groupTodos) ?
+
+
                 searchedTodos.sort(sortByCompletedOrNot).map(this.getTodoComponent) :
+
+
                 <div>
                     <div> 
                         {
@@ -223,25 +329,9 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
             }
             </div>
 
-
-            <div 
-                onClick={this.onGetMoreResults} 
-                style={{
-                    width:"100%",
-                    fontSize:"15px",
-                    userSelect:"none",
-                    cursor:"default",
-                    display:"flex",
-                    alignItems:"center",
-                    justifyContent:"flex-start" 
-                }}
-            > 
-                <div style={{padding:"5px",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <SearchIcon style={{color:"rgb(100, 100, 100)",height:"20px",width:"20px"}}/>   
-                </div>  
-                <div>Continue Search...</div>
-            </div>      
+            { ContinueSearchButton(this.onGetMoreResults, !empty) }     
         </div>  
     }
-
 };
+
+

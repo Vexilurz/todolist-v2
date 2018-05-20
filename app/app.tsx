@@ -23,7 +23,7 @@ import {
 import { 
     isNil, map, when, evolve, prop, isEmpty, path, 
     compose, ifElse, mapObjIndexed, reject, values,
-    cond, identity, any, defaultTo, fromPairs 
+    cond, identity, any, defaultTo, fromPairs, anyPass 
 } from 'ramda';
 import { Observable, Subscription } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -57,10 +57,15 @@ import { fixIncomingData } from './utils/fixIncomingData';
 import { ImportPopup } from './Components/ImportPopup';
 import { TopPopoverMenu } from './Components/TopPopoverMenu/TopPopoverMenu';
 import { decryptDoc } from './utils/crypto/crypto';
-
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
+
+
+let isCharacter = e => e.which !== 0 && !e.ctrlKey && !e.metaKey && !e.altKey;
+let isAlpha = e => e.keyCode >= 65 && e.keyCode <= 90;
+let isNum = e => e.keyCode >= 48 && e.keyCode <= 57;
+    
 
 
 interface AppProps extends Store{}
@@ -92,14 +97,41 @@ export class App extends Component<AppProps,AppState>{
     };
 
 
+
+    initQuickFind = () => {
+        this.subscriptions.push(
+            Observable
+            .fromEvent(window, "keydown", (event) => event)
+            .do(e => console.log(String.fromCharCode(e.which)))
+            //.filter(isCharacter)
+            .filter(anyPass([isAlpha/*,isNum*/]))
+            .subscribe(
+                (event:any) => {
+                    let key = String.fromCharCode(event.which);
+                    let searchQuery = this.props.searchQuery + key; 
+                    
+                    this.props.dispatch({
+                        type:"multiple", 
+                        load:[
+                            {type:"searchQuery", load:searchQuery},
+                            {type:"collapsed", load:true}
+                        ]
+                    })
+                }
+            ) 
+        );
+    };
+
+
+
     //init
     componentDidMount(){    
         this.generateIndicatorsWorker = new Worker('generateIndicators.js');
         this.setInitialTitle();
-        this.initCtrlB();
-
-
+        this.initQuickFind();
+        
         if(!this.props.clone){
+            this.initCtrlB();
             this.initPouchObservables();
             this.initSync();
             this.reportStart();
@@ -111,8 +143,8 @@ export class App extends Component<AppProps,AppState>{
     //cleanup 
     componentWillUnmount(){
         if(this.generateIndicatorsWorker){
-            this.generateIndicatorsWorker.terminate();
-            this.generateIndicatorsWorker = null;
+           this.generateIndicatorsWorker.terminate();
+           this.generateIndicatorsWorker = null;
         }
 
         if(!this.props.clone){
@@ -251,10 +283,6 @@ export class App extends Component<AppProps,AppState>{
     };
 
 
-    
-   
-
-
 
     setInitialTitle = () => ipcRenderer.send(
         'setWindowTitle', 
@@ -276,18 +304,18 @@ export class App extends Component<AppProps,AppState>{
         googleAnalytics.send(   
             'event',   
             {  
-            ec:'Start',   
-            ea:`
-                    Application launched ${new Date().toString()}
-                    System info :
-                    arch ${arch}; 
-                    cpus ${cpus.length};
-                    platform ${platform};
-                    release ${release};
-                    type ${type}; 
-            `,  
-            el:'Application launched', 
-            ev:0
+                ec:'Start',   
+                ea:`
+                        Application launched ${new Date().toString()}
+                        System info :
+                        arch ${arch}; 
+                        cpus ${cpus.length};
+                        platform ${platform};
+                        release ${release};
+                        type ${type}; 
+                `,  
+                el:'Application launched', 
+                ev:0
             } 
         ) 
     )
@@ -347,21 +375,18 @@ export class App extends Component<AppProps,AppState>{
 
     componentWillReceiveProps(nextProps:Store){
         if(
-            this.props.projects!==nextProps.projects || 
-            this.props.todos!==nextProps.todos 
+           this.props.projects!==nextProps.projects || 
+           this.props.todos!==nextProps.todos 
         ){
-
             this.promiseIndicators(nextProps.projects, nextProps.todos)
-            .then(
+            .then( 
                 (indicators:Indicators) => this.setState(
                     {indicators}, 
-                    () => !this.props.clone ? this.updateQuickEntry(nextProps,indicators) : null
+                    () => this.updateQuickEntry(nextProps,indicators)
                 )
             );
 
-            if(!this.props.clone){
-                this.setState({amounts:this.getAmounts(nextProps)});
-            }
+            this.setState({amounts:this.getAmounts(nextProps)});
         }
     };
 
@@ -374,6 +399,7 @@ export class App extends Component<AppProps,AppState>{
                     !this.props.collapsed ? null :
                     <TopPopoverMenu 
                         dispatch={this.props.dispatch}
+                        filters={getFilters(this.props.projects)}
                         collapsed={this.props.collapsed}
                         selectedCategory={this.props.selectedCategory}
                         searchQuery={this.props.searchQuery} 
@@ -390,6 +416,7 @@ export class App extends Component<AppProps,AppState>{
                     /> 
                 }
                 {    
+                    this.props.clone ? null :
                     <LeftPanelMenu 
                         dispatch={this.props.dispatch}
                         collapsed={this.props.collapsed}
@@ -406,7 +433,7 @@ export class App extends Component<AppProps,AppState>{
                         selectedAreaId={this.props.selectedAreaId}
                         id={this.props.id}
                     />  
-                }
+                } 
                 <MainContainer 
                     dispatch={this.props.dispatch} 
                     secretKey={this.props.secretKey}
@@ -443,12 +470,20 @@ export class App extends Component<AppProps,AppState>{
                 !this.props.showTrashPopup ? null :    
                 <TrashPopup dispatch={this.props.dispatch} showTrashPopup={this.props.showTrashPopup}/>
             }
+            {   
+                !this.props.openChangeGroupPopup ? null : 
+                <ChangeGroupPopup    
+                    dispatch={this.props.dispatch}
+                    todos={this.props.todos}
+                    rightClickedTodoId={this.props.rightClickedTodoId}
+                />
+            }
             { 
                 this.props.clone ? null : 
                 !this.props.openSettings ? null :
                 <SettingsPopup  
                     email={this.props.email}
-                    secretKey={this.props.secretKey}
+                    secretKey={this.props.secretKey} 
                     sync={this.props.sync}
                     lastSync={this.props.lastSync}
                     dispatch={this.props.dispatch} 
@@ -478,20 +513,16 @@ export class App extends Component<AppProps,AppState>{
                     progress={this.props.progress}
                 />
             }
-            {   
-                !this.props.openChangeGroupPopup ? null : 
-                <ChangeGroupPopup    
-                    dispatch={this.props.dispatch}
-                    todos={this.props.todos}
-                    rightClickedTodoId={this.props.rightClickedTodoId}
-                />
-            }
             { 
                 this.props.clone ? null : 
                 !this.props.showLicense ? null :
                 <LicensePopup dispatch={this.props.dispatch} showLicense={this.props.showLicense}/>
             }
-            {  !this.props.import ? null : <ImportPopup {...{} as any}/>  }
+            {  
+                this.props.clone ? null : 
+                !this.props.import ? null : 
+                <ImportPopup {...{} as any}/>  
+            }
         </div>  
     }           
 };    

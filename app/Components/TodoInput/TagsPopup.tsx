@@ -13,7 +13,6 @@ import { compose, uniq, flatten, concat, isNil, not, prop, isEmpty } from 'ramda
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { assert } from '../../utils/assert';
 import { isArrayOfStrings } from '../../utils/isSomething';
-import AutosizeInput from 'react-input-autosize';
 import { Store } from '../../types';
 import { attachDispatchToProps } from '../../utils/utils';
 import { isDev } from '../../utils/isDev';

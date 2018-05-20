@@ -521,21 +521,21 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                 }
                 <div style={{display:"flex",padding:"10px"}}>   
                     <div style={{
-                        display:"flex", 
-                        zIndex:20000,
-                        alignItems:"center", 
-                        position:"fixed", 
-                        top:0,  
-                        right:"15px"
+                        zIndex: 20000,
+                        alignItems: "center",
+                        position: "fixed",
+                        height: "27px",
+                        width: "60px",
+                        display: "flex",
+                        top: "0px",
+                        justifyContent: "space-between",
+                        right: "15px"
                     }}>  
                         { 
                             this.props.clone ? null :
                             <IconButton  
-                                iconStyle={{
-                                    color:"rgba(100,100,100,0.6)",
-                                    paddingBottom:"5px",
-                                    paddingTop:"5px"
-                                }} 
+                                style={{padding:0,width:"auto",height:"auto"}}
+                                iconStyle={{width:"20px",height:"20px",color:"rgba(100,100,100,0.5)"}}
                                 onClick={this.printCurrentList}
                             > 
                                 <Print />   
@@ -545,11 +545,8 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             this.props.clone ? null :
                             this.state.separateWindowsCount>this.maxSepWindows ? null :
                             <IconButton    
-                                iconStyle={{
-                                    color:"rgba(100,100,100,0.6)",
-                                    paddingBottom:"5px",
-                                    paddingTop:"5px"
-                                }}
+                                style={{padding:0,width:"auto",height:"auto"}}
+                                iconStyle={{width:"18px",height:"18px",color:"rgba(100,100,100,0.5)"}}
                                 onClick={this.props.cloneWindow}   
                                 disabled={this.state.separateWindowsCount>this.maxSepWindows}
                             >     

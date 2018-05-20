@@ -39,8 +39,12 @@ import {
     getTagsFromItems,
     byTags
 } from '../../utils/utils'; 
+import { stopPropagation } from '../../utils/stopPropagation';
 import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../../types';
-import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection, defaultTo, all } from 'ramda';
+import { 
+    allPass, isNil, not, isEmpty, contains, flatten, 
+    prop, compose, any, intersection, defaultTo, all 
+} from 'ramda';
 import { filter } from 'lodash'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -124,6 +128,7 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
                   <SearchIcon style={{color:"rgb(100, 100, 100)",height:"20px",width:"20px"}}/>   
                 </div>   
                 <input 
+                    onKeyDown={stopPropagation}
                     style={{  
                       outline:"none",
                       border:"none", 
