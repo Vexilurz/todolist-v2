@@ -41,7 +41,7 @@ import { groupProjectsByArea } from './Area/groupProjectsByArea';
 import {  generateLayout } from './Area/generateLayout';
 import { isDev } from '../utils/isDev';
 import { assert } from '../utils/assert';
-
+import { groupByProject } from './project/groupByProject';
 
 
 interface GroupsByProjectAreaProps{
@@ -103,23 +103,6 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
         }
     };
     
-    
-
-    groupByProject = (projects:Project[]) => (todos:Todo[]) => compose(
-        applyTo(todos),
-        groupBy,
-        cond,
-        projects => [
-            ...projects.map(
-                (project:Project) : [(todo:Todo) => boolean,(todo:Todo) => string] => [
-                   (todo:Todo) : boolean => contains(todo._id)(project.layout),
-                   (todo:Todo) : string => project._id
-                ]
-            ),
-            [() => true, () => `detached`]
-        ]
-    )(projects);
-
 
 
     render(){
@@ -141,7 +124,7 @@ export class GroupsByProjectArea extends Component<GroupsByProjectAreaProps,Grou
 
 
         //Filtered todos grouped by areas and projects
-        let result : {[key: string]: Todo[];} = this.groupByProject(selectedProjects)(selectedTodos);
+        let result : {[key: string]: Todo[];} = groupByProject(selectedProjects)(selectedTodos);
         //Filtered todos which doesnt belong to any area or project
         let detached = defaultTo([])(result.detached); 
 

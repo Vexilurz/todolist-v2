@@ -1,7 +1,9 @@
-import { cond, isNil, always, allPass } from 'ramda';
+import { cond, isNil, always, allPass, equals } from 'ramda';
 import { typeEquals } from '../../utils/utils';
 import { action, Todo, Category, Project, Area } from '../../types';
 import { isString, isCategory } from '../../utils/isSomething';
+import { getSearchItemType } from './getSearchItemType';
+
 
 
 export let locateItem = ( 
@@ -16,13 +18,12 @@ export let locateItem = (
         trash:((todo:Todo) => boolean)[]
     }
 ) => (item:any) : action => {
+    let type = getSearchItemType(item);
 
     return cond([
-
         [isNil, always({type:"", load:null})],
-
         [
-            typeEquals("todo"), 
+            equals("todo"), 
             (todo:Todo) => {
 
                 if(allPass(filters.inbox)){
@@ -112,7 +113,7 @@ export let locateItem = (
         ],
 
         [
-            typeEquals("project"), 
+            equals("project"), 
             (project:Project) => ({
                 type:"multiple",
                 load:[
@@ -123,7 +124,7 @@ export let locateItem = (
         ],
 
         [
-            typeEquals("area"), 
+            equals("area"), 
             (area:Area) => ({
                 type:"multiple",
                 load:[
@@ -133,10 +134,10 @@ export let locateItem = (
             })
         ],
 
-        [isCategory, (category:Category) => ({type:"selectedCategory",load:category})],
+        [equals('category'), (category:Category) => ({type:"selectedCategory",load:category})],
 
         [
-            isString, 
+            equals('tag'), 
             (tag:string) => {
                 //open search
                 //filter all items by tag
@@ -144,5 +145,5 @@ export let locateItem = (
         ],
 
         [always(true), always({type:"", load:null})]
-    ]) 
+    ])(type) 
 };

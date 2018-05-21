@@ -35,12 +35,15 @@ import {
     attachDispatchToProps, 
     byNotDeleted, 
     findAttachedProject, 
-    todoToKeywords,
     getTagsFromItems,
-    byTags
+    byTags,
+    isNotEmpty
 } from '../../utils/utils'; 
 import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../../types';
-import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection, defaultTo, all } from 'ramda';
+import { 
+    allPass, isNil, not, isEmpty, contains, flatten, prop, 
+    compose, any, intersection, defaultTo, all 
+} from 'ramda';
 import { filter } from 'lodash'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -49,14 +52,156 @@ import { Subscription } from 'rxjs/Rx';
 import PieChart from 'react-minimal-pie-chart';
 import { TodoInput } from './../TodoInput/TodoInput';
 import { Tags } from './../Tags';
-import { isArray, isString, isDate, isNotDate } from '../../utils/isSomething';
+import { isArray, isString, isDate, isNotDate, isHeading } from '../../utils/isSomething';
 import { chooseIcon } from '../../utils/chooseIcon';
 import { FadeBackgroundIcon } from './../FadeBackgroundIcon';
 import { isDev } from '../../utils/isDev';
 import { assert } from '../../utils/assert';
+import { groupByProject } from '../project/groupByProject';
 import { sortByCompletedOrNot } from './sortByCompletedOrNot';
 import { getProjectHeading } from './getProjectHeading';
 import { limitGroups } from './limitGroups';
+import { groupProjectsByArea } from '../Area/groupProjectsByArea';
+import { getNotePlainText, getNotePlainTextFromRaw } from '../../utils/draftUtils';
+
+
+
+const categories = [
+    "inbox", "today", "upcoming" , "next", "someday",
+    "logbook", "trash" , "project" , "area" , "evening"
+];
+
+
+
+let cutBy = (by:String) => (words:string[]) => words.map(word => word.substring(0,by.length));
+
+
+
+let stringToKeywords = (s:string) : string[] => s.trim().toLowerCase().split(' ').filter(isNotEmpty); 
+
+
+
+let todoToKeywords = (t:Todo) : string[] => {
+    let keywords : string[] = [];
+    let note = getNotePlainTextFromRaw(t.note);
+    let checklist = t.checklist.map( c => stringToKeywords( c.text ) );
+    
+    keywords.push( ...stringToKeywords(t.title) );
+    keywords.push( ...stringToKeywords(note) );
+    keywords.push( ...flatten(checklist) );
+    
+    if(isDate(t.deadline)){  keywords.push(t.deadline.toJSON());  }
+    if(isDate(t.deleted)){  keywords.push(t.deleted.toJSON());  }
+    if(isDate(t.attachedDate)){  keywords.push(t.attachedDate.toJSON());  }
+
+    //should i add tags in search ?
+    //let attachedTags = flatten( t.attachedTags.map((tag) => stringToKeywords(tag)) );                                 
+    
+    if(isDev()){
+        assert(
+           all(isString,keywords), 
+           `not all keywords are of type string. todoToKeywords. ${JSON.stringify(keywords)}`
+        )
+    }
+
+    return keywords;
+}; 
+
+
+
+let projectToKeywords = table => (p:Project) : string[] => {
+    let todos = table[p._id];
+    let keywords = flatten(todos.map(todoToKeywords));
+    let headings = p.layout.filter(isHeading) as Heading[];
+    let description = getNotePlainTextFromRaw(p.description);
+
+    keywords.push( ...stringToKeywords(p.name) );
+    keywords.push( ...stringToKeywords(description) );
+    keywords.push( ...flatten( headings.map((h => stringToKeywords(h.title))) ) );
+    
+    if(isDate(p.completed)){  keywords.push(p.completed.toJSON()); }
+    if(isDate(p.deadline)){  keywords.push(p.deadline.toJSON()); }
+    if(isDate(p.deleted)){  keywords.push(p.deleted.toJSON()); }
+
+    if(isDev()){
+        assert(
+           all(isString,keywords), 
+           `not all keywords are of type string. projectToKeywords. ${JSON.stringify(keywords)}`
+        )
+    }
+
+    return keywords;
+};
+
+
+
+let areaToKeywords = tableWithTodos => tableWithProjects => (a:Area) : string[] => {
+    let projects = a.attachedProjectsIds.map( id => tableWithProjects[id] );
+    let todos = flatten( projects.map( p => tableWithTodos[p._id] ) );
+
+    let keywords = [];
+
+    keywords.push( ...flatten( todos.map( todoToKeywords ) ) );
+    keywords.push( ...flatten( projects.map( projectToKeywords(tableWithTodos) ) ) );
+    keywords.push( ...stringToKeywords(a.name) )
+    keywords.push( ...stringToKeywords(a.description) )
+
+    
+    if(isDate(a.deleted)){  keywords.push(a.deleted.toJSON()); }
+
+
+    if(isDev()){
+        assert(
+           all(isString,keywords), 
+           `not all keywords are of type string. areaToKeyWords. ${JSON.stringify(keywords)}`
+        )
+    }
+
+    return keywords;
+};
+
+
+
+let tagToKeywords = (t:string) : string[] => {
+    return stringToKeywords(t);
+};
+
+
+
+let categoryToKeywords = (c:Category) => {
+    return c;
+};
+
+let todoMatch = (searchQuery:string) => (todo:Todo) : boolean => {
+    let keywords = compose(cutBy(searchQuery),todoToKeywords)(todo);
+    return contains(searchQuery)(keywords);
+};
+
+let tagMatch = (searchQuery:string) => (tag:string) : boolean => {
+    let keywords = compose(cutBy(searchQuery),tagToKeywords)(tag);
+    return contains(searchQuery)(keywords);
+};
+
+let projectMatch = (searchQuery:string,tableWithTodos) => 
+    (project:Project) : boolean => {
+        let toKeywords = projectToKeywords(tableWithTodos);
+        let keywords = compose(cutBy(searchQuery),toKeywords)(project);
+        return contains(searchQuery)(keywords);
+    };
+
+let areaMatch = (searchQuery:string,tableWithTodos,tableWithProjects) => 
+    (area:Area) : boolean => {
+        let toKeywords = areaToKeywords(tableWithTodos)(tableWithProjects);
+        let keywords = compose(cutBy(searchQuery),toKeywords)(area);
+        return contains(searchQuery)(keywords);
+    };
+
+let categoryMatch = (searchQuery:string) => (category:Category) => {
+    let keywords = compose(cutBy(searchQuery),categoryToKeywords)(category);
+    return contains(searchQuery)(keywords);
+};
+
+
 
 
 
@@ -64,62 +209,34 @@ export let getQuickFindSuggestions = (
     todos:Todo[], 
     projects:Project[], 
     areas:Area[],
+    tags:string[],
     searchQuery:string,
     limit:number
 ) : {
-    attached : { project:Project, todos:Todo[] }[],
-    detached : Todo[],
-    limitReached : boolean 
+    areas:Area[],
+    projects:Project[],
+    todos:Todo[],
+    tags:string[],
+    categories:Category[],
+    byProject:any,
+    byArea:any
 } => {  
-    let limitedGroups = limitGroups(3, todos);  
-    let cutBy = (by:String, words:string[]) => words.map(word => word.substring(0,by.length));
-    let table = {};
-    let detached = []; 
-    let attached = []; 
-    let limitReached = true;
-    let match = (searchKeywords:string[],keywords:string[]) => 
-        any(
-            (searchKeyword:string) => contains(searchKeyword)(cutBy(searchKeyword,keywords))
-        )(searchKeywords); 
 
-    for(let i=0; i<limitedGroups.length; i++){
+    let selectedTodos = limitGroups(3, todos);  
+    let byProject = groupByProject(projects)(selectedTodos);
+    let byArea = groupProjectsByArea(projects,areas);
 
-        if((attached.length + detached.length) > limit){ 
-            limitReached = false;
-            break; 
-        }
     
-        let todo = limitedGroups[i];
-        let keywords = todoToKeywords(todo); //lowered and trimmed words from todo title + attachedTags
-        let searchKeywords = searchQuery
-                             .trim()
-                             .toLowerCase()
-                             .split(' ')
-                             .filter(compose(not,isEmpty)); 
-        
-        if(match( searchKeywords , keywords )){
-            let project = projects.find((p) => contains(todo._id)(p.layout as any)); 
 
-            if(isNil(project)){ detached.push(todo) }
-            else{ 
-                attached.push(todo);
-
-                if(isNil(table[project._id])){
-                   table[project._id] = [todo]; 
-                }else if(isArray(table[project._id])){ 
-                   table[project._id].push(todo); 
-                }  
-            }
-        } 
-    }
-
-    return {    
-        attached:projects
-                .map((project:Project) => ({project, todos:table[project._id]}))
-                .filter(({project,todos}) => isNil(todos) ? false : !isEmpty(todos)),
-        detached,
-        limitReached   
-    }; 
+    return {
+        areas:filter(areaMatch(searchQuery,byProject,byArea.table),areas),
+        projects:filter(projectMatch(searchQuery,byProject),projects),
+        todos:filter(todoMatch(searchQuery),selectedTodos),
+        tags:filter(tagMatch(searchQuery),tags),
+        categories:filter(categoryMatch(searchQuery),categories),
+        byProject,
+        byArea
+    };
 };   
 
 

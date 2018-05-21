@@ -6,6 +6,7 @@ export interface Sequence{
 };
 
 
+
 export interface ImportActionLoad{ 
     database:Databases, 
     pathToFile:string 
@@ -258,11 +259,7 @@ export interface Store extends Config{
 
 
 
-export interface DatabaseChanges<T>{
-    add:T[],
-    remove:T[],
-    update:T[]
-};
+export interface DatabaseChanges<T>{ add:T[], remove:T[], update:T[] };
 
 
 

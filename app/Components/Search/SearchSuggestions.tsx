@@ -32,11 +32,17 @@ import * as Waypoint from 'react-waypoint';
 import Popover from 'material-ui/Popover';
 import {  
     daysLeftMark, generateTagElement, attachDispatchToProps, 
-    byNotDeleted, findAttachedProject, todoToKeywords,
-    getTagsFromItems, byTags
+    byNotDeleted, findAttachedProject,
+    getTagsFromItems, byTags, typeEquals
 } from '../../utils/utils'; 
-import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store, action } from '../../types';
-import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection, defaultTo, all } from 'ramda';
+import { 
+    Category, ChecklistItem, Todo, ObjectType, 
+    Area, Project, Heading, Store, action 
+} from '../../types';
+import { 
+    values, allPass, isNil, not, isEmpty, contains, flatten, prop, 
+    compose, any, intersection, defaultTo, all, cond, always 
+} from 'ramda';
 import { filter } from 'lodash'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -45,13 +51,17 @@ import { Subscription } from 'rxjs/Rx';
 import PieChart from 'react-minimal-pie-chart';
 import { TodoInput } from './../TodoInput/TodoInput';
 import { Tags } from './../Tags';
-import { isArray, isString, isDate, isNotDate } from '../../utils/isSomething';
+import { isArray, isString, isDate, isNotDate, isCategory } from '../../utils/isSomething';
 import { chooseIcon } from '../../utils/chooseIcon';
 import { FadeBackgroundIcon } from './../FadeBackgroundIcon';
 import { isDev } from '../../utils/isDev';
 import { assert } from '../../utils/assert';
 import { sortByCompletedOrNot } from './sortByCompletedOrNot';
 import { getProjectHeading } from './getProjectHeading';
+import { getQuickFindSuggestions } from './getQuickFindSuggestions';
+import { locateItem } from './locateItem'; 
+import { getSearchItemType } from './getSearchItemType';
+
 
 
 let ContinueSearchButton = (onClick:(e) => void, show:boolean) => !show ? null :
@@ -82,6 +92,7 @@ let ContinueSearchButton = (onClick:(e) => void, show:boolean) => !show ? null :
 </div> 
 
 
+
 let NoResultsLabel = (show:boolean) => !show ? null : 
 <div style={{
     fontSize:"15px",
@@ -95,16 +106,6 @@ let NoResultsLabel = (show:boolean) => !show ? null :
 
 
 
-let SearchActions = {
-    "todo" : (todo:Todo) : action => { return {type:'multiple', load:[]} },
-    "project" : (project:Project) : action => { return {type:'multiple', load:[]} },
-    "area" : (area:Area) : action => { return {type:'multiple', load:[]} },
-    "tag" : (tag:string) : action => { return {type:'multiple', load:[]} },
-    "category" : (category:string) : action => { return {type:'multiple', load:[]} }
-};
-
-
-
 let SearchAppearances = {
     "todo" : (todo:Todo) : JSX.Element => <div> </div>,
     "project" : (project:Project) => <div> </div>,
@@ -112,45 +113,6 @@ let SearchAppearances = {
     "tag" : (tag:string) => <div> </div>,
     "category" : (category:string) => <div> </div>
 };
-
-
-
-let SearchStyles = {
-    "todo" : {},
-    "project" : {},
-    "area" : {},
-    "tag" : {},
-    "category" : {}
-};
-
-
-
-interface LinkProps{item:any}
-
-interface LinkState{}
-
-class Link extends Component<LinkProps,LinkState>{
-
-    constructor(props){
-        super(props);
-    }
-
-    render(){
-        let type = prop("type", this.props.item);
-
-        if(isNil(type)){ return null }
-
-        let action = SearchActions[type];
-        let appearance = SearchAppearances[type];
-        let style = SearchStyles[type]; 
-
-        return <div style={style} onClick={action}>{appearance}</div>
-    }
-}
-
-
-
-
 
 
 
@@ -199,7 +161,8 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
     componentWillReceiveProps(nextProps:SearchSuggestionsProps){
         if(
             nextProps.todos!==this.props.todos ||
-            nextProps.projects!==this.props.projects
+            nextProps.projects!==this.props.projects ||
+            nextProps.areas!==this.props.areas
         ){  
             this.limitReached = false;  
             this.setState({limit:this.initialLimit});  
@@ -211,50 +174,18 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
 
 
 
-    getTodoComponent = (todo:Todo,index:number) : JSX.Element => {
-        return <div key={`todo-${index}`}>
-            <TodoInput        
-                id={todo._id} 
-                key={todo._id} 
-                moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
-                scrolledTodo={this.props.scrolledTodo}
-                groupTodos={this.props.groupTodos}
-                projects={this.props.projects}  
-                dispatch={this.props.dispatch}  
-                selectedProjectId={this.props.selectedProjectId}
-                selectedAreaId={this.props.selectedAreaId} 
-                selectedCategory={this.props.selectedCategory} 
-                rootRef={document.getElementById("maincontainer")}  
-                todo={todo} 
-            />   
-        </div>
-    };
-
- 
-
-    suggestionToComponent = (
-        projectWithTodos:{project:Project,todos:Todo[]}, 
-        index:number, 
-        attachedTodos:Todo[]
-    ) => {
+    suggestionToComponent = (byProject:any, byArea:any) => (item:any, index:number) => {
         let {areas, projects, dispatch} = this.props;
-        let {project} = projectWithTodos;
-         
-        return <div key={`attached-${index}`}>
-            <div>
+        let type = getSearchItemType(item);
+        let action = locateItem(this.props.filters); 
+        let appearance = SearchAppearances[type](item);
+
+        return <div key={`item-${index}`}>
+            <div onClick={e => this.props.dispatch(action)}>
             {
-                getProjectHeading(
-                    project,
-                    defaultTo({completed:0, active:0})(this.props.indicators[project._id])
-                )
+                appearance
             }
             </div>
-            {
-                projectWithTodos
-                .todos
-                .sort(sortByCompletedOrNot)
-                .map(this.getTodoComponent)
-            } 
         </div>  
     };  
      
@@ -264,71 +195,43 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
  
 
 
-    search = () => {
-        let {todos, projects, areas, dispatch, selectedTags, groupTodos, selectedCategory} = this.props; 
-        let selectedTodos = filter(todos, allPass([byNotDeleted,byTags(selectedTags)]));
-        let selectedProjects = filter(projects, byNotDeleted);
-        let selectedAreas = filter(areas, byNotDeleted);
-        let suggestions = getSuggestions(
-            selectedTodos,
-            selectedProjects,
-            selectedAreas,
+    render(){
+        let {todos, projects, areas, dispatch, selectedTags, groupTodos, selectedCategory} = this.props;
+
+        let suggestions = getQuickFindSuggestions(
+            todos,
+            projects,
+            areas,
+            getTagsFromItems(todos),
             this.props.searchQuery,
             this.state.limit
         );
 
-        this.limitReached = suggestions.limitReached;
-        let ids = flatten(selectedProjects.map((p) => p.layout.filter(isString))) as string[];
+        let empty = compose(all(isEmpty),values)(suggestions);
 
-        let attachedTodos = compose(
-            todos => todos.sort(sortByCompletedOrNot),
-            todos => filter(todos, (todo:Todo) => contains(todo._id)(ids))
-        )(selectedTodos);
-
-        let searchedTodos = flatten([suggestions.detached, suggestions.attached.map(i => i.todos)]);
-
-        return { suggestions, attachedTodos, searchedTodos };
-    }; 
-
-
-
-    render(){
-        let { suggestions, searchedTodos, attachedTodos } = this.search();
-        let tags = getTagsFromItems(searchedTodos); 
-        let empty = isEmpty(suggestions.attached) && isEmpty(suggestions.detached); 
-
+        let items = [
+            suggestions.areas,
+            suggestions.projects,
+            suggestions.todos.sort(sortByCompletedOrNot),
+            suggestions.categories,
+            suggestions.tags
+        ];
 
         return <div>  
             { NoResultsLabel(empty) }
-
             <div> 
             { 
-
-                not(this.props.groupTodos) ?
-
-
-                searchedTodos.sort(sortByCompletedOrNot).map(this.getTodoComponent) :
-
-
                 <div>
-                    <div> 
-                        {
-                            suggestions
-                            .attached
-                            .map((data,index) => this.suggestionToComponent(data,index,attachedTodos))
-                        } 
-                    </div>
                     <div style={{paddingTop:"20px"}}>
                         {
-                            suggestions.detached 
-                            .sort(sortByCompletedOrNot)
-                            .map(this.getTodoComponent)   
+                            items.map(
+                               this.suggestionToComponent(suggestions.byProject,suggestions.byArea)
+                            )
                         }
                     </div>
                 </div>
             }
             </div>
-
             { ContinueSearchButton(this.onGetMoreResults, !empty) }     
         </div>  
     }

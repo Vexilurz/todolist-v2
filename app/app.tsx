@@ -97,14 +97,13 @@ export class App extends Component<AppProps,AppState>{
     };
 
 
-
+    //TODO recheck
     initQuickFind = () => {
         this.subscriptions.push(
             Observable
-            .fromEvent(window, "keydown", (event) => event)
-            .do(e => console.log(String.fromCharCode(e.which)))
-            //.filter(isCharacter)
+            .fromEvent(window, "keypress", (event) => event)
             .filter(anyPass([isAlpha/*,isNum*/]))
+            .skipWhile(v => !this.props.collapsed)
             .subscribe(
                 (event:any) => {
                     let key = String.fromCharCode(event.which);
@@ -120,7 +119,7 @@ export class App extends Component<AppProps,AppState>{
                 }
             ) 
         );
-    };
+    }; 
 
 
 
@@ -213,10 +212,8 @@ export class App extends Component<AppProps,AppState>{
     onPouchError = (action:action) => { 
         let error : PouchError = action.load;
 
-        //if(isDev()){
-           console.log(`%c pouch - ${action.type} - ${JSON.stringify(action.load)}`, 'color: #8b0017');
-        //}
-
+        console.log(`%c pouch - ${action.type} - ${JSON.stringify(action.load)}`, 'color: #8b0017');
+       
         globalErrorHandler(error);
 
         if(
@@ -289,7 +286,7 @@ export class App extends Component<AppProps,AppState>{
         `tasklist - ${uppercase(this.props.selectedCategory)}`, 
         this.props.id
     );
-
+ 
 
 
     cloneWindow = () => {
@@ -559,10 +556,11 @@ let renderApp = (config:Config, clonedStore:Store, id:number) : void => {
             ...clonedStore,
             limit:initDate(limit),
             clone:true, 
+            collapsed:true,
             todos:map(convertTodoDates,todos),
             projects:map(convertProjectDates, projects), 
             areas:map(convertAreaDates, areas), 
-            calendars:map( evolve({events:map(convertEventDate)}), calendars )
+            calendars:map(evolve({events:map(convertEventDate)}), calendars)
         };
     }    
 

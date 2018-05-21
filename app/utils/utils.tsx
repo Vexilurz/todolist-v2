@@ -1300,20 +1300,6 @@ export let isTodayOrPast = (date:Date) : boolean => isNil(date) ?
 
                                                     
 
-export let todoToKeywords = (t:Todo) : string[] => {
-    let toWords = (s:string) => s.trim()
-                                 .toLowerCase()
-                                 .split(' ')
-                                 .filter(compose( not,isEmpty ));
-
-    let keywords : string[] = toWords(t.title);
-     
-    let attachedTags = flatten( t.attachedTags.map((tag) => toWords(tag)) );                                 
-      
-    return [].concat.apply([], [ keywords, attachedTags ]);
-}; 
-
-
 
 export let convertDates = (object) => 
     cond([

@@ -449,7 +449,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
     componentDidMount(){    
         this.props.dispatch({type:"selectedCategory", load:this.props.selectedCategory});
 
-        this.initObservables(); //TODO FIX should this really work completely in separate window ?
+        this.initObservables(); 
 
         if(!this.props.clone){
             this.initData(); 

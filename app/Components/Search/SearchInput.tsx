@@ -139,11 +139,11 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
                 <input 
                     onKeyDown={stopPropagation}
                     style={{  
-                      outline:"none",
-                      border:"none", 
-                      width:"100%", 
-                      backgroundColor:"rgb(217,218,221)",
-                      caretColor:"cornflowerblue"  
+                        outline:"none",
+                        border:"none", 
+                        width:"100%", 
+                        backgroundColor:"rgb(217,218,221)",
+                        caretColor:"cornflowerblue"  
                     }} 
                     placeholder="Quick Find" 
                     type="text" 
@@ -151,10 +151,10 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
                     value={this.props.searchQuery} 
                     onChange={this.onChange}
                 />
-                <div>
+                <div style={{display:"flex",alignItems:"center",paddingRight:"5px"}}>
                     <Clear  
                         onClick={this.clear} 
-                        style={{color:"rgb(100, 100, 100)",height:"20px",width:"20px"}}
+                        style={{color:"rgba(100, 100, 100,0.7)",height:"20px",width:"20px"}}
                     />
                 </div> 
             </div>   

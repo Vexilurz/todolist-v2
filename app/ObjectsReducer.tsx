@@ -22,6 +22,10 @@ import { globalErrorHandler } from './utils/globalErrorHandler';
 
 
 
+let ignoredActions = ["updateCalendar","updateCalendars"];
+
+
+
 let actionOriginIsThisWindow = (action:action) : boolean => {
     return and(action.kind!=="external", action.kind!=="quick-entry");
 };
@@ -37,7 +41,7 @@ let actionFromQuickEntry = (action:action) : boolean => {
 let updateOtherInstances = (action:action) => (newState:Store) => {
     if(isNil(newState)){ return newState }
 
-    let shouldUpdateOtherInstances : boolean = actionOriginIsThisWindow(action);
+    let shouldUpdateOtherInstances : boolean = actionOriginIsThisWindow(action) && !contains(action.type)(ignoredActions);
     //update other windows only if action was initialized inside current window 
     //and action belong to ObjectsReducer 
     if(shouldUpdateOtherInstances){
