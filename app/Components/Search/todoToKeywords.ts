@@ -36,10 +36,14 @@ import {
     byNotDeleted, 
     findAttachedProject, 
     getTagsFromItems,
-    byTags
+    byTags,
+    isNotEmpty
 } from '../../utils/utils'; 
 import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../../types';
-import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection, defaultTo, all } from 'ramda';
+import { 
+    allPass, isNil, not, isEmpty, contains, flatten, prop, 
+    compose, any, intersection, defaultTo, all 
+} from 'ramda';
 import { filter } from 'lodash'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -48,79 +52,42 @@ import { Subscription } from 'rxjs/Rx';
 import PieChart from 'react-minimal-pie-chart';
 import { TodoInput } from './../TodoInput/TodoInput';
 import { Tags } from './../Tags';
-import { isArray, isString, isDate, isNotDate } from '../../utils/isSomething';
+import { isArray, isString, isDate, isNotDate, isHeading } from '../../utils/isSomething';
 import { chooseIcon } from '../../utils/chooseIcon';
 import { FadeBackgroundIcon } from './../FadeBackgroundIcon';
 import { isDev } from '../../utils/isDev';
 import { assert } from '../../utils/assert';
+import { groupByProject } from '../project/groupByProject';
 import { sortByCompletedOrNot } from './sortByCompletedOrNot';
 import { getProjectHeading } from './getProjectHeading';
 import { limitGroups } from './limitGroups';
-import { todoToKeywords } from './todoToKeywords';
+import { groupProjectsByArea } from '../Area/groupProjectsByArea';
+import { getNotePlainText, getNotePlainTextFromRaw } from '../../utils/draftUtils';
+import { stringToKeywords } from './stringToKeywords';
 
 
-
-export let getSuggestions = (
-    todos:Todo[], 
-    projects:Project[], 
-    areas:Area[],
-    searchQuery:string,
-    limit:number
-) : {
-    attached : { project:Project, todos:Todo[] }[],
-    detached : Todo[],
-    limitReached : boolean 
-} => { 
-    let limitedGroups = limitGroups(3, todos);  
-    let cutBy = (by:String, words:string[]) => words.map(word => word.substring(0,by.length));
-    let table = {};
-    let detached = []; 
-    let attached = []; 
-    let limitReached = true;
-    let match = (searchKeywords:string[],keywords:string[]) => 
-        any(
-            (searchKeyword:string) => contains(searchKeyword)(cutBy(searchKeyword,keywords))
-        )(searchKeywords); 
-
-    for(let i=0; i<limitedGroups.length; i++){
-
-        if((attached.length + detached.length) > limit){ 
-            limitReached = false;
-            break; 
-        }
+export let todoToKeywords = (t:Todo) : string[] => {
+    let keywords : string[] = [];
+    let note = getNotePlainTextFromRaw(t.note);
+    let checklist = t.checklist.map( c => stringToKeywords( c.text ) );
     
-        let todo = limitedGroups[i];
-        let keywords = todoToKeywords(todo); //lowered and trimmed words from todo title + attachedTags
-        let searchKeywords = searchQuery
-                             .trim()
-                             .toLowerCase()
-                             .split(' ')
-                             .filter(compose(not,isEmpty)); 
-        
-        if(match( searchKeywords , keywords )){
-            let project = projects.find((p) => contains(todo._id)(p.layout as any)); 
+    keywords.push( ...stringToKeywords(t.title) );
+    keywords.push( ...stringToKeywords(note) );
+    keywords.push( ...flatten(checklist) );
+    
+    if(isDate(t.deadline)){  keywords.push(t.deadline.toJSON());  }
+    if(isDate(t.deleted)){  keywords.push(t.deleted.toJSON());  }
+    if(isDate(t.attachedDate)){  keywords.push(t.attachedDate.toJSON());  }
 
-            if(isNil(project)){ detached.push(todo) }
-            else{ 
-                attached.push(todo);
-
-                if(isNil(table[project._id])){
-                   table[project._id] = [todo]; 
-                }else if(isArray(table[project._id])){ 
-                   table[project._id].push(todo); 
-                }  
-            }
-        } 
+    //should i add tags in search ?
+    //let attachedTags = flatten( t.attachedTags.map((tag) => stringToKeywords(tag)) );                                 
+    
+    if(isDev()){
+        assert(
+           all(isString,keywords), 
+           `not all keywords are of type string. todoToKeywords. ${JSON.stringify(keywords)}`
+        )
     }
 
-    return {    
-        attached:projects
-                .map((project:Project) => ({project, todos:table[project._id]}))
-                .filter(({project,todos}) => isNil(todos) ? false : !isEmpty(todos)),
-        detached,
-        limitReached   
-    }; 
-};   
-
-
-
+    return keywords;
+}; 

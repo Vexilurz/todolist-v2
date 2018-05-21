@@ -35,7 +35,6 @@ import {
     attachDispatchToProps, 
     byNotDeleted, 
     findAttachedProject, 
-    todoToKeywords,
     getTagsFromItems,
     byTags
 } from '../../utils/utils'; 

@@ -63,49 +63,15 @@ import { getProjectHeading } from './getProjectHeading';
 import { limitGroups } from './limitGroups';
 import { groupProjectsByArea } from '../Area/groupProjectsByArea';
 import { getNotePlainText, getNotePlainTextFromRaw } from '../../utils/draftUtils';
-
-
+import { stringToKeywords } from './stringToKeywords';
+import { todoToKeywords } from './todoToKeywords';
+import { cutBy } from './cutBy';
 
 const categories = [
     "inbox", "today", "upcoming" , "next", "someday",
     "logbook", "trash" , "project" , "area" , "evening"
 ];
 
-
-
-let cutBy = (by:String) => (words:string[]) => words.map(word => word.substring(0,by.length));
-
-
-
-let stringToKeywords = (s:string) : string[] => s.trim().toLowerCase().split(' ').filter(isNotEmpty); 
-
-
-
-let todoToKeywords = (t:Todo) : string[] => {
-    let keywords : string[] = [];
-    let note = getNotePlainTextFromRaw(t.note);
-    let checklist = t.checklist.map( c => stringToKeywords( c.text ) );
-    
-    keywords.push( ...stringToKeywords(t.title) );
-    keywords.push( ...stringToKeywords(note) );
-    keywords.push( ...flatten(checklist) );
-    
-    if(isDate(t.deadline)){  keywords.push(t.deadline.toJSON());  }
-    if(isDate(t.deleted)){  keywords.push(t.deleted.toJSON());  }
-    if(isDate(t.attachedDate)){  keywords.push(t.attachedDate.toJSON());  }
-
-    //should i add tags in search ?
-    //let attachedTags = flatten( t.attachedTags.map((tag) => stringToKeywords(tag)) );                                 
-    
-    if(isDev()){
-        assert(
-           all(isString,keywords), 
-           `not all keywords are of type string. todoToKeywords. ${JSON.stringify(keywords)}`
-        )
-    }
-
-    return keywords;
-}; 
 
 
 

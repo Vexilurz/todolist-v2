@@ -153,7 +153,7 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
         super(props);
         this.initialLimit = 10;
         this.limitReached = false; 
-        this.state = {limit:this.initialLimit};
+        this.state = {limit:this.initialLimit}; 
     }
 
 
