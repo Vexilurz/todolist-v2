@@ -64,7 +64,7 @@ import { locateItem } from './locateItem';
 
 
 
-export let getSearchItemType = (item:any) : string => 
+export let getSearchItemType = 
 cond([
     [isNil, always(null)],
     [typeEquals("todo"), always("todo")],

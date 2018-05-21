@@ -101,7 +101,8 @@ export class App extends Component<AppProps,AppState>{
     initQuickFind = () => {
         this.subscriptions.push(
             Observable
-            .fromEvent(window, "keypress", (event) => event)
+            .fromEvent(document, "keypress", (event) => event)
+            .do(e => console.log(e))
             .filter(anyPass([isAlpha/*,isNum*/]))
             .skipWhile(v => !this.props.collapsed)
             .subscribe(

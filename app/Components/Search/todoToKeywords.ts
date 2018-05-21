@@ -67,6 +67,7 @@ import { stringToKeywords } from './stringToKeywords';
 
 
 export let todoToKeywords = (t:Todo) : string[] => {
+    if(isNil(t)){ return []; }
     let keywords : string[] = [];
     let note = getNotePlainTextFromRaw(t.note);
     let checklist = t.checklist.map( c => stringToKeywords( c.text ) );

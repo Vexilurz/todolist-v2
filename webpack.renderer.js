@@ -128,7 +128,7 @@ module.exports = [
             new webpack.DefinePlugin({
                 NODE_ENV: JSON.stringify('development')
             }),
-            new CopyWebpackPlugin([{from : './assets'}]), 
+            new CopyWebpackPlugin([ {from : './assets'}, './config.json' ]), 
             new HtmlWebpackPlugin({
                 inject:true, 
                 title:'tasklist',     

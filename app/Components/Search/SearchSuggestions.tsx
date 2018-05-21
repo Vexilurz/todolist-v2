@@ -209,13 +209,13 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
 
         let empty = compose(all(isEmpty),values)(suggestions);
 
-        let items = [
+        let items = flatten([
             suggestions.areas,
             suggestions.projects,
             suggestions.todos.sort(sortByCompletedOrNot),
             suggestions.categories,
             suggestions.tags
-        ];
+        ]);
 
         return <div>  
             { NoResultsLabel(empty) }

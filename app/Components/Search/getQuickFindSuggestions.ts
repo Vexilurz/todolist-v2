@@ -44,7 +44,7 @@ import {
     allPass, isNil, not, isEmpty, contains, flatten, prop, 
     compose, any, intersection, defaultTo, all 
 } from 'ramda';
-import { filter } from 'lodash'; 
+import { filter } from 'lodash/fp'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
@@ -52,7 +52,7 @@ import { Subscription } from 'rxjs/Rx';
 import PieChart from 'react-minimal-pie-chart';
 import { TodoInput } from './../TodoInput/TodoInput';
 import { Tags } from './../Tags';
-import { isArray, isString, isDate, isNotDate, isHeading } from '../../utils/isSomething';
+import { isArray, isString, isDate, isNotDate, isHeading, isNotNil } from '../../utils/isSomething';
 import { chooseIcon } from '../../utils/chooseIcon';
 import { FadeBackgroundIcon } from './../FadeBackgroundIcon';
 import { isDev } from '../../utils/isDev';
@@ -67,6 +67,8 @@ import { stringToKeywords } from './stringToKeywords';
 import { todoToKeywords } from './todoToKeywords';
 import { cutBy } from './cutBy';
 
+
+
 const categories = [
     "inbox", "today", "upcoming" , "next", "someday",
     "logbook", "trash" , "project" , "area" , "evening"
@@ -74,9 +76,10 @@ const categories = [
 
 
 
-
 let projectToKeywords = table => (p:Project) : string[] => {
     let todos = table[p._id];
+    if(isNil(todos)){ return [] }
+
     let keywords = flatten(todos.map(todoToKeywords));
     let headings = p.layout.filter(isHeading) as Heading[];
     let description = getNotePlainTextFromRaw(p.description);
@@ -102,7 +105,9 @@ let projectToKeywords = table => (p:Project) : string[] => {
 
 
 let areaToKeywords = tableWithTodos => tableWithProjects => (a:Area) : string[] => {
-    let projects = a.attachedProjectsIds.map( id => tableWithProjects[id] );
+    let projects = tableWithProjects[a._id];
+    if(isNil(projects)){ return [] }
+
     let todos = flatten( projects.map( p => tableWithTodos[p._id] ) );
 
     let keywords = [];
@@ -134,19 +139,25 @@ let tagToKeywords = (t:string) : string[] => {
 
 
 
-let categoryToKeywords = (c:Category) => {
-    return c;
+let categoryToKeywords = (c:Category) : string[] => {
+    return [c];
 };
+
+
 
 let todoMatch = (searchQuery:string) => (todo:Todo) : boolean => {
     let keywords = compose(cutBy(searchQuery),todoToKeywords)(todo);
     return contains(searchQuery)(keywords);
 };
 
+
+
 let tagMatch = (searchQuery:string) => (tag:string) : boolean => {
     let keywords = compose(cutBy(searchQuery),tagToKeywords)(tag);
     return contains(searchQuery)(keywords);
 };
+
+
 
 let projectMatch = (searchQuery:string,tableWithTodos) => 
     (project:Project) : boolean => {
@@ -155,6 +166,8 @@ let projectMatch = (searchQuery:string,tableWithTodos) =>
         return contains(searchQuery)(keywords);
     };
 
+
+
 let areaMatch = (searchQuery:string,tableWithTodos,tableWithProjects) => 
     (area:Area) : boolean => {
         let toKeywords = areaToKeywords(tableWithTodos)(tableWithProjects);
@@ -162,12 +175,12 @@ let areaMatch = (searchQuery:string,tableWithTodos,tableWithProjects) =>
         return contains(searchQuery)(keywords);
     };
 
-let categoryMatch = (searchQuery:string) => (category:Category) => {
+
+
+let categoryMatch = (searchQuery:string) => (category:Category) : boolean => {
     let keywords = compose(cutBy(searchQuery),categoryToKeywords)(category);
     return contains(searchQuery)(keywords);
 };
-
-
 
 
 
@@ -187,19 +200,22 @@ export let getQuickFindSuggestions = (
     byProject:any,
     byArea:any
 } => {  
-
     let selectedTodos = limitGroups(3, todos);  
     let byProject = groupByProject(projects)(selectedTodos);
     let byArea = groupProjectsByArea(projects,areas);
 
-    
+    let am = areaMatch(searchQuery,byProject,byArea.table);
+    let pm = projectMatch(searchQuery,byProject);
+    let tm = todoMatch(searchQuery);
+    let tagm = tagMatch(searchQuery);
+    let cm = categoryMatch(searchQuery);
 
     return {
-        areas:filter(areaMatch(searchQuery,byProject,byArea.table),areas),
-        projects:filter(projectMatch(searchQuery,byProject),projects),
-        todos:filter(todoMatch(searchQuery),selectedTodos),
-        tags:filter(tagMatch(searchQuery),tags),
-        categories:filter(categoryMatch(searchQuery),categories),
+        areas:filter(am,areas),
+        projects:filter(pm,projects),
+        todos:filter(tm,selectedTodos),
+        tags:filter(tagm,tags),
+        categories:filter(cm,categories),
         byProject,
         byArea
     };
