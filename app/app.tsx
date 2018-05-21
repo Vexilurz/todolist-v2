@@ -101,13 +101,21 @@ export class App extends Component<AppProps,AppState>{
     initQuickFind = () => {
         this.subscriptions.push(
             Observable
-            .fromEvent(document, "keypress", (event) => event)
+            .fromEvent(document, "keydown", (event) => event) //keypress
             .do(e => console.log(e))
             .filter(anyPass([isAlpha/*,isNum*/]))
-            .skipWhile(v => !this.props.collapsed)
+            //.skipWhile(v => !this.props.collapsed)
             .subscribe(
                 (event:any) => {
-                    let key = String.fromCharCode(event.which);
+                    this.props.dispatch({
+                        type:"multiple",
+                        load:[
+                            {type:"collapsed", load:true},
+                            {type:"searchQuery", load:String.fromCharCode(event.which)}
+                        ]
+                    })
+
+                    /*let key = String.fromCharCode(event.which);
                     let searchQuery = this.props.searchQuery + key; 
                     
                     this.props.dispatch({
@@ -116,7 +124,7 @@ export class App extends Component<AppProps,AppState>{
                             {type:"searchQuery", load:searchQuery},
                             {type:"collapsed", load:true}
                         ]
-                    })
+                    })*/
                 }
             ) 
         );

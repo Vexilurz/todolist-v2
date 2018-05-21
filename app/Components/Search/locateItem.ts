@@ -18,132 +18,94 @@ export let locateItem = (
         trash:((todo:Todo) => boolean)[]
     }
 ) => (item:any) : action => {
-    let type = getSearchItemType(item);
-
     return cond([
-        [isNil, always({type:"", load:null})],
+        [isNil, always({type:"multiple", load:[]})],
         [
-            equals("todo"), 
-            (todo:Todo) => {
-
-                if(allPass(filters.inbox)){
-
-                    return {
+            typeEquals("todo"), 
+            cond([
+                [
+                    allPass(filters.inbox), 
+                    (todo) => ({
                         type:"multiple",
-                        load:[
-                            {type:"scrolledTodo",load:todo},
-                            {type:"selectedCategory",load:"inbox"}
-                        ]
-                    };
-
-                }else if(allPass(filters.today)){
-
-                    return {
+                        load:[{type:"scrolledTodo",load:todo},{type:"selectedCategory",load:"inbox"}]
+                    })
+                ],
+                [
+                    allPass(filters.today),
+                    (todo) => ({
                         type:"multiple",
-                        load:[
-                            {type:"scrolledTodo",load:todo},
-                            {type:"selectedCategory",load:"today"}
-                        ]
-                    };
-
-                }else if(allPass(filters.hot)){
-
-                    return {
+                        load:[{type:"scrolledTodo",load:todo},{type:"selectedCategory",load:"today"}]
+                    })
+                ],
+                [
+                    allPass(filters.hot),
+                    (todo) => ({
                         type:"multiple",
-                        load:[
-                            {type:"scrolledTodo",load:todo},
-                            {type:"selectedCategory",load:"today"}
-                        ]
-                    };
-
-                }else if(allPass(filters.next)){
-
-                    return {
+                        load:[{type:"scrolledTodo",load:todo},{type:"selectedCategory",load:"today"}]
+                    })
+                ],
+                [
+                    allPass(filters.next),
+                    (todo) => ({
                         type:"multiple",
-                        load:[
-                            {type:"scrolledTodo",load:todo},
-                            {type:"selectedCategory",load:"next"}
-                        ]
-                    };
-
-                }else if(allPass(filters.someday)){
-
-                    return {
+                        load:[{type:"scrolledTodo",load:todo},{type:"selectedCategory",load:"next"}]
+                    })
+                ],
+                [
+                    allPass(filters.someday),
+                    (todo) => ({
                         type:"multiple",
-                        load:[
-                            {type:"scrolledTodo",load:todo},
-                            {type:"selectedCategory",load:"someday"}
-                        ]
-                    };
-
-                }else if(allPass(filters.upcoming)){
-
-                    return {
+                        load:[{type:"scrolledTodo",load:todo},{type:"selectedCategory",load:"someday"}]
+                    })
+                ],
+                [
+                    allPass(filters.upcoming),
+                    (todo) => ({
                         type:"multiple",
-                        load:[
-                            {type:"scrolledTodo",load:todo},
-                            {type:"selectedCategory",load:"upcoming"}
-                        ]
-                    };
-
-                }else if(allPass(filters.logbook)){
-
-                    return {
+                        load:[{type:"scrolledTodo",load:todo},{type:"selectedCategory",load:"upcoming"}]
+                    })
+                ],
+                [
+                    allPass(filters.logbook),
+                    (todo) => ({
                         type:"multiple",
-                        load:[
-                            {type:"scrolledTodo",load:todo},
-                            {type:"selectedCategory",load:"logbook"}
-                        ]
-                    };
-
-                }else if(allPass(filters.trash)){
-
-                    return {
+                        load:[{type:"scrolledTodo",load:todo},{type:"selectedCategory",load:"logbook"}]
+                    })
+                ],
+                [
+                    allPass(filters.trash),
+                    (todo) => ({
                         type:"multiple",
-                        load:[
-                            {type:"scrolledTodo",load:todo},
-                            {type:"selectedCategory",load:"trash"}
-                        ]
-                    };
-
-                }else{
-                    //todo handle error
-                }
-            }
+                        load:[{type:"scrolledTodo",load:todo},{type:"selectedCategory",load:"trash"}]
+                    })
+                ],
+                [
+                    always(true), () => ({type:"multiple",load:[]})
+                ]
+            ])
         ],
-
         [
-            equals("project"), 
+            typeEquals("project"), 
             (project:Project) => ({
                 type:"multiple",
-                load:[
-                    {type:"selectedProjectId",load:project._id},
-                    {type:"selectedCategory",load:"project"}
-                ]
+                load:[{type:"selectedProjectId",load:project._id},{type:"selectedCategory",load:"project"}]
             })
         ],
-
         [
-            equals("area"), 
+            typeEquals("area"), 
             (area:Area) => ({
                 type:"multiple",
-                load:[
-                    {type:"selectedAreaId",load:area._id},
-                    {type:"selectedCategory",load:"area"}
-                ]
+                load:[{type:"selectedAreaId",load:area._id},{type:"selectedCategory",load:"area"}]
             })
         ],
-
-        [equals('category'), (category:Category) => ({type:"selectedCategory",load:category})],
-
+        [   isCategory, (category:Category) => ({type:"selectedCategory",load:category})],
         [
-            equals('tag'), 
-            (tag:string) => {
-                //open search
-                //filter all items by tag
-            }
+            isString, 
+            (tag:string) => ({
+                type:"multiple",
+                load:[{type:"selectedTags",load:[tag]},{type:"selectedCategory", load:"search"}]
+            })
         ],
-
         [always(true), always({type:"", load:null})]
-    ])(type) 
+    ])(item) 
 };

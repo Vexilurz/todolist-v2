@@ -106,7 +106,7 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                 this.setState({showMenu:true});
             }
         }
-    }
+    };
 
 
 
@@ -115,6 +115,14 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
         e.nativeEvent.stopImmediatePropagation();
         this.setState({showMenu:!this.state.showMenu});
     }; 
+
+
+
+    onQueryChange = (e) => this.props.dispatch({type:"searchQuery", load:e.target.value}); 
+      
+
+
+    clear = () => this.props.dispatch({type:"searchQuery", load:""});
 
 
 
@@ -146,7 +154,12 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                 >   
                     <div style={{width:`250px`}}>
                         <div style={{padding:"5px", backgroundColor:"rgb(248, 248, 248)"}}>
-                        <SearchInput dispatch={this.props.dispatch} searchQuery={this.props.searchQuery}/>
+                        <SearchInput 
+                            autofocus={true} 
+                            onChange={this.onQueryChange} 
+                            clear={this.clear} 
+                            searchQuery={this.props.searchQuery}
+                        />
                         </div>
                         <div>  
                             <div        

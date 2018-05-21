@@ -59,10 +59,11 @@ import { isDev } from '../../utils/isDev';
 import { assert } from '../../utils/assert';
 
 
-
 interface SearchInputProps{
-    dispatch:Function,
-    searchQuery:string  
+    onChange:(e:any) => void,
+    clear:() => void,
+    searchQuery:string,
+    autofocus:boolean  
 }  
 
 
@@ -70,7 +71,14 @@ interface SearchInputState{}
  
 
 export class SearchInput extends Component<SearchInputProps,SearchInputState>{
+    ref:any;
  
+    componentDidMount(){
+        if(this.props.autofocus){
+            this.ref.focus();
+        }
+    }
+
     shouldComponentUpdate(nextProps:SearchInputProps){
         return nextProps.searchQuery!==this.props.searchQuery;
     }
@@ -80,38 +88,6 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
         super(props)
     } 
 
-
-    onChange = (e) => { 
-        let {dispatch} = this.props; 
-        
-        if(isEmpty(e.target.value)){
-            dispatch({
-                type:"multiple",
-                load:[
-                    {type:"searchQuery", load:""}, 
-                    {type:"selectedCategory", load:"inbox"}
-                ]
-            }); 
-        }else{ 
-            dispatch({
-                type:"multiple",
-                load:[
-                    {type:"searchQuery", load:e.target.value},
-                    {type:"selectedCategory", load:"search"}
-                ]
-            }); 
-        }       
-    };
-      
-
-    clear = () => this.props.dispatch({
-        type:"multiple",
-        load:[
-            {type:"searchQuery", load:""}, 
-            {type:"selectedCategory", load:"inbox"}
-        ]
-    }); 
-    
 
     render(){  
         return <div 
@@ -136,6 +112,7 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
                   <SearchIcon style={{color:"rgb(100, 100, 100)",height:"20px",width:"20px"}}/>   
                 </div>   
                 <input 
+                    ref={e => {this.ref=e;}}
                     onKeyDown={stopPropagation}
                     style={{  
                         outline:"none",
@@ -148,11 +125,11 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
                     type="text" 
                     name="search"  
                     value={this.props.searchQuery} 
-                    onChange={this.onChange}
+                    onChange={this.props.onChange}
                 />
-                <div style={{display:"flex",alignItems:"center",paddingRight:"5px"}}>
+                <div style={{display:"flex",cursor:"pointer",alignItems:"center",paddingRight:"5px"}}>
                     <Clear  
-                        onClick={this.clear} 
+                        onClick={this.props.clear} 
                         style={{color:"rgba(100, 100, 100,0.7)",height:"20px",width:"20px"}}
                     />
                 </div> 

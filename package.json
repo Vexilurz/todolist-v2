@@ -3,7 +3,7 @@
   "version": "1.6.2-master",
   "description": "tasklist",
   "main": "dist/main.js",
-  "scripts": { 
+  "scripts": {
     "start": "electron .",
     "publish": "build --win --publish always",
     "pack": "build --win",
@@ -54,6 +54,7 @@
     "electron-ga": "^1.0.6",
     "electron-json-storage": "^4.1.0",
     "electron-log": "^2.2.13",
+    "electron-mocha": "^6.0.2",
     "electron-publisher-s3": "^20.9.0",
     "electron-updater": "2.21.8",
     "email-validator": "^2.0.3",
@@ -115,11 +116,11 @@
     "uglifyjs-webpack-plugin": "1.2.5",
     "url": "^0.11.0",
     "webpack": "4.7.0",
-    "webpack-cli": "^2.0.15",
-    "electron-mocha": "^6.0.2"
+    "webpack-cli": "^2.0.15"
   },
-  "dependencies": { 
+  "dependencies": {
     "raf": "^3.4.0",
+    "react-truncate": "^2.3.0",
     "resize-observer-polyfill": "^1.5.0",
     "rimraf": "^2.6.1",
     "rrule": "^2.2.9",
@@ -138,14 +139,22 @@
       "!credentials"
     ],
     "win": {
-      "target":[{ "target": "nsis", "arch": ["x64","ia32"] }],
-      "icon":"./icon.ico"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ],
+      "icon": "./icon.ico"
     },
     "publish": {
       "provider": "s3",
       "bucket": "todoappupdates",
       "acl": "public-read"
-    }, 
+    },
     "nsis": {
       "oneClick": false,
       "warningsAsErrors": false,

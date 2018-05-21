@@ -17,7 +17,7 @@ import Plus from 'material-ui/svg-icons/content/add';
 import { Todo, Project, Area, Category, Store } from '../../types';
 import { ResizableHandle } from './../ResizableHandle';
 import { NewProjectAreaPopup } from './NewProjectAreaPopup';
-import { allPass, isNil, not, flatten, contains } from 'ramda';
+import { allPass, isNil, not, flatten, contains, isEmpty } from 'ramda';
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
@@ -180,6 +180,34 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
     };
 
 
+
+    onSearchQueryChange = (e) => { 
+        let {dispatch} = this.props; 
+        
+        if(isEmpty(e.target.value)){
+            dispatch({
+                type:"multiple",
+                load:[{type:"searchQuery", load:""}, {type:"selectedCategory", load:"inbox"}]
+            }); 
+        }else{ 
+            dispatch({
+                type:"multiple",
+                load:[{type:"searchQuery", load:e.target.value}, {type:"selectedCategory", load:"search"}]
+            }); 
+        }       
+    };
+      
+
+
+    clear = () => this.props.dispatch({
+        type:"multiple",
+        load:[
+            {type:"searchQuery", load:""}, 
+            {type:"selectedCategory", load:"inbox"}
+        ]
+    }); 
+
+
      
     render(){      
         return <div style={{display:"flex", flexDirection:"row-reverse", height:window.innerHeight}}> 
@@ -199,7 +227,12 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 }}      
             >   
                 <div style={{padding:"15px"}}>
-                    <SearchInput dispatch={this.props.dispatch} searchQuery={this.props.searchQuery}/>
+                    <SearchInput 
+                        autofocus={false} 
+                        onChange={this.onSearchQueryChange} 
+                        clear={this.clear} 
+                        searchQuery={this.props.searchQuery}
+                    />
                 </div>    
                 <CategoryMenu    
                     dragged={this.props.dragged}

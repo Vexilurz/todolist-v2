@@ -42,7 +42,7 @@ import {
 import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../../types';
 import { 
     allPass, isNil, not, isEmpty, contains, flatten, prop, 
-    compose, any, intersection, defaultTo, all 
+    compose, any, intersection, defaultTo, all
 } from 'ramda';
 import { filter } from 'lodash/fp'; 
 import { Observable } from 'rxjs/Rx';
@@ -69,10 +69,7 @@ import { cutBy } from './cutBy';
 
 
 
-const categories = [
-    "inbox", "today", "upcoming" , "next", "someday",
-    "logbook", "trash" , "project" , "area" , "evening"
-];
+const categories = ["inbox", "today", "upcoming", "next", "someday", "logbook", "trash", "evening"];
 
 
 
@@ -184,6 +181,23 @@ let categoryMatch = (searchQuery:string) => (category:Category) : boolean => {
 
 
 
+let takeObjectsWhile = (condition,limit) => (objects) => {
+    let result = [];
+
+    for(let i=0; i<objects.length; i++){
+        let target = objects[i];
+        if(condition(target)){
+           result.push(target); 
+        }
+
+        if(result.length>=limit){ break }
+    }
+
+    return result;
+};
+
+
+
 export let getQuickFindSuggestions = (
     todos:Todo[], 
     projects:Project[], 
@@ -210,15 +224,19 @@ export let getQuickFindSuggestions = (
     let tagm = tagMatch(searchQuery);
     let cm = categoryMatch(searchQuery);
 
-    return {
-        areas:filter(am,areas),
-        projects:filter(pm,projects),
-        todos:filter(tm,selectedTodos),
-        tags:filter(tagm,tags),
-        categories:filter(cm,categories),
+    let result = {
+        areas:takeObjectsWhile(am,limit)(areas),
+        projects:takeObjectsWhile(pm,limit)(projects),
+        todos:takeObjectsWhile(tm,limit)(selectedTodos), 
+        tags:takeObjectsWhile(tagm,limit)(tags),  
+        categories:takeObjectsWhile(cm,limit)(categories), 
         byProject,
         byArea
     };
+
+    
+
+    return result;
 };   
 
 
