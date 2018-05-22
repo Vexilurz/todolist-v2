@@ -42,7 +42,8 @@ import { stopPropagation } from '../../utils/stopPropagation';
 import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../../types';
 import { 
     allPass, isNil, not, isEmpty, contains, flatten, 
-    prop, compose, any, intersection, defaultTo, all 
+    prop, compose, any, intersection, defaultTo, all,
+    when 
 } from 'ramda';
 import { filter } from 'lodash'; 
 import { Observable } from 'rxjs/Rx';
@@ -52,7 +53,7 @@ import { Subscription } from 'rxjs/Rx';
 import PieChart from 'react-minimal-pie-chart';
 import { TodoInput } from './../TodoInput/TodoInput';
 import { Tags } from './../Tags';
-import { isArray, isString, isDate, isNotDate } from '../../utils/isSomething';
+import { isArray, isString, isDate, isNotDate, isFunction, isNotNil } from '../../utils/isSomething';
 import { chooseIcon } from '../../utils/chooseIcon';
 import { FadeBackgroundIcon } from './../FadeBackgroundIcon';
 import { isDev } from '../../utils/isDev';
@@ -63,7 +64,8 @@ interface SearchInputProps{
     onChange:(e:any) => void,
     clear:() => void,
     searchQuery:string,
-    autofocus:boolean  
+    autofocus:boolean,
+    setRef?:Function  
 }  
 
 
@@ -72,21 +74,41 @@ interface SearchInputState{}
 
 export class SearchInput extends Component<SearchInputProps,SearchInputState>{
     ref:any;
+
+    constructor(props){ 
+        super(props);
+    } 
+
+
  
     componentDidMount(){
         if(this.props.autofocus){
-            this.ref.focus();
+            this.focus();
+        }
+
+        if(this.props.setRef && this.ref){
+           this.props.setRef(this.ref); 
         }
     }
 
+
+    
+    focus = () => {
+        if(this.ref){ 
+            let value = this.ref.value;
+            this.ref.value = ''; 
+            this.ref.blur()
+            this.ref.focus();
+            this.ref.value = value;  
+        } 
+    }; 
+
+
+
     shouldComponentUpdate(nextProps:SearchInputProps){
         return nextProps.searchQuery!==this.props.searchQuery;
-    }
+    };
 
-
-    constructor(props){ 
-        super(props)
-    } 
 
 
     render(){  

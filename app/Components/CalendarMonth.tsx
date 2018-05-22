@@ -24,7 +24,7 @@ import { isDev } from '../utils/isDev';
 import { assert } from '../utils/assert';
 import { byTime } from '../utils/byTime';
 import { getSameDayEventElement } from '../utils/getCalendarEventElement';
-import { isTodo, isProject } from '../utils/isSomething';
+import { isTodo, isProject, isNotNil } from '../utils/isSomething';
 import { TodoInput } from './TodoInput/TodoInput';
 import { ExpandableList } from './ExpandableList';
 
@@ -79,6 +79,7 @@ export class CalendarMonth extends Component<CalendarMonthProps,CalendarMonthSta
     shouldComponentUpdate(nextProps){
         if(
             this.props.month!==nextProps.month ||
+            this.props.scrolledTodo!==nextProps.scrolledTodo ||
             this.props.indicators!==nextProps.indicators ||
             this.props.sortedItems!==nextProps.sortedItems ||
             this.props.sortedEvents!==nextProps.sortedEvents ||
@@ -106,8 +107,15 @@ export class CalendarMonth extends Component<CalendarMonthProps,CalendarMonthSta
 
         let noEvents = isEmpty(fullDayEvents) && isEmpty(sameDayEvents);
         let noItems = isEmpty(sortedItems);
-       
 
+        let showAll = false;
+        
+        if(this.props.scrolledTodo){
+           let id = this.props.scrolledTodo._id; 
+           let scrollTo = sortedItems.find( item => isTodo(item) ? item._id===id : false );
+           showAll = isNotNil(scrollTo);
+        }
+        
         return <div style={{display:"flex", flexDirection:"column", WebkitUserSelect:"none"}}>  
 
 
@@ -120,7 +128,7 @@ export class CalendarMonth extends Component<CalendarMonthProps,CalendarMonthSta
                         width:"100%", 
                         fontWeight:"bold",
                         marginTop:"10px",
-                        paddingTop:"5px",
+                        paddingTop:"5px", 
                         borderTop:"1px solid rgba(100, 100, 100, 0.3)",
                         paddingBottom:"15px"
                     }} 
@@ -182,7 +190,7 @@ export class CalendarMonth extends Component<CalendarMonthProps,CalendarMonthSta
                     noItems ? null :
                     <div style={{marginLeft:"-22px"}}>
                     <ExpandableList
-                        showAll={false}
+                        showAll={showAll}
                         minLength={10}
                         buttonOffset={25}
                         type={"items"}   

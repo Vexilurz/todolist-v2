@@ -69,7 +69,14 @@ import { cutBy } from './cutBy';
 
 
 
-const categories = ["inbox", "today", "upcoming", "next", "someday", "logbook", "trash", "evening"];
+
+let match = (searchKeywords:string[],keywords:string[]) => 
+        any(
+            (searchKeyword:string) => contains(searchKeyword)(cutBy(searchKeyword)(keywords))
+        )(searchKeywords); 
+
+
+const categories = ["inbox", "today", "upcoming", "next", "someday", "logbook", "trash"];
 
 
 
@@ -143,15 +150,21 @@ let categoryToKeywords = (c:Category) : string[] => {
 
 
 let todoMatch = (searchQuery:string) => (todo:Todo) : boolean => {
-    let keywords = compose(cutBy(searchQuery),todoToKeywords)(todo);
-    return contains(searchQuery)(keywords);
+    //let keywords = compose(cutBy(searchQuery),todoToKeywords)(todo);
+    let keywords = todoToKeywords(todo);
+    
+    return match(stringToKeywords(searchQuery),keywords);
+    //contains(searchQuery)(keywords);
 };
 
 
 
 let tagMatch = (searchQuery:string) => (tag:string) : boolean => {
-    let keywords = compose(cutBy(searchQuery),tagToKeywords)(tag);
-    return contains(searchQuery)(keywords);
+    //let keywords = compose(cutBy(searchQuery),tagToKeywords)(tag);
+    let keywords = tagToKeywords(tag);
+    
+    return match(stringToKeywords(searchQuery),keywords);
+    //return contains(searchQuery)(keywords);
 };
 
 
@@ -159,8 +172,11 @@ let tagMatch = (searchQuery:string) => (tag:string) : boolean => {
 let projectMatch = (searchQuery:string,tableWithTodos) => 
     (project:Project) : boolean => {
         let toKeywords = projectToKeywords(tableWithTodos);
-        let keywords = compose(cutBy(searchQuery),toKeywords)(project);
-        return contains(searchQuery)(keywords);
+        //let keywords = compose(cutBy(searchQuery),toKeywords)(project);
+        let keywords = toKeywords(project);
+        
+        return match(stringToKeywords(searchQuery),keywords);
+        //return contains(searchQuery)(keywords);
     };
 
 
@@ -168,20 +184,26 @@ let projectMatch = (searchQuery:string,tableWithTodos) =>
 let areaMatch = (searchQuery:string,tableWithTodos,tableWithProjects) => 
     (area:Area) : boolean => {
         let toKeywords = areaToKeywords(tableWithTodos)(tableWithProjects);
-        let keywords = compose(cutBy(searchQuery),toKeywords)(area);
-        return contains(searchQuery)(keywords);
+        //let keywords = compose(cutBy(searchQuery),toKeywords)(area);
+        let keywords = toKeywords(area);
+        
+        return match(stringToKeywords(searchQuery),keywords);
+        //return contains(searchQuery)(keywords);
     };
 
 
 
 let categoryMatch = (searchQuery:string) => (category:Category) : boolean => {
-    let keywords = compose(cutBy(searchQuery),categoryToKeywords)(category);
-    return contains(searchQuery)(keywords);
+    //let keywords = compose(cutBy(searchQuery),categoryToKeywords)(category);
+    let keywords = categoryToKeywords(category);
+    
+    return match(stringToKeywords(searchQuery),keywords);
+    //return contains(searchQuery)(keywords);
 };
 
 
 
-let takeObjectsWhile = (condition,limit) => (objects) => {
+let takeObjectsWhile = (condition,limit,setLimitReached) => (objects) => {
     let result = [];
 
     for(let i=0; i<objects.length; i++){
@@ -190,9 +212,13 @@ let takeObjectsWhile = (condition,limit) => (objects) => {
            result.push(target); 
         }
 
-        if(result.length>=limit){ break }
+        if(result.length>=limit){ 
+            setLimitReached(false);
+            return result; 
+        }
     }
 
+    setLimitReached(true);
     return result;
 };
 
@@ -215,9 +241,17 @@ export let getQuickFindSuggestions = (
     byArea:any,
     limitReached:boolean
 } => {  
-    let selectedTodos = limitGroups(3, todos);  
+    let sortedTags = tags.sort((a:string,b:string) : number => a.localeCompare(b));
+    let sortedCategories = categories.sort((a:string,b:string) : number => a.localeCompare(b));
+    let selectedTodos = compose(
+        todos => todos.sort((a:Todo,b:Todo) => a.priority-b.priority),    
+        todos => limitGroups(3,todos)
+    )(todos);  
+    
     let byProject = groupByProject(projects)(selectedTodos);
     let byArea = groupProjectsByArea(projects,areas);
+    let limitReached = true;
+    let setLimitReached = reached => { limitReached=(limitReached && reached) }; 
 
     let am = areaMatch(searchQuery,byProject,byArea.table);
     let pm = projectMatch(searchQuery,byProject);
@@ -226,20 +260,14 @@ export let getQuickFindSuggestions = (
     let cm = categoryMatch(searchQuery);
 
     let result = {
-        areas:takeObjectsWhile(am,limit)(areas),
-        projects:takeObjectsWhile(pm,limit)(projects),
-        todos:takeObjectsWhile(tm,limit)(selectedTodos), 
-        tags:takeObjectsWhile(tagm,limit)(tags),  
-        categories:takeObjectsWhile(cm,limit)(categories), 
+        areas:takeObjectsWhile(am,limit,setLimitReached)(areas),
+        projects:takeObjectsWhile(pm,limit,setLimitReached)(projects),
+        todos:takeObjectsWhile(tm,limit,setLimitReached)(selectedTodos), 
+        tags:takeObjectsWhile(tagm,limit,setLimitReached)(sortedTags),  
+        categories:takeObjectsWhile(cm,limit,setLimitReached)(sortedCategories), 
         byProject,
         byArea
     };
-
-    let limitReached = result.areas.length===areas.length &&
-                       result.projects.length===projects.length &&
-                       result.todos.length===todos.length &&
-                       result.tags.length===tags.length &&
-                       result.categories.length===categories.length;
 
     return {...result, limitReached};
 };   

@@ -33,7 +33,7 @@ import Popover from 'material-ui/Popover';
 import {  
     daysLeftMark, generateTagElement, attachDispatchToProps, 
     byNotDeleted, findAttachedProject,
-    getTagsFromItems, byTags, typeEquals, isNotEmpty
+    getTagsFromItems, byTags, typeEquals, isNotEmpty, different
 } from '../../utils/utils'; 
 import { 
     Category, ChecklistItem, Todo, ObjectType, 
@@ -41,7 +41,7 @@ import {
 } from '../../types';
 import { 
     values, allPass, isNil, not, isEmpty, contains, flatten, prop, 
-    compose, any, intersection, defaultTo, all, cond, always 
+    compose, any, intersection, defaultTo, all, cond, always, toLower 
 } from 'ramda';
 import { filter } from 'lodash'; 
 import { Observable } from 'rxjs/Rx';
@@ -304,10 +304,15 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
         let appearance = SearchAppearances(this.props.indicators)[type](item);
 
         return <div key={`item-${index}`}>
-            <div onClick={e => this.props.dispatch(action)}>
-            {
-                appearance
-            }
+            <div 
+                onClick={
+                    e => {
+                        this.props.dispatch(action);
+                        this.props.dispatch({type:"showMenu", load:false});
+                    }
+                }
+            >
+            { appearance }
             </div>
         </div>   
     };  
@@ -318,17 +323,23 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
  
 
 
+    shouldComponentUpdate(nextProps,nextState){
+        return different(nextState,this.state) || nextProps.searchQuery!==this.props.searchQuery;
+    }
+
+
+
     render(){
         let {todos, projects, areas, dispatch, selectedTags, groupTodos, selectedCategory} = this.props;
 
-
         let suggestions = getQuickFindSuggestions(
-            todos, projects, areas,
+            todos, 
+            projects, 
+            areas,
             getTagsFromItems(todos),
-            this.props.searchQuery,
+            toLower(this.props.searchQuery),
             this.state.limit
         );
-
 
         let items = flatten([
             suggestions.areas,
@@ -338,17 +349,15 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
             suggestions.todos.sort(sortByCompletedOrNot)
         ]);
 
-
-
         return <div style={{overflow:"hidden"}}>  
             { NoResultsLabel(isEmpty(items)) }
             <div> 
             { 
-                <div>
-                    <div style={{paddingLeft:"10px",paddingRight:"10px"}}>
-                    { items.map( this.suggestionToComponent(suggestions.byProject,suggestions.byArea) ) }
-                    </div>
+            <div>
+                <div style={{paddingLeft:"10px",paddingRight:"10px"}}>
+                { items.map( this.suggestionToComponent(suggestions.byProject,suggestions.byArea) ) }
                 </div>
+            </div>
             }
             </div>
             { ContinueSearchButton(this.onGetMoreResults, !suggestions.limitReached) }     

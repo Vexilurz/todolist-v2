@@ -178,7 +178,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
         ) 
     )
     .then(({projects, areas, todos, calendars}) => 
-    
         this.setData({
             projects:defaultTo([], projects), 
             areas:defaultTo([], areas), 

@@ -72,6 +72,7 @@ interface LeftPanelMenuState{}
 
 export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuState>{
     anchor:HTMLElement;
+    inputRef:HTMLElement;
     leftPanelRef:HTMLElement;  
 
     
@@ -211,13 +212,11 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
      
     render(){      
         return <div style={{display:"flex", flexDirection:"row-reverse", height:window.innerHeight}}> 
-
             { not(this.props.collapsed) ? <ResizableHandle onDrag={this.onResizableHandleDrag}/> : null } 
-
             <div        
                 id="leftpanel"
-                ref={(e) => {this.leftPanelRef=e;}} 
-                className="scroll"
+                ref={(e) => {this.leftPanelRef=e;}}  
+                className="scroll" 
                 style={{ 
                     WebkitUserSelect:"none", 
                     transition: "width 0.2s ease-in-out", 
@@ -227,12 +226,16 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 }}      
             >   
                 <div style={{padding:"15px"}}>
+                {
+                    this.props.collapsed ? null :
                     <SearchInput 
+                        setRef={e => {this.inputRef=e;}}
                         autofocus={false} 
                         onChange={this.onSearchQueryChange} 
                         clear={this.clear} 
                         searchQuery={this.props.searchQuery}
                     />
+                }
                 </div>    
                 <CategoryMenu    
                     dragged={this.props.dragged}

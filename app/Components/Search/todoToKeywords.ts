@@ -66,6 +66,16 @@ import { getNotePlainText, getNotePlainTextFromRaw } from '../../utils/draftUtil
 import { stringToKeywords } from './stringToKeywords';
 
 
+
+let dateToKeywords = (date:Date) : string[] => {
+    if(!isDate(date)){ return []; }
+    let options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+
+    return date.toLocaleDateString("ENG", options).split(',');
+};
+
+
+
 export let todoToKeywords = (t:Todo) : string[] => {
     if(isNil(t)){ return []; }
     let keywords : string[] = [];
@@ -76,9 +86,12 @@ export let todoToKeywords = (t:Todo) : string[] => {
     keywords.push( ...stringToKeywords(note) );
     keywords.push( ...flatten(checklist) );
     
-    if(isDate(t.deadline)){  keywords.push(t.deadline.toJSON());  }
-    if(isDate(t.deleted)){  keywords.push(t.deleted.toJSON());  }
-    if(isDate(t.attachedDate)){  keywords.push(t.attachedDate.toJSON());  }
+    if(isDate(t.deadline)){  
+        keywords.push(...dateToKeywords(t.deadline));  
+    }
+    if(isDate(t.attachedDate)){  
+        keywords.push(...dateToKeywords(t.attachedDate));  
+    }
 
     //should i add tags in search ?
     //let attachedTags = flatten( t.attachedTags.map((tag) => stringToKeywords(tag)) );                                 

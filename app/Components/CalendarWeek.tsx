@@ -25,7 +25,7 @@ import { isDev } from '../utils/isDev';
 import { assert } from '../utils/assert';
 import { byTime } from '../utils/byTime';
 import { getSameDayEventElement } from '../utils/getCalendarEventElement';
-import { isProject, isTodo } from '../utils/isSomething';
+import { isProject, isTodo, isNotNil } from '../utils/isSomething';
 import { TodoInput } from './TodoInput/TodoInput';
 
 
@@ -90,7 +90,14 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
         let noEvents = isEmpty(fullDayEvents) && isEmpty(sameDayEvents);
         let noItems = isEmpty(sortedItems);
        
-
+        let showAll = false;
+        
+        if(this.props.scrolledTodo){
+           let id = this.props.scrolledTodo._id; 
+           let scrollTo = sortedItems.find( item => isTodo(item) ? item._id===id : false );
+           showAll = isNotNil(scrollTo);
+        }
+        
         return <div style={{display:"flex", flexDirection:"column", WebkitUserSelect:"none"}}>  
                 <div 
                     style={{
@@ -166,7 +173,7 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
                     noItems ? null :
                     <div style={{marginLeft:"-22px"}}>
                     <ExpandableList
-                        showAll={false}
+                        showAll={showAll}
                         minLength={5}
                         buttonOffset={25}
                         type={"items"}   

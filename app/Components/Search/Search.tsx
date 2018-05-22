@@ -37,10 +37,14 @@ import {
     findAttachedProject, 
     getTagsFromItems,
     byTags,
-    isNotEmpty
+    isNotEmpty,
+    different
 } from '../../utils/utils'; 
 import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../../types';
-import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection, defaultTo, all, evolve, map } from 'ramda';
+import { 
+    reject, allPass, isNil, not, isEmpty, contains, flatten, prop, identity,
+    compose, any, intersection, defaultTo, all, evolve, map, ifElse 
+} from 'ramda';
 import { filter } from 'lodash'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -141,6 +145,8 @@ export class Search extends Component<SearchProps,SearchState>{
     suggestionToComponent = (projectWithTodos:{project:Project,todos:Todo[]}, index:number) => {
         let {areas, projects, dispatch} = this.props;
         let {project} = projectWithTodos;
+
+        if(isEmpty(projectWithTodos.todos)){ return null }
          
         return <div key={`attached-${index}`}>
             <div>
@@ -149,11 +155,12 @@ export class Search extends Component<SearchProps,SearchState>{
                     project,
                     defaultTo({completed:0, active:0})(this.props.indicators[project._id])
                 )
-            }
+            } 
             </div>
             {
                 projectWithTodos
                 .todos
+                .sort((a:Todo,b:Todo) => a.priority-b.priority)
                 .sort(sortByCompletedOrNot)
                 .map(this.getTodoComponent)
             } 
@@ -169,27 +176,49 @@ export class Search extends Component<SearchProps,SearchState>{
 
 
     render(){
-        let {todos, projects, areas, dispatch, selectedTags, groupTodos, selectedCategory} = this.props; 
-        let tags = getTagsFromItems(todos); 
-        let noresults = {
-            fontSize:"18px", userSelect:"none", cursor:"default", 
-            display:"flex", alignItems:"center", justifyContent:"center" 
-        };
-
-        let suggestions = compose(
-            evolve(
-                {
-                    attached: compose(
-                        items => items.filter(item => isNotEmpty(item.todos)),
-                        map( evolve({todos: todos => todos.filter(byTags(selectedTags))}) )
-                    ),
-                    detached: todos => todos.filter(byTags(selectedTags))
-                }
-            ),
-            getSuggestions
-        )(todos,projects,areas,this.props.searchQuery,this.state.limit)
-
+        let emptyTodos = compose(isEmpty, prop('todos'));
+        let {todos, projects, areas, dispatch, selectedTags, groupTodos, selectedCategory} = this.props;         
+        let suggestions = getSuggestions(todos,projects,areas,this.props.searchQuery,this.state.limit);
+        let selectedTodos = flatten([suggestions.detached,suggestions.attached.map(i => i.todos)]);
+        let tags = getTagsFromItems(selectedTodos);
+        let empty = false;
         this.limitReached = suggestions.limitReached;
+        let elements = ifElse(
+            identity,
+            () => {
+                let attached = suggestions
+                                .attached
+                                .map( evolve({todos:todos => todos.filter(byTags(selectedTags))}) )
+                                .map( (data:any,index) => this.suggestionToComponent(data,index) );
+
+                let detached = suggestions
+                                .detached
+                                .sort((a:Todo,b:Todo) => a.priority-b.priority)
+                                .sort(sortByCompletedOrNot)
+                                .filter(byTags(selectedTags))
+                                .map(this.getTodoComponent);   
+            
+                empty = isEmpty(attached) && isEmpty(detached);
+
+                return <div>
+                <div>{attached}</div>
+                <div style={{paddingTop:"20px"}}>{detached}</div>
+                </div>
+            },
+            
+            () => {
+                let items = selectedTodos
+                .sort((a:Todo,b:Todo) => a.priority-b.priority)
+                .sort(sortByCompletedOrNot)
+                .filter(byTags(selectedTags));
+
+                empty = isEmpty(items);
+
+                return items.map(this.getTodoComponent); 
+            }
+        )(groupTodos);
+
+
 
         return <div id={`${selectedCategory}-list`}>   
             <div style={{ display:"flex", position:"relative", alignItems:"center", marginBottom:"20px"}}>   
@@ -203,7 +232,7 @@ export class Search extends Component<SearchProps,SearchState>{
                     overflowX: "hidden",
                     fontWeight: 600,
                     paddingLeft: "10px", 
-                    cursor:"default" 
+                    cursor: "default" 
                 }}>   
                     {`Search results${isEmpty(selectedTags) ? '' : '#'+selectedTags.join('/')}`} 
                 </div>  
@@ -217,35 +246,19 @@ export class Search extends Component<SearchProps,SearchState>{
                 />  
             </div> 
             { 
-                isEmpty(suggestions.attached) && isEmpty(suggestions.detached) ? 
-                <div className="no-print" style={noresults as any}>No results were found...</div> : 
+                empty ? 
+                <div 
+                    className="no-print" 
+                    style={{
+                        fontSize:"18px", userSelect:"none", cursor:"default", 
+                        display:"flex", alignItems:"center", justifyContent:"center" 
+                    }}
+                >
+                    No results were found...
+                </div> : 
                 null
             }
-            <div> 
-            { 
-                not(groupTodos) ?
-                flatten([
-                    suggestions.detached, 
-                    suggestions.attached.map(i => i.todos)
-                ])
-                .sort(sortByCompletedOrNot)
-                .map(this.getTodoComponent) 
-                :
-                <div>
-                    <div> 
-                        {
-                            suggestions.attached
-                            .map((data,index) => this.suggestionToComponent(data,index))
-                        } 
-                    </div>
-                    <div style={{paddingTop:"20px"}}>
-                        {
-                            suggestions.detached.sort(sortByCompletedOrNot).map(this.getTodoComponent)   
-                        }
-                    </div>
-                </div>
-            }
-            </div>
+            <div>{elements}</div>
             <div className="no-print" style={{width:"100%", height:"1px"}}> 
                 <Waypoint  
                     onEnter={this.onEnter} 

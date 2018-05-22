@@ -245,6 +245,12 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
             });
         }
 
+
+        if(this.props.scrolledTodo && this.props.scrolledTodo._id===this.props.todo._id){ 
+           this.props.dispatch({type:"scrolledTodo",load:null});
+        }
+
+
         if(isFunction(onClose)){ onClose() } 
     };
 
@@ -462,17 +468,18 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         ){
             setTimeout(
                 () => {
-                    this.setState({open:true}, () => this.ref ? this.ref.scrollIntoView() : null)
-                    this.forceUpdate();
-                    this.props.dispatch({type:"scrolledTodo",load:null})
+                    if(this.ref){
+                       this.setState({open:true}, () => this.ref ? this.ref.scrollIntoView() : null)
+                       this.forceUpdate();
+                    }
                 }, 
-                300
-            ) 
+                150
+            )    
         } 
-    };  
+    };   
 
 
-
+    
     componentDidMount(){   
      
         let { todo, dispatch } = this.props;
@@ -485,15 +492,19 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
             Observable.fromEvent(window,'beforeunload').subscribe(this.saveOnUnmount) 
         
-        ); 
+        );  
     };        
  
 
 
     componentWillUnmount(){
         this.saveOnUnmount();
+        if(this.props.scrolledTodo && this.props.scrolledTodo._id===this.props.todo._id){ 
+           this.props.dispatch({type:"scrolledTodo",load:null});
+        }
         this.subscriptions.map(s => s.unsubscribe());
         this.subscriptions = []; 
+        this.ref = null;
     }; 
 
 

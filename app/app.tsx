@@ -102,6 +102,7 @@ export class App extends Component<AppProps,AppState>{
         this.subscriptions.push(
             Observable
             .fromEvent(document, "keypress", event => event) 
+            .do(e => console.log(e.target))
             .skipWhile(event => !this.props.collapsed || this.props.openSettings)
             .filter(event => event.target===document.body)
             .subscribe(
@@ -238,7 +239,14 @@ export class App extends Component<AppProps,AppState>{
             Observable
             .fromEvent(ipcRenderer, "toggle", (event) => event)
             .subscribe(
-                () => this.props.dispatch({type:"collapsed", load:!this.props.collapsed})
+                () => this.props.dispatch({
+                    type:"multiple",  
+                    load:[
+                        {type:"collapsed", load:!this.props.collapsed},
+                        {type:"showMenu", load:false},
+                        {type:"searchQuery", load:"" }
+                    ]
+                })
             )
         );
     };
