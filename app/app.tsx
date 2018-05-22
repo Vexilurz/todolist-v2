@@ -95,37 +95,20 @@ export class App extends Component<AppProps,AppState>{
 
         this.state = { amounts:this.getAmounts(this.props), indicators:{} };
     };
+ 
 
 
-    //TODO recheck
     initQuickFind = () => {
         this.subscriptions.push(
             Observable
-            .fromEvent(document, "keydown", (event) => event) //keypress
-            .do(e => console.log(e))
-            .filter(anyPass([isAlpha/*,isNum*/]))
-            //.skipWhile(v => !this.props.collapsed)
+            .fromEvent(document, "keypress", event => event) 
+            .skipWhile(event => !this.props.collapsed || this.props.openSettings)
+            .filter(event => event.target===document.body)
             .subscribe(
-                (event:any) => {
-                    this.props.dispatch({
-                        type:"multiple",
-                        load:[
-                            {type:"collapsed", load:true},
-                            {type:"searchQuery", load:String.fromCharCode(event.which)}
-                        ]
-                    })
-
-                    /*let key = String.fromCharCode(event.which);
-                    let searchQuery = this.props.searchQuery + key; 
-                    
-                    this.props.dispatch({
-                        type:"multiple", 
-                        load:[
-                            {type:"searchQuery", load:searchQuery},
-                            {type:"collapsed", load:true}
-                        ]
-                    })*/
-                }
+                (event:any) => this.props.dispatch({
+                    type:"multiple",
+                    load:[{type:"collapsed",load:true},{type:"showMenu",load:true}]
+                })
             ) 
         );
     }; 
@@ -405,6 +388,7 @@ export class App extends Component<AppProps,AppState>{
                     !this.props.collapsed ? null :
                     <TopPopoverMenu 
                         dispatch={this.props.dispatch}
+                        showMenu={this.props.showMenu}
                         filters={getFilters(this.props.projects)}
                         collapsed={this.props.collapsed}
                         selectedCategory={this.props.selectedCategory}

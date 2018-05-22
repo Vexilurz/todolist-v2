@@ -36,6 +36,7 @@ import { SearchSuggestions } from '../Search/SearchSuggestions';
 
 interface TopPopoverMenuProps{
     dispatch:Function,
+    showMenu:boolean,
     selectedCategory:Category,
     leftPanelWidth:number,
     filters:{
@@ -77,9 +78,7 @@ interface TopPopoverMenuProps{
 
 
 
-interface TopPopoverMenuState{
-    showMenu:boolean
-}
+interface TopPopoverMenuState{}
 
 
 
@@ -88,32 +87,13 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
 
     constructor(props){  
         super(props);   
-        this.state={ showMenu:false };
     } 
-
-
-
-    //open menu if quick find invoked
-    componentWillReceiveProps(nextProps:TopPopoverMenuProps){
-        if(
-            nextProps.collapsed && 
-            !this.props.collapsed
-        ){
-            if(
-                !isEmpty(nextProps.searchQuery) && 
-                isEmpty(this.props.searchQuery)
-            ){
-                this.setState({showMenu:true});
-            }
-        }
-    };
-
 
 
     showMenu = (e) => {
         e.stopPropagation(); 
         e.nativeEvent.stopImmediatePropagation();
-        this.setState({showMenu:!this.state.showMenu});
+        this.props.dispatch({type:"showMenu",load:!this.props.showMenu});
     }; 
 
 
@@ -138,17 +118,17 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
             <div>
                 <ToggleTopMenuButton 
                    collapsed={this.props.collapsed}
-                   toggled={this.state.showMenu} 
+                   toggled={this.props.showMenu} 
                    onClick={this.showMenu} 
                    setRef={(e) => { this.anchor=e; }} 
                    title={this.props.selectedCategory}       
                 />
                 <Popover  
                     style={{backgroundColor:"rgba(0,0,0,0)",background:"rgba(0,0,0,0)",borderRadius:"10px"}}     
-                    open={this.state.showMenu}
+                    open={this.props.showMenu}
+                    useLayerForClickAway={false}
                     anchorEl={this.anchor}
-                    onRequestClose={() => this.setState({showMenu:false})}
-                    useLayerForClickAway={false} 
+                    onRequestClose={() => this.props.dispatch({type:"showMenu",load:false})}
                     anchorOrigin={{vertical:"bottom",horizontal:"middle"}}  
                     targetOrigin={{vertical:"top",horizontal:"middle"}}  
                 >   

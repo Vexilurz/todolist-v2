@@ -40,7 +40,7 @@ import { Observable } from 'rxjs/Rx';
 import { insideTargetArea } from '../../utils/insideTargetArea';
 import { googleAnalytics } from '../../analytics';
 import { globalErrorHandler } from '../../utils/globalErrorHandler';
-import { isFunction, isDate, isString, isNotNil, isToday } from '../../utils/isSomething';
+import { isFunction, isDate, isString, isNotNil, isToday, isTodo } from '../../utils/isSomething';
 import { daysRemaining } from '../../utils/daysRemaining';
 import Alert from 'material-ui/svg-icons/alert/add-alert';
 import { stringToLength } from '../../utils/stringToLength';
@@ -165,7 +165,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
     constructor(props){
-        super(props);  
+        super(props);   
 
         this.subscriptions = [];
          
@@ -208,6 +208,8 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
         let { open } = this.state;
         let closed = not(open);
 
+        this.openIfSelected(nextProps);
+       
         if(notEquals(nextProps.todo, this.props.todo) && closed){
             let {attachedDate,deadline,category,checklist,title, note} = nextProps.todo;
             this.setState({
@@ -248,29 +250,26 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
      
 
-    update =  //debounce( 
-        (props) : void => {
-            this.props.dispatch({
-                type:"multiple",
-                load:[
-                    {
-                        type:"updateTodo",
-                        load:{...this.props.todo,...props}
-                    },
-                    {
-                        type: "openRightClickMenu",
-                        load: {
-                            showRightClickMenu:false,
-                            rightClickedTodoId:null,
-                            rightClickMenuX:0,
-                            rightClickMenuY:0
-                        }
+    update = (props) : void => {
+        this.props.dispatch({
+            type:"multiple",
+            load:[
+                {
+                    type:"updateTodo",
+                    load:{...this.props.todo,...props}
+                },
+                {
+                    type: "openRightClickMenu",
+                    load: {
+                        showRightClickMenu:false,
+                        rightClickedTodoId:null,
+                        rightClickMenuX:0,
+                        rightClickMenuY:0
                     }
-                ]
-            }); 
-        }//,
-        //300
-    //);
+                }
+            ]
+        }); 
+    };
 
 
     updateChecklistInStore = debounce( this.update, 300 );
@@ -456,24 +455,29 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
 
 
-    componentDidMount(){   
-        let idEquals = (id:string) => compose(equals(id), prop('_id'));
-        let { todo, scrolledTodo, dispatch } = this.props;
-
-        ifElse(
-            isNil,
-            identity,
-            when(
-                idEquals(todo._id), 
-                () => this.setState(
-                    {open:true}, 
-                    () => {
-                        if(isNotNil(this.ref)){ this.ref.scrollIntoView(); }
-                        dispatch({type:"scrolledTodo",load:null});
-                    }
-                )
+    openIfSelected = (props) => { 
+        if(
+           props.scrolledTodo && 
+           equals(props.todo._id,props.scrolledTodo._id)
+        ){
+            setTimeout(
+                () => {
+                    this.setState({open:true}, () => this.ref ? this.ref.scrollIntoView() : null)
+                    this.forceUpdate();
+                    this.props.dispatch({type:"scrolledTodo",load:null})
+                }, 
+                300
             ) 
-        )(scrolledTodo)
+        } 
+    };  
+
+
+
+    componentDidMount(){   
+     
+        let { todo, dispatch } = this.props;
+
+        this.openIfSelected(this.props);
 
         this.subscriptions.push( 
             

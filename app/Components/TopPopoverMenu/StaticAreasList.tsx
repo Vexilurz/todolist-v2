@@ -189,12 +189,13 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
                 .map( 
                     (item,index) => {
                         if(isArray(item)){
-                            return <div key={`list-${index}`} style={{paddingLeft:"8px"}}>
+                            return isEmpty(item) ? null :
+                            <div key={`list-${index}`} style={{paddingLeft:"8px"}}>
                                 <ExpandableList
                                     showAll={false}
                                     minLength={3} 
                                     buttonOffset={0}
-                                    type={"projects"}   
+                                    type={"projects"}    
                                 >
                                     { item.map( (i,idx) => this.getElement(i,idx) ) }
                                 </ExpandableList> 

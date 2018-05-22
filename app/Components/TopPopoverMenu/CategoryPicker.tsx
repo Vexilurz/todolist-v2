@@ -319,7 +319,7 @@ export class CategoryPicker extends Component<CategoryPickerProps,CategoryPicker
                 />
             }    
 
-            <Separator />
+            {/*<Separator />*/}
         </div> 
     }
 }    

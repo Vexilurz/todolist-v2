@@ -59,10 +59,10 @@ export let locateItem = (
                     })
                 ],
                 [
-                    allPass(filters.upcoming),
+                    allPass(filters.trash),
                     (todo) => ({
                         type:"multiple",
-                        load:[{type:"scrolledTodo",load:todo},{type:"selectedCategory",load:"upcoming"}]
+                        load:[{type:"scrolledTodo",load:todo},{type:"selectedCategory",load:"trash"}]
                     })
                 ],
                 [
@@ -73,10 +73,10 @@ export let locateItem = (
                     })
                 ],
                 [
-                    allPass(filters.trash),
+                    allPass(filters.upcoming),
                     (todo) => ({
                         type:"multiple",
-                        load:[{type:"scrolledTodo",load:todo},{type:"selectedCategory",load:"trash"}]
+                        load:[{type:"scrolledTodo",load:todo},{type:"selectedCategory",load:"upcoming"}]
                     })
                 ],
                 [

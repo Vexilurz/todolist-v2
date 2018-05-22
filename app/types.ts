@@ -208,6 +208,7 @@ export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags' | 'S
 
 
 export interface Store extends Config{
+  showMenu : boolean,  
   import : ImportActionLoad,
   lastSync : Date,
   showWhenCalendar : boolean, 
