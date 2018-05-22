@@ -20,15 +20,10 @@ import { isDate, isArrayOfTodos } from './isSomething';
 
 
 export let extend = (limit:Date, todos:Todo[]) : Todo[] => {
-    let isNotNeverGroup = compose(not, equals('never'), path(['group','type']));
-    let getDate = (todo:Todo) => todo.attachedDate;
-    let compareByAttachedDate = compareByDate(getDate);
+    let compareByAttachedDate = compareByDate((todo:Todo) => todo.attachedDate);
+    let groupButNotAfter = compose(anyPass([equals('never'),equals('on')]), path(['group','type']));
 
-    let groupButNotAfter = compose(
-        anyPass([equals('never'),equals('on')]), 
-        path(['group','type'])
-    );
-
+    
     let repeated = compose( 
         flatten, 
         values,

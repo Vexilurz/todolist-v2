@@ -212,7 +212,8 @@ export let getQuickFindSuggestions = (
     tags:string[],
     categories:Category[],
     byProject:any,
-    byArea:any
+    byArea:any,
+    limitReached:boolean
 } => {  
     let selectedTodos = limitGroups(3, todos);  
     let byProject = groupByProject(projects)(selectedTodos);
@@ -234,9 +235,13 @@ export let getQuickFindSuggestions = (
         byArea
     };
 
-    
+    let limitReached = result.areas.length===areas.length &&
+                       result.projects.length===projects.length &&
+                       result.todos.length===todos.length &&
+                       result.tags.length===tags.length &&
+                       result.categories.length===categories.length;
 
-    return result;
+    return {...result, limitReached};
 };   
 
 

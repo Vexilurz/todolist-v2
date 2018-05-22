@@ -52,6 +52,38 @@ import { UpcomingDefault } from './Categories/Upcoming/UpcomingDefault';
 
 
 
+let hideImportCalendarsHint : (calendars:Calendar[], showHint:boolean) => 
+    (actions:action[]) => action[] =
+    (calendars, showHint) => when( 
+        () => isNotEmpty(calendars) && showHint, //if calendars not empty - hide hint
+        append({type:"hideHint", load:true}) 
+    );
+
+
+
+let addIntroList = (projects:Project[],firstLaunch:boolean) => 
+    (actions:action[]) : action[] => {
+        if(not(firstLaunch)){ return actions; }
+        let introListAlreadyExists = projects.find((p:Project) => p._id==="Intro List");
+
+        return when( 
+            () => not(introListAlreadyExists), 
+            concat([
+                {type:"addTodos", load:introListLayout.filter(isTodo)},
+                {type:"addProject", load:getIntroList()}  
+            ]) 
+        )(actions);
+    };
+
+
+
+let addExtendedTodos = (limit:Date, todos:Todo[]) => (actions:action[]) : action[] => {
+    let extended : Todo[] = extend(limit, todos);
+    return when(() => isNotEmpty(extended),append({type:"addTodos", load:extended}))(actions);
+};
+
+
+
 interface MainContainerProps{
     dispatch:Function, 
     selectedCategory:Category,
@@ -140,7 +172,6 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
     getData(this.props.secretKey)
     .then(fixIncomingData)
     .then(({calendars,todos,projects,areas}) => 
-
         updateCalendars(this.props.limit,calendars,this.onError)
         .then( 
             (updated) => updateQuickEntryData({projects,areas,todos,calendars:updated}) 
@@ -160,69 +191,25 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
     setData = ({projects, areas, todos, calendars}) : void => {
         if(this.props.clone){ return } 
-
-        ipcRenderer.send("focusMainWindowOnStart");
-        
-        let showHint = not(this.props.hideHint);
-        let selectedTodos = todos; //filter(todos, isTodo);
-        
-
-        let displayData = () => 
-            this.props.dispatch({
+        compose(
+            (actions:action[]) => this.props.dispatch({type:"multiple", load:actions}),
+            hideImportCalendarsHint(calendars,not(this.props.hideHint)),
+            addExtendedTodos(this.props.limit, todos),
+            addIntroList(projects,this.props.firstLaunch),
+            () => [],
+            () => this.props.dispatch({
                 type:"multiple",
                 load:[
                     {type:"setProjects", load:projects},
             
                     {type:"setAreas", load:areas},
         
-                    {type:"setTodos", load:selectedTodos},
+                    {type:"setTodos", load:todos},
         
                     {type:"setCalendars", load:calendars}
                 ]
-            });
-
-
-        let addExtendedTodos = (actions:action[]) : action[] => {
-            let extended : Todo[] = extend(this.props.limit, todos);
-
-            return when(  
-                () => isNotEmpty(extended), 
-                append({type:"addTodos", load:extended}) 
-            )(actions);
-        };
-        
-
-        let addIntroList = (projects:Project[]) => (actions:action[]) : action[] => {
-            let {firstLaunch} = this.props;
-
-            if(not(firstLaunch)){ return actions; }
-                
-            let introListAlreadyExists = projects.find((p:Project) => p._id==="Intro List");
-
-            return when( 
-                () => not(introListAlreadyExists), 
-                concat([
-                    {type:"addTodos", load:introListLayout.filter(isTodo)},
-                    {type:"addProject", load:getIntroList()}  
-                ]) 
-            )(actions);
-        };
-
-
-        let hideImportCalendarsHint : (actions:action[]) => action[] =
-            when( 
-                () => isNotEmpty(calendars) && showHint, //if calendars not empty - hide hint
-                append({type:"hideHint", load:true}) 
-            );
-       
-
-        compose(
-            (actions:action[]) => this.props.dispatch({type:"multiple", load:actions}),
-            hideImportCalendarsHint,
-            addExtendedTodos,
-            addIntroList(projects),
-            () => [],
-            displayData
+            }),
+            () => ipcRenderer.send("focusMainWindowOnStart")
         )()
     };
     
@@ -749,10 +736,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                             [ 
                                 (selectedCategory:Category) : boolean => 'project'===selectedCategory,  
                                 () => {
-                                    let project = this.props.projects.find(
-                                        (p:Project) => this.props.selectedProjectId===p._id
-                                    );
- 
+                                    let project = this.props.projects.find(p => this.props.selectedProjectId===p._id);
                                     if(isNil(project)){ return null }
 
                                     let ids = project.layout.filter(isString);

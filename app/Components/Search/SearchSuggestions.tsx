@@ -339,6 +339,7 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
         ]);
 
 
+
         return <div style={{overflow:"hidden"}}>  
             { NoResultsLabel(isEmpty(items)) }
             <div> 
@@ -350,7 +351,7 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
                 </div>
             }
             </div>
-            { ContinueSearchButton(this.onGetMoreResults, isNotEmpty(items)) }     
+            { ContinueSearchButton(this.onGetMoreResults, !suggestions.limitReached) }     
         </div>  
     }
 };

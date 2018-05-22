@@ -36,10 +36,11 @@ import {
     byNotDeleted, 
     findAttachedProject, 
     getTagsFromItems,
-    byTags
+    byTags,
+    isNotEmpty
 } from '../../utils/utils'; 
 import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../../types';
-import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection, defaultTo, all } from 'ramda';
+import { allPass, isNil, not, isEmpty, contains, flatten, prop, compose, any, intersection, defaultTo, all, evolve, map } from 'ramda';
 import { filter } from 'lodash'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
@@ -137,11 +138,7 @@ export class Search extends Component<SearchProps,SearchState>{
 
  
 
-    suggestionToComponent = (
-        projectWithTodos:{project:Project,todos:Todo[]}, 
-        index:number, 
-        attachedTodos:Todo[]
-    ) => {
+    suggestionToComponent = (projectWithTodos:{project:Project,todos:Todo[]}, index:number) => {
         let {areas, projects, dispatch} = this.props;
         let {project} = projectWithTodos;
          
@@ -173,44 +170,26 @@ export class Search extends Component<SearchProps,SearchState>{
 
     render(){
         let {todos, projects, areas, dispatch, selectedTags, groupTodos, selectedCategory} = this.props; 
+        let tags = getTagsFromItems(todos); 
+        let noresults = {
+            fontSize:"18px", userSelect:"none", cursor:"default", 
+            display:"flex", alignItems:"center", justifyContent:"center" 
+        };
 
-        let noresults = { 
-            fontSize:"18px",
-            userSelect:"none",
-            cursor:"default",
-            height:`${window.innerHeight/2}px`,
-            display:"flex",
-            alignItems:"center",
-            justifyContent:"center" 
-        };  
-      
-        let selectedTodos = filter(todos, allPass([byNotDeleted,byTags(selectedTags)]));
-
-        let selectedProjects = filter(projects, byNotDeleted);
-
-        let selectedAreas = filter(areas, byNotDeleted);
-
-        let suggestions = getSuggestions(
-            selectedTodos,
-            selectedProjects,
-            selectedAreas,
-            this.props.searchQuery,
-            this.state.limit
-        );
+        let suggestions = compose(
+            evolve(
+                {
+                    attached: compose(
+                        items => items.filter(item => isNotEmpty(item.todos)),
+                        map( evolve({todos: todos => todos.filter(byTags(selectedTags))}) )
+                    ),
+                    detached: todos => todos.filter(byTags(selectedTags))
+                }
+            ),
+            getSuggestions
+        )(todos,projects,areas,this.props.searchQuery,this.state.limit)
 
         this.limitReached = suggestions.limitReached;
-
-        let ids = flatten(selectedProjects.map((p) => p.layout.filter(isString))) as string[];
-
-        let attachedTodos = compose(
-           (todos) => todos.sort(sortByCompletedOrNot),
-           (todos) => filter(todos, (todo:Todo) => contains(todo._id)(ids))
-        )(selectedTodos);
-
-        let searchedTodos = flatten([suggestions.detached, suggestions.attached.map(i => i.todos)]);
-        let tags = getTagsFromItems(searchedTodos); 
-
-
 
         return <div id={`${selectedCategory}-list`}>   
             <div style={{ display:"flex", position:"relative", alignItems:"center", marginBottom:"20px"}}>   
@@ -220,11 +199,13 @@ export class Search extends Component<SearchProps,SearchState>{
                 <div style={{  
                     fontFamily: "sans-serif",   
                     fontSize: "xx-large",
+                    whiteSpace: "nowrap",
+                    overflowX: "hidden",
                     fontWeight: 600,
                     paddingLeft: "10px", 
                     cursor:"default" 
                 }}>   
-                    Search results 
+                    {`Search results${isEmpty(selectedTags) ? '' : '#'+selectedTags.join('/')}`} 
                 </div>  
             </div> 
             <div className="no-print" style={{paddingTop:"15px", paddingBottom:"15px"}}>
@@ -236,28 +217,30 @@ export class Search extends Component<SearchProps,SearchState>{
                 />  
             </div> 
             { 
-                isEmpty(suggestions.attached) && 
-                isEmpty(suggestions.detached) ? 
+                isEmpty(suggestions.attached) && isEmpty(suggestions.detached) ? 
                 <div className="no-print" style={noresults as any}>No results were found...</div> : 
                 null
             }
             <div> 
             { 
                 not(groupTodos) ?
-                searchedTodos.sort(sortByCompletedOrNot).map(this.getTodoComponent) :
+                flatten([
+                    suggestions.detached, 
+                    suggestions.attached.map(i => i.todos)
+                ])
+                .sort(sortByCompletedOrNot)
+                .map(this.getTodoComponent) 
+                :
                 <div>
                     <div> 
                         {
-                            suggestions
-                            .attached
-                            .map((data,index) => this.suggestionToComponent(data,index,attachedTodos))
+                            suggestions.attached
+                            .map((data,index) => this.suggestionToComponent(data,index))
                         } 
                     </div>
                     <div style={{paddingTop:"20px"}}>
                         {
-                            suggestions.detached 
-                            .sort(sortByCompletedOrNot)
-                            .map(this.getTodoComponent)   
+                            suggestions.detached.sort(sortByCompletedOrNot).map(this.getTodoComponent)   
                         }
                     </div>
                 </div>
