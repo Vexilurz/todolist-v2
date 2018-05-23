@@ -1,9 +1,9 @@
 {
   "name": "tasklist",
-  "version": "1.6.2-master",
+  "version": "1.6.3-master",
   "description": "tasklist",
-  "main": "dist/main.js",
-  "scripts": {
+  "main": "production/main.js",
+  "scripts": { 
     "start": "electron .",
     "publish": "build --win --publish always",
     "pack": "build --win",
@@ -119,19 +119,18 @@
     "webpack-cli": "^2.0.15"
   },
   "dependencies": {
-    "raf": "^3.4.0",
-    "react-truncate": "^2.3.0",
-    "resize-observer-polyfill": "^1.5.0",
-    "rimraf": "^2.6.1",
-    "rrule": "^2.2.9",
-    "uniqid": "^4.1.1"
+    "raf":"^3.4.0",
+    "resize-observer-polyfill":"^1.5.0",
+    "rimraf":"^2.6.1",
+    "rrule":"^2.2.9",
+    "uniqid":"^4.1.1"
   },
   "build": {
-    "asar": true,
-    "compression": "normal",
-    "productName": "tasklist",
-    "appId": "org.tasklist.app",
-    "files": [
+    "asar":true,
+    "compression":"normal",
+    "productName":"tasklist",
+    "appId":"org.tasklist.app",
+    "files":[
       "production/**/*",
       "!node_modules/electron-ga/node_modules${/*}",
       "!node_modules/retina-dom-to-image/bower_components${/*}",
@@ -139,32 +138,24 @@
       "!credentials"
     ],
     "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
-        }
-      ],
+      "target":[{"target":"nsis","arch":["x64","ia32"]}],
       "icon": "./icon.ico"
     },
     "publish": {
-      "provider": "s3",
-      "bucket": "todoappupdates",
-      "acl": "public-read"
+      "provider":"s3",
+      "bucket":"todoappupdates",
+      "acl":"public-read"
     },
     "nsis": {
-      "oneClick": false,
-      "warningsAsErrors": false,
-      "perMachine": true,
-      "unicode": false,
-      "allowToChangeInstallationDirectory": true,
-      "menuCategory": true
+      "oneClick":false,
+      "warningsAsErrors":false,
+      "perMachine":true,
+      "unicode":false,
+      "allowToChangeInstallationDirectory":true,
+      "menuCategory":true
     },
     "directories": {
-      "output": "release"
+      "output":"release"
     }
   }
 }

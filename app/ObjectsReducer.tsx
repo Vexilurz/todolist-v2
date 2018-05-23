@@ -433,7 +433,12 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                 (action:{type:string, load:string}) : Store => {
                     let projectIndex : number = state.projects.findIndex( p => p._id===action.load );
                     let project = state.projects[projectIndex];
-                    let sameDate = (p:Project) => (t:Todo) => p.completed.toJSON()===t.completedSet.toJSON();
+                    let sameDate = (p:Project) => (t:Todo) =>  {
+                        if(isDate(p.completed) && isDate(t.completedSet)){
+                           return p.completed.toJSON()===t.completedSet.toJSON(); 
+                        }
+                        return false;
+                    };
                     let completedWithProject = sameDate(project);    
 
                     if(projectIndex===-1 || !project.completed){ return state }
@@ -451,17 +456,22 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                         (project:Project) : Project => ({...project,completed:undefined}), 
                         projectIndex, 
                         state.projects
-                    );
+                    );  
 
                     return {...state, projects, todos};
                 }
-            ],
+            ], 
             [
                 typeEquals("restoreProject"),
                 (action:{type:string, load:string}) : Store => {
                     let projectIndex : number = state.projects.findIndex( p => p._id===action.load );
                     let project = state.projects[projectIndex];
-                    let sameDate = (p:Project) => (t:Todo) =>  p.deleted.toJSON()===t.deleted.toJSON();
+                    let sameDate = (p:Project) => (t:Todo) =>  {
+                        if(isDate(p.deleted) && isDate(t.deleted)){
+                           return p.deleted.toJSON()===t.deleted.toJSON(); 
+                        }
+                        return false;
+                    };
                     let deletedWithProject = sameDate(project);    
 
                     if(projectIndex===-1 || !project.deleted){ return state }
