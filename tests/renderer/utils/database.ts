@@ -127,7 +127,6 @@ describe(
                                             forEachObjIndexed(
                                                 (value,key) => {
                                                     //all should be as they were
-                                                    console.log(`compare ${value}${key}`);
 
                                                     if(!equals(after[key],value)){
                                                         debugger;
@@ -237,8 +236,6 @@ describe(
                                             
                                             expect(item.enc,`enc should be undefined`).to.equal(undefined);
 
-                                            console.log(`without key should be equal ${item._id}`);
-                                            
                                             expect(item._id,'should be equal ids').to.equal(old._id);
 
                                             delete old._rev 

@@ -102,7 +102,6 @@ export class App extends Component<AppProps,AppState>{
         this.subscriptions.push(
             Observable
             .fromEvent(document, "keypress", event => event) 
-            .do(e => console.log(e.target))
             .skipWhile(event => !this.props.collapsed || this.props.openSettings)
             .filter(event => event.target===document.body)
             .subscribe(

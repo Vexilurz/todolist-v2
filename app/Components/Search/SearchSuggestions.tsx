@@ -300,7 +300,7 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
     suggestionToComponent = (byProject:any, byArea:any) => (item:any, index:number) => {
         let {areas, projects, dispatch} = this.props;
         let type = getSearchItemType(item);
-        let action = locateItem(this.props.filters)(item); 
+        let action = locateItem(projects, this.props.filters)(item); 
         let appearance = SearchAppearances(this.props.indicators)[type](item);
 
         return <div key={`item-${index}`}>

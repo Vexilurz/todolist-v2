@@ -56,10 +56,6 @@ import { assert } from '../../utils/assert';
 import { sortByCompletedOrNot } from './sortByCompletedOrNot';
 import { getProjectHeading } from './getProjectHeading';
 
-
-
-
-
 /*
 *
 * Limit search results from Repeat groups to n items from each group.
@@ -79,7 +75,7 @@ export let limitGroups = (n:number, todos:Todo[]) : Todo[] => {
 
             return A.getTime()-B.getTime();
         }
-    ) 
+    ); 
 
     for(let i=0; i<sorted.length; i++){ 
         let todo = todos[i];

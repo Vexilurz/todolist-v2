@@ -18,6 +18,7 @@ let assert = require('chai').assert;
 let expect = require('chai').expect;
 
 
+
 let testGenerateUpcomingSequence = (daysC:number,weeksC:number,monthsC:number) => {
     /*
         let tags = fakeTags(150);
@@ -25,7 +26,7 @@ let testGenerateUpcomingSequence = (daysC:number,weeksC:number,monthsC:number) =
         let ft = () => fakeTodo(randomArrayMember(tagsChunks),0);
         let fp = () => fakeProject(randomArrayMember(tagsChunks),[]);
         let fa = () => fakeArea([], [], [], randomArrayMember(tagsChunks));
-        */
+    */
 
     let fc = () => fakeCalendar({
         NsameDay:randomInteger(10) + 1,

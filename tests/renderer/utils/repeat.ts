@@ -89,7 +89,7 @@ let test = (targets : {todo:Todo,options:RepeatOptions}[], limits : Date[]) : vo
     if(gradually.length!==immediately.length){
         let groupGradually = groupBy(path(['group','_id']), gradually);
         let groupImmediately = groupBy(path(['group','_id']), immediately);
-        console.log(diff); 
+        //console.log(diff); 
     }
 
 

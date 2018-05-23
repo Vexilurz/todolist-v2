@@ -182,7 +182,10 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
             projects:defaultTo([], projects), 
             areas:defaultTo([], areas), 
             todos:defaultTo([], todos), 
-            calendars:map(evolve({events:map(convertEventDate)}), defaultTo([], calendars))
+            calendars:map(
+                evolve({events:map(convertEventDate)}), 
+                defaultTo([], calendars)
+            )
         }) 
     );
         

@@ -45,7 +45,7 @@ import {
     prop, compose, any, intersection, defaultTo, all,
     when 
 } from 'ramda';
-import { filter } from 'lodash'; 
+import { filter, debounce } from 'lodash'; 
 import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { Subscriber } from "rxjs/Subscriber";
@@ -69,7 +69,9 @@ interface SearchInputProps{
 }  
 
 
-interface SearchInputState{}  
+interface SearchInputState{
+    value:string
+}  
  
 
 export class SearchInput extends Component<SearchInputProps,SearchInputState>{
@@ -77,13 +79,22 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
 
     constructor(props){ 
         super(props);
+        this.state={value:this.props.searchQuery};
     } 
+
+
+
+    componentWillReceiveProps(nextProps){
+        if(nextProps.searchQuery!==this.state.value){
+           this.setState({value:nextProps.searchQuery});
+        }
+    }
 
 
  
     componentDidMount(){
         if(this.props.autofocus){
-            this.focus();
+           this.focus();
         }
 
         if(this.props.setRef && this.ref){
@@ -105,9 +116,14 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
 
 
 
-    shouldComponentUpdate(nextProps:SearchInputProps){
-        return nextProps.searchQuery!==this.props.searchQuery;
+    shouldComponentUpdate(nextProps:SearchInputProps, nextState){
+        return this.state.value!==nextState.value;
+        //nextProps.searchQuery!==this.props.searchQuery;
     };
+
+
+
+    onChange = debounce((e) => { this.props.onChange(e) },250);
 
 
 
@@ -146,8 +162,11 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
                     placeholder="Quick Find" 
                     type="text" 
                     name="search"  
-                    value={this.props.searchQuery} 
-                    onChange={this.props.onChange}
+                    value={this.state.value} 
+                    onChange={e => {
+                        e.persist();
+                        this.setState({value:e.target.value}, () => this.onChange(e));
+                    }}
                 />
                 <div style={{display:"flex",cursor:"pointer",alignItems:"center",paddingRight:"5px"}}>
                     <Clear  

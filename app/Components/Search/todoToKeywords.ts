@@ -71,7 +71,7 @@ let dateToKeywords = (date:Date) : string[] => {
     if(!isDate(date)){ return []; }
     let options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 
-    return date.toLocaleDateString("ENG", options).split(',');
+    return flatten(date.toLocaleDateString("ENG", options).split(',').map(stringToKeywords));
 };
 
 

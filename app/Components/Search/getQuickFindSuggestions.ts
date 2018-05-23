@@ -70,7 +70,7 @@ import { cutBy } from './cutBy';
 
 
 
-let match = (searchKeywords:string[],keywords:string[]) => 
+export let match = (searchKeywords:string[],keywords:string[]) => 
         any(
             (searchKeyword:string) => contains(searchKeyword)(cutBy(searchKeyword)(keywords))
         )(searchKeywords); 
@@ -149,7 +149,7 @@ let categoryToKeywords = (c:Category) : string[] => {
 
 
 
-let todoMatch = (searchQuery:string) => (todo:Todo) : boolean => {
+export let todoMatch = (searchQuery:string) => (todo:Todo) : boolean => {
     //let keywords = compose(cutBy(searchQuery),todoToKeywords)(todo);
     let keywords = todoToKeywords(todo);
     

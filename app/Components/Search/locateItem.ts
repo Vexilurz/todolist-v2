@@ -1,12 +1,13 @@
 import { cond, isNil, always, allPass, equals } from 'ramda';
 import { typeEquals } from '../../utils/utils';
 import { action, Todo, Category, Project, Area } from '../../types';
-import { isString, isCategory } from '../../utils/isSomething';
+import { isString, isCategory, isNotNil } from '../../utils/isSomething';
 import { getSearchItemType } from './getSearchItemType';
 
 
 
 export let locateItem = ( 
+    projects:Project[],
     filters:{
         inbox:((todo:Todo) => boolean)[],
         today:((todo:Todo) => boolean)[],
@@ -78,6 +79,19 @@ export let locateItem = (
                         type:"multiple",
                         load:[{type:"scrolledTodo",load:todo},{type:"selectedCategory",load:"upcoming"}]
                     })
+                ],
+                [
+                    (todo) => {
+                        let project = projects.find(p => isNotNil(p.layout.find(i => i===todo._id)));
+                        return !!project;
+                    },
+                    (todo) => {
+                        let project = projects.find(p => isNotNil(p.layout.find(i => i===todo._id)));
+                        return ({
+                            type:"multiple",
+                            load:[{type:"selectedProjectId",load:project._id},{type:"selectedCategory",load:"project"}]
+                        });
+                    }
                 ],
                 [
                     always(true), () => ({type:"multiple",load:[]})

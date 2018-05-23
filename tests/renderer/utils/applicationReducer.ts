@@ -14,46 +14,6 @@ let expect = require('chai').expect;
 
 
 
-/*
-const storage = require('electron').remote.require('electron-json-storage');
-
-let getConfig = () : Promise<Config> => {  
-    return new Promise( 
-        resolve => storage.get(   
-            "config",  
-            (error, data) => {  
-                if(isNil(data) || isEmpty(data)){
-                    resolve(defaultConfig);
-                }else{  
-                    resolve({...data,firstLaunch:false}); 
-                } 
-            }
-        )  
-    )
-};
-
-let updateConfig = (load:Config) : Promise<any> => {
-    return getConfig().then( 
-        (config:Config) => {
-            let updated : Config = { ...config, ...load };
-
-            return new Promise(
-                resolve => storage.set(  
-                    "config", 
-                    updated, 
-                    (error) => {
-                        if(!isNil(error)){ resolve(defaultConfig) }
-                        resolve(updated); 
-                    }
-                )
-            )
-        }
-    )
-}; 
-*/
-
-
-
 Date.prototype["addDays"] = function(days){
     var dat = new Date(this.valueOf());
     dat.setDate(dat.getDate() + days);
