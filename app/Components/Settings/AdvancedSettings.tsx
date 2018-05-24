@@ -8,7 +8,6 @@ import {
     remove, isNil, not, isEmpty, compose, toPairs, map, findIndex, equals, ifElse, evolve,
     contains, last, cond, defaultTo, flatten, uniq, concat, all, identity, when, prop, applyTo 
 } from 'ramda';
-
 import { Checkbox } from '../TodoInput/Checkbox';
 import { 
     checkForUpdates, getCompletedWhen, log, removeRev, 
@@ -33,6 +32,7 @@ const path = require("path");
 
 let completedSet : (todo:Todo) => boolean = compose(isNotNil,prop('completedSet')) as any;
 let remRev = compose(map(removeRev), defaultTo([])); 
+
 
 
 interface AdvancedProps{

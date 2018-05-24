@@ -75,7 +75,7 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
     // i have a loop in case sync actions mixed with user actions at this point
     // because actions will not be empty and infinite loop will be created : 
     // user changes data -> db changes -> sync -> db changes on different point -> as if user change data -> database changes 
-    //... etc...
+    // ...etc...
     // this wont happen if actions will not be mixed 
     // assert --->>> all sync or none sync
 

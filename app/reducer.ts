@@ -14,17 +14,13 @@ import { isDev } from './utils/isDev';
 import { ipcRenderer } from 'electron';
 import { uppercase } from './utils/uppercase';
 
+
  
-let getActionsList : (action:action) => action[] = 
-    ifElse( 
-        typeEquals("multiple"), 
-        prop('load'), 
-        wrapArray 
-    );
+let getActionsList : (action:action) => action[] = ifElse(typeEquals("multiple"), prop('load'), wrapArray);
 
 
 
-let isMainWindow : (state:Store) => boolean = compose(not,prop('clone'));
+let isMainWindow : (state:Store) => boolean = compose(not, prop('clone'));
 
 
 
@@ -44,7 +40,7 @@ let applyActionToState = (reducers:Reducer[]) => (state:Store,action:action) : S
 
 
 
-type UpdateConfig = (config:Config) => Promise<Config>
+type UpdateConfig = (config:Config) => Promise<Config>;
 
 
 
@@ -95,11 +91,7 @@ let setWindowTitle = (state:Store) => (newState:Store) : Store => {
             );
         }
     }else{
-        ipcRenderer.send(
-            'setWindowTitle', 
-            `tasklist - ${uppercase(newState.selectedCategory)}`, 
-            newState.id
-        );    
+        ipcRenderer.send('setWindowTitle',`tasklist - ${uppercase(newState.selectedCategory)}`,newState.id);    
     }
     
     return newState;

@@ -57,10 +57,7 @@ describe(
 
                 let applicationReducer = reducer(
                     [stateReducer, objectsReducer], 
-                    config => {
-                        test = {...test,...config}
-                        return new Promise( resolve => resolve(test) );
-                    }
+                    config =>  new Promise(resolve => resolve({...test,...config}))
                 );
 
                 let next = changeConfig(config);  
@@ -70,12 +67,12 @@ describe(
                     mapObjIndexed((value:any, key:string) => ({type:key,load:value}))
                 )(next);
 
-                let result = actions.reduce( 
+                let result = actions.reduce(
                     (store,action) => applicationReducer(store,action), 
                     defaultStoreItems
                 );
 
-                let retrieved = {...defaultStoreItems,...test}; 
+                let retrieved = {...defaultStoreItems, ...test}; 
 
                 let eq = equals(retrieved, result); 
 

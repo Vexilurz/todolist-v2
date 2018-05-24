@@ -10,7 +10,7 @@ import { Todo, Store, Databases, ImportActionLoad } from './../types';
 import { SimplePopup } from './SimplePopup';
 import { OptionsPopup } from './OptionsPopup';
 import { Provider, connect } from "react-redux";
-import { filter } from 'lodash';
+import { filter, debounce } from 'lodash';
 
 
 interface ImportPopupProps extends Store{} 
@@ -24,20 +24,16 @@ export class ImportPopup extends Component<ImportPopupProps,ImportPopupState>{
     ref:HTMLElement; 
 
     constructor(props){
-        super(props); 
+       super(props); 
     }   
  
 
 
-    onClose = () => {   
-        this.props.dispatch({type:"import", load:null}); 
-    };  
+    onClose = debounce(() => this.props.dispatch({type:"import", load:null}), 300);  
 
 
 
-    onCancel = (e) => {
-        this.onClose();  
-    };
+    onCancel = (e) => this.onClose();
 
 
 
@@ -46,18 +42,17 @@ export class ImportPopup extends Component<ImportPopupProps,ImportPopupState>{
 
         let {todos,projects,areas,calendars} = database;
 
+        this.props.dispatch({type:"erase", load:undefined});
+
         this.props.dispatch({
             type:"multiple",
             load:[
-                {type:"erase", load:undefined},
-
-                {type:"addTodos", load:todos},
-                {type:"addProjects", load:projects},   
-                {type:"addAreas", load:areas},      
-                {type:"addCalendars", load:calendars}   
+              {type:"addTodos",load:todos},
+              {type:"addProjects",load:projects},   
+              {type:"addAreas",load:areas},      
+              {type:"addCalendars",load:calendars}   
             ]
         });
-
 
         this.onClose();  
     };
