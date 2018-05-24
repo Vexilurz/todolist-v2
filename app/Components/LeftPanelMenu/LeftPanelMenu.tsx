@@ -225,7 +225,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                     backgroundColor:"rgb(248, 248, 248)"  
                 }}      
             >   
-                <div style={{padding:"15px"}}>
+                <div style={{padding:"15px", display:"none"}}>
                 {
                     this.props.collapsed ? null :
                     <SearchInput 

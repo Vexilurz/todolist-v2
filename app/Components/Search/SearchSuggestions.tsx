@@ -27,7 +27,6 @@ import Clear from 'material-ui/svg-icons/content/clear';
 import List from 'material-ui/svg-icons/action/list';
 import Reorder from 'material-ui/svg-icons/action/reorder';  
 let uniqid = require("uniqid");  
-import { getSuggestions } from './getSuggestions';
 import * as Waypoint from 'react-waypoint';
 import Popover from 'material-ui/Popover';
 import {  
@@ -111,15 +110,26 @@ let NoResultsLabel = (show:boolean) => !show ? null :
 
 
 
-let SearchAppearances = (
-    indicators: { [key:string]:{active:number,completed:number,deleted:number}; }
-) => ({
-    "todo" : (todo:Todo) : JSX.Element => {
-        return <div className={'leftpanelmenuitem'} style={{overflow:"hidden", display:"flex", padding:"2px",  alignItems:"center", cursor:"pointer"}}>
-            <div style={{paddingLeft:"2px"}}>
-                <Checkbox checked={isNotNil(todo.completed)} onClick={() => { }}/>
-            </div>
-            <div style={{width:"170px", paddingLeft:"7px"}}>
+let SearchAppearances = (indicators:{
+    [key:string]:{active:number,completed:number,deleted:number};
+}) => ({
+    "todo" : (todo:Todo) : JSX.Element => <div 
+        className={'leftpanelmenuitem'} 
+        style={{
+            overflow:"hidden", 
+            display:"flex", 
+            padding:"2px",  
+            alignItems:"center", 
+            cursor:"pointer"
+        }}
+    >
+        <div style={{paddingLeft:"2px"}}>
+            <Checkbox 
+                checked={isNotNil(todo.completedSet)} 
+                onClick={() => {}}
+            />
+        </div>
+        <div style={{width:"170px", paddingLeft:"7px"}}>
             <AutoresizableText
                 text={uppercase(todo.title)}
                 width={0}
@@ -129,9 +139,9 @@ let SearchAppearances = (
                 offset={0} 
                 placeholderStyle={{}}
             />
-            </div>
         </div>
-    },
+    </div>,
+
     "project" : (project:Project) => {
         let indicator = defaultTo({completed:0, active:0})(indicators[project._id]);
         let done = indicator.completed;
@@ -177,24 +187,32 @@ let SearchAppearances = (
                 </div>
             </div> 
             <div style={{width:"170px", paddingLeft:"5px", paddingRight:"5px"}}>
-            <AutoresizableText
-                text={uppercase(project.name)}
-                width={0}
-                placeholder=""
-                fontSize={15}
-                style={{}}
-                offset={0} 
-                placeholderStyle={{}}
-            />
+                <AutoresizableText
+                    text={uppercase(project.name)}
+                    width={0}
+                    placeholder=""
+                    fontSize={15}
+                    style={{}}
+                    offset={0} 
+                    placeholderStyle={{}}
+                />
             </div>
         </div>
     },
-    "area" : (area:Area) => {
-        return <div className={'leftpanelmenuitem'} style={{overflow:"hidden", display:"flex",  padding:"2px", alignItems:"center", cursor:"pointer"}}>
-            <div>
-                <NewAreaIcon style={{width:"20px",height:"20px",color:"rgba(100, 100, 100, 0.7)"}}/> 
-            </div>    
-            <div style={{width:"170px", fontWeight:"bold", paddingLeft:"2px", paddingRight:"5px"}}>
+    "area" : (area:Area) => <div 
+        className={'leftpanelmenuitem'} 
+        style={{
+            overflow:"hidden", 
+            display:"flex",  
+            padding:"2px", 
+            alignItems:"center", 
+            cursor:"pointer"
+        }}
+    >
+        <div>
+            <NewAreaIcon style={{width:"20px",height:"20px",color:"rgba(100, 100, 100, 0.7)"}}/> 
+        </div>    
+        <div style={{width:"170px", fontWeight:"bold", paddingLeft:"2px", paddingRight:"5px"}}>
             <AutoresizableText
                 text={uppercase(area.name)}
                 width={0}
@@ -204,15 +222,22 @@ let SearchAppearances = (
                 offset={0} 
                 placeholderStyle={{}}
             />
-            </div>
         </div>
-    },
-    "tag" : (tag:string) => {
-        return <div className={'leftpanelmenuitem'} style={{overflow:"hidden", display:"flex",  padding:"2px", alignItems:"center", cursor:"pointer"}}>
-            <div style={{width:"20px", height:"20px"}}>
-                <TriangleLabel style={{width:"20px",height:"20px",color:"rgba(100, 100, 100, 0.7)"}}/> 
-            </div>    
-            <div style={{width:"170px", paddingLeft:"2px", paddingRight:"5px"}}>
+    </div>,
+    "tag" : (tag:string) => <div 
+        className={'leftpanelmenuitem'} 
+        style={{
+            overflow:"hidden", 
+            display:"flex",  
+            padding:"2px", 
+            alignItems:"center", 
+            cursor:"pointer"
+        }}
+    >
+        <div style={{width:"20px",height:"20px"}}>
+            <TriangleLabel style={{width:"20px",height:"20px",color:"rgba(100, 100, 100, 0.7)"}}/> 
+        </div>    
+        <div style={{width:"170px",paddingLeft:"2px",paddingRight:"5px"}}>
             <AutoresizableText
                 text={uppercase(tag)} 
                 width={0}
@@ -222,19 +247,26 @@ let SearchAppearances = (
                 offset={0} 
                 placeholderStyle={{}}
             />
-            </div>
-        </div> 
-    },
-    "category" : (category:Category) =>  {
-        return <div className={'leftpanelmenuitem'} style={{overflow:"hidden", display:"flex", padding:"2px", alignItems:"center", cursor:"pointer"}}>
-            <div style={{display:"flex",alignItems:"center"}}>
-               { chooseIcon({width:'20px',height:'20px'}, category) }
-            </div>
-            <div style={{fontWeight:"bold",paddingLeft:"1px",fontSize:"15px",paddingRight:"5px"}}>
-               { uppercase(category) }
-            </div>
         </div>
-    }
+    </div>,
+    "category" : (category:Category) => <div 
+        className={'leftpanelmenuitem'} 
+        style={{
+            overflow:"hidden", 
+            display:"flex", 
+            padding:"2px", 
+            alignItems:"center", 
+            cursor:"pointer"
+        }}
+    >
+        <div style={{display:"flex",alignItems:"center"}}>
+            { chooseIcon({width:'20px',height:'20px'}, category) }
+        </div>
+        <div style={{fontWeight:"bold",paddingLeft:"1px",fontSize:"15px",paddingRight:"5px"}}>
+            { uppercase(category) }
+        </div>
+    </div>
+    
 });
 
 
@@ -250,12 +282,8 @@ interface SearchSuggestionsProps extends Store{
         logbook:((todo:Todo) => boolean)[],
         trash:((todo:Todo) => boolean)[]
     },
-    indicators : { 
-        [key:string]:{
-            active:number,
-            completed:number,
-            deleted:number
-        }; 
+    indicators:{ 
+        [key:string]:{active:number,completed:number,deleted:number}; 
     }
 }
 
@@ -269,8 +297,6 @@ interface SearchSuggestionsState{ limit:number }
 export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSuggestionsState>{ 
     limitReached:boolean;
     initialLimit:number;
-
-
 
     constructor(props){
         super(props);
@@ -331,22 +357,17 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
 
     render(){
         let {todos, projects, areas, dispatch, selectedTags, groupTodos, selectedCategory} = this.props;
-
         let suggestions = getQuickFindSuggestions(
-            todos, 
-            projects, 
-            areas,
+            todos,projects,areas,
             getTagsFromItems(todos),
             toLower(this.props.searchQuery),
             this.state.limit
         );
-
         let items = flatten([
-            suggestions.areas,
+            suggestions.todos.sort(sortByCompletedOrNot),
             suggestions.tags,
             suggestions.categories,
-            suggestions.projects,
-            suggestions.todos.sort(sortByCompletedOrNot)
+            suggestions.projects
         ]);
 
         return <div style={{overflow:"hidden"}}>  
@@ -355,7 +376,14 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
             { 
             <div>
                 <div style={{paddingLeft:"10px",paddingRight:"10px"}}>
-                { items.map( this.suggestionToComponent(suggestions.byProject,suggestions.byArea) ) }
+                    { 
+                        items.map( 
+                            this.suggestionToComponent(
+                                suggestions.byProject,
+                                suggestions.byArea
+                            ) 
+                        ) 
+                    }
                 </div>
             </div>
             }

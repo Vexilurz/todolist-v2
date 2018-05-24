@@ -58,7 +58,7 @@ export let fakeTodo = (tags:string[], withReminder:number) : Todo => {
 
     let k = randomInteger(3) + 2;
     let n = randomInteger(6) + 2;
-    let c = randomInteger(5) + 2;
+    let c = randomInteger(150) + 2;
     
     for(let i=0; i<k; i++){
         title.push(randomWord()); 

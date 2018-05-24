@@ -164,12 +164,8 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
         let indicator = this.getChecklistIndicator(checklist); 
 
         return <div 
-            ref={e => {this.ref=e;}} 
-            style={{
-                display:"flex",
-                alignItems:"flex-start",
-                width:"100%"
-            }}
+            ref={e => { this.ref=e; }} 
+            style={{display:"flex", alignItems:"flex-start", width:"100%"}}
         >  
             {  
                 isNil(deleted) ? null :      
@@ -297,12 +293,17 @@ export class TodoInputTopLevel extends Component<TodoInputTopLevelProps,TodoInpu
                                     borderRadius:"10px", 
                                     backgroundColor:"rgba(200,200,200,1)"
                                 }}>
-                                    <Checked style={{color:"white",height:"14px",width:"14px", paddingLeft:"3px"}}/> 
+                                    <Checked style={{
+                                        color:"white",
+                                        height:"14px",
+                                        width:"14px",
+                                        paddingRight:"3px", 
+                                        paddingLeft:"3px"
+                                    }}/> 
                                     <div 
                                         style={{
                                             paddingRight:"3px",
                                             borderRadius:"15px", 
-                                            width:"15px",
                                             height:"15px",
                                             fontSize:"8px",
                                             color:"white",

@@ -60,7 +60,7 @@ import { decryptDoc } from './utils/crypto/crypto';
 export const pouchWorker = new Worker('pouchWorker.js');
 window.onerror = onErrorWindow; 
 
-
+ 
 
 let isCharacter = e => e.which !== 0 && !e.ctrlKey && !e.metaKey && !e.altKey;
 let isAlpha = e => e.keyCode >= 65 && e.keyCode <= 90;
@@ -102,13 +102,19 @@ export class App extends Component<AppProps,AppState>{
         this.subscriptions.push(
             Observable
             .fromEvent(document, "keypress", event => event) 
-            .skipWhile(event => !this.props.collapsed || this.props.openSettings)
+            .skipWhile(event => this.props.openSettings)
             .filter(event => event.target===document.body)
             .subscribe(
-                (event:any) => this.props.dispatch({
-                    type:"multiple",
-                    load:[{type:"collapsed",load:true},{type:"showMenu",load:true}]
-                })
+                (event:any) => { 
+                    this.props.dispatch({type:"collapsed",load:true});
+                    this.props.dispatch({type:"showMenu",load:true});
+                    /*
+                    this.props.dispatch({
+                        type:"multiple",
+                        load:[{type:"collapsed",load:true},{type:"showMenu",load:true}]
+                    })
+                    */
+                }
             ) 
         );
     }; 
@@ -394,8 +400,9 @@ export class App extends Component<AppProps,AppState>{
                 { 
                     !this.props.collapsed ? null :
                     <TopPopoverMenu 
-                        dispatch={this.props.dispatch}
+                        dispatch={this.props.dispatch} 
                         showMenu={this.props.showMenu}
+                        selectedTags={this.props.selectedTags}
                         filters={getFilters(this.props.projects)}
                         collapsed={this.props.collapsed}
                         selectedCategory={this.props.selectedCategory}
@@ -513,7 +520,10 @@ export class App extends Component<AppProps,AppState>{
             { 
                 this.props.clone ? null : 
                 !this.props.showLicense ? null :
-                <LicensePopup dispatch={this.props.dispatch} showLicense={this.props.showLicense}/>
+                <LicensePopup 
+                    dispatch={this.props.dispatch} 
+                    showLicense={this.props.showLicense}
+                />
             }
             {  
                 this.props.clone ? null : 

@@ -133,13 +133,14 @@ export class SearchInput extends Component<SearchInputProps,SearchInputState>{
                 zIndex:30000,
                 backgroundColor:"rgb(248, 248, 248)",
                 borderRadius:"5px",
-                position:"relative",
+                position:"relative", 
                 WebkitUserSelect:"none",  
-                maxHeight:"30px",
-                overflowY:"visible"
-            }}  
-        >       
-            <div style={{
+                maxHeight:isEmpty(this.state.value) ? "0px" : "30px",
+                overflow:"hidden"
+                //overflowY:"visible"
+            }}   
+        >               
+            <div style={{ 
                 backgroundColor:"rgb(217, 218, 221)", 
                 borderRadius:"5px",
                 display:"flex",

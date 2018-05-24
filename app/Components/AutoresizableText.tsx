@@ -43,11 +43,11 @@ export class AutoresizableText extends Component<AutoresizableTextProps,Autoresi
  
 
 
-    shouldComponentUpdate(nextProps:AutoresizableTextProps,nextState:AutoresizableTextState){
+    /*shouldComponentUpdate(nextProps:AutoresizableTextProps,nextState:AutoresizableTextState){
         return this.props.text!==nextProps.text || 
                this.props.width!==nextProps.width ||
                this.state.stringLength!==nextState.stringLength;
-    }
+    }*/
 
 
 

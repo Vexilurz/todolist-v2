@@ -122,7 +122,6 @@ export let chooseIcon = (size : { width:string, height:string }, selectedCategor
                 }
             }}/>
         ],
-
         [
             equals("deadline"),
             () => <Flag style={{
@@ -133,7 +132,6 @@ export let chooseIcon = (size : { width:string, height:string }, selectedCategor
                 }
             }}/>
         ],
-
         [
             equals("area"),
             () => <NewAreaIcon style={{
@@ -143,7 +141,6 @@ export let chooseIcon = (size : { width:string, height:string }, selectedCategor
                 }
             }}/> 
         ],
-
         [
             equals("project"),
             () => <div>          
@@ -160,7 +157,6 @@ export let chooseIcon = (size : { width:string, height:string }, selectedCategor
                 </div>
             </div>   
         ],
-
         [
             equals("group"),
             () => <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}> 
@@ -176,7 +172,6 @@ export let chooseIcon = (size : { width:string, height:string }, selectedCategor
                 /> 
             </div>   
         ],
-
         [
             equals("reminder"),
             () => <div style={{display:"flex", alignItems:"center", position:"relative"}}>
@@ -202,6 +197,10 @@ export let chooseIcon = (size : { width:string, height:string }, selectedCategor
         [
             equals("search"),
             () => <SearchIcon style={{...size, color:"rgb(100, 100, 100)"}}/>  
+        ],
+        [
+            equals("tag"),
+            () => <TriangleLabel style={{...size, color:"rgb(100, 100, 100)"}}/> 
         ],
         [
             () => true, () => null

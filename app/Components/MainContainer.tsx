@@ -49,6 +49,7 @@ import { introListLayout, getIntroList, introListIds } from '../utils/introList'
 import { fixIncomingData } from '../utils/fixIncomingData';
 import { extend } from '../utils/extend';
 import { UpcomingDefault } from './Categories/Upcoming/UpcomingDefault';
+import { Tag } from './Categories/Tag';
 
 
 
@@ -795,13 +796,17 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
                                         selectedProjectId={this.props.selectedProjectId}
                                         projects={this.props.projects} 
                                         rootRef={this.rootRef}
-                                    /> 
+                                    />  
                                 }   
                             ], 
                             [  
                                 (selectedCategory:Category) : boolean => 'search'===selectedCategory,  
                                 () => <Search {...{indicators:this.props.indicators} as any}/>
-                            ] 
+                            ],
+                            [  
+                                (selectedCategory:Category) : boolean => 'tag'===selectedCategory,  
+                                () => <Tag {...{} as any}/>
+                            ]  
                         ])(this.props.selectedCategory) 
                     }  
                 </div>    

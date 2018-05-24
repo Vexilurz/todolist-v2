@@ -93,9 +93,7 @@ export let locateItem = (
                         });
                     }
                 ],
-                [
-                    always(true), () => ({type:"multiple",load:[]})
-                ]
+                [ always(true), () => ({type:"multiple",load:[]}) ]
             ])
         ],
         [
@@ -117,7 +115,7 @@ export let locateItem = (
             isString, 
             (tag:string) => ({
                 type:"multiple",
-                load:[{type:"selectedTags",load:[tag]},{type:"selectedCategory", load:"search"}]
+                load:[{type:"selectedTags",load:[tag]},{type:"selectedCategory", load:"tag"}]
             })
         ],
         [always(true), always({type:"", load:null})]

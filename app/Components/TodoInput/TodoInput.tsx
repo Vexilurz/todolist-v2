@@ -594,11 +594,9 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
       
     
 
-    updateChecklist = (checklist:ChecklistItem[]) => 
-        this.updateState({checklist})
-        .then(
-            () =>  this.updateChecklistInStore({checklist})
-        );
+    updateChecklist = (checklist:ChecklistItem[]) => this.updateState({checklist}).then(
+        () =>  this.updateChecklistInStore({checklist})
+    );
 
 
 
@@ -612,7 +610,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
 
     onCheckBoxClick = () => {  
         let {todo, selectedCategory, showCompleted, moveCompletedItemsToLogbook} = this.props;
-        let { open } = this.state; 
+        let {open} = this.state; 
 
         if(isNil(todo.completedSet)){
            this.submitCompletedEvent(Math.round((new Date().getTime())/1000));
@@ -890,7 +888,7 @@ export class TodoInput extends Component<TodoInputProps,TodoInputState>{
                 width:"100%",   
                 display:"inline-block", 
                 transition:"box-shadow 0.2s ease-in-out, max-height 0.2s ease-in-out", 
-                maxHeight:open ? "1000px" : "200px",
+                maxHeight:open ? "10000px" : "200px",
                 boxShadow:open ? "rgba(156, 156, 156, 0.3) 0px 0px 20px" : "", 
                 borderRadius:"5px"
             }}     

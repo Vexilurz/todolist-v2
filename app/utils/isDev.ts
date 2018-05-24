@@ -1,1 +1,1 @@
-export let isDev = () => { return false };     
+export let isDev = () => {return true};     

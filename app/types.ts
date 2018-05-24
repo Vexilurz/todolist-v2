@@ -351,7 +351,7 @@ export interface RegisteredListener{
 
 
 export type Category = "inbox" | "today" | "upcoming" | "next" | "someday" | 
-"logbook" | "trash" | "project" | "area" | "evening" | 
+"logbook" | "trash" | "project" | "area" | "evening" | "tag" | 
 "deadline" | "search" | "group" | "search" | "reminder";
 
 

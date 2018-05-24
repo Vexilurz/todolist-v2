@@ -141,6 +141,7 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
         this.state={};
     }    
 
+    
 
     shouldComponentUpdate(nextProps){
         if(
@@ -181,7 +182,6 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
 
         return false;
     }
-
 
 
     
@@ -331,7 +331,7 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
 
     render(){ 
         let {todos,projects,selectedTags,dispatch,selectedCategory,clone} = this.props;
-        let tags = getTagsFromItems({...todos});
+        let tags = getTagsFromItems(todos);
         let { days, weeks, months } = compose( generateUpcomingSequence(7, 3, 5), this.getObjects(150) )(this.props);
         
         return <div id={`${selectedCategory}-list`} style={{WebkitUserSelect:"none"}}> 

@@ -30,14 +30,8 @@ let uniqid = require("uniqid");
 import * as Waypoint from 'react-waypoint';
 import Popover from 'material-ui/Popover';
 import {  
-    daysLeftMark, 
-    generateTagElement, 
-    attachDispatchToProps, 
-    byNotDeleted, 
-    findAttachedProject, 
-    getTagsFromItems,
-    byTags,
-    isNotEmpty
+    daysLeftMark, generateTagElement, attachDispatchToProps, byNotDeleted, 
+    findAttachedProject, getTagsFromItems, byTags, isNotEmpty
 } from '../../utils/utils'; 
 import { Category, ChecklistItem, Todo, ObjectType, Area, Project, Heading, Store } from '../../types';
 import { 
@@ -69,7 +63,6 @@ import { cutBy } from './cutBy';
 
 
 
-
 export let match = (searchKeywords:string[],keywords:string[]) => 
         any(
             (searchKeyword:string) => contains(searchKeyword)(cutBy(searchKeyword)(keywords))
@@ -81,20 +74,13 @@ const categories = ["inbox", "today", "upcoming", "next", "someday", "logbook", 
 
 
 let projectToKeywords = table => (p:Project) : string[] => {
-    let todos = table[p._id];
-    if(isNil(todos)){ return [] }
-
-    let keywords = flatten(todos.map(todoToKeywords));
+    let keywords = [];
     let headings = p.layout.filter(isHeading) as Heading[];
     let description = getNotePlainTextFromRaw(p.description);
 
     keywords.push( ...stringToKeywords(p.name) );
     keywords.push( ...stringToKeywords(description) );
     keywords.push( ...flatten( headings.map((h => stringToKeywords(h.title))) ) );
-    
-    if(isDate(p.completed)){  keywords.push(p.completed.toJSON()); }
-    if(isDate(p.deadline)){  keywords.push(p.deadline.toJSON()); }
-    if(isDate(p.deleted)){  keywords.push(p.deleted.toJSON()); }
 
     if(isDev()){
         assert(
@@ -108,6 +94,7 @@ let projectToKeywords = table => (p:Project) : string[] => {
 
 
 
+/*
 let areaToKeywords = tableWithTodos => tableWithProjects => (a:Area) : string[] => {
     let projects = tableWithProjects[a._id];
     if(isNil(projects)){ return [] }
@@ -134,6 +121,7 @@ let areaToKeywords = tableWithTodos => tableWithProjects => (a:Area) : string[] 
 
     return keywords;
 };
+*/
 
 
 
@@ -179,8 +167,9 @@ let projectMatch = (searchQuery:string,tableWithTodos) =>
         //return contains(searchQuery)(keywords);
     };
 
+    
 
-
+/*
 let areaMatch = (searchQuery:string,tableWithTodos,tableWithProjects) => 
     (area:Area) : boolean => {
         let toKeywords = areaToKeywords(tableWithTodos)(tableWithProjects);
@@ -190,6 +179,7 @@ let areaMatch = (searchQuery:string,tableWithTodos,tableWithProjects) =>
         return match(stringToKeywords(searchQuery),keywords);
         //return contains(searchQuery)(keywords);
     };
+*/
 
 
 
@@ -232,7 +222,6 @@ export let getQuickFindSuggestions = (
     searchQuery:string,
     limit:number
 ) : {
-    areas:Area[],
     projects:Project[],
     todos:Todo[],
     tags:string[],
@@ -253,23 +242,20 @@ export let getQuickFindSuggestions = (
     let limitReached = true;
     let setLimitReached = reached => { limitReached=(limitReached && reached) }; 
 
-    let am = areaMatch(searchQuery,byProject,byArea.table);
     let pm = projectMatch(searchQuery,byProject);
     let tm = todoMatch(searchQuery);
     let tagm = tagMatch(searchQuery);
     let cm = categoryMatch(searchQuery);
 
-    let result = {
-        areas:takeObjectsWhile(am,limit,setLimitReached)(areas),
+    return {
         projects:takeObjectsWhile(pm,limit,setLimitReached)(projects),
         todos:takeObjectsWhile(tm,limit,setLimitReached)(selectedTodos), 
         tags:takeObjectsWhile(tagm,limit,setLimitReached)(sortedTags),  
         categories:takeObjectsWhile(cm,limit,setLimitReached)(sortedCategories), 
         byProject,
-        byArea
+        byArea,
+        limitReached
     };
-
-    return {...result, limitReached};
 };   
 
 

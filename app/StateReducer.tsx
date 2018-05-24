@@ -238,40 +238,40 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
                     showRepeatPopup:boolean,
                     repeatTodo:Todo,
                     repeatPopupX:number,
-                    repeatPopupY:number} 
+                    repeatPopupY:number
+                  } 
                 }) : Store => {
-                  
-                  return ({ 
-                      ...state,
-                      showRepeatPopup:action.load.showRepeatPopup,
-                      repeatTodo:action.load.repeatTodo,
-                      repeatPopupX:action.load.repeatPopupX, 
-                      repeatPopupY:action.load.repeatPopupY
-                  }); 
+                    return ({ 
+                        ...state,
+                        showRepeatPopup:action.load.showRepeatPopup,
+                        repeatTodo:action.load.repeatTodo,
+                        repeatPopupX:action.load.repeatPopupX, 
+                        repeatPopupY:action.load.repeatPopupY
+                    }); 
                 }
             ],
             [
                 typeEquals("openTodoInputPopup"),
                 (action:{type:string,load:boolean}) : Store => {
-                  return ({...state,openTodoInputPopup:action.load}); 
+                    return ({...state,openTodoInputPopup:action.load}); 
                 }
             ],
             [
                 typeEquals("showTrashPopup"),
                 (action:{type:string,load:boolean}) : Store => {
-                  return ({...state,showTrashPopup:action.load}); 
+                    return ({...state,showTrashPopup:action.load}); 
                 }
             ],
             [
                 typeEquals("dragged"),
                 (action:{type:string,load:string}) : Store => {
-                  return ({...state,dragged:action.load}); 
+                    return ({...state,dragged:action.load}); 
                 }
             ],
             [
                 typeEquals("openSearch"),
                 (action:{type:string,load:boolean}) : Store => {
-                  return ({...state,openSearch:action.load}); 
+                    return ({...state,openSearch:action.load}); 
                 }
             ],
             [
@@ -281,9 +281,13 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
             [
                 typeEquals("selectedCategory"),
                 (action:{type:string,load:Category}) : Store => {
-                    return ({...state,selectedCategory:action.load});  
-                }
-            ],
+                    return ({
+                        ...state,
+                        selectedCategory:action.load,
+                        selectedTags:action.load==="tag" ? state.selectedTags : ["All"]
+                    });  
+                }   
+            ],  
             [
                 typeEquals("leftPanelWidth"),
                 (action:{type:string,load:number}) : Store => {
@@ -293,7 +297,7 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
             [
                 typeEquals("selectedTags"),
                 (action:{type:string,load:string[]}) : Store => {
-                    return ({...state,selectedTags:action.load}); 
+                    return ({...state,selectedTags:action.load}) 
                 }
             ],
             [
@@ -309,21 +313,16 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
                 (action:{
                   type:string,
                   load:{
-                    showRightClickMenu:boolean,
-                    rightClickedTodoId:string,
-                    rightClickMenuX:number,
-                    rightClickMenuY:number
+                    showRightClickMenu:boolean, rightClickedTodoId:string,
+                    rightClickMenuX:number, rightClickMenuY:number
                   }
-                }) : Store => {
-                    
-                    return ({
-                      ...state,
-                      showRightClickMenu:action.load.showRightClickMenu,
-                      rightClickedTodoId:action.load.rightClickedTodoId,
-                      rightClickMenuX:action.load.rightClickMenuX,
-                      rightClickMenuY:action.load.rightClickMenuY
-                    }); 
-                }
+                }) : Store => ({
+                    ...state,
+                    showRightClickMenu:action.load.showRightClickMenu,
+                    rightClickedTodoId:action.load.rightClickedTodoId,
+                    rightClickMenuX:action.load.rightClickMenuX,
+                    rightClickMenuY:action.load.rightClickMenuY
+                })
             ],
             [
                 typeEquals("closeAllItems"),
@@ -350,9 +349,6 @@ export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : 
                     return ({...state, selectedCategory:"area", selectedAreaId:action.load}); 
                 }
             ], 
-            [   
-                () => true, 
-                () : Store => undefined   
-            ]
+            [  () => true,  () : Store => undefined  ]
         ])(action);
 };

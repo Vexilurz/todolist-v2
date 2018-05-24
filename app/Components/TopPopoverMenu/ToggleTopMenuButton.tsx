@@ -43,7 +43,7 @@ interface ToggleTopMenuButtonState{}
 export class ToggleTopMenuButton extends Component<ToggleTopMenuButtonProps,ToggleTopMenuButtonState>{
 
     constructor(props){  
-        super(props);   
+        super(props);  
     } 
 
     render(){
@@ -52,9 +52,11 @@ export class ToggleTopMenuButton extends Component<ToggleTopMenuButtonProps,Togg
             ref={this.props.setRef}
             style={{
                 padding:"5px",
-                transition: "opacity 0.2s ease-in-out", 
+                transition:"opacity 0.2s ease-in-out", 
                 opacity:this.props.collapsed ? 1 : 0,
-                border:this.props.toggled ? "1px solid rgba(150,150,150,0)" : "1px solid rgba(150,150,150,0.1)",
+                border:this.props.toggled ? 
+                       "1px solid rgba(150,150,150,0)" : 
+                       "1px solid rgba(150,150,150,0.1)",
                 backgroundColor:this.props.toggled ? "rgba(100,100,100,0.1)" : "white",
                 borderRadius:"5px",
                 height:"15px",
@@ -67,6 +69,8 @@ export class ToggleTopMenuButton extends Component<ToggleTopMenuButtonProps,Togg
             }}
         >
             <div style={{
+                whiteSpace:"nowrap",
+                overflow:"hidden",
                 paddingLeft:"7px",
                 fontSize:"15px", 
                 userSelect:"none", 

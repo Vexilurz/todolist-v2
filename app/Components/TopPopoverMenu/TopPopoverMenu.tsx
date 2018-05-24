@@ -39,6 +39,7 @@ interface TopPopoverMenuProps{
     showMenu:boolean,
     selectedCategory:Category,
     leftPanelWidth:number,
+    selectedTags:string[],
     filters:{
         inbox:((todo:Todo) => boolean)[],
         today:((todo:Todo) => boolean)[],
@@ -90,6 +91,7 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
     } 
 
 
+
     showMenu = (e) => {
         e.stopPropagation(); 
         e.nativeEvent.stopImmediatePropagation();
@@ -106,6 +108,33 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
 
 
 
+    getButtonTitle = () => {
+        if(this.props.selectedCategory==="project"){
+            let project = this.props.projects.find(p => p._id===this.props.selectedProjectId);
+
+            if(project){
+                return project.name;
+            }else{
+                return this.props.selectedCategory;
+            }
+
+        }else if(this.props.selectedCategory==="area"){
+            let area = this.props.areas.find(p => p._id===this.props.selectedAreaId);
+
+            if(area){
+                return area.name;
+            }else{
+                return this.props.selectedCategory;
+            }
+        }else if(this.props.selectedCategory==="tag"){
+            return this.props.selectedTags[0];
+        }else{
+            return this.props.selectedCategory;
+        }
+    };
+
+    
+
     render(){      
         return <div style={{
             width:"100%",
@@ -121,7 +150,7 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
                    toggled={this.props.showMenu} 
                    onClick={this.showMenu} 
                    setRef={(e) => { this.anchor=e; }} 
-                   title={this.props.selectedCategory}       
+                   title={this.getButtonTitle()}       
                 />
                 <Popover  
                     style={{backgroundColor:"rgba(0,0,0,0)",background:"rgba(0,0,0,0)",borderRadius:"10px"}}     

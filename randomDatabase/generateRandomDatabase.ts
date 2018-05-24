@@ -26,25 +26,14 @@ const path = require('path');
 
 
 export let generateRandomDatabase = (
-    
     { todos, projects, areas } : 
-    
-    {  
-        todos : number, 
-        projects : number, 
-        areas : number  
-    },
-
+    { todos:number, projects:number, areas:number },
     withReminder : number
-    
 ) : { 
-    
-    todos : Todo[],
-    projects : Project[],
-    areas : Area[] 
-        
+    todos:Todo[],
+    projects:Project[],
+    areas:Area[] 
 } => {  
-      
     let tags = fakeTags(50);
     let tagsChunks = splitEvery(10, tags); 
     let todosItems : Todo[] = [];
@@ -67,11 +56,8 @@ export let generateRandomDatabase = (
       
     for(let i=0; i<projects; i++){
         let fakeLayout = generateProjectLayout(generateTodosIds,25);
-
-        let ids = fakeLayout.map( (i:any) => isString(i) ? i : i._id ); 
-         
+        let ids = fakeLayout.map( (i:any) => isString(i) ? i : i._id );        
         let project = fakeProject(randomArrayMember(tagsChunks),fakeLayout);
- 
         projectItems.push(project);
     }
        

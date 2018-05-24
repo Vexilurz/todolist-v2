@@ -14,12 +14,14 @@ import { globalErrorHandler } from '../utils/globalErrorHandler';
 import { isDev } from '../utils/isDev';
 
 
+
 let getCSSPixelValue = (stringValue) => {
     if (stringValue.substr(-2) === 'px') {
       return parseFloat(stringValue);
     }
     return 0;
 };
+
 
 
 let getElementMargin = (element) => {
@@ -34,6 +36,7 @@ let getElementMargin = (element) => {
 };   
 
 
+
 let getNodes = (ref) : HTMLElement[] => { 
     if(isDev()){
        assert(!isNil(ref), `ref is Nil. getNodes.`);
@@ -42,10 +45,12 @@ let getNodes = (ref) : HTMLElement[] => {
 };
 
 
+
 let hideElement = (node:HTMLElement) : void => {
     node.style.visibility = 'hidden';
     node.style.opacity = '0';  
 };
+
 
 
 let showElement = (node:HTMLElement) : void => {
@@ -76,6 +81,7 @@ let match = (nodes:HTMLElement[],items:{_id:string}[]) : boolean => {
 
     return true;
 };
+
 
 
 /**
