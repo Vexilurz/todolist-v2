@@ -88,7 +88,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
     componentWillReceiveProps(nextProps:AdvancedProps){
         if(isNil(nextProps.import) && isNotNil(this.props.import)){
-           this.updateState({message:'Data was successfully imported.'});
+           //this.updateState({message:'Data was successfully imported.'});
         }
     };
 
