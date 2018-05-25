@@ -27,6 +27,7 @@ import { encryptDoc, decryptDoc } from '../utils/crypto/crypto';
 import { onError } from './onError'; 
 import { init } from './init';
 import { startDatabaseSync } from './startDatabaseSync';
+import { getRangeMonthUntilDate } from '../utils/utils';
 let window : any = self;
 
 const typeEquals = (type:string) => compose(equals(type), prop(`type`)); //TODO move to utils
@@ -168,8 +169,42 @@ let setKey = (action:actionSetKey) : Promise<void> => {
     return new Promise( resolve => resolve(null) );
 };
 
+Observable.fromEvent(self, 'message', event => event)
+.flatMap(
+    (e:any,index:number) => {
+        if(isDev()){
+            sendMessage({type:'log', load:`pouch log get action - ${e.data.type}`});
+        }
+
+        let action : action = e.data; 
+
+        let result = cond([
+            [ typeEquals("load"), load ], 
+
+            [ typeEquals("changes"), changes ],
+
+            [ typeEquals("startSync"), startSync ],
+
+            [ typeEquals("stopSync"), stopSync ],
+
+            [ typeEquals("setKey"), setKey ],
+
+            [ typeEquals("encryptDatabase"), encryptDatabase ],
+            
+            [ () => true, () => new Promise( resolve => resolve(null) ) ]    
+        ])(action);
+        
+        return result.then(load => ({type:action.type, load}));
+    }
+)
+.subscribe(
+    (action:action) => sendMessage(action)
+)
+
+
 
  
+/*
 onmessage = function(e){
     if(isDev()){
        sendMessage({type:'log', load:`pouch log get action - ${e.data.type}`});
@@ -197,3 +232,4 @@ onmessage = function(e){
         ])
     )(action) 
 };
+*/

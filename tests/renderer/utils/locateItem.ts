@@ -27,7 +27,7 @@ describe(
         it(    
             `should always return action`,
             function(){ 
-                /*this.timeout(0);
+                this.timeout(0);
                 let fc = () => fakeCalendar({
                     NsameDay:randomInteger(10) + 1,
                     NfullDay:randomInteger(10) + 1,
@@ -108,7 +108,7 @@ describe(
                 expect( 
                     allTodosLocated,
                     "located todos"
-                ).to.equal(true);*/
+                ).to.equal(true);
             }  
         );
     }
