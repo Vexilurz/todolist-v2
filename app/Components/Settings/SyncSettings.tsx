@@ -114,7 +114,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
                     toggled={this.props.sync && this.state.authenticated}
                 />
             </div>
-            <div style={{width:"50%",height:"80%", display:"flex", alignItems:"center"}}> 
+            <div style={{width:"50%",height:"80%",display:"flex",alignItems:"center"}}> 
                 { 
                     this.state.authenticated ?
                     <Connected
@@ -136,6 +136,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
         </div>
     }
 };
+
 
 
 interface SyncSwitchProps{

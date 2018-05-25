@@ -88,9 +88,7 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
     let changes = detectChanges(state)(newState);
 
     if(!isEmpty(changes)){ 
-        
        let actionChanges : actionChanges = { type:"changes", load:changes };
-
        pouchWorker.postMessage(actionChanges); 
     } 
 
