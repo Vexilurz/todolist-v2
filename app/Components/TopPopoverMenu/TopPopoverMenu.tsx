@@ -142,16 +142,20 @@ export class TopPopoverMenu extends Component<TopPopoverMenuProps,TopPopoverMenu
             zIndex:10000,
             top:0,
             display:"flex",
-            justifyContent:"center"
+            justifyContent:"center" 
         }}> 
             <div>
-                <ToggleTopMenuButton 
-                   collapsed={this.props.collapsed}
-                   toggled={this.props.showMenu} 
-                   onClick={this.showMenu} 
-                   setRef={(e) => { this.anchor=e; }} 
-                   title={this.getButtonTitle()}       
-                />
+                {
+                    <div style={{display:!this.props.collapsed && !this.props.showMenu ? "none" : "inline-block"}}>
+                    <ToggleTopMenuButton 
+                        collapsed={this.props.collapsed}
+                        toggled={this.props.showMenu} 
+                        onClick={this.showMenu} 
+                        setRef={(e) => { this.anchor=e; }} 
+                        title={this.getButtonTitle()}       
+                    />
+                    </div>
+                }
                 <Popover  
                     style={{backgroundColor:"rgba(0,0,0,0)",background:"rgba(0,0,0,0)",borderRadius:"10px"}}     
                     open={this.props.showMenu}

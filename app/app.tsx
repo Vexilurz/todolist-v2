@@ -106,7 +106,7 @@ export class App extends Component<AppProps,AppState>{
             .filter(event => event.target===document.body)
             .subscribe(
                 (event:any) => { 
-                    this.props.dispatch({type:"collapsed",load:true});
+                    //this.props.dispatch({type:"collapsed",load:true});
                     this.props.dispatch({type:"showMenu",load:true});
                     /*
                     this.props.dispatch({
@@ -398,7 +398,6 @@ export class App extends Component<AppProps,AppState>{
         return <div style={{backgroundColor:"white",width:"100%",height:"100%",scroll:"none",zIndex:2001} as any}>  
             <div style={{display:"flex",width:"inherit",height:"inherit"}}>
                 { 
-                    !this.props.collapsed ? null :
                     <TopPopoverMenu 
                         dispatch={this.props.dispatch} 
                         showMenu={this.props.showMenu}

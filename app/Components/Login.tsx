@@ -12,7 +12,7 @@ import { timeOfTheDay } from '../utils/time';
 import { isToday, isNotNil } from '../utils/isSomething';
 import axios from 'axios';
 import { emailToUsername } from '../utils/emailToUsername';
-import { host } from '../utils/couchHost';
+import { host, server } from '../utils/couchHost';
 import { validateEmail } from '../utils/validateEmail';
 import { validatePassword, getPasswordErrorMessage } from '../utils/validatePassword';
 import { LoginFormInput  } from './LoginFormInput';
@@ -99,26 +99,37 @@ export class Login extends Component<LoginProps,LoginState>{
         }
     };
 
-
+    
 
     //save key locally and remotely if needed
     preserveKey = (email:string,password:string) => (key:string) => {
-        let submitKey = (key:string) : Promise<string> => new Promise( resolve => resolve(null) );//remove 
-        let load = [ { type:'sync', load:true }, { type:'email', load:email } ]; 
+        let username = emailToUsername(email); 
+
+        //TODO submitKey
+        let submitKey = (key:string) => axios({ 
+            method:'post', 
+            url:`${server}/users/key`, 
+            data:{ username, password, key }
+        });
+
+        let load = [{type:'sync',load:true},{type:'email',load:email}]; 
         
         if(isNil(key)){
             let newKey = generateSecretKey();
- 
             let encryptedKey = encryptKey(password)(newKey);
 
-            this.props.dispatch({type:'multiple', load:[{ type:"secretKey", load:newKey }, ...load]});
+            this.props.dispatch({type:'multiple',load:[{type:"secretKey", load:newKey},...load]});
 
-            return submitKey(encryptedKey).then(() => newKey);
+            return submitKey(encryptedKey).then(
+                (resp) => {
+                   console.log(resp); 
+                   return newKey;
+                }
+            );
         }else{
 
             this.props.dispatch({type:'multiple', load:[{ type:"secretKey", load:key }, ...load]});
-
-            return new Promise( resolve => resolve(key) )
+            return new Promise(resolve => resolve(key));
         }
     };
 
@@ -133,15 +144,19 @@ export class Login extends Component<LoginProps,LoginState>{
 
 
     onAuth = ({email,password} : {email:string,password:string}) => response => {
-
         if(response.status!==200){ return }
 
         let retrieveKey = () : Promise<string> => new Promise(resolve => resolve(this.props.secretKey));
         let username = emailToUsername(email); 
 
-        /**DUMMY FUNCTION TODO REPLACE */
-        let testKey = null; //encryptKey(password)("frkpfrkpfrkpfrkp");
-        let requestKey = () : Promise<string> => new Promise( resolve => resolve(testKey) );//remove
+        //TODO requestKey
+        let requestKey = () => axios({ 
+            method:'get', 
+            url:`${server}/users/key`, 
+            headers: { 'AuthToken' : getToken({username, password}) }
+        }).then(
+            resp => isEmpty(resp.data) ? null : resp.data
+        ) 
         
         return Promise
         .all([ retrieveKey(), requestKey().then( when(isNotNil, decryptKey(password)) ) ])

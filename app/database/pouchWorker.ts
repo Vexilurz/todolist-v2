@@ -12,7 +12,8 @@ import { Observable } from 'rxjs/Rx';
 import * as Rx from 'rxjs/Rx';
 import { 
     action, Query, Databases, Changes, DatabaseChanges, PouchChanges, actionStartSync, 
-    actionStopSync, actionChanges, actionLoadDatabase, actionSetDatabase, actionSetKey, actionEncryptDatabase 
+    actionStopSync, actionChanges, actionLoadDatabase, actionSetDatabase, actionSetKey, 
+    actionEncryptDatabase 
 } from './../types';
 import { host } from './../utils/couchHost';
 import { userNameToDatabaseName } from './../utils/userNameToDatabaseName';
@@ -42,6 +43,47 @@ let databases = init();
 let list = [];
 
 
+
+Observable.fromEvent(self, 'message', event => event)
+.flatMap(
+    (e:any,index:number) => {
+        if(isDev()){
+            sendMessage({type:'log', load:`pouch log get action - ${e.data.type}`});
+        }
+
+        let action : action = e.data; 
+
+        let result = cond([
+            [ typeEquals("load"), load ], 
+
+            [ typeEquals("changes"), changes ],
+
+            [ typeEquals("startSync"), startSync ],
+
+            [ typeEquals("stopSync"), stopSync ],
+
+            [ typeEquals("setKey"), setKey ],
+
+            [ typeEquals("encryptDatabase"), encryptDatabase ],
+            
+            [ () => true, () => new Promise( resolve => resolve(null) ) ]    
+        ])(action);
+        
+        return result.then(load => ({type:action.type, load}));
+    }
+)
+.subscribe(
+    (action:action) => sendMessage(action)
+)
+
+
+
+
+
+
+
+
+
 /**
  * load data from dbs in memory
  */
@@ -52,6 +94,7 @@ let load = (action:actionLoadDatabase) : Promise<Databases> => {
 
     return getDatabaseObjects(onError,databases);
 };   
+
 
 
 /**
@@ -72,6 +115,7 @@ let startSync = (action:actionStartSync) : Promise<void> => {
  
     return new Promise( resolve => resolve(null) );
 };
+
 
 
 /**
@@ -105,6 +149,7 @@ let stopSync = (action:actionStopSync) : Promise<any[]> => {
         }
     );  
 };
+
 
 
 /**
@@ -169,67 +214,5 @@ let setKey = (action:actionSetKey) : Promise<void> => {
     return new Promise( resolve => resolve(null) );
 };
 
-Observable.fromEvent(self, 'message', event => event)
-.flatMap(
-    (e:any,index:number) => {
-        if(isDev()){
-            sendMessage({type:'log', load:`pouch log get action - ${e.data.type}`});
-        }
-
-        let action : action = e.data; 
-
-        let result = cond([
-            [ typeEquals("load"), load ], 
-
-            [ typeEquals("changes"), changes ],
-
-            [ typeEquals("startSync"), startSync ],
-
-            [ typeEquals("stopSync"), stopSync ],
-
-            [ typeEquals("setKey"), setKey ],
-
-            [ typeEquals("encryptDatabase"), encryptDatabase ],
-            
-            [ () => true, () => new Promise( resolve => resolve(null) ) ]    
-        ])(action);
-        
-        return result.then(load => ({type:action.type, load}));
-    }
-)
-.subscribe(
-    (action:action) => sendMessage(action)
-)
 
 
-
- 
-/*
-onmessage = function(e){
-    if(isDev()){
-       sendMessage({type:'log', load:`pouch log get action - ${e.data.type}`});
-    }
-
-    let action : action = e.data; 
-
-    compose(
-        p => p.then(load => sendMessage({type:action.type, load})),
-        
-        cond([
-            [ typeEquals("load"), load ], 
-
-            [ typeEquals("changes"), changes ],
-
-            [ typeEquals("startSync"), startSync ],
-
-            [ typeEquals("stopSync"), stopSync ],
-
-            [ typeEquals("setKey"), setKey ],
-
-            [ typeEquals("encryptDatabase"), encryptDatabase ],
-            
-            [ () => true, () => new Promise( resolve => resolve(null) ) ]    
-        ])
-    )(action) 
-};
-*/

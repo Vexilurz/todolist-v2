@@ -70,7 +70,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         };       
     };
     
-
+ 
 
     updateState : (state:any) => Promise<void> = 
     (state) => new Promise(resolve => this.setState(state, () => resolve()));

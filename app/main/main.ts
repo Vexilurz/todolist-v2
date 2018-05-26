@@ -51,6 +51,8 @@ const shouldQuit = app.makeSingleInstance(
     }
 );  
 
+
+
 let onReady = (config:Config) => {  
     let {disableReminder, enableShortcutForQuickEntry} = config;
     let mainWindowSize = getWindowSize();
@@ -61,7 +63,6 @@ let onReady = (config:Config) => {
 
     dialog.showErrorBox = (title, content) => {};
    
-
     mainWindow = initWindow(mainWindowSize, options, onMainWindowReady);    
     quickEntry = initQuickEntry({width:500,height:300});  
     notification = initNotification({width:250,height:200});  
@@ -89,10 +90,16 @@ let onReady = (config:Config) => {
     loadApp(mainWindow).then(() => onAppLoaded(mainWindow));  
 };                
 
+
+
 app.on('ready', () => getConfig().then((config:Config) => onReady(config)));    
- 
+
+
+
 app.on('window-all-closed', onWindowAllClosed);     
-    
+
+
+
 process.on( 
     "unchaughtException" as any,
     (error) => mainWindow ? mainWindow.webContents.send("error", error) : null

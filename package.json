@@ -2,7 +2,7 @@
   "name": "tasklist",
   "version": "1.6.4-master",
   "description": "tasklist",
-  "main": "production/main.js",
+  "main": "dist/main.js",
   "scripts": { 
     "start": "electron .",
     "publish": "build --win --publish always",
@@ -10,7 +10,7 @@
     "test:main": "electron-mocha ./tests/dist/main",
     "test:renderer:debug": "electron-mocha --renderer --debug ./tests/dist/renderer",
     "test:renderer": "electron-mocha --renderer ./tests/dist/renderer",
-    "build": "start webpack --config webpack.main.js && webpack -w --config webpack.renderer.js",
+    "build": "start webpack -w --config webpack.main.js && webpack -w --config webpack.renderer.js",
     "build:tests:main": "start webpack -w --config webpack.tests.main.js",
     "build:tests:renderer": "start webpack -w --config webpack.tests.renderer.js",
     "production": "start webpack --config webpack.main.prod.js && webpack --config webpack.renderer.prod.js"
