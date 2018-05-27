@@ -3,10 +3,10 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom'; 
 import { ipcRenderer } from 'electron';
 import { Component } from "react"; 
-import { isNil, isEmpty, compose, path, toLower, cond, contains, defaultTo, ifElse, prop, when } from 'ramda';
+import { isNil, isEmpty, compose, path, toLower, cond, contains, defaultTo, ifElse, prop, when, allPass } from 'ramda';
 import Cloud from 'material-ui/svg-icons/file/cloud-done';
 import { action, actionStartSync, actionSetKey, actionEncryptDatabase } from '../types';
-import { getMonthName } from '../utils/utils';
+import { getMonthName, isNotEmpty, nDaysFromNow } from '../utils/utils';
 import Toggle from 'material-ui/Toggle';
 import { timeOfTheDay } from '../utils/time';
 import { isToday, isNotNil } from '../utils/isSomething';
@@ -23,6 +23,8 @@ import { isDev } from '../utils/isDev';
 import RefreshIndicator from 'material-ui/RefreshIndicator';
 import { encryptDoc, encryptData, decryptData, encryptKey, decryptKey, generateSecretKey } from '../utils/crypto/crypto';
 import { LoginForm } from './LoginForm';
+const remote = require('electron').remote;
+const session = remote.session;
 
 
 
@@ -145,27 +147,36 @@ export class Login extends Component<LoginProps,LoginState>{
 
     onAuth = ({email,password} : {email:string,password:string}) => response => {
         if(response.status!==200){ return }
-
+        let decrypt = when(allPass([isNotNil, isNotEmpty]),decryptKey(password));
         let retrieveKey = () : Promise<string> => new Promise(resolve => resolve(this.props.secretKey));
         let username = emailToUsername(email); 
+        let expire = nDaysFromNow(1000);
+      
+        let token = getToken({username, password});
+        
+        session.defaultSession.cookies.set( {
+            url:server,
+            name:'AuthToken', 
+            value: token, 
+            expirationDate:expire.getTime() 
+        }, (error) => {
+            if (error) console.error(error)
+        })
 
         //TODO requestKey
-        let requestKey = () => axios({ 
-            method:'get', 
-            url:`${server}/users/key`, 
-            headers: { 'AuthToken' : getToken({username, password}) }
-        }).then(
-            resp => isEmpty(resp.data) ? null : resp.data
-        ) 
+
+        let requestKey = () => axios({method:'get', url:`${server}/users/key`, headers: { 'AuthToken' : token }})
+        .then(prop("data"))
+        .then(decrypt); 
         
         return Promise
-        .all([ retrieveKey(), requestKey().then( when(isNotNil, decryptKey(password)) ) ])
-        .then( this.digestKeys ) //return key or null
-        .then( this.preserveKey(email, password) )
-        .then( this.setKeyInWorker )
-        .then( this.encryptDatabase )
-        .then( this.initSync(username) )
-        .then( () => this.props.setAuthenticated(true) )
+        .all([retrieveKey(),requestKey()])
+        .then(this.digestKeys) //return key or null
+        .then(this.preserveKey(email,password))
+        .then(this.setKeyInWorker)
+        .then(this.encryptDatabase)
+        .then(this.initSync(username))
+        .then(() => this.props.setAuthenticated(true))
     };      
 
 

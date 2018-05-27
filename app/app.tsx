@@ -7,7 +7,7 @@ import { Component } from "react";
 import { ipcRenderer } from 'electron';
 import { 
     attachDispatchToProps, convertTodoDates, convertProjectDates, convertAreaDates, 
-    initDate, measureTimePromise,  onErrorWindow, log, typeEquals, generateEmptyProject, generateEmptyArea 
+    initDate, measureTimePromise,  onErrorWindow, log, typeEquals, generateEmptyProject, generateEmptyArea, isNotEmpty 
 } from "./utils/utils";  
 import { wrapMuiThemeLight } from './utils/wrapMuiThemeLight'; 
 import { isNotNil, isString } from './utils/isSomething';
@@ -22,7 +22,7 @@ import {
 } from './types';
 import { 
     isNil, map, when, evolve, prop, isEmpty, path, 
-    compose, ifElse, mapObjIndexed, reject, values,
+    compose, ifElse, mapObjIndexed, reject, values, allPass,
     cond, identity, any, defaultTo, fromPairs, anyPass 
 } from 'ramda';
 import { Observable, Subscription } from 'rxjs/Rx';
@@ -56,8 +56,12 @@ import { logout } from './utils/logout';
 import { fixIncomingData } from './utils/fixIncomingData';
 import { ImportPopup } from './Components/ImportPopup';
 import { TopPopoverMenu } from './Components/TopPopoverMenu/TopPopoverMenu';
-import { decryptDoc } from './utils/crypto/crypto';
+import { decryptDoc, decryptKey } from './utils/crypto/crypto';
+import { server } from './utils/couchHost';
 export const pouchWorker = new Worker('pouchWorker.js');
+const remote = require('electron').remote;
+const session = remote.session;
+import axios from 'axios';
 window.onerror = onErrorWindow; 
 
  
@@ -595,10 +599,55 @@ let renderApp = (config:Config, clonedStore:Store, id:number) : void => {
 }; 
 
 
+
+let getCredentialsFromToken = (token) => {
+    let result = compose(
+        tuple => ({username:tuple[0], password:tuple[1]}),
+        s => s.split(':'),
+        atob
+    )(token);
+    return result;
+};
+
+
+
 let setKey = (config:Config) => {
     let key = config.secretKey;
     let action : actionSetKey = {type:"setKey", load:key};
-    return workerSendAction(pouchWorker)(action).then( () => config );
+    return new Promise( 
+        resolve => {
+            session.defaultSession.cookies.get(
+                {url: server}, 
+                (error, cookies) => {
+                    let cookie = cookies[0];
+
+                    if(cookie && cookie.name==="AuthToken" && isNil(key)){
+                        let token = cookie.value; 
+                        let {username,password} = getCredentialsFromToken(token);
+                        let decrypt = when(allPass([isNotNil, isNotEmpty]),decryptKey(password));
+
+                        axios({
+                            method:'get',
+                            url:`${server}/users/key`,
+                            headers:{'AuthToken':token}
+                        }) 
+                        .then(prop("data"))
+                        .then(decrypt)
+                        .then((key:any) => {
+                            action.load = key;
+                            config.secretKey = key;
+                            return workerSendAction(pouchWorker)(action).then(() => resolve(config));
+                        })
+                        .catch(e => {
+                            return workerSendAction(pouchWorker)(action).then(() => resolve(config));
+                        }) 
+                    }else{
+                        return workerSendAction(pouchWorker)(action).then(() => resolve(config));
+                    }
+                }
+            )
+        } 
+    ) 
 }
 
    
