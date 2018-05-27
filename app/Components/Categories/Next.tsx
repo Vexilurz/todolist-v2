@@ -69,8 +69,8 @@ export class Next extends Component<NextProps, NextState>{
             byTags(this.props.selectedTags)
         );
 
-        let tags : string[] = getTagsFromItems(
-            this.props.groupTodos ? visibleTodos : this.props.todos
+        let tags : string[] = getTagsFromItems(visibleTodos
+            //this.props.groupTodos ? visibleTodos : this.props.todos
         );
     
         let empty = generateEmptyTodo(generateId(), this.props.selectedCategory, 0);  
