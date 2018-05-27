@@ -29,9 +29,11 @@ import { updateConfig } from './utils/updateConfig';
 const storage = require('electron-json-storage');
 const os = require('os');
 const path = require("path");
-const configPath = path.resolve(__dirname);
+const configPath = path.resolve(os.homedir(), "Documents", "tasklist");
 storage.setDataPath(configPath);
 
+
+ 
 export let mainWindow : BrowserWindow;   
 export let quickEntry : BrowserWindow;   
 export let notification : BrowserWindow;
@@ -92,7 +94,7 @@ let onReady = (config:Config) => {
 
 
 
-app.on('ready', () => getConfig().then((config:Config) => onReady(config)));    
+app.on('ready', () => getConfig().then((config) => onReady(config)));    
 
 
 
@@ -102,7 +104,7 @@ app.on('window-all-closed', onWindowAllClosed);
 
 process.on( 
     "unchaughtException" as any,
-    (error) => mainWindow ? mainWindow.webContents.send("error", error) : null
+    error => mainWindow ? mainWindow.webContents.send("error", error) : null
 );
 
 

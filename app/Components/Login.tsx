@@ -23,6 +23,7 @@ import { isDev } from '../utils/isDev';
 import RefreshIndicator from 'material-ui/RefreshIndicator';
 import { encryptDoc, encryptData, decryptData, encryptKey, decryptKey, generateSecretKey } from '../utils/crypto/crypto';
 import { LoginForm } from './LoginForm';
+import { globalErrorHandler } from '../utils/globalErrorHandler';
 const remote = require('electron').remote;
 const session = remote.session;
 
@@ -107,12 +108,7 @@ export class Login extends Component<LoginProps,LoginState>{
     preserveKey = (email:string,password:string) => (key:string) => {
         let username = emailToUsername(email); 
 
-        //TODO submitKey
-        let submitKey = (key:string) => axios({ 
-            method:'post', 
-            url:`${server}/users/key`, 
-            data:{ username, password, key }
-        });
+        let submitKey = (key:string) => axios({method:'post',url:`${server}/users/key`,data:{ username, password, key }});
 
         let load = [{type:'sync',load:true},{type:'email',load:email}]; 
         
@@ -153,17 +149,11 @@ export class Login extends Component<LoginProps,LoginState>{
         let expire = nDaysFromNow(1000);
       
         let token = getToken({username, password});
-        
-        session.defaultSession.cookies.set( {
-            url:server,
-            name:'AuthToken', 
-            value: token, 
-            expirationDate:expire.getTime() 
-        }, (error) => {
-            if (error) console.error(error)
-        })
 
-        //TODO requestKey
+        session.defaultSession.cookies.set( 
+            {url:server,name:'AuthToken',value:token,expirationDate:expire.getTime()}, 
+            globalErrorHandler
+        );
 
         let requestKey = () => axios({method:'get', url:`${server}/users/key`, headers: { 'AuthToken' : token }})
         .then(prop("data"))

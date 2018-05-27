@@ -541,11 +541,11 @@ export class App extends Component<AppProps,AppState>{
 
 let onCloseWindow = (isMainWindow:boolean) => () => {
     if(isMainWindow){
-        ipcRenderer.send('Mhide'); 
-        return false; 
+       ipcRenderer.send('Mhide'); 
+       return false; 
     }else{
-        ipcRenderer.send('separateWindowsCount'); 
-        return undefined;
+       ipcRenderer.send('separateWindowsCount'); 
+       return undefined;
     }
 };
 

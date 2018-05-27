@@ -43,13 +43,7 @@ interface NextProps{
         logbook:((todo:Todo) => boolean)[],
         trash:((todo:Todo) => boolean)[]
     },
-    indicators:{ 
-        [key:string]:{
-            active:number,
-            completed:number,
-            deleted:number
-        }; 
-    },
+    indicators:{[key:string]:{active:number,completed:number,deleted:number};},
     areas:Area[], 
     projects:Project[], 
     todos:Todo[]
@@ -71,7 +65,7 @@ export class Next extends Component<NextProps, NextState>{
         let visibleTodos : Todo[] = filter(this.props.todos, (todo:Todo) => !contains(todo._id)(hiddenTodosIds));
 
         let selectedTodos = filter(
-            this.props.groupTodos ? visibleTodos : this.props.todos, 
+            visibleTodos,//this.props.groupTodos ? visibleTodos : this.props.todos, 
             byTags(this.props.selectedTags)
         );
 
@@ -88,10 +82,7 @@ export class Next extends Component<NextProps, NextState>{
             byNotDeleted 
         ];
 
-        return <div 
-          id={`${this.props.selectedCategory}-list`} 
-          style={{WebkitUserSelect:"none"}}
-        >
+        return <div id={`${this.props.selectedCategory}-list`} style={{WebkitUserSelect:"none"}}>
             <ContainerHeader 
                 selectedCategory={this.props.selectedCategory}  
                 dispatch={this.props.dispatch}  

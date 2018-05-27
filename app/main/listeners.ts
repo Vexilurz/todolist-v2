@@ -12,7 +12,7 @@ import { loadApp, loadQuickEntry } from './utils/loadApp';
 import { clearStorage } from './utils/clearStorage';
 import { isDev } from './../utils/isDev';
 import { ipcMain, app, BrowserWindow, screen, dialog } from 'electron';
-import { isEmpty, when, isNil, prop, path, compose, defaultTo, find, contains } from 'ramda';
+import { isEmpty, when, isNil, prop, path, compose, defaultTo, find, contains, dropLast, takeLast } from 'ramda';
 import { isProject, isString, isNotNil } from '../utils/isSomething';
 import { keyFromDate } from '../utils/time';
 import { RegisteredListener, Config } from '../types';
@@ -31,6 +31,70 @@ const Promise = require('bluebird');
 const backupFolder = pathTo.resolve(os.homedir(), "Documents", "tasklist");
 const shouldHideApp : boolean = contains("--hidden")(process.argv);
 
+
+
+let isBackup = (file) => {
+    let parts = file.split('_');
+    let isBackup = parts[1]==="backup";
+    return isBackup;
+};
+
+
+
+let getDate = (file) => {
+    let parts = file.split('_');
+    let dt = parts[2].split('.')[0].split('-'); //["2018", "5", "25"]
+    let date : any = new Date();
+    date.setYear(Number(dt[0]));
+    date.setMonth(Number(dt[1]-1));
+    date.setDate(Number(dt[2]));
+    return date;
+};
+
+
+
+let backupCleanup = event => {
+    fs.readdir(
+        backupFolder, 
+        (err, files) => {
+            let backups = files.filter(isBackup);
+
+            if(backups.length<=14){
+               event.sender.send("backupCleanup");
+               return; 
+            }
+
+
+            let drop = backups.length-14;
+
+
+            let sortedBackups = backups
+            .map(file => ({file,date:getDate(file)}))
+            .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            .map(f => f.file);
+
+
+            Promise
+            .all(
+                takeLast(drop, sortedBackups)
+                .map(
+                    file => new Promise(
+                        resolve => { 
+                            let p = pathTo.resolve(backupFolder,file);
+                            fs.unlink(p,function(err){
+                                if(err){ resolve(err) }
+                                else{ resolve(null) }
+                            });
+                        }
+                    )
+                )
+            )
+            .then(result => event.sender.send("backupCleanup"));
+        }
+    )
+};
+
+
  
 export class Listeners{ 
        
@@ -41,12 +105,7 @@ export class Listeners{
       this.registeredListeners = [ 
             {
                 name:"backupCleanup",
-                callback: (event) => rimraf(
-                    backupFolder, 
-                    () => { 
-                        event.sender.send("backupCleanup");
-                    }
-                )
+                callback:backupCleanup
             },
             {  
                 name:"reloadMainWindow", 
@@ -58,10 +117,11 @@ export class Listeners{
             }, 
             {
                 name:'separateWindowsCount',
-                callback:(event) => 
-                mainWindow ?
-                mainWindow.webContents.send('separateWindowsCount', BrowserWindow.getAllWindows().length) : 
-                null
+                callback:(event) => mainWindow ?
+                                    mainWindow.webContents.send(
+                                        'separateWindowsCount', 
+                                        BrowserWindow.getAllWindows().length
+                                    ) : null
             },
             { 
                 name:"updateQuickEntryData",

@@ -266,18 +266,17 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
 
     initBackupCleanupTimeout = () : void => {
         if(isDev()){
-           console.log(` nextBackupCleanup - ${this.props.nextBackupCleanup} `);
+           console.log(`nextBackupCleanup - ${this.props.nextBackupCleanup}`);
         }
- 
+
         let cleanup = () => 
-            requestFromMain('backupCleanup', [], (event) => event)
+            requestFromMain('backupCleanup', [], event => event)
             .then(() => {
                 let next = isDev() ? fiveMinutesLater(new Date()) : fourteenDaysLater(new Date());
                 this.props.dispatch({type:"nextBackupCleanup", load:next});
                 this.initBackupCleanupTimeout(); 
             });
-
-
+        
         if(
             isNil(this.props.nextBackupCleanup)  || 
             inPast(new Date(this.props.nextBackupCleanup))
