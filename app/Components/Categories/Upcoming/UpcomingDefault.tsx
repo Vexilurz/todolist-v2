@@ -40,6 +40,7 @@ import { generateUpcomingSequence } from '../../../utils/generateUpcomingSequenc
 import { generateCalendarObjectsFromRange } from '../../../utils/generateCalendarObjectsFromRange';
 import { byTime } from '../../../utils/byTime';
 import { detectChanges } from '../../../database/detectChanges'
+import { FadeBackgroundIcon } from '../../FadeBackgroundIcon';
 
 
 
@@ -175,7 +176,6 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
 
 
         if(nextProps.indicators!==this.props.indicators){
-
             return true;
         }
 
@@ -343,8 +343,13 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
                         showTags={true} 
                         selectedTags={selectedTags} 
                     />
+                    <FadeBackgroundIcon    
+                        container={this.props.rootRef} 
+                        selectedCategory={this.props.selectedCategory}  
+                        show={isEmpty(this.props.todos)}
+                    />  
                 </div>
-                
+
                 { this.getHint() }
 
                 <div>{days.map(this.getCalendarDay)}</div>

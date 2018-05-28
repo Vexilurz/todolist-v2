@@ -69,15 +69,19 @@ let updateConfig = (newConfig:Config) : Promise<Config> => requestFromMain(
 
 let setWindowTitle = (state:Store) => (newState:Store) : Store => {
 
-    if(state.selectedCategory===newState.selectedCategory){ return newState }
+    if(
+       state.selectedCategory===newState.selectedCategory &&
+       state.selectedAreaId===newState.selectedAreaId &&
+       state.selectedProjectId===newState.selectedProjectId
+    ){ return newState }
 
     if(newState.selectedCategory==="area"){
         let area = newState.areas.find( a => a._id===newState.selectedAreaId );
         if(area){
             ipcRenderer.send(
-                'setWindowTitle', 
-                `tasklist - ${uppercase(isEmpty(area.name) ? 'New Area' : area.name)}`, 
-                newState.id
+              'setWindowTitle', 
+              `tasklist - ${uppercase(isEmpty(area.name) ? 'New Area' : area.name)}`, 
+               newState.id
             );
         }
     }else if(newState.selectedCategory==="project"){

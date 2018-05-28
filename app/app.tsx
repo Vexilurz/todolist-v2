@@ -425,6 +425,7 @@ export class App extends Component<AppProps,AppState>{
                 {    
                     this.props.clone ? null :
                     <LeftPanelMenu 
+                        sync={this.props.sync}
                         dispatch={this.props.dispatch}
                         collapsed={this.props.collapsed}
                         selectedCategory={this.props.selectedCategory}
@@ -475,7 +476,10 @@ export class App extends Component<AppProps,AppState>{
             </div>   
             {
                 !this.props.showTrashPopup ? null :    
-                <TrashPopup dispatch={this.props.dispatch} showTrashPopup={this.props.showTrashPopup}/>
+                <TrashPopup 
+                    dispatch={this.props.dispatch} 
+                    showTrashPopup={this.props.showTrashPopup}
+                />
             }
             {   
                 !this.props.openChangeGroupPopup ? null : 
@@ -626,11 +630,7 @@ let setKey = (config:Config) => {
                         let {username,password} = getCredentialsFromToken(token);
                         let decrypt = when(allPass([isNotNil, isNotEmpty]),decryptKey(password));
 
-                        axios({
-                            method:'get',
-                            url:`${server}/users/key`,
-                            headers:{'AuthToken':token}
-                        }) 
+                        return axios({method:'get',url:`${server}/users/key`,headers:{'AuthToken':token}}) 
                         .then(prop("data"))
                         .then(decrypt)
                         .then((key:any) => {
@@ -638,9 +638,7 @@ let setKey = (config:Config) => {
                             config.secretKey = key;
                             return workerSendAction(pouchWorker)(action).then(() => resolve(config));
                         })
-                        .catch(e => {
-                            return workerSendAction(pouchWorker)(action).then(() => resolve(config));
-                        }) 
+                        .catch(e => workerSendAction(pouchWorker)(action).then(() => resolve(config))) 
                     }else{
                         return workerSendAction(pouchWorker)(action).then(() => resolve(config));
                     }

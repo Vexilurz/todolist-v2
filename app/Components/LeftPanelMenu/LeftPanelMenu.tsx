@@ -41,6 +41,7 @@ interface LeftPanelMenuProps{
     openNewProjectAreaPopup:boolean,
     projects:Project[],
     areas:Area[], 
+    sync:boolean,
     amounts:{
         inbox:number,
         today:number,
@@ -263,6 +264,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                 />
 
                 <Footer  
+                    sync={this.props.sync}
                     width={ this.props.leftPanelWidth }  
                     collapsed={ this.props.collapsed }
                     openSettings={this.openSettings}

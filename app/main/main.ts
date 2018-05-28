@@ -80,8 +80,14 @@ let onReady = (config:Config) => {
 
     mainWindow.on('show', () => tray.setToolTip(`Hide ${AppName}`));
     mainWindow.on('hide', () => tray.setToolTip(`Show ${AppName}`));
-    mainWindow.on('focus', () => { mainWindow['focused'] = true; }); 
-    mainWindow.on('blur', () => { mainWindow['focused'] = false; }); 
+    mainWindow.on('focus', () => { 
+        mainWindow['focused'] = true; 
+        registerAllShortcuts();
+    }); 
+    mainWindow.on('blur', () => { 
+        mainWindow['focused'] = false; 
+        unregisterAllShortcuts();
+    }); 
     mainWindow.on('unresponsive', handleMainWindowUnresponsive);
     mainWindow.webContents.on('crashed', handleMainWindowCrashed(mainWindow));
     quickEntry.webContents.on('crashed', handleQuickEntryCrashed(quickEntry));

@@ -1,9 +1,10 @@
 import { pouchWorker } from './../app';
 import { removeCouchCookies } from './removeCouchCookies';
+import { removeAuthCookies } from './removeAuthCookies';
 import { workerSendAction } from './workerSendAction';
-import { host } from './couchHost';
+import { host, server } from './couchHost';
 
-export let logout = () : Promise<void> => {
-    return workerSendAction(pouchWorker)({type:"stopSync", load:null})
-    .then(() => removeCouchCookies(host))
-};
+export let logout = () : Promise<void> => 
+        workerSendAction(pouchWorker)({type:"stopSync", load:null})
+        .then(() => removeCouchCookies(host))
+        .then(() => removeAuthCookies(server));

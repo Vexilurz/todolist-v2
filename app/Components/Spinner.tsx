@@ -12,6 +12,7 @@ import { checkAuthenticated } from '../utils/checkAuthenticated';
 
 
 interface SpinnerProps{
+    sync:boolean,
     openSyncSettings:(e:any) => void
 }
 
@@ -50,7 +51,7 @@ export class Spinner extends Component<SpinnerProps,SpinnerState>{
         checkAuthenticated()
         .then(
             auth => {
-                if(auth){
+                if(auth && this.props.sync){
                     this.setState(
                         {active:true}, 
                         () => setTimeout(() => this.setState({active:false}), 800)

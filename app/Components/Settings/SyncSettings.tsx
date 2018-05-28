@@ -49,10 +49,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
 
 
     componentDidMount(){
-        checkAuthenticated()
-        .then(
-            auth => this.setAuthenticated(auth)
-        )
+        checkAuthenticated().then( auth => this.setAuthenticated(auth) )
     }
 
     
@@ -62,15 +59,9 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
             let shouldSync = !this.props.sync && isString(this.props.email);
 
             if(shouldSync && this.state.authenticated){
-                let actionStartSync : actionStartSync = {
-                    type:"startSync", 
-                    load:emailToUsername(this.props.email)
-                }; 
-
+               let actionStartSync : actionStartSync = {type:"startSync", load:emailToUsername(this.props.email)}; 
                pouchWorker.postMessage(actionStartSync);
-
             }else if(!shouldSync && this.state.authenticated){
-
                pouchWorker.postMessage({type:"stopSync", load:null}); 
             }
 
@@ -81,7 +72,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
 
 
 
-    setAuthenticated = (value:boolean) => this.setState({authenticated:value}); 
+    setAuthenticated = (authenticated:boolean) => this.setState({authenticated}); 
 
 
 

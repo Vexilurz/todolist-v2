@@ -387,7 +387,6 @@ export class Listeners{
             {
                 name:"getVersion",
                 callback:(event) => {
-                    
                     event.sender.send("getVersion",app.getVersion())
                 }
             },

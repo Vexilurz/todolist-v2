@@ -109,7 +109,7 @@ export let decryptDoc = (dbname:string, key:string, onError:Function) : (doc:any
  
 
 
-export let generateSecretKey = () => "abcdabcdabcdabcd"; //( uniqid()+uniqid() ).substring(0, 16);
+export let generateSecretKey = () => ( uniqid()+uniqid() ).substring(0, 16); 
 
 
 
