@@ -157,7 +157,13 @@ export class Login extends Component<LoginProps,LoginState>{
 
         let requestKey = () => axios({method:'get', url:`${server}/users/key`, headers: { 'AuthToken' : token }})
         .then(prop("data"))
-        .then(decrypt); 
+        .then((key:any) => {
+            if(isNil(key) || isEmpty(key)){
+               return null;
+            }else{
+               return decryptKey(password)(key);
+            }
+        }); 
         
         return Promise
         .all([retrieveKey(),requestKey()])

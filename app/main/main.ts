@@ -62,7 +62,7 @@ let onReady = (config:Config) => {
     let onMainWindowReady = (handler:BrowserWindow) => {};
 
     if(shouldQuit){ app.exit(); return; }  
-
+      
     dialog.showErrorBox = (title, content) => {};
    
     mainWindow = initWindow(mainWindowSize, options, onMainWindowReady);    
