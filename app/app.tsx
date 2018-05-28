@@ -632,10 +632,18 @@ let setKey = (config:Config) => {
 
                         return axios({method:'get',url:`${server}/users/key`,headers:{'AuthToken':token}}) 
                         .then(prop("data"))
-                        .then(decrypt)
                         .then((key:any) => {
-                            action.load = key;
-                            config.secretKey = key;
+                            if(isNil(key) || isEmpty(key)){
+                               return null;
+                            }else{
+                               return decryptKey(password)(key);
+                            }
+                        })
+                        .then((key:any) => {
+                            if(!isEmpty(key) && !isNil(key)){
+                               action.load = key;
+                               config.secretKey = key;
+                            }
                             return workerSendAction(pouchWorker)(action).then(() => resolve(config));
                         })
                         .catch(e => workerSendAction(pouchWorker)(action).then(() => resolve(config))) 

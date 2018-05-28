@@ -155,7 +155,11 @@ export class Login extends Component<LoginProps,LoginState>{
             globalErrorHandler
         );
 
-        let requestKey = () => axios({method:'get', url:`${server}/users/key`, headers: { 'AuthToken' : token }})
+        let requestKey = () => axios({
+            method:'get', 
+            url:`${server}/users/key`, 
+            headers: { 'AuthToken' : token }
+        })
         .then(prop("data"))
         .then((key:any) => {
             if(isNil(key) || isEmpty(key)){

@@ -48,13 +48,6 @@ export class Footer extends Component<FooterProps,FooterState>{
     }
 
 
-
-    shouldComponentUpdate(nextProps:FooterProps){
-        return nextProps.width!==this.props.width || 
-               nextProps.collapsed!==this.props.collapsed;
-    }
- 
-
     
     render(){ 
         let { collapsed, openSettings, openNewProjectAreaPopup, width, setNewProjectAnchor } = this.props; 
