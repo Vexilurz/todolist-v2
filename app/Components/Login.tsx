@@ -103,25 +103,36 @@ export class Login extends Component<LoginProps,LoginState>{
     };
 
     
-
+    //"U2FsdGVkX1/OANF01CahKJ+gCiyPx8dw/QWJIJs3HmrXr/pFf2DCuOVni9uMXLI5"
     //save key locally and remotely if needed
-    preserveKey = (email:string,password:string) => (key:string) => {
+    preserveKey = (requested:string,retrieved:string,email:string,password:string) => (key:string) => {
         let username = emailToUsername(email); 
-
-        let submitKey = (key:string) => axios({method:'post',url:`${server}/users/key`,data:{ username, password, key }});
-
+        let submitKey = (key:string) => axios({
+            method:'post',
+            url:`${server}/users/key`,
+            data:{ username, password, key }
+        });
         let load = [{type:'sync',load:true},{type:'email',load:email}]; 
         
         if(isNil(key)){
             let newKey = generateSecretKey();
             let encryptedKey = encryptKey(password)(newKey);
 
-            this.props.dispatch({type:'multiple',load:[{type:"secretKey", load:newKey},...load]});
+            this.props.dispatch({type:'multiple',load:[ {type:"secretKey", load:newKey}, ...load ]});
 
             return submitKey(encryptedKey).then(
                 (resp) => {
-                   console.log(resp); 
                    return newKey;
+                }
+            );
+        }else if(isNil(requested) && !isNil(retrieved)){
+
+            this.props.dispatch({type:'multiple', load:[{ type:"secretKey", load:key }, ...load]});
+            let encryptedKey = encryptKey(password)(key);
+
+            return submitKey(encryptedKey).then(
+                (resp) => {
+                   return key;
                 }
             );
         }else{
@@ -171,8 +182,18 @@ export class Login extends Component<LoginProps,LoginState>{
         
         return Promise
         .all([retrieveKey(),requestKey()])
-        .then(this.digestKeys) //return key or null
-        .then(this.preserveKey(email,password))
+        .then(
+            ([retrieved,requested]) => [retrieved,requested,this.digestKeys([retrieved,requested])]
+    
+        ) //return key or null
+        .then(
+            ([retrieved,requested,key]) => this.preserveKey(
+                requested, 
+                retrieved,
+                email,
+                password
+            )(key)
+        )
         .then(this.setKeyInWorker)
         .then(this.encryptDatabase)
         .then(this.initSync(username))
