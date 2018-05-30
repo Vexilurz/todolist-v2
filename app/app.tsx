@@ -168,10 +168,8 @@ export class App extends Component<AppProps,AppState>{
 
 
     onPouchChanges = (action:action) => { 
-        if(isDev()){
-           console.log(`%c pouch ${action.type}`, `color: "#000080"`, action.load);
-        }
-
+        console.log(`%c pouch ${action.type}`, `color: "#000080"`, action.load);
+      
         let changes : { dbname:string, changes:PouchChanges } = action.load; 
         let dbname = prop("dbname")(changes);
         let change : PouchChange<any> = path(["changes","change"])(changes);
@@ -217,7 +215,7 @@ export class App extends Component<AppProps,AppState>{
         console.log(`%c pouch - ${action.type} - ${JSON.stringify(action.load)}`, 'color: #8b0017');
        
         globalErrorHandler(error);
-
+ 
         if(
             any( 
                 identity,
@@ -655,6 +653,7 @@ let setKey = (config:Config) => {
         } 
     ) 
 }
+
 
    
 //render application

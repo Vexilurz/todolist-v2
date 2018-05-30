@@ -1,6 +1,6 @@
 {
   "name": "tasklist",
-  "version": "1.6.6-master",
+  "version": "1.6.7-master",
   "description": "tasklist",
   "main": "production/main.js",
   "scripts": { 
@@ -13,7 +13,7 @@
     "build": "start webpack -w --config webpack.main.js && webpack -w --config webpack.renderer.js",
     "build:tests:main": "start webpack -w --config webpack.tests.main.js",
     "build:tests:renderer": "start webpack -w --config webpack.tests.renderer.js",
-    "production": "start webpack --config webpack.main.prod.js && webpack --config webpack.renderer.prod.js"
+    "production": "start webpack -w --config webpack.main.prod.js && webpack -w --config webpack.renderer.prod.js"
   },
   "repository": "",
   "keywords": [],

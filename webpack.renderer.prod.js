@@ -11,9 +11,11 @@ module.exports = [
         entry:{    
             'pouchWorker':'./database/pouchWorker.ts'
         },
-        mode:'production',
+        mode:'development',
+        //mode:'production',
         target: 'webworker', 
-        devtool: 'source-map',
+        //devtool: 'source-map',
+        devtool: 'cheap-module-source-map', // 'source-map',
         resolve: { 
             extensions: [".ts", ".tsx", ".js", ".json"]
         }, 
@@ -43,7 +45,7 @@ module.exports = [
                 'process.env.NODE_ENV': JSON.stringify('production')
             })       
         ],
-        optimization: {
+        /*optimization: {
             minimize: true,
             minimizer: [
                 new UglifyJsPlugin({
@@ -51,16 +53,18 @@ module.exports = [
                     uglifyOptions:{output:{comments:false}}
                 })
             ]
-        } 
+        }*/ 
     },
     {
         context: __dirname + "/app",
         entry:{    
             'generateIndicators':'./generateIndicators.ts'
         },
-        mode:'production',
+        mode:'development',
+        //mode:'production',
         target: 'webworker',
-        devtool: 'source-map',
+        //devtool: 'source-map',
+        devtool: 'cheap-module-source-map', // 'source-map',
         resolve: { 
             extensions: [".ts", ".tsx", ".js", ".json"]
         }, 
@@ -90,7 +94,7 @@ module.exports = [
                 'process.env.NODE_ENV': JSON.stringify('production')
             })       
         ],
-        optimization: {
+        /*optimization: {
             minimize: true,
             minimizer: [
                 new UglifyJsPlugin({
@@ -98,13 +102,13 @@ module.exports = [
                     uglifyOptions:{output:{comments:false}}
                 })
             ]
-        } 
+        }*/ 
     },
     {     
         context: __dirname + "/app",
-    
-        mode:'production',
-        
+        mode:'development',
+        //mode:'production',
+        devtool: 'cheap-module-source-map', // 'source-map',
         entry:{    
             'app':'./app.tsx',
             'quickentry':'./quickentry.tsx',
@@ -150,7 +154,7 @@ module.exports = [
         
         target: "electron-renderer",     
         
-        optimization: {
+        /*optimization: {
             minimize: true,
             minimizer: [
                 new UglifyJsPlugin({
@@ -162,7 +166,7 @@ module.exports = [
                     }
                 })
             ]
-        },
+        },*/
         
         plugins : [
             new CopyWebpackPlugin([{from : './assets/icon.ico'}, {from : './assets/sound.wav'}]), 

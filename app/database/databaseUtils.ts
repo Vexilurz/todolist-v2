@@ -9,7 +9,7 @@ import { ipcRenderer } from 'electron';
 const PouchDB = require('pouchdb-browser').default;
 import { convertTodoDates, measureTimePromise } from '../utils/utils';
 import { 
-    isNil, all, map, isEmpty, not, reduce, fromPairs, reject,
+    isNil, all, map, isEmpty, not, reduce, fromPairs, reject, cond, T,
     ifElse, compose, evolve, when, prop, identity, defaultTo 
 } from 'ramda'; 
 import { isArea, isString, isProject, isTodo } from '../utils/isSomething';
@@ -28,19 +28,33 @@ let window : any = self;
 
 
 let queryToObjects = (query:Query<any>) => query ? query.rows.map(row => row.doc) : []; 
+let removeRev = (item) => {
+    delete item["_rev"];
+    item["_rev"] = undefined;
+    return item;
+};
+
+let remRev = compose(map(removeRev), defaultTo([])); 
 
  
-
 //get all
 export let getItemsFromDatabase = (onError:Function, db:any, opt?:any) => {
     let options = defaultTo({})(opt);
     let decrypt = decryptDoc(db.name, window.key, onError);
     
     return db.allDocs({...options,include_docs:true})
-             .then(queryToObjects)
+             .then(queryToObjects) 
              .then(reject(isNil))
              .then(map(decrypt))
-             .catch(onError);
+             .catch(
+                error => {
+                    if(isDev()){
+                       console.log(error);
+                       onError(error);
+                    }
+                    return [];
+                }
+             );
 };
 
 
@@ -51,8 +65,17 @@ export let setItemsToDatabase = (onError:Function, db:any) =>
         let encrypt = encryptDoc(db.name, window.key, onError);
         let encrypted = map(encrypt, docs);
         
-        return db.bulkDocs(encrypted).then(() => encrypted).catch(onError);
-    };
+        return db.bulkDocs(encrypted).then(() => encrypted)
+        .catch(
+           error => {
+                if(isDev()){
+                   console.log(error,docs,encrypted);
+                   onError(error);
+                }
+                return [];
+           }
+        );
+    }; 
 
     
    
@@ -61,7 +84,16 @@ export let getItemFromDatabase = (onError:Function, db:any) =>
     (_id:string) : Promise<any> => {
         let decrypt = decryptDoc(db.name, window.key, onError);
 
-        return db.get(_id).then(decrypt).catch(onError);
+        return db.get(_id).then(decrypt).catch(
+            error => {
+                
+                if(isDev()){
+                   console.log(error);
+                   onError(error);
+                }
+                return null;
+            }
+        );
     };
  
 
@@ -72,7 +104,20 @@ export let setItemToDatabase = (onError:Function, db:any) =>
         let encrypt = encryptDoc(db.name, window.key, onError);
         let encrypted = encrypt(doc);
 
-        return db.put(encrypted).catch(onError);
+        return db.put(encrypted).catch(
+            error => {
+                if(error.status===409){
+                    return updateItemInDatabase(onError,db)(encrypted);
+                }else{
+                    
+                    if(isDev()){ 
+                       console.log(error,doc,encrypted);
+                       onError(error);
+                    }
+                    return null;
+                }
+            }
+        );
 };
 
     
@@ -99,7 +144,9 @@ export let updateItemInDatabase = (onError:Function, db:any) => {
                         count++;
                         return update(changed);
                     }else{  
-                        onError(err);
+                        if(isDev()){
+                           onError(err);
+                        }
                         return new Promise( resolve => resolve([]) )
                     } 
                 }); 
@@ -147,7 +194,9 @@ export let updateItemsInDatabase = (onError:Function, db:any) => {
                         count++;
                         return update(values);
                     }else{  
-                        onError(err);
+                        if(isDev()){
+                           onError(err);
+                        }
                         return new Promise(resolve => resolve([]));
                     } 
                 });     
@@ -156,14 +205,14 @@ export let updateItemsInDatabase = (onError:Function, db:any) => {
         return update(values);
     }  
 };
-    
-    
+     
+     
 
 export let getDatabaseObjects = (onError:Function, databases:any[]) : Promise<Databases> => 
     Promise.map( 
         databases.map( 
             db => () => getItemsFromDatabase(onError, db).then(items => [db.name,items]) 
-        ),
+        ), 
         f => f(), 
         {concurrency: 1}
     ) 
@@ -172,13 +221,22 @@ export let getDatabaseObjects = (onError:Function, databases:any[]) : Promise<Da
 
 
 let mapDatabaseItems = (withOne:withOne, withMany:withMany) => (db:any, onError:Function) => 
-    ifElse(
-        singleItem, 
-        (items:any[]) => withOne(onError, db)(items[0]),
-        (items:any[]) => withMany(onError, db)(items)
-    ); 
+    cond([
+        [
+            isEmpty, 
+            () => {
+                return new Promise(resolve => resolve([]));
+            }
+        ], 
+        [
+            singleItem, (items:any[]) => withOne(onError, db)(items[0])
+        ],
+        [
+            T, (items:any[]) => withMany(onError, db)(items)
+        ]
+    ]); 
 
-
+  
 
 export let addItems = mapDatabaseItems(setItemToDatabase,setItemsToDatabase);
 

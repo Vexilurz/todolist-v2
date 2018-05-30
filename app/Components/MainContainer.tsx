@@ -297,7 +297,7 @@ export class MainContainer extends Component<MainContainerProps,MainContainerSta
  
         this.subscriptions.push( 
             Observable
-                .interval(15*minute)
+                .interval(1*minute)
                 .subscribe(() => 
                     requestFromMain(
                         'saveBackup',

@@ -3,8 +3,8 @@ import { pouchWorker } from './../app';
 import { Project, Area, Todo, Calendar, Store, action, withId, Changes, DatabaseChanges, actionChanges } from '../types';
 import { isDev } from '../utils/isDev';
 import { 
-    adjust, cond, all, isEmpty, contains, not, remove, uniq, assoc, reverse, 
-    findIndex, splitAt, last, assocPath, isNil, and, complement, compose, 
+    adjust, cond, all, isEmpty, contains, not, remove, uniq, assoc, reverse, flatten, 
+    findIndex, splitAt, last, assocPath, isNil, and, complement, compose, values, 
     reject, concat, map, when, find, prop, ifElse, identity, path, equals, any,
     allPass, evolve, pick, defaultTo, pickBy, mapObjIndexed, forEachObjIndexed  
 } from 'ramda'; 
@@ -87,10 +87,13 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
 
     let changes = detectChanges(state)(newState);
 
-    if(!isEmpty(changes)){ 
+    let items = compose(flatten,map(values),values)(changes);
+ 
+    if(!isEmpty(changes) && !isEmpty(items)){ 
+       //console.log(changes); 
        let actionChanges : actionChanges = { type:"changes", load:changes };
        pouchWorker.postMessage(actionChanges); 
     } 
 
     return newState; 
-};     
+};        

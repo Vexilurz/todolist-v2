@@ -45,7 +45,7 @@ let list = [];
 
 
 Observable.fromEvent(self, 'message', event => event)
-.flatMap(
+.concatMap(
     (e:any,index:number) => {
         if(isDev()){
             sendMessage({type:'log', load:`pouch log get action - ${e.data.type}`});
@@ -69,8 +69,15 @@ Observable.fromEvent(self, 'message', event => event)
             [ () => true, () => new Promise( resolve => resolve(null) ) ]    
         ])(action);
         
-        return result.then(load => ({type:action.type, load}));
+        return result.then(
+            load => {
+                return {type:action.type, load};
+            }
+        );
     }
+)
+.catch(
+    (err) => Observable.fromPromise(new Promise(resolve => resolve(err)))
 )
 .subscribe(
     (action:action) => sendMessage(action)
@@ -156,31 +163,31 @@ let stopSync = (action:actionStopSync) : Promise<any[]> => {
  * apply changes from redux store to dbs
  */
 let changes = (action:actionChanges) : Promise<void> => {
-    if(isDev()){
-       sendMessage({type:'log', load:`pouch log applyChanges ${action.type}`});
-    }
-
     let changes : Changes = action.load;
-
+  
     return compose(
-        list => Promise.all(list),
-        flatten,
+        list => {
+            return Promise.all(list).then(result => changes);
+        },
+        flatten, 
+        values,
         mapObjIndexed(
             (change:DatabaseChanges<any>, dbname:string) => {
-                let db = databases.find( d => d.name===dbname );
+                let db = databases.find(d => d.name===dbname);
 
-                if(isNil(db)){ return new Promise( resolve => resolve() ) }
+                if(isNil(db)){ return new Promise( resolve => resolve() ) } 
 
-                return compose(
+                let result = compose(
+                    flatten,
                     values,
-                    evolve(
-                        {
-                            add:addItems(db, onError),
-                            remove:removeItems(db, onError),
-                            update:updateItems(db, onError)
-                        }
-                    )
+                    evolve({
+                        add:addItems(db, onError),
+                        remove:removeItems(db, onError),
+                        update:updateItems(db, onError)
+                    })
                 )(change);
+ 
+                return result;
             }
         )
     )(changes);

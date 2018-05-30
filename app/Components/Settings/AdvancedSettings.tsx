@@ -10,7 +10,7 @@ import {
 } from 'ramda';
 import { Checkbox } from '../TodoInput/Checkbox';
 import { 
-    checkForUpdates, getCompletedWhen, log, removeRev, 
+    checkForUpdates, getCompletedWhen, log,
     closeClonedWindows, correctFormat, selectFolder, selectJsonDatabase, sideEffect 
 } from '../../utils/utils'; 
 import { isNewVersion } from '../../utils/isNewVersion';
@@ -31,7 +31,6 @@ const uniqid = require("uniqid");
 const path = require("path");
 
 let completedSet : (todo:Todo) => boolean = compose(isNotNil,prop('completedSet')) as any;
-let remRev = compose(map(removeRev), defaultTo([])); 
 
 
 
@@ -100,7 +99,8 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
     export : (folder:string) => Promise<void> = (folder:string) => 
     getData(this.props.secretKey)
-    .then(
+    .then(fixIncomingData)
+    .then( 
         (database:Databases) => {
             let where = path.resolve(folder, `${keyFromDate(new Date())}-${uniqid()}.json`);
 

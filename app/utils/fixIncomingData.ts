@@ -16,7 +16,7 @@ export let fixIncomingData =
                     assureCorrectCompletedTypeTodo, 
                     assureCorrectNoteTypeTodo,
                     setDefaultsTodo,
-                    removeRev
+                    //removeRev
                 )  
             ),
             defaultTo([]) 
@@ -27,7 +27,7 @@ export let fixIncomingData =
                     convertProjectDates,
                     assureCorrectNoteTypeProject, 
                     setDefaultsProject,
-                    removeRev
+                    //removeRev
                 )
             ),
             defaultTo([])
@@ -37,7 +37,7 @@ export let fixIncomingData =
                 compose( 
                     convertAreaDates,
                     setDefaultsArea,
-                    removeRev 
+                    //removeRev 
                 ) 
             ),
             defaultTo([])
@@ -47,7 +47,7 @@ export let fixIncomingData =
                 compose(  
                     evolve({ events:map(convertEventDate) }),
                     setDefaultsCalendar,
-                    removeRev 
+                    //removeRev 
                 ) 
             ),
             defaultTo([]) 
