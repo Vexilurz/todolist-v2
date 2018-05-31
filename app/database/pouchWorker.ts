@@ -71,7 +71,7 @@ Observable.fromEvent(self, 'message', event => event)
         
         return result.then(
             load => {
-                return {type:action.type, load};
+               return {type:action.type, load};
             }
         );
     }

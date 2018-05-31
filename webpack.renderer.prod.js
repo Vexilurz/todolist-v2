@@ -111,7 +111,7 @@ module.exports = [
         devtool: 'cheap-module-source-map', // 'source-map',
         entry:{    
             'app':'./app.tsx',
-            'quickentry':'./quickentry.tsx',
+            'quickentry':'./quickEntry.tsx',
             'notification':'./notification.tsx'
         },  
     

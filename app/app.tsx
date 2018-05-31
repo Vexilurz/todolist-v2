@@ -179,8 +179,8 @@ export class App extends Component<AppProps,AppState>{
         let timestamp = new Date(change.start_time);
         let decrypt = decryptDoc(dbname, this.props.secretKey, globalErrorHandler);
 
-        let docs = compose( 
-            map(decrypt),
+        let docs = compose(  
+            map(decrypt), 
             prop(dbname),
             fixIncomingData, 
             data =>  fromPairs( [[dbname,data]] ),  
@@ -191,10 +191,7 @@ export class App extends Component<AppProps,AppState>{
         let lastSyncAction = { type:"lastSync", load:timestamp, kind:"sync" };
         let local = defaultTo([])(this.props[dbname]);
 
-        let actions : action[] = compose(
-            changesToActions(dbname),
-            toStoreChanges(local) 
-        )(docs);
+        let actions : action[] = compose( changesToActions(dbname), toStoreChanges(local) )(docs);
         
         this.props.dispatch({type:"multiple", load: [...actions,lastSyncAction] });
     };

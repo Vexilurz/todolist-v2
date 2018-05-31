@@ -80,7 +80,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
             <div style={{
                 width:"100%",
                 display:"flex",
-                minHeight:"70px", 
+                minHeight:"82px",   
                 justifyContent:"center",
                 alignItems:"center",
                 flexDirection:"column",

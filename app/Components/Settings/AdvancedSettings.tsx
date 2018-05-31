@@ -26,6 +26,7 @@ import { ipcRenderer } from 'electron';
 import { pouchWorker } from '../../app';
 import { fixIncomingData } from './../../utils/fixIncomingData';
 import { workerSendAction } from '../../utils/workerSendAction';
+import RefreshIndicator from 'material-ui/RefreshIndicator';
 const Promise = require("bluebird");
 const uniqid = require("uniqid");     
 const path = require("path");
@@ -52,18 +53,20 @@ interface AdvancedProps{
 interface AdvancedState{ 
     showPopup:boolean,
     message:string,
+    progress:boolean,
     updateStatus:string 
 }
 
 
 
 export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
-    
+    ref:HTMLElement;
+
     constructor(props){
         super(props);  
-
         this.state = {   
            showPopup:false,
+           progress:false,
            message:'',
            updateStatus:``
         };       
@@ -85,11 +88,20 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
 
-    componentWillReceiveProps(nextProps:AdvancedProps){
-        if(isNil(nextProps.import) && isNotNil(this.props.import)){
-           //this.updateState({message:'Data was successfully imported.'});
+    componentWillReceiveProps(nextProps){
+        if(
+            this.state.progress && 
+            this.props.import && 
+            !nextProps.import
+        ){
+            setTimeout(
+                () => !this.ref ? 
+                        null : 
+                        this.updateState({progress:false,message:`Data was successfully imported.`}), 
+                6000
+            )
         }
-    };
+    }
 
 
 
@@ -98,22 +110,19 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
    
 
     export : (folder:string) => Promise<void> = (folder:string) => 
-    getData(this.props.secretKey)
+    this.updateState({progress:true})
+    .then(() => getData(this.props.secretKey))
     .then(fixIncomingData)
+    .then((database:Databases) => {
+       let where = path.resolve(folder,`${keyFromDate(new Date())}-${uniqid()}.json`);
+       return requestFromMain('saveDatabase',[{ database }, where], (event) => folder);
+    }) 
     .then( 
-        (database:Databases) => {
-            let where = path.resolve(folder, `${keyFromDate(new Date())}-${uniqid()}.json`);
-
-            return requestFromMain(
-                'saveDatabase', 
-                [{ database }, where], 
-                (event) => folder
-            );
-        }
-    ) 
-    .then( 
-        (folder:string) => this.updateState({message:`Data was successfully exported to ${folder}.`}) 
-    );       
+        (folder:string) => this.updateState({
+            progress:false,
+            message:`Data was successfully exported to ${folder}.`
+        }) 
+    );        
 
 
 
@@ -134,17 +143,16 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     .then(
         ifElse(
             correctFormat,
-            compose(
-                (database:Databases) => {
-                    let action : ImportAction = {
-                        type:"import", 
-                        load:{ database, pathToFile }
-                    };
-
-                    this.props.dispatch(action);
-                },
-                fixIncomingData, 
-                sideEffect(closeClonedWindows)
+            database => this.updateState({progress:true}).then(() => database)
+            .then(
+                compose(
+                    (database:Databases) => {
+                        let action : ImportAction = {type:"import", load:{ database, pathToFile }};
+                        this.props.dispatch(action);
+                    },
+                    fixIncomingData, 
+                    sideEffect(closeClonedWindows)
+                )
             ),
             () => this.updateState({message:"Incorrect format"})
         )
@@ -272,7 +280,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
             backgroundColor:"rgba(81, 144, 247, 1)"  
         } as any;
 
-        return <div style={{paddingTop:"25px",width:"90%",paddingLeft:"25px"}}>
+        return <div ref={e => {this.ref=e;}} style={{paddingTop:"25px",width:"90%",paddingLeft:"25px"}}>
             <div style={{display:"flex",flexDirection:"column",justifyContent:"space-around",height:"90%"}}> 
            
             <div style={{display:"flex", alignItems:"center"}}>
@@ -332,16 +340,76 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
                 </div>  
             }  
                 <div style={{display:"flex"}}>
-                    <div onClick={this.onSelectImportFile} style={buttonStyle}>   
-                        <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
-                            Import
-                        </div>   
-                    </div> 
-                    <div onClick={this.onSelectExportFolder} style={buttonStyle}>   
-                        <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
-                            Export 
-                        </div>   
-                    </div> 
+                    {
+                        this.state.progress ? 
+                        <div
+                            style={{
+                                display: "flex",
+                                marginRight: "5px", 
+                                justifyContent: "center",
+                                width: "40px",
+                                height: "20px",
+                                borderRadius: "5px",
+                                padding: "5px 25px",
+                                alignItems: "center",
+                                backgroundColor: "rgba(200, 200, 200, 0.3)"
+                            }}
+                        >
+                            <RefreshIndicator 
+                                size={25}
+                                left={0}
+                                top={0}
+                                status="loading"
+                                style={{
+                                    display:'inline-block', 
+                                    position:'relative',
+                                    boxShadow:'none',
+                                    backgroundColor:'rgba(255,255,255,0)'
+                                }}
+                            />
+                        </div>
+                        :
+                        <div onClick={this.onSelectImportFile} style={buttonStyle}>   
+                            <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
+                                Import
+                            </div>   
+                        </div> 
+                    }
+                    {
+                        this.state.progress ? 
+                        <div
+                            style={{
+                                display: "flex",
+                                marginRight: "5px",
+                                justifyContent: "center",
+                                width: "40px",
+                                height: "20px",
+                                borderRadius: "5px",
+                                padding: "5px 25px",
+                                alignItems: "center",
+                                backgroundColor: "rgba(200, 200, 200, 0.3)"
+                            }}
+                        >
+                            <RefreshIndicator 
+                                size={25}
+                                left={0}
+                                top={0}
+                                status="loading"
+                                style={{
+                                    display:'inline-block', 
+                                    position:'relative',
+                                    boxShadow:'none',
+                                    backgroundColor:'rgba(255,255,255,0)'
+                                }}
+                            />
+                        </div>
+                        :
+                        <div onClick={this.onSelectExportFolder} style={buttonStyle}>   
+                            <div style={{color:"white", whiteSpace:"nowrap", fontSize:"16px"}}>  
+                                Export 
+                            </div>   
+                        </div> 
+                    }
                 </div> 
                 <div style={{height:"1px",width:"100%",borderBottom:"1px solid rgb(200,200,200)"}}></div>  
                 <div style={{display:"flex",justifyContent:"space-between"}}>

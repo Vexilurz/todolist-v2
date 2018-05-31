@@ -70,7 +70,7 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
             this.setState({error:`Email address has invalid format`});
         }else if(!passwordValid){
             this.setState({
-                error:getPasswordErrorMessage(passwordBrokenRules)
+                error:`Incorrect password` //getPasswordErrorMessage(passwordBrokenRules)
             });
         }
     };
@@ -93,7 +93,7 @@ export class LoginForm extends Component<LoginFormProps,LoginFormState>{
         let emailValid = validateEmail(email);
         let passwordBrokenRules = validatePassword(password);
         let passwordValid = isEmpty(passwordBrokenRules);
-        return passwordValid && emailValid;
+        return emailValid; //passwordValid && emailValid;
     };
 
 

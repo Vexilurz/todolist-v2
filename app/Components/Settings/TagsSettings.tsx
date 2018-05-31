@@ -96,6 +96,7 @@ export class TagsSettings extends Component<TagsSettingsProps,TagsSettingsState>
         }}>
             {       
                 tags
+                .filter(tag => tag!=="all")
                 .sort((a:string,b:string) : number => a.localeCompare(b))
                 .map( 
                     (tag:string, index:number) => 

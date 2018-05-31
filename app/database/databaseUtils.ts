@@ -225,14 +225,15 @@ let mapDatabaseItems = (withOne:withOne, withMany:withMany) => (db:any, onError:
         [
             isEmpty, 
             () => {
-                return new Promise(resolve => resolve([]));
+                let p = Promise.resolve();
+                return p.then( () => { return [] });
             }
         ], 
         [
             singleItem, (items:any[]) => withOne(onError, db)(items[0])
         ],
         [
-            T, (items:any[]) => withMany(onError, db)(items)
+            T, (items:any[]) => withMany(onError, db)(items) 
         ]
     ]); 
 
