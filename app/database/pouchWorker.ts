@@ -154,16 +154,16 @@ let stopSync = (action:actionStopSync) : Promise<any[]> => {
             list = []; 
             return events;
         }
-    );  
+    );   
 };
 
 
-
+ 
 /**
  * apply changes from redux store to dbs
  */
 let changes = (action:actionChanges) : Promise<void> => {
-    let changes : Changes = JSON.parse(action.load as any);
+    let changes : Changes = action.load;
   
     return compose(
         list => {

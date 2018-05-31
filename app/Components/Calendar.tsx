@@ -17,7 +17,7 @@ import {
     oneDayBehind, inPastRelativeTo 
 } from '../utils/time';
 import { isDev } from '../utils/isDev';
-import { isValidDate } from '../utils/isValidDate.js';
+import { isValidDate } from '../utils/isValidDate';
 const Promise = require('bluebird');
 
  
