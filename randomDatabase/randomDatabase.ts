@@ -46,7 +46,7 @@ let randomDatabase = (t:number,p:number,a:number,c:number,withReminder:number) :
                                 NmultipleDays:randomInteger(10) + 1,
                                 Nrecurrent:randomInteger(5) + 1,
                         }) 
-                    ) 
+                    )  
                     .map((c) => {
                        let text = fakeCalendar(c);
                        let parsed = parseCalendar(new Date()["addDays"](50),text);
@@ -59,7 +59,11 @@ let randomDatabase = (t:number,p:number,a:number,c:number,withReminder:number) :
                             description:data.calendar.description,
                             timezone:data.calendar.timezone,
                             active:true,
-                            events:data.events,
+                            events:data.events.map(e => {
+                                e.start=null; 
+                                e.end=null;
+                                return e
+                            }), 
                             type:"calendar", 
                             _id:generateId()
                         })

@@ -27,6 +27,7 @@ import { generateEmptyTodo } from './generateEmptyTodo';
 import { noteFromText } from './draftUtils';
 import { requestFromMain } from './requestFromMain';
 import { inPast, fiveMinutesLater, onHourLater, oneDayMore } from './time'; 
+import { isValidDate } from './isValidDate';
 const PHE = require("print-html-element");
 const domtoimage = require('retina-dom-to-image');
 
@@ -1193,34 +1194,35 @@ export let transformLoadDates = (load) : any => {
 
 export let convertTodoDates = (t:Todo) : Todo => ({
     ...t, 
-    reminder : isNil(t.reminder) ? null : new Date(t.reminder),
-    deadline : isNil(t.deadline) ? null : new Date(t.deadline), 
-    created : isNil(t.created) ? null : new Date(t.created),
-    deleted : isNil(t.deleted) ? null: new Date(t.deleted),
-    attachedDate : isNil(t.attachedDate) ? null : new Date(t.attachedDate),
-    completedSet : isNil(t.completedSet) ? null : new Date(t.completedSet),
-    completedWhen : isNil(t.completedWhen) ? null : new Date(t.completedWhen)
+    reminder : isNil(t.reminder) ? null : isValidDate(new Date(t.reminder)) ? new Date(t.reminder) : new Date(),
+    deadline : isNil(t.deadline) ? null : isValidDate(new Date(t.deadline)) ? new Date(t.deadline) : new Date(), 
+    created : isNil(t.created) ? null : isValidDate(new Date(t.created)) ? new Date(t.created) : new Date(),
+    deleted : isNil(t.deleted) ? null: isValidDate(new Date(t.deleted)) ? new Date(t.deleted) : new Date(),
+    completed :  isNil(t.completed) ? undefined : isValidDate(new Date(t.completed)) ? new Date(t.completed) : new Date(),
+    attachedDate : isNil(t.attachedDate) ? null : isValidDate(new Date(t.attachedDate)) ? new Date(t.attachedDate) : new Date(),
+    completedSet : isNil(t.completedSet) ? null : isValidDate(new Date(t.completedSet)) ? new Date(t.completedSet) : new Date(),
+    completedWhen : isNil(t.completedWhen) ? null : isValidDate(new Date(t.completedWhen)) ? new Date(t.completedWhen) : new Date()
 });
 
 
 
 export let convertProjectDates = (p:Project) : Project => ({
     ...p,
-    created : isNil(p.created) ? null : new Date(p.created),
-    deadline : isNil(p.deadline) ? null : new Date(p.deadline),
-    deleted :  isNil(p.deleted) ? null : new Date(p.deleted),
-    completed :  isNil(p.completed) ? null : new Date(p.completed)
+    created : isNil(p.created) ? null : isValidDate(new Date(p.created)) ? new Date(p.created) : new Date(),
+    deadline : isNil(p.deadline) ? null : isValidDate(new Date(p.deadline)) ? new Date(p.deadline) : new Date(),
+    deleted :  isNil(p.deleted) ? null : isValidDate(new Date(p.deleted)) ? new Date(p.deleted) : new Date(),
+    completed :  isNil(p.completed) ? null : isValidDate(new Date(p.completed)) ? new Date(p.completed) : new Date()
 });
 
 
 
 export let convertAreaDates = (a:Area) : Area => ({
     ...a, 
-    created:isNil(a.created) ? null : new Date(a.created),
-    deleted:isNil(a.deleted) ? null : new Date(a.deleted)
+    created:isNil(a.created) ? null : isValidDate(new Date(a.created)) ? new Date(a.created) : new Date(),
+    deleted:isNil(a.deleted) ? null : isValidDate(new Date(a.deleted)) ? new Date(a.deleted) : new Date()
 });
 
- 
+  
 
 export let createHeading = (e, props:Store) : Project => {
     let id : string = props.selectedProjectId;

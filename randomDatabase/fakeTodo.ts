@@ -103,17 +103,17 @@ export let fakeTodo = (tags:string[], withReminder:number) : Todo => {
         priority:Math.random()*999999999,
         note:noteFromText(note.join(' ')), 
         checklist:checklist,   
-        reminder, //:null,  
+        reminder:null,  
         attachedTags:tags,   
-        deadline:category==="someday" ? null :
+        deadline:null,/*category==="someday" ? null :
                  Math.random() < 0.3 ? null :
                  Math.random() > 0.5 ?
                  randomDate(new Date(), new Date()["addDays"](50)) : 
-                 new Date(), 
-        created:randomDate(new Date(), new Date()["addDays"](50)),
-        deleted,
+                 new Date()*/ 
+        created:null,//randomDate(new Date(), new Date()["addDays"](50)),
+        deleted:null,
         attachedDate:category==="someday" ? null : attachedDate,
-        completedSet,
-        completedWhen 
+        completedSet:null,
+        completedWhen:null
     };   
 };

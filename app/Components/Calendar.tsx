@@ -17,6 +17,7 @@ import {
     oneDayBehind, inPastRelativeTo 
 } from '../utils/time';
 import { isDev } from '../utils/isDev';
+import { isValidDate } from '../utils/isValidDate.js';
 const Promise = require('bluebird');
 
  
@@ -143,29 +144,56 @@ export let convertEventDate = (event:CalendarEvent) : CalendarEvent => {
     let minute = 1000 * 60;
     
     if(isNil(event.start) && isNil(event.end)){
+        let end = subtractDays(new Date(), 49);
+        let start = subtractDays(new Date(), 50);
+
         return {
             ...event, 
-            end:subtractDays(new Date(), 49),
-            start:subtractDays(new Date(), 50)
+            end,
+            start
         };
+
     }else if(isNil(event.start) && isNotNil(event.end)){
-        return {  
-            ...event,
-            end:new Date(event.end),
-            start:subtractTime(new Date(event.end), minute)
-        }; 
+        let end = new Date(event.end);
+        let start = subtractTime(new Date(event.end), minute);
+        
+        if(!isValidDate(end)){
+            end = new Date();
+        }
+
+        if(!isValidDate(start)){
+            start = new Date();
+        }
+
+        return {...event,end,start}; 
+
     }else if(isNotNil(event.start) && isNil(event.end)){
-        return {  
-            ...event,
-            end:addTime(new Date(event.start), minute),
-            start:new Date(event.start)
-        }; 
+        let end = addTime(new Date(event.start), minute);
+        let start = new Date(event.start);
+
+        if(!isValidDate(end)){
+            end = new Date();
+        }
+
+        if(!isValidDate(start)){
+            start = new Date();
+        }
+
+        return {...event,end,start}; 
+
     }else{
-        return {  
-            ...event,
-            end:new Date(event.end),
-            start:new Date(event.start)
-        }; 
+        let end = new Date(event.end);
+        let start = new Date(event.start);
+
+        if(!isValidDate(end)){
+            end = new Date();
+        }
+
+        if(!isValidDate(start)){
+            start = new Date();
+        }
+
+        return {...event,end,start}; 
     }
 };
 
