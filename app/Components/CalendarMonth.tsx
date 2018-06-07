@@ -14,7 +14,7 @@ import {
     log, anyTrue, different, initDate, nDaysFromNow
 } from '../utils/utils';  
 import {
-    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, contains, where,
+    allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, contains, where, without,
     map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy, any,
     mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass
 } from 'ramda';
@@ -141,7 +141,7 @@ export class CalendarMonth extends Component<CalendarMonthProps,CalendarMonthSta
 
                 <div>
                 {
-                    noEvents ? null :  
+                    compose(isNotEmpty,without(['All']))(selectedTags) || noEvents ? null :  
                     <div style={{
                         display:'flex', 
                         flexDirection:"column", 

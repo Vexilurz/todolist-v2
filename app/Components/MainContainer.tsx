@@ -113,12 +113,8 @@ interface MainContainerProps{
         logbook:((todo:Todo) => boolean)[],
         trash:((todo:Todo) => boolean)[]
     },
-    indicators : { 
-        [key:string]:{
-            active:number,
-            completed:number,
-            deleted:number
-        }; 
+    indicators:{ 
+        [key:string]:{active:number,completed:number,deleted:number}; 
     },
     calendars:Calendar[],
     projects:Project[],

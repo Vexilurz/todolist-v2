@@ -286,8 +286,6 @@ export class UpcomingDefault extends Component<UpcomingDefaultProps,UpcomingDefa
         let { todos, projects, events, date } = object;
         let day = date.getDate();
 
-        
-
         return all(isEmpty)([todos,projects,events]) ? null :
         <div key={`day-${idx}`} style={{WebkitUserSelect:"none", paddingTop:"3px", paddingBottom:"3px"}}>
             <CalendarDay 

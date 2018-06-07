@@ -17,7 +17,7 @@ import {
 import {
     allPass, uniq, isNil, cond, compose, not, last, isEmpty, adjust,and, contains, where,
     map, flatten, prop, uniqBy, groupBy, defaultTo, all, pick, evolve, or, sortBy, any,
-    mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass
+    mapObjIndexed, forEachObjIndexed, path, values, equals, append, reject, anyPass, without
 } from 'ramda';
 import { ProjectLink } from './Project/ProjectLink';
 import { groupEventsByType } from '../utils/groupEventsByType';
@@ -115,17 +115,14 @@ export class CalendarWeek extends Component<CalendarWeekProps,CalendarWeekState>
                 >  
                     <div style={{display:"flex"}}>
                         <div>{this.props.month}</div>
-                        <div
-                            style={{
-                                paddingLeft:"5px",
-                                color:"rgba(50,50,50,0.7)"
-                            }}
-                        >{this.props.range}</div>
+                        <div style={{paddingLeft:"5px",color:"rgba(50,50,50,0.7)"}}>
+                            {this.props.range}
+                        </div>
                     </div>
                 </div>
                 <div>
-                {
-                    noEvents ? null :  
+                { 
+                    compose(isNotEmpty,without(['All']))(selectedTags) || noEvents ? null :  
                     <div style={{
                         display:'flex', 
                         flexDirection:"column", 

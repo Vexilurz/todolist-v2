@@ -136,8 +136,11 @@ export let repeat = (
                        dates = normalize(dates);
                     }
 
-                    if(isNotEmpty(dates) && sameDay(start,dates[0])){
-                       dates = drop(1)(dates);
+                    if(
+                        isNotEmpty(dates) && 
+                        sameDay(start,dates[0])
+                    ){
+                        dates = drop(1)(dates);
                     }
                     
                     return dates;
@@ -218,22 +221,20 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
         let todo = {...this.props.repeatTodo};
         let groupId : string = generateId();
         let options = {interval, freq, until, count, selectedOption};
-
+        let start = new Date();
 
         let repeatedTodos : Todo[] = repeat(  
             options,
             todo, 
-            defaultTo(new Date())(todo.attachedDate),
+            defaultTo(start)(todo.attachedDate),
             new Date(this.props.limit),
             groupId
         );
         
-
-
         if(isDev()){
             let withStart = [
                 ...repeatedTodos.map(t => t.attachedDate),
-                defaultTo(new Date())(todo.attachedDate)
+                defaultTo(start)(todo.attachedDate)
             ];
 
             let by = uniqBy(d => d.toString(), withStart);
@@ -246,15 +247,14 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
             ); 
         }
 
-
- 
         this.props.dispatch({
             type:"multiple",
             load:[
                 { 
-                    type:"updateTodo", 
+                    type:"updateTodo",  
                     load:{
                         ...todo,
+                        attachedDate:defaultTo(start)(todo.attachedDate), 
                         group:{type:selectedOption, _id:groupId, options}
                     } 
                 },
@@ -608,8 +608,8 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
             }}>
                     <div style={{padding:"2px"}}>
                         <div    
-                            onClick={
-                                () => this.setState(
+                            onClick={() => 
+                                this.setState(
                                     { 
                                         interval:1,
                                         freq:'day',
@@ -639,17 +639,15 @@ export class RepeatPopup extends Component<RepeatPopupProps,RepeatPopupState>{
                     </div> 
                     <div style={{padding:"2px"}}>
                         <div     
-                            onClick={
-                                (e) => this.setState(
-                                    {error:''}, 
-                                    () => {
-                                        if(this.allInputsAreValid()){ 
-                                           this.onDone(); 
-                                           this.close(); 
-                                        }
+                            onClick={e => this.setState(
+                                {error:''}, 
+                                () => {
+                                    if(this.allInputsAreValid()){ 
+                                       this.onDone(); 
+                                       this.close(); 
                                     }
-                                ) 
-                            }   
+                                }
+                            )}   
                             style={{     
                                 width:"90px",
                                 display:"flex",

@@ -217,6 +217,7 @@ export class CategoryPicker extends Component<CategoryPickerProps,CategoryPicker
         this.props.dispatch({
             type:"multiple",
             load:[
+                {type:"showMenu", load:false},
                 {type:"selectedCategory",load:title},
                 {type:"showProjectMenuPopover",load:false}, 
                 {type:"searchQuery",load:""},
@@ -224,6 +225,7 @@ export class CategoryPicker extends Component<CategoryPickerProps,CategoryPicker
             ]
         }); 
     }
+
 
 
     render(){ 

@@ -37,9 +37,9 @@ const PouchDB = require('pouchdb-browser').default;
 
 
 export let init = () : any[] => {
-    let todos_db = new PouchDB('todos',{auto_compaction: true});
-    let projects_db = new PouchDB('projects',{auto_compaction: true});
-    let areas_db = new PouchDB('areas',{auto_compaction: true}); 
-    let calendars_db = new PouchDB('calendars',{auto_compaction: true}); 
+    let todos_db = new PouchDB('todos',{auto_compaction:true, revs_limit:1});
+    let projects_db = new PouchDB('projects',{auto_compaction:true, revs_limit:1});
+    let areas_db = new PouchDB('areas',{auto_compaction:true, revs_limit:1}); 
+    let calendars_db = new PouchDB('calendars',{auto_compaction:true, revs_limit:1}); 
     return [todos_db, projects_db, areas_db, calendars_db];
 };

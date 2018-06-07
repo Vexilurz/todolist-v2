@@ -1,5 +1,9 @@
 
-import { Todo,Project, Area, Calendar, Category, CalendarEvent, RepeatOptions, objectsByDate } from './../types';
+import { 
+    Todo, Project, Area, 
+    Calendar, Category, CalendarEvent, 
+    RepeatOptions, objectsByDate 
+} from './../types';
 import { 
     byTags, getDayName, getDatesRange, byNotCompleted, byNotDeleted,
     getTagsFromItems, getMonthName, yearFromDate, convertTodoDates,

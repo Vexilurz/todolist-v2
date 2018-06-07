@@ -1,8 +1,8 @@
 {
   "name": "tasklist",
-  "version": "1.7.0-master",
+  "version": "1.7.1-master",
   "description": "tasklist",
-  "main": "production/main.js",
+  "main": "dist/main.js",
   "scripts": { 
     "start": "electron .",
     "publish": "build --win --publish always",

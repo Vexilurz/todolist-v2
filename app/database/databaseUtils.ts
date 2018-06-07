@@ -15,7 +15,7 @@ import {
 import { isArea, isString, isProject, isTodo } from '../utils/isSomething';
 import { 
     Calendar, ChecklistItem, Category, RawDraftContentState, 
-    RepeatOptions, Todo, Project, Area, Query, Databases, withOne, withMany 
+    RepeatOptions, Todo, Project, Area, Query, Databases, withOne, withMany, action 
 } from '../types';
 import { isDev } from '../utils/isDev';
 import { singleItem } from '../utils/singleItem';
@@ -25,7 +25,7 @@ import { onError } from './onError';
 const Promise = require('bluebird');
 const path = require('path');
 let window : any = self;
-
+const sendMessage = postMessage as (action:action) => void;
 
 let queryToObjects = (query:Query<any>) => query ? query.rows.map(row => row.doc) : []; 
 let removeRev = (item) => {
@@ -182,7 +182,7 @@ export let updateItemsInDatabase = (onError:Function, db:any) => {
                     for(let i=0; i<items.length; i++){
                         let item = items[i];  
                         if(!isNil(item)){
-                            item[`_rev`] = revs[item["_id"]];
+                            item[`_rev`] = revs[item["_id"]]; 
                         }
                     }    
                     
@@ -247,7 +247,14 @@ export let updateItems = mapDatabaseItems(updateItemInDatabase, updateItemsInDat
 
 
  
-export let removeItems = (db, onError:Function) => compose(updateItems(db, onError), map(item => ({...item,_deleted: true})));
+export let removeItems = (db, onError:Function) => items => {
+    console.log(items);
+
+    return compose(
+        updateItems(db, onError), 
+        map(item => ({...item,_deleted: true}))
+    )(items);
+};
 
 
 

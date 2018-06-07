@@ -104,6 +104,7 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
             load:[
                 {type:"selectedAreaId",load:area._id}, 
                 {type:"selectedProjectId",load:null},
+                {type:"showMenu",load:false},
                 {type:"showProjectMenuPopover",load:false}, 
                 {type:"selectedCategory",load:"area"},
                 {type:"selectedTags",load:["All"]},
@@ -121,6 +122,7 @@ export class StaticAreasList extends Component<StaticAreasListProps,StaticAreasL
             load:[
                 {type:"selectedProjectId",load:p._id},
                 {type:"selectedAreaId",load:null}, 
+                {type:"showMenu",load:false},
                 {type:"showProjectMenuPopover",load:false}, 
                 {type:"selectedCategory",load:"project"},
                 {type:"selectedTags",load:["All"]},

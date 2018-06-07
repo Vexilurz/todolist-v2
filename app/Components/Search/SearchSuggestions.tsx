@@ -300,7 +300,7 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
 
     constructor(props){
         super(props);
-        this.initialLimit = 3;
+        this.initialLimit = 10;
         this.limitReached = false; 
         this.state = {limit:this.initialLimit}; 
     }
@@ -345,7 +345,7 @@ export class SearchSuggestions extends Component<SearchSuggestionsProps,SearchSu
      
 
     
-    onGetMoreResults = (e) => !this.limitReached ? this.setState({limit:this.state.limit + 3}) : null;
+    onGetMoreResults = (e) => !this.limitReached ? this.setState({limit:this.state.limit + 5}) : null;
  
 
 
