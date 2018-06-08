@@ -218,8 +218,6 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                     let todosToRemoveIds = todosToRemove.map((t:Todo) => t._id);
                     let todosToUpdateIds = todosToUpdate.map((t:Todo) => t._id);
 
-
-
                     let todos : Todo[] = compose(
                         ifElse(
                             () => containsSingleElement(todosToUpdate),
@@ -229,21 +227,21 @@ export let objectsReducer = (state:Store, action:action) : Store => {
                                 let index = findIndex((t:Todo) => todo._id===t._id, todos);
                                 return adjust(todo => assoc('group', null, todo), index, todos);
                             }, 
-                            when(
-                                () => path(['group','options','selectedOption'], todo) !== 'after', //on, never 
-                                map(
-                                    when(
-                                        (t:Todo) => contains(t._id)(todosToUpdateIds) && isDate(until), 
-                                        compose(
-                                            assocPath(['group', 'options', 'until'], until),
-                                            assocPath(['group', 'options', 'selectedOption'], 'on'),
-                                            assocPath(['group', 'type'], 'on')
-                                        )
+                            map(
+                                when(
+                                    (t:Todo) => 
+                                        contains(t._id)(todosToUpdateIds) && 
+                                        isDate(until) &&
+                                        path(['group','options','selectedOption'], todo) !== 'after', 
+                                    compose(
+                                        assocPath(['group', 'options', 'until'], until),
+                                        assocPath(['group', 'options', 'selectedOption'], 'on'),
+                                        assocPath(['group', 'type'], 'on')
                                     )
-                                ) 
-                            )
+                                )
+                            ) 
                         ),
-                        reject((t:Todo) => contains(t._id)(todosToRemoveIds))
+                        reject( (t:Todo) => contains(t._id)(todosToRemoveIds) )
                     )(state.todos);
 
                     return ({...state,todos});

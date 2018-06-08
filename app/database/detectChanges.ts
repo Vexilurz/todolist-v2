@@ -54,6 +54,7 @@ export let detectChanges : (state:Store) => (newState:Store) => Changes =
                     )
 
                 }else if(prev.length<next.length){ //items added
+
                     let obj = measureTime(toObjById, 'toObjById added')(prev);
 
                     next.forEach( 
@@ -67,14 +68,18 @@ export let detectChanges : (state:Store) => (newState:Store) => Changes =
                     )
 
                 }else if(prev.length>next.length){ //items removed
+
                     let obj = measureTime(toObjById, 'toObjById removed')(next);
 
                     prev.forEach( 
                         item => { 
                             if(!obj[item._id]){
-                                changes.remove.push(item);
-                            }else if(item!==obj[item._id]){
-                                changes.update.push(item);
+
+                                changes.remove.push(item); //item does not exist in new state
+
+                            }else if(item!==obj[item._id]){ 
+
+                                changes.update.push(obj[item._id]);
                             }
                         } 
                     )
