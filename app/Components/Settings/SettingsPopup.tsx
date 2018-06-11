@@ -28,17 +28,17 @@ export class SettingsPopup extends Component<SettingsPopupProps,SettingsPopupSta
         > 
             <Settings 
                 email={this.props.email} 
-                sync={this.props.sync}
-                lastSync={this.props.lastSync}
-                secretKey={this.props.secretKey}
+                sync={this.props.sync} 
+                lastSync={this.props.lastSync} 
+                secretKey={this.props.secretKey} 
                 import={this.props.import}
-
+                lastImport={this.props.lastImport}
                 selectedSettingsSection={this.props.selectedSettingsSection}
                 enableShortcutForQuickEntry={this.props.enableShortcutForQuickEntry}
                 quickEntrySavesTo={this.props.quickEntrySavesTo}
 
-                hideHint={this.props.hideHint}
-                calendars={this.props.calendars}
+                hideHint={this.props.hideHint} 
+                calendars={this.props.calendars} 
                 showCalendarEvents={this.props.showCalendarEvents}
                 limit={this.props.limit}
 

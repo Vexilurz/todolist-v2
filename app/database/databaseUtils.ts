@@ -248,8 +248,6 @@ export let updateItems = mapDatabaseItems(updateItemInDatabase, updateItemsInDat
 
  
 export let removeItems = (db, onError:Function) => items => {
-    console.log(items);
-
     return compose(
         updateItems(db, onError), 
         map(item => ({...item,_deleted: true}))

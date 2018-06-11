@@ -68,10 +68,10 @@ Observable.fromEvent(self, 'message', event => event)
             
             [ () => true, () => new Promise( resolve => resolve(null) ) ]    
         ])(action);
-        
+         
         return result.then(
             load => {
-               return {type:action.type, load};
+               return {type:action.type, load, import:action.import};
             }
         );
     }

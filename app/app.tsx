@@ -32,6 +32,7 @@ import { ChangeGroupPopup } from './Components/TodoInput/ChangeGroupPopup';
 import { UpdateNotification } from './Components/UpdateNotification';
 import { googleAnalytics } from './analytics';
 import { globalErrorHandler } from './utils/globalErrorHandler';
+import { getAmounts } from './utils/getAmounts';
 import { collectSystemInfo } from './utils/collectSystemInfo';
 import { convertEventDate } from './Components/Calendar';
 import { SettingsPopup } from './Components/settings/SettingsPopup';
@@ -97,7 +98,7 @@ export class App extends Component<AppProps,AppState>{
 
         this.generateIndicatorsWorker = null;
 
-        this.state = { amounts:this.getAmounts(this.props), indicators:{} };
+        this.state = { amounts:getAmounts(this.props), indicators:{} };
     };
  
 
@@ -128,9 +129,8 @@ export class App extends Component<AppProps,AppState>{
     //init
     componentDidMount(){    
         this.generateIndicatorsWorker = new Worker('generateIndicators.js');
-        this.setInitialTitle();
-        this.initQuickFind();
-        
+        this.initQuickFind(); 
+        this.setWindowTitle(this.props,this.props,this.state.amounts.today+this.state.amounts.hot); 
         if(!this.props.clone){
             this.initCtrlB();
             this.initPouchObservables();
@@ -165,16 +165,20 @@ export class App extends Component<AppProps,AppState>{
         ]
     });
 
-
+ 
 
     onPouchChanges = (action:action) => { 
-        console.log(`%c pouch ${action.type}`, `color: "#000080"`, action.load);
+        console.log(`%c pouch ${action.type}  import:${action.import}`, `color: "#000080"`, action.load);
       
         let changes : { dbname:string, changes:PouchChanges } = action.load; 
         let dbname = prop("dbname")(changes);
         let change : PouchChange<any> = path(["changes","change"])(changes);
 
-        if(isNil(change) || isEmpty(change.docs) || !change.ok){  return  }
+        if(action.import){
+           this.props.dispatch({ type:"lastImport", load:new Date() });
+        }
+
+        if(isNil(change) || isEmpty(change.docs) || !change.ok){  return  } //continue only if change from "outside"
  
         let timestamp = new Date(change.start_time);
         let decrypt = decryptDoc(dbname, this.props.secretKey, globalErrorHandler);
@@ -189,12 +193,13 @@ export class App extends Component<AppProps,AppState>{
         )(change); 
  
         let lastSyncAction = { type:"lastSync", load:timestamp, kind:"sync" };
+        
         let local = defaultTo([])(this.props[dbname]);
 
         let actions : action[] = compose( changesToActions(dbname), toStoreChanges(local) )(docs);
         
         this.props.dispatch({type:"multiple", load: [...actions,lastSyncAction] });
-    };
+    };  
 
 
 
@@ -266,10 +271,7 @@ export class App extends Component<AppProps,AppState>{
                     auth && 
                     this.props.sync
                 ){
-                    let action : actionStartSync = {
-                        type:"startSync", 
-                        load:emailToUsername(this.props.email)
-                    };
+                    let action : actionStartSync = { type:"startSync", load:emailToUsername(this.props.email) };
 
                     pouchWorker.postMessage(action);
                 }
@@ -283,15 +285,7 @@ export class App extends Component<AppProps,AppState>{
         this.subscriptions=[];
     };
 
-
-
-    setInitialTitle = () => ipcRenderer.send(
-        'setWindowTitle', 
-        `tasklist - ${uppercase(this.props.selectedCategory)}`, 
-        this.props.id
-    );
- 
-
+    
 
     cloneWindow = () => {
         ipcRenderer.send("store", {...this.props});
@@ -303,7 +297,7 @@ export class App extends Component<AppProps,AppState>{
     reportStart = () => collectSystemInfo().then(
          ({ arch, cpus, platform, release, type }) => 
         googleAnalytics.send(   
-            'event',   
+            'event',    
             {  
                 ec:'Start',   
                 ea:`
@@ -334,30 +328,7 @@ export class App extends Component<AppProps,AppState>{
     
 
 
-    getAmounts = (props:Store) : { 
-        inbox:number,
-        today:number,
-        hot:number,
-        next:number,
-        someday:number,
-        logbook:number,
-        trash:number
-    } => {
-        let filters : {
-            inbox:((todo:Todo) => boolean)[],
-            today:((todo:Todo) => boolean)[], 
-            hot:((todo:Todo) => boolean)[],
-            next:((todo:Todo) => boolean)[],
-            someday:((todo:Todo) => boolean)[],
-            upcoming:((todo:Todo) => boolean)[],
-            logbook:((todo:Todo) => boolean)[],
-            trash:((todo:Todo) => boolean)[]
-        } = getFilters(props.projects);
-
-        let amounts = generateAmounts(props.todos, filters);
-
-        return amounts;
-    };
+    
 
 
 
@@ -379,18 +350,46 @@ export class App extends Component<AppProps,AppState>{
            this.props.projects!==nextProps.projects || 
            this.props.todos!==nextProps.todos 
         ){
-            this.promiseIndicators(nextProps.projects, nextProps.todos)
+            this
+            .promiseIndicators(nextProps.projects, nextProps.todos)
             .then( 
-                (indicators:Indicators) => this.setState(
-                    {indicators}, 
-                    () => this.updateQuickEntry(nextProps,indicators)
-                )
+                (indicators:Indicators) => this.setState({indicators}, () => this.updateQuickEntry(nextProps,indicators))
             );
 
-            this.setState({amounts:this.getAmounts(nextProps)});
+            let amounts = getAmounts(nextProps);
+            this.setState({amounts}, () => this.setWindowTitle(this.props,nextProps,amounts.today+amounts.hot));
         }
+
+        this.setWindowTitle(this.props, nextProps, this.state.amounts.today+this.state.amounts.hot); 
     };
 
+
+
+    setWindowTitle = (props:Store,newProps:Store,today:number) : void => {
+        if(newProps.selectedCategory==="area"){
+            let area = newProps.areas.find( a => a._id===newProps.selectedAreaId );
+            if(area){
+                ipcRenderer.send(
+                  'setWindowTitle', 
+                  `(${today}) tasklist - ${uppercase(isEmpty(area.name) ? 'New Area' : area.name)}`, 
+                   newProps.id
+                );
+            }
+        }else if(newProps.selectedCategory==="project"){
+            let project = newProps.projects.find( p => p._id===newProps.selectedProjectId );
+    
+            if(project){
+                ipcRenderer.send(
+                    'setWindowTitle',  
+                    `(${today}) tasklist - ${uppercase( isEmpty(project.name) ? 'New Project' : project.name )}`, 
+                    newProps.id
+                );
+            }
+        }else{
+            ipcRenderer.send('setWindowTitle',`(${today}) tasklist - ${uppercase(newProps.selectedCategory)}`,newProps.id);    
+        }
+    };
+    
     
 
     render(){
@@ -502,6 +501,7 @@ export class App extends Component<AppProps,AppState>{
                     calendars={this.props.calendars}
                     showCalendarEvents={this.props.showCalendarEvents}
                     limit={this.props.limit}
+                    lastImport={this.props.lastImport}
                     shouldSendStatistics={this.props.shouldSendStatistics}
                     moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                     groupTodos={this.props.groupTodos}

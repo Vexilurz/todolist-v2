@@ -31,6 +31,7 @@ import { isDev } from '../../utils/isDev';
 
 interface FooterProps{
     width:number,
+    drag:boolean,
     collapsed:boolean,
     sync:boolean,
     openNewProjectAreaPopup:(e:any) => void,
@@ -50,11 +51,11 @@ export class Footer extends Component<FooterProps,FooterState>{
 
     
     render(){ 
-        let { collapsed, openSettings, openNewProjectAreaPopup, width, setNewProjectAnchor } = this.props; 
+        let { collapsed, openSettings, openNewProjectAreaPopup, width, setNewProjectAnchor, drag } = this.props; 
 
         return <div style={{    
-            transition: "width 0.2s ease-in-out", 
-            width:collapsed ? "0px" : `${width}px`,
+            transition:drag ? "" : "width 0.2s ease-in-out", 
+            width:collapsed ? "0px" : `${width}px`, 
             display:"flex",  
             alignItems:"center",  
             position:"fixed",    

@@ -16,6 +16,8 @@ export interface Data{
 
 interface ResizableHandleProps{
   onDrag:(event, data : Data) => void
+  onStart:(event, data : Data) => void
+  onStop:(event, data : Data) => void
 } 
 
 export class ResizableHandle extends Component<ResizableHandleProps,{}>{
@@ -34,9 +36,15 @@ export class ResizableHandle extends Component<ResizableHandleProps,{}>{
         return <DraggableCore
                     ref = {e => { this.ref = e;}}
                     allowAnyClick={false}
-                    onStart={this.props.onDrag}
+                    onStart={(event, data : Data) => {
+                        this.props.onStart(event,data);
+                        this.props.onDrag(event,data);
+                    }}
                     onDrag={this.props.onDrag}  
-                    onStop={this.props.onDrag}    
+                    onStop={(event, data : Data) => {
+                        this.props.onStop(event,data);
+                        this.props.onDrag(event,data);
+                    }}    
                 >   
                     <div style={{  
                        touchAction: "none",
@@ -46,7 +54,7 @@ export class ResizableHandle extends Component<ResizableHandleProps,{}>{
                        position: "relative",
                        backgroundColor: "rgba(0, 0, 0, 0)",
                        height: "100%",
-                       width: "5px",
+                       width: "10px",
                        fontSize: "18px",
                        color: "rgba(0, 0, 0, 0)"
                     }}>      

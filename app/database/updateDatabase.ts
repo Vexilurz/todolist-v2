@@ -90,10 +90,9 @@ export let updateDatabase = (state:Store, load:action[]) => (newState:Store) : S
     let items = compose(flatten,map(values),values)(changes);
  
     if(!isEmpty(changes) && !isEmpty(items)){ 
-       //console.log(changes); 
-       let actionChanges : actionChanges = { type:"changes", load:changes };
+       let actionChanges : actionChanges = { type:"changes", load:changes, import:prop('import')(load[0]) };
        pouchWorker.postMessage(actionChanges); 
     } 
-
+ 
     return newState; 
-};        
+};          

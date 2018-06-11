@@ -37,6 +37,7 @@ let completedSet : (todo:Todo) => boolean = compose(isNotNil,prop('completedSet'
 
 interface AdvancedProps{
     limit:Date,
+    lastImport:Date,
     secretKey:string,
     import:ImportActionLoad,
     enableShortcutForQuickEntry:boolean,
@@ -89,17 +90,8 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
 
 
     componentWillReceiveProps(nextProps){
-        if(
-            this.state.progress && 
-            this.props.import && 
-            !nextProps.import
-        ){
-            setTimeout(
-                () => !this.ref ? 
-                        null : 
-                        this.updateState({progress:false,message:`Data was successfully imported.`}), 
-                6000
-            )
+        if(nextProps.lastImport!==this.props.lastImport){
+           this.updateState({progress:false,message:`Data was successfully imported.`});
         }
     }
 
@@ -129,11 +121,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     backup : () => Promise<string> = () => 
     getData(this.props.secretKey)
     .then( 
-        (database:Databases) => requestFromMain(
-            'saveBackup', 
-            [ { database } ], 
-            (event, to) => to 
-        ) 
+        (database:Databases) => requestFromMain('saveBackup', [ { database } ], (event, to) => to) 
     );  
 
 
@@ -143,7 +131,7 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
     .then(
         ifElse(
             correctFormat,
-            database => this.updateState({progress:true}).then(() => database)
+            database => this.updateState({progress:true,message:''}).then(() => database)
             .then(
                 compose(
                     (database:Databases) => {
@@ -158,13 +146,13 @@ export class AdvancedSettings extends Component<AdvancedProps,AdvancedState>{
         )
     );
 
-    
+     
 
     onSelectExportFolder : () => Promise<void> = () => 
     selectFolder()
     .then(
         ifElse( isNil, () => new Promise( resolve => resolve() ), d => this.export(d)  )
-    ); 
+    );  
 
 
 

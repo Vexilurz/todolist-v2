@@ -47,10 +47,10 @@ export class ImportPopup extends Component<ImportPopupProps,ImportPopupState>{
         this.props.dispatch({
             type:"multiple",
             load:[
-              {type:"addTodos",load:todos},
-              {type:"addProjects",load:projects},   
-              {type:"addAreas",load:areas},      
-              {type:"addCalendars",load:calendars}   
+              {type:"addTodos",load:todos,import:true},
+              {type:"addProjects",load:projects,import:true},   
+              {type:"addAreas",load:areas,import:true},      
+              {type:"addCalendars",load:calendars,import:true}   
             ]
         });
 
@@ -71,10 +71,10 @@ export class ImportPopup extends Component<ImportPopupProps,ImportPopupState>{
         this.props.dispatch({
             type:"multiple",
             load:[
-                {type:"addTodos", load:filter( todos, t => !contains(t._id)(todosids) ) },
-                {type:"addProjects", load:filter( projects, p => !contains(p._id)(projectids) ) },   
-                {type:"addAreas", load:filter( areas, a => !contains(a._id)(areasids) ) },   
-                {type:"addCalendars", load:filter( calendars, c => !contains(c._id)(calendarsids) ) }   
+                {type:"addTodos", load:filter( todos, t => !contains(t._id)(todosids) ), import:true },
+                {type:"addProjects", load:filter( projects, p => !contains(p._id)(projectids) ), import:true },   
+                {type:"addAreas", load:filter( areas, a => !contains(a._id)(areasids) ), import:true },   
+                {type:"addCalendars", load:filter( calendars, c => !contains(c._id)(calendarsids) ), import:true }   
             ]
         });
     
@@ -87,10 +87,7 @@ export class ImportPopup extends Component<ImportPopupProps,ImportPopupState>{
         return <OptionsPopup
             title={'Import database'}
             message={this.props.import.pathToFile}
-            options={[
-                { title:'Merge databases', f:this.merge },                  
-                { title:'Replace database', f:this.replace }
-            ]}
+            options={[{ title:'Merge databases', f:this.merge },{ title:'Replace database', f:this.replace }]}
             onCancel={this.onCancel}
             onClose={this.onClose}
         />

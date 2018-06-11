@@ -35,6 +35,7 @@ export interface SettingsProps{
     calendars:Calendar[],
     showCalendarEvents:boolean,
     limit:Date,
+    lastImport:Date,
 
     shouldSendStatistics:boolean,
     moveCompletedItemsToLogbook:string,
@@ -188,6 +189,7 @@ export class Settings extends Component<SettingsProps,SettingsState>{
                             shouldSendStatistics={this.props.shouldSendStatistics}
                             moveCompletedItemsToLogbook={this.props.moveCompletedItemsToLogbook}
                             groupTodos={this.props.groupTodos}
+                            lastImport={this.props.lastImport}
                             disableReminder={this.props.disableReminder}
                             enableShortcutForQuickEntry={this.props.enableShortcutForQuickEntry}
                             todos={this.props.todos}

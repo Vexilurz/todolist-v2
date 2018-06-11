@@ -7,6 +7,7 @@ import { nDaysFromNow } from "./utils/utils";
 export let defaultStoreItems : Store = {
     ...defaultConfig,
     showMenu:false,
+    lastImport:new Date(),
     import:null,
     sync:true,
     collapsed:false,

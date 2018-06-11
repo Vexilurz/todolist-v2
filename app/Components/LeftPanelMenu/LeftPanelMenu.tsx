@@ -67,7 +67,9 @@ interface LeftPanelMenuProps{
 
 
 
-interface LeftPanelMenuState{}
+interface LeftPanelMenuState{
+    drag:boolean
+}
 
 
 
@@ -79,7 +81,8 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
     
 
     constructor(props){  
-        super(props);   
+        super(props); 
+        this.state={drag:false};  
     } 
 
 
@@ -155,6 +158,18 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
       
 
 
+    onStart = (e,d) => {
+        this.setState({drag:true});
+    };
+    
+    
+
+    onStop = (e,d) => {
+        this.setState({drag:false});
+    };
+      
+
+
     openNewProjectAreaPopup = () => {
         let {openNewProjectAreaPopup,dispatch} = this.props;
         if(not(openNewProjectAreaPopup)){
@@ -211,18 +226,29 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
 
      
-    render(){      
+    render(){ 
         return <div style={{display:"flex", flexDirection:"row-reverse", height:window.innerHeight}}> 
-            { not(this.props.collapsed) ? <ResizableHandle onDrag={this.onResizableHandleDrag}/> : null } 
+            { 
+                not(this.props.collapsed) ? 
+                <ResizableHandle 
+                    onDrag={this.onResizableHandleDrag}
+                    onStart={this.onStart}
+                    onStop={this.onStop}
+                /> 
+                : 
+                null 
+            } 
             <div        
                 id="leftpanel"
                 ref={(e) => {this.leftPanelRef=e;}}  
                 className="scroll" 
                 style={{ 
                     WebkitUserSelect:"none", 
-                    transition: "width 0.2s ease-in-out", 
                     width:this.props.collapsed ? "0px" : `${this.props.leftPanelWidth}px`,
-                    height:`100%`,      
+                    transition: this.state.drag ? "" : "width 0.2s ease-in-out", 
+                    height:`100%`,
+                    marginLeft:"-1px",
+                    marginTop:"-1px",      
                     backgroundColor:"rgb(248, 248, 248)"  
                 }}      
             >   
@@ -237,7 +263,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
                         searchQuery={this.props.searchQuery}
                     />
                 }
-                </div>    
+                </div>     
                 <CategoryMenu    
                     dragged={this.props.dragged}
                     dispatch={this.props.dispatch} 
@@ -265,6 +291,7 @@ export class LeftPanelMenu extends Component<LeftPanelMenuProps,LeftPanelMenuSta
 
                 <Footer  
                     sync={this.props.sync}
+                    drag={this.state.drag}
                     width={ this.props.leftPanelWidth }  
                     collapsed={ this.props.collapsed }
                     openSettings={this.openSettings}

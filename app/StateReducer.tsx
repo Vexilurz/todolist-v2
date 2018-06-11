@@ -7,6 +7,12 @@ import { Store, Category, Todo, section, Calendar, Area, Project, ImportAction }
 export let stateReducer = (state:Store, action:{ type:keyof Store, load:any}) : Store => {
     return cond([
             [ 
+                typeEquals("lastImport"),
+                (action:{type:string, load:Date}) : Store => {
+                    return ({...state, lastImport:action.load}); 
+                }   
+            ], 
+            [ 
                 typeEquals("showMenu"),
                 (action:{type:string, load:boolean}) : Store => {
                     return ({...state, showMenu:action.load}); 

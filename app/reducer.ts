@@ -13,6 +13,7 @@ import { requestFromMain } from './utils/requestFromMain';
 import { isDev } from './utils/isDev';
 import { ipcRenderer } from 'electron';
 import { uppercase } from './utils/uppercase';
+import { getAmounts } from './utils/getAmounts';
 
 
  
@@ -67,39 +68,6 @@ let updateConfig = (newConfig:Config) : Promise<Config> => requestFromMain(
 
 
 
-let setWindowTitle = (state:Store) => (newState:Store) : Store => {
-
-    if(
-       state.selectedCategory===newState.selectedCategory &&
-       state.selectedAreaId===newState.selectedAreaId &&
-       state.selectedProjectId===newState.selectedProjectId
-    ){ return newState }
-
-    if(newState.selectedCategory==="area"){
-        let area = newState.areas.find( a => a._id===newState.selectedAreaId );
-        if(area){
-            ipcRenderer.send(
-              'setWindowTitle', 
-              `tasklist - ${uppercase(isEmpty(area.name) ? 'New Area' : area.name)}`, 
-               newState.id
-            );
-        }
-    }else if(newState.selectedCategory==="project"){
-        let project = newState.projects.find( p => p._id===newState.selectedProjectId );
-
-        if(project){
-            ipcRenderer.send(
-                'setWindowTitle',  
-                `tasklist - ${uppercase( isEmpty(project.name) ? 'New Project' : project.name )}`, 
-                newState.id
-            );
-        }
-    }else{
-        ipcRenderer.send('setWindowTitle',`tasklist - ${uppercase(newState.selectedCategory)}`,newState.id);    
-    }
-    
-    return newState;
-};
 
 
 
@@ -110,7 +78,6 @@ export let reducer = (reducers:Reducer[], updateConfig:UpdateConfig) => (state:S
     let applyActionsToState = (state:Store) : Store => actions.reduce((state,action) => apply(state,action), state);
    
     return compose( 
-        setWindowTitle(state),
         updateConfigFromStore(updateConfig, state),
         refreshReminders(state), 
         when(isMainWindow, updateDatabase(state, actions)),

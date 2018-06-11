@@ -54,7 +54,7 @@ export interface actionStopSync{ type:"stopSync", load:void };
 
 
 
-export interface actionChanges{ type:"changes", load:Changes };
+export interface actionChanges{ type:"changes", load:Changes, import?:boolean };
 
 
 
@@ -102,6 +102,7 @@ export type ItemWithPriority = Area | Project | Todo | Heading;
 export interface action{
      type:string,
      load:any,
+     import?:boolean,
      kind?:string
 };
 
@@ -209,6 +210,7 @@ export type section = 'QuickEntry' | 'CalendarEvents' | 'Advanced' | 'Tags' | 'S
 
 export interface Store extends Config{
   showMenu : boolean,  
+  lastImport : Date,
   import : ImportActionLoad,
   lastSync : Date,
   showWhenCalendar : boolean, 

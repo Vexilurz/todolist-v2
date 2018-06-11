@@ -94,7 +94,7 @@ export class SyncSettings extends Component<any,SyncSettingsState>{
             }}>     
                 <Cloud style={{color:"cornflowerblue", height:150, width:150}}/>
 
-                <div style={{display:"flex",justifyContent:"center", alignItems:"center"}}>
+                <div style={{display:"flex", justifyContent:"center", alignItems:"center"}}>
                     <div style={{fontWeight:"bold", color:"rgba(100,100,100,1)"}}>Tasklist</div>
                     <div>Cloud</div>
                 </div>

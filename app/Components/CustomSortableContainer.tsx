@@ -310,7 +310,7 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                     this.initial.initialX = event.clientX;
                     this.initial.initialY = event.clientY;
                 })
-                .switchMap((event) => {
+                .exhaustMap((event) => {
                     let cancel = shouldCancelStart(event,items[this.initial.initialIndex]);
                     
                     if(cancel){
@@ -318,11 +318,11 @@ export class SortableContainer extends Component<SortableContainerProps,Sortable
                     }else{
                         event.preventDefault()
                         return Observable 
-                                .fromEvent(document.body,"mousemove")
+                                .fromEvent(document,"mousemove")
                                 .skipWhile(byExceedThreshold)
                                 .takeUntil(
                                     Observable
-                                    .fromEvent(document.body,"mouseup")
+                                    .fromEvent(document,"mouseup")
                                     .do(
                                        (event:any) => this.onDragEnd(event)
                                     )

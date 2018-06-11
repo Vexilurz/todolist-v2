@@ -13,23 +13,15 @@ import Trash from 'material-ui/svg-icons/action/delete';
 import Logbook from 'material-ui/svg-icons/av/library-books';
 import { Category } from './../types';
  
- 
-
 
 
 export let chooseFadeIcon = (container:HTMLElement, selectedCategory:Category) : JSX.Element => {
-    
     let rect = container.getBoundingClientRect();
-
     let x = rect.width/2 - 85; 
     let y = rect.height/2 - 85; 
-
-    let style = { 
-        position: "absolute",
+    
+    let style = {  
         color: "rgba(100,100,100,0.1)",
-        top: y,
-        pointerEvents: "none",
-        left: x,
         fill: "currentcolor", 
         height: "170px",
         width: "170px", 
@@ -37,42 +29,51 @@ export let chooseFadeIcon = (container:HTMLElement, selectedCategory:Category) :
         WebkitUserSelect:"none"
     };
 
+    let containerStyle = {
+        position: "absolute",
+        pointerEvents: "none",
+        width: "90%",
+        height: "80%",
+        alignItems: "center",
+        display: "flex",
+        justifyContent: "center",
+        userSelect: "none"
+    }; 
+
     return cond([
         [
             equals("inbox"),
-            () => <Inbox style={style} /> 
+            () => <div style={containerStyle as any}><Inbox style={style} /></div> 
         ],
         [
             equals("today"),
-            () => <Star style={style}/>
+            () => <div style={containerStyle as any}><Star style={style}/></div> 
         ],
         [
             equals("upcoming"),
-            () => <CalendarIco style={style}/>
+            () => <div style={containerStyle as any}><CalendarIco style={style}/></div> 
         ],
         [
             equals("next"),
-            () => <Layers style={style}/>
+            () => <div style={containerStyle as any}><Layers style={style}/></div> 
         ],
         [
             equals("someday"),
-            () => <BusinessCase style={style}/> 
+            () => <div style={containerStyle as any}><BusinessCase style={style}/></div>  
         ],
         [
             equals("logbook"),
-            () => <Logbook style={style}/> 
+            () => <div style={containerStyle as any}><Logbook style={style}/></div>  
         ],
         [
             equals("trash"),
-            () => <Trash style={style}/>
+            () => <div style={containerStyle as any}><Trash style={style}/></div> 
         ],
         [
-            () => true,
-            () => null
+            () => true, () => null 
         ]
     ])(selectedCategory);
 } 
-
 
  
 
@@ -80,11 +81,10 @@ interface FadeBackgroundIconProps{
     container:HTMLElement,
     show:boolean,
     selectedCategory:Category
-} 
+}  
 
 
-
- 
+  
 export class FadeBackgroundIcon extends Component<FadeBackgroundIconProps,any>{
 
     constructor(props){
@@ -92,7 +92,7 @@ export class FadeBackgroundIcon extends Component<FadeBackgroundIconProps,any>{
     }
 
     shouldComponentUpdate(){
-        return true;
+        return true; 
     }
 
     render(){
